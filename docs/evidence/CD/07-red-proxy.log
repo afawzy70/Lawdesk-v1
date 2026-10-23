@@ -1,0 +1,171 @@
+FFFFFFEFFFFFFFFEFFF
+======================================================================
+ERROR: test_never_restarts_stops_or_recreates_the_proxy (test_proxy_scripts.AttachTest.test_never_restarts_stops_or_recreates_the_proxy)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_proxy_scripts.py", line 189, in test_never_restarts_stops_or_recreates_the_proxy
+    text = script.read_text(encoding="utf-8")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1029, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/deploy/proxy/attach.sh'
+
+======================================================================
+ERROR: test_validates_the_candidate_before_reloading_and_joins_the_edge_network (test_proxy_scripts.AttachTest.test_validates_the_candidate_before_reloading_and_joins_the_edge_network)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_proxy_scripts.py", line 174, in test_validates_the_candidate_before_reloading_and_joins_the_edge_network
+    validate = next(i for i, c in enumerate(calls) if "caddy validate" in c)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+StopIteration
+
+======================================================================
+FAIL: test_appends_only_the_lawdesk_site_and_keeps_every_matbakhy_line (test_proxy_scripts.AttachTest.test_appends_only_the_lawdesk_site_and_keeps_every_matbakhy_line)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_proxy_scripts.py", line 149, in test_appends_only_the_lawdesk_site_and_keeps_every_matbakhy_line
+    self.assertEqual(0, result.returncode, result.stderr)
+AssertionError: 0 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/proxy/attach.sh: No such file or directory
+
+
+======================================================================
+FAIL: test_backs_up_the_live_caddyfile_before_any_change (test_proxy_scripts.AttachTest.test_backs_up_the_live_caddyfile_before_any_change)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_proxy_scripts.py", line 163, in test_backs_up_the_live_caddyfile_before_any_change
+    self.assertEqual(1, len(backups))
+AssertionError: 1 != 0
+
+======================================================================
+FAIL: test_checks_every_matbakhy_host_before_and_after (test_proxy_scripts.AttachTest.test_checks_every_matbakhy_host_before_and_after)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_proxy_scripts.py", line 237, in test_checks_every_matbakhy_host_before_and_after
+    self.assertIn(host, output)
+AssertionError: 'app.167-86-90-174.sslip.io' not found in ''
+
+======================================================================
+FAIL: test_failed_reload_keeps_the_old_config_and_disconnects (test_proxy_scripts.AttachTest.test_failed_reload_keeps_the_old_config_and_disconnects)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_proxy_scripts.py", line 215, in test_failed_reload_keeps_the_old_config_and_disconnects
+    self.assertEqual(1, result.returncode)
+AssertionError: 1 != 127
+
+======================================================================
+FAIL: test_invalid_candidate_changes_nothing (test_proxy_scripts.AttachTest.test_invalid_candidate_changes_nothing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_proxy_scripts.py", line 206, in test_invalid_candidate_changes_nothing
+    self.assertEqual(1, result.returncode)
+AssertionError: 1 != 127
+
+======================================================================
+FAIL: test_matbakhy_hosts_answering_differently_after_reload_trigger_automatic_restore (test_proxy_scripts.AttachTest.test_matbakhy_hosts_answering_differently_after_reload_trigger_automatic_restore)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_proxy_scripts.py", line 224, in test_matbakhy_hosts_answering_differently_after_reload_trigger_automatic_restore
+    self.assertEqual(1, result.returncode)
+AssertionError: 1 != 127
+
+======================================================================
+FAIL: test_optional_allow_list_restricts_the_lawdesk_site (test_proxy_scripts.AttachTest.test_optional_allow_list_restricts_the_lawdesk_site)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_proxy_scripts.py", line 264, in test_optional_allow_list_restricts_the_lawdesk_site
+    self.assertEqual(0, result.returncode, result.stderr)
+AssertionError: 0 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/proxy/attach.sh: No such file or directory
+
+
+======================================================================
+FAIL: test_refuses_when_the_proxy_container_is_ambiguous_or_missing (test_proxy_scripts.AttachTest.test_refuses_when_the_proxy_container_is_ambiguous_or_missing) (containers='')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_proxy_scripts.py", line 243, in test_refuses_when_the_proxy_container_is_ambiguous_or_missing
+    self.assertEqual(2, result.returncode)
+AssertionError: 2 != 127
+
+======================================================================
+FAIL: test_refuses_when_the_proxy_container_is_ambiguous_or_missing (test_proxy_scripts.AttachTest.test_refuses_when_the_proxy_container_is_ambiguous_or_missing) (containers='c0ffee deadbeef')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_proxy_scripts.py", line 243, in test_refuses_when_the_proxy_container_is_ambiguous_or_missing
+    self.assertEqual(2, result.returncode)
+AssertionError: 2 != 127
+
+======================================================================
+FAIL: test_refuses_without_the_lawdesk_edge_network (test_proxy_scripts.AttachTest.test_refuses_without_the_lawdesk_edge_network)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_proxy_scripts.py", line 249, in test_refuses_without_the_lawdesk_edge_network
+    self.assertEqual(2, result.returncode)
+AssertionError: 2 != 127
+
+======================================================================
+FAIL: test_rejects_unsafe_hostname_and_allow_list_values (test_proxy_scripts.AttachTest.test_rejects_unsafe_hostname_and_allow_list_values) (extra={'LAWDESK_HOSTNAME': 'evil.example.com {\n respond 1'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_proxy_scripts.py", line 258, in test_rejects_unsafe_hostname_and_allow_list_values
+    self.assertEqual(2, result.returncode)
+AssertionError: 2 != 127
+
+======================================================================
+FAIL: test_rejects_unsafe_hostname_and_allow_list_values (test_proxy_scripts.AttachTest.test_rejects_unsafe_hostname_and_allow_list_values) (extra={'LAWDESK_HOSTNAME': 'app.x'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_proxy_scripts.py", line 258, in test_rejects_unsafe_hostname_and_allow_list_values
+    self.assertEqual(2, result.returncode)
+AssertionError: 2 != 127
+
+======================================================================
+FAIL: test_rejects_unsafe_hostname_and_allow_list_values (test_proxy_scripts.AttachTest.test_rejects_unsafe_hostname_and_allow_list_values) (extra={'LAWDESK_ALLOWED_IPS': '1.2.3.4 }'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_proxy_scripts.py", line 258, in test_rejects_unsafe_hostname_and_allow_list_values
+    self.assertEqual(2, result.returncode)
+AssertionError: 2 != 127
+
+======================================================================
+FAIL: test_running_twice_keeps_a_single_lawdesk_site (test_proxy_scripts.AttachTest.test_running_twice_keeps_a_single_lawdesk_site)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_proxy_scripts.py", line 198, in test_running_twice_keeps_a_single_lawdesk_site
+    self.assertEqual(0, result.returncode, result.stderr)
+AssertionError: 0 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/proxy/attach.sh: No such file or directory
+
+
+======================================================================
+FAIL: test_removes_only_the_lawdesk_block_when_the_live_file_changed_since (test_proxy_scripts.DetachTest.test_removes_only_the_lawdesk_block_when_the_live_file_changed_since)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_proxy_scripts.py", line 286, in test_removes_only_the_lawdesk_block_when_the_live_file_changed_since
+    self.assertEqual(0, result.returncode, result.stderr)
+AssertionError: 0 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/proxy/detach.sh: No such file or directory
+
+
+======================================================================
+FAIL: test_restores_the_backup_reloads_and_leaves_the_edge_network (test_proxy_scripts.DetachTest.test_restores_the_backup_reloads_and_leaves_the_edge_network)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_proxy_scripts.py", line 274, in test_restores_the_backup_reloads_and_leaves_the_edge_network
+    self.assertEqual(0, result.returncode, result.stderr)
+AssertionError: 0 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/proxy/detach.sh: No such file or directory
+
+
+======================================================================
+FAIL: test_without_a_lawdesk_site_there_is_nothing_to_do (test_proxy_scripts.DetachTest.test_without_a_lawdesk_site_there_is_nothing_to_do)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_proxy_scripts.py", line 292, in test_without_a_lawdesk_site_there_is_nothing_to_do
+    self.assertEqual(0, result.returncode, result.stderr)
+AssertionError: 0 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/proxy/detach.sh: No such file or directory
+
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.317s
+
+FAILED (failures=17, errors=2)

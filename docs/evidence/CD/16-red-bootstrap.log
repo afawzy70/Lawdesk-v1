@@ -1,0 +1,141 @@
+FFEE.EEFFFFFFF
+======================================================================
+ERROR: test_generates_database_passwords_once_and_never_overwrites_them (test_bootstrap.BootstrapTest.test_generates_database_passwords_once_and_never_overwrites_them)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_bootstrap.py", line 80, in test_generates_database_passwords_once_and_never_overwrites_them
+    admin = (self.home / "secrets" / "db_admin_password.txt").read_text(encoding="utf-8")
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1029, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpw3xx_svd/deployments/lawdesk/secrets/db_admin_password.txt'
+
+======================================================================
+ERROR: test_installs_the_ci_key_restricted_to_the_gate_once (test_bootstrap.BootstrapTest.test_installs_the_ci_key_restricted_to_the_gate_once)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_bootstrap.py", line 95, in test_installs_the_ci_key_restricted_to_the_gate_once
+    lines = (self.user_home / ".ssh" / "authorized_keys").read_text(encoding="utf-8").splitlines()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1029, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmptr5nfkfr/devops/.ssh/authorized_keys'
+
+======================================================================
+ERROR: test_never_touches_anything_outside_its_paths (test_bootstrap.BootstrapTest.test_never_touches_anything_outside_its_paths)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_bootstrap.py", line 137, in test_never_touches_anything_outside_its_paths
+    text = BOOTSTRAP.read_text(encoding="utf-8")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1029, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/deploy/host/bootstrap.sh'
+
+======================================================================
+ERROR: test_prepares_a_read_only_fetch_from_github_with_a_pinned_host_key (test_bootstrap.BootstrapTest.test_prepares_a_read_only_fetch_from_github_with_a_pinned_host_key)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_bootstrap.py", line 115, in test_prepares_a_read_only_fetch_from_github_with_a_pinned_host_key
+    config = subprocess.run(["git", "-C", str(repo), "config", "--list"], capture_output=True, text=True,
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['git', '-C', '/tmp/tmpyzvxay1e/deployments/lawdesk/repo.git', 'config', '--list']' returned non-zero exit status 128.
+
+======================================================================
+FAIL: test_creates_the_internal_edge_network_only_when_missing (test_bootstrap.BootstrapTest.test_creates_the_internal_edge_network_only_when_missing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_bootstrap.py", line 129, in test_creates_the_internal_edge_network_only_when_missing
+    self.assertEqual(["network create --internal lawdesk-edge"], creates)
+AssertionError: Lists differ: ['network create --internal lawdesk-edge'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'network create --internal lawdesk-edge'
+
+- ['network create --internal lawdesk-edge']
++ []
+
+======================================================================
+FAIL: test_creates_the_isolated_layout (test_bootstrap.BootstrapTest.test_creates_the_isolated_layout)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_bootstrap.py", line 71, in test_creates_the_isolated_layout
+    self.assertEqual(0, result.returncode, result.stderr)
+AssertionError: 0 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/host/bootstrap.sh: No such file or directory
+
+
+======================================================================
+FAIL: test_prints_the_known_hosts_line_for_the_ci_secret (test_bootstrap.BootstrapTest.test_prints_the_known_hosts_line_for_the_ci_secret)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_bootstrap.py", line 134, in test_prints_the_known_hosts_line_for_the_ci_secret
+    self.assertIn("LAWDESK_STAGING_KNOWN_HOSTS", result.stdout)
+AssertionError: 'LAWDESK_STAGING_KNOWN_HOSTS' not found in ''
+
+======================================================================
+FAIL: test_rejects_a_private_key_or_anything_but_one_ed25519_public_key (test_bootstrap.BootstrapTest.test_rejects_a_private_key_or_anything_but_one_ed25519_public_key) (content='-----BEGIN OPENSSH PRIVATE KEY')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_bootstrap.py", line 65, in test_rejects_a_private_key_or_anything_but_one_ed25519_public_key
+    self.assertEqual(2, self.bootstrap(str(bad)).returncode)
+AssertionError: 2 != 127
+
+======================================================================
+FAIL: test_rejects_a_private_key_or_anything_but_one_ed25519_public_key (test_bootstrap.BootstrapTest.test_rejects_a_private_key_or_anything_but_one_ed25519_public_key) (content='ssh-rsa AAAA x\n')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_bootstrap.py", line 65, in test_rejects_a_private_key_or_anything_but_one_ed25519_public_key
+    self.assertEqual(2, self.bootstrap(str(bad)).returncode)
+AssertionError: 2 != 127
+
+======================================================================
+FAIL: test_rejects_a_private_key_or_anything_but_one_ed25519_public_key (test_bootstrap.BootstrapTest.test_rejects_a_private_key_or_anything_but_one_ed25519_public_key) (content='ssh-ed25519 AAAAC3NzaC1lZDI1NT')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_bootstrap.py", line 65, in test_rejects_a_private_key_or_anything_but_one_ed25519_public_key
+    self.assertEqual(2, self.bootstrap(str(bad)).returncode)
+AssertionError: 2 != 127
+
+======================================================================
+FAIL: test_rejects_a_private_key_or_anything_but_one_ed25519_public_key (test_bootstrap.BootstrapTest.test_rejects_a_private_key_or_anything_but_one_ed25519_public_key) (content='command="sh" ssh-ed25519 AAAAC')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_bootstrap.py", line 65, in test_rejects_a_private_key_or_anything_but_one_ed25519_public_key
+    self.assertEqual(2, self.bootstrap(str(bad)).returncode)
+AssertionError: 2 != 127
+
+======================================================================
+FAIL: test_requires_the_ci_public_key (test_bootstrap.BootstrapTest.test_requires_the_ci_public_key) (args=[])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_bootstrap.py", line 57, in test_requires_the_ci_public_key
+    self.assertEqual(2, self.bootstrap(*args).returncode)
+AssertionError: 2 != 127
+
+======================================================================
+FAIL: test_requires_the_ci_public_key (test_bootstrap.BootstrapTest.test_requires_the_ci_public_key) (args=['/tmp/tmp6qnd5wbs/missing.pub'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_bootstrap.py", line 57, in test_requires_the_ci_public_key
+    self.assertEqual(2, self.bootstrap(*args).returncode)
+AssertionError: 2 != 127
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.682s
+
+FAILED (failures=9, errors=4)

@@ -1,0 +1,159 @@
+# Real-image host-mode deploy, repeat deploy and rollback drill on a disposable GitHub-hosted runner
+# PR #7 head 70abe90f0415c3a0e500118863a247b6effaebe0; run https://github.com/afawzy70/Lawdesk-v1/actions/runs/40007348089; LAWDESK_TAG is the PR merge ref
+2026-10-23T18:58:24.5694158Z ##[group]Run # The host layout of /srv/deployments/lawdesk, on this disposable runner: the release unpacked by commit,
+2026-10-23T18:58:24.5792987Z shell: /usr/bin/bash -e {0}
+2026-10-23T18:58:24.5793424Z env:
+2026-10-23T18:58:24.5793780Z   LAWDESK_REGISTRY: lawdesk-local
+2026-10-23T18:58:24.5794327Z   LAWDESK_TAG: 41fd3dc72d5b366d8955ef81424efa2bfb3fa107
+2026-10-23T18:58:24.5794870Z ##[endgroup]
+2026-10-23T18:58:24.6500549Z 2026-10-23T18:58:24Z deploying 41fd3dc72d5b366d8955ef81424efa2bfb3fa107 (current: none)
+2026-10-23T18:58:24.9084549Z  Container lawdesk-staging-db-1  Recreate
+2026-10-23T18:58:25.0936925Z  Container lawdesk-staging-db-1  Recreated
+2026-10-23T18:58:25.0939600Z  Container lawdesk-staging-backend-1  Running
+2026-10-23T18:58:25.0942510Z  Container lawdesk-staging-web-1  Running
+2026-10-23T18:58:25.0963584Z  Container lawdesk-staging-db-1  Starting
+2026-10-23T18:58:25.2091724Z  Container lawdesk-staging-db-1  Started
+2026-10-23T18:58:25.2093838Z  Container lawdesk-staging-db-1  Waiting
+2026-10-23T18:58:30.7106321Z  Container lawdesk-staging-db-1  Healthy
+2026-10-23T18:58:30.7107443Z  Container lawdesk-staging-backend-1  Waiting
+2026-10-23T18:58:31.2124458Z  Container lawdesk-staging-backend-1  Healthy
+2026-10-23T18:58:31.2125640Z  Container lawdesk-staging-backend-1  Waiting
+2026-10-23T18:58:31.2126697Z  Container lawdesk-staging-web-1  Waiting
+2026-10-23T18:58:31.2127338Z  Container lawdesk-staging-db-1  Waiting
+2026-10-23T18:58:31.7146074Z  Container lawdesk-staging-web-1  Healthy
+2026-10-23T18:58:31.7146762Z  Container lawdesk-staging-backend-1  Healthy
+2026-10-23T18:58:31.7151773Z  Container lawdesk-staging-db-1  Healthy
+2026-10-23T18:58:31.8640880Z ok   /healthz
+2026-10-23T18:58:31.8647049Z ok   /
+2026-10-23T18:58:31.8886293Z ok   readiness UP
+2026-10-23T18:58:31.8983256Z ok   /api/v1/cases -> 401
+2026-10-23T18:58:31.8990738Z ok   /actuator/env -> 404
+2026-10-23T18:58:31.9091791Z 2026-10-23T18:58:31Z deployed 41fd3dc72d5b366d8955ef81424efa2bfb3fa107
+2026-10-23T18:58:31.9258958Z 2026-10-23T18:58:31Z deploying 41fd3dc72d5b366d8955ef81424efa2bfb3fa107 (current: 41fd3dc72d5b366d8955ef81424efa2bfb3fa107)
+2026-10-23T18:58:32.2116969Z 2026-10-23T18:58:32Z backed up database to /home/runner/work/_temp/lawdesk/backups/20261023T185831Z-41fd3dc72d5b366d8955ef81424efa2bfb3fa107.dump
+2026-10-23T18:58:32.3266492Z  Container lawdesk-staging-db-1  Running
+2026-10-23T18:58:32.3268362Z  Container lawdesk-staging-backend-1  Running
+2026-10-23T18:58:32.3269492Z  Container lawdesk-staging-web-1  Running
+2026-10-23T18:58:32.3281641Z  Container lawdesk-staging-db-1  Waiting
+2026-10-23T18:58:32.8303347Z  Container lawdesk-staging-db-1  Healthy
+2026-10-23T18:58:32.8304021Z  Container lawdesk-staging-backend-1  Waiting
+2026-10-23T18:58:33.3320748Z  Container lawdesk-staging-backend-1  Healthy
+2026-10-23T18:58:33.3321740Z  Container lawdesk-staging-db-1  Waiting
+2026-10-23T18:58:33.3323014Z  Container lawdesk-staging-backend-1  Waiting
+2026-10-23T18:58:33.3323718Z  Container lawdesk-staging-web-1  Waiting
+2026-10-23T18:58:33.8347692Z  Container lawdesk-staging-web-1  Healthy
+2026-10-23T18:58:33.8351018Z  Container lawdesk-staging-backend-1  Healthy
+2026-10-23T18:58:33.8353165Z  Container lawdesk-staging-db-1  Healthy
+2026-10-23T18:58:33.9409226Z ok   /healthz
+2026-10-23T18:58:33.9420299Z ok   /
+2026-10-23T18:58:33.9501260Z ok   readiness UP
+2026-10-23T18:58:33.9591728Z ok   /api/v1/cases -> 401
+2026-10-23T18:58:33.9623464Z ok   /actuator/env -> 404
+2026-10-23T18:58:33.9703721Z 2026-10-23T18:58:33Z deployed 41fd3dc72d5b366d8955ef81424efa2bfb3fa107
+2026-10-23T18:58:33.9737302Z total 8
+2026-10-23T18:58:33.9738409Z -rw------- 1 runner runner 5124 Oct 23 18:58 20261023T185831Z-41fd3dc72d5b366d8955ef81424efa2bfb3fa107.dump
+2026-10-23T18:58:33.9781320Z drill: running release 41fd3dc72d5b366d8955ef81424efa2bfb3fa107; building the broken drill release deaddeaddeaddeaddeaddeaddeaddeaddeaddead
+2026-10-23T18:58:34.1295028Z #0 building with "default" instance using docker driver
+2026-10-23T18:58:34.1295961Z 
+2026-10-23T18:58:34.1298123Z #1 [internal] load build definition from Dockerfile
+2026-10-23T18:58:34.1299125Z #1 transferring dockerfile: 207B done
+2026-10-23T18:58:34.1300887Z #1 DONE 0.0s
+2026-10-23T18:58:34.1301809Z 
+2026-10-23T18:58:34.1303350Z #2 [internal] load metadata for docker.io/lawdesk-local/backend:41fd3dc72d5b366d8955ef81424efa2bfb3fa107
+2026-10-23T18:58:34.1304958Z #2 DONE 0.0s
+2026-10-23T18:58:34.1306684Z 
+2026-10-23T18:58:34.1307908Z #3 [internal] load .dockerignore
+2026-10-23T18:58:34.1309440Z #3 transferring context: 2B done
+2026-10-23T18:58:34.1311809Z #3 DONE 0.0s
+2026-10-23T18:58:34.1316169Z 
+2026-10-23T18:58:34.1326426Z #4 [1/1] FROM docker.io/lawdesk-local/backend:41fd3dc72d5b366d8955ef81424efa2bfb3fa107
+2026-10-23T18:58:34.1327711Z #4 DONE 0.0s
+2026-10-23T18:58:34.1328057Z 
+2026-10-23T18:58:34.1329874Z #5 exporting to image
+2026-10-23T18:58:34.1330264Z #5 exporting layers done
+2026-10-23T18:58:34.1331010Z #5 writing image sha256:d7b31c77def2a0e397128266208afda428dcb69bea9c1ed747ef20d070de630c done
+2026-10-23T18:58:34.1332146Z #5 naming to docker.io/lawdesk-local/backend:deaddeaddeaddeaddeaddeaddeaddeaddeaddead done
+2026-10-23T18:58:34.1333493Z #5 DONE 0.0s
+2026-10-23T18:58:34.2640649Z #0 building with "default" instance using docker driver
+2026-10-23T18:58:34.2642677Z 
+2026-10-23T18:58:34.2643720Z #1 [internal] load build definition from Dockerfile
+2026-10-23T18:58:34.2644575Z #1 transferring dockerfile: 101B done
+2026-10-23T18:58:34.2648096Z #1 DONE 0.0s
+2026-10-23T18:58:34.2648789Z 
+2026-10-23T18:58:34.2654368Z #2 [internal] load metadata for docker.io/lawdesk-local/web:41fd3dc72d5b366d8955ef81424efa2bfb3fa107
+2026-10-23T18:58:34.2661667Z #2 DONE 0.0s
+2026-10-23T18:58:34.2662587Z 
+2026-10-23T18:58:34.2663062Z #3 [internal] load .dockerignore
+2026-10-23T18:58:34.2664850Z #3 transferring context: 2B done
+2026-10-23T18:58:34.2668275Z #3 DONE 0.0s
+2026-10-23T18:58:34.2668479Z 
+2026-10-23T18:58:34.2668870Z #4 [1/1] FROM docker.io/lawdesk-local/web:41fd3dc72d5b366d8955ef81424efa2bfb3fa107
+2026-10-23T18:58:34.2669562Z #4 DONE 0.0s
+2026-10-23T18:58:34.2669748Z 
+2026-10-23T18:58:34.2669892Z #5 exporting to image
+2026-10-23T18:58:34.2670261Z #5 exporting layers done
+2026-10-23T18:58:34.2671027Z #5 writing image sha256:15528ccfbe8bf790470dd6b334f0995138a1d586fa47c7863248d093fc19bef5 done
+2026-10-23T18:58:34.2672155Z #5 naming to docker.io/lawdesk-local/web:deaddeaddeaddeaddeaddeaddeaddeaddeaddead done
+2026-10-23T18:58:34.2673151Z #5 DONE 0.0s
+2026-10-23T18:58:34.2838526Z 2026-10-23T18:58:34Z deploying deaddeaddeaddeaddeaddeaddeaddeaddeaddead (current: 41fd3dc72d5b366d8955ef81424efa2bfb3fa107)
+2026-10-23T18:58:34.5521062Z 2026-10-23T18:58:34Z backed up database to /home/runner/work/_temp/lawdesk/backups/20261023T185834Z-41fd3dc72d5b366d8955ef81424efa2bfb3fa107.dump
+2026-10-23T18:58:34.6594345Z  Container lawdesk-staging-db-1  Running
+2026-10-23T18:58:34.6596511Z  Container lawdesk-staging-backend-1  Recreate
+2026-10-23T18:58:34.8102239Z  Container lawdesk-staging-backend-1  Recreated
+2026-10-23T18:58:34.8109425Z  Container lawdesk-staging-web-1  Recreate
+2026-10-23T18:58:34.9478474Z  Container lawdesk-staging-web-1  Recreated
+2026-10-23T18:58:34.9499782Z  Container lawdesk-staging-db-1  Waiting
+2026-10-23T18:58:35.4520255Z  Container lawdesk-staging-db-1  Healthy
+2026-10-23T18:58:35.4520872Z  Container lawdesk-staging-backend-1  Starting
+2026-10-23T18:58:35.5687502Z  Container lawdesk-staging-backend-1  Started
+2026-10-23T18:58:35.5688255Z  Container lawdesk-staging-backend-1  Waiting
+2026-10-23T18:58:37.0706088Z  Container lawdesk-staging-backend-1  Error
+2026-10-23T18:58:37.0707473Z dependency failed to start: container lawdesk-staging-backend-1 is unhealthy
+2026-10-23T18:58:37.0765895Z 2026-10-23T18:58:37Z failed deaddeaddeaddeaddeaddeaddeaddeaddeaddead
+2026-10-23T18:58:37.1886700Z  Container lawdesk-staging-db-1  Running
+2026-10-23T18:58:37.1888332Z  Container lawdesk-staging-backend-1  Recreate
+2026-10-23T18:58:37.2230727Z  Container lawdesk-staging-backend-1  Recreated
+2026-10-23T18:58:37.2241449Z  Container lawdesk-staging-web-1  Recreate
+2026-10-23T18:58:37.2400206Z  Container lawdesk-staging-web-1  Recreated
+2026-10-23T18:58:37.2416160Z  Container lawdesk-staging-db-1  Waiting
+2026-10-23T18:58:37.7434866Z  Container lawdesk-staging-db-1  Healthy
+2026-10-23T18:58:37.7435780Z  Container lawdesk-staging-backend-1  Starting
+2026-10-23T18:58:37.8555316Z  Container lawdesk-staging-backend-1  Started
+2026-10-23T18:58:37.8556374Z  Container lawdesk-staging-backend-1  Waiting
+2026-10-23T18:58:48.3619838Z  Container lawdesk-staging-backend-1  Healthy
+2026-10-23T18:58:48.3621055Z  Container lawdesk-staging-web-1  Starting
+2026-10-23T18:58:48.5509193Z  Container lawdesk-staging-web-1  Started
+2026-10-23T18:58:48.5510250Z  Container lawdesk-staging-web-1  Waiting
+2026-10-23T18:58:48.5511125Z  Container lawdesk-staging-db-1  Waiting
+2026-10-23T18:58:48.5511874Z  Container lawdesk-staging-backend-1  Waiting
+2026-10-23T18:58:49.0532798Z  Container lawdesk-staging-backend-1  Healthy
+2026-10-23T18:58:49.0533574Z  Container lawdesk-staging-db-1  Healthy
+2026-10-23T18:58:54.0531905Z  Container lawdesk-staging-web-1  Healthy
+2026-10-23T18:58:54.1579951Z ok   /healthz
+2026-10-23T18:58:54.1595071Z ok   /
+2026-10-23T18:58:54.1712403Z ok   readiness UP
+2026-10-23T18:58:54.2870297Z ok   /api/v1/cases -> 401
+2026-10-23T18:58:54.2879711Z ok   /actuator/env -> 404
+2026-10-23T18:58:54.2992157Z 2026-10-23T18:58:54Z rolled back to 41fd3dc72d5b366d8955ef81424efa2bfb3fa107
+2026-10-23T18:58:54.4089783Z ok   /healthz
+2026-10-23T18:58:54.4105026Z ok   /
+2026-10-23T18:58:54.4196584Z ok   readiness UP
+2026-10-23T18:58:54.4287145Z ok   /api/v1/cases -> 401
+2026-10-23T18:58:54.4309825Z ok   /actuator/env -> 404
+2026-10-23T18:58:54.4549209Z drill: last history entries:
+2026-10-23T18:58:54.4561370Z 2026-10-23T18:58:32Z backed up database to /home/runner/work/_temp/lawdesk/backups/20261023T185831Z-41fd3dc72d5b366d8955ef81424efa2bfb3fa107.dump
+2026-10-23T18:58:54.4563243Z 2026-10-23T18:58:33Z deployed 41fd3dc72d5b366d8955ef81424efa2bfb3fa107
+2026-10-23T18:58:54.4564671Z 2026-10-23T18:58:34Z deploying deaddeaddeaddeaddeaddeaddeaddeaddeaddead (current: 41fd3dc72d5b366d8955ef81424efa2bfb3fa107)
+2026-10-23T18:58:54.4566825Z 2026-10-23T18:58:34Z backed up database to /home/runner/work/_temp/lawdesk/backups/20261023T185834Z-41fd3dc72d5b366d8955ef81424efa2bfb3fa107.dump
+2026-10-23T18:58:54.4570946Z 2026-10-23T18:58:37Z failed deaddeaddeaddeaddeaddeaddeaddeaddeaddead
+2026-10-23T18:58:54.4572358Z 2026-10-23T18:58:54Z rolled back to 41fd3dc72d5b366d8955ef81424efa2bfb3fa107
+2026-10-23T18:58:54.4574001Z DRILL PASSED: broken release deaddeaddeaddeaddeaddeaddeaddeaddeaddead was rolled back to 41fd3dc72d5b366d8955ef81424efa2bfb3fa107
+2026-10-23T18:58:54.4593659Z 2026-10-23T18:58:24Z deploying 41fd3dc72d5b366d8955ef81424efa2bfb3fa107 (current: none)
+2026-10-23T18:58:54.4594972Z 2026-10-23T18:58:31Z deployed 41fd3dc72d5b366d8955ef81424efa2bfb3fa107
+2026-10-23T18:58:54.4597169Z 2026-10-23T18:58:31Z deploying 41fd3dc72d5b366d8955ef81424efa2bfb3fa107 (current: 41fd3dc72d5b366d8955ef81424efa2bfb3fa107)
+2026-10-23T18:58:54.4599026Z 2026-10-23T18:58:32Z backed up database to /home/runner/work/_temp/lawdesk/backups/20261023T185831Z-41fd3dc72d5b366d8955ef81424efa2bfb3fa107.dump
+2026-10-23T18:58:54.4600302Z 2026-10-23T18:58:33Z deployed 41fd3dc72d5b366d8955ef81424efa2bfb3fa107
+2026-10-23T18:58:54.4601471Z 2026-10-23T18:58:34Z deploying deaddeaddeaddeaddeaddeaddeaddeaddeaddead (current: 41fd3dc72d5b366d8955ef81424efa2bfb3fa107)
+2026-10-23T18:58:54.4602685Z 2026-10-23T18:58:34Z backed up database to /home/runner/work/_temp/lawdesk/backups/20261023T185834Z-41fd3dc72d5b366d8955ef81424efa2bfb3fa107.dump
+2026-10-23T18:58:54.4603438Z 2026-10-23T18:58:37Z failed deaddeaddeaddeaddeaddeaddeaddeaddeaddead
+2026-10-23T18:58:54.4603938Z 2026-10-23T18:58:54Z rolled back to 41fd3dc72d5b366d8955ef81424efa2bfb3fa107

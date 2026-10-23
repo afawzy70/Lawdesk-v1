@@ -131,7 +131,8 @@ class SecretsTest(unittest.TestCase):
     def test_secret_files_live_in_an_ignored_directory(self):
         for name, secret in self.stack["secrets"].items():
             with self.subTest(secret=name):
-                self.assertTrue(secret["file"].startswith("./secrets/"))
+                # On the host the directory is LAWDESK_SECRETS_DIR, outside every release checkout.
+                self.assertTrue(secret["file"].startswith("${LAWDESK_SECRETS_DIR:-./secrets}/"), secret["file"])
         result = subprocess.run(["git", "check-ignore", "-q", "deploy/secrets/example.txt"], cwd=REPO_ROOT,
                                 check=False)
         self.assertEqual(0, result.returncode, "deploy/secrets/ must be git-ignored")

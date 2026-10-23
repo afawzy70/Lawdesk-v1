@@ -1,0 +1,86 @@
+EF.F........FFFFFFF.......
+======================================================================
+ERROR: test_database_is_dumped_before_the_next_release_starts (test_deploy_scripts.BackupTest.test_database_is_dumped_before_the_next_release_starts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 275, in test_database_is_dumped_before_the_next_release_starts
+    dump = next(i for i, c in enumerate(calls) if "exec -T db pg_dump" in c)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+StopIteration
+
+======================================================================
+FAIL: test_failed_backup_stops_the_deployment_and_keeps_the_running_release (test_deploy_scripts.BackupTest.test_failed_backup_stops_the_deployment_and_keeps_the_running_release)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 289, in test_failed_backup_stops_the_deployment_and_keeps_the_running_release
+    self.assertEqual(1, result.returncode)
+AssertionError: 1 != 0
+
+======================================================================
+FAIL: test_only_the_newest_backups_are_kept (test_deploy_scripts.BackupTest.test_only_the_newest_backups_are_kept)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 306, in test_only_the_newest_backups_are_kept
+    self.assertEqual(10, len(dumps))
+AssertionError: 10 != 12
+
+======================================================================
+FAIL: test_local_images_are_checked_instead_of_pulled (test_deploy_scripts.LocalImagesTest.test_local_images_are_checked_instead_of_pulled)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 232, in test_local_images_are_checked_instead_of_pulled
+    self.assertFalse(any(" pull" in c for c in calls), calls)
+AssertionError: True is not false : ['LAWDESK_TAG=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa compose -p lawdesk-staging -f /home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml pull backend web ', 'LAWDESK_TAG=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa compose -p lawdesk-staging -f /home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml up -d --wait --wait-timeout 240 ', 'LAWDESK_TAG=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa compose -p lawdesk-staging -f /home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml exec -T web sh -euc      base=http://127.0.0.1:8080     fail() { echo "FAIL $*" >&2; exit 1; }     # busybox wget prints the status in a header line and, on errors, in "server returned error: HTTP/1.1 401 ...".     status_of() { wget -q -S -O /dev/null "$base$1" 2>&1 | grep -o "HTTP/1\\.[01] [0-9][0-9][0-9]" | tail -n 1 | cut -d " " -f 2; }     expect_ok() { wget -q -O /dev/null "$base$1" || fail "$1 is not reachable with a 2xx status"; echo "ok   $1"; }     expect_status() {         actual=$(status_of "$1")         [ "$actual" = "$2" ] || fail "$1 -> ${actual:-no response}, expected $2"         echo "ok   $1 -> $2"     }     expect_ok /healthz     expect_ok /     readiness=$(wget -q -O - "$base/actuator/health/readiness") || fail "readiness is not reachable with a 2xx status"     case "$readiness" in         *"\\"status\\":\\"UP\\""*) echo "ok   readiness UP" ;;         *) fail "readiness is not UP" ;;     esac     expect_status /api/v1/cases 401     expect_status /actuator/env 404  ']
+
+======================================================================
+FAIL: test_release_without_built_images_is_refused_before_touching_the_stack (test_deploy_scripts.LocalImagesTest.test_release_without_built_images_is_refused_before_touching_the_stack)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 242, in test_release_without_built_images_is_refused_before_touching_the_stack
+    self.assertEqual(1, result.returncode)
+AssertionError: 1 != 0
+
+======================================================================
+FAIL: test_unknown_image_source_is_a_usage_error (test_deploy_scripts.LocalImagesTest.test_unknown_image_source_is_a_usage_error)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 250, in test_unknown_image_source_is_a_usage_error
+    self.assertEqual(2, result.returncode)
+AssertionError: 2 != 0
+
+======================================================================
+FAIL: test_each_release_starts_with_its_own_compose_file (test_deploy_scripts.ReleaseDirectoriesTest.test_each_release_starts_with_its_own_compose_file) (call='LAWDESK_TAG=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa compose -p lawdesk-staging -f /home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml up -d --wait --wait-timeout 240 ')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 329, in test_each_release_starts_with_its_own_compose_file
+    self.assertIn(str(self.releases / tag / "deploy" / "compose.yaml"), call)
+AssertionError: '/tmp/tmp1bcxgc66/releases/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/deploy/compose.yaml' not found in 'LAWDESK_TAG=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa compose -p lawdesk-staging -f /home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml up -d --wait --wait-timeout 240 '
+
+======================================================================
+FAIL: test_each_release_starts_with_its_own_compose_file (test_deploy_scripts.ReleaseDirectoriesTest.test_each_release_starts_with_its_own_compose_file) (call='LAWDESK_TAG=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb compose -p lawdesk-staging -f /home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml up -d --wait --wait-timeout 240 ')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 329, in test_each_release_starts_with_its_own_compose_file
+    self.assertIn(str(self.releases / tag / "deploy" / "compose.yaml"), call)
+AssertionError: '/tmp/tmp1bcxgc66/releases/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/deploy/compose.yaml' not found in 'LAWDESK_TAG=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb compose -p lawdesk-staging -f /home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml up -d --wait --wait-timeout 240 '
+
+======================================================================
+FAIL: test_each_release_starts_with_its_own_compose_file (test_deploy_scripts.ReleaseDirectoriesTest.test_each_release_starts_with_its_own_compose_file) (call='LAWDESK_TAG=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa compose -p lawdesk-staging -f /home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml up -d --wait --wait-timeout 240 ')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 329, in test_each_release_starts_with_its_own_compose_file
+    self.assertIn(str(self.releases / tag / "deploy" / "compose.yaml"), call)
+AssertionError: '/tmp/tmp1bcxgc66/releases/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/deploy/compose.yaml' not found in 'LAWDESK_TAG=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa compose -p lawdesk-staging -f /home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml up -d --wait --wait-timeout 240 '
+
+======================================================================
+FAIL: test_secrets_and_environment_file_come_from_the_host_configuration (test_deploy_scripts.ReleaseDirectoriesTest.test_secrets_and_environment_file_come_from_the_host_configuration)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 337, in test_secrets_and_environment_file_come_from_the_host_configuration
+    self.assertTrue(all(f"--env-file {env_file}" in c for c in self.calls()), self.calls())
+AssertionError: False is not true : ['LAWDESK_TAG=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa compose -p lawdesk-staging -f /home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml pull backend web ', 'LAWDESK_TAG=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa compose -p lawdesk-staging -f /home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml up -d --wait --wait-timeout 240 ', 'LAWDESK_TAG=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa compose -p lawdesk-staging -f /home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml exec -T web sh -euc      base=http://127.0.0.1:8080     fail() { echo "FAIL $*" >&2; exit 1; }     # busybox wget prints the status in a header line and, on errors, in "server returned error: HTTP/1.1 401 ...".     status_of() { wget -q -S -O /dev/null "$base$1" 2>&1 | grep -o "HTTP/1\\.[01] [0-9][0-9][0-9]" | tail -n 1 | cut -d " " -f 2; }     expect_ok() { wget -q -O /dev/null "$base$1" || fail "$1 is not reachable with a 2xx status"; echo "ok   $1"; }     expect_status() {         actual=$(status_of "$1")         [ "$actual" = "$2" ] || fail "$1 -> ${actual:-no response}, expected $2"         echo "ok   $1 -> $2"     }     expect_ok /healthz     expect_ok /     readiness=$(wget -q -O - "$base/actuator/health/readiness") || fail "readiness is not reachable with a 2xx status"     case "$readiness" in         *"\\"status\\":\\"UP\\""*) echo "ok   readiness UP" ;;         *) fail "readiness is not UP" ;;     esac     expect_status /api/v1/cases 401     expect_status /actuator/env 404  ']
+
+----------------------------------------------------------------------
+Ran 24 tests in 8.397s
+
+FAILED (failures=9, errors=1)

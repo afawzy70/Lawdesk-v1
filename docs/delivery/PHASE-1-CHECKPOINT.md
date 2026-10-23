@@ -19,31 +19,47 @@ Branch: `feature/phase-1-foundation` → PR into `develop`. Update this file at 
 
 | ID | Blocker | Needed from owner |
 |----|---------|-------------------|
-| B1 | 443 is owned by Matbakhy's Caddy (compose project `matbakhy-preview`, Caddyfile baked into its image). LawDesk needs a site block there. | Approval of the isolated proxy plan below, executed by someone with `devops`/docker rights. |
-| B2 | No mechanism for GitHub Actions to deploy to Contabo (no runner, no secrets, `aiagent` lacks docker). | Choose: (a) self-hosted runner under a dedicated `lawdesk-deploy` user in the `docker` group, or (b) SSH deploy key + restricted deploy user; plus GHCR pull access. |
+| B1 | **Approved 2026-10-23** (narrow, reversible route after backup and validation). Implemented as `deploy/proxy/attach.sh` (in-place reload, no proxy restart); applied only after the host rollback drill passes. | devops runs runbook step 7. |
+| B2 | **Decided 2026-10-23**: GitHub Actions → SSH forced command (`lawdesk-deploy-gate`) as `devops`, images built on the host (PR #7). | devops runs runbook steps 1–6 (one root step: install the gate); owner sets secrets/variables. |
 | ~~B3~~ | **Resolved 2026-10-23**: owner approved Spring Boot 4.1.x (4.1.2) with Java 21; `architecture/DECISIONS.md` updated. | — |
 | B4 | Branch protection/required checks unavailable (private repo, free plan). | Upgrade plan or make repo public, or accept process-only enforcement. |
 | B5 | Phase 1 acceptance criteria are templates (also QA finding QAD-001). | Product/QA approval of `PHASE-1-ACCEPTANCE.md`. |
 | B6 | GitHub Actions artifact storage quota is exhausted on the account (seen in CI 2026-10-23). | Free quota (e.g. delete old artifacts in other repos) or raise it; CI test-report uploads are best-effort until then. |
 
-## Proposed isolated proxy plan (B1) — NOT applied
+## Proxy plan (B1)
 
-1. LawDesk runs as its own compose project `lawdesk-staging` with private networks; no host ports.
-2. One external network `lawdesk-edge` is created; only LawDesk's web container and the Matbakhy proxy join it.
-3. Add one site block `lawdesk.167-86-90-174.sslip.io { reverse_proxy lawdesk-web:8080 }` (with Matbakhy's
-   header/IP allow-list snippets) to the Caddyfile; recreate only the `proxy` service.
-4. Rollback: restore the previous Caddyfile/image digest, recreate `proxy`, `docker network rm lawdesk-edge`.
-   Matbakhy hosts are verified with `curl` before and after.
+Superseded by `deploy/proxy/attach.sh` and `docs/operations/STAGING-RUNBOOK.md` (PR #7): the LawDesk block is appended
+to the *live* Caddyfile, validated inside the proxy, activated with `caddy reload` (no restart or recreate), and every
+Matbakhy host is compared before and after with automatic restore. `detach.sh` removes only the LawDesk block.
 
-## Resume here (2026-10-23)
+## Resume here (2026-10-23, after QA round 2)
 
-- PR #2 (Phase 1) and PR #5 (preview, depends on #2) are drafts with all CI gates green; waiting for independent QA
-  and owner decisions. Do not start Phase 2 until the Phase 1 exit gate is met.
-- QA can execute `docs/delivery/phase-1-qa-probes.json` with `qa/independent/run.py` once B5 is approved.
-- When B2 is resolved: add the publish-and-deploy workflow (GHCR images tagged with the develop SHA, then
-  `deploy/scripts/deploy.sh <sha>` on the host after CI passes). When B1 is approved: apply `deploy/proxy/lawdesk.caddy`
-  per `deploy/README.md`, verify Matbakhy hosts before/after, then run `smoke.sh` and report the URL only after health
-  checks pass.
+- QA (PR #6) cleared QAD-007..015. PR #2 `048ff35` 84 PASS / 0 FAIL, PR #5 70 PASS / 0 FAIL, both still BLOCKED by
+  release gates; PR #7 had QAD-016..021 (four High).
+- QAD-016..021 fixed test-first in `53e8d40` (evidence `docs/evidence/CD/18-21`, real Caddy 2.10.2 included).
+- Release-gate work on PR #7: CI stack gate runs host-mode deploy, a repeat deploy and the rollback drill on real
+  images (`70abe90`, `DRILL PASSED`, `CD/26`); `develop-guard` + `docs/delivery/DEVELOP-PROTECTION.md` for B4
+  (`52633e2`). Every push to develop must be one merge of a PR whose head QA cleared with
+  `QA-VERDICT: PASS <sha>`; deploy needs the guard.
+- PR #5 synchronised with PR #2 `048ff35` (`95431b0`, only frontend/docs differ from #2).
+- Retests requested: PR #7 at `52633e2`, PR #5 at `95431b0`; PR #2 unchanged at `048ff35`.
+- Owner decisions pending: B5 (approve PHASE-1-ACCEPTANCE.md; readiness latency SLA during a DB outage, currently
+  HikariCP's 30 s connection-timeout), DEVELOP-PROTECTION.md, optional `allow_rebase_merge=false`, B6.
+- Live host: nothing deployed, Caddy untouched, live drill not run.
+
+## Earlier (after QA round 1)
+
+- QA (PR #6) defects fixed test-first and pushed: QAD-007..013 on PR #2 (HEAD `020154c`), QAD-014/015 on PR #5
+  (HEAD `a58dddc`); CI green on both; QA asked to re-verify those SHAs. QAD-001..006 wait for B5 (AC approval).
+- Owner decisions since: CD on every validated develop merge; narrowly scoped Caddy route authorised after backup and
+  validation; deployment home `/srv/deployments/lawdesk` (devops); do not expose the site until deployment safety and
+  rollback are verified on the host.
+- PR #7 (`feature/staging-cd`, on top of #2): CD workflow, SSH forced-command gate, host image builds, shared-proxy
+  attach/detach, bootstrap, rollback drill, `docs/operations/STAGING-RUNBOOK.md`. Not deployed; nothing applied to Caddy.
+- Merge order: #2 → #5 (update onto develop) → #7, each only after independent QA passes. Then export
+  `deploy/` at the merged SHA to `/srv/ai-workspaces/lawdesk/lawdesk-deploy-<sha>.tar.gz` and hand devops the runbook.
+- Report a URL only after `attach.sh` succeeded and an external HTTPS check with a trusted certificate passed.
+- Do not start Phase 2 until the Phase 1 exit gate is met.
 
 ## Git identity
 

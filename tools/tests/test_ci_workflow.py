@@ -50,6 +50,8 @@ class SecurityPostureTest(unittest.TestCase):
 
     def test_jobs_have_timeouts(self):
         for name, job in load_workflow()["jobs"].items():
+            if "uses" in job:
+                continue  # a reusable-workflow call; its jobs carry their own timeouts (test_cd_workflow.py)
             with self.subTest(job=name):
                 self.assertLessEqual(job.get("timeout-minutes", 999), 30)
 
@@ -105,6 +107,22 @@ class RequiredGatesTest(unittest.TestCase):
         self.assertIn("stop db", commands, "readiness must be checked through a database outage and recovery")
         self.assertIn("app_release where version = '$LAWDESK_TAG'", commands,
                       "the stack must record the commit it runs")
+
+    def test_stack_gate_runs_host_mode_deploys_and_the_rollback_drill_on_real_images(self):
+        # Real-container evidence for the staging recovery procedure, on a disposable runner rather than the shared
+        # host: images built like the gate builds them, the same SHA deployed twice, then the operator's drill.
+        job = self.jobs["stack"]
+        commands = run_commands(job)
+        self.assertEqual("lawdesk-local", job["env"]["LAWDESK_REGISTRY"], "the drill and gate use lawdesk-local")
+        self.assertEqual(2, commands.count('--label "org.opencontainers.image.revision=$LAWDESK_TAG"'))
+        self.assertIn("LAWDESK_IMAGE_SOURCE=local", commands)
+        self.assertEqual(2, commands.count('deploy/scripts/deploy.sh" "$LAWDESK_TAG"'), "first deploy and a repeat")
+        self.assertIn("deploy/host/rollback-drill.sh", commands)
+        self.assertIn("DRILL PASSED", commands)
+        names = [step.get("name", "") for step in job["steps"]]
+        drill = next(i for i, n in enumerate(names) if "rollback drill" in n)
+        teardown = names.index("Tear down")
+        self.assertLess(drill, teardown)
 
     def test_stack_gate_requires_readiness_to_detect_a_database_outage_within_five_seconds(self):
         # Owner decision 2026-10-23: the first readiness probe after the database stops answers 503 in under 5 s.

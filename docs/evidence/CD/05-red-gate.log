@@ -1,0 +1,239 @@
+FFFFFFFEFFFFFFFFFFFFFFFFFF
+======================================================================
+ERROR: test_gate_never_removes_volumes_or_prunes (test_gate.GateSafetyTest.test_gate_never_removes_volumes_or_prunes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 247, in test_gate_never_removes_volumes_or_prunes
+    text = GATE.read_text(encoding="utf-8")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1029, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/deploy/host/lawdesk-deploy-gate'
+
+======================================================================
+FAIL: test_a_second_gate_run_is_refused_while_one_is_running (test_gate.DeployTest.test_a_second_gate_run_is_refused_while_one_is_running)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 211, in test_a_second_gate_run_is_refused_while_one_is_running
+    self.assertEqual(3, result.returncode)
+AssertionError: 3 != 127
+
+======================================================================
+FAIL: test_an_older_commit_on_develop_can_be_deployed (test_gate.DeployTest.test_an_older_commit_on_develop_can_be_deployed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 169, in test_an_older_commit_on_develop_can_be_deployed
+    self.assertEqual(0, result.returncode, result.stderr)
+AssertionError: 0 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/host/lawdesk-deploy-gate: No such file or directory
+
+
+======================================================================
+FAIL: test_deploy_builds_both_images_and_runs_the_release_own_deploy_script (test_gate.DeployTest.test_deploy_builds_both_images_and_runs_the_release_own_deploy_script)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 145, in test_deploy_builds_both_images_and_runs_the_release_own_deploy_script
+    self.assertEqual(0, result.returncode, result.stderr)
+AssertionError: 0 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/host/lawdesk-deploy-gate: No such file or directory
+
+
+======================================================================
+FAIL: test_deploy_script_failure_is_reported_with_its_exit_code (test_gate.DeployTest.test_deploy_script_failure_is_reported_with_its_exit_code)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 191, in test_deploy_script_failure_is_reported_with_its_exit_code
+    self.assertEqual(1, result.returncode)
+AssertionError: 1 != 127
+
+======================================================================
+FAIL: test_every_run_leaves_a_log_file (test_gate.DeployTest.test_every_run_leaves_a_log_file)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 198, in test_every_run_leaves_a_log_file
+    self.assertEqual(1, len(logs))
+AssertionError: 1 != 0
+
+======================================================================
+FAIL: test_failed_build_changes_nothing (test_gate.DeployTest.test_failed_build_changes_nothing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 184, in test_failed_build_changes_nothing
+    self.assertEqual(6, result.returncode)
+AssertionError: 6 != 127
+
+======================================================================
+FAIL: test_repeating_a_deployment_reuses_the_release_and_its_images (test_gate.DeployTest.test_repeating_a_deployment_reuses_the_release_and_its_images)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 177, in test_repeating_a_deployment_reuses_the_release_and_its_images
+    self.assertEqual(0, result.returncode, result.stderr)
+AssertionError: 0 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/host/lawdesk-deploy-gate: No such file or directory
+
+
+======================================================================
+FAIL: test_commit_not_on_develop_is_refused (test_gate.RequestValidationTest.test_commit_not_on_develop_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 125, in test_commit_not_on_develop_is_refused
+    self.assertEqual(5, result.returncode, result.stderr)
+AssertionError: 5 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/host/lawdesk-deploy-gate: No such file or directory
+
+
+======================================================================
+FAIL: test_commit_removed_from_develop_is_refused_even_if_fetched_before (test_gate.RequestValidationTest.test_commit_removed_from_develop_is_refused_even_if_fetched_before)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 133, in test_commit_removed_from_develop_is_refused_even_if_fetched_before
+    self.assertEqual(0, self.gate(f"deploy {dropped}").returncode)
+AssertionError: 0 != 127
+
+======================================================================
+FAIL: test_only_the_three_known_requests_are_accepted (test_gate.RequestValidationTest.test_only_the_three_known_requests_are_accepted) (request='')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 113, in test_only_the_three_known_requests_are_accepted
+    self.assertEqual(2, result.returncode, result.stderr)
+AssertionError: 2 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/host/lawdesk-deploy-gate: No such file or directory
+
+
+======================================================================
+FAIL: test_only_the_three_known_requests_are_accepted (test_gate.RequestValidationTest.test_only_the_three_known_requests_are_accepted) (request='bash')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 113, in test_only_the_three_known_requests_are_accepted
+    self.assertEqual(2, result.returncode, result.stderr)
+AssertionError: 2 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/host/lawdesk-deploy-gate: No such file or directory
+
+
+======================================================================
+FAIL: test_only_the_three_known_requests_are_accepted (test_gate.RequestValidationTest.test_only_the_three_known_requests_are_accepted) (request='deploy')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 113, in test_only_the_three_known_requests_are_accepted
+    self.assertEqual(2, result.returncode, result.stderr)
+AssertionError: 2 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/host/lawdesk-deploy-gate: No such file or directory
+
+
+======================================================================
+FAIL: test_only_the_three_known_requests_are_accepted (test_gate.RequestValidationTest.test_only_the_three_known_requests_are_accepted) (request='deploy latest')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 113, in test_only_the_three_known_requests_are_accepted
+    self.assertEqual(2, result.returncode, result.stderr)
+AssertionError: 2 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/host/lawdesk-deploy-gate: No such file or directory
+
+
+======================================================================
+FAIL: test_only_the_three_known_requests_are_accepted (test_gate.RequestValidationTest.test_only_the_three_known_requests_are_accepted) (request='deploy AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 113, in test_only_the_three_known_requests_are_accepted
+    self.assertEqual(2, result.returncode, result.stderr)
+AssertionError: 2 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/host/lawdesk-deploy-gate: No such file or directory
+
+
+======================================================================
+FAIL: test_only_the_three_known_requests_are_accepted (test_gate.RequestValidationTest.test_only_the_three_known_requests_are_accepted) (request='deploy aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 113, in test_only_the_three_known_requests_are_accepted
+    self.assertEqual(2, result.returncode, result.stderr)
+AssertionError: 2 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/host/lawdesk-deploy-gate: No such file or directory
+
+
+======================================================================
+FAIL: test_only_the_three_known_requests_are_accepted (test_gate.RequestValidationTest.test_only_the_three_known_requests_are_accepted) (request='deploy aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa extra')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 113, in test_only_the_three_known_requests_are_accepted
+    self.assertEqual(2, result.returncode, result.stderr)
+AssertionError: 2 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/host/lawdesk-deploy-gate: No such file or directory
+
+
+======================================================================
+FAIL: test_only_the_three_known_requests_are_accepted (test_gate.RequestValidationTest.test_only_the_three_known_requests_are_accepted) (request='deploy aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa; rm -rf /')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 113, in test_only_the_three_known_requests_are_accepted
+    self.assertEqual(2, result.returncode, result.stderr)
+AssertionError: 2 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/host/lawdesk-deploy-gate: No such file or directory
+
+
+======================================================================
+FAIL: test_only_the_three_known_requests_are_accepted (test_gate.RequestValidationTest.test_only_the_three_known_requests_are_accepted) (request='deploy $(id)')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 113, in test_only_the_three_known_requests_are_accepted
+    self.assertEqual(2, result.returncode, result.stderr)
+AssertionError: 2 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/host/lawdesk-deploy-gate: No such file or directory
+
+
+======================================================================
+FAIL: test_only_the_three_known_requests_are_accepted (test_gate.RequestValidationTest.test_only_the_three_known_requests_are_accepted) (request='status now')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 113, in test_only_the_three_known_requests_are_accepted
+    self.assertEqual(2, result.returncode, result.stderr)
+AssertionError: 2 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/host/lawdesk-deploy-gate: No such file or directory
+
+
+======================================================================
+FAIL: test_only_the_three_known_requests_are_accepted (test_gate.RequestValidationTest.test_only_the_three_known_requests_are_accepted) (request='rollback x')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 113, in test_only_the_three_known_requests_are_accepted
+    self.assertEqual(2, result.returncode, result.stderr)
+AssertionError: 2 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/host/lawdesk-deploy-gate: No such file or directory
+
+
+======================================================================
+FAIL: test_only_the_three_known_requests_are_accepted (test_gate.RequestValidationTest.test_only_the_three_known_requests_are_accepted) (request='deploy\taaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 113, in test_only_the_three_known_requests_are_accepted
+    self.assertEqual(2, result.returncode, result.stderr)
+AssertionError: 2 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/host/lawdesk-deploy-gate: No such file or directory
+
+
+======================================================================
+FAIL: test_only_the_three_known_requests_are_accepted (test_gate.RequestValidationTest.test_only_the_three_known_requests_are_accepted) (request='deploy aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 113, in test_only_the_three_known_requests_are_accepted
+    self.assertEqual(2, result.returncode, result.stderr)
+AssertionError: 2 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/host/lawdesk-deploy-gate: No such file or directory
+
+
+======================================================================
+FAIL: test_rollback_runs_the_current_release_rollback_script (test_gate.StatusAndRollbackTest.test_rollback_runs_the_current_release_rollback_script)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 235, in test_rollback_runs_the_current_release_rollback_script
+    self.assertEqual(0, result.returncode, result.stderr)
+AssertionError: 0 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/host/lawdesk-deploy-gate: No such file or directory
+
+
+======================================================================
+FAIL: test_rollback_without_a_current_release_is_refused (test_gate.StatusAndRollbackTest.test_rollback_without_a_current_release_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 241, in test_rollback_without_a_current_release_is_refused
+    self.assertEqual(2, result.returncode)
+AssertionError: 2 != 127
+
+======================================================================
+FAIL: test_status_reports_current_and_previous_release_and_history (test_gate.StatusAndRollbackTest.test_status_reports_current_and_previous_release_and_history)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_gate.py", line 225, in test_status_reports_current_and_previous_release_and_history
+    self.assertEqual(0, result.returncode, result.stderr)
+AssertionError: 0 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/host/lawdesk-deploy-gate: No such file or directory
+
+
+----------------------------------------------------------------------
+Ran 14 tests in 6.479s
+
+FAILED (failures=25, errors=1)
