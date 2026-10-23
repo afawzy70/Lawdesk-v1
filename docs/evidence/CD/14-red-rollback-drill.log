@@ -1,0 +1,54 @@
+FFFFF
+======================================================================
+FAIL: test_broken_release_is_rolled_back_and_the_running_release_still_passes_smoke (test_rollback_drill.RollbackDrillTest.test_broken_release_is_rolled_back_and_the_running_release_still_passes_smoke)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_rollback_drill.py", line 84, in test_broken_release_is_rolled_back_and_the_running_release_still_passes_smoke
+    self.assertEqual(0, result.returncode, result.stderr)
+AssertionError: 0 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/host/rollback-drill.sh: No such file or directory
+
+
+======================================================================
+FAIL: test_drill_fails_if_the_broken_release_was_accepted (test_rollback_drill.RollbackDrillTest.test_drill_fails_if_the_broken_release_was_accepted)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_rollback_drill.py", line 108, in test_drill_fails_if_the_broken_release_was_accepted
+    self.assertEqual(1, result.returncode)
+AssertionError: 1 != 127
+
+======================================================================
+FAIL: test_drill_fails_if_the_restored_release_does_not_pass_smoke (test_rollback_drill.RollbackDrillTest.test_drill_fails_if_the_restored_release_does_not_pass_smoke)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_rollback_drill.py", line 116, in test_drill_fails_if_the_restored_release_does_not_pass_smoke
+    self.assertEqual(1, result.returncode)
+AssertionError: 1 != 127
+
+======================================================================
+FAIL: test_drill_images_and_only_they_are_removed (test_rollback_drill.RollbackDrillTest.test_drill_images_and_only_they_are_removed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_rollback_drill.py", line 101, in test_drill_images_and_only_they_are_removed
+    self.assertEqual([f"image rm lawdesk-local/backend:{DRILL_SHA} lawdesk-local/web:{DRILL_SHA}"], removals)
+AssertionError: Lists differ: ['image rm lawdesk-local/backend:deaddeadd[87 chars]ead'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'image rm lawdesk-local/backend:deaddeaddeaddeaddeaddeaddeaddeaddeaddead lawdesk-local/web:deaddeaddeaddeaddeaddeaddeaddeaddeaddead'
+
++ []
+- ['image rm lawdesk-local/backend:deaddeaddeaddeaddeaddeaddeaddeaddeaddead '
+-  'lawdesk-local/web:deaddeaddeaddeaddeaddeaddeaddeaddeaddead']
+
+======================================================================
+FAIL: test_refuses_without_a_running_release (test_rollback_drill.RollbackDrillTest.test_refuses_without_a_running_release)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_rollback_drill.py", line 76, in test_refuses_without_a_running_release
+    self.assertEqual(2, result.returncode)
+AssertionError: 2 != 127
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.045s
+
+FAILED (failures=5)
