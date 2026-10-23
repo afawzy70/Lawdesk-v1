@@ -7,7 +7,10 @@ import java.net.http.HttpResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 /**
  * LD-002 deny-by-default baseline: QA-0012 (unauthenticated access), QA-0013 (sensitive endpoints), QA-0014 (no state
@@ -15,6 +18,15 @@ import org.springframework.boot.test.context.SpringBootTest;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class SecurityBaselineTest extends HttpTestSupport {
+
+    @Autowired
+    ApplicationContext context;
+
+    @Test
+    void noDefaultInMemoryUserIsCreated() {
+        // Spring Boot's fallback user has a generated password that is printed to the log.
+        assertThat(context.getBeanNamesForType(UserDetailsService.class)).isEmpty();
+    }
 
     @Test
     void unauthenticatedApiRequestIsRejectedWithProblemDetail() {
