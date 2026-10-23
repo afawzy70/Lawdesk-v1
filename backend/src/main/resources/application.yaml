@@ -5,6 +5,12 @@ spring:
     # Must stay below the container stop grace period (LD-006).
     timeout-per-shutdown-phase: 20s
   # Connection settings come from SPRING_DATASOURCE_URL / _USERNAME / _PASSWORD; no defaults are committed.
+  datasource:
+    hikari:
+      # Readiness must report a database outage within 5 s (owner decision 2026-10-23); HikariCP's default 30 s
+      # wait for a connection made the probe hang instead. Validation stays below the connection timeout.
+      connection-timeout: 3000
+      validation-timeout: 2000
   jpa:
     open-in-view: false
     hibernate:

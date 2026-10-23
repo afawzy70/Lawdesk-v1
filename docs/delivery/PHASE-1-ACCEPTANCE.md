@@ -1,4 +1,8 @@
-# Phase 1 — refined acceptance criteria (PROPOSED, awaiting product/QA approval)
+# Phase 1 — refined acceptance criteria (APPROVED as the provisional test baseline)
+
+**Owner decision 2026-10-23:** these criteria are approved as the provisional test baseline, subject to independent QA
+validation. `BLOCKED` and `N/A` scenarios are not passes; each stays tracked explicitly in the register at the end of
+this file until QA executes it, the blocker is removed, or the reviewer confirms it does not apply.
 
 `product/stories.json` holds Phase 1 stories with templated criteria (`DRAFT_NEEDS_REFINEMENT`), and the matching
 `qa/test-cases.json` entries are generic scenarios. This file proposes concrete, testable criteria and maps each
@@ -125,7 +129,10 @@ Acceptance criteria:
 4. A failed transaction leaves no partial rows; a failing migration leaves no partial schema and no success entry.
 5. After a rollback to a previous release, that release still validates against a schema that already contains the
    newer release's migrations (Flyway ignores future migrations).
-6. Readiness includes database health; liveness does not.
+6. Readiness includes database health; liveness does not. During a database outage readiness answers 503 within
+   5 seconds, measured from the first probe after the database stops (owner decision 2026-10-23; HikariCP
+   `connection-timeout` 3 s, `validation-timeout` 2 s). It returns to 200 once the database is back, and a healthy
+   database is never reported down.
 7. Tests use real PostgreSQL, never H2: each Spring test context gets a freshly created database with migrations
    applied from scratch, on an embedded PostgreSQL 18.6 server by default or on an external server given by
    `LAWDESK_TEST_DB_URL`/`_USER`/`_PASSWORD` (CI runs the official image this way from LD-005). Connection
@@ -140,7 +147,7 @@ Acceptance criteria:
 | QA-0029 | insufficient permission | Least-privilege DB role (app user owns only its schema, no superuser) is configured in LD-006 compose | BLOCKED until LD-006 |
 | QA-0030 | record integrity and rollback | `failedTransactionLeavesNoPartialData`, `failingMigrationIsRolledBackCompletely`, `previousReleaseStillValidates…` | AUTOMATED |
 | QA-0031 | concurrent or repeat request | `concurrentInsertsGetDistinctIdentifiers` (10 parallel inserts) | AUTOMATED |
-| QA-0032 | API-to-UI state and error handling | `readinessDependsOnTheDatabaseButLivenessDoesNot`; UI shows "API unavailable" when readiness fails (LD-003) | AUTOMATED (partial) |
+| QA-0032 | API-to-UI state and error handling | `readinessDependsOnTheDatabaseButLivenessDoesNot`; `ReadinessDatabaseOutageTest` (own PostgreSQL stopped: 503 in < 5 s on three probes, liveness 200, recovery to 200, 30 healthy probes all 200); CI stack gate times three probes after `compose stop db` (< 5000 ms each); UI shows "API unavailable" when readiness fails (LD-003) | AUTOMATED |
 
 ## LD-005 CI quality gates
 
@@ -204,3 +211,19 @@ Acceptance criteria:
 | QA-0048 | API-to-UI state and error handling | Smoke covers SPA, readiness and 401 through nginx; UI shows API status | AUTOMATED (CI) |
 
 Cross-cutting: QA-0351 (TLS and staging domain isolation) stays BLOCKED until B1 is approved and applied.
+
+## BLOCKED / N/A register
+
+Tracked explicitly under the owner decision of 2026-10-23. None of these counts as a pass.
+
+| QA case | Story | Status | What it needs |
+|---------|-------|--------|---------------|
+| QA-0004 | LD-001 | BLOCKED (B4) | Server-side branch protection, which this plan refuses (HTTP 403). The procedural `develop-guard` (PR #7, `docs/delivery/DEVELOP-PROTECTION.md`) detects violations but does not prevent them |
+| QA-0037 | LD-005 | BLOCKED (B4) | Same as QA-0004: required checks and no self-merge cannot be enforced by GitHub on this plan |
+| QA-0014 | LD-002 | N/A, reviewer to confirm | No persistence in LD-002; covered by LD-004 |
+| QA-0018 | LD-003 | N/A, reviewer to confirm | No user input in the shell |
+| QA-0022 | LD-003 | N/A, reviewer to confirm | The shell creates or stores no records |
+| QA-0028 | LD-004 | N/A, reviewer to confirm | No data endpoints yet; `/api/**` is deny-by-default |
+| QA-0020 | LD-003 | BLOCKED until Phase 2 | Authentication arrives in Phase 2 |
+| QA-0021 | LD-003 | BLOCKED until Phase 2 | Authorization arrives in Phase 2 |
+| QA-0029 | LD-004 | BLOCKED until LD-006 (CI evidence exists) | The CI stack gate checks that `lawdesk_app` has no superuser, createrole or createdb; QA's independent run awaits real-container access |
