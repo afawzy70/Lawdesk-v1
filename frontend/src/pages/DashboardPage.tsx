@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { SampleRegion } from '../components/SampleRegion';
 import { formatDateTime, formatNumber, formatPercent } from '../i18n/format';
 import { useI18n } from '../i18n/I18nContext';
@@ -8,6 +9,7 @@ import { PREVIEW_CASES_BY_STAGE, PREVIEW_HEARINGS, PREVIEW_KPIS } from '../previ
 export function DashboardPage() {
   const { locale, t } = useI18n();
   usePageTitle(t('nav.dashboard'));
+  const captionId = useId();
 
   const sampleRef = (n: number) => t('sample.caseRef', { number: formatNumber(n, locale, { minimumIntegerDigits: 3 }) });
   const stageTotal = PREVIEW_CASES_BY_STAGE.reduce((sum, s) => sum + s.count, 0);
@@ -30,9 +32,10 @@ export function DashboardPage() {
 
       <div className="dashboard-columns">
         <SampleRegion title={t('dashboard.hearings')} className="hearings">
-          <div className="table-scroll">
+          {/* Focusable so keyboard users can scroll the table on narrow screens (QAD-015). */}
+          <div className="table-scroll" role="region" tabIndex={0} aria-labelledby={captionId}>
             <table>
-              <caption className="visually-hidden">
+              <caption id={captionId} className="visually-hidden">
                 {`${t('dashboard.hearings')} (${t('preview.sampleData')})`}
               </caption>
               <thead>

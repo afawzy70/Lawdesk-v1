@@ -1,0 +1,57 @@
+## REFACTOR: effect uses setMenuOpen directly (no stale closure); nav-level onKeyDown removed
+
+> lawdesk-frontend@0.1.0 lint
+> eslint . --max-warnings 0
+
+
+> lawdesk-frontend@0.1.0 typecheck
+> tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json
+
+
+> lawdesk-frontend@0.1.0 test:coverage
+> vitest run --coverage
+
+
+ RUN  v5.0.5 /home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/agent-a322444602abd7ae2/frontend
+      Coverage enabled with v8
+
+
+ Test Files  9 passed (9)
+      Tests  141 passed (141)
+   Start at  18:48:01
+   Duration  11.27s (environment 54%, tests 21%, transform 11%, setup 9%, import 3%, worker 2%)
+
+Environment  jsdom was created 9 times · 24.32s total, 54% of tracked time
+             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+             learn more: https://vitest.dev/guide/improving-performance#test-environments
+
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |     100 |    97.56 |   98.21 |     100 |                   
+ src/i18n          |     100 |    93.75 |   95.45 |     100 |                   
+  I18nContext.ts   |     100 |      100 |      75 |     100 |                   
+  locale.ts        |     100 |    85.71 |     100 |     100 | 25                
+-------------------|---------|----------|---------|---------|-------------------
+
+=============================== Coverage summary ===============================
+Statements   : 100% ( 140/140 )
+Branches     : 97.56% ( 40/41 )
+Functions    : 98.21% ( 55/56 )
+Lines        : 100% ( 134/134 )
+================================================================================
+
+> lawdesk-frontend@0.1.0 build
+> tsc --noEmit -p tsconfig.app.json && vite build
+
+vite v8.3.5 building client environment for production...
+transforming...
+✓ 112 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.47 kB │ gzip:  0.30 kB
+dist/assets/index-CnM4Yna7.css    5.31 kB │ gzip:  1.73 kB
+dist/assets/index-8ozSYkyf.js   270.92 kB │ gzip: 86.36 kB
+
+✓ built in 537ms

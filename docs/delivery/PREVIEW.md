@@ -101,3 +101,15 @@ both languages; LD-003 behaviours (API status, not-found page, error boundary, n
 - "Hearings this week" and all dates are fixed sample values, not relative to today.
 - Language is not remembered across visits without `?lang=` (by design: no browser storage).
 - The brand name "LawDesk" is shown in Latin script in both languages.
+
+## QA findings addressed
+
+Independent QA review of `ad0def0` (PR #5) reported two findings; both are fixed test-first.
+
+| Finding | Fix | Regression tests |
+|---|---|---|
+| QAD-014: Escape right after opening the mobile menu (focus still on the toggle) left it open | While the menu is open, a document-level Escape handler closes it from anywhere and returns focus to the toggle (`layout/AppLayout.tsx`) | `App.test.tsx` › "closes with Escape pressed right after opening…" (en, ar) and "closes with Escape from elsewhere on the page…" |
+| QAD-015: axe `scrollable-region-focusable` on `.table-scroll` at 375 px | The scroll wrapper is a named region (`role="region"`, `aria-labelledby` the localized table caption) with `tabIndex={0}`, so keyboard users can focus and scroll it; the global `:focus-visible` outline applies | `DashboardPage.test.tsx` › "hearings table scroll region (QAD-015)" (en, ar) |
+
+Evidence: `docs/evidence/PREVIEW/07-red-qa-findings.log` (5 failing), `08-green-qa-findings.log` (141/141),
+`09-refactor-full-checks.log` (lint, typecheck, coverage, build). A WebKit/screen-reader check remains NOT_RUN.

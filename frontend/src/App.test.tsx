@@ -240,6 +240,35 @@ describe('responsive navigation', () => {
     expect(menu).toHaveFocus();
   });
 
+  it.each([
+    { lang: 'en', label: 'Menu' },
+    { lang: 'ar', label: 'القائمة' },
+  ])('closes with Escape pressed right after opening, focus still on the toggle ($lang, QAD-014)', async ({ lang, label }) => {
+    const user = userEvent.setup();
+    renderAt(`/?lang=${lang}`);
+    const menu = screen.getByRole('button', { name: label });
+    await user.click(menu);
+    expect(menu).toHaveFocus();
+    expect(menu).toHaveAttribute('aria-expanded', 'true');
+
+    await user.keyboard('{Escape}');
+    expect(menu).toHaveAttribute('aria-expanded', 'false');
+    expect(document.getElementById(menu.getAttribute('aria-controls') ?? '')).toHaveAttribute('data-open', 'false');
+    expect(menu).toHaveFocus();
+  });
+
+  it('closes with Escape from elsewhere on the page and returns focus to the toggle (QAD-014)', async () => {
+    const user = userEvent.setup();
+    renderAt('/');
+    const menu = screen.getByRole('button', { name: 'Menu' });
+    await user.click(menu);
+    screen.getByRole('main').focus();
+
+    await user.keyboard('{Escape}');
+    expect(menu).toHaveAttribute('aria-expanded', 'false');
+    expect(menu).toHaveFocus();
+  });
+
   it('leaves focus alone on Escape when the menu is already collapsed (desktop side navigation)', async () => {
     const user = userEvent.setup();
     renderAt('/');

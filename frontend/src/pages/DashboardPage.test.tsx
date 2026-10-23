@@ -109,3 +109,17 @@ describe('dashboard preview (Arabic)', () => {
     expect(screen.getByRole('table').textContent).not.toMatch(/[0-9]/);
   });
 });
+
+describe('hearings table scroll region (QAD-015)', () => {
+  it.each([
+    { lang: 'en' as const, name: 'Upcoming hearings (Sample data)' },
+    { lang: 'ar' as const, name: 'الجلسات القادمة (بيانات نموذجية)' },
+  ])('is a keyboard-focusable, named region ($lang)', ({ lang, name }) => {
+    const { container } = renderDashboard(lang);
+    const scroller = container.querySelector('.table-scroll');
+    expect(scroller).not.toBeNull();
+    expect(scroller).toHaveAttribute('tabindex', '0');
+    expect(screen.getByRole('region', { name })).toBe(scroller);
+    expect(within(scroller as HTMLElement).getByRole('table', { name })).toBeInTheDocument();
+  });
+});

@@ -1,4 +1,4 @@
-import { useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet } from 'react-router';
 import { ApiStatus } from '../components/ApiStatus';
 import { LocaleToggle } from '../components/LocaleToggle';
@@ -19,12 +19,23 @@ export function AppLayout() {
     setMenuOpen(false);
   };
 
-  const onNavKeyDown = (event: KeyboardEvent) => {
-    if (event.key === 'Escape' && menuOpen) {
-      closeMenu();
-      menuButton.current?.focus();
+  // While the menu is open, Escape closes it from anywhere on the page, including the toggle itself (QAD-014),
+  // and focus goes back to the toggle so keyboard users are not left inside a hidden menu.
+  useEffect(() => {
+    if (!menuOpen) {
+      return undefined;
     }
-  };
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMenuOpen(false);
+        menuButton.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [menuOpen]);
 
   return (
     <div className="app">
@@ -58,7 +69,6 @@ export function AppLayout() {
           className="app-nav"
           aria-label={t('shell.primaryNav')}
           data-open={menuOpen}
-          onKeyDown={onNavKeyDown}
         >
           <ul>
             {NAV_ITEMS.map((item) => (

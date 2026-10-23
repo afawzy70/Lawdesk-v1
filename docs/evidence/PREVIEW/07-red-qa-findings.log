@@ -1,0 +1,78 @@
+
+ RUN  v5.0.5 /home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/agent-a322444602abd7ae2/frontend
+
+ ❯ src/pages/DashboardPage.test.tsx (9 tests | 2 failed) 1234ms
+   ❯ hearings table scroll region (QAD-015) (2)
+     × is a keyboard-focusable, named region (en) 51ms
+     × is a keyboard-focusable, named region (ar) 41ms
+ ❯ src/App.test.tsx (63 tests | 3 failed) 3552ms
+   ❯ responsive navigation (9)
+     × closes with Escape pressed right after opening, focus still on the toggle (en, QAD-014) 87ms
+     × closes with Escape pressed right after opening, focus still on the toggle (ar, QAD-014) 60ms
+     × closes with Escape from elsewhere on the page and returns focus to the toggle (QAD-014) 62ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/App.test.tsx > responsive navigation > closes with Escape pressed right after opening, focus still on the toggle (en, QAD-014)
+ FAIL  src/App.test.tsx > responsive navigation > closes with Escape pressed right after opening, focus still on the toggle (ar, QAD-014)
+Error: [2mexpect([22m[31melement[39m[2m).toHaveAttribute([22m[32m[32m"aria-expanded"[32m[39m[2m, [22m[32m[32m"false"[32m[39m[2m) // element.getAttribute("aria-expanded") === "false"[22m
+
+Expected the element to have attribute:
+[32m  aria-expanded="false"[39m
+Received:
+[31m  aria-expanded="true"[39m
+ ❯ src/App.test.tsx:255:18
+    253|
+    254|     await user.keyboard('{Escape}');
+    255|     expect(menu).toHaveAttribute('aria-expanded', 'false');
+       |                  ^
+    256|     expect(document.getElementById(menu.getAttribute('aria-controls') …
+    257|     expect(menu).toHaveFocus();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  src/App.test.tsx > responsive navigation > closes with Escape from elsewhere on the page and returns focus to the toggle (QAD-014)
+Error: [2mexpect([22m[31melement[39m[2m).toHaveAttribute([22m[32m[32m"aria-expanded"[32m[39m[2m, [22m[32m[32m"false"[32m[39m[2m) // element.getAttribute("aria-expanded") === "false"[22m
+
+Expected the element to have attribute:
+[32m  aria-expanded="false"[39m
+Received:
+[31m  aria-expanded="true"[39m
+ ❯ src/App.test.tsx:268:18
+    266|
+    267|     await user.keyboard('{Escape}');
+    268|     expect(menu).toHaveAttribute('aria-expanded', 'false');
+       |                  ^
+    269|     expect(menu).toHaveFocus();
+    270|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  src/pages/DashboardPage.test.tsx > hearings table scroll region (QAD-015) > is a keyboard-focusable, named region (en)
+ FAIL  src/pages/DashboardPage.test.tsx > hearings table scroll region (QAD-015) > is a keyboard-focusable, named region (ar)
+Error: [2mexpect([22m[31melement[39m[2m).toHaveAttribute([22m[32m[32m"tabindex"[32m[39m[2m, [22m[32m[32m"0"[32m[39m[2m) // element.getAttribute("tabindex") === "0"[22m
+
+Expected the element to have attribute:
+[32m  tabindex="0"[39m
+Received:
+[31m  null[39m
+ ❯ src/pages/DashboardPage.test.tsx:121:22
+    119|     const scroller = container.querySelector('.table-scroll');
+    120|     expect(scroller).not.toBeNull();
+    121|     expect(scroller).toHaveAttribute('tabindex', '0');
+       |                      ^
+    122|     expect(screen.getByRole('region', { name })).toBe(scroller);
+    123|     expect(within(scroller as HTMLElement).getByRole('table', { name }…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+
+ Test Files  2 failed | 7 passed (9)
+      Tests  5 failed | 136 passed (141)
+   Start at  18:47:07
+   Duration  7.17s (environment 61%, tests 19%, setup 10%, transform 6%, import 3%)
+
+Environment  jsdom was created 9 times · 18.60s total, 61% of tracked time
+             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+             learn more: https://vitest.dev/guide/improving-performance#test-environments
+
