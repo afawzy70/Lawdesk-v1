@@ -1,0 +1,333 @@
+[
+  {
+    "story_ids": [
+      "LD-010",
+      "LD-015",
+      "LD-034"
+    ],
+    "title": "SQL injection",
+    "level": "security/integration",
+    "preconditions": [
+      "Disposable isolated LawDesk QA build with exact SHA recorded.",
+      "Approved contract, synthetic role/scope fixtures, controlled clock and authorized log access."
+    ],
+    "test_data": {
+      "payloads": "q=' OR '1'='1; sort=name DESC; id=1 OR 1=1"
+    },
+    "steps": [
+      "Submit payload independently in search, filters, IDs and sort fields; compare with literal-string search and scoped fixture counts.",
+      "Capture redacted response and compare authorized state before/after; reset fixtures."
+    ],
+    "expected_results": [
+      "No broadened result set, SQL error, mutation or hidden case; identifiers use allowlist and values remain parameterized."
+    ]
+  },
+  {
+    "story_ids": [
+      "LD-029",
+      "LD-035",
+      "LD-037"
+    ],
+    "title": "Stored/reflected XSS",
+    "level": "security/integration",
+    "preconditions": [
+      "Disposable isolated LawDesk QA build with exact SHA recorded.",
+      "Approved contract, synthetic role/scope fixtures, controlled clock and authorized log access."
+    ],
+    "test_data": {
+      "payloads": "<img src=x onerror=\"window.__qaXss=1\">; <svg onload=window.__qaXss=1>"
+    },
+    "steps": [
+      "Store payload in note/title and reflect in search/error; reopen as second allowed user in both locales; inspect window.__qaXss.",
+      "Capture redacted response and compare authorized state before/after; reset fixtures."
+    ],
+    "expected_results": [
+      "Sentinel remains undefined; text is escaped or sanitized per approved rich-text policy; no executable URL."
+    ]
+  },
+  {
+    "story_ids": [
+      "LD-007",
+      "LD-010"
+    ],
+    "title": "CSRF",
+    "level": "security/integration",
+    "preconditions": [
+      "Disposable isolated LawDesk QA build with exact SHA recorded.",
+      "Approved contract, synthetic role/scope fixtures, controlled clock and authorized log access."
+    ],
+    "test_data": {
+      "payloads": "Valid session; absent token; invalid token; foreign Origin"
+    },
+    "steps": [
+      "Replay each state-changing request without token and with invalid token/foreign Origin; repeat with approved valid CSRF token.",
+      "Capture redacted response and compare authorized state before/after; reset fixtures."
+    ],
+    "expected_results": [
+      "Cookie-authenticated mutations rejected without valid CSRF control; valid request succeeds; verify DB unchanged on denial. Transport decision remains blocking."
+    ]
+  },
+  {
+    "story_ids": [
+      "LD-007"
+    ],
+    "title": "Session fixation",
+    "level": "security/integration",
+    "preconditions": [
+      "Disposable isolated LawDesk QA build with exact SHA recorded.",
+      "Approved contract, synthetic role/scope fixtures, controlled clock and authorized log access."
+    ],
+    "test_data": {
+      "payloads": "Pre-login session S0; valid QA account"
+    },
+    "steps": [
+      "Capture anonymous session S0; login; capture S1; try S0 against protected endpoint from separate client.",
+      "Capture redacted response and compare authorized state before/after; reset fixtures."
+    ],
+    "expected_results": [
+      "Authentication rotates session identifier; S0 cannot access protected resource."
+    ]
+  },
+  {
+    "story_ids": [
+      "LD-007",
+      "LD-008",
+      "LD-009"
+    ],
+    "title": "Credential invalidation",
+    "level": "security/integration",
+    "preconditions": [
+      "Disposable isolated LawDesk QA build with exact SHA recorded.",
+      "Approved contract, synthetic role/scope fixtures, controlled clock and authorized log access."
+    ],
+    "test_data": {
+      "payloads": "Logged-in sessions S1/S2; logout; password change; disable user"
+    },
+    "steps": [
+      "Independently logout, change password and disable user; replay each captured session and refresh credential after approved revocation interval.",
+      "Capture redacted response and compare authorized state before/after; reset fixtures."
+    ],
+    "expected_results": [
+      "Logged-out session fails immediately; all revocation paths meet signed policy and cannot regain grants."
+    ]
+  },
+  {
+    "story_ids": [
+      "LD-007",
+      "LD-008"
+    ],
+    "title": "Brute-force limiting",
+    "level": "security/integration",
+    "preconditions": [
+      "Disposable isolated LawDesk QA build with exact SHA recorded.",
+      "Approved contract, synthetic role/scope fixtures, controlled clock and authorized log access."
+    ],
+    "test_data": {
+      "payloads": "Approved limit N/window W; known/unknown username; controlled clock"
+    },
+    "steps": [
+      "Send N-1/N/N+1 wrong-password attempts; test second account and trusted proxy handling; advance clock to recovery boundary.",
+      "Capture redacted response and compare authorized state before/after; reset fixtures."
+    ],
+    "expected_results": [
+      "Documented throttle/lockout applies consistently without username enumeration; recovery works; thresholds unresolved until policy signed."
+    ]
+  },
+  {
+    "story_ids": [
+      "LD-008"
+    ],
+    "title": "Reset expiry/reuse",
+    "level": "security/integration",
+    "preconditions": [
+      "Disposable isolated LawDesk QA build with exact SHA recorded.",
+      "Approved contract, synthetic role/scope fixtures, controlled clock and authorized log access."
+    ],
+    "test_data": {
+      "payloads": "Synthetic reset token; expiry E; two simultaneous reset clients"
+    },
+    "steps": [
+      "If reset scope approved, use token at E-epsilon/E/E+epsilon; replay consumed token; race two uses; request reset for unknown user.",
+      "Capture redacted response and compare authorized state before/after; reset fixtures."
+    ],
+    "expected_results": [
+      "Only one pre-expiry use succeeds; expired/consumed token fails; responses do not enumerate users. Reset feature scope is unresolved."
+    ]
+  },
+  {
+    "story_ids": [
+      "LD-010",
+      "LD-012",
+      "LD-026",
+      "LD-034"
+    ],
+    "title": "Horizontal IDOR",
+    "level": "security/integration",
+    "preconditions": [
+      "Disposable isolated LawDesk QA build with exact SHA recorded.",
+      "Approved contract, synthetic role/scope fixtures, controlled clock and authorized log access."
+    ],
+    "test_data": {
+      "payloads": "Allowed user A/case A; user B/case B; nested file and export IDs"
+    },
+    "steps": [
+      "As A substitute B IDs in GET/update/delete, nested attachments, reports and exports; repeat through batch/query/body variants.",
+      "Capture redacted response and compare authorized state before/after; reset fixtures."
+    ],
+    "expected_results": [
+      "No B data/metadata/download or mutation; same authorization rule applies to all paths. Ownership model requires approval."
+    ]
+  },
+  {
+    "story_ids": [
+      "LD-009",
+      "LD-010"
+    ],
+    "title": "Vertical escalation",
+    "level": "security/integration",
+    "preconditions": [
+      "Disposable isolated LawDesk QA build with exact SHA recorded.",
+      "Approved contract, synthetic role/scope fixtures, controlled clock and authorized log access."
+    ],
+    "test_data": {
+      "payloads": "qa.readonly; qa.admin; role/admin fields in JSON"
+    },
+    "steps": [
+      "Call admin routes as readonly; inject role/owner/admin flags in ordinary update payload; try method override and alternate verbs.",
+      "Capture redacted response and compare authorized state before/after; reset fixtures."
+    ],
+    "expected_results": [
+      "No privilege increase or grant change; forbidden fields rejected or ignored by signed schema without side effect."
+    ]
+  },
+  {
+    "story_ids": [
+      "LD-026"
+    ],
+    "title": "Upload content validation",
+    "level": "security/integration",
+    "preconditions": [
+      "Disposable isolated LawDesk QA build with exact SHA recorded.",
+      "Approved contract, synthetic role/scope fixtures, controlled clock and authorized log access."
+    ],
+    "test_data": {
+      "payloads": "Valid PDF; empty; renamed executable; truncated PDF; size B-1/B/B+1"
+    },
+    "steps": [
+      "Upload each independently with mismatched MIME and extension; then upload two distinct PDFs concurrently with nine already stored.",
+      "Capture redacted response and compare authorized state before/after; reset fixtures."
+    ],
+    "expected_results": [
+      "Only valid within-limit PDFs accepted; <=10 attachments after race; rejected blobs/rows cleaned. Byte limit/scanning policy pending."
+    ]
+  },
+  {
+    "story_ids": [
+      "LD-010",
+      "LD-026"
+    ],
+    "title": "Download authorization",
+    "level": "security/integration",
+    "preconditions": [
+      "Disposable isolated LawDesk QA build with exact SHA recorded.",
+      "Approved contract, synthetic role/scope fixtures, controlled clock and authorized log access."
+    ],
+    "test_data": {
+      "payloads": "Private file A/B; anonymous; revoked user; expired link"
+    },
+    "steps": [
+      "Request download as owner/denied/anonymous; revoke access and retry direct URL; attempt ../ path traversal and encoded variants.",
+      "Capture redacted response and compare authorized state before/after; reset fixtures."
+    ],
+    "expected_results": [
+      "Unauthorized bytes, filenames and storage paths never exposed; no traversal; link expiry/cache policy enforced."
+    ]
+  },
+  {
+    "story_ids": [
+      "LD-011",
+      "LD-029"
+    ],
+    "title": "Log redaction",
+    "level": "security/integration",
+    "preconditions": [
+      "Disposable isolated LawDesk QA build with exact SHA recorded.",
+      "Approved contract, synthetic role/scope fixtures, controlled clock and authorized log access."
+    ],
+    "test_data": {
+      "payloads": "Unique fake secret QA-SECRET-MARKER; QA-LEGAL-MARKER; CR/LF payload"
+    },
+    "steps": [
+      "Perform failed login, note save and forced error; inspect authorized QA logs/traces/audit exports for markers; inspect line framing.",
+      "Capture redacted response and compare authorized state before/after; reset fixtures."
+    ],
+    "expected_results": [
+      "Passwords/session/reset tokens absent; legal content follows signed redaction policy; injected newline cannot forge audit entry."
+    ]
+  },
+  {
+    "story_ids": [
+      "LD-006",
+      "LD-007"
+    ],
+    "title": "Headers/cookies",
+    "level": "security/integration",
+    "preconditions": [
+      "Disposable isolated LawDesk QA build with exact SHA recorded.",
+      "Approved contract, synthetic role/scope fixtures, controlled clock and authorized log access."
+    ],
+    "test_data": {
+      "payloads": "HTTPS QA response; authenticated session cookie; hostile Origin"
+    },
+    "steps": [
+      "Inspect response/cookie headers, CORS preflight and credentialed request from untrusted origin; inspect browser storage after login.",
+      "Capture redacted response and compare authorized state before/after; reset fixtures."
+    ],
+    "expected_results": [
+      "Session cookie Secure/HttpOnly and approved SameSite; no bearer token in localStorage; untrusted origin gets no credentialed access; header policy signed."
+    ]
+  },
+  {
+    "story_ids": [
+      "LD-041"
+    ],
+    "title": "Backup access/encryption",
+    "level": "security/integration",
+    "preconditions": [
+      "Disposable isolated LawDesk QA build with exact SHA recorded.",
+      "Approved contract, synthetic role/scope fixtures, controlled clock and authorized log access."
+    ],
+    "test_data": {
+      "payloads": "Synthetic encrypted backup; wrong key; unprivileged QA operator"
+    },
+    "steps": [
+      "Try reading/restoring backup without privileges and wrong key; restore with authorized QA operator into empty isolated database; compare counts and checksums.",
+      "Capture redacted response and compare authorized state before/after; reset fixtures."
+    ],
+    "expected_results": [
+      "Unauthorized reads/restores fail; encrypted backup not plaintext; authorized restore reconciles rows and relationships with measured RPO/RTO."
+    ]
+  },
+  {
+    "story_ids": [
+      "LD-006",
+      "LD-041"
+    ],
+    "title": "TLS/domain isolation",
+    "level": "security/integration",
+    "preconditions": [
+      "Disposable isolated LawDesk QA build with exact SHA recorded.",
+      "Approved contract, synthetic role/scope fixtures, controlled clock and authorized log access."
+    ],
+    "test_data": {
+      "payloads": "LawDesk QA hostname; unknown Host/SNI; deployment manifest"
+    },
+    "steps": [
+      "Read manifests and certificate/routing evidence; request only approved LawDesk QA hostname and unknown host in disposable routing fixture; inspect network/secret separation.",
+      "Capture redacted response and compare authorized state before/after; reset fixtures."
+    ],
+    "expected_results": [
+      "Valid certificate for LawDesk; no cross-app routes/data/secrets or competing 443 bind; shared Matbakhy proxy never modified."
+    ]
+  }
+]
