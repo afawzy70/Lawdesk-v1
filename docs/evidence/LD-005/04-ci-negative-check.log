@@ -1,0 +1,27 @@
+# CI negative check   # 2026-10-23T14:51:54Z
+# Throwaway branch qa/LD-005-ci-negative-check (draft PR #4, closed and deleted afterwards) with:
+#  - commit subject 'broken change for CI negative check' (local hook bypassed with --no-verify on purpose)
+#  - HealthEndpointTest expecting 299 instead of 200; a vitest asserting 1 === 2
+$ gh run view 39973069588 --json conclusion,jobs
+run conclusion: failure
+  Repository policy: failure
+  Backend against postgres:18.6 image: failure
+  Secret scan (gitleaks 8.30.1): success
+  Backend (Java 21, embedded PostgreSQL 18.6): failure
+  Frontend (Node 22): failure
+
+# Key failure lines (gh run view --log-failed):
+Backend (Java 21, embedded PostgreSQL 18.6): 	at com.lawdesk.platform.HealthEndpointTest.healthIsPublicAndUp(HealthEndpointTest.java:18)
+Backend (Java 21, embedded PostgreSQL 18.6): ##[error]Failed to CreateArtifact: Artifact storage quota has been hit. Unable to upload any new artifacts.
+Backend (Java 21, embedded PostgreSQL 18.6): ##[error]Process completed with exit code 1.
+Backend (Java 21, embedded PostgreSQL 18.6): [ERROR]   HealthEndpointTest.healthIsPublicAndUp:18 
+Backend (Java 21, embedded PostgreSQL 18.6): [ERROR] Tests run: 38, Failures: 2, Errors: 0, Skipped: 0
+Backend (Java 21, embedded PostgreSQL 18.6): [ERROR] com.lawdesk.platform.HealthEndpointTest.healthIsPublicAndUp -- Time elapsed: 0.011 s <<< FAILURE!
+Frontend (Node 22):      48| negIt('deliberate CI negative check', () => { negExpect(1).toBe(2); });
+Frontend (Node 22):    × deliberate CI negative check 7ms
+Frontend (Node 22):  FAIL  src/i18n/locale.test.ts > deliberate CI negative check
+Frontend (Node 22): ##[error]AssertionError: expected 1 to be 2 // Object.is equality
+Frontend (Node 22): ##[error]Process completed with exit code 1.
+Repository policy: ##[error]Process completed with exit code 1.
+Repository policy: ##[error]commit 0a17ac86b9629ec182987c216de1d2cff8c10320
+Repository policy: policy: commit subject 'broken change for CI negative check' must follow 'type(scope): summary' with type one of feat, fix, docs, test, refactor, chore, ci, build, perf, style, revert; put the story ID in the scope, e.g. 'feat(LD-002): add health endpoint'

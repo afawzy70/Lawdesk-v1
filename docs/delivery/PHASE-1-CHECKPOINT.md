@@ -9,8 +9,8 @@ Branch: `feature/phase-1-foundation` → PR into `develop`. Update this file at 
 | LD-001 | Repository structure and conventions (item 1) | GREEN + REFACTOR done, awaiting QA review | `docs/evidence/LD-001/` |
 | LD-002 | Spring Boot backend, health checks, structured logging (items 2, 8) | GREEN + REFACTOR done (23 tests), awaiting QA review | `docs/evidence/LD-002/` |
 | LD-003 | React + TypeScript shell (item 3) | GREEN + REFACTOR done (50 tests), merged from `feature/LD-003-react-shell` and re-verified by lead; awaiting QA review | `docs/evidence/LD-003/` |
-| LD-004 | PostgreSQL migrations, test isolation (items 4, 5) | GREEN + REFACTOR done (37 backend tests), awaiting QA review | `docs/evidence/LD-004/` |
-| LD-005 | GitHub Actions CI gates (items 5, 6) | In progress | `docs/evidence/LD-005/` |
+| LD-004 | PostgreSQL migrations, test isolation (items 4, 5) | GREEN + REFACTOR done (40 backend tests incl. QA edge cases), awaiting QA review | `docs/evidence/LD-004/` |
+| LD-005 | GitHub Actions CI gates (items 5, 6) | Done: CI green on PR #2, negative check proven; merge enforcement BLOCKED (B4) | `docs/evidence/LD-005/` |
 | LD-006 | Compose staging, observability, deploy + rollback, HTTPS proxy (items 7, 8, 9) | Not started; deploy blocked on B1, B2 | — |
 
 ## Open blockers / owner decisions
@@ -21,7 +21,8 @@ Branch: `feature/phase-1-foundation` → PR into `develop`. Update this file at 
 | B2 | No mechanism for GitHub Actions to deploy to Contabo (no runner, no secrets, `aiagent` lacks docker). | Choose: (a) self-hosted runner under a dedicated `lawdesk-deploy` user in the `docker` group, or (b) SSH deploy key + restricted deploy user; plus GHCR pull access. |
 | ~~B3~~ | **Resolved 2026-10-23**: owner approved Spring Boot 4.1.x (4.1.2) with Java 21; `architecture/DECISIONS.md` updated. | — |
 | B4 | Branch protection/required checks unavailable (private repo, free plan). | Upgrade plan or make repo public, or accept process-only enforcement. |
-| B5 | Phase 1 acceptance criteria are templates. | Product/QA approval of `PHASE-1-ACCEPTANCE.md`. |
+| B5 | Phase 1 acceptance criteria are templates (also QA finding QAD-001). | Product/QA approval of `PHASE-1-ACCEPTANCE.md`. |
+| B6 | GitHub Actions artifact storage quota is exhausted on the account (seen in CI 2026-10-23). | Free quota (e.g. delete old artifacts in other repos) or raise it; CI test-report uploads are best-effort until then. |
 
 ## Proposed isolated proxy plan (B1) — NOT applied
 

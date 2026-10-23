@@ -128,7 +128,7 @@ Acceptance criteria:
 
 | QA case | Scenario | Mapping | Status |
 |---------|----------|---------|--------|
-| QA-0025 | authorized happy path | `baselineMigrationIsApplied`, `persistsAndReadsBackARelease`, `recordsTheRunningReleaseAtStartup` | AUTOMATED |
+| QA-0025 | authorized happy path | `baselineMigrationIsApplied`, `persistsAndReadsBackARelease`, `recordsTheRunningReleaseAtStartup`; QA edge fixture: `migratingAnUpToDateDatabaseAgainChangesNothing`, `concurrentMigratorsApplyEachMigrationExactlyOnce` | AUTOMATED |
 | QA-0026 | required-field validation | `rejectsMissingVersionWithoutPersisting` (blank, null) | AUTOMATED |
 | QA-0027 | invalid input boundary | `acceptsVersionAtTheLengthLimitAndRejectsOneCharacterMore`, `databaseEnforcesTheSameRules…` | AUTOMATED |
 | QA-0028 | unauthenticated access | No data endpoints exist; `/api/**` is deny-by-default (LD-002). DB credentials only via environment | N/A (reviewer to confirm) |
@@ -137,6 +137,35 @@ Acceptance criteria:
 | QA-0031 | concurrent or repeat request | `concurrentInsertsGetDistinctIdentifiers` (10 parallel inserts) | AUTOMATED |
 | QA-0032 | API-to-UI state and error handling | `readinessDependsOnTheDatabaseButLivenessDoesNot`; UI shows "API unavailable" when readiness fails (LD-003) | AUTOMATED (partial) |
 
-## LD-005 … LD-006
+## LD-005 CI quality gates
 
-Refined in each story's kickoff commit before its RED step.
+Acceptance criteria:
+
+1. `.github/workflows/ci.yml` runs on every pull request into `develop`/`main`, on pushes to them and on manual
+   dispatch, with five gates: **Repository policy**, **Backend (Java 21, embedded PostgreSQL 18.6)**,
+   **Backend against postgres:18.6 image**, **Frontend (Node 22)**, **Secret scan (gitleaks 8.30.1)**.
+2. Policy: tooling tests, required files, PR source/target flow, every PR commit message, actionlint.
+3. Backend: `./mvnw verify` on Temurin 21; the same suite also runs against the official `postgres:18.6-alpine` image.
+4. Frontend: `npm ci`, lint (zero warnings), typecheck, tests with coverage thresholds (90 %), build, and
+   `npm audit --omit=dev --audit-level=high`.
+5. Secrets: gitleaks over the full git history; allowlist entries in `.gitleaksignore` need a written reason.
+6. Supply chain and least privilege: read-only `GITHUB_TOKEN`, every action pinned to a commit SHA, downloaded tools
+   checksum-verified, no `pull_request_target`, job timeouts ≤ 30 minutes, superseded runs cancelled.
+7. A broken change fails CI (demonstrated by a throwaway negative-check PR).
+8. Merging is blocked when a gate fails — **blocked (B4)**: GitHub cannot enforce required checks on this private
+   repository's plan, so enforcement is procedural until the owner changes the plan or visibility.
+
+| QA case | Scenario | Mapping | Status |
+|---------|----------|---------|--------|
+| QA-0033 | authorized happy path | CI run 39972644083 on PR #2: 5/5 gates green (31 tooling, 38 backend ×2, 50 frontend tests) | AUTOMATED |
+| QA-0034 | required-field validation | `test_ci_workflow.py` fails if any required gate/command is removed | AUTOMATED |
+| QA-0035 | invalid input boundary | Negative check run 39973069588: bad commit subject, failing backend and frontend tests → 4 gates fail | AUTOMATED |
+| QA-0036 | unauthenticated access | Read-only token, no `pull_request_target`, no secrets in workflow (`SecurityPostureTest`) | AUTOMATED |
+| QA-0037 | insufficient permission | Required status checks / no self-merge not enforceable by GitHub on current plan | BLOCKED (B4) |
+| QA-0038 | record integrity and rollback | Secret scan over full history caught a real finding (LD-002 fallback user) that was fixed | AUTOMATED |
+| QA-0039 | concurrent or repeat request | `concurrency` cancels superseded runs; "only the verified SHA deploys" belongs to LD-006 | AUTOMATED (CI part) |
+| QA-0040 | API-to-UI state and error handling | Failure surfaces as job annotations; test-report upload is best-effort because the artifact quota is exhausted (B6) | AUTOMATED (partial) |
+
+## LD-006
+
+Refined in the story's kickoff commit before its RED step.
