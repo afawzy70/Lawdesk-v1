@@ -1,0 +1,274 @@
+{
+  "tested_sha": "ad0def0aeba514619f060fe1f150d1833a9f3fd9",
+  "utc": "2026-10-23T16:34:43.162Z",
+  "browser": "156.0.8078.4",
+  "scope": "Chromium security probes; CSP mirrored on QA fixture; health401 synthetic; not authentication or real-container verification.",
+  "results": [
+    {
+      "id": "UNTRUSTED-LOCALE-en",
+      "expected": "Untrusted locale markup falls back to English without executing or reflecting HTML.",
+      "steps": [
+        "Open URL with encoded SVG-onload locale and a real browser."
+      ],
+      "actual": {
+        "lang": "en",
+        "xss": null,
+        "reflected": false
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-003"
+      ],
+      "traceability": "PREVIEW.md early preview; LD-035/036/037 acceptance remains separate",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "candidate_sha": "ad0def0aeba514619f060fe1f150d1833a9f3fd9",
+        "assertion_id": "UNTRUSTED-LOCALE-en"
+      },
+      "expected_results": [
+        "Untrusted locale markup falls back to English without executing or reflecting HTML."
+      ]
+    },
+    {
+      "id": "PRIVATE-ERROR-en",
+      "expected": "401 health marker is never rendered; localized unavailable label remains.",
+      "steps": [
+        "Intercept health with synthetic private marker and401.",
+        "Open actual preview and inspect status/body."
+      ],
+      "actual": {
+        "status": "API unavailable",
+        "leak": false
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-003"
+      ],
+      "traceability": "PREVIEW.md early preview; LD-035/036/037 acceptance remains separate",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "candidate_sha": "ad0def0aeba514619f060fe1f150d1833a9f3fd9",
+        "assertion_id": "PRIVATE-ERROR-en"
+      },
+      "expected_results": [
+        "401 health marker is never rendered; localized unavailable label remains."
+      ]
+    },
+    {
+      "id": "READONLY-SAME-ORIGIN-en",
+      "expected": "Preview makes only same-origin GET requests; no feature mutation.",
+      "steps": [
+        "Inspect every browser request generated in the two sessions."
+      ],
+      "actual": [
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/assets/index-D_D4s6ga.js"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/assets/index-CnM4Yna7.css"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/actuator/health"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/assets/index-D_D4s6ga.js"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/assets/index-CnM4Yna7.css"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/actuator/health"
+        }
+      ],
+      "status": "PASS",
+      "priority": "P0",
+      "story_ids": [
+        "LD-003"
+      ],
+      "traceability": "PREVIEW.md early preview; LD-035/036/037 acceptance remains separate",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "candidate_sha": "ad0def0aeba514619f060fe1f150d1833a9f3fd9",
+        "assertion_id": "READONLY-SAME-ORIGIN-en"
+      },
+      "expected_results": [
+        "Preview makes only same-origin GET requests; no feature mutation."
+      ]
+    },
+    {
+      "id": "UNTRUSTED-LOCALE-ar",
+      "expected": "Untrusted locale markup falls back to English without executing or reflecting HTML.",
+      "steps": [
+        "Open URL with encoded SVG-onload locale and a real browser."
+      ],
+      "actual": {
+        "lang": "en",
+        "xss": null,
+        "reflected": false
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-003"
+      ],
+      "traceability": "PREVIEW.md early preview; LD-035/036/037 acceptance remains separate",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "candidate_sha": "ad0def0aeba514619f060fe1f150d1833a9f3fd9",
+        "assertion_id": "UNTRUSTED-LOCALE-ar"
+      },
+      "expected_results": [
+        "Untrusted locale markup falls back to English without executing or reflecting HTML."
+      ]
+    },
+    {
+      "id": "PRIVATE-ERROR-ar",
+      "expected": "401 health marker is never rendered; localized unavailable label remains.",
+      "steps": [
+        "Intercept health with synthetic private marker and401.",
+        "Open actual preview and inspect status/body."
+      ],
+      "actual": {
+        "status": "الواجهة البرمجية غير متاحة",
+        "leak": false
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-003"
+      ],
+      "traceability": "PREVIEW.md early preview; LD-035/036/037 acceptance remains separate",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "candidate_sha": "ad0def0aeba514619f060fe1f150d1833a9f3fd9",
+        "assertion_id": "PRIVATE-ERROR-ar"
+      },
+      "expected_results": [
+        "401 health marker is never rendered; localized unavailable label remains."
+      ]
+    },
+    {
+      "id": "READONLY-SAME-ORIGIN-ar",
+      "expected": "Preview makes only same-origin GET requests; no feature mutation.",
+      "steps": [
+        "Inspect every browser request generated in the two sessions."
+      ],
+      "actual": [
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/assets/index-D_D4s6ga.js"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/assets/index-CnM4Yna7.css"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/actuator/health"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/assets/index-D_D4s6ga.js"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/assets/index-CnM4Yna7.css"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/actuator/health"
+        }
+      ],
+      "status": "PASS",
+      "priority": "P0",
+      "story_ids": [
+        "LD-003"
+      ],
+      "traceability": "PREVIEW.md early preview; LD-035/036/037 acceptance remains separate",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "candidate_sha": "ad0def0aeba514619f060fe1f150d1833a9f3fd9",
+        "assertion_id": "READONLY-SAME-ORIGIN-ar"
+      },
+      "expected_results": [
+        "Preview makes only same-origin GET requests; no feature mutation."
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "lang": "en",
+      "table": {
+        "tabindex": null,
+        "programmaticFocus": true,
+        "scrollWidth": 406,
+        "clientWidth": 307
+      }
+    },
+    {
+      "lang": "ar",
+      "table": {
+        "tabindex": null,
+        "programmaticFocus": true,
+        "scrollWidth": 377,
+        "clientWidth": 307
+      }
+    }
+  ],
+  "counts": {
+    "PASS": 6,
+    "FAIL": 0
+  }
+}

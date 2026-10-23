@@ -37,8 +37,15 @@ class IndependentDatabaseAcceptanceTest extends PostgresTestSupport {
     @ValueSource(strings = {"\t", "\n", "\r\n", "\u2003"})
     void databaseRejectsWhitespaceOnlyVersionLikeBeanValidation(String blank) {
         // LD-004 AC3: database must reject the SAME blank inputs as @NotBlank.
-        assertThatThrownBy(() -> jdbc.update("insert into app_release(version) values (?)", blank))
-                .isInstanceOf(DataIntegrityViolationException.class);
+        try {
+            jdbc.update("insert into app_release(version) values (?)", blank);
+        } catch (DataIntegrityViolationException expectedRejection) {
+            return;
+        }
+        var observed = jdbc.queryForMap(
+                "select length(version) as length, encode(convert_to(version, 'UTF8'), 'hex') as utf8_hex "
+                        + "from app_release where version=? order by id desc limit 1", blank);
+        assertThat(observed).as("Database accepted whitespace-only version; actual persisted bytes").isEmpty();
     }
 
     @Test

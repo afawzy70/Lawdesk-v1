@@ -22,7 +22,11 @@ if __name__=='__main__':
             os.environ['SPRING_DATASOURCE_URL']=f'jdbc:postgresql://127.0.0.1:{port}/postgres'
             os.environ['SPRING_DATASOURCE_USERNAME']='lawdesk_qa'
             os.environ['SPRING_DATASOURCE_PASSWORD']=''
-            code=Review(args.candidate,args.sha,args.output).execute(args.java,args.jar)
+            def stop():
+                subprocess.run([str(pg/'pg_ctl'),'-D',str(data),'-m','fast','-w','stop'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True)
+            def start():
+                subprocess.run([str(pg/'pg_ctl'),'-D',str(data),'-l',str(root/'postgres.log'),'-o',f'-h 127.0.0.1 -p {port} -k {root}','-w','start'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True)
+            code=Review(args.candidate,args.sha,args.output).execute(args.java,args.jar,(stop,start))
         finally:
             subprocess.run([str(pg/'pg_ctl'),'-D',str(data),'-m','fast','-w','stop'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True)
     raise SystemExit(code)

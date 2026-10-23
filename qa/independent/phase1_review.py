@@ -141,7 +141,34 @@ class Review:
             return {'statuses':[r['status'] for r in replies],'ids':ids},all(r['status']==200 for r in replies) and len(set(ids))==20 and all(ids)
         self.check('P1-CONCURRENT-IDS',['QA-0015'],'20 successful requests, 20 distinct ids',concurrent,{'clients':20})
 
-    def execute(self, java, jar):
+    def dependency_outage_checks(self, stop, start):
+        def probe(path, expected):
+            reply=None
+            for _ in range(15):
+                try:
+                    reply=self.request(path)
+                    if reply['status']==expected:return reply,True
+                except (OSError,urllib.error.URLError):pass
+                time.sleep(.3)
+            return reply,False
+        stop()
+        try:
+            def readiness():
+                "Stop only QA-owned PostgreSQL and observe readiness 503."
+                return probe('/actuator/health/readiness',503)
+            self.check('P1-DB-OUTAGE-READINESS',['QA-0032'],'Readiness returns503 during real isolated DB outage',readiness,{'dependency':'owned disposable PostgreSQL'})
+            def liveness():
+                "While QA database is stopped, GET liveness."
+                r=self.request('/actuator/health/liveness');return r,r['status']==200
+            self.check('P1-DB-OUTAGE-LIVENESS',['QA-0032'],'Liveness remains200 during DB outage',liveness,{})
+        finally:
+            start()
+        def recovery():
+            "Restart same owned PostgreSQL and poll readiness recovery."
+            return probe('/actuator/health/readiness',200)
+        self.check('P1-DB-RECOVERY',['QA-0032'],'Readiness recovers200 after database restart',recovery,{})
+
+    def execute(self, java, jar, dependency_control=None):
         self.policy_checks()
         with socket.socket() as sock:
             sock.bind(('127.0.0.1',0)); port=sock.getsockname()[1]
@@ -159,7 +186,10 @@ class Review:
                         if self.request('/actuator/health')['status']==200: ready=True; break
                     except (OSError,urllib.error.URLError): pass
                     time.sleep(.25)
-                if ready: self.http_checks()
+                if ready:
+                    self.http_checks()
+                    self.request('/actuator/health?qa=QA-LEGAL-QUERY-MARKER',headers={'X-Request-Id':'QA-INDEPENDENT-LOG-PROBE','Authorization':'Bearer QA-FAKE-SECRET-MARKER'})
+                    if dependency_control:self.dependency_outage_checks(*dependency_control)
                 else: self.results.append({'id':'P1-RUNTIME','status':'BLOCKED','actual':'No healthy QA server within 25 seconds'})
             finally:
                 if process.poll() is None:
@@ -167,6 +197,27 @@ class Review:
                     try: process.wait(timeout=25)
                     except subprocess.TimeoutExpired: process.kill(); process.wait()
         rawtext=raw.read_text()
+        events=[]
+        for line in rawtext.splitlines():
+            try:
+                parsed=json.loads(line)
+                if parsed.get('message')=='request completed':events.append(parsed)
+            except (ValueError,AttributeError):pass
+        matching=[e for e in events if e.get('requestId')=='QA-INDEPENDENT-LOG-PROBE']
+        def one_event():
+            "Find exactly one ECS completion event for known request ID."
+            return {'events':len(matching)},len(matching)==1
+        self.check('P1-LOG-ONE-EVENT',['QA-0348'],'Exactly one completion event per instrumented request',one_event,{'request_id':'QA-INDEPENDENT-LOG-PROBE'})
+        def fields():
+            "Inspect real JSON completion event shape and duration."
+            e=matching[0] if matching else {};http=e.get('http',{});duration=e.get('event',{}).get('duration_ms',-1)
+            return e,http.get('request',{}).get('method')=='GET' and http.get('response',{}).get('status_code')==200 and e.get('url',{}).get('path')=='/actuator/health' and isinstance(duration,(int,float)) and duration>=0
+        self.check('P1-LOG-FIELDS',['QA-0348'],'ECS event has method/path/status/nonnegative duration and request ID',fields,{})
+        def redaction():
+            "Search captured application log for synthetic query/Authorization sentinels."
+            leaks=[v for v in ['QA-LEGAL-QUERY-MARKER','QA-FAKE-SECRET-MARKER'] if v in rawtext]
+            return {'leaked_markers':leaks},not leaks
+        self.check('P1-LOG-REDACTION',['QA-0348'],'Query strings and authorization values absent from logs',redaction,{})
         sanitized=re.sub(r'(Using generated security password: )[^\\\s]+',r'\1[REDACTED]',rawtext)
         logpath.write_text(sanitized)
         report={'tested_sha':self.sha,'integration_base':'91551a3','utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'candidate_source':'git archive with every tracked blob verified','jar_sha256':hashlib.sha256(Path(jar).read_bytes()).hexdigest(),'environment':{'java':subprocess.check_output([java,'-version'],stderr=subprocess.STDOUT,text=True).splitlines()[0],'bind':'loopback ephemeral port','postgresql':'disposable PostgreSQL configured' if os.environ.get('SPRING_DATASOURCE_URL') else 'no datasource in this run'},'contract':'PR #2 docs/delivery/PHASE-1-ACCEPTANCE.md PROPOSED, not approved','results':self.results,'assertion_counts':{s:sum(r['status']==s for r in self.results) for s in ['PASS','FAIL','BLOCKED','NOT_RUN']},'baseline_case_promotion':'NONE: these are partial assertions under a proposed contract, not full-case passes'}
