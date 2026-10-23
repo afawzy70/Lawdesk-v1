@@ -29,8 +29,16 @@ def run(candidate,sha,output):
     check('CI-PR-TRIGGERS','PR jobs target develop/main with read-only token and no privileged PR event.',{'events':events,'permissions':workflow.get('permissions')},set(events['pull_request']['branches'])=={'develop','main'} and 'pull_request_target' not in events and workflow.get('permissions')=={'contents':'read'})
     actions=[s['uses'] for j in jobs.values() for s in j.get('steps',[]) if 'uses' in s]
     check('CI-ACTION-PINS','Every action uses a full immutable SHA.',actions,all(re.fullmatch(r'[^@]+@[0-9a-f]{40}',a) for a in actions))
-    timeouts={k:v.get('timeout-minutes') for k,v in jobs.items()}
-    check('CI-BOUNDED-CANCELLED-RUNS','All jobs bounded<=30min; superseded runs cancelled.',{'timeouts':timeouts,'concurrency':workflow.get('concurrency')},all(isinstance(t,int) and 0<t<=30 for t in timeouts.values()) and workflow.get('concurrency',{}).get('cancel-in-progress') is True)
+    timeouts={}
+    for name,job in jobs.items():
+        if str(job.get('uses','')).startswith('./.github/workflows/'):
+            callee=yaml.safe_load((root/job['uses'][2:]).read_text())
+            timeouts[name]={k:v.get('timeout-minutes') for k,v in callee['jobs'].items()}
+        else: timeouts[name]=job.get('timeout-minutes')
+    flat=[v for value in timeouts.values() for v in (value.values() if isinstance(value,dict) else [value])]
+    cancellation=workflow.get('concurrency',{}).get('cancel-in-progress')
+    valid_cancel=cancellation is True or cancellation=="${{ github.event_name == 'pull_request' }}"
+    check('CI-BOUNDED-CANCELLED-RUNS','Jobs including reusable-workflow callees bounded<=30min; PR supersession cancels, deployments may queue without cancellation.',{'timeouts':timeouts,'concurrency':workflow.get('concurrency')},all(isinstance(t,int) and 0<t<=30 for t in flat) and valid_cancel)
     check('CI-SIX-GATE-CONFIG','All six expected gates configured; this does not certify their execution or server enforcement.',list(jobs),{'policy','backend','backend-postgres-image','frontend','stack','secrets'}.issubset(jobs))
     report={'tested_sha':sha,'utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'scope':'Independent native render and static CI checks. No Docker daemon/container, role or deployment PASS is implied.','results':rows,'counts':{s:sum(r['status']==s for r in rows) for s in ['PASS','FAIL','BLOCKED']},'runtime_blockers':['Docker local socket permission denied, including escalated read-only retry.','No changes to socket permissions, daemon, shared proxy or other applications.']}
     (out/'independent-compose-ci-results.json').write_text(json.dumps(report,indent=2)+'\n');print(report['counts']);return int(report['counts']['FAIL']>0)

@@ -86,9 +86,9 @@ class Review:
                 return errors,bool(errors)!=allowed
             self.check(f'P1-FLOW-{head}-{base}',['QA-0001','QA-0005'],'PR flow follows documented policy',action,{'head':head,'base':base})
 
-    def request(self, path, method='GET', headers=None):
+    def request(self, path, method='GET', headers=None, timeout=5):
         req=urllib.request.Request(self.base+path,headers=headers or {},method=method,data=b'{}' if method=='POST' else None)
-        try: response=urllib.request.build_opener(NoRedirect()).open(req,timeout=5)
+        try: response=urllib.request.build_opener(NoRedirect()).open(req,timeout=timeout)
         except urllib.error.HTTPError as error: response=error
         with response:
             return {'status':response.code,'headers':redact_headers(dict(response.headers)),'body':response.read(65536).decode('utf-8')}
@@ -146,7 +146,9 @@ class Review:
             reply=None
             for _ in range(15):
                 try:
-                    reply=self.request(path)
+                    started=time.monotonic()
+                    reply=self.request(path,timeout=40)
+                    reply['qa_observed_duration_seconds']=round(time.monotonic()-started,3)
                     if reply['status']==expected:return reply,True
                 except (OSError,urllib.error.URLError):pass
                 time.sleep(.3)
