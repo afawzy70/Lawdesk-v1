@@ -27,12 +27,21 @@ public abstract class PostgresTestSupport {
 
     @DynamicPropertySource
     static void isolatedDatabase(DynamicPropertyRegistry registry) {
-        String database = "lawdesk_test_" + UUID.randomUUID().toString().replace("-", "");
         Server server = Server.INSTANCE;
-        server.execute("CREATE DATABASE " + database);
-        registry.add("spring.datasource.url", () -> server.jdbcUrl(database));
+        String url = server.jdbcUrl(server.createDatabase());
+        registry.add("spring.datasource.url", () -> url);
         registry.add("spring.datasource.username", () -> server.user);
         registry.add("spring.datasource.password", () -> server.password);
+    }
+
+    /** A new, empty database (no migrations applied) on the same server, for tests that drive Flyway themselves. */
+    protected static DataSource freshDatabase() {
+        Server server = Server.INSTANCE;
+        PGSimpleDataSource dataSource = new PGSimpleDataSource();
+        dataSource.setUrl(server.jdbcUrl(server.createDatabase()));
+        dataSource.setUser(server.user);
+        dataSource.setPassword(server.password);
+        return dataSource;
     }
 
     private static final class Server {
@@ -69,12 +78,14 @@ public abstract class PostgresTestSupport {
             return urlPrefix + database;
         }
 
-        void execute(String sql) {
+        String createDatabase() {
+            String database = "lawdesk_test_" + UUID.randomUUID().toString().replace("-", "");
             try (Connection connection = admin.getConnection(); Statement statement = connection.createStatement()) {
-                statement.execute(sql);
+                statement.execute("CREATE DATABASE " + database);
             } catch (SQLException e) {
-                throw new IllegalStateException("Could not prepare test database: " + e.getMessage(), e);
+                throw new IllegalStateException("Could not create test database: " + e.getMessage(), e);
             }
+            return database;
         }
 
         private static EmbeddedPostgres startEmbedded() {

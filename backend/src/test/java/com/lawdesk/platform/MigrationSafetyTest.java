@@ -4,6 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CyclicBarrier;
+
 import javax.sql.DataSource;
 
 import org.flywaydb.core.Flyway;
@@ -15,7 +19,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 
 /**
- * LD-004 migration safety: QA-0030 (a failing migration leaves no partial schema) and rollback compatibility for
+ * LD-004 migration safety: QA-0030 (a failing migration leaves no partial schema), the QA edge fixture for QA-0025
+ * (run migrations twice; two migrators at once on an empty database) and rollback compatibility for
  * LD-006 (after a deployment rollback, the previous release must still start against a database that already has
  * the newer release's migrations). Changes the schema, so the context is discarded afterwards.
  */
@@ -56,5 +61,47 @@ class MigrationSafetyTest extends PostgresTestSupport {
                 .load();
 
         assertThatCode(previousRelease::validate).doesNotThrowAnyException();
+    }
+
+    @Test
+    void migratingAnUpToDateDatabaseAgainChangesNothing() {
+        Flyway flyway = applicationFlywayFor(freshDatabase());
+
+        assertThat(flyway.migrate().migrationsExecuted).isPositive();
+        assertThat(flyway.migrate().migrationsExecuted).isZero();
+    }
+
+    @Test
+    void concurrentMigratorsApplyEachMigrationExactlyOnce() {
+        DataSource empty = freshDatabase();
+        CyclicBarrier start = new CyclicBarrier(2);
+        List<CompletableFuture<Integer>> migrators = List.of(1, 2).stream()
+                .map(i -> CompletableFuture.supplyAsync(() -> {
+                    await(start);
+                    return applicationFlywayFor(empty).migrate().migrationsExecuted;
+                }))
+                .toList();
+
+        int executed = migrators.stream().mapToInt(CompletableFuture::join).sum();
+
+        JdbcTemplate target = new JdbcTemplate(empty);
+        int versions = applicationFlywayFor(empty).info().applied().length;
+        assertThat(executed).isEqualTo(versions);
+        assertThat(target.queryForObject(
+                "select count(*) = count(distinct version) from flyway_schema_history where success", Boolean.class))
+                .isTrue();
+        assertThat(target.queryForObject("select to_regclass('app_release') is not null", Boolean.class)).isTrue();
+    }
+
+    private Flyway applicationFlywayFor(DataSource target) {
+        return Flyway.configure().configuration(applicationFlyway.getConfiguration()).dataSource(target).load();
+    }
+
+    private static void await(CyclicBarrier barrier) {
+        try {
+            barrier.await();
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
     }
 }
