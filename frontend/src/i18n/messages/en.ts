@@ -6,7 +6,7 @@ export const en = {
   'app.name': 'LawDesk',
   'footer.version': 'LawDesk v{version}',
 
-  'preview.banner': 'Preview — sample data only. This is not a working case management system.',
+  'preview.banner': 'UAT preview — sample data only. This is not a working case management system.',
   'preview.bannerLabel': 'Preview notice',
   'preview.titleSuffix': '(Preview)',
   'preview.sampleData': 'Sample data',

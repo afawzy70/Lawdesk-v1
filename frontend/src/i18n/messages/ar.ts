@@ -5,7 +5,7 @@ export const ar: Messages = {
   'app.name': 'LawDesk',
   'footer.version': 'LawDesk v{version}',
 
-  'preview.banner': 'معاينة — بيانات نموذجية فقط. هذا ليس نظامًا فعّالًا لإدارة القضايا.',
+  'preview.banner': 'معاينة UAT — بيانات نموذجية فقط. هذا ليس نظامًا فعّالًا لإدارة القضايا.',
   'preview.bannerLabel': 'تنبيه المعاينة',
   'preview.titleSuffix': '(معاينة)',
   'preview.sampleData': 'بيانات نموذجية',
