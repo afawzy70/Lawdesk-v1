@@ -1,0 +1,25 @@
+$ python3 -I -m unittest discover -s tools/tests   # 2026-10-23T14:12:29Z — new case: GitHub 'Initial commit' accepted
+........F...........
+======================================================================
+FAIL: test_accepts_conventional_commits (test_repo_policy.CommitMessageTest.test_accepts_conventional_commits) (message='Initial commit')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_repo_policy.py", line 56, in test_accepts_conventional_commits
+    self.assertEqual([], repo_policy.check_commit_message(message))
+AssertionError: Lists differ: [] != ["commit subject 'Initial commit' must fol[184 chars]nt'"]
+
+Second list contains 1 additional elements.
+First extra element 0:
+"commit subject 'Initial commit' must follow 'type(scope): summary' with type one of feat, fix, docs, test, refactor, chore, ci, build, perf, style, revert; put the story ID in the scope, e.g. 'feat(LD-002): add health endpoint'"
+
+- []
++ ["commit subject 'Initial commit' must follow 'type(scope): summary' with type "
++  'one of feat, fix, docs, test, refactor, chore, ci, build, perf, style, '
++  "revert; put the story ID in the scope, e.g. 'feat(LD-002): add health "
++  "endpoint'"]
+
+----------------------------------------------------------------------
+Ran 20 tests in 0.732s
+
+FAILED (failures=1)
+exit=1
