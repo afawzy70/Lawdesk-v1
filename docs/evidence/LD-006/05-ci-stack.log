@@ -1,0 +1,52 @@
+# CI stack job evidence   # 2026-10-23T15:11:00Z
+$ gh run view 39975575391 --json conclusion,headSha,jobs
+run conclusion: success  head: 42e41150b51adc39d5be214268dc291aac8a3112
+  Staging stack (images + compose smoke): success
+  Frontend (Node 22): success
+  Backend against postgres:18.6 image: success
+  Backend (Java 21, embedded PostgreSQL 18.6): success
+  Secret scan (gitleaks 8.30.1): success
+  Repository policy: success
+
+# Staging stack job steps:
+  Set up job: success
+  Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1: success
+  Build images: success
+  Prepare throwaway secrets and the edge network: success
+  Start the stack and wait for health checks: success
+  Smoke test: success
+  Backend runs as the least-privilege role: success
+  Readiness follows a database outage and recovery: success
+  Stack logs: success
+  Tear down: success
+  Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1: success
+  Complete job: success
+
+# Key lines from the job log:
+#19 naming to docker.io/lawdesk-ci/backend:acb08ba60bf34464298be3d93ea27190a1930211 done
+#19 naming to docker.io/lawdesk-ci/web:acb08ba60bf34464298be3d93ea27190a1930211 done
+ Container lawdesk-staging-db-1  Started
+ Container lawdesk-staging-db-1  Healthy
+ Container lawdesk-staging-backend-1  Started
+ Container lawdesk-staging-backend-1  Healthy
+ Container lawdesk-staging-web-1  Started
+ Container lawdesk-staging-backend-1  Healthy
+ Container lawdesk-staging-db-1  Healthy
+ Container lawdesk-staging-web-1  Healthy
+ok   /healthz
+ok   /
+ok   readiness UP
+ok   /api/v1/cases -> 401
+ok   /actuator/env -> 404
+echo "readiness 503 while the database is down"
+echo "liveness still 200"
+readiness 503 while the database is down
+liveness still 200
+ Container lawdesk-staging-db-1  Started
+ok   /healthz
+ok   /
+ok   readiness UP
+ok   /api/v1/cases -> 401
+ok   /actuator/env -> 404
+
+# release recorded log line present: 1; logback append errors: 0
