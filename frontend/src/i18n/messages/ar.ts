@@ -1,4 +1,9 @@
 import type { Messages } from './en';
+import { authAr } from './auth.ar';
+import { adminAr } from './admin.ar';
+import { casesAr } from './cases.ar';
+import { courtsAr } from './courts.ar';
+import { proceedingsAr } from './proceedings.ar';
 
 /** Arabic (Modern Standard Arabic) message catalog. Keys must match `en.ts` exactly. */
 export const ar: Messages = {
@@ -54,4 +59,11 @@ export const ar: Messages = {
   'stage.cassation': 'النقض',
 
   'sample.caseRef': 'قضية نموذجية {number}',
+
+  // Area messages, one file per workstream (architecture/CONTRACTS.md §6).
+  ...authAr,
+  ...adminAr,
+  ...casesAr,
+  ...courtsAr,
+  ...proceedingsAr,
 };
