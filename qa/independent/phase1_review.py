@@ -142,23 +142,26 @@ class Review:
         self.check('P1-CONCURRENT-IDS',['QA-0015'],'20 successful requests, 20 distinct ids',concurrent,{'clients':20})
 
     def dependency_outage_checks(self, stop, start):
-        def probe(path, expected):
-            reply=None
-            for _ in range(15):
-                try:
-                    started=time.monotonic()
-                    reply=self.request(path,timeout=40)
-                    reply['qa_observed_duration_seconds']=round(time.monotonic()-started,3)
-                    if reply['status']==expected:return reply,True
-                except (OSError,urllib.error.URLError):pass
-                time.sleep(.3)
-            return reply,False
+        def healthy():
+            "Probe healthy readiness30 times before disturbing the owned database."
+            replies=[self.request('/actuator/health/readiness') for _ in range(30)]
+            statuses=[r['status'] for r in replies]
+            return {'statuses':statuses},all(status==200 for status in statuses)
+        self.check('P1-DB-HEALTHY-STABILITY',['QA-0032'],'30 healthy readiness probes all return200',healthy,{'probes':30})
         stop()
         try:
             def readiness():
-                "Stop only QA-owned PostgreSQL and observe readiness 503."
-                return probe('/actuator/health/readiness',503)
-            self.check('P1-DB-OUTAGE-READINESS',['QA-0032'],'Readiness returns503 during real isolated DB outage',readiness,{'dependency':'owned disposable PostgreSQL'})
+                "First probe starts immediately after owned DB stops; no retry or warm-up; measure three responses."
+                observations=[]
+                for _ in range(3):
+                    begun=time.monotonic()
+                    try:
+                        r=self.request('/actuator/health/readiness',timeout=5.1)
+                        observations.append({'status':r['status'],'body':r['body'],'elapsed_seconds':round(time.monotonic()-begun,3)})
+                    except (OSError,urllib.error.URLError) as error:
+                        observations.append({'error':type(error).__name__,'elapsed_seconds':round(time.monotonic()-begun,3)})
+                return observations,all(r.get('status')==503 and r['elapsed_seconds']<5 for r in observations)
+            self.check('P1-DB-OUTAGE-READINESS',['QA-0032'],'First and next two readiness probes return503 each within5s',readiness,{'client_timeout_seconds':5.1,'response_limit_seconds':5,'probes':3,'warmup':False})
             def liveness():
                 "While QA database is stopped, GET liveness."
                 r=self.request('/actuator/health/liveness');return r,r['status']==200
@@ -167,7 +170,14 @@ class Review:
             start()
         def recovery():
             "Restart same owned PostgreSQL and poll readiness recovery."
-            return probe('/actuator/health/readiness',200)
+            begun=time.monotonic();last=None
+            while time.monotonic()-begun<30:
+                try:
+                    last=self.request('/actuator/health/readiness',timeout=5.1)
+                    if last['status']==200:return {'response':last,'elapsed_seconds':round(time.monotonic()-begun,3)},True
+                except (OSError,urllib.error.URLError):pass
+                time.sleep(.3)
+            return last,False
         self.check('P1-DB-RECOVERY',['QA-0032'],'Readiness recovers200 after database restart',recovery,{})
 
     def execute(self, java, jar, dependency_control=None):

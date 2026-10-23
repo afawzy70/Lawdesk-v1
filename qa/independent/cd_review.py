@@ -10,8 +10,9 @@ import json,os,sys
 args=sys.argv[1:]
 with open(os.environ['QA_TRACE'],'a') as f:f.write(json.dumps({'tool':'docker','args':args,'tag':os.environ.get('LAWDESK_TAG')})+'\\n')
 if args[:2]==['image','inspect']:
+ if os.environ.get('QA_CORRECT_IMAGE')=='1':print(args[-1].rsplit(':',1)[-1]);sys.exit(0)
  if os.environ.get('QA_WRONG_IMAGE')=='1':
-  print(json.dumps([{'Id':'sha256:wrong-image','Config':{'Labels':{'org.opencontainers.image.revision':'b'*40}}}]))
+  print('b'*40)
   sys.exit(0)
  sys.exit(1)
 if 'pg_dump' in args:
@@ -21,25 +22,32 @@ if 'up' in args and os.environ.get('LAWDESK_TAG')==os.environ.get('QA_FAIL_UP'):
 sys.exit(0)
 '''
 PROXY_DOCKER='''#!/usr/bin/python3
-import os,sys,json,shutil
+import os,sys,json,shutil,subprocess
 from pathlib import Path
 r=Path(os.environ['QA_PROXY_ROOT']);a=sys.argv[1:]
 with (r/'trace').open('a') as f:f.write(json.dumps(a)+'\\n')
+def mapped(remote):
+ name=remote.split(':',1)[-1].split('/')[-1]
+ return r/({'Caddyfile':'live','Caddyfile.lawdesk-candidate':'candidate','Caddyfile.lawdesk-previous':'previous','Caddyfile.lawdesk-check':'check'}.get(name,name))
 if a[0]=='ps':print('qa-proxy');sys.exit(0)
 if a[:2]==['network','inspect']:sys.exit(0)
 if a[0]=='inspect':print('qa-shared-edge');sys.exit(0)
 if a[:2] in (['network','connect'],['network','disconnect']):sys.exit(0)
 if a[0]=='cp':
  src,dst=a[1:3]
- if src.startswith('qa-proxy:'):shutil.copyfile(r/'live',dst)
- elif dst.endswith('/Caddyfile.lawdesk-candidate'):shutil.copyfile(src,r/'candidate')
- elif dst.endswith('/Caddyfile'):
-  if os.environ.get('QA_FAIL_PERSIST')=='1':sys.exit(42)
-  shutil.copyfile(src,r/'live')
+ if src.startswith('qa-proxy:'):shutil.copyfile(mapped(src),mapped(dst) if dst.startswith('qa-proxy:') else dst)
+ else:
+  if dst.endswith('/Caddyfile') and os.environ.get('QA_FAIL_PERSIST')=='1':sys.exit(42)
+  shutil.copyfile(src,mapped(dst))
  sys.exit(0)
 if a[:3]==['exec','qa-proxy','printenv']:print('qa.invalid');sys.exit(0)
-if a[:4]==['exec','qa-proxy','caddy','validate']:sys.exit(0)
-if a[:4]==['exec','qa-proxy','caddy','reload']:shutil.copyfile(r/'candidate',r/'active');sys.exit(0)
+if a[:4]==['exec','qa-proxy','caddy','adapt']:
+ config=mapped(a[a.index('--config')+1]);env={**os.environ,'PREVIEW_DOMAIN':'qa.invalid'}
+ sys.exit(subprocess.run([os.environ['QA_REAL_CADDY'],'adapt','--config',str(config),'--adapter','caddyfile'],env=env).returncode)
+if a[:4]==['exec','qa-proxy','caddy','validate']:
+ config=mapped(a[a.index('--config')+1]);env={**os.environ,'PREVIEW_DOMAIN':'qa.invalid'}
+ sys.exit(subprocess.run([os.environ['QA_REAL_CADDY'],'adapt','--config',str(config),'--adapter','caddyfile'],env=env,stdout=subprocess.DEVNULL).returncode)
+if a[:4]==['exec','qa-proxy','caddy','reload']:shutil.copyfile(mapped(a[a.index('--config')+1]),r/'active');sys.exit(0)
 sys.exit(2)
 '''
 FAKE_CURL='''#!/usr/bin/python3
@@ -93,17 +101,29 @@ class Review:
             trace.write_text('');r=subprocess.run(['bash',str(gate)],env={**env,'SSH_ORIGINAL_COMMAND':'deploy '+merged,'QA_WRONG_IMAGE':'1'},capture_output=True,text=True,timeout=15)
             calls=[json.loads(x) for x in trace.read_text().splitlines()];deployed=deploytrace.read_text()
             self.record('CACHED-IMAGE-WRONG-REVISION','Refuse cached images labelled with another commit, or rebuild and verify correct image before deployment.',{'requested':merged,'cached_image_revision':'b'*40,'exit':r.returncode,'deploy_invoked':bool(deployed),'docker_calls':calls},r.returncode!=0 or (any(c['args'][0]=='build' for c in calls) and bool(deployed)))
+            trace.write_text('');deploytrace.write_text('')
+            r=subprocess.run(['bash',str(gate)],env={**env,'SSH_ORIGINAL_COMMAND':'deploy '+merged,'QA_CORRECT_IMAGE':'1'},capture_output=True,text=True,timeout=15)
+            self.record('CACHED-IMAGE-CORRECT-CONTROL','Correct cached revision can deploy the requested merged commit; gate must not reject everything.',{'exit':r.returncode,'deploy_trace':deploytrace.read_text(),'docker_trace':trace.read_text()},r.returncode==0 and ('deployed '+merged) in deploytrace.read_text())
             # Actual workflow validation script with an API fixture whose CI state is FAILED.
             executable(bin/'gh','''#!/bin/sh
 printf '%s\\n' "$*" >> "$QA_GH_TRACE"
-case "$*" in *compare*) echo identical;; *) echo '{"check_runs":[{"conclusion":"failure"}]}' ;; esac
+case "$*" in
+ *compare*) echo identical;;
+ *check-runs*)
+  printf '%s\\n' 'Repository policy' 'Backend (Java 21, embedded PostgreSQL 18.6)' 'Backend against postgres:18.6 image' 'Frontend (Node 22)' 'Staging stack (images + compose smoke)' 'Secret scan (gitleaks 8.30.1)'
+  [ "${QA_CI_STATE:-failure}" = success ] && echo 'Develop guard (QA-cleared merge)'
+  exit 0;;
+ *) exit 99;; esac
 ''')
             gha=root/'gh-trace';gha.touch();outputs=root/'outputs';workflow=yaml.safe_load((self.candidate/'.github/workflows/deploy-staging.yml').read_text());steps=workflow['jobs']['deploy']['steps'];validation=next(x['run'] for x in steps if x.get('id')=='release')
-            r=subprocess.run(['bash','-euo','pipefail','-c',validation],env={**env,'SHA':merged,'EVENT':'workflow_dispatch','REPO':'qa/fixture','GH_TOKEN':'QA-FAKE-NOT-A-CREDENTIAL','GITHUB_OUTPUT':str(outputs),'QA_GH_TRACE':str(gha)},capture_output=True,text=True,timeout=15)
+            r=subprocess.run(['bash','-euo','pipefail','-c',validation],env={**env,'SHA':merged,'EVENT':'workflow_dispatch','REF':'refs/heads/develop','REPO':'qa/fixture','GH_TOKEN':'QA-FAKE-NOT-A-CREDENTIAL','GITHUB_OUTPUT':str(outputs),'QA_GH_TRACE':str(gha)},capture_output=True,text=True,timeout=15)
             self.record('MANUAL-DISPATCH-FAILED-CI','Fail closed when requested merged SHA has no successful exact-SHA CI evidence.',{'fixture_ci':'FAILURE','exit':r.returncode,'api_calls':gha.read_text(),'workflow_output':outputs.read_text() if outputs.exists() else ''},r.returncode!=0)
+            gha.write_text('');outputs.write_text('')
+            r=subprocess.run(['bash','-euo','pipefail','-c',validation],env={**env,'SHA':merged,'EVENT':'workflow_dispatch','REF':'refs/heads/develop','REPO':'qa/fixture','GH_TOKEN':'QA-FAKE-NOT-A-CREDENTIAL','GITHUB_OUTPUT':str(outputs),'QA_GH_TRACE':str(gha),'QA_CI_STATE':'success'},capture_output=True,text=True,timeout=15)
+            self.record('MANUAL-DISPATCH-POSITIVE-CONTROL','All required exact-SHA gates success allows validation to complete.',{'exit':r.returncode,'api_calls':gha.read_text(),'outputs':outputs.read_text(),'stderr':r.stderr},r.returncode==0 and 'skip=false' in outputs.read_text() and 'check-runs' in gha.read_text())
             ci=yaml.safe_load((self.candidate/'.github/workflows/ci.yml').read_text());caller=ci['jobs']['deploy-staging']
-            good=set(caller.get('needs',[]))=={'policy','backend','backend-postgres-image','frontend','stack','secrets'} and all(x in caller.get('if','') for x in ["github.event_name == 'push'","refs/heads/develop","afawzy70/Lawdesk-v1"])
-            self.record('AUTOMATIC-CD-GATES','Automatic deploy caller requires all six gates and only trusted develop push.',caller,good,story='LD-005')
+            good=set(caller.get('needs',[]))=={'policy','backend','backend-postgres-image','frontend','stack','secrets','develop-guard'} and all(x in caller.get('if','') for x in ["github.event_name == 'push'","refs/heads/develop","afawzy70/Lawdesk-v1"])
+            self.record('AUTOMATIC-CD-GATES','Automatic deploy caller requires all six gates plus develop-guard and only trusted develop push.',caller,good,story='LD-005')
             # Bootstrap existing unrestricted CI key must not silently remain unrestricted.
             ssh=Path(env['HOME'])/'.ssh';ssh.mkdir()
             subprocess.run(['ssh-keygen','-q','-t','ed25519','-N','','-C','qa-ci','-f',str(root/'ci-key')],check=True)
@@ -141,11 +161,13 @@ case "$*" in *compare*) echo identical;; *) echo '{"check_runs":[{"conclusion":"
         (self.out/'independent-cd-results.json').write_text(json.dumps(report,indent=2)+'\n');print(report['counts']);return int(report['counts']['FAIL']>0)
     def proxy_cases(self,root,bin,env):
         executable(bin/'docker',PROXY_DOCKER);executable(bin/'curl',FAKE_CURL)
-        for id,original,extra in [('PROXY-PERSIST-AFTER-RELOAD-FAIL','app.{$PREVIEW_DOMAIN} {\n respond "QA app"\n}\n',{'QA_FAIL_PERSIST':'1'}),('PROXY-UNBALANCED-MARKER','app.qa.invalid {\n respond "QA app"\n}\n# BEGIN lawdesk-staging\napi.qa.invalid {\n respond "QA api"\n}\n',{})]:
+        for id,original,extra in [('PROXY-PERSIST-AFTER-RELOAD-FAIL','app.{$PREVIEW_DOMAIN} {\n respond "QA app"\n}\n',{'QA_FAIL_PERSIST':'1'}),('PROXY-NOMINAL-CONTROL','app.qa.invalid {\n respond \"QA app\"\n}\napi.qa.invalid {\n respond \"QA api\"\n}\n',{}),('PROXY-UNBALANCED-MARKER','app.qa.invalid {\n respond "QA app"\n}\n# BEGIN lawdesk-staging\napi.qa.invalid {\n respond "QA api"\n}\n',{})]:
             proxy=root/id;proxy.mkdir();(proxy/'live').write_text(original);(proxy/'active').write_text(original)
-            r=subprocess.run(['bash',str(self.candidate/'deploy/proxy/attach.sh')],env={**env,'QA_PROXY_ROOT':str(proxy),'LAWDESK_PROXY_BACKUP_DIR':str(proxy/'backups'),**extra},capture_output=True,text=True,timeout=15)
+            r=subprocess.run(['bash',str(self.candidate/'deploy/proxy/attach.sh')],env={**env,'QA_PROXY_ROOT':str(proxy),'LAWDESK_PROXY_BACKUP_DIR':str(proxy/'backups'),'QA_REAL_CADDY':os.environ['LAWDESK_QA_CADDY'],**extra},capture_output=True,text=True,timeout=15)
             active=(proxy/'active').read_text();persisted=(proxy/'live').read_text();trace=(proxy/'trace').read_text()
-            if id.endswith('FAIL'):ok=r.returncode!=0 and active==original and persisted==original;expected='Persistence failure after reload restores both active and on-disk original configuration.'
+            if id=='PROXY-NOMINAL-CONTROL':
+                ok=r.returncode==0 and 'app.qa.invalid' in active and 'api.qa.invalid' in active and 'lawdesk.qa.invalid' in active and active==persisted;expected='Valid host baseline attaches only LawDesk and keeps active/persisted configuration equal.'
+            elif id.endswith('FAIL'):ok=r.returncode!=0 and active==original and persisted==original;expected='Persistence failure after reload restores both active and on-disk original configuration.'
             else:ok=r.returncode!=0 and active==original and persisted==original;expected='Unbalanced LawDesk markers fail closed before dropping any existing host definitions.'
             self.record(id,expected,{'exit':r.returncode,'active_changed':active!=original,'persisted_changed':persisted!=original,'original':original,'active':active,'stderr':r.stderr,'docker_calls':trace,'host_probe_calls':(proxy/'curl-trace').read_text() if (proxy/'curl-trace').exists() else ''},ok)
 
