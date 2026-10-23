@@ -35,6 +35,21 @@ class BranchNameTest(unittest.TestCase):
         self.assertEqual(1, len(errors))
         self.assertIn("feature/", errors[0])
 
+    def test_rejects_names_git_cannot_create(self):
+        # QAD-007: every name the policy accepts must also be a valid Git branch name.
+        for name in ["feature/a.lock", "feature/a.", "feature/a\n", "feature/a\r", "feature/.a", "feature/a.lock\n"]:
+            with self.subTest(name=name):
+                self.assertNotEqual([], repo_policy.check_branch_name(name))
+
+    def test_accepted_names_agree_with_git_check_ref_format(self):
+        for name in ["feature/LD-002-backend-bootstrap", "release/1.0.0", "fix/a.b", "feature/a.lock",
+                     "feature/a.", "feature/a\n", "feature/a..b"]:
+            with self.subTest(name=name):
+                git_ok = subprocess.run(["git", "check-ref-format", "--branch", name],
+                                        capture_output=True, check=False).returncode == 0
+                if not git_ok:
+                    self.assertNotEqual([], repo_policy.check_branch_name(name))
+
     def test_rejects_malformed_names(self):
         for name in ["", "feature/", "feature/Has Space", "feature/..", "Feature/x", "feature/x/../../main"]:
             with self.subTest(name=name):
