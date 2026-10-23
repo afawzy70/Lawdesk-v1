@@ -46,23 +46,23 @@ class SecurityBaselineTest extends HttpTestSupport {
         assertThat(get(path).statusCode()).isIn(401, 404);
     }
 
-    @Test
-    void writeWithoutAuthenticationIsRejected() {
-        HttpResponse<String> response = post("/api/v1/cases", "{\"title\":\"x\"}");
+    // QAD-011: an anonymous caller is told to authenticate (401) for every method; a missing CSRF token only
+    // matters once the caller is authenticated (403).
+    @ParameterizedTest
+    @ValueSource(strings = {"/api/v1/cases", "/actuator/health"})
+    void writeWithoutAuthenticationIsUnauthorized(String path) {
+        HttpResponse<String> response = post(path, "{\"title\":\"x\"}");
 
-        assertThat(response.statusCode()).isIn(401, 403);
-        assertThat(response.body()).doesNotContain("trace", "exception");
-    }
-
-    @Test
-    void writeToHealthEndpointIsRejected() {
-        assertThat(post("/actuator/health", "{}").statusCode()).isBetween(400, 499);
+        assertThat(response.statusCode()).isEqualTo(401);
+        assertThat(response.body()).contains("\"status\":401").doesNotContain("trace", "exception");
     }
 
     @Test
     void responsesCarryBaselineSecurityHeaders() {
-        HttpResponse<String> response = get("/actuator/health");
+        assertBaselineHeaders(get("/actuator/health"));
+    }
 
+    private static void assertBaselineHeaders(HttpResponse<String> response) {
         assertThat(response.headers().firstValue("X-Content-Type-Options")).hasValue("nosniff");
         assertThat(response.headers().firstValue("X-Frame-Options")).hasValue("DENY");
         assertThat(response.headers().firstValue("Referrer-Policy")).hasValue("no-referrer");
@@ -70,6 +70,19 @@ class SecurityBaselineTest extends HttpTestSupport {
                 .hasValue("default-src 'none'; frame-ancestors 'none'");
         assertThat(response.headers().firstValue("Cache-Control")).hasValueSatisfying(
                 value -> assertThat(value).contains("no-store"));
+    }
+
+    // QAD-009: requests refused by the HTTP firewall, before the security filter chain, get the same headers.
+    @ParameterizedTest
+    @ValueSource(strings = {"//actuator/health", "/actuator/health;x=1", "/api/v1/%2e%2e/cases"})
+    void firewallRejectionsAreProblemsWithBaselineHeaders(String path) {
+        HttpResponse<String> response = get(path);
+
+        assertThat(response.statusCode()).isEqualTo(400);
+        assertThat(response.headers().firstValue("Content-Type")).hasValueSatisfying(
+                type -> assertThat(type).startsWith("application/problem+json"));
+        assertThat(response.body()).contains("\"status\":400").doesNotContain("trace", "exception", "Rejected");
+        assertBaselineHeaders(response);
     }
 
     @Test

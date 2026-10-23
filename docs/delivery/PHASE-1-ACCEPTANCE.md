@@ -41,13 +41,16 @@ Acceptance criteria:
 1. `backend/` is a Java 21 / Spring Boot 4.1.2 Maven project built with the committed Maven wrapper; `./mvnw verify`
    compiles, runs all tests and produces an executable jar with build metadata.
 2. `GET /actuator/health`, `/actuator/health/liveness` and `/actuator/health/readiness` are public and return
-   `200 {"status":"UP"}` with no component details; `GET /actuator/info` returns only build name/version metadata.
-3. Every other endpoint is deny-by-default: unauthenticated requests get `401 application/problem+json` (UTF-8,
-   RFC 9457 shape) with no stack traces or class names; writes without authentication are rejected; actuator
+   `200 {"status":"UP"}` with no component details; `GET /actuator/info` returns exactly `{"build":{"name":…,"version":…}}` — no group, artifact or build time
+   (QAD-010).
+3. Every other endpoint is deny-by-default: unauthenticated requests of any method get `401 application/problem+json` (UTF-8,
+   RFC 9457 shape) with no stack traces or class names; writes without authentication are rejected with 401 even without a CSRF token (CSRF failures are 403 only for
+   authenticated callers, QAD-011); actuator
    endpoints other than health/info (env, beans, configprops, heapdump, loggers, mappings, threaddump) are unreachable.
 4. Responses carry `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`,
    `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'` and `Cache-Control: no-store`, including on
-   rejected requests.
+   rejected requests and requests refused by the HTTP firewall (`//path`, `;params`, encoded dots → `400` problem
+   JSON, QAD-009).
 5. Every response carries `X-Request-Id`: a caller value matching `[A-Za-z0-9._-]{1,64}` is echoed, anything else is
    replaced by a fresh UUID; concurrent requests get distinct ids.
 6. Logs are structured JSON (ECS) on stdout. Each request produces one `request completed` line with request id,
@@ -59,14 +62,14 @@ Acceptance criteria:
 | QA-0009 | authorized happy path | `HealthEndpointTest.healthIsPublicAndUp`, `livenessAndReadiness…`, `infoReports…` | AUTOMATED |
 | QA-0010 | required-field validation | Unknown health group → 404 without internals (`unknownHealthGroupIsNotFoundWithoutInternals`); no input-bearing endpoints exist yet | AUTOMATED (partial — reviewer to confirm scope) |
 | QA-0011 | invalid input boundary | Malformed/oversized `X-Request-Id` replaced (`replacesMalformedOrOversizedClientRequestId`) | AUTOMATED |
-| QA-0012 | unauthenticated access | `unauthenticatedApiRequestIsRejectedWithProblemDetail`, `writeWithoutAuthenticationIsRejected` | AUTOMATED |
+| QA-0012 | unauthenticated access | `unauthenticatedApiRequestIsRejectedWithProblemDetail`, `writeWithoutAuthenticationIsUnauthorized` | AUTOMATED |
 | QA-0013 | insufficient permission | Sensitive actuator endpoints unreachable (7 parameterized cases). Role-based checks need Phase 2 users | AUTOMATED (partial); role cases BLOCKED until LD-009/LD-010 |
 | QA-0014 | record integrity and rollback | No persistence in this story; rejected writes cannot reach a handler. DB integrity is LD-004 | N/A (reviewer to confirm) |
 | QA-0015 | concurrent or repeat request | `concurrentRequestsGetDistinctIds` (20 parallel requests) | AUTOMATED |
 | QA-0016 | API-to-UI state and error handling | API side: problem JSON contract + health contract. UI side covered by LD-003 status indicator | AUTOMATED (API side) |
 
 Cross-cutting cases touched (not closed): QA-0348 (no request data in logs — `completedRequestIsLoggedAsStructuredJson…`),
-QA-0349 (security headers — `responsesCarryBaselineSecurityHeaders`). Secure cookies are Phase 2.
+QA-0349 (security headers — `responsesCarryBaselineSecurityHeaders`, `firewallRejectionsAreProblemsWithBaselineHeaders`). Secure cookies are Phase 2.
 
 ## LD-003 React application shell
 
@@ -116,7 +119,9 @@ Acceptance criteria:
 2. The baseline migration `V1__app_release.sql` creates `app_release`; the application records its build version
    there at every start, giving deployment and rollback evidence.
 3. Validation is enforced twice: bean validation rejects blank or >64-character versions before SQL is issued, and
-   database constraints reject the same values when the application is bypassed. Rejected writes persist nothing.
+   database constraints reject the same values when the application is bypassed. "Blank" means only Unicode
+   White_Space, U+200B or U+FEFF (tabs, line breaks, NBSP, em space, ideographic space…); `V2__app_release_version_visible.sql`
+   tightens the V1 check, and an upgrade over rows that break the rule fails and rolls back (QAD-008). Rejected writes persist nothing.
 4. A failed transaction leaves no partial rows; a failing migration leaves no partial schema and no success entry.
 5. After a rollback to a previous release, that release still validates against a schema that already contains the
    newer release's migrations (Flyway ignores future migrations).
@@ -129,7 +134,7 @@ Acceptance criteria:
 | QA case | Scenario | Mapping | Status |
 |---------|----------|---------|--------|
 | QA-0025 | authorized happy path | `baselineMigrationIsApplied`, `persistsAndReadsBackARelease`, `recordsTheRunningReleaseAtStartup`; QA edge fixture: `migratingAnUpToDateDatabaseAgainChangesNothing`, `concurrentMigratorsApplyEachMigrationExactlyOnce` | AUTOMATED |
-| QA-0026 | required-field validation | `rejectsMissingVersionWithoutPersisting` (blank, null) | AUTOMATED |
+| QA-0026 | required-field validation | `rejectsMissingVersionWithoutPersisting` (blank, null); `AppReleaseVersionRulesTest` (19 ASCII/Unicode whitespace-only values rejected by entity and database, QAD-008) | AUTOMATED |
 | QA-0027 | invalid input boundary | `acceptsVersionAtTheLengthLimitAndRejectsOneCharacterMore`, `databaseEnforcesTheSameRules…` | AUTOMATED |
 | QA-0028 | unauthenticated access | No data endpoints exist; `/api/**` is deny-by-default (LD-002). DB credentials only via environment | N/A (reviewer to confirm) |
 | QA-0029 | insufficient permission | Least-privilege DB role (app user owns only its schema, no superuser) is configured in LD-006 compose | BLOCKED until LD-006 |
