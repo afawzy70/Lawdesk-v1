@@ -57,7 +57,7 @@ FAKES = {
         case "$url" in
           */actuator/health/readiness) echo '{"status":"UP"}' ;;
           */healthz) echo ok ;;
-          *) echo '<title>LawDesk</title>' ;;
+          *) echo '<title>LawDesk</title>'; sleep 0.3; for i in $(seq 1 200); do echo "<p>line $i</p>"; done ;;
         esac
         """,
 }
@@ -69,7 +69,12 @@ FAKE_GATE = """\
       [ "${FAKE_DEPLOY_EXIT:-0}" = 0 ] || { echo "RESULT failed $2 exit=$FAKE_DEPLOY_EXIT"; exit "$FAKE_DEPLOY_EXIT"; }
       mkdir -p "$LAWDESK_HOME/state"; echo "$2" > "$LAWDESK_HOME/state/current-release"; echo "RESULT deployed $2"
     fi
-    [ "$1" = status ] && echo "current=$(cat "$LAWDESK_HOME/state/current-release" 2>/dev/null)"
+    if [ "$1" = status ]; then
+      # Like the real gate: several writes; the history arrives after the first lines (a reader that stops early
+      # makes the gate die of SIGPIPE, exit 141).
+      echo "current=$(cat "$LAWDESK_HOME/state/current-release" 2>/dev/null)"; echo "previous="; echo "history:"
+      sleep 0.3; for i in $(seq 1 50); do echo "2026-10-23T00:00:00Z deployed history line $i"; done
+    fi
     exit 0
     """
 
@@ -139,7 +144,8 @@ class InstallTest(unittest.TestCase):
         self.tmp.cleanup()
 
     def install(self, **extra):
-        return subprocess.run(["bash", str(self.checkout / "deploy" / "host" / "install.sh")],
+        args = extra.pop("LAWDESK_INSTALL_ARGS", "").split()
+        return subprocess.run(["bash", str(self.checkout / "deploy" / "host" / "install.sh"), *args],
                               env={**self.env, **extra}, capture_output=True, text=True, check=False, timeout=120)
 
     def events_list(self):
@@ -240,6 +246,49 @@ class InstallTest(unittest.TestCase):
         self.assertFalse(any(e.startswith("sudo") for e in later), "an unchanged gate is not reinstalled")
         self.assertFalse(any(e.startswith("gh secret set LAWDESK_STAGING_SSH_KEY") for e in later))
         self.assertEqual(1, len((self.user_home / ".ssh" / "authorized_keys").read_text(encoding="utf-8").splitlines()))
+
+    def test_reading_the_gate_status_never_kills_the_install(self):
+        # Contabo, bf1e40f: "gate status | head -n 2" ended the run with exit 141 right after a successful deploy.
+        result = self.install()
+
+        self.assertEqual(0, result.returncode, result.stdout[-2000:])
+        self.assertNotIn("exit 141", result.stdout)
+        self.assertIn(f"current={self.sha}", result.stdout)
+
+    def test_keep_current_continues_from_the_healthy_deployed_release_without_redeploying(self):
+        state = self.home / "state"
+        state.mkdir()
+        (state / "current-release").write_text("e" * 40 + "\n", encoding="utf-8")
+
+        result = self.install(LAWDESK_INSTALL_ARGS="--keep-current")
+
+        self.assertEqual(0, result.returncode, result.stdout[-2000:])
+        self.assertFalse(self.has("gate deploy"), "the running release is neither rebuilt nor restarted")
+        self.assertTrue(self.has("attach"))
+        self.assertIn(f"keeping the running release {'e' * 40}", result.stdout)
+        self.assertTrue(self.has("gh variable set LAWDESK_STAGING_DEPLOY"))
+
+    def test_keep_current_without_a_running_release_is_refused(self):
+        result = self.install(LAWDESK_INSTALL_ARGS="--keep-current")
+
+        self.assertNotEqual(0, result.returncode)
+        self.assertFalse(self.has("attach"))
+
+    def test_keep_current_with_an_unhealthy_container_stops_before_the_proxy(self):
+        state = self.home / "state"
+        state.mkdir()
+        (state / "current-release").write_text("e" * 40 + "\n", encoding="utf-8")
+
+        result = self.install(LAWDESK_INSTALL_ARGS="--keep-current", FAKE_UNHEALTHY="web")
+
+        self.assertNotEqual(0, result.returncode)
+        self.assertFalse(self.has("attach"))
+
+    def test_unknown_arguments_are_refused_before_any_change(self):
+        result = self.install(LAWDESK_INSTALL_ARGS="--force")
+
+        self.assertEqual(2, result.returncode)
+        self.assertFalse(self.has("gate") or self.has("sudo"))
 
     def test_without_github_cli_the_site_is_deployed_and_cd_needs_one_owner_command(self):
         result = self.install(FAKE_NO_GH="1")
