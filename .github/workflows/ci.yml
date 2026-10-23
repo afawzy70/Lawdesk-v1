@@ -243,9 +243,30 @@ jobs:
           tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
           "$RUNNER_TEMP/gitleaks" git --redact --no-banner --exit-code 1 .
 
+  develop-guard:
+    name: Develop guard (QA-cleared merge)
+    # Branch protection is unavailable on this plan (B4): every push to develop must be exactly one merge of a pull
+    # request whose head QA cleared with "QA-VERDICT: PASS <sha>". A failure flags the push and blocks deployment.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check the push against docs/delivery/DEVELOP-PROTECTION.md
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          BEFORE: ${{ github.event.before }}
+          FORCED: ${{ github.event.forced }}
+        run: python3 tools/develop_guard.py --sha "$SHA" --before "$BEFORE" --forced "$FORCED"
+
   deploy-staging:
     name: Deploy staging
-    needs: [policy, backend, backend-postgres-image, frontend, stack, secrets]
+    needs: [policy, backend, backend-postgres-image, frontend, stack, secrets, develop-guard]
     # Merged code only: pushes to develop in this repository, after every gate above passed.
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop' && github.repository == 'afawzy70/Lawdesk-v1'
     permissions:

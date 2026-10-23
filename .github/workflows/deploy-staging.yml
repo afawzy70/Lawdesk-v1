@@ -64,15 +64,15 @@ jobs:
             identical|ahead) ;;
             *) echo "::error::$SHA is not on develop ($status); only merged commits are deployed"; exit 1 ;;
           esac
-          # Called from CI, every gate already passed (needs:). A dispatched run has no gates of its own, so each CI
-          # gate must have succeeded for this exact commit, as reported by GitHub Actions itself (QAD-016).
+          # Called from CI, every gate and the develop guard already passed (needs:). A dispatched run has no gates of
+          # its own, so each must have succeeded for this exact commit, as reported by GitHub Actions itself (QAD-016).
           if [[ $EVENT == workflow_dispatch ]]; then
             passed=$(gh api "repos/$REPO/commits/$SHA/check-runs?per_page=100" \
               --jq '.check_runs[] | select(.app.slug == "github-actions" and .conclusion == "success") | .name')
             missing=0
             for gate in "Repository policy" "Backend (Java 21, embedded PostgreSQL 18.6)" \
                 "Backend against postgres:18.6 image" "Frontend (Node 22)" "Staging stack (images + compose smoke)" \
-                "Secret scan (gitleaks 8.30.1)"; do
+                "Secret scan (gitleaks 8.30.1)" "Develop guard (QA-cleared merge)"; do
               if ! grep -qxF "$gate" <<< "$passed"; then
                 echo "::error::CI gate '$gate' has not passed for $SHA"
                 missing=1

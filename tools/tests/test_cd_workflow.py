@@ -21,6 +21,8 @@ CI = REPO_ROOT / ".github" / "workflows" / "ci.yml"
 CD = REPO_ROOT / ".github" / "workflows" / "deploy-staging.yml"
 PINNED_ACTION = re.compile(r"^[\w.-]+/[\w./-]+@[0-9a-f]{40}$")
 GATES = {"policy", "backend", "backend-postgres-image", "frontend", "stack", "secrets"}
+# Push-only check that develop moved by exactly one QA-cleared pull request merge (tools/develop_guard.py, B4).
+GUARD = "develop-guard"
 SHA = "e5db1904666bdf45b470c30efa4a662c1cf4709b"
 
 # Plays the GitHub API for the "Validate the release commit" step: answers compare and check-runs from fixtures, applies
@@ -66,9 +68,21 @@ class CallFromCiTest(unittest.TestCase):
         self.ci = load(CI)
         self.job = self.ci["jobs"].get("deploy-staging")
 
-    def test_deploy_runs_only_after_every_gate_passes(self):
+    def test_deploy_runs_only_after_every_gate_and_the_develop_guard_pass(self):
         self.assertIsNotNone(self.job, "ci.yml must have a deploy-staging job")
-        self.assertEqual(GATES, set(self.job["needs"]))
+        self.assertEqual(GATES | {GUARD}, set(self.job["needs"]))
+
+    def test_develop_guard_checks_every_push_to_develop(self):
+        guard = self.ci["jobs"][GUARD]
+        self.assertIn("github.event_name == 'push'", guard["if"])
+        self.assertIn("github.ref == 'refs/heads/develop'", guard["if"])
+        self.assertEqual({"contents": "read", "pull-requests": "read"}, guard["permissions"])
+        script = "\n".join(s["run"] for s in guard["steps"] if "run" in s)
+        self.assertIn("tools/develop_guard.py", script)
+        self.assertNotIn("${{", script)
+        env = {k: v for s in guard["steps"] for k, v in s.get("env", {}).items()}
+        self.assertEqual("${{ github.event.before }}", env["BEFORE"])
+        self.assertEqual("${{ github.event.forced }}", env["FORCED"])
 
     def test_deploy_runs_only_for_pushes_to_develop_in_this_repository(self):
         condition = self.job["if"]
@@ -191,7 +205,7 @@ class ValidateReleaseStepTest(unittest.TestCase):
         step = next(s for s in steps(load(CD)) if s.get("name", "").startswith("Validate the release commit"))
         self.script = step["run"]
         ci = load(CI)
-        self.gate_names = [ci["jobs"][job]["name"] for job in sorted(GATES)]
+        self.gate_names = [ci["jobs"][job]["name"] for job in sorted(GATES | {GUARD})]
         self.env = {"PATH": f"{bin_dir}:/usr/bin:/bin", "HOME": str(root), "GITHUB_OUTPUT": str(self.output),
                     "SHA": SHA, "REPO": "afawzy70/Lawdesk-v1", "GH_TOKEN": "x", "EVENT": "workflow_dispatch",
                     "REF": "refs/heads/develop", "FAKE_GH_LOG": str(self.gh_log), "FAKE_COMPARE": "identical",
