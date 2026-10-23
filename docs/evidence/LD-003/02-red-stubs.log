@@ -1,0 +1,668 @@
+$ (cd frontend && npm test)   # 2026-10-23T14:34:56Z
+
+> lawdesk-frontend@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.5 /home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/agent-a8590e8d48aabe4a1/frontend
+
+ ❯ src/api/health.test.ts (21 tests | 21 failed) 70ms
+   ❯ fetchApiHealth (21)
+     × requests GET /actuator/health as JSON without sending credentials cross-origin 18ms
+     × reports online when the API answers {"status":"UP"} 6ms
+     × reports unavailable for a 200 response with DOWN 2ms
+     × reports unavailable for a 200 response with OUT_OF_SERVICE 1ms
+     × reports unavailable for a 200 response with missing status 1ms
+     × reports unavailable for a 200 response with non-string status 1ms
+     × reports unavailable for a 200 response with null body 1ms
+     × reports unavailable for a 200 response with array body 1ms
+     × reports unavailable for HTTP 301 3ms
+     × reports unavailable for HTTP 401 2ms
+     × reports unavailable for HTTP 403 1ms
+     × reports unavailable for HTTP 404 1ms
+     × reports unavailable for HTTP 500 1ms
+     × reports unavailable for HTTP 503 1ms
+     × reports unavailable on a network error 1ms
+     × reports unavailable for malformed JSON 2ms
+     × aborts and reports unavailable when the API does not answer within 0 ms 5ms
+     × uses a timeout of about five seconds 7ms
+     × aborts the request when the caller signal aborts and clears its timer 3ms
+     × does not call the API when the caller signal is already aborted 1ms
+     × clears its timeout after a successful response 1ms
+ ❯ src/i18n/locale.test.ts (11 tests | 9 failed) 41ms
+   ❯ locale (11)
+     × defaults to English, left-to-right 13ms
+     × maps Arabic to right-to-left 3ms
+     × resolves "en" to the supported locale "en" 2ms
+     × resolves "EN-us" to the supported locale "en" 1ms
+     × resolves "fr" to the supported locale "en" 1ms
+     × resolves "" to the supported locale "en" 1ms
+     × resolves undefined to the supported locale "en" 1ms
+     × resolves "<script>" to the supported locale "en" 1ms
+     × sets lang and dir on the document element 10ms
+ ❯ src/components/ErrorBoundary.test.tsx (3 tests | 2 failed) 87ms
+   ❯ ErrorBoundary (3)
+     × shows a generic recovery message without the error details 17ms
+     × re-renders its children after "Try again" 12ms
+ ❯ src/App.test.tsx (8 tests | 8 failed) 1486ms
+   ❯ application shell (8)
+     × has banner, primary navigation, main and footer landmarks 385ms
+     × shows the application version from package.json in the footer 15ms
+     × renders the home page at / 14ms
+     × renders an actionable not-found page for unknown routes 15ms
+     × keeps the shell visible when a page is not found 17ms
+     × does not write to localStorage or sessionStorage 1010ms
+     × applies the default locale to <html> (lang="en", dir="ltr") 11ms
+     × applies an Arabic locale to <html> as right-to-left 5ms
+ ❯ src/components/ApiStatus.test.tsx (6 tests | 6 failed) 3306ms
+   ❯ ApiStatus (6)
+     × is a polite live status region that starts in a checking state 239ms
+     × shows "API online" when the health check reports UP 1010ms
+     × shows "API unavailable" without exposing the error body 1009ms
+     × shows "API unavailable" on a network error without exposing the error message 1021ms
+     × aborts the in-flight request when unmounted 10ms
+     × under StrictMode double-mount, aborts the first request and only the live request sets state 11ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 46 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/App.test.tsx > application shell > has banner, primary navigation, main and footer landmarks
+TestingLibraryElementError: Unable to find an accessible element with the role "banner"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/App.test.tsx:32:27
+     30|     renderAt('/');
+     31|
+     32|     const banner = screen.getByRole('banner');
+       |                           ^
+     33|     expect(within(banner).getByText('LawDesk')).toBeInTheDocument();
+     34|     const nav = screen.getByRole('navigation', { name: 'Primary' });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/46]⎯
+
+ FAIL  src/App.test.tsx > application shell > shows the application version from package.json in the footer
+TestingLibraryElementError: Unable to find an accessible element with the role "contentinfo"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/App.test.tsx:43:19
+     41|   it('shows the application version from package.json in the footer', …
+     42|     renderAt('/');
+     43|     expect(screen.getByRole('contentinfo')).toHaveTextContent(`LawDesk…
+       |                   ^
+     44|   });
+     45|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/46]⎯
+
+ FAIL  src/App.test.tsx > application shell > renders the home page at /
+TestingLibraryElementError: Unable to find an accessible element with the role "heading" and name "Welcome to LawDesk"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/App.test.tsx:48:19
+     46|   it('renders the home page at /', () => {
+     47|     renderAt('/');
+     48|     expect(screen.getByRole('heading', { level: 1, name: 'Welcome to L…
+       |                   ^
+     49|     expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute…
+     50|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/46]⎯
+
+ FAIL  src/App.test.tsx > application shell > renders an actionable not-found page for unknown routes
+TestingLibraryElementError: Unable to find an accessible element with the role "heading" and name "Page not found"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/App.test.tsx:56:19
+     54|     renderAt('/cases/does-not-exist');
+     55|
+     56|     expect(screen.getByRole('heading', { level: 1, name: 'Page not fou…
+       |                   ^
+     57|     expect(screen.getByRole('main')).toHaveTextContent('Check the addr…
+     58|     const homeLink = within(screen.getByRole('main')).getByRole('link'…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/46]⎯
+
+ FAIL  src/App.test.tsx > application shell > keeps the shell visible when a page is not found
+TestingLibraryElementError: Unable to find an accessible element with the role "banner"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/App.test.tsx:67:19
+     65|   it('keeps the shell visible when a page is not found', () => {
+     66|     renderAt('/nope');
+     67|     expect(screen.getByRole('banner')).toBeInTheDocument();
+       |                   ^
+     68|     expect(screen.getByRole('navigation', { name: 'Primary' })).toBeIn…
+     69|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/46]⎯
+
+ FAIL  src/App.test.tsx > application shell > does not write to localStorage or sessionStorage
+TestingLibraryElementError: Unable to find an element with the text: API online. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/App.test.tsx:74:25
+     72|     const setItem = vi.spyOn(Storage.prototype, 'setItem');
+     73|     render(<App />);
+     74|     expect(await screen.findByText('API online')).toBeInTheDocument();
+       |                         ^
+     75|     expect(setItem).not.toHaveBeenCalled();
+     76|     expect(window.localStorage).toHaveLength(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/46]⎯
+
+ FAIL  src/App.test.tsx > application shell > applies the default locale to <html> (lang="en", dir="ltr")
+Error: expect(element).toHaveAttribute("lang", "en") // element.getAttribute("lang") === "en"
+
+Expected the element to have attribute:
+  lang="en"
+Received:
+  null
+ ❯ src/App.test.tsx:84:38
+     82|     document.documentElement.removeAttribute('dir');
+     83|     render(<App />);
+     84|     expect(document.documentElement).toHaveAttribute('lang', 'en');
+       |                                      ^
+     85|     expect(document.documentElement).toHaveAttribute('dir', 'ltr');
+     86|     expect(await screen.findByText('API online')).toBeInTheDocument();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/46]⎯
+
+ FAIL  src/App.test.tsx > application shell > applies an Arabic locale to <html> as right-to-left
+Error: expect(element).toHaveAttribute("lang", "ar") // element.getAttribute("lang") === "ar"
+
+Expected the element to have attribute:
+  lang="ar"
+Received:
+  null
+ ❯ src/App.test.tsx:91:38
+     89|   it('applies an Arabic locale to <html> as right-to-left', async () =…
+     90|     render(<App locale="ar" />);
+     91|     expect(document.documentElement).toHaveAttribute('lang', 'ar');
+       |                                      ^
+     92|     expect(document.documentElement).toHaveAttribute('dir', 'rtl');
+     93|     expect(await screen.findByText('API online')).toBeInTheDocument();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/46]⎯
+
+ FAIL  src/api/health.test.ts > fetchApiHealth > requests GET /actuator/health as JSON without sending credentials cross-origin
+Error: not implemented
+ ❯ fetchApiHealth src/api/health.ts:5:25
+      3| export type ApiHealth = 'online' | 'unavailable';
+      4| export function fetchApiHealth(_signal?: AbortSignal): Promise<ApiHeal…
+      5|   return Promise.reject(new Error('not implemented'));
+       |                         ^
+      6| }
+      7|
+ ❯ src/api/health.test.ts:31:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/46]⎯
+
+ FAIL  src/api/health.test.ts > fetchApiHealth > reports online when the API answers {"status":"UP"}
+AssertionError: promise rejected "Error: not implemented" instead of resolving
+ ❯ src/api/health.test.ts:44:35
+     42|   it('reports online when the API answers {"status":"UP"}', async () =…
+     43|     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ st…
+     44|     await expect(fetchApiHealth()).resolves.toBe('online');
+       |                                   ^
+     45|   });
+     46|
+
+Caused by: Error: not implemented
+ ❯ fetchApiHealth src/api/health.ts:5:25
+ ❯ src/api/health.test.ts:44:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/46]⎯
+
+ FAIL  src/api/health.test.ts > fetchApiHealth > reports unavailable for a 200 response with DOWN
+ FAIL  src/api/health.test.ts > fetchApiHealth > reports unavailable for a 200 response with OUT_OF_SERVICE
+ FAIL  src/api/health.test.ts > fetchApiHealth > reports unavailable for a 200 response with missing status
+ FAIL  src/api/health.test.ts > fetchApiHealth > reports unavailable for a 200 response with non-string status
+ FAIL  src/api/health.test.ts > fetchApiHealth > reports unavailable for a 200 response with null body
+ FAIL  src/api/health.test.ts > fetchApiHealth > reports unavailable for a 200 response with array body
+AssertionError: promise rejected "Error: not implemented" instead of resolving
+ ❯ src/api/health.test.ts:56:35
+     54|   ])('reports unavailable for a 200 response with %s', async (_label, …
+     55|     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(body…
+     56|     await expect(fetchApiHealth()).resolves.toBe('unavailable');
+       |                                   ^
+     57|   });
+     58|
+
+Caused by: Error: not implemented
+ ❯ fetchApiHealth src/api/health.ts:5:25
+ ❯ src/api/health.test.ts:56:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/46]⎯
+
+ FAIL  src/api/health.test.ts > fetchApiHealth > reports unavailable for HTTP 301
+ FAIL  src/api/health.test.ts > fetchApiHealth > reports unavailable for HTTP 401
+ FAIL  src/api/health.test.ts > fetchApiHealth > reports unavailable for HTTP 403
+ FAIL  src/api/health.test.ts > fetchApiHealth > reports unavailable for HTTP 404
+ FAIL  src/api/health.test.ts > fetchApiHealth > reports unavailable for HTTP 500
+ FAIL  src/api/health.test.ts > fetchApiHealth > reports unavailable for HTTP 503
+AssertionError: promise rejected "Error: not implemented" instead of resolving
+ ❯ src/api/health.test.ts:65:35
+     63|       vi.fn().mockResolvedValue(jsonResponse({ status: 'UP', trace: 'j…
+     64|     );
+     65|     await expect(fetchApiHealth()).resolves.toBe('unavailable');
+       |                                   ^
+     66|   });
+     67|
+
+Caused by: Error: not implemented
+ ❯ fetchApiHealth src/api/health.ts:5:25
+ ❯ src/api/health.test.ts:65:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/46]⎯
+
+ FAIL  src/api/health.test.ts > fetchApiHealth > reports unavailable on a network error
+AssertionError: promise rejected "Error: not implemented" instead of resolving
+ ❯ src/api/health.test.ts:70:35
+     68|   it('reports unavailable on a network error', async () => {
+     69|     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Fa…
+     70|     await expect(fetchApiHealth()).resolves.toBe('unavailable');
+       |                                   ^
+     71|   });
+     72|
+
+Caused by: Error: not implemented
+ ❯ fetchApiHealth src/api/health.ts:5:25
+ ❯ src/api/health.test.ts:70:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/46]⎯
+
+ FAIL  src/api/health.test.ts > fetchApiHealth > reports unavailable for malformed JSON
+AssertionError: promise rejected "Error: not implemented" instead of resolving
+ ❯ src/api/health.test.ts:83:35
+     81|       ),
+     82|     );
+     83|     await expect(fetchApiHealth()).resolves.toBe('unavailable');
+       |                                   ^
+     84|   });
+     85|
+
+Caused by: Error: not implemented
+ ❯ fetchApiHealth src/api/health.ts:5:25
+ ❯ src/api/health.test.ts:83:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/46]⎯
+
+ FAIL  src/api/health.test.ts > fetchApiHealth > aborts and reports unavailable when the API does not answer within 0 ms
+TypeError: Negative ticks are not supported
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/46]⎯
+
+ FAIL  src/api/health.test.ts > fetchApiHealth > uses a timeout of about five seconds
+AssertionError: expected +0 to be 5000 // Object.is equality
+
+- Expected
++ Received
+
+- 5000
++ 0
+
+ ❯ src/api/health.test.ts:102:31
+    100|
+    101|   it('uses a timeout of about five seconds', () => {
+    102|     expect(HEALTH_TIMEOUT_MS).toBe(5000);
+       |                               ^
+    103|   });
+    104|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/46]⎯
+
+ FAIL  src/api/health.test.ts > fetchApiHealth > aborts the request when the caller signal aborts and clears its timer
+AssertionError: promise rejected "Error: not implemented" instead of resolving
+ ❯ src/api/health.test.ts:114:25
+    112|     caller.abort();
+    113|
+    114|     await expect(result).resolves.toBe('unavailable');
+       |                         ^
+    115|     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    116|     expect(init.signal?.aborted).toBe(true);
+
+Caused by: Error: not implemented
+ ❯ fetchApiHealth src/api/health.ts:5:25
+ ❯ src/api/health.test.ts:111:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/46]⎯
+
+ FAIL  src/api/health.test.ts > fetchApiHealth > does not call the API when the caller signal is already aborted
+AssertionError: promise rejected "Error: not implemented" instead of resolving
+ ❯ src/api/health.test.ts:126:48
+    124|     caller.abort();
+    125|
+    126|     await expect(fetchApiHealth(caller.signal)).resolves.toBe('unavail…
+       |                                                ^
+    127|     expect(fetchMock).not.toHaveBeenCalled();
+    128|   });
+
+Caused by: Error: not implemented
+ ❯ fetchApiHealth src/api/health.ts:5:25
+ ❯ src/api/health.test.ts:126:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/46]⎯
+
+ FAIL  src/api/health.test.ts > fetchApiHealth > clears its timeout after a successful response
+AssertionError: promise rejected "Error: not implemented" instead of resolving
+ ❯ src/api/health.test.ts:134:35
+    132|     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ st…
+    133|
+    134|     await expect(fetchApiHealth()).resolves.toBe('online');
+       |                                   ^
+    135|     expect(vi.getTimerCount()).toBe(0);
+    136|   });
+
+Caused by: Error: not implemented
+ ❯ fetchApiHealth src/api/health.ts:5:25
+ ❯ src/api/health.test.ts:134:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/46]⎯
+
+ FAIL  src/components/ApiStatus.test.tsx > ApiStatus > is a polite live status region that starts in a checking state
+TestingLibraryElementError: Unable to find an accessible element with the role "status"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/components/ApiStatus.test.tsx:19:27
+     17|     render(<ApiStatus />);
+     18|
+     19|     const status = screen.getByRole('status');
+       |                           ^
+     20|     expect(status).toHaveAttribute('aria-live', 'polite');
+     21|     expect(status).toHaveTextContent('Checking API…');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/46]⎯
+
+ FAIL  src/components/ApiStatus.test.tsx > ApiStatus > shows "API online" when the health check reports UP
+TestingLibraryElementError: Unable to find an element with the text: API online. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/components/ApiStatus.test.tsx:29:25
+     27|     render(<ApiStatus />);
+     28|
+     29|     expect(await screen.findByText('API online')).toBeInTheDocument();
+       |                         ^
+     30|     expect(screen.getByRole('status')).toHaveAttribute('data-state', '…
+     31|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/46]⎯
+
+ FAIL  src/components/ApiStatus.test.tsx > ApiStatus > shows "API unavailable" without exposing the error body
+TestingLibraryElementError: Unable to find an element with the text: API unavailable. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/components/ApiStatus.test.tsx:43:25
+     41|     const { container } = render(<ApiStatus />);
+     42|
+     43|     expect(await screen.findByText('API unavailable')).toBeInTheDocume…
+       |                         ^
+     44|     expect(screen.getByRole('status')).toHaveAttribute('data-state', '…
+     45|     expect(container).not.toHaveTextContent(/PSQLException|password|In…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/46]⎯
+
+ FAIL  src/components/ApiStatus.test.tsx > ApiStatus > shows "API unavailable" on a network error without exposing the error message
+TestingLibraryElementError: Unable to find an element with the text: API unavailable. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/components/ApiStatus.test.tsx:53:25
+     51|     const { container } = render(<ApiStatus />);
+     52|
+     53|     expect(await screen.findByText('API unavailable')).toBeInTheDocume…
+       |                         ^
+     54|     expect(container).not.toHaveTextContent(/ECONNREFUSED|10\.0\.0\.5|…
+     55|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/46]⎯
+
+ FAIL  src/components/ApiStatus.test.tsx > ApiStatus > aborts the in-flight request when unmounted
+TypeError: undefined is not iterable (cannot read property Symbol(Symbol.iterator))
+ ❯ src/components/ApiStatus.test.tsx:64:22
+     62|     unmount();
+     63|
+     64|     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+       |                      ^
+     65|     expect(init.signal?.aborted).toBe(true);
+     66|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/46]⎯
+
+ FAIL  src/components/ApiStatus.test.tsx > ApiStatus > under StrictMode double-mount, aborts the first request and only the live request sets state
+AssertionError: expected "vi.fn()" to be called 2 times, but got 0 times
+ ❯ src/components/ApiStatus.test.tsx:85:23
+     83|     );
+     84|
+     85|     expect(fetchMock).toHaveBeenCalledTimes(2);
+       |                       ^
+     86|     const [first, second] = fetchMock.mock.calls.map(([, init]) => ini…
+     87|     expect(first?.aborted).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/46]⎯
+
+ FAIL  src/components/ErrorBoundary.test.tsx > ErrorBoundary > shows a generic recovery message without the error details
+ FAIL  src/components/ErrorBoundary.test.tsx > ErrorBoundary > re-renders its children after "Try again"
+Error: secret: connection string postgres://lawdesk:hunter2@db/lawdesk
+ ❯ Bomb src/components/ErrorBoundary.test.tsx:11:11
+      9| function Bomb() {
+     10|   if (shouldThrow) {
+     11|     throw new Error('secret: connection string postgres://lawdesk:hunt…
+       |           ^
+     12|   }
+     13|   return <p>Recovered content</p>;
+ ❯ Object.react_stack_bottom_frame node_modules/react-dom/cjs/react-dom-client.development.js:28571:20
+ ❯ renderWithHooks node_modules/react-dom/cjs/react-dom-client.development.js:8030:22
+ ❯ updateFunctionComponent node_modules/react-dom/cjs/react-dom-client.development.js:10569:19
+ ❯ beginWork node_modules/react-dom/cjs/react-dom-client.development.js:12205:18
+ ❯ runWithFiberInDEV node_modules/react-dom/cjs/react-dom-client.development.js:1048:13
+ ❯ performUnitOfWork node_modules/react-dom/cjs/react-dom-client.development.js:19176:22
+ ❯ workLoopSync node_modules/react-dom/cjs/react-dom-client.development.js:19004:41
+ ❯ renderRootSync node_modules/react-dom/cjs/react-dom-client.development.js:18985:11
+ ❯ performWorkOnRoot node_modules/react-dom/cjs/react-dom-client.development.js:18094:35
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/46]⎯
+
+ FAIL  src/i18n/locale.test.ts > locale > defaults to English, left-to-right
+AssertionError: expected 'ar' to be 'en' // Object.is equality
+
+Expected: "en"
+Received: "ar"
+
+ ❯ src/i18n/locale.test.ts:6:28
+      4| describe('locale', () => {
+      5|   it('defaults to English, left-to-right', () => {
+      6|     expect(DEFAULT_LOCALE).toBe('en');
+       |                            ^
+      7|     expect(directionFor(DEFAULT_LOCALE)).toBe('ltr');
+      8|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/46]⎯
+
+ FAIL  src/i18n/locale.test.ts > locale > maps Arabic to right-to-left
+AssertionError: expected 'ltr' to be 'rtl' // Object.is equality
+
+Expected: "rtl"
+Received: "ltr"
+
+ ❯ src/i18n/locale.test.ts:11:32
+      9|
+     10|   it('maps Arabic to right-to-left', () => {
+     11|     expect(directionFor('ar')).toBe('rtl');
+       |                                ^
+     12|   });
+     13|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/46]⎯
+
+ FAIL  src/i18n/locale.test.ts > locale > resolves "en" to the supported locale "en"
+ FAIL  src/i18n/locale.test.ts > locale > resolves "EN-us" to the supported locale "en"
+ FAIL  src/i18n/locale.test.ts > locale > resolves "fr" to the supported locale "en"
+ FAIL  src/i18n/locale.test.ts > locale > resolves "" to the supported locale "en"
+ FAIL  src/i18n/locale.test.ts > locale > resolves undefined to the supported locale "en"
+ FAIL  src/i18n/locale.test.ts > locale > resolves "<script>" to the supported locale "en"
+AssertionError: expected 'ar' to be 'en' // Object.is equality
+
+Expected: "en"
+Received: "ar"
+
+ ❯ src/i18n/locale.test.ts:24:34
+     22|     ['<script>', 'en'],
+     23|   ])('resolves %j to the supported locale %j', (input, expected) => {
+     24|     expect(resolveLocale(input)).toBe(expected);
+       |                                  ^
+     25|   });
+     26|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/46]⎯
+
+ FAIL  src/i18n/locale.test.ts > locale > sets lang and dir on the document element
+Error: expect(received).toHaveAttribute()
+
+received value must be an HTMLElement or an SVGElement.
+Received has type:  HTMLHtmlElement
+Received has value: <html>
+  <head>
+    <title>
+      t
+    </title>
+  </head>
+  <body />
+</html>
+ ❯ src/i18n/locale.test.ts:31:33
+     29|
+     30|     applyDocumentLocale('ar', doc);
+     31|     expect(doc.documentElement).toHaveAttribute('lang', 'ar');
+       |                                 ^
+     32|     expect(doc.documentElement).toHaveAttribute('dir', 'rtl');
+     33|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[30/46]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: not implemented
+ ❯ fetchApiHealth src/api/health.ts:5:25
+      3| export type ApiHealth = 'online' | 'unavailable';
+      4| export function fetchApiHealth(_signal?: AbortSignal): Promise<ApiHeal…
+      5|   return Promise.reject(new Error('not implemented'));
+       |                         ^
+      6| }
+      7|
+ ❯ src/api/health.test.ts:91:20
+ ❯ node_modules/vitest/dist/chunks/run.BPv-BBRv.js:1632:35
+ ❯ node_modules/vitest/dist/chunks/run.BPv-BBRv.js:2801:26
+ ❯ node_modules/vitest/dist/chunks/run.BPv-BBRv.js:3338:20
+ ❯ runWithCancel node_modules/vitest/dist/chunks/run.BPv-BBRv.js:3333:10
+ ❯ node_modules/vitest/dist/chunks/run.BPv-BBRv.js:3318:20
+ ❯ runWithTimeout node_modules/vitest/dist/chunks/run.BPv-BBRv.js:3276:10
+
+This error originated in "src/api/health.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "aborts and reports unavailable when the API does not answer within 0 ms". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  5 failed (5)
+      Tests  46 failed | 3 passed (49)
+     Errors  1 error
+   Start at  16:34:57
+   Duration  6.67s (environment 50%, tests 26%, transform 11%, setup 9%, import 3%, worker 1%)
+
+exit=1
+

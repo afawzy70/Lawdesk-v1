@@ -101,3 +101,42 @@ Acceptance criteria:
 ## LD-005 … LD-006
 
 Refined in each story's kickoff commit before its RED step.
+
+## LD-003 React application shell
+
+Acceptance criteria:
+
+1. `frontend/` is a Vite + React + TypeScript (strict) project with exact-pinned dependencies, a committed
+   `package-lock.json`, Node 22 declared in `.nvmrc` and `engines`, and npm scripts `dev`, `build`, `test`,
+   `test:coverage`, `lint` and `typecheck`, all of which pass. `node_modules/`, `dist/` and `coverage/` are ignored.
+2. Every page renders inside a shell with a banner showing "LawDesk", a navigation landmark labelled "Primary",
+   a single `<main>` landmark and a footer showing `LawDesk v<version>` taken from `package.json` at build time.
+3. `/` renders the home page; any unknown path renders "Page not found" inside the shell with an explanation and a
+   "Go to the home page" link that navigates home.
+4. The header shows the API status in a `role="status"` / `aria-live="polite"` region: "Checking API…" while
+   `GET /actuator/health` is in flight, "API online" only for a 2xx JSON `{"status":"UP"}` answer, and
+   "API unavailable" for any non-2xx status, redirect, network error, timeout (request aborted after 5 s),
+   malformed JSON or other payload. Response bodies, error messages and stack traces are never rendered.
+5. The status request is aborted when the indicator unmounts; under React StrictMode double-mount the first
+   request is aborted and a late answer from it cannot overwrite the live result. No timers are left behind.
+6. `<html lang dir>` is set from the locale setting: default `en`/`ltr`; `ar` (and tags such as `ar-EG`) yields
+   `dir="rtl"`; unsupported or empty values fall back to `en`. No translation catalogs in Phase 1.
+7. A top-level error boundary replaces a crashed tree with a generic "Something went wrong" alert, a
+   "Try again" button and a home link, without showing the error message.
+8. The application writes nothing to `localStorage`/`sessionStorage`; ESLint forbids `localStorage` in source.
+9. The Vite dev server proxies `/api` and `/actuator` to `http://localhost:8080` (overridable with
+   `LAWDESK_API_ORIGIN`); verified manually: with no backend running the proxied health call returns 502.
+
+| QA case | Scenario | Mapping | Status |
+|---------|----------|---------|--------|
+| QA-0017 | authorized happy path | Shell landmarks, footer version, home route, "API online" for `{"status":"UP"}` — `App.test.tsx` (landmarks, version, home page), `health.test.ts` "reports online…", `ApiStatus.test.tsx` "shows API online…" | AUTOMATED |
+| QA-0018 | required-field validation | No forms or input fields in the shell. Nearest equivalent (a required `status` field in the health payload) is covered: missing/non-string/null status → "API unavailable" (`health.test.ts`) | N/A (no user input; reviewer to confirm) |
+| QA-0019 | invalid input boundary | Unknown routes → NotFound with home link (`App.test.tsx`); unsupported/empty/malicious locale tags fall back to `en` (`locale.test.ts`); malformed JSON and unexpected payloads → unavailable (`health.test.ts`) | AUTOMATED |
+| QA-0020 | unauthenticated access | Authentication is introduced in Phase 2; the shell has no protected routes yet. 401 from the health endpoint shows "API unavailable" (`health.test.ts`) | BLOCKED (no auth until Phase 2) |
+| QA-0021 | insufficient permission | Roles/permissions are introduced in Phase 2. 403 from the health endpoint shows "API unavailable" (`health.test.ts`) | BLOCKED (no authorization until Phase 2) |
+| QA-0022 | record integrity and rollback | The shell creates or edits no records and stores nothing in browser storage (`App.test.tsx` "does not write to localStorage or sessionStorage"); error boundary recovers without data loss (`ErrorBoundary.test.tsx`) | N/A (no records in this story; reviewer to confirm) |
+| QA-0023 | concurrent or repeat request behavior | StrictMode double-mount: first request aborted, stale late answer ignored, no React warnings; unmount aborts in-flight request; timeout/abort timers cleared (`ApiStatus.test.tsx`, `health.test.ts`) | AUTOMATED |
+| QA-0024 | API-to-UI state and error handling | Non-2xx (301/401/403/404/500/503), network error, 5 s timeout, malformed JSON, DOWN/unknown status → "API unavailable" with no response body, error text or stack shown; error boundary hides error details (`health.test.ts`, `ApiStatus.test.tsx`, `ErrorBoundary.test.tsx`) | AUTOMATED |
+
+Evidence: `docs/evidence/LD-003/` (`01-red.log` missing modules, `02-red-stubs.log` failing assertions against
+signature stubs, `03-green.log`, `04-refactor.log` with lint, typecheck, tests, coverage, build and repo tooling).
