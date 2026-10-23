@@ -24,4 +24,18 @@ anything else shows "API unavailable" without exposing response or error details
 ## Conventions
 
 - No tokens or session data in `localStorage`/`sessionStorage` (enforced by ESLint and tested).
-- `<html lang dir>` is driven by `src/i18n/locale.ts` (`en`/`ltr` now; `ar`/`rtl` is registered for Phase 7).
+- `<html lang dir>` is driven by `src/i18n/locale.ts` (`en`/`ltr`, `ar`/`rtl`).
+
+## Early visual preview
+
+The app currently ships an owner-requested, mock-data preview (see `docs/delivery/PREVIEW.md`); it is not a working
+case management system.
+
+- English/Arabic toggle in the header; the language is kept only in the `?lang=en|ar` URL parameter (no browser
+  storage). Messages live in typed catalogs `src/i18n/messages/{en,ar}.ts` and are read with `useI18n()`; add every
+  key to both catalogs (type-checked and tested).
+- `/` is the dashboard preview; the other navigation entries show a "Coming in a later phase" page.
+- All mock data lives in `src/preview/mockData.ts` and must stay obviously synthetic. Regions that show it use
+  `SampleRegion`, which labels them "Sample data"; every page title ends with "(Preview)".
+- Styles are plain CSS with logical properties (`margin-inline-start`, `border-inline-end`, …) so RTL mirrors
+  automatically.

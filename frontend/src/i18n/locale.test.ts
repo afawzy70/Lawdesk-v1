@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_LOCALE, applyDocumentLocale, directionFor, resolveLocale } from './locale';
+import { DEFAULT_LOCALE, applyDocumentLocale, directionFor, resolveLocale, withLang } from './locale';
 
 describe('locale', () => {
   it('defaults to English, left-to-right', () => {
@@ -34,6 +34,13 @@ describe('locale', () => {
 
     applyDocumentLocale('en', doc);
     expect(attrs()).toEqual(['en', 'ltr']);
+  });
+
+  it.each([
+    ['/', 'en', '/?lang=en'],
+    ['/cases', 'ar', '/cases?lang=ar'],
+  ] as const)('builds the in-app link %j for %j as %j', (path, locale, expected) => {
+    expect(withLang(path, locale)).toBe(expected);
   });
 
   it('targets the current document by default', () => {
