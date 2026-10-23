@@ -64,10 +64,12 @@ class RequiredGatesTest(unittest.TestCase):
     def test_repository_policy_gate(self):
         commands = run_commands(self.jobs["policy"])
         self.assertIn("unittest discover -s tools/tests", commands)
+        self.assertIn("unittest discover -s deploy/tests", commands)
         self.assertIn("repo_policy.py pr", commands)
         self.assertIn("repo_policy.py commit-msg", commands)
         self.assertIn("repo_policy.py layout", commands)
         self.assertIn("actionlint", commands)
+        self.assertIn("shellcheck", commands)
 
     def test_backend_gate_runs_full_maven_verify_on_java_21(self):
         job = self.jobs["backend"]
@@ -93,6 +95,14 @@ class RequiredGatesTest(unittest.TestCase):
         checkout = next(s for s in job["steps"] if "actions/checkout" in s.get("uses", ""))
         self.assertEqual(0, checkout["with"]["fetch-depth"])
         self.assertRegex(run_commands(job), r'gitleaks"? git ')
+
+    def test_stack_gate_builds_images_and_runs_the_compose_stack(self):
+        commands = run_commands(self.jobs["stack"])
+        self.assertIn("docker build -f backend/Dockerfile", commands)
+        self.assertIn("docker build -f frontend/Dockerfile", commands)
+        self.assertIn("docker network create lawdesk-edge", commands)
+        self.assertIn("deploy/scripts/smoke.sh", commands)
+        self.assertIn("stop db", commands, "readiness must be checked through a database outage and recovery")
 
     def test_downloaded_tools_are_checksum_verified(self):
         for name in ["policy", "secrets"]:
