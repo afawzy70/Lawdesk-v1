@@ -167,11 +167,11 @@ in as each slice is delivered.
 
 | QA case | Scenario | Mapping | Status |
 |---------|----------|---------|--------|
-| QA-0089 | authorized happy path | `CaseApiTest.createsACaseWithAGeneratedReference…`, `…acceptsASuppliedReference…`, `readsTheStoredCase` | AUTOMATED |
+| QA-0089 | authorized happy path | `CaseApiTest.createsACaseWithAGeneratedReference…`, `…acceptsASuppliedReference…`, `readsTheStoredCase`, `recordsTheCreationInTheTimeline`; `CaseLookupTest` (port for C) | AUTOMATED |
 | QA-0090 | required-field validation | `CaseApiTest.missingRequiredFieldsAreListed…` | AUTOMATED |
-| QA-0091 | invalid input boundary | `CaseApiTest.lengthBoundaries…`, `…referenceNumberFormat…`, `…openedOnInTheFuture…`, `…unknownCaseType…`, `…reservedReferencePrefix…` | AUTOMATED |
+| QA-0091 | invalid input boundary | `CaseApiTest.lengthBoundaries…`, `…referenceNumberFormatIsChecked`, `…openedOnMayBeTodayButNotInTheFuture`, `…unknownCaseTypeIsAFieldError`, `…referenceNumbersInTheGeneratedFormatAreReserved`, `…malformedJsonOrDateIsABadRequest`, `…statusCannotBeChosenOnCreation` | AUTOMATED |
 | QA-0092 | unauthenticated access | `CaseApiTest.withoutASession…` | AUTOMATED |
-| QA-0093 | insufficient permission | `CaseApiTest.withoutThePermission…`; security event part BLOCKED on LD-011 | AUTOMATED (partial) |
+| QA-0093 | insufficient permission | `CaseApiTest.withoutThePermission…`, `…creatingNeedsTheCsrfToken`; security event part BLOCKED on LD-011 | AUTOMATED (partial) |
 | QA-0094 | record integrity and rollback | `LegalCaseSchemaTest` (database rules), `CaseApiTest` (rejected requests store nothing) | AUTOMATED |
-| QA-0095 | concurrent or repeat request | `CaseApiTest.concurrentCreations…` | AUTOMATED |
+| QA-0095 | concurrent or repeat request | `CaseApiTest.concurrentCreationsWithTheSameReferenceNumberStoreOneCase`, `…GetDistinctConsecutiveReferenceNumbers`, `…aDuplicateReferenceNumberIsAConflictIgnoringCase` | AUTOMATED |
 | QA-0096 | API-to-UI state and error handling | API side automated; the create screen lands with PR B2 | PLANNED (UI) |
