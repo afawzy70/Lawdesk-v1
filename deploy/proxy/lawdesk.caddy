@@ -1,0 +1,12 @@
+# PROPOSED — NOT APPLIED. Requires separate owner approval (blocker B1).
+# Site block to append to the shared Caddyfile (Matbakhy compose project `matbakhy-preview`), reusing its existing
+# `headers` snippet and adding an IP allow-list for LawDesk. The Caddy container must also join the external
+# network `lawdesk-edge`; it then reaches LawDesk only through the `lawdesk-web` alias. Nothing else is shared.
+lawdesk.{$PREVIEW_DOMAIN} {
+	route {
+		import headers
+		@lawdesk_outsider not remote_ip {$LAWDESK_ALLOWED_IPS}
+		respond @lawdesk_outsider "Not available" 403
+		reverse_proxy lawdesk-web:8080
+	}
+}

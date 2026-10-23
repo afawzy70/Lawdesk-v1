@@ -11,7 +11,9 @@ Branch: `feature/phase-1-foundation` → PR into `develop`. Update this file at 
 | LD-003 | React + TypeScript shell (item 3) | GREEN + REFACTOR done (50 tests), merged from `feature/LD-003-react-shell` and re-verified by lead; awaiting QA review | `docs/evidence/LD-003/` |
 | LD-004 | PostgreSQL migrations, test isolation (items 4, 5) | GREEN + REFACTOR done (40 backend tests incl. QA edge cases), awaiting QA review | `docs/evidence/LD-004/` |
 | LD-005 | GitHub Actions CI gates (items 5, 6) | Done: CI green on PR #2, negative check proven; merge enforcement BLOCKED (B4) | `docs/evidence/LD-005/` |
-| LD-006 | Compose staging, observability, deploy + rollback, HTTPS proxy (items 7, 8, 9) | Not started; deploy blocked on B1, B2 | — |
+| LD-006 | Compose staging, observability, deploy + rollback, HTTPS proxy (items 7, 8, 9) | Stack, scripts and CI stack job GREEN; Contabo deploy BLOCKED (B2), HTTPS proxy BLOCKED (B1) | `docs/evidence/LD-006/` |
+
+| PREVIEW | Owner-requested bilingual shell + mock dashboard (not a Phase 1 story) | Built on `feature/preview-shell`; deployment BLOCKED (B1, B2) | `docs/evidence/PREVIEW/` |
 
 ## Open blockers / owner decisions
 

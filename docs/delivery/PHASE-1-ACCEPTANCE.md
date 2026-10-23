@@ -166,6 +166,36 @@ Acceptance criteria:
 | QA-0039 | concurrent or repeat request | `concurrency` cancels superseded runs; "only the verified SHA deploys" belongs to LD-006 | AUTOMATED (CI part) |
 | QA-0040 | API-to-UI state and error handling | Failure surfaces as job annotations; test-report upload is best-effort because the artifact quota is exhausted (B6) | AUTOMATED (partial) |
 
-## LD-006
+## LD-006 Contabo staging and HTTPS reverse proxy
 
-Refined in the story's kickoff commit before its RED step.
+Acceptance criteria:
+
+1. `deploy/compose.yaml` defines an isolated project `lawdesk-staging` (db, backend, web) with no published host ports;
+   db and backend sit on an internal-only network; only web joins the external `lawdesk-edge` network (alias
+   `lawdesk-web`). No fixed container names, absolute bind mounts or shared volumes with other projects.
+2. Containers drop all capabilities, set `no-new-privileges`, have health checks, memory limits, bounded JSON logs and
+   restart policies; backend and web have read-only root file systems; images are digest-pinned (db, bases) or
+   selected by an explicit release SHA (backend, web). Rendering without a release tag fails.
+3. Passwords are files under git-ignored `deploy/secrets/`; the backend connects as `lawdesk_app` (no superuser,
+   no CREATEROLE/CREATEDB), which owns only the `lawdesk` schema.
+4. `deploy.sh <sha>` accepts only a full lowercase SHA, takes a lock, pulls, starts with health-check wait, runs the
+   smoke test and records the release; on failure it redeploys the previous release (exit 1) and never removes
+   volumes or networks. `rollback.sh` redeploys the previous release.
+5. Smoke test from inside the web container: `/healthz`, `/`, readiness UP, `/api/v1/cases` → 401, `/actuator/env` → 404.
+6. Baseline observability: ECS JSON logs with request ids, readiness tied to the database (503 during an outage,
+   recovering afterwards, liveness unaffected), `app_release` row and log line per start, deploy history file.
+7. HTTPS on a dedicated hostname through the shared proxy — **prepared, not applied** (`deploy/proxy/lawdesk.caddy`,
+   B1). Deployment on Contabo — **blocked** (B2: no deploy mechanism, `aiagent` has no Docker access).
+
+| QA case | Scenario | Mapping | Status |
+|---------|----------|---------|--------|
+| QA-0041 | authorized happy path | CI stack job (run 39975575391): images built, stack healthy, smoke passed | AUTOMATED in CI; on Contabo BLOCKED (B1, B2) |
+| QA-0042 | required-field validation | `deploy.sh` without SHA/registry → exit 2, no docker calls; compose without `LAWDESK_TAG` fails | AUTOMATED |
+| QA-0043 | invalid input boundary | Short/uppercase/41-char/path-like SHAs rejected | AUTOMATED |
+| QA-0044 | unauthenticated access | No host ports; db/backend internal-only; only health and `/api` forwarded; `/actuator/env` → 404 through web | AUTOMATED (CI); proxy IP allow-list BLOCKED (B1) |
+| QA-0045 | insufficient permission | `lawdesk_app` not superuser/createrole/createdb (CI SQL check); containers without capabilities | AUTOMATED |
+| QA-0046 | record integrity and rollback | Failed start or smoke → automatic rollback; rollback script; no volume removal; DB outage/recovery in CI | AUTOMATED (scripts with fake docker; stack in CI). Real rollback on Contabo BLOCKED (B2) |
+| QA-0047 | concurrent or repeat request | Deploy lock (exit 3); redeploying the current release is idempotent | AUTOMATED |
+| QA-0048 | API-to-UI state and error handling | Smoke covers SPA, readiness and 401 through nginx; UI shows API status | AUTOMATED (CI) |
+
+Cross-cutting: QA-0351 (TLS and staging domain isolation) stays BLOCKED until B1 is approved and applied.

@@ -32,6 +32,8 @@ jobs:
         run: python -m pip install --disable-pip-version-check -r tools/requirements.txt
       - name: Repository tooling tests
         run: python -I -m unittest discover -s tools/tests -v
+      - name: Deployment tests
+        run: python -I -m unittest discover -s deploy/tests -v
       - name: Required repository files
         run: python -I tools/repo_policy.py layout
       - name: Branch flow and commit messages
@@ -61,6 +63,13 @@ jobs:
           echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  $RUNNER_TEMP/actionlint.tar.gz" | sha256sum --check
           tar -xzf "$RUNNER_TEMP/actionlint.tar.gz" -C "$RUNNER_TEMP" actionlint
           "$RUNNER_TEMP/actionlint" -color
+      - name: Lint shell scripts (shellcheck 0.11.0)
+        run: |
+          curl -sSfL -o "$RUNNER_TEMP/shellcheck.tar.xz" \
+            https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellcheck-v0.11.0.linux.x86_64.tar.xz
+          echo "8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198  $RUNNER_TEMP/shellcheck.tar.xz" | sha256sum --check
+          tar -xJf "$RUNNER_TEMP/shellcheck.tar.xz" -C "$RUNNER_TEMP"
+          git ls-files '*.sh' .githooks | xargs "$RUNNER_TEMP/shellcheck-v0.11.0/shellcheck"
 
   backend:
     name: Backend (Java 21, embedded PostgreSQL 18.6)
@@ -143,6 +152,57 @@ jobs:
       - run: npm run build
       - name: Audit runtime dependencies
         run: npm audit --omit=dev --audit-level=high
+
+  stack:
+    name: Staging stack (images + compose smoke)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      LAWDESK_REGISTRY: lawdesk-ci
+      LAWDESK_TAG: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build images
+        run: |
+          docker build -f backend/Dockerfile -t "$LAWDESK_REGISTRY/backend:$LAWDESK_TAG" backend
+          docker build -f frontend/Dockerfile -t "$LAWDESK_REGISTRY/web:$LAWDESK_TAG" frontend
+      - name: Prepare throwaway secrets and the edge network
+        run: |
+          mkdir -p deploy/secrets
+          openssl rand -hex 24 > deploy/secrets/db_admin_password.txt
+          openssl rand -hex 24 > deploy/secrets/db_app_password.txt
+          docker network create lawdesk-edge
+      - name: Start the stack and wait for health checks
+        run: docker compose -p lawdesk-staging -f deploy/compose.yaml up -d --wait --wait-timeout 300
+      - name: Smoke test
+        run: deploy/scripts/smoke.sh
+      - name: Backend runs as the least-privilege role
+        run: |
+          docker compose -p lawdesk-staging -f deploy/compose.yaml exec -T db \
+            psql -U postgres -d lawdesk -tAc "select rolsuper or rolcreaterole or rolcreatedb from pg_roles where rolname = 'lawdesk_app'" \
+            | grep -qx f
+          docker compose -p lawdesk-staging -f deploy/compose.yaml exec -T db \
+            psql -U postgres -d lawdesk -tAc "select count(*) from lawdesk.app_release where version <> ''" | grep -qx 1
+      - name: Readiness follows a database outage and recovery
+        run: |
+          compose() { docker compose -p lawdesk-staging -f deploy/compose.yaml "$@"; }
+          status() { compose exec -T web wget -q -S -O /dev/null "http://127.0.0.1:8080$1" 2>&1 | grep -o 'HTTP/1\.[01] [0-9][0-9][0-9]' | tail -n 1 | cut -d ' ' -f 2; }
+          readiness() { status /actuator/health/readiness; }
+          compose stop db
+          for _ in $(seq 1 30); do [ "$(readiness)" = 503 ] && break; sleep 2; done
+          [ "$(readiness)" = 503 ]
+          echo "readiness 503 while the database is down"
+          [ "$(status /actuator/health/liveness)" = 200 ]
+          echo "liveness still 200"
+          compose start db
+          for _ in $(seq 1 60); do [ "$(readiness)" = 200 ] && break; sleep 2; done
+          deploy/scripts/smoke.sh
+      - name: Stack logs
+        if: always()
+        run: docker compose -p lawdesk-staging -f deploy/compose.yaml logs --no-color --tail 200
+      - name: Tear down
+        if: always()
+        run: docker compose -p lawdesk-staging -f deploy/compose.yaml down -v
 
   secrets:
     name: Secret scan (gitleaks 8.30.1)
