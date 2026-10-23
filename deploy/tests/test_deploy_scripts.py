@@ -25,7 +25,9 @@ FAKE_DOCKER = textwrap.dedent("""\
     echo "LAWDESK_TAG=${LAWDESK_TAG:-} $*" | tr '\n' ' ' >> "$FAKE_DOCKER_LOG"
     echo >> "$FAKE_DOCKER_LOG"
     case "$*" in
+      "image inspect "*) case "$*" in *":${FAKE_MISSING_IMAGE_TAG:-none}"*) exit 1 ;; esac ;;
       *" up "*) [ "${LAWDESK_TAG:-}" = "${FAKE_FAIL_UP_TAG:-none}" ] && exit 1 ;;
+      *" exec -T db pg_dump "*) [ -n "${FAKE_FAIL_DUMP:-}" ] && exit 1; echo "DUMP-OF-${LAWDESK_TAG:-}" ;;
       *" exec "*) [ "${LAWDESK_TAG:-}" = "${FAKE_FAIL_SMOKE_TAG:-none}" ] && exit 1 ;;
     esac
     exit 0
@@ -219,6 +221,122 @@ class RollbackTest(DeployScriptTestCase):
         self.assertEqual(before, len(self.calls()))
 
 
+class LocalImagesTest(DeployScriptTestCase):
+    """Images built on the host (no registry): nothing is pulled, and a release without images is refused."""
+
+    def test_local_images_are_checked_instead_of_pulled(self):
+        result = self.run_script(DEPLOY, SHA_A, LAWDESK_IMAGE_SOURCE="local")
+
+        self.assertEqual(0, result.returncode, result.stderr)
+        calls = self.calls()
+        self.assertFalse(any(" pull" in c for c in calls), calls)
+        self.assertTrue(any(f"image inspect ghcr.io/example/lawdesk/backend:{SHA_A}" in c for c in calls), calls)
+        self.assertTrue(any(f"image inspect ghcr.io/example/lawdesk/web:{SHA_A}" in c for c in calls), calls)
+
+    def test_release_without_built_images_is_refused_before_touching_the_stack(self):
+        self.run_script(DEPLOY, SHA_A, LAWDESK_IMAGE_SOURCE="local")
+        before = len(self.calls())
+
+        result = self.run_script(DEPLOY, SHA_B, LAWDESK_IMAGE_SOURCE="local", FAKE_MISSING_IMAGE_TAG=SHA_B)
+
+        self.assertEqual(1, result.returncode)
+        self.assertIn("not built", result.stderr)
+        self.assertFalse(any(" up " in c for c in self.calls()[before:]), self.calls()[before:])
+        self.assertEqual(SHA_A, self.current())
+
+    def test_unknown_image_source_is_a_usage_error(self):
+        result = self.run_script(DEPLOY, SHA_A, LAWDESK_IMAGE_SOURCE="somewhere")
+
+        self.assertEqual(2, result.returncode)
+        self.assertEqual([], self.calls())
+
+
+class BackupTest(DeployScriptTestCase):
+    """The database is dumped before a new release starts, so a bad forward migration can be recovered by hand."""
+
+    def setUp(self):
+        super().setUp()
+        self.backups = Path(self.tmp.name) / "backups"
+        self.env["LAWDESK_BACKUP_DIR"] = str(self.backups)
+
+    def test_first_deploy_has_nothing_to_back_up(self):
+        result = self.run_script(DEPLOY, SHA_A)
+
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertFalse(any("pg_dump" in c for c in self.calls()))
+
+    def test_database_is_dumped_before_the_next_release_starts(self):
+        self.run_script(DEPLOY, SHA_A)
+
+        result = self.run_script(DEPLOY, SHA_B)
+
+        self.assertEqual(0, result.returncode, result.stderr)
+        calls = self.calls()
+        dump = next(i for i, c in enumerate(calls) if "exec -T db pg_dump" in c)
+        first_up_of_b = next(i for i, c in enumerate(calls) if c.startswith(f"LAWDESK_TAG={SHA_B}") and " up " in c)
+        self.assertLess(dump, first_up_of_b)
+        dumps = list(self.backups.glob(f"*-{SHA_A}.dump"))
+        self.assertEqual(1, len(dumps), list(self.backups.iterdir()))
+        self.assertIn("DUMP-OF-", dumps[0].read_text(encoding="utf-8"))
+        self.assertEqual(0o600, dumps[0].stat().st_mode & 0o777)
+
+    def test_failed_backup_stops_the_deployment_and_keeps_the_running_release(self):
+        self.run_script(DEPLOY, SHA_A)
+        before = len(self.calls())
+
+        result = self.run_script(DEPLOY, SHA_B, FAKE_FAIL_DUMP="1")
+
+        self.assertEqual(1, result.returncode)
+        self.assertIn("backup failed", result.stderr)
+        self.assertFalse(any(" up " in c for c in self.calls()[before:]), self.calls()[before:])
+        self.assertEqual(SHA_A, self.current())
+        self.assertEqual([], list(self.backups.glob("*.partial")))
+
+    def test_only_the_newest_backups_are_kept(self):
+        self.backups.mkdir()
+        for i in range(12):
+            old = self.backups / f"20000101T0000{i:02d}Z-{SHA_C}.dump"
+            old.write_text("old", encoding="utf-8")
+            os.utime(old, (946684800 + i, 946684800 + i))
+        self.run_script(DEPLOY, SHA_A)
+
+        self.run_script(DEPLOY, SHA_B)
+
+        dumps = sorted(p.name for p in self.backups.glob("*.dump"))
+        self.assertEqual(10, len(dumps))
+        self.assertTrue(any(SHA_A in name for name in dumps))
+
+
+class ReleaseDirectoriesTest(DeployScriptTestCase):
+    """On the host each release is unpacked into its own directory; a rollback uses that release's compose file."""
+
+    def setUp(self):
+        super().setUp()
+        self.releases = Path(self.tmp.name) / "releases"
+        for sha in [SHA_A, SHA_B]:
+            (self.releases / sha / "deploy").mkdir(parents=True)
+            (self.releases / sha / "deploy" / "compose.yaml").write_text("services: {}\n", encoding="utf-8")
+        self.env["LAWDESK_RELEASES_DIR"] = str(self.releases)
+
+    def test_each_release_starts_with_its_own_compose_file(self):
+        self.run_script(DEPLOY, SHA_A)
+        self.run_script(DEPLOY, SHA_B, FAKE_FAIL_UP_TAG=SHA_B)
+
+        for call in self.calls():
+            tag = call.split()[0].removeprefix("LAWDESK_TAG=")
+            if " up " in call:
+                with self.subTest(call=call):
+                    self.assertIn(str(self.releases / tag / "deploy" / "compose.yaml"), call)
+
+    def test_secrets_and_environment_file_come_from_the_host_configuration(self):
+        env_file = Path(self.tmp.name) / "staging.env"
+        env_file.write_text("LAWDESK_REGISTRY=x\n", encoding="utf-8")
+
+        self.run_script(DEPLOY, SHA_A, LAWDESK_ENV_FILE=str(env_file))
+
+        self.assertTrue(all(f"--env-file {env_file}" in c for c in self.calls()), self.calls())
+
+
 class SafetyTest(DeployScriptTestCase):
     def test_every_docker_call_is_scoped_to_the_lawdesk_project_and_compose_file(self):
         self.run_script(DEPLOY, SHA_A)
@@ -226,10 +344,14 @@ class SafetyTest(DeployScriptTestCase):
         self.run_script(DEPLOY, SHA_C)
         self.run_script(ROLLBACK)
 
+        self.run_script(DEPLOY, SHA_A, LAWDESK_IMAGE_SOURCE="local")
+
         calls = self.calls()
         self.assertTrue(calls)
         for call in calls:
             with self.subTest(call=call):
+                if " image inspect " in call:
+                    continue  # read-only lookup of this release's own images
                 self.assertIn(" compose -p lawdesk-staging -f ", call)
                 self.assertIn(str(DEPLOY_DIR / "compose.yaml"), call)
 

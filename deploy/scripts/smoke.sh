@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 # Smoke-tests a running stack from inside the web container, so it exercises web -> backend -> database
-# without any published host port. Requires LAWDESK_REGISTRY and LAWDESK_TAG (the compose file needs them).
+# without any published host port. Requires LAWDESK_REGISTRY and LAWDESK_TAG (the compose file needs them);
+# LAWDESK_ENV_FILE as in deploy.sh.
 set -euo pipefail
 
 deploy_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 compose=(docker compose -p lawdesk-staging -f "$deploy_dir/compose.yaml")
-if [[ -f $deploy_dir/staging.env ]]; then
-    compose+=(--env-file "$deploy_dir/staging.env")
+env_file=${LAWDESK_ENV_FILE:-}
+if [[ -z $env_file && -f $deploy_dir/staging.env ]]; then
+    env_file=$deploy_dir/staging.env
+fi
+if [[ -n $env_file ]]; then
+    compose+=(--env-file "$env_file")
 fi
 
 # Each check ends in "|| fail": under "sh -e" a failure on the left of "&&" does not stop the script (QAD-012).
