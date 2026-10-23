@@ -177,6 +177,15 @@ class DeployTest(GateTestCase):
         self.assertIn(f"LAWDESK_SECRETS_DIR={self.home / 'secrets'}", calls)
         self.assertIn(f"RESULT deployed {self.sha_b}", result.stdout)
 
+    def test_release_files_are_readable_by_container_users_despite_the_gate_umask(self):
+        # The database container reads deploy/postgres/init as its own user; umask 027 made it unreadable on Contabo.
+        self.gate(f"deploy {self.sha_b}")
+
+        release = self.home / "releases" / self.sha_b
+        for path in [release, release / "deploy", release / "deploy" / "scripts", release / "file.txt"]:
+            with self.subTest(path=path.name):
+                self.assertTrue(path.stat().st_mode & 0o004, oct(path.stat().st_mode))
+
     def test_an_older_commit_on_develop_can_be_deployed(self):
         result = self.gate(f"deploy {self.sha_a}")
 

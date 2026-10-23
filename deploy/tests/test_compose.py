@@ -141,10 +141,16 @@ class SecretsTest(unittest.TestCase):
         backend = self.stack["services"]["backend"]
         self.assertEqual("lawdesk_app", backend["environment"]["SPRING_DATASOURCE_USERNAME"])
         self.assertNotEqual("postgres", backend["environment"]["SPRING_DATASOURCE_USERNAME"])
-        init = (DEPLOY_DIR / "postgres" / "init" / "10-app-role.sh").read_text(encoding="utf-8")
-        self.assertIn("NOSUPERUSER", init)
-        self.assertIn("NOCREATEROLE", init)
-        self.assertIn("NOCREATEDB", init)
+        role = (DEPLOY_DIR / "postgres" / "app-role.sql").read_text(encoding="utf-8")
+        self.assertIn("NOSUPERUSER", role)
+        self.assertIn("NOCREATEROLE", role)
+        self.assertIn("NOCREATEDB", role)
+
+    def test_database_does_not_depend_on_host_file_permissions_for_initialisation(self):
+        # Contabo first install: a bind-mounted init directory unpacked under umask 027 was unreadable for the postgres
+        # user, so the role was never created. deploy.sh ensures the role through `docker compose exec` instead.
+        volumes = self.stack["services"]["db"]["volumes"]
+        self.assertFalse(any("docker-entrypoint-initdb.d" in v for v in volumes), volumes)
 
 
 @unittest.skipUnless(shutil.which("docker"), "docker CLI not available")

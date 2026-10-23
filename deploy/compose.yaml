@@ -30,8 +30,9 @@ services:
       LAWDESK_APP_PASSWORD_FILE: /run/secrets/db_app_password
     secrets: [db_admin_password, db_app_password]
     volumes:
+      # The least-privilege app role is ensured by deploy/scripts/deploy.sh (deploy/postgres/app-role.sql), not by an
+      # init script, so initialisation does not depend on host file permissions.
       - db-data:/var/lib/postgresql
-      - ./postgres/init:/docker-entrypoint-initdb.d:ro
     networks: [internal]
     mem_limit: 512m
     healthcheck:

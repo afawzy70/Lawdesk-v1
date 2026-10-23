@@ -177,7 +177,12 @@ jobs:
           openssl rand -hex 24 > deploy/secrets/db_app_password.txt
           docker network create lawdesk-edge
       - name: Start the stack and wait for health checks
-        run: docker compose -p lawdesk-staging -f deploy/compose.yaml up -d --wait --wait-timeout 300
+        run: |
+          # Same order as deploy/scripts/deploy.sh: database, its least-privilege role, then everything.
+          compose() { docker compose -p lawdesk-staging -f deploy/compose.yaml "$@"; }
+          compose up -d --wait --wait-timeout 300 db
+          compose exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d postgres -q < deploy/postgres/app-role.sql
+          compose up -d --wait --wait-timeout 300
       - name: Smoke test
         run: deploy/scripts/smoke.sh
       - name: Backend runs as the least-privilege role
