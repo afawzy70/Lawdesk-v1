@@ -1,3 +1,9 @@
+import { authEn } from './auth.en';
+import { adminEn } from './admin.en';
+import { casesEn } from './cases.en';
+import { courtsEn } from './courts.en';
+import { proceedingsEn } from './proceedings.en';
+
 /**
  * English message catalog. This object defines the set of message keys: every other catalog is typed as
  * `Messages`, so a missing or extra key fails type-checking (and `catalog.test.ts` checks it at runtime too).
@@ -56,6 +62,13 @@ export const en = {
   'stage.cassation': 'Cassation',
 
   'sample.caseRef': 'Sample Case {number}',
+
+  // Area messages, one file per workstream (architecture/CONTRACTS.md §6).
+  ...authEn,
+  ...adminEn,
+  ...casesEn,
+  ...courtsEn,
+  ...proceedingsEn,
 };
 
 export type MessageKey = keyof typeof en;
