@@ -1,0 +1,150 @@
+# Deploys one merged commit to the Contabo staging stack (LD-006). Called by CI after every gate passed on a push to
+# develop, or dispatched by hand to redeploy a commit that is already on develop. The runner never gets a shell on
+# the host: its key is bound to the forced command deploy/host/lawdesk-deploy-gate, which fetches develop itself,
+# refuses commits that are not on it, builds the images on the host and rolls back on failed health checks.
+# tools/tests/test_cd_workflow.py pins down this contract. Operator setup: docs/operations/STAGING-RUNBOOK.md.
+name: Deploy staging
+
+on:
+  workflow_call:
+    inputs:
+      sha:
+        description: Full commit SHA on develop
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Full commit SHA on develop (redeploy or roll forward/back to a merged commit)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lawdesk-staging-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to staging
+    if: vars.LAWDESK_STAGING_DEPLOY == 'enabled'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment:
+      name: staging
+      url: ${{ vars.LAWDESK_STAGING_URL }}
+    env:
+      SHA: ${{ inputs.sha }}
+      LAWDESK_SSH_TARGET: ${{ vars.LAWDESK_STAGING_SSH_TARGET }}
+    steps:
+      - name: Validate the release commit
+        id: release
+        env:
+          EVENT: ${{ github.event_name }}
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ ! $SHA =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::'$SHA' is not a full lowercase commit SHA"
+            exit 1
+          fi
+          # "identical": SHA is the develop head; "ahead": develop contains SHA and has moved on.
+          status=$(gh api "repos/$REPO/compare/$SHA...develop" --jq .status)
+          case $status in
+            identical|ahead) ;;
+            *) echo "::error::$SHA is not on develop ($status); only merged commits are deployed"; exit 1 ;;
+          esac
+          if [[ $status == ahead && $EVENT != workflow_dispatch ]]; then
+            echo "::notice::develop has moved past $SHA; the run for the newer push deploys instead"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Configure the gate connection
+        if: steps.release.outputs.skip == 'false'
+        env:
+          SSH_KEY: ${{ secrets.LAWDESK_STAGING_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.LAWDESK_STAGING_KNOWN_HOSTS }}
+        run: |
+          if [[ -z $SSH_KEY || -z $KNOWN_HOSTS || ! $LAWDESK_SSH_TARGET =~ ^[a-z_][a-z0-9_-]*@[A-Za-z0-9.-]+$ ]]; then
+            echo "::error::staging SSH secrets or the LAWDESK_STAGING_SSH_TARGET variable are not configured"
+            exit 1
+          fi
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_KEY" > "$HOME/.ssh/lawdesk_staging"
+          chmod 600 "$HOME/.ssh/lawdesk_staging"
+          printf '%s\n' "$KNOWN_HOSTS" > "$HOME/.ssh/lawdesk_known_hosts"
+          cat > "$RUNNER_TEMP/gate" <<'EOF'
+          #!/usr/bin/env bash
+          # Sends one request to the host's forced command; the host ignores anything it does not accept.
+          exec ssh -i "$HOME/.ssh/lawdesk_staging" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/lawdesk_known_hosts" -o ConnectTimeout=20 -o ServerAliveInterval=30 "$LAWDESK_SSH_TARGET" "$1"
+          EOF
+          chmod 700 "$RUNNER_TEMP/gate"
+
+      - name: Deploy the release on the host
+        id: deploy
+        if: steps.release.outputs.skip == 'false'
+        run: |
+          set +e
+          "$RUNNER_TEMP/gate" "deploy $SHA" 2>&1 | tee "$RUNNER_TEMP/deploy.log"
+          status=${PIPESTATUS[0]}
+          {
+            echo "### Staging deployment of \`$SHA\`"
+            echo "Gate exit code: $status (0 deployed, 1 failed and rolled back, 4 rollback failed, 5 not on develop, 6 build failed)"
+            echo '```'
+            tail -n 80 "$RUNNER_TEMP/deploy.log"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$status"
+
+      - name: Confirm the running release
+        if: steps.release.outputs.skip == 'false'
+        run: |
+          "$RUNNER_TEMP/gate" "status" | tee "$RUNNER_TEMP/status.txt"
+          { echo '#### Release state'; echo '```'; cat "$RUNNER_TEMP/status.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          grep -qx "current=$SHA" "$RUNNER_TEMP/status.txt"
+
+      - name: Verify the public HTTPS endpoint
+        if: steps.release.outputs.skip == 'false' && vars.LAWDESK_STAGING_URL != ''
+        env:
+          URL: ${{ vars.LAWDESK_STAGING_URL }}
+        run: |
+          if [[ ! $URL =~ ^https://[a-z0-9.-]+$ ]]; then
+            echo "::error::LAWDESK_STAGING_URL must be https://<host>"
+            exit 1
+          fi
+          # curl verifies the certificate chain and host name against the system trust store; no flag disables it.
+          fetch() { curl -sS --proto =https --tlsv1.2 --max-time 15 -o "$RUNNER_TEMP/body" -w '%{http_code}' "$URL$1" || echo 000; }
+          expect() {
+            local code
+            for _ in $(seq 1 12); do
+              code=$(fetch "$1")
+              if [[ $code == "$2" ]] && { [[ -z ${3:-} ]] || grep -q "$3" "$RUNNER_TEMP/body"; }; then
+                echo "ok   $1 -> $code"
+                return 0
+              fi
+              sleep 5
+            done
+            echo "::error::$URL$1 answered $code, expected $2${3:+ containing $3}"
+            return 1
+          }
+          expect /healthz 200
+          expect / 200 '<title>LawDesk'
+          expect /actuator/health/readiness 200 '"status":"UP"'
+          expect /api/v1/cases 401
+          expect /actuator/env 404
+          {
+            echo '#### Public endpoint'
+            echo '```'
+            curl -sS --proto =https -v -o /dev/null "$URL/healthz" 2>&1 | grep -E 'subject:|issuer:|expire date:|SSL certificate verify' || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Roll back after failed public verification
+        if: failure() && steps.deploy.outcome == 'success'
+        run: |
+          "$RUNNER_TEMP/gate" "rollback" || true
+          "$RUNNER_TEMP/gate" "status" | tee -a "$GITHUB_STEP_SUMMARY"

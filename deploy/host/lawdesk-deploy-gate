@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# LawDesk staging deploy gate. Installed root-owned as /usr/local/sbin/lawdesk-deploy-gate and run as the
-# `lawdesk-deploy` user, either as the forced command of the CI deploy key
+# LawDesk staging deploy gate. Installed root-owned (not writable by its user) as /usr/local/sbin/lawdesk-deploy-gate
+# and run as `devops`, the account that already operates deployments on this host and owns /srv/deployments/lawdesk.
+# CI reaches it only as the forced command of a dedicated key in ~devops/.ssh/authorized_keys:
 #   restrict,command="/usr/local/sbin/lawdesk-deploy-gate" ssh-ed25519 AAAA... lawdesk-ci-deploy
-# or by an operator: sudo -u lawdesk-deploy lawdesk-deploy-gate status
+# so that key can never open a shell. An operator can run it directly: lawdesk-deploy-gate status
 #
 # Requests (exactly one, nothing else is accepted):
 #   deploy <40-hex sha>  fetch develop from GitHub, require the commit to be on it, unpack it into its own release
@@ -15,7 +16,7 @@
 set -euo pipefail
 umask 027
 
-home=${LAWDESK_HOME:-/srv/lawdesk-staging}
+home=${LAWDESK_HOME:-/srv/deployments/lawdesk}
 branch=develop
 registry=lawdesk-local
 request=${SSH_ORIGINAL_COMMAND-$*}
@@ -57,13 +58,13 @@ log=$home/logs/$(date -u +%Y%m%dT%H%M%SZ)-$command${sha:+-$sha}.log
 exec > >(tee -p -a "$log") 2> >(tee -p -a "$log" >&2)
 
 release_env=(
-    LAWDESK_REGISTRY=$registry
-    LAWDESK_IMAGE_SOURCE=local
-    LAWDESK_STATE_DIR=$state
-    LAWDESK_RELEASES_DIR=$releases
-    LAWDESK_ENV_FILE=$home/staging.env
-    LAWDESK_BACKUP_DIR=$home/backups
-    LAWDESK_SECRETS_DIR=$home/secrets
+    "LAWDESK_REGISTRY=$registry"
+    "LAWDESK_IMAGE_SOURCE=local"
+    "LAWDESK_STATE_DIR=$state"
+    "LAWDESK_RELEASES_DIR=$releases"
+    "LAWDESK_ENV_FILE=$home/staging.env"
+    "LAWDESK_BACKUP_DIR=$home/backups"
+    "LAWDESK_SECRETS_DIR=$home/secrets"
 )
 
 if [[ $command == rollback ]]; then

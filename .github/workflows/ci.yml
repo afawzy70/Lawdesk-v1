@@ -14,7 +14,8 @@ permissions:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Superseded pull request runs are cancelled; pushes to develop/main never are, so a deployment always completes.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   policy:
@@ -69,7 +70,7 @@ jobs:
             https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellcheck-v0.11.0.linux.x86_64.tar.xz
           echo "8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198  $RUNNER_TEMP/shellcheck.tar.xz" | sha256sum --check
           tar -xJf "$RUNNER_TEMP/shellcheck.tar.xz" -C "$RUNNER_TEMP"
-          git ls-files '*.sh' .githooks | xargs "$RUNNER_TEMP/shellcheck-v0.11.0/shellcheck"
+          git ls-files '*.sh' .githooks deploy/host | xargs "$RUNNER_TEMP/shellcheck-v0.11.0/shellcheck"
 
   backend:
     name: Backend (Java 21, embedded PostgreSQL 18.6)
@@ -219,3 +220,13 @@ jobs:
           echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  $RUNNER_TEMP/gitleaks.tar.gz" | sha256sum --check
           tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
           "$RUNNER_TEMP/gitleaks" git --redact --no-banner --exit-code 1 .
+
+  deploy-staging:
+    name: Deploy staging
+    needs: [policy, backend, backend-postgres-image, frontend, stack, secrets]
+    # Merged code only: pushes to develop in this repository, after every gate above passed.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop' && github.repository == 'afawzy70/Lawdesk-v1'
+    uses: ./.github/workflows/deploy-staging.yml
+    with:
+      sha: ${{ github.sha }}
+    secrets: inherit

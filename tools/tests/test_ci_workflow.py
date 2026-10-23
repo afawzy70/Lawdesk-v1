@@ -50,6 +50,8 @@ class SecurityPostureTest(unittest.TestCase):
 
     def test_jobs_have_timeouts(self):
         for name, job in load_workflow()["jobs"].items():
+            if "uses" in job:
+                continue  # a reusable-workflow call; its jobs carry their own timeouts (test_cd_workflow.py)
             with self.subTest(job=name):
                 self.assertLessEqual(job.get("timeout-minutes", 999), 30)
 

@@ -1,3 +1,4 @@
+# shellcheck shell=bash disable=SC2034 # variables are used by the scripts that source this file
 # Shared by attach.sh and detach.sh; sourced, not executed.
 # The shared proxy belongs to Matbakhy (compose project matbakhy-preview, service proxy). LawDesk only ever edits the
 # block between its own markers, through the container's filesystem and `caddy reload`; the container is never
@@ -11,7 +12,7 @@ CANDIDATE=/etc/caddy/Caddyfile.lawdesk-candidate
 
 project=${LAWDESK_PROXY_PROJECT:-matbakhy-preview}
 service=${LAWDESK_PROXY_SERVICE:-proxy}
-backup_root=${LAWDESK_PROXY_BACKUP_DIR:-/srv/lawdesk-staging/proxy-backups}
+backup_root=${LAWDESK_PROXY_BACKUP_DIR:-/srv/deployments/lawdesk/proxy-backups}
 
 die() {
     echo "proxy: $*" >&2
@@ -44,6 +45,7 @@ strip_block() {
 matbakhy_hosts() {
     local domain
     domain=$(docker exec "$proxy" printenv PREVIEW_DOMAIN)
+    # shellcheck disable=SC2016 # matches the literal {$PREVIEW_DOMAIN} placeholder
     sed -n 's/^\([a-z0-9-]*\)\.{\$PREVIEW_DOMAIN} {$/\1/p' "$1" | while read -r sub; do echo "$sub.$domain"; done
 }
 

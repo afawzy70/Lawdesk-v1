@@ -6,7 +6,7 @@
 # Environment:
 #   LAWDESK_REGISTRY      required; images are <registry>/backend:<sha> and <registry>/web:<sha>
 #   LAWDESK_IMAGE_SOURCE  "registry" (default: pull the images) or "local" (images were built on this host)
-#   LAWDESK_STATE_DIR     release state and history (default /srv/lawdesk-staging/state)
+#   LAWDESK_STATE_DIR     release state and history (default /srv/deployments/lawdesk/state)
 #   LAWDESK_RELEASES_DIR  optional; <dir>/<sha>/deploy/compose.yaml is used for that release, so a rollback runs the
 #                         previous release with its own compose file
 #   LAWDESK_ENV_FILE      optional compose --env-file (default deploy/staging.env when present)
@@ -32,7 +32,7 @@ fi
 release=$1
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 deploy_dir=$(dirname "$script_dir")
-state_dir=${LAWDESK_STATE_DIR:-/srv/lawdesk-staging/state}
+state_dir=${LAWDESK_STATE_DIR:-/srv/deployments/lawdesk/state}
 backup_dir=${LAWDESK_BACKUP_DIR:-}
 mkdir -p "$state_dir"
 
