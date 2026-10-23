@@ -39,6 +39,17 @@ class SecurityBaselineTest extends HttpTestSupport {
         assertThat(response.body()).doesNotContain("trace", "exception");
     }
 
+    // Codex review on 020154c: /error is only for the container's error dispatch, not a public URL.
+    @Test
+    void directRequestToTheErrorEndpointIsUnauthorized() {
+        HttpResponse<String> response = get("/error");
+
+        assertThat(response.statusCode()).isEqualTo(401);
+        assertThat(response.headers().firstValue("Content-Type")).hasValueSatisfying(
+                type -> assertThat(type).startsWith("application/problem+json"));
+        assertThat(post("/error", "{}").statusCode()).isEqualTo(401);
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"/actuator/env", "/actuator/beans", "/actuator/configprops", "/actuator/heapdump",
             "/actuator/loggers", "/actuator/mappings", "/actuator/threaddump"})

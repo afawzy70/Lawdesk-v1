@@ -3,6 +3,7 @@ package com.lawdesk.platform;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.context.annotation.Bean;
@@ -36,7 +37,8 @@ public class SecurityConfig {
         http.authorizeHttpRequests(requests -> requests
                         .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**", "/actuator/info")
                         .permitAll()
-                        .requestMatchers("/error").permitAll()
+                        // Error pages are rendered on the container's error dispatch only; /error itself is not public.
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .anyRequest().authenticated())
                 .httpBasic(basic -> basic.disable())
                 .formLogin(form -> form.disable())
