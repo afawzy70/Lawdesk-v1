@@ -157,16 +157,19 @@ jobs:
   stack:
     name: Staging stack (images + compose smoke)
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 30
     env:
-      LAWDESK_REGISTRY: lawdesk-ci
+      # The registry name the host gate and the rollback drill use for images built on the host.
+      LAWDESK_REGISTRY: lawdesk-local
       LAWDESK_TAG: ${{ github.sha }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Build images
         run: |
-          docker build -f backend/Dockerfile -t "$LAWDESK_REGISTRY/backend:$LAWDESK_TAG" backend
-          docker build -f frontend/Dockerfile -t "$LAWDESK_REGISTRY/web:$LAWDESK_TAG" frontend
+          docker build -f backend/Dockerfile --label "org.opencontainers.image.revision=$LAWDESK_TAG" \
+            -t "$LAWDESK_REGISTRY/backend:$LAWDESK_TAG" backend
+          docker build -f frontend/Dockerfile --label "org.opencontainers.image.revision=$LAWDESK_TAG" \
+            -t "$LAWDESK_REGISTRY/web:$LAWDESK_TAG" frontend
       - name: Prepare throwaway secrets and the edge network
         run: |
           mkdir -p deploy/secrets
@@ -198,6 +201,25 @@ jobs:
           compose start db
           for _ in $(seq 1 60); do [ "$(readiness)" = 200 ] && break; sleep 2; done
           deploy/scripts/smoke.sh
+      - name: Host-mode deploy, repeat deploy and rollback drill on real images
+        run: |
+          # The host layout of /srv/deployments/lawdesk, on this disposable runner: the release unpacked by commit,
+          # the secrets the running database was initialised with, state, backups.
+          home=$RUNNER_TEMP/lawdesk
+          release=$home/releases/$LAWDESK_TAG
+          mkdir -p "$release" "$home/state"
+          git archive HEAD deploy | tar -x -C "$release"
+          cp -r deploy/secrets "$home/secrets"
+          touch "$home/staging.env"
+          host_env=(LAWDESK_IMAGE_SOURCE=local "LAWDESK_STATE_DIR=$home/state" "LAWDESK_RELEASES_DIR=$home/releases"
+                    "LAWDESK_ENV_FILE=$home/staging.env" "LAWDESK_BACKUP_DIR=$home/backups" "LAWDESK_SECRETS_DIR=$home/secrets")
+          env "${host_env[@]}" "$release/deploy/scripts/deploy.sh" "$LAWDESK_TAG"
+          env "${host_env[@]}" "$release/deploy/scripts/deploy.sh" "$LAWDESK_TAG"
+          grep -qx "$LAWDESK_TAG" "$home/state/current-release"
+          ls -l "$home/backups"
+          LAWDESK_HOME=$home "$release/deploy/host/rollback-drill.sh" | tee "$RUNNER_TEMP/drill.log"
+          grep -q "DRILL PASSED" "$RUNNER_TEMP/drill.log"
+          cat "$home/state/history.log"
       - name: Stack logs
         if: always()
         run: docker compose -p lawdesk-staging -f deploy/compose.yaml logs --no-color --tail 200
