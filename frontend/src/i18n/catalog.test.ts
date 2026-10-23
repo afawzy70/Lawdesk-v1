@@ -42,8 +42,8 @@ describe('message catalogs', () => {
   });
 
   it('carries the agreed preview notice in both languages', () => {
-    expect(en['preview.banner']).toBe('Preview — sample data only. This is not a working case management system.');
-    expect(ar['preview.banner']).toBe('معاينة — بيانات نموذجية فقط. هذا ليس نظامًا فعّالًا لإدارة القضايا.');
+    expect(en['preview.banner']).toBe('UAT preview — sample data only. This is not a working case management system.');
+    expect(ar['preview.banner']).toBe('معاينة UAT — بيانات نموذجية فقط. هذا ليس نظامًا فعّالًا لإدارة القضايا.');
     expect(en['preview.titleSuffix']).toBe('(Preview)');
     expect(ar['preview.titleSuffix']).toBe('(معاينة)');
   });

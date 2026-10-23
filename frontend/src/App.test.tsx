@@ -15,8 +15,8 @@ function renderAt(path: string) {
 }
 
 const BANNER = {
-  en: 'Preview — sample data only. This is not a working case management system.',
-  ar: 'معاينة — بيانات نموذجية فقط. هذا ليس نظامًا فعّالًا لإدارة القضايا.',
+  en: 'UAT preview — sample data only. This is not a working case management system.',
+  ar: 'معاينة UAT — بيانات نموذجية فقط. هذا ليس نظامًا فعّالًا لإدارة القضايا.',
 } as const;
 
 const NAV = [
