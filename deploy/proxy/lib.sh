@@ -32,8 +32,9 @@ find_proxy() {
 }
 
 on_edge() {
+    # grep -x (not -q) reads all input, so the pipeline never dies of SIGPIPE and reports a false "not on edge".
     docker inspect -f '{{range $name, $_ := .NetworkSettings.Networks}}{{$name}} {{end}}' "$proxy" |
-        tr ' ' '\n' | grep -qx "$EDGE_NETWORK"
+        tr ' ' '\n' | grep -x "$EDGE_NETWORK" > /dev/null
 }
 
 # Refuses (exit 2) unless the file holds no LawDesk block or exactly one well-formed one: both markers at the start of

@@ -47,7 +47,7 @@ if [[ $deploy_status != 1 ]]; then
     verdict=failed
 fi
 # Exit 1 also means "refused before starting"; only a release that started and failed exercises the rollback.
-if ! tail -n "+$((history_before + 1))" "$state/history.log" | grep -q "failed $drill"; then
+if ! tail -n "+$((history_before + 1))" "$state/history.log" | grep "failed $drill" > /dev/null; then
     echo "drill: deploy.sh did not start the drill release, so the rollback was not exercised"
     verdict=failed
 fi

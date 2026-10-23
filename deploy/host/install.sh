@@ -16,6 +16,8 @@
 #      validates, compares every Matbakhy host and restores on any difference)
 #   6. public HTTPS with a trusted certificate; no Matbakhy container restarted
 #   7. CD: the CI key into GitHub Secrets (then deleted here), variables, and LAWDESK_STAGING_DEPLOY=enabled last
+# --keep-current: the release already running is healthy; continue from step 5 with it instead of deploying the
+# develop head again (no rebuild, no container restart). Used to resume a run that stopped after a good deploy.
 # Output goes to logs/<ts>-install.log and to a world-readable report (no secrets) for the agent.
 # Exit codes: 0 installed, 2 refused before any change, other: failed at the step named in the report.
 set -Eeuo pipefail
@@ -39,6 +41,14 @@ chmod 644 "$report"
 
 current="start"
 sha=""
+release=""
+keep_current=no
+for arg in "$@"; do
+    case $arg in
+        --keep-current) keep_current=yes ;;
+        *) echo "usage: install.sh [--keep-current]" >&2; exit 2 ;;
+    esac
+done
 
 step() {
     current=$1
@@ -79,7 +89,7 @@ failed() {
 --- Recovery (Matbakhy is never stopped by this command; the database volume is never removed)
   state and history:      $gate status
   previous release:       $gate rollback
-  remove the HTTPS route: $home/releases/${sha:-<sha>}/deploy/proxy/detach.sh   (LawDesk site only)
+  remove the HTTPS route: $home/releases/${release:-<sha>}/deploy/proxy/detach.sh   (LawDesk site only)
   after a fix:            run this command again; every step is idempotent
   full log:               $log
 EOF
@@ -121,9 +131,21 @@ main() {
         echo "gate installed: $gate"
     fi
 
-    step "4/7 deploy $sha through the gate"
-    "$gate" deploy "$sha"
-    "$gate" status | head -n 2
+    if [[ $keep_current == yes ]]; then
+        step "4/7 keep the running release"
+        release=$(cat "$home/state/current-release" 2> /dev/null || true)
+        if [[ ! $release =~ ^[0-9a-f]{40}$ ]]; then
+            echo "install: --keep-current needs a deployed release; run without it to deploy $sha"
+            false
+        fi
+        echo "keeping the running release $release (no rebuild, no restart)"
+    else
+        step "4/7 deploy $sha through the gate"
+        release=$sha
+        "$gate" deploy "$sha"
+    fi
+    # sed reads the whole status; "head" would stop early and kill the gate with SIGPIPE (exit 141 on bf1e40f).
+    "$gate" status | sed -n '1,2p'
 
     step "5/7 containers healthy, then the HTTPS route"
     local s status
@@ -140,8 +162,9 @@ main() {
         sleep "${LAWDESK_HTTPS_WAIT:-5}"
     done
     https /healthz > /dev/null
-    https / | grep -q '<title>LawDesk'
-    https /actuator/health/readiness | grep -q '"status":"UP"'
+    # grep without -q reads the whole body, so curl is never cut off mid-write (SIGPIPE).
+    https / | grep '<title>LawDesk' > /dev/null
+    https /actuator/health/readiness | grep '"status":"UP"' > /dev/null
     echo "https://$public_host/ answers with a trusted certificate"
     matbakhy_containers > "$home/state/matbakhy-after.txt"
     if ! diff "$home/state/matbakhy-before.txt" "$home/state/matbakhy-after.txt"; then
@@ -160,7 +183,7 @@ CD PENDING: this account has no authenticated GitHub CLI. From the owner's works
   for v in LAWDESK_STAGING_SSH_TARGET=$ssh_target LAWDESK_STAGING_URL=https://$public_host LAWDESK_DEVELOP_POLICY=uat \\
            LAWDESK_STAGING_DEPLOY=enabled; do gh variable set "\${v%%=*}" --repo $github_repo --body "\${v#*=}"; done
 EOF
-        echo "LAWDESK INSTALLED $sha: https://$public_host/ (CD pending)"
+        echo "LAWDESK INSTALLED $release: https://$public_host/ (CD pending)"
         return 0
     fi
     if [[ -f $ci_key ]]; then
@@ -174,7 +197,7 @@ EOF
     gh variable set LAWDESK_STAGING_URL --repo "$github_repo" --body "https://$public_host"
     gh variable set LAWDESK_DEVELOP_POLICY --repo "$github_repo" --body uat
     gh variable set LAWDESK_STAGING_DEPLOY --repo "$github_repo" --body enabled
-    echo "LAWDESK INSTALLED $sha: https://$public_host/ (CD enabled)"
+    echo "LAWDESK INSTALLED $release: https://$public_host/ (CD enabled)"
 }
 
 main "$@" 2>&1 | tee -a "$log" "$report"

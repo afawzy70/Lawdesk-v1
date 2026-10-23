@@ -1,0 +1,25 @@
+# GREEN: SIGPIPE-safe status read and --keep-current
+$ python3 -m unittest discover -s deploy/tests -p test_install.py -v
+test_a_matbakhy_restart_is_reported_as_a_failure (test_install.InstallTest.test_a_matbakhy_restart_is_reported_as_a_failure) ... ok
+test_a_rerun_reuses_the_key_the_gate_and_the_images (test_install.InstallTest.test_a_rerun_reuses_the_key_the_gate_and_the_images) ... ok
+test_failed_deploy_stops_before_the_proxy_and_prints_the_recovery (test_install.InstallTest.test_failed_deploy_stops_before_the_proxy_and_prints_the_recovery) ... ok
+test_full_run_deploys_attaches_verifies_https_and_then_enables_cd (test_install.InstallTest.test_full_run_deploys_attaches_verifies_https_and_then_enables_cd) ... ok
+test_https_failure_leaves_cd_off_and_names_the_detach_command (test_install.InstallTest.test_https_failure_leaves_cd_off_and_names_the_detach_command) ... ok
+test_keep_current_continues_from_the_healthy_deployed_release_without_redeploying (test_install.InstallTest.test_keep_current_continues_from_the_healthy_deployed_release_without_redeploying) ... ok
+test_keep_current_with_an_unhealthy_container_stops_before_the_proxy (test_install.InstallTest.test_keep_current_with_an_unhealthy_container_stops_before_the_proxy) ... ok
+test_keep_current_without_a_running_release_is_refused (test_install.InstallTest.test_keep_current_without_a_running_release_is_refused) ... ok
+test_reading_the_gate_status_never_kills_the_install (test_install.InstallTest.test_reading_the_gate_status_never_kills_the_install) ... ok
+test_refuses_a_checkout_that_is_not_the_develop_head (test_install.InstallTest.test_refuses_a_checkout_that_is_not_the_develop_head) ... ok
+test_report_is_readable_for_the_agent_and_logged_on_the_host (test_install.InstallTest.test_report_is_readable_for_the_agent_and_logged_on_the_host) ... ok
+test_the_ci_key_is_bound_to_the_gate_and_never_leaks (test_install.InstallTest.test_the_ci_key_is_bound_to_the_gate_and_never_leaks) ... ok
+test_unhealthy_container_stops_before_the_proxy (test_install.InstallTest.test_unhealthy_container_stops_before_the_proxy) ... ok
+test_unknown_arguments_are_refused_before_any_change (test_install.InstallTest.test_unknown_arguments_are_refused_before_any_change) ... ok
+test_without_github_cli_the_site_is_deployed_and_cd_needs_one_owner_command (test_install.InstallTest.test_without_github_cli_the_site_is_deployed_and_cd_needs_one_owner_command) ... ok
+Ran 15 tests in 19.348s
+OK
+$ python3 -m unittest discover -s deploy/tests
+OK
+$ python3 -m unittest discover -s tools/tests
+OK
+$ shellcheck 0.11.0
+no findings
