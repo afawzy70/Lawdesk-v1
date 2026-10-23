@@ -24,8 +24,11 @@ class SecurityBaselineTest extends HttpTestSupport {
 
     @Test
     void noDefaultInMemoryUserIsCreated() {
-        // Spring Boot's fallback user has a generated password that is printed to the log.
-        assertThat(context.getBeanNamesForType(UserDetailsService.class)).isEmpty();
+        // Spring Boot's fallback user has a generated password that is printed to the log. Since LD-007 the only user
+        // source is the database-backed one.
+        assertThat(context.getBeanNamesForType(
+                org.springframework.security.provisioning.InMemoryUserDetailsManager.class)).isEmpty();
+        assertThat(context.getBeanNamesForType(UserDetailsService.class)).containsExactly("lawdeskUserDetailsService");
     }
 
     @Test

@@ -23,7 +23,7 @@ import com.lawdesk.security.Permission;
 /** Test-only endpoints exercising the shared API contract (architecture/CONTRACTS.md §3, §4). */
 @RestController
 @RequestMapping("/api/v1/contract-test")
-class ContractTestController {
+public class ContractTestController {
 
     private final CurrentActor currentActor;
 
