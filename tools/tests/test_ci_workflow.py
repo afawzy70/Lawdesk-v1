@@ -106,6 +106,11 @@ class RequiredGatesTest(unittest.TestCase):
         self.assertIn("app_release where version = '$LAWDESK_TAG'", commands,
                       "the stack must record the commit it runs")
 
+    def test_stack_gate_requires_readiness_to_detect_a_database_outage_within_five_seconds(self):
+        # Owner decision 2026-10-23: the first readiness probe after the database stops answers 503 in under 5 s.
+        commands = run_commands(self.jobs["stack"])
+        self.assertIn('[ "$took" -lt 5000 ]', commands)
+
     def test_downloaded_tools_are_checksum_verified(self):
         for name in ["policy", "secrets"]:
             with self.subTest(job=name):
