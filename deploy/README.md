@@ -39,7 +39,10 @@ LAWDESK_TAG=<sha> LAWDESK_REGISTRY=... scripts/smoke.sh
 
 `deploy.sh` takes a lock (one deployment at a time), pulls the two images for that exact SHA, starts them with
 `docker compose up --wait`, runs `smoke.sh`, and records the release. If health checks or the smoke test fail it
-redeploys the previous release and exits 1. Migrations are forward-only; an older release still starts on a newer
+redeploys the running release and exits 1; if the release that failed *is* the running one (a redeploy), it falls
+back to the release before it and forgets the failed one as a rollback target. `smoke.sh` fails on the first check
+that does not hold: web and SPA reachable, readiness body `UP`, `/api/v1/cases` exactly 401, `/actuator/env` exactly
+404. Migrations are forward-only; an older release still starts on a newer
 schema (tested in LD-004). Data volumes are never removed by these scripts.
 
 ## Owner decisions still needed

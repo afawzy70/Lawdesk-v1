@@ -41,6 +41,8 @@ class HealthEndpointTest extends HttpTestSupport {
 
         assertThat(response.statusCode()).isEqualTo(200);
         assertThat(response.body()).contains("\"name\":\"lawdesk-backend\"").contains("\"version\"");
+        // QAD-010: the build section is an allow-list; group, artifact and build time stay private.
+        assertThat(response.body()).matches("\\{\"build\":\\{\"(name|version)\":\"[^\"]+\",\"(name|version)\":\"[^\"]+\"}}");
         assertThat(response.body()).doesNotContainIgnoringCase("password").doesNotContainIgnoringCase("secret");
     }
 

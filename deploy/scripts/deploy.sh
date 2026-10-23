@@ -61,13 +61,22 @@ if start_release "$release"; then
 fi
 
 log "failed $release"
-if [[ -z $current || $current == "$release" ]]; then
+# Fall back to the running release; if that is the one that just failed, to the one before it (QAD-013).
+target=$current
+if [[ $target == "$release" ]]; then
+    target=$(read_state previous-release)
+fi
+if [[ -z $target || $target == "$release" ]]; then
     echo "deploy: no previous release to roll back to; staging needs attention" >&2
     exit 1
 fi
-if start_release "$current"; then
-    log "rolled back to $current"
+if start_release "$target"; then
+    if [[ $target != "$current" ]]; then
+        echo "$target" > "$state_dir/current-release"
+        rm -f "$state_dir/previous-release"
+    fi
+    log "rolled back to $target"
     exit 1
 fi
-log "rollback to $current failed"
+log "rollback to $target failed"
 exit 4

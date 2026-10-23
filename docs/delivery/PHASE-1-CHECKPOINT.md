@@ -13,7 +13,7 @@ Branch: `feature/phase-1-foundation` → PR into `develop`. Update this file at 
 | LD-005 | GitHub Actions CI gates (items 5, 6) | Done: CI green on PR #2, negative check proven; merge enforcement BLOCKED (B4) | `docs/evidence/LD-005/` |
 | LD-006 | Compose staging, observability, deploy + rollback, HTTPS proxy (items 7, 8, 9) | Stack, scripts and CI stack job GREEN; Contabo deploy BLOCKED (B2), HTTPS proxy BLOCKED (B1) | `docs/evidence/LD-006/` |
 
-| PREVIEW | Owner-requested bilingual shell + mock dashboard (not a Phase 1 story) | Built on `feature/preview-shell`; deployment BLOCKED (B1, B2) | `docs/evidence/PREVIEW/` |
+| PREVIEW | Owner-requested bilingual shell + mock dashboard (not a Phase 1 story) | Draft PR #5 (CI green, 136 tests, browser layout check + screenshots); deployment BLOCKED (B1, B2) | `docs/evidence/PREVIEW/` (on PR #5) |
 
 ## Open blockers / owner decisions
 
@@ -34,6 +34,16 @@ Branch: `feature/phase-1-foundation` → PR into `develop`. Update this file at 
    header/IP allow-list snippets) to the Caddyfile; recreate only the `proxy` service.
 4. Rollback: restore the previous Caddyfile/image digest, recreate `proxy`, `docker network rm lawdesk-edge`.
    Matbakhy hosts are verified with `curl` before and after.
+
+## Resume here (2026-10-23)
+
+- PR #2 (Phase 1) and PR #5 (preview, depends on #2) are drafts with all CI gates green; waiting for independent QA
+  and owner decisions. Do not start Phase 2 until the Phase 1 exit gate is met.
+- QA can execute `docs/delivery/phase-1-qa-probes.json` with `qa/independent/run.py` once B5 is approved.
+- When B2 is resolved: add the publish-and-deploy workflow (GHCR images tagged with the develop SHA, then
+  `deploy/scripts/deploy.sh <sha>` on the host after CI passes). When B1 is approved: apply `deploy/proxy/lawdesk.caddy`
+  per `deploy/README.md`, verify Matbakhy hosts before/after, then run `smoke.sh` and report the URL only after health
+  checks pass.
 
 ## Git identity
 

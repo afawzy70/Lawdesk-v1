@@ -110,6 +110,14 @@
                         <goals>
                             <goal>build-info</goal>
                         </goals>
+                        <configuration>
+                            <!-- QAD-010: /actuator/info is public, so it publishes the name and version only. -->
+                            <excludeInfoProperties>
+                                <excludeInfoProperty>group</excludeInfoProperty>
+                                <excludeInfoProperty>artifact</excludeInfoProperty>
+                                <excludeInfoProperty>time</excludeInfoProperty>
+                            </excludeInfoProperties>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
