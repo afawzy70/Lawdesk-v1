@@ -1,0 +1,80 @@
+$ ./mvnw -B verify   # 2026-10-23T15:06:00Z — GREEN: namespaced release log key; full backend regression
+[INFO] Scanning for projects...
+[INFO] Loaded 24210 auto-discovered prefixes for remote repository central (prefixes-central.txt)
+[INFO] 
+[INFO] --------------------< com.lawdesk:lawdesk-backend >---------------------
+[INFO] Building lawdesk-backend 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] Loaded 24210 auto-discovered prefixes for remote repository maven-central (prefixes-maven-central.txt)
+[WARNING] Could not transfer metadata /.meta/prefixes.txt from/to MavenFeed (https://red-gate.pkgs.visualstudio.com/MavenFeed/_packaging/MavenFeed/maven/v1/): HTTP Status: 401
+[INFO] 
+[INFO] --- spring-boot:4.1.2:build-info (default) @ lawdesk-backend ---
+[INFO] Loaded 74 auto-discovered prefixes for remote repository apache.snapshots (prefixes-apache.snapshots.txt)
+[INFO] Loaded 50 auto-discovered prefixes for remote repository ow2-snapshot (prefixes-ow2-snapshot.txt)
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ lawdesk-backend ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ lawdesk-backend ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 6 source files with javac [debug parameters release 21] to target/classes
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ lawdesk-backend ---
+[INFO] Copying 2 resources from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ lawdesk-backend ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 9 source files with javac [debug parameters release 21] to target/test-classes
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ lawdesk-backend ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.lawdesk.platform.DatabaseMigrationTest
+17:06:37.100 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.lawdesk.platform.DatabaseMigrationTest]: DatabaseMigrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+17:06:37.365 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.lawdesk.LawdeskBackendApplication for test class com.lawdesk.platform.DatabaseMigrationTest
+17:06:37.537 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.lawdesk.platform.DatabaseMigrationTest]: DatabaseMigrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+17:06:37.540 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.lawdesk.platform.PostgresTestSupport]: PostgresTestSupport does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+17:06:37.544 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.lawdesk.LawdeskBackendApplication for test class com.lawdesk.platform.DatabaseMigrationTest
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/home/aiagent/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.15/byte-buddy-agent-1.18.15.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 20.27 s -- in com.lawdesk.platform.DatabaseMigrationTest
+[INFO] Running com.lawdesk.platform.MigrationSafetyTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.419 s -- in com.lawdesk.platform.MigrationSafetyTest
+[INFO] Running com.lawdesk.platform.HealthEndpointTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.918 s -- in com.lawdesk.platform.HealthEndpointTest
+[INFO] Running com.lawdesk.platform.release.AppReleaseRepositoryTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.932 s -- in com.lawdesk.platform.release.AppReleaseRepositoryTest
+[INFO] Running com.lawdesk.platform.release.ReleaseRecorderTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.104 s -- in com.lawdesk.platform.release.ReleaseRecorderTest
+[INFO] Running com.lawdesk.platform.SecurityBaselineTest
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.241 s -- in com.lawdesk.platform.SecurityBaselineTest
+[INFO] Running com.lawdesk.platform.RequestCorrelationTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.735 s -- in com.lawdesk.platform.RequestCorrelationTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 41, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ lawdesk-backend ---
+[INFO] Building jar: /home/aiagent/workspaces/lawdesk-claude/backend/target/lawdesk-backend-0.0.1-SNAPSHOT.jar
+[INFO] 
+[INFO] --- spring-boot:4.1.2:repackage (repackage) @ lawdesk-backend ---
+[INFO] Replacing main artifact /home/aiagent/workspaces/lawdesk-claude/backend/target/lawdesk-backend-0.0.1-SNAPSHOT.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+[INFO] The original artifact has been renamed to /home/aiagent/workspaces/lawdesk-claude/backend/target/lawdesk-backend-0.0.1-SNAPSHOT.jar.original
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:07 min
+[INFO] Finished at: 2026-10-23T17:07:16+02:00
+[INFO] ------------------------------------------------------------------------
+exit=0

@@ -186,12 +186,13 @@ jobs:
       - name: Readiness follows a database outage and recovery
         run: |
           compose() { docker compose -p lawdesk-staging -f deploy/compose.yaml "$@"; }
-          readiness() { compose exec -T web wget -q -S -O /dev/null http://127.0.0.1:8080/actuator/health/readiness 2>&1 | awk '/HTTP\//{c=$2} END{print c}'; }
+          status() { compose exec -T web wget -q -S -O /dev/null "http://127.0.0.1:8080$1" 2>&1 | grep -o 'HTTP/1\.[01] [0-9][0-9][0-9]' | tail -n 1 | cut -d ' ' -f 2; }
+          readiness() { status /actuator/health/readiness; }
           compose stop db
           for _ in $(seq 1 30); do [ "$(readiness)" = 503 ] && break; sleep 2; done
           [ "$(readiness)" = 503 ]
           echo "readiness 503 while the database is down"
-          [ "$(compose exec -T web wget -q -S -O /dev/null http://127.0.0.1:8080/actuator/health/liveness 2>&1 | awk '/HTTP\//{c=$2} END{print c}')" = 200 ]
+          [ "$(status /actuator/health/liveness)" = 200 ]
           echo "liveness still 200"
           compose start db
           for _ in $(seq 1 60); do [ "$(readiness)" = 200 ] && break; sleep 2; done

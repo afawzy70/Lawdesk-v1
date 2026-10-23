@@ -12,7 +12,8 @@ fi
 # shellcheck disable=SC2016 # expanded inside the container
 "${compose[@]}" exec -T web sh -euc '
     check() { wget -q -O /dev/null "http://127.0.0.1:8080$1" && echo "ok   $1"; }
-    status_of() { wget -q -S -O /dev/null "http://127.0.0.1:8080$1" 2>&1 | awk "/HTTP\\//{code=\$2} END{print code}"; }
+    # busybox wget prints the status in a header line and, on errors, in "server returned error: HTTP/1.1 401 ...".
+    status_of() { wget -q -S -O /dev/null "http://127.0.0.1:8080$1" 2>&1 | grep -o "HTTP/1\.[01] [0-9][0-9][0-9]" | tail -n 1 | cut -d " " -f 2; }
     check /healthz
     check /
     wget -q -O - http://127.0.0.1:8080/actuator/health/readiness | grep -q "\"status\":\"UP\"" && echo "ok   readiness UP"

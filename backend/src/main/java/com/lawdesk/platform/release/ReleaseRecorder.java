@@ -27,6 +27,7 @@ class ReleaseRecorder {
         BuildProperties properties = build.getIfAvailable();
         String version = properties != null ? properties.getVersion() : "unknown";
         releases.save(new AppRelease(version));
-        log.atInfo().addKeyValue("service.version", version).log("release recorded");
+        // Not "service.version": ECS already writes a "service" object and the line would be dropped.
+        log.atInfo().addKeyValue("lawdesk.release.version", version).log("release recorded");
     }
 }
