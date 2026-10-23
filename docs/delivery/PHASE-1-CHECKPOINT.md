@@ -32,7 +32,22 @@ Superseded by `deploy/proxy/attach.sh` and `docs/operations/STAGING-RUNBOOK.md` 
 to the *live* Caddyfile, validated inside the proxy, activated with `caddy reload` (no restart or recreate), and every
 Matbakhy host is compared before and after with automatic restore. `detach.sh` removes only the LawDesk block.
 
-## Resume here (2026-10-23, after QA round 1)
+## Resume here (2026-10-23, after QA round 2)
+
+- QA (PR #6) cleared QAD-007..015. PR #2 `048ff35` 84 PASS / 0 FAIL, PR #5 70 PASS / 0 FAIL, both still BLOCKED by
+  release gates; PR #7 had QAD-016..021 (four High).
+- QAD-016..021 fixed test-first in `53e8d40` (evidence `docs/evidence/CD/18-21`, real Caddy 2.10.2 included).
+- Release-gate work on PR #7: CI stack gate runs host-mode deploy, a repeat deploy and the rollback drill on real
+  images (`70abe90`, `DRILL PASSED`, `CD/26`); `develop-guard` + `docs/delivery/DEVELOP-PROTECTION.md` for B4
+  (`52633e2`). Every push to develop must be one merge of a PR whose head QA cleared with
+  `QA-VERDICT: PASS <sha>`; deploy needs the guard.
+- PR #5 synchronised with PR #2 `048ff35` (`95431b0`, only frontend/docs differ from #2).
+- Retests requested: PR #7 at `52633e2`, PR #5 at `95431b0`; PR #2 unchanged at `048ff35`.
+- Owner decisions pending: B5 (approve PHASE-1-ACCEPTANCE.md; readiness latency SLA during a DB outage, currently
+  HikariCP's 30 s connection-timeout), DEVELOP-PROTECTION.md, optional `allow_rebase_merge=false`, B6.
+- Live host: nothing deployed, Caddy untouched, live drill not run.
+
+## Earlier (after QA round 1)
 
 - QA (PR #6) defects fixed test-first and pushed: QAD-007..013 on PR #2 (HEAD `020154c`), QAD-014/015 on PR #5
   (HEAD `a58dddc`); CI green on both; QA asked to re-verify those SHAs. QAD-001..006 wait for B5 (AC approval).
