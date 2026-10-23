@@ -8,6 +8,28 @@ compose project `lawdesk-staging`, its volume `lawdesk-staging_db-data` and the 
 Matbakhy's proxy (`matbakhy-preview-proxy-1`) is the LawDesk site block plus joining `lawdesk-edge`, applied in place by
 `deploy/proxy/attach.sh` and removed by `deploy/proxy/detach.sh` (owner authorisation 2026-10-23).
 
+## One command (first install and any re-run)
+
+Run as `devops`. It uses this account's existing GitHub access and needs `sudo` once, for the root-owned gate:
+
+```bash
+rm -rf /tmp/lawdesk-install && git clone -q -b develop git@github.com:afawzy70/Lawdesk-v1.git /tmp/lawdesk-install \
+  && /tmp/lawdesk-install/deploy/host/install.sh
+```
+
+`deploy/host/install.sh` runs these steps, and is idempotent:
+
+1. Develop head check.
+2. Bootstrap with a one-time CI key bound to the gate.
+3. Install the gate.
+4. `gate deploy <sha>`.
+5. All three containers healthy, then `attach.sh`.
+6. Public HTTPS and Matbakhy unchanged.
+7. CI key into GitHub Secrets (deleted on the host), variables, and `LAWDESK_STAGING_DEPLOY=enabled` last.
+
+It logs to `logs/<ts>-install.log` and to `/tmp/lawdesk-install-report.txt`, which contains no secrets. On failure it
+prints diagnostics and the recovery commands. The sections below describe the same steps one by one.
+
 ## How a release reaches staging
 
 ```
