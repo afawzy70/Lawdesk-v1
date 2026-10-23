@@ -108,6 +108,10 @@ class HardeningTest(unittest.TestCase):
         self.assertEqual("service_healthy", self.services["backend"]["depends_on"]["db"]["condition"])
         self.assertEqual("service_healthy", self.services["web"]["depends_on"]["backend"]["condition"])
 
+    def test_backend_records_the_deployed_commit(self):
+        # app_release rows and the start log line identify the deployment by its commit (Codex review, 020154c).
+        self.assertTrue(self.services["backend"]["environment"]["LAWDESK_RELEASE"].startswith("${LAWDESK_TAG:?"))
+
     def test_backend_health_uses_readiness(self):
         self.assertIn("/actuator/health/readiness", " ".join(self.services["backend"]["healthcheck"]["test"]))
 

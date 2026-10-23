@@ -183,7 +183,7 @@ jobs:
             psql -U postgres -d lawdesk -tAc "select rolsuper or rolcreaterole or rolcreatedb from pg_roles where rolname = 'lawdesk_app'" \
             | grep -qx f
           docker compose -p lawdesk-staging -f deploy/compose.yaml exec -T db \
-            psql -U postgres -d lawdesk -tAc "select count(*) from lawdesk.app_release where version <> ''" | grep -qx 1
+            psql -U postgres -d lawdesk -tAc "select count(*) from lawdesk.app_release where version = '$LAWDESK_TAG'" | grep -qx 1
       - name: Readiness follows a database outage and recovery
         run: |
           compose() { docker compose -p lawdesk-staging -f deploy/compose.yaml "$@"; }

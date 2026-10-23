@@ -50,6 +50,8 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/lawdesk
       SPRING_DATASOURCE_USERNAME: lawdesk_app
+      # The deployed commit, recorded in app_release and the start log line.
+      LAWDESK_RELEASE: ${LAWDESK_TAG:?set LAWDESK_TAG to the release commit SHA}
       # The password is read from /run/secrets/spring.datasource.password.
       SPRING_CONFIG_IMPORT: configtree:/run/secrets/
     secrets:

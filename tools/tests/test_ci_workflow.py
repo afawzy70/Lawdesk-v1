@@ -105,6 +105,8 @@ class RequiredGatesTest(unittest.TestCase):
         self.assertIn("docker network create lawdesk-edge", commands)
         self.assertIn("deploy/scripts/smoke.sh", commands)
         self.assertIn("stop db", commands, "readiness must be checked through a database outage and recovery")
+        self.assertIn("app_release where version = '$LAWDESK_TAG'", commands,
+                      "the stack must record the commit it runs")
 
     def test_downloaded_tools_are_checksum_verified(self):
         for name in ["policy", "secrets"]:
