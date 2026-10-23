@@ -47,4 +47,4 @@ Caddy (in the Matbakhy compose project) is the only 443 listener. Its Caddyfile 
 
 ## Spring Boot version
 
-The approved stack is "Spring Boot 3.x". The newest 3.x line, 3.5 (latest 3.5.16), reached end of open-source support on 2026-06-30; supported lines today are 4.0 (to 2026-12-31) and 4.1 (to 2027-07-31). Owner decision required before LD-002 (blocker B3).
+The approved stack is "Spring Boot 3.x". The newest 3.x line, 3.5 (latest 3.5.16), reached end of open-source support on 2026-06-30; supported lines today are 4.0 (to 2026-12-31) and 4.1 (to 2027-07-31). Owner decision required before LD-002 (blocker B3). **Resolved 2026-10-23: Spring Boot 4.1.x approved.**
