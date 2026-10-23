@@ -62,3 +62,11 @@ PR: https://github.com/afawzy70/Lawdesk-v1/pull/2
 سجل `product-case-ledger.json` بيسجل QA-0003 وQA-0026 كـFAIL من دليل سلبي مثبت، وباقي الـ349 BLOCKED. عدم اكتمال العقود مش سبب لإخفاء عيب مثبت كنجاح أو عدم تنفيذ.
 
 آخر head اتلاحظ وقت إغلاق المراجعة: `c0da6910884a7e85ee17e80a78416aac51de216c`. أحدث من الـSHA المختبر؛ النسخة الأحدث BLOCKED لحد إعادة الاختبارات، ومفيش approval ليها.
+
+## نشر المراجعة وحدود حساب GitHub
+
+PR الخاص بالتسليم: https://github.com/afawzy70/Lawdesk-v1/pull/6
+
+نتيجة المراجعة اتنشرت كتعليق: https://github.com/afawzy70/Lawdesk-v1/pull/2#issuecomment-6368553768
+
+GitHub رفض إرسال event رسمي REQUEST_CHANGES برمز422 لأن بيانات الدخول الحالية هي نفس حساب صاحب PR (`Can not request changes on your own pull request`). بالتالي REQUEST_CHANGES هنا **توصية QA موثقة** في التعليق والتقرير، مش review رسمي مسجل. مفيش محاولة لتجاوز المنع أو استخدام هوية تانية، ومفيش approval/merge.
