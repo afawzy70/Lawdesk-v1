@@ -1,0 +1,20 @@
+# GREEN: deploy/host/install.sh
+$ python3 -m unittest discover -s deploy/tests -p test_install.py -v
+test_a_matbakhy_restart_is_reported_as_a_failure (test_install.InstallTest.test_a_matbakhy_restart_is_reported_as_a_failure) ... ok
+test_a_rerun_reuses_the_key_the_gate_and_the_images (test_install.InstallTest.test_a_rerun_reuses_the_key_the_gate_and_the_images) ... ok
+test_failed_deploy_stops_before_the_proxy_and_prints_the_recovery (test_install.InstallTest.test_failed_deploy_stops_before_the_proxy_and_prints_the_recovery) ... ok
+test_full_run_deploys_attaches_verifies_https_and_then_enables_cd (test_install.InstallTest.test_full_run_deploys_attaches_verifies_https_and_then_enables_cd) ... ok
+test_https_failure_leaves_cd_off_and_names_the_detach_command (test_install.InstallTest.test_https_failure_leaves_cd_off_and_names_the_detach_command) ... ok
+test_refuses_a_checkout_that_is_not_the_develop_head (test_install.InstallTest.test_refuses_a_checkout_that_is_not_the_develop_head) ... ok
+test_report_is_readable_for_the_agent_and_logged_on_the_host (test_install.InstallTest.test_report_is_readable_for_the_agent_and_logged_on_the_host) ... ok
+test_the_ci_key_is_bound_to_the_gate_and_never_leaks (test_install.InstallTest.test_the_ci_key_is_bound_to_the_gate_and_never_leaks) ... ok
+test_unhealthy_container_stops_before_the_proxy (test_install.InstallTest.test_unhealthy_container_stops_before_the_proxy) ... ok
+test_without_github_cli_the_site_is_deployed_and_cd_needs_one_owner_command (test_install.InstallTest.test_without_github_cli_the_site_is_deployed_and_cd_needs_one_owner_command) ... ok
+Ran 10 tests in 20.071s
+OK
+$ python3 -m unittest discover -s deploy/tests
+OK
+$ python3 -m unittest discover -s tools/tests
+OK
+$ shellcheck 0.11.0 (all scripts incl. deploy/host/install.sh)
+no findings
