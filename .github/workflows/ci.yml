@@ -210,12 +210,14 @@ jobs:
           deploy/scripts/smoke.sh
       - name: Host-mode deploy, repeat deploy and rollback drill on real images
         run: |
-          # The host layout of /srv/deployments/lawdesk, on this disposable runner: the release unpacked by commit,
-          # the secrets the running database was initialised with, state, backups.
+          # The host layout of /srv/deployments/lawdesk, on this disposable runner: the release unpacked by commit as
+          # the gate and the operator unpack it (umask 027, so nothing is world-readable), a fresh database volume,
+          # the generated secrets, state, backups. This is how the first install on Contabo starts.
+          docker compose -p lawdesk-staging -f deploy/compose.yaml down -v
           home=$RUNNER_TEMP/lawdesk
           release=$home/releases/$LAWDESK_TAG
           mkdir -p "$release" "$home/state"
-          git archive HEAD deploy | tar -x -C "$release"
+          (umask 027 && git archive HEAD deploy | tar -x -C "$release")
           cp -r deploy/secrets "$home/secrets"
           touch "$home/staging.env"
           host_env=(LAWDESK_IMAGE_SOURCE=local "LAWDESK_STATE_DIR=$home/state" "LAWDESK_RELEASES_DIR=$home/releases"

@@ -118,6 +118,9 @@ class RequiredGatesTest(unittest.TestCase):
         self.assertIn("LAWDESK_IMAGE_SOURCE=local", commands)
         self.assertEqual(2, commands.count('deploy/scripts/deploy.sh" "$LAWDESK_TAG"'), "first deploy and a repeat")
         self.assertIn("deploy/host/rollback-drill.sh", commands)
+        # First install as on Contabo: fresh volume, release unpacked under the gate's restrictive umask.
+        self.assertIn('(umask 027 && git archive HEAD deploy | tar -x -C "$release")', commands)
+        self.assertLess(commands.index("down -v"), commands.index('deploy/scripts/deploy.sh" "$LAWDESK_TAG"'))
         self.assertIn("DRILL PASSED", commands)
         names = [step.get("name", "") for step in job["steps"]]
         drill = next(i for i, n in enumerate(names) if "rollback drill" in n)
