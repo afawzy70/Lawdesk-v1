@@ -1,0 +1,97 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans Arabic', sans-serif;
+  line-height: 1.5;
+  --ld-fg: #1a1a1a;
+  --ld-bg: #ffffff;
+  --ld-muted: #5c5c5c;
+  --ld-border: #d6d6d6;
+  --ld-ok: #146c2e;
+  --ld-bad: #a1260d;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ld-fg: #ececec;
+    --ld-bg: #161616;
+    --ld-muted: #a8a8a8;
+    --ld-border: #3a3a3a;
+    --ld-ok: #6fd08c;
+    --ld-bad: #ff8a73;
+  }
+}
+
+body {
+  margin: 0;
+  color: var(--ld-fg);
+  background: var(--ld-bg);
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 2rem;
+  padding: 0.75rem 1rem;
+  border-block-end: 1px solid var(--ld-border);
+}
+
+.app-name {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.app-header nav ul {
+  display: flex;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.app-header nav a[aria-current='page'] {
+  font-weight: 600;
+}
+
+.api-status {
+  margin: 0;
+  margin-inline-start: auto;
+  color: var(--ld-muted);
+}
+
+.api-status[data-state='online'] {
+  color: var(--ld-ok);
+}
+
+.api-status[data-state='unavailable'] {
+  color: var(--ld-bad);
+}
+
+.app-main {
+  flex: 1;
+  padding: 1rem;
+  max-width: 72rem;
+}
+
+.app-footer {
+  padding: 0.75rem 1rem;
+  border-block-start: 1px solid var(--ld-border);
+  color: var(--ld-muted);
+  font-size: 0.875rem;
+}
+
+.app-footer p,
+.error-boundary {
+  margin: 0;
+}
+
+.error-boundary {
+  padding: 1rem;
+}

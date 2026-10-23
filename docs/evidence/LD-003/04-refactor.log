@@ -1,0 +1,87 @@
+$ (cd frontend && npm run lint)   # 2026-10-23T14:38:36Z
+
+> lawdesk-frontend@0.1.0 lint
+> eslint . --max-warnings 0
+
+exit=0
+
+$ (cd frontend && npm run typecheck)   # 2026-10-23T14:38:47Z
+
+> lawdesk-frontend@0.1.0 typecheck
+> tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json
+
+exit=0
+
+$ (cd frontend && npm test)   # 2026-10-23T14:38:56Z
+
+> lawdesk-frontend@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.5 /home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/agent-a8590e8d48aabe4a1/frontend
+
+
+ Test Files  5 passed (5)
+      Tests  50 passed (50)
+   Start at  16:38:57
+   Duration  4.21s (environment 63%, setup 14%, tests 11%, transform 9%, import 3%)
+
+exit=0
+
+$ (cd frontend && npm run test:coverage)   # 2026-10-23T14:39:08Z
+
+> lawdesk-frontend@0.1.0 test:coverage
+> vitest run --coverage
+
+
+ RUN  v5.0.5 /home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/agent-a8590e8d48aabe4a1/frontend
+      Coverage enabled with v8
+
+
+ Test Files  5 passed (5)
+      Tests  50 passed (50)
+   Start at  16:39:09
+   Duration  4.07s (environment 65%, tests 13%, setup 12%, transform 5%, worker 2%, import 2%)
+
+ % Coverage report from v8
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |     100 |    95.45 |     100 |     100 |                   
+ src/i18n          |     100 |    85.71 |     100 |     100 |                   
+  locale.ts        |     100 |    85.71 |     100 |     100 | 25                
+-------------------|---------|----------|---------|---------|-------------------
+
+=============================== Coverage summary ===============================
+Statements   : 100% ( 52/52 )
+Branches     : 95.45% ( 21/22 )
+Functions    : 100% ( 20/20 )
+Lines        : 100% ( 52/52 )
+================================================================================
+exit=0
+
+$ (cd frontend && npm run build)   # 2026-10-23T14:39:14Z
+
+> lawdesk-frontend@0.1.0 build
+> tsc --noEmit -p tsconfig.app.json && vite build
+
+vite v8.3.5 building client environment for production...
+transforming...
+✓ 99 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.46 kB │ gzip:  0.29 kB
+dist/assets/index-6jjPrpXh.css    1.31 kB │ gzip:  0.60 kB
+dist/assets/index-DqozX0ak.js   259.41 kB │ gzip: 82.53 kB
+
+✓ built in 451ms
+exit=0
+
+$ python3 -I -m unittest discover -s tools/tests   # 2026-10-23T14:39:18Z
+....................
+----------------------------------------------------------------------
+Ran 20 tests in 0.393s
+
+OK
+exit=0
+
