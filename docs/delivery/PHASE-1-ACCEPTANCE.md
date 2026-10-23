@@ -34,6 +34,40 @@ Acceptance criteria:
 | QA-0007 | concurrent or repeat request | Checks are pure functions; repeated CLI invocations give the same exit code | AUTOMATED (CLI tests) |
 | QA-0008 | API-to-UI state and error handling | No API/UI in this story; CLI exit codes 0/1/2 and stderr messages are the interface | AUTOMATED (CLI tests) |
 
-## LD-002 … LD-006
+## LD-002 Backend bootstrap and health endpoints
+
+Acceptance criteria:
+
+1. `backend/` is a Java 21 / Spring Boot 4.1.2 Maven project built with the committed Maven wrapper; `./mvnw verify`
+   compiles, runs all tests and produces an executable jar with build metadata.
+2. `GET /actuator/health`, `/actuator/health/liveness` and `/actuator/health/readiness` are public and return
+   `200 {"status":"UP"}` with no component details; `GET /actuator/info` returns only build name/version metadata.
+3. Every other endpoint is deny-by-default: unauthenticated requests get `401 application/problem+json` (UTF-8,
+   RFC 9457 shape) with no stack traces or class names; writes without authentication are rejected; actuator
+   endpoints other than health/info (env, beans, configprops, heapdump, loggers, mappings, threaddump) are unreachable.
+4. Responses carry `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`,
+   `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'` and `Cache-Control: no-store`, including on
+   rejected requests.
+5. Every response carries `X-Request-Id`: a caller value matching `[A-Za-z0-9._-]{1,64}` is echoed, anything else is
+   replaced by a fresh UUID; concurrent requests get distinct ids.
+6. Logs are structured JSON (ECS) on stdout. Each request produces one `request completed` line with request id,
+   method, path, status and duration; query strings and headers (e.g. `Authorization`) are never logged.
+7. Graceful shutdown is enabled with a 20 s phase timeout; error responses never include stack trace, exception or message.
+
+| QA case | Scenario | Mapping | Status |
+|---------|----------|---------|--------|
+| QA-0009 | authorized happy path | `HealthEndpointTest.healthIsPublicAndUp`, `livenessAndReadiness…`, `infoReports…` | AUTOMATED |
+| QA-0010 | required-field validation | Unknown health group → 404 without internals (`unknownHealthGroupIsNotFoundWithoutInternals`); no input-bearing endpoints exist yet | AUTOMATED (partial — reviewer to confirm scope) |
+| QA-0011 | invalid input boundary | Malformed/oversized `X-Request-Id` replaced (`replacesMalformedOrOversizedClientRequestId`) | AUTOMATED |
+| QA-0012 | unauthenticated access | `unauthenticatedApiRequestIsRejectedWithProblemDetail`, `writeWithoutAuthenticationIsRejected` | AUTOMATED |
+| QA-0013 | insufficient permission | Sensitive actuator endpoints unreachable (7 parameterized cases). Role-based checks need Phase 2 users | AUTOMATED (partial); role cases BLOCKED until LD-009/LD-010 |
+| QA-0014 | record integrity and rollback | No persistence in this story; rejected writes cannot reach a handler. DB integrity is LD-004 | N/A (reviewer to confirm) |
+| QA-0015 | concurrent or repeat request | `concurrentRequestsGetDistinctIds` (20 parallel requests) | AUTOMATED |
+| QA-0016 | API-to-UI state and error handling | API side: problem JSON contract + health contract. UI side covered by LD-003 status indicator | AUTOMATED (API side) |
+
+Cross-cutting cases touched (not closed): QA-0348 (no request data in logs — `completedRequestIsLoggedAsStructuredJson…`),
+QA-0349 (security headers — `responsesCarryBaselineSecurityHeaders`). Secure cookies are Phase 2.
+
+## LD-004 … LD-006
 
 Refined in each story's kickoff commit before its RED step.

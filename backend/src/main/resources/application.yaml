@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: lawdesk-backend
+  lifecycle:
+    # Must stay below the container stop grace period (LD-006).
+    timeout-per-shutdown-phase: 20s
+
+server:
+  shutdown: graceful
+  # Runs behind the HTTPS reverse proxy; trust its X-Forwarded-* headers.
+  forward-headers-strategy: framework
+  error:
+    include-stacktrace: never
+    include-exception: false
+    include-message: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+  info:
+    build:
+      enabled: true
+
+logging:
+  structured:
+    format:
+      console: ecs
