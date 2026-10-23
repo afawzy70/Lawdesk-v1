@@ -1,0 +1,28 @@
+{
+  "_comment": "PROPOSED by the implementer for independent QA (qa/independent/run.py). QA sets tested_sha to the SHA under test and approval_reference once the Phase 1 contract (docs/delivery/PHASE-1-ACCEPTANCE.md) is approved. Target: the backend jar on loopback, e.g. LAWDESK_QA_BASE_URL=http://127.0.0.1:18090 with SPRING_DATASOURCE_* pointing at an ephemeral PostgreSQL 18.6. Every expected value is already asserted by the developer suite; independent execution is still required.",
+  "tested_sha": "<SET TO THE COMMIT UNDER TEST>",
+  "approval_reference": "",
+  "probes": [
+    {"id": "health-public-up", "case_ids": ["QA-0009"], "kind": "http", "method": "GET", "path": "/actuator/health",
+     "expected_status": 200, "expected_json_fields": {"status": "UP"},
+     "forbidden_body_strings": ["components", "diskSpace"]},
+    {"id": "liveness-up", "case_ids": ["QA-0009"], "kind": "http", "method": "GET", "path": "/actuator/health/liveness",
+     "expected_status": 200, "expected_json_fields": {"status": "UP"}},
+    {"id": "readiness-up-with-database", "case_ids": ["QA-0009", "QA-0032"], "kind": "http", "method": "GET",
+     "path": "/actuator/health/readiness", "expected_status": 200, "expected_json_fields": {"status": "UP"}},
+    {"id": "unknown-health-group", "case_ids": ["QA-0010"], "kind": "http", "method": "GET",
+     "path": "/actuator/health/does-not-exist", "expected_status": 404,
+     "forbidden_body_strings": ["trace", "exception", "org.springframework"]},
+    {"id": "api-anonymous-denied", "case_ids": ["QA-0012"], "kind": "http", "method": "GET", "path": "/api/v1/cases",
+     "expected_status": 401, "expected_json_fields": {"status": 401, "title": "Unauthorized"},
+     "expected_headers": {"Content-Type": "application/problem+json;charset=UTF-8"},
+     "forbidden_body_strings": ["trace", "exception", "org.springframework"]},
+    {"id": "actuator-env-not-public", "case_ids": ["QA-0013"], "kind": "http", "method": "GET", "path": "/actuator/env",
+     "expected_status": 401, "forbidden_body_strings": ["spring.datasource", "password"]},
+    {"id": "security-headers", "case_ids": ["QA-0349"], "kind": "http", "method": "GET", "path": "/actuator/health",
+     "expected_status": 200,
+     "expected_headers": {"X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY",
+                          "Referrer-Policy": "no-referrer",
+                          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'"}}
+  ]
+}

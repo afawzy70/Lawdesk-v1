@@ -1,0 +1,13 @@
+..F............
+======================================================================
+FAIL: test_failed_redeploy_of_the_current_release_rolls_back_to_the_previous_one (test_deploy_scripts.FailedDeployTest.test_failed_redeploy_of_the_current_release_rolls_back_to_the_previous_one)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 161, in test_failed_redeploy_of_the_current_release_rolls_back_to_the_previous_one
+    self.assertTrue(any(c.startswith(f"LAWDESK_TAG={SHA_A}") and " up -d --wait" in c
+AssertionError: False is not true : ['LAWDESK_TAG=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb compose -p lawdesk-staging -f /home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml pull backend web ', 'LAWDESK_TAG=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb compose -p lawdesk-staging -f /home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml up -d --wait --wait-timeout 240 ']
+
+----------------------------------------------------------------------
+Ran 15 tests in 3.454s
+
+FAILED (failures=1)

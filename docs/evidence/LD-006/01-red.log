@@ -1,0 +1,539 @@
+$ python3 -I -m unittest discover -s deploy/tests -v ; python3 -I -m unittest discover -s tools/tests   # 2026-10-23T14:56:44Z — LD-006 tests written; no compose file, scripts or stack CI job yet
+test_application_containers_have_read_only_root_filesystems (test_compose.HardeningTest.test_application_containers_have_read_only_root_filesystems) ... ERROR
+test_application_images_require_an_explicit_release_tag (test_compose.HardeningTest.test_application_images_require_an_explicit_release_tag) ... ERROR
+test_backend_health_uses_readiness (test_compose.HardeningTest.test_backend_health_uses_readiness) ... ERROR
+test_backend_waits_for_a_healthy_database_and_web_for_a_healthy_backend (test_compose.HardeningTest.test_backend_waits_for_a_healthy_database_and_web_for_a_healthy_backend) ... ERROR
+test_database_image_is_pinned_by_version_and_digest (test_compose.HardeningTest.test_database_image_is_pinned_by_version_and_digest) ... ERROR
+test_every_service_drops_privileges (test_compose.HardeningTest.test_every_service_drops_privileges) ... ERROR
+test_every_service_has_a_healthcheck_memory_limit_and_bounded_logs (test_compose.HardeningTest.test_every_service_has_a_healthcheck_memory_limit_and_bounded_logs) ... ERROR
+test_restart_policy (test_compose.HardeningTest.test_restart_policy) ... ERROR
+test_database_and_backend_are_on_an_internal_network_only (test_compose.IsolationTest.test_database_and_backend_are_on_an_internal_network_only) ... ERROR
+test_expected_services (test_compose.IsolationTest.test_expected_services) ... ERROR
+test_named_volumes_are_namespaced_by_the_project (test_compose.IsolationTest.test_named_volumes_are_namespaced_by_the_project) ... ERROR
+test_no_bind_mounts_outside_the_deploy_directory (test_compose.IsolationTest.test_no_bind_mounts_outside_the_deploy_directory) ... ERROR
+test_no_fixed_container_names (test_compose.IsolationTest.test_no_fixed_container_names) ... ERROR
+test_no_service_publishes_host_ports (test_compose.IsolationTest.test_no_service_publishes_host_ports) ... ERROR
+test_only_web_joins_the_external_edge_network_shared_with_the_proxy (test_compose.IsolationTest.test_only_web_joins_the_external_edge_network_shared_with_the_proxy) ... ERROR
+test_project_name_is_lawdesk_specific (test_compose.IsolationTest.test_project_name_is_lawdesk_specific) ... ERROR
+test_compose_file_renders_with_example_environment (test_compose.RenderTest.test_compose_file_renders_with_example_environment) ... FAIL
+test_rendering_without_a_release_tag_fails (test_compose.RenderTest.test_rendering_without_a_release_tag_fails) ... FAIL
+test_backend_runs_as_a_least_privilege_database_role (test_compose.SecretsTest.test_backend_runs_as_a_least_privilege_database_role) ... ERROR
+test_passwords_come_from_secret_files_not_environment_values (test_compose.SecretsTest.test_passwords_come_from_secret_files_not_environment_values) ... ERROR
+test_secret_files_live_in_an_ignored_directory (test_compose.SecretsTest.test_secret_files_live_in_an_ignored_directory) ... ERROR
+test_a_second_deployment_is_refused_while_one_is_running (test_deploy_scripts.ConcurrencyTest.test_a_second_deployment_is_refused_while_one_is_running) ... FAIL
+test_failed_first_deploy_records_nothing_as_current (test_deploy_scripts.FailedDeployTest.test_failed_first_deploy_records_nothing_as_current) ... FAIL
+test_failed_smoke_test_also_rolls_back (test_deploy_scripts.FailedDeployTest.test_failed_smoke_test_also_rolls_back) ... FAIL
+test_unhealthy_release_is_rolled_back_to_the_current_one (test_deploy_scripts.FailedDeployTest.test_unhealthy_release_is_rolled_back_to_the_current_one) ... FAIL
+test_requires_a_full_commit_sha (test_deploy_scripts.InputValidationTest.test_requires_a_full_commit_sha) ... 
+  test_requires_a_full_commit_sha (test_deploy_scripts.InputValidationTest.test_requires_a_full_commit_sha) (args=[]) ... FAIL
+  test_requires_a_full_commit_sha (test_deploy_scripts.InputValidationTest.test_requires_a_full_commit_sha) (args=['latest']) ... FAIL
+  test_requires_a_full_commit_sha (test_deploy_scripts.InputValidationTest.test_requires_a_full_commit_sha) (args=['abc123']) ... FAIL
+  test_requires_a_full_commit_sha (test_deploy_scripts.InputValidationTest.test_requires_a_full_commit_sha) (args=['AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA']) ... FAIL
+  test_requires_a_full_commit_sha (test_deploy_scripts.InputValidationTest.test_requires_a_full_commit_sha) (args=['aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0']) ... FAIL
+  test_requires_a_full_commit_sha (test_deploy_scripts.InputValidationTest.test_requires_a_full_commit_sha) (args=['aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb']) ... FAIL
+  test_requires_a_full_commit_sha (test_deploy_scripts.InputValidationTest.test_requires_a_full_commit_sha) (args=['../aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa']) ... FAIL
+test_requires_the_registry_to_be_configured (test_deploy_scripts.InputValidationTest.test_requires_the_registry_to_be_configured) ... FAIL
+test_rollback_redeploys_the_previous_release (test_deploy_scripts.RollbackTest.test_rollback_redeploys_the_previous_release) ... FAIL
+test_rollback_without_a_previous_release_is_refused (test_deploy_scripts.RollbackTest.test_rollback_without_a_previous_release_is_refused) ... FAIL
+test_every_docker_call_is_scoped_to_the_lawdesk_project_and_compose_file (test_deploy_scripts.SafetyTest.test_every_docker_call_is_scoped_to_the_lawdesk_project_and_compose_file) ... FAIL
+test_scripts_never_remove_volumes_networks_or_prune (test_deploy_scripts.SafetyTest.test_scripts_never_remove_volumes_networks_or_prune) ... ERROR
+test_first_deploy_pulls_starts_waits_smokes_and_records_the_release (test_deploy_scripts.SuccessfulDeployTest.test_first_deploy_pulls_starts_waits_smokes_and_records_the_release) ... FAIL
+test_next_deploy_keeps_the_previous_release_for_rollback (test_deploy_scripts.SuccessfulDeployTest.test_next_deploy_keeps_the_previous_release_for_rollback) ... FAIL
+test_redeploying_the_current_release_is_idempotent (test_deploy_scripts.SuccessfulDeployTest.test_redeploying_the_current_release_is_idempotent) ... FAIL
+
+======================================================================
+ERROR: test_application_containers_have_read_only_root_filesystems (test_compose.HardeningTest.test_application_containers_have_read_only_root_filesystems)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 73, in setUp
+    self.services = load()["services"]
+                    ^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 20, in load
+    with COMPOSE.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml'
+
+======================================================================
+ERROR: test_application_images_require_an_explicit_release_tag (test_compose.HardeningTest.test_application_images_require_an_explicit_release_tag)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 73, in setUp
+    self.services = load()["services"]
+                    ^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 20, in load
+    with COMPOSE.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml'
+
+======================================================================
+ERROR: test_backend_health_uses_readiness (test_compose.HardeningTest.test_backend_health_uses_readiness)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 73, in setUp
+    self.services = load()["services"]
+                    ^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 20, in load
+    with COMPOSE.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml'
+
+======================================================================
+ERROR: test_backend_waits_for_a_healthy_database_and_web_for_a_healthy_backend (test_compose.HardeningTest.test_backend_waits_for_a_healthy_database_and_web_for_a_healthy_backend)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 73, in setUp
+    self.services = load()["services"]
+                    ^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 20, in load
+    with COMPOSE.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml'
+
+======================================================================
+ERROR: test_database_image_is_pinned_by_version_and_digest (test_compose.HardeningTest.test_database_image_is_pinned_by_version_and_digest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 73, in setUp
+    self.services = load()["services"]
+                    ^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 20, in load
+    with COMPOSE.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml'
+
+======================================================================
+ERROR: test_every_service_drops_privileges (test_compose.HardeningTest.test_every_service_drops_privileges)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 73, in setUp
+    self.services = load()["services"]
+                    ^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 20, in load
+    with COMPOSE.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml'
+
+======================================================================
+ERROR: test_every_service_has_a_healthcheck_memory_limit_and_bounded_logs (test_compose.HardeningTest.test_every_service_has_a_healthcheck_memory_limit_and_bounded_logs)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 73, in setUp
+    self.services = load()["services"]
+                    ^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 20, in load
+    with COMPOSE.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml'
+
+======================================================================
+ERROR: test_restart_policy (test_compose.HardeningTest.test_restart_policy)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 73, in setUp
+    self.services = load()["services"]
+                    ^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 20, in load
+    with COMPOSE.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml'
+
+======================================================================
+ERROR: test_database_and_backend_are_on_an_internal_network_only (test_compose.IsolationTest.test_database_and_backend_are_on_an_internal_network_only)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 26, in setUp
+    self.stack = load()
+                 ^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 20, in load
+    with COMPOSE.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml'
+
+======================================================================
+ERROR: test_expected_services (test_compose.IsolationTest.test_expected_services)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 26, in setUp
+    self.stack = load()
+                 ^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 20, in load
+    with COMPOSE.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml'
+
+======================================================================
+ERROR: test_named_volumes_are_namespaced_by_the_project (test_compose.IsolationTest.test_named_volumes_are_namespaced_by_the_project)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 26, in setUp
+    self.stack = load()
+                 ^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 20, in load
+    with COMPOSE.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml'
+
+======================================================================
+ERROR: test_no_bind_mounts_outside_the_deploy_directory (test_compose.IsolationTest.test_no_bind_mounts_outside_the_deploy_directory)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 26, in setUp
+    self.stack = load()
+                 ^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 20, in load
+    with COMPOSE.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml'
+
+======================================================================
+ERROR: test_no_fixed_container_names (test_compose.IsolationTest.test_no_fixed_container_names)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 26, in setUp
+    self.stack = load()
+                 ^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 20, in load
+    with COMPOSE.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml'
+
+======================================================================
+ERROR: test_no_service_publishes_host_ports (test_compose.IsolationTest.test_no_service_publishes_host_ports)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 26, in setUp
+    self.stack = load()
+                 ^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 20, in load
+    with COMPOSE.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml'
+
+======================================================================
+ERROR: test_only_web_joins_the_external_edge_network_shared_with_the_proxy (test_compose.IsolationTest.test_only_web_joins_the_external_edge_network_shared_with_the_proxy)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 26, in setUp
+    self.stack = load()
+                 ^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 20, in load
+    with COMPOSE.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml'
+
+======================================================================
+ERROR: test_project_name_is_lawdesk_specific (test_compose.IsolationTest.test_project_name_is_lawdesk_specific)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 26, in setUp
+    self.stack = load()
+                 ^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 20, in load
+    with COMPOSE.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml'
+
+======================================================================
+ERROR: test_backend_runs_as_a_least_privilege_database_role (test_compose.SecretsTest.test_backend_runs_as_a_least_privilege_database_role)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 117, in setUp
+    self.stack = load()
+                 ^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 20, in load
+    with COMPOSE.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml'
+
+======================================================================
+ERROR: test_passwords_come_from_secret_files_not_environment_values (test_compose.SecretsTest.test_passwords_come_from_secret_files_not_environment_values)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 117, in setUp
+    self.stack = load()
+                 ^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 20, in load
+    with COMPOSE.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml'
+
+======================================================================
+ERROR: test_secret_files_live_in_an_ignored_directory (test_compose.SecretsTest.test_secret_files_live_in_an_ignored_directory)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 117, in setUp
+    self.stack = load()
+                 ^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 20, in load
+    with COMPOSE.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml'
+
+======================================================================
+ERROR: test_scripts_never_remove_volumes_networks_or_prune (test_deploy_scripts.SafetyTest.test_scripts_never_remove_volumes_networks_or_prune)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 213, in test_scripts_never_remove_volumes_networks_or_prune
+    text = script.read_text(encoding="utf-8")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1029, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/deploy/scripts/deploy.sh'
+
+======================================================================
+FAIL: test_compose_file_renders_with_example_environment (test_compose.RenderTest.test_compose_file_renders_with_example_environment)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 153, in test_compose_file_renders_with_example_environment
+    self.assertEqual(0, result.returncode, result.stderr)
+AssertionError: 0 != 1 : couldn't find env file: /home/aiagent/workspaces/lawdesk-claude/deploy/staging.env.example
+
+
+======================================================================
+FAIL: test_rendering_without_a_release_tag_fails (test_compose.RenderTest.test_rendering_without_a_release_tag_fails)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_compose.py", line 161, in test_rendering_without_a_release_tag_fails
+    self.assertIn("LAWDESK_TAG", result.stderr)
+AssertionError: 'LAWDESK_TAG' not found in 'compose file "/home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml" is invalid: open /home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml: no such file or directory\n'
+
+======================================================================
+FAIL: test_a_second_deployment_is_refused_while_one_is_running (test_deploy_scripts.ConcurrencyTest.test_a_second_deployment_is_refused_while_one_is_running)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 170, in test_a_second_deployment_is_refused_while_one_is_running
+    self.assertEqual(3, result.returncode)
+AssertionError: 3 != 127
+
+======================================================================
+FAIL: test_failed_first_deploy_records_nothing_as_current (test_deploy_scripts.FailedDeployTest.test_failed_first_deploy_records_nothing_as_current)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 154, in test_failed_first_deploy_records_nothing_as_current
+    self.assertEqual(1, result.returncode)
+AssertionError: 1 != 127
+
+======================================================================
+FAIL: test_failed_smoke_test_also_rolls_back (test_deploy_scripts.FailedDeployTest.test_failed_smoke_test_also_rolls_back)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 147, in test_failed_smoke_test_also_rolls_back
+    self.assertEqual(1, result.returncode)
+AssertionError: 1 != 127
+
+======================================================================
+FAIL: test_unhealthy_release_is_rolled_back_to_the_current_one (test_deploy_scripts.FailedDeployTest.test_unhealthy_release_is_rolled_back_to_the_current_one)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 133, in test_unhealthy_release_is_rolled_back_to_the_current_one
+    self.assertEqual(1, result.returncode)
+AssertionError: 1 != 127
+
+======================================================================
+FAIL: test_requires_a_full_commit_sha (test_deploy_scripts.InputValidationTest.test_requires_a_full_commit_sha) (args=[])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 83, in test_requires_a_full_commit_sha
+    self.assertEqual(2, result.returncode)
+AssertionError: 2 != 127
+
+======================================================================
+FAIL: test_requires_a_full_commit_sha (test_deploy_scripts.InputValidationTest.test_requires_a_full_commit_sha) (args=['latest'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 83, in test_requires_a_full_commit_sha
+    self.assertEqual(2, result.returncode)
+AssertionError: 2 != 127
+
+======================================================================
+FAIL: test_requires_a_full_commit_sha (test_deploy_scripts.InputValidationTest.test_requires_a_full_commit_sha) (args=['abc123'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 83, in test_requires_a_full_commit_sha
+    self.assertEqual(2, result.returncode)
+AssertionError: 2 != 127
+
+======================================================================
+FAIL: test_requires_a_full_commit_sha (test_deploy_scripts.InputValidationTest.test_requires_a_full_commit_sha) (args=['AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 83, in test_requires_a_full_commit_sha
+    self.assertEqual(2, result.returncode)
+AssertionError: 2 != 127
+
+======================================================================
+FAIL: test_requires_a_full_commit_sha (test_deploy_scripts.InputValidationTest.test_requires_a_full_commit_sha) (args=['aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 83, in test_requires_a_full_commit_sha
+    self.assertEqual(2, result.returncode)
+AssertionError: 2 != 127
+
+======================================================================
+FAIL: test_requires_a_full_commit_sha (test_deploy_scripts.InputValidationTest.test_requires_a_full_commit_sha) (args=['aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 83, in test_requires_a_full_commit_sha
+    self.assertEqual(2, result.returncode)
+AssertionError: 2 != 127
+
+======================================================================
+FAIL: test_requires_a_full_commit_sha (test_deploy_scripts.InputValidationTest.test_requires_a_full_commit_sha) (args=['../aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 83, in test_requires_a_full_commit_sha
+    self.assertEqual(2, result.returncode)
+AssertionError: 2 != 127
+
+======================================================================
+FAIL: test_requires_the_registry_to_be_configured (test_deploy_scripts.InputValidationTest.test_requires_the_registry_to_be_configured)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 91, in test_requires_the_registry_to_be_configured
+    self.assertEqual(2, result.returncode)
+AssertionError: 2 != 127
+
+======================================================================
+FAIL: test_rollback_redeploys_the_previous_release (test_deploy_scripts.RollbackTest.test_rollback_redeploys_the_previous_release)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 182, in test_rollback_redeploys_the_previous_release
+    self.assertEqual(0, result.returncode, result.stderr)
+AssertionError: 0 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/scripts/rollback.sh: No such file or directory
+
+
+======================================================================
+FAIL: test_rollback_without_a_previous_release_is_refused (test_deploy_scripts.RollbackTest.test_rollback_without_a_previous_release_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 192, in test_rollback_without_a_previous_release_is_refused
+    self.assertEqual(2, result.returncode)
+AssertionError: 2 != 127
+
+======================================================================
+FAIL: test_every_docker_call_is_scoped_to_the_lawdesk_project_and_compose_file (test_deploy_scripts.SafetyTest.test_every_docker_call_is_scoped_to_the_lawdesk_project_and_compose_file)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 205, in test_every_docker_call_is_scoped_to_the_lawdesk_project_and_compose_file
+    self.assertTrue(calls)
+AssertionError: [] is not true
+
+======================================================================
+FAIL: test_first_deploy_pulls_starts_waits_smokes_and_records_the_release (test_deploy_scripts.SuccessfulDeployTest.test_first_deploy_pulls_starts_waits_smokes_and_records_the_release)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 100, in test_first_deploy_pulls_starts_waits_smokes_and_records_the_release
+    self.assertEqual(0, result.returncode, result.stderr)
+AssertionError: 0 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/scripts/deploy.sh: No such file or directory
+
+
+======================================================================
+FAIL: test_next_deploy_keeps_the_previous_release_for_rollback (test_deploy_scripts.SuccessfulDeployTest.test_next_deploy_keeps_the_previous_release_for_rollback)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 113, in test_next_deploy_keeps_the_previous_release_for_rollback
+    self.assertEqual(0, result.returncode, result.stderr)
+AssertionError: 0 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/scripts/deploy.sh: No such file or directory
+
+
+======================================================================
+FAIL: test_redeploying_the_current_release_is_idempotent (test_deploy_scripts.SuccessfulDeployTest.test_redeploying_the_current_release_is_idempotent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_deploy_scripts.py", line 122, in test_redeploying_the_current_release_is_idempotent
+    self.assertEqual(0, result.returncode, result.stderr)
+AssertionError: 0 != 127 : bash: /home/aiagent/workspaces/lawdesk-claude/deploy/scripts/deploy.sh: No such file or directory
+
+
+----------------------------------------------------------------------
+Ran 34 tests in 0.979s
+
+FAILED (failures=20, errors=20)
+exit=1
+    self.assertIn("sha256sum --check", run_commands(self.jobs[name]))
+                                                    ~~~~~~~~~^^^^^^
+KeyError: 'stack'
+
+======================================================================
+ERROR: test_stack_gate_builds_images_and_runs_the_compose_stack (test_ci_workflow.RequiredGatesTest.test_stack_gate_builds_images_and_runs_the_compose_stack)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 99, in test_stack_gate_builds_images_and_runs_the_compose_stack
+    commands = run_commands(self.jobs["stack"])
+                            ~~~~~~~~~^^^^^^^^^
+KeyError: 'stack'
+
+======================================================================
+FAIL: test_repository_policy_gate (test_ci_workflow.RequiredGatesTest.test_repository_policy_gate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 67, in test_repository_policy_gate
+    self.assertIn("unittest discover -s deploy/tests", commands)
+AssertionError: 'unittest discover -s deploy/tests' not found in '\n\npython -m pip install --disable-pip-version-check -r tools/requirements.txt\npython -I -m unittest discover -s tools/tests -v\npython -I tools/repo_policy.py layout\nif [ "$EVENT" = "pull_request" ]; then\n  python -I tools/repo_policy.py pr "$HEAD_REF" "$BASE_REF"\n  commits=$(git rev-list "$BASE_SHA..$HEAD_SHA")\nelse\n  commits=$(git rev-parse HEAD)\nfi\nstatus=0\nfor commit in $commits; do\n  git log -1 --format=%B "$commit" > "$RUNNER_TEMP/message"\n  python -I tools/repo_policy.py commit-msg "$RUNNER_TEMP/message" || { echo "::error::commit $commit"; status=1; }\ndone\nexit $status\n\ncurl -sSfL -o "$RUNNER_TEMP/actionlint.tar.gz" \\\n  https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz\necho "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  $RUNNER_TEMP/actionlint.tar.gz" | sha256sum --check\ntar -xzf "$RUNNER_TEMP/actionlint.tar.gz" -C "$RUNNER_TEMP" actionlint\n"$RUNNER_TEMP/actionlint" -color\n'
+
+----------------------------------------------------------------------
+Ran 32 tests in 0.628s
+
+FAILED (failures=1, errors=2)
+exit=0

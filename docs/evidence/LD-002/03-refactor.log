@@ -1,0 +1,100 @@
+$ ./mvnw -B verify   # 2026-10-23T14:32:58Z — REFACTOR (import order, shutdown timeout)
+[INFO] Scanning for projects...
+[INFO] Loaded 24210 auto-discovered prefixes for remote repository central (prefixes-central.txt)
+[INFO] 
+[INFO] --------------------< com.lawdesk:lawdesk-backend >---------------------
+[INFO] Building lawdesk-backend 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- spring-boot:4.1.2:build-info (default) @ lawdesk-backend ---
+[INFO] Loaded 74 auto-discovered prefixes for remote repository apache.snapshots (prefixes-apache.snapshots.txt)
+[INFO] Loaded 50 auto-discovered prefixes for remote repository ow2-snapshot (prefixes-ow2-snapshot.txt)
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ lawdesk-backend ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 0 resource from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ lawdesk-backend ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ lawdesk-backend ---
+[INFO] skip non existing resourceDirectory /home/aiagent/workspaces/lawdesk-claude/backend/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ lawdesk-backend ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 4 source files with javac [debug parameters release 21] to target/test-classes
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ lawdesk-backend ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.lawdesk.platform.HealthEndpointTest
+16:33:15.132 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.lawdesk.platform.HealthEndpointTest]: HealthEndpointTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+16:33:15.402 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.lawdesk.LawdeskBackendApplication for test class com.lawdesk.platform.HealthEndpointTest
+16:33:15.595 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.lawdesk.platform.HealthEndpointTest]: HealthEndpointTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+16:33:15.596 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.lawdesk.platform.HttpTestSupport]: HttpTestSupport does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+16:33:15.606 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.lawdesk.LawdeskBackendApplication for test class com.lawdesk.platform.HealthEndpointTest
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/home/aiagent/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.15/byte-buddy-agent-1.18.15.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.16 s -- in com.lawdesk.platform.HealthEndpointTest
+[INFO] Running com.lawdesk.platform.SecurityBaselineTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.523 s -- in com.lawdesk.platform.SecurityBaselineTest
+[INFO] Running com.lawdesk.platform.RequestCorrelationTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.471 s -- in com.lawdesk.platform.RequestCorrelationTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 23, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- jar:3.5.1:jar (default-jar) @ lawdesk-backend ---
+[INFO] Building jar: /home/aiagent/workspaces/lawdesk-claude/backend/target/lawdesk-backend-0.0.1-SNAPSHOT.jar
+[INFO] 
+[INFO] --- spring-boot:4.1.2:repackage (repackage) @ lawdesk-backend ---
+[INFO] Replacing main artifact /home/aiagent/workspaces/lawdesk-claude/backend/target/lawdesk-backend-0.0.1-SNAPSHOT.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+[INFO] The original artifact has been renamed to /home/aiagent/workspaces/lawdesk-claude/backend/target/lawdesk-backend-0.0.1-SNAPSHOT.jar.original
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  26.791 s
+[INFO] Finished at: 2026-10-23T16:33:29+02:00
+[INFO] ------------------------------------------------------------------------
+exit=0
+
+$ python3 -I -m unittest discover -s tools/tests   # regression
+....................
+----------------------------------------------------------------------
+Ran 20 tests in 0.346s
+
+OK
+exit=0
+
+# Packaged jar smoke test   # 2026-10-23T14:34:12Z
+$ $JAVA_HOME/bin/java -jar target/lawdesk-backend-0.0.1-SNAPSHOT.jar --server.port=18090
+$ curl -si localhost:18090/actuator/health
+HTTP/1.1 200 
+X-Request-Id: 553f2e15-1edb-4ec1-8fdd-6ef54400e6ed
+Content-Security-Policy: default-src 'none'; frame-ancestors 'none'
+{"groups":["liveness","readiness"],"status":"UP"}
+
+$ curl -s localhost:18090/actuator/info
+{"build":{"artifact":"lawdesk-backend","name":"lawdesk-backend","time":"1980-02-01T00:00:00Z","version":"0.0.1-SNAPSHOT","group":"com.lawdesk"}}
+$ curl -si localhost:18090/api/v1/cases
+HTTP/1.1 401 
+Content-Type: application/problem+json;charset=UTF-8
+{"type":"about:blank","title":"Unauthorized","status":401}
+
+[1]+  Exit 143                $JAVA_HOME/bin/java -jar target/lawdesk-backend-0.0.1-SNAPSHOT.jar --server.port=18090 > $S/smoke.out 2>&1
+process exit after SIGTERM=143
+# sample structured log lines:
+{"@timestamp":"2026-10-23T14:34:24.272732292Z","log":{"level":"INFO","logger":"com.lawdesk.LawdeskBackendApplication"},"process":{"pid":664763,"thread":{"name":"main"}},"service":{"name":"lawdesk-backend","version":"0.0.1-SNAPSHOT","node":{}},"message":"Started LawdeskBackendApplication in 9.432 seconds (process running for 11.428)","tags":["COMMONS-LOGGING"],"ecs":{"version":"8.11"}}
+{"@timestamp":"2026-10-23T14:34:24.819920747Z","log":{"level":"INFO","logger":"com.lawdesk.platform.RequestCorrelationFilter"},"process":{"pid":664763,"thread":{"name":"http-nio-18090-exec-1"}},"service":{"name":"lawdesk-backend","version":"0.0.1-SNAPSHOT","node":{}},"message":"request completed","requestId":"b865c306-1b02-4675-9160-b6ed6887ac98","http":{"request":{"method":"GET"},"response":{"status_code":200}},"url":{"path":"/actuator/health/readiness"},"event":{"duration_ms":351},"ecs":{"version":"8.11"}}
+{"@timestamp":"2026-10-23T14:34:24.946735790Z","log":{"level":"INFO","logger":"com.lawdesk.platform.RequestCorrelationFilter"},"process":{"pid":664763,"thread":{"name":"http-nio-18090-exec-3"}},"service":{"name":"lawdesk-backend","version":"0.0.1-SNAPSHOT","node":{}},"message":"request completed","requestId":"553f2e15-1edb-4ec1-8fdd-6ef54400e6ed","http":{"request":{"method":"GET"},"response":{"status_code":200}},"url":{"path":"/actuator/health"},"event":{"duration_ms":94},"ecs":{"version":"8.11"}}
+{"@timestamp":"2026-10-23T14:34:25.221950568Z","log":{"level":"INFO","logger":"com.lawdesk.platform.RequestCorrelationFilter"},"process":{"pid":664763,"thread":{"name":"http-nio-18090-exec-5"}},"service":{"name":"lawdesk-backend","version":"0.0.1-SNAPSHOT","node":{}},"message":"request completed","requestId":"21c9624b-6216-467b-91dc-bd25ad4bf8ed","http":{"request":{"method":"GET"},"response":{"status_code":200}},"url":{"path":"/actuator/info"},"event":{"duration_ms":172},"ecs":{"version":"8.11"}}

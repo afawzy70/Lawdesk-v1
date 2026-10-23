@@ -1,0 +1,117 @@
+FFFFFFFFFFF.
+======================================================================
+FAIL: test_each_failed_check_fails_the_smoke_test (test_smoke.SmokeTest.test_each_failed_check_fails_the_smoke_test) (scenario='web health down')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_smoke.py", line 98, in test_each_failed_check_fails_the_smoke_test
+    self.assertIn("FAIL", result.stderr)
+AssertionError: 'FAIL' not found in 'wget: server returned error: HTTP/1.1 503 X\n'
+
+======================================================================
+FAIL: test_each_failed_check_fails_the_smoke_test (test_smoke.SmokeTest.test_each_failed_check_fails_the_smoke_test) (scenario='spa missing')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_smoke.py", line 98, in test_each_failed_check_fails_the_smoke_test
+    self.assertIn("FAIL", result.stderr)
+AssertionError: 'FAIL' not found in 'wget: server returned error: HTTP/1.1 404 X\n'
+
+======================================================================
+FAIL: test_each_failed_check_fails_the_smoke_test (test_smoke.SmokeTest.test_each_failed_check_fails_the_smoke_test) (scenario='readiness DOWN with 200')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_smoke.py", line 97, in test_each_failed_check_fails_the_smoke_test
+    self.assertNotEqual(0, result.returncode, result.stdout)
+AssertionError: 0 == 0 : ok   /healthz
+ok   /
+ok   /api/v1/cases -> 401
+ok   /actuator/env -> 404
+
+
+======================================================================
+FAIL: test_each_failed_check_fails_the_smoke_test (test_smoke.SmokeTest.test_each_failed_check_fails_the_smoke_test) (scenario='readiness 503')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_smoke.py", line 97, in test_each_failed_check_fails_the_smoke_test
+    self.assertNotEqual(0, result.returncode, result.stdout)
+AssertionError: 0 == 0 : ok   /healthz
+ok   /
+ok   /api/v1/cases -> 401
+ok   /actuator/env -> 404
+
+
+======================================================================
+FAIL: test_each_failed_check_fails_the_smoke_test (test_smoke.SmokeTest.test_each_failed_check_fails_the_smoke_test) (scenario='readiness unreachable')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_smoke.py", line 97, in test_each_failed_check_fails_the_smoke_test
+    self.assertNotEqual(0, result.returncode, result.stdout)
+AssertionError: 0 == 0 : ok   /healthz
+ok   /
+ok   /api/v1/cases -> 401
+ok   /actuator/env -> 404
+
+
+======================================================================
+FAIL: test_each_failed_check_fails_the_smoke_test (test_smoke.SmokeTest.test_each_failed_check_fails_the_smoke_test) (scenario='api open to anonymous')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_smoke.py", line 97, in test_each_failed_check_fails_the_smoke_test
+    self.assertNotEqual(0, result.returncode, result.stdout)
+AssertionError: 0 == 0 : ok   /healthz
+ok   /
+ok   readiness UP
+ok   /actuator/env -> 404
+
+
+======================================================================
+FAIL: test_each_failed_check_fails_the_smoke_test (test_smoke.SmokeTest.test_each_failed_check_fails_the_smoke_test) (scenario='api forbidden instead of 401')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_smoke.py", line 97, in test_each_failed_check_fails_the_smoke_test
+    self.assertNotEqual(0, result.returncode, result.stdout)
+AssertionError: 0 == 0 : ok   /healthz
+ok   /
+ok   readiness UP
+ok   /actuator/env -> 404
+
+
+======================================================================
+FAIL: test_each_failed_check_fails_the_smoke_test (test_smoke.SmokeTest.test_each_failed_check_fails_the_smoke_test) (scenario='api unreachable')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_smoke.py", line 97, in test_each_failed_check_fails_the_smoke_test
+    self.assertNotEqual(0, result.returncode, result.stdout)
+AssertionError: 0 == 0 : ok   /healthz
+ok   /
+ok   readiness UP
+ok   /actuator/env -> 404
+
+
+======================================================================
+FAIL: test_each_failed_check_fails_the_smoke_test (test_smoke.SmokeTest.test_each_failed_check_fails_the_smoke_test) (scenario='actuator env exposed')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_smoke.py", line 98, in test_each_failed_check_fails_the_smoke_test
+    self.assertIn("FAIL", result.stderr)
+AssertionError: 'FAIL' not found in ''
+
+======================================================================
+FAIL: test_each_failed_check_fails_the_smoke_test (test_smoke.SmokeTest.test_each_failed_check_fails_the_smoke_test) (scenario='actuator env unreachable')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_smoke.py", line 98, in test_each_failed_check_fails_the_smoke_test
+    self.assertIn("FAIL", result.stderr)
+AssertionError: 'FAIL' not found in ''
+
+======================================================================
+FAIL: test_failure_names_the_check_and_the_actual_status (test_smoke.SmokeTest.test_failure_names_the_check_and_the_actual_status)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/deploy/tests/test_smoke.py", line 103, in test_failure_names_the_check_and_the_actual_status
+    self.assertIn("/api/v1/cases -> 200, expected 401", result.stderr)
+AssertionError: '/api/v1/cases -> 200, expected 401' not found in ''
+
+----------------------------------------------------------------------
+Ran 3 tests in 5.146s
+
+FAILED (failures=11)

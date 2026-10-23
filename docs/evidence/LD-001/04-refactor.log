@@ -1,0 +1,44 @@
+$ python3 -I -m unittest discover -s tools/tests -v   # 2026-10-23T14:12:21Z — after refactor of check_pull_request
+test_accepts_long_lived_and_conventional_work_branches (test_repo_policy.BranchNameTest.test_accepts_long_lived_and_conventional_work_branches) ... ok
+test_rejects_malformed_names (test_repo_policy.BranchNameTest.test_rejects_malformed_names) ... ok
+test_rejects_unknown_prefix_with_actionable_message (test_repo_policy.BranchNameTest.test_rejects_unknown_prefix_with_actionable_message) ... ok
+test_commit_msg_reads_file (test_repo_policy.CommandLineTest.test_commit_msg_reads_file) ... ok
+test_invalid_branch_exits_nonzero_with_message_on_stderr (test_repo_policy.CommandLineTest.test_invalid_branch_exits_nonzero_with_message_on_stderr) ... ok
+test_pr_flow (test_repo_policy.CommandLineTest.test_pr_flow) ... ok
+test_unknown_command_is_usage_error (test_repo_policy.CommandLineTest.test_unknown_command_is_usage_error) ... ok
+test_valid_branch_exits_zero (test_repo_policy.CommandLineTest.test_valid_branch_exits_zero) ... ok
+test_accepts_conventional_commits (test_repo_policy.CommitMessageTest.test_accepts_conventional_commits) ... ok
+test_ignores_git_comment_lines (test_repo_policy.CommitMessageTest.test_ignores_git_comment_lines) ... ok
+test_rejects_empty_message (test_repo_policy.CommitMessageTest.test_rejects_empty_message) ... ok
+test_rejects_free_form_subject (test_repo_policy.CommitMessageTest.test_rejects_free_form_subject) ... ok
+test_rejects_overlong_subject (test_repo_policy.CommitMessageTest.test_rejects_overlong_subject) ... ok
+test_feature_branch_into_main_is_rejected (test_repo_policy.PullRequestFlowTest.test_feature_branch_into_main_is_rejected) ... ok
+test_invalid_head_name_is_reported (test_repo_policy.PullRequestFlowTest.test_invalid_head_name_is_reported) ... ok
+test_only_release_and_hotfix_target_main (test_repo_policy.PullRequestFlowTest.test_only_release_and_hotfix_target_main) ... ok
+test_unknown_base_is_rejected (test_repo_policy.PullRequestFlowTest.test_unknown_base_is_rejected) ... ok
+test_work_branches_target_develop (test_repo_policy.PullRequestFlowTest.test_work_branches_target_develop) ... ok
+test_missing_files_are_listed (test_repo_policy.RepositoryLayoutTest.test_missing_files_are_listed) ... ok
+test_this_repository_satisfies_required_layout (test_repo_policy.RepositoryLayoutTest.test_this_repository_satisfies_required_layout) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 0.600s
+
+OK
+exit=0
+
+# Regression: every existing commit subject on origin/develop passes the commit-msg policy
+/bin/bash: line 1: /m: Permission denied
+/bin/bash: line 1: /m: Permission denied
+/bin/bash: line 1: /m: Permission denied
+/bin/bash: line 1: /m: Permission denied
+/bin/bash: line 1: /m: Permission denied
+/bin/bash: line 1: /m: Permission denied
+/bin/bash: line 1: /m: Permission denied
+/bin/bash: line 1: /m: Permission denied
+/bin/bash: line 1: /m: Permission denied
+policy: commit subject 'Initial commit' must follow 'type(scope): summary' with type one of feat, fix, docs, test, refactor, chore, ci, build, perf, style, revert; put the story ID in the scope, e.g. 'feat(LD-002): add health endpoint'
+commits checked: 9, violations: 1
+$ tools/repo_policy.py branch feature/phase-1-foundation
+exit=0
+$ tools/repo_policy.py layout
+exit=0
