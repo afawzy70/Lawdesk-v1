@@ -1,0 +1,62 @@
+/**
+ * English message catalog. This object defines the set of message keys: every other catalog is typed as
+ * `Messages`, so a missing or extra key fails type-checking (and `catalog.test.ts` checks it at runtime too).
+ */
+export const en = {
+  'app.name': 'LawDesk',
+  'footer.version': 'LawDesk v{version}',
+
+  'preview.banner': 'Preview — sample data only. This is not a working case management system.',
+  'preview.bannerLabel': 'Preview notice',
+  'preview.titleSuffix': '(Preview)',
+  'preview.sampleData': 'Sample data',
+
+  'shell.skipToContent': 'Skip to main content',
+  'shell.primaryNav': 'Primary',
+  'shell.menu': 'Menu',
+  'shell.switchLanguage': 'العربية',
+
+  'nav.dashboard': 'Dashboard',
+  'nav.cases': 'Cases',
+  'nav.hearings': 'Hearings',
+  'nav.judgments': 'Judgments',
+  'nav.experts': 'Experts',
+  'nav.documents': 'Documents',
+  'nav.reports': 'Reports',
+  'nav.admin': 'Administration',
+
+  'apiStatus.checking': 'Checking API…',
+  'apiStatus.online': 'API online',
+  'apiStatus.unavailable': 'API unavailable',
+
+  'comingSoon.badge': 'Coming in a later phase',
+  'comingSoon.body':
+    'This feature is not available in this preview. It will be built and tested in a later phase of LawDesk.',
+
+  'notFound.title': 'Page not found',
+  'notFound.body': 'We could not find that page. Check the address, or go back to the home page.',
+  'notFound.homeLink': 'Go to the home page',
+
+  'dashboard.intro':
+    'This preview shows a possible dashboard layout. Every figure and record on this page is invented sample data.',
+  'dashboard.kpis': 'Key figures',
+  'kpi.openCases': 'Open cases',
+  'kpi.hearingsThisWeek': 'Hearings this week',
+  'kpi.pendingJudgments': 'Pending judgments',
+  'kpi.expertReportsDue': 'Expert reports due',
+  'dashboard.hearings': 'Upcoming hearings',
+  'hearings.case': 'Case',
+  'hearings.court': 'Court',
+  'hearings.stage': 'Stage',
+  'hearings.when': 'Date and time',
+  'dashboard.stages': 'Cases by stage',
+  'stages.value': '{count} cases ({percent})',
+  'stage.firstInstance': 'First instance',
+  'stage.appeal': 'Appeal',
+  'stage.cassation': 'Cassation',
+
+  'sample.caseRef': 'Sample Case {number}',
+};
+
+export type MessageKey = keyof typeof en;
+export type Messages = Record<MessageKey, string>;

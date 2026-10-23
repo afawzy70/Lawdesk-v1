@@ -1,6 +1,8 @@
 import { StrictMode } from 'react';
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
+import { LocaleProvider } from '../i18n/LocaleProvider';
 import { jsonResponse, pendingFetch, signalOf } from '../test/http';
 import { ApiStatus } from './ApiStatus';
 
@@ -46,6 +48,23 @@ describe('ApiStatus', () => {
 
     expect(await screen.findByText('API unavailable')).toBeInTheDocument();
     expect(container).not.toHaveTextContent(/ECONNREFUSED|10\.0\.0\.5|Failed to fetch/);
+  });
+
+  it('announces its states in Arabic when the locale is Arabic', async () => {
+    const { fetchMock, resolvers } = pendingFetch();
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(
+      <MemoryRouter initialEntries={['/?lang=ar']}>
+        <LocaleProvider>
+          <ApiStatus />
+        </LocaleProvider>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent('جارٍ التحقق من الواجهة البرمجية…');
+    resolvers[0]?.(jsonResponse({ status: 'DOWN' }, 503));
+    expect(await screen.findByText('الواجهة البرمجية غير متاحة')).toBeInTheDocument();
   });
 
   it('aborts the in-flight request when unmounted', () => {

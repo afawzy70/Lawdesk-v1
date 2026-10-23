@@ -1,6 +1,6 @@
 /**
- * Minimal locale mechanism for the shell. Phase 1 ships English only; Arabic (right-to-left) is registered so
- * that Phase 7 can add translation catalogs without changing how `<html lang dir>` is driven.
+ * Minimal locale mechanism for the shell: English (left-to-right) and Arabic (right-to-left). The early preview
+ * (docs/delivery/PREVIEW.md) adds message catalogs in `catalog.ts`; full i18n/RTL remains Phase 7 (LD-035/LD-036).
  */
 const DIRECTIONS = {
   en: 'ltr',
@@ -24,6 +24,14 @@ export function directionFor(locale: Locale): Direction {
 export function resolveLocale(input?: string): Locale {
   const language = (input ?? '').split('-')[0]?.toLowerCase() ?? '';
   return isLocale(language) ? language : DEFAULT_LOCALE;
+}
+
+/**
+ * In-app link that carries the UI language in the query string. The language lives in the URL (not in browser
+ * storage) so it survives reloads and navigation without writing anything to localStorage/sessionStorage.
+ */
+export function withLang(path: string, locale: Locale): string {
+  return `${path}?lang=${locale}`;
 }
 
 export function applyDocumentLocale(locale: Locale, doc: Document = document): void {
