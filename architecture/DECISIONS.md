@@ -28,6 +28,7 @@ recorded reason. Versions managed by 4.1.2:
 | JUnit Jupiter | 6.0.3 |
 | Testcontainers | 2.0.5 |
 | Embedded Tomcat | 11.0.27 |
+| PostgreSQL server | 18.6 (supported to 2030-11); same version for embedded test binaries, CI and staging images |
 
 Compatibility is verified by building and running the test suite against PostgreSQL (LD-002 for Web/Security/Actuator,
 LD-004 for Data JPA, Flyway and the driver); evidence lives under `docs/evidence/`. Upgrade to 4.2.x, or a later

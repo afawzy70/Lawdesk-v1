@@ -14,7 +14,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
  * Exercises the application over real HTTP so the whole servlet filter chain (correlation, security, error
  * handling) is part of every test.
  */
-public abstract class HttpTestSupport {
+public abstract class HttpTestSupport extends PostgresTestSupport {
 
     private static final HttpClient CLIENT = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
 
