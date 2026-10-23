@@ -2,7 +2,10 @@
 """Procedural protection of develop (B4; docs/delivery/DEVELOP-PROTECTION.md).
 
 Usage (CI, on every push to develop; GH_TOKEN and REPO set):
-  develop_guard.py --sha <pushed commit> --before <develop head before the push> --forced <true|false>
+  develop_guard.py --sha <pushed commit> --before <develop head before the push> --forced <true|false> [--policy qa|uat]
+
+Policy `uat` (development/UAT, owner decision 2026-10-23) keeps only the structural checks below (no force push, one
+merge per push, the merge of a pull request into develop); `qa` (the default) also requires QA's verdict.
 
 Passes only when the push is exactly one merge of a pull request into develop, the develop head it builds on passed
 this guard too (or predates it, or QA posted `QA-VERDICT: RECOVER <that sha>` on the pull request), and the latest QA
@@ -85,7 +88,7 @@ def guarded(repo, sha):
                for r in runs)
 
 
-def check(repo, sha, before, forced):
+def check(repo, sha, before, forced, policy="qa"):
     if forced:
         return ["develop was force-pushed; restore it from the last guarded commit (see DEVELOP-PROTECTION.md)"]
     if before != ZERO:
@@ -98,6 +101,10 @@ def check(repo, sha, before, forced):
         return [f"{sha} is not the merge of a pull request into develop (direct push?)"]
     pull = merged[0]
     head = pull["head"]["sha"]
+    if policy == "uat":
+        # Development/UAT (owner decision 2026-10-23): merged pull requests deploy; QA verifies in parallel.
+        print(f"develop guard: {sha} is the merge of #{pull['number']} (head {head}); UAT policy, no QA verdict needed")
+        return []
     comments = api_list(f"repos/{repo}/issues/{pull['number']}/comments?per_page=100")
     verdict = latest_verdict(comments, head, pull["merged_at"])
     if verdict != "PASS":
@@ -121,11 +128,13 @@ def main(argv):
     parser.add_argument("--sha", required=True)
     parser.add_argument("--before", required=True)
     parser.add_argument("--forced", required=True, choices=["true", "false"])
+    parser.add_argument("--policy", default="qa", choices=["qa", "uat"],
+                        help="qa (default): require QA's verdict; uat: structural checks only")
     args = parser.parse_args(argv)
     if not SHA_RE.match(args.sha) or not SHA_RE.match(args.before):
         print("develop guard: --sha and --before must be full lowercase commit SHAs", file=sys.stderr)
         return 2
-    errors = check(os.environ["REPO"], args.sha, args.before, args.forced == "true")
+    errors = check(os.environ["REPO"], args.sha, args.before, args.forced == "true", args.policy)
     for error in errors:
         print(f"::error::develop guard: {error}")
     return 1 if errors else 0

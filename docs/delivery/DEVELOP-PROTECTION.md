@@ -4,6 +4,14 @@
 server-enforced GitHub branch protection, which remains the target if the plan ever allows it. The repository stays
 private.
 
+## Development/UAT policy (owner decision 2026-10-23)
+
+For the development/UAT environment, merged pull requests deploy without waiting for a QA verdict, and Codex verifies
+in parallel. Set the repository variable `LAWDESK_DEVELOP_POLICY=uat` to switch to it. The guard then keeps only its
+structural checks: no force push, exactly one merge per push, and a real pull-request merge into develop. It no longer
+requires `QA-VERDICT` or `RECOVER` lines. When the variable is unset, the strict `qa` policy below applies again. Every
+test for the strict policy is kept.
+
 ## Why a procedure
 
 - GitHub refuses branch protection and rulesets for this private repository on its current plan (`HTTP 403: Upgrade

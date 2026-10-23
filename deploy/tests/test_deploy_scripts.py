@@ -35,6 +35,7 @@ FAKE_DOCKER = textwrap.dedent("""\
         esac ;;
       *" up "*) [ "${LAWDESK_TAG:-}" = "${FAKE_FAIL_UP_TAG:-none}" ] && exit 1 ;;
       *" exec -T db pg_dump "*) [ -n "${FAKE_FAIL_DUMP:-}" ] && exit 1; echo "DUMP-OF-${LAWDESK_TAG:-}" ;;
+      *" exec -T db psql "*) cat > /dev/null; [ "${LAWDESK_TAG:-}" = "${FAKE_FAIL_ROLE_TAG:-none}" ] && exit 1 ;;
       *" exec "*) [ "${LAWDESK_TAG:-}" = "${FAKE_FAIL_SMOKE_TAG:-none}" ] && exit 1 ;;
     esac
     exit 0
@@ -132,6 +133,52 @@ class SuccessfulDeployTest(DeployScriptTestCase):
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertEqual(SHA_B, self.current())
         self.assertEqual(SHA_A, self.previous())
+
+
+class DatabaseRoleTest(DeployScriptTestCase):
+    """Contabo first install: the init script that creates lawdesk_app was not readable by the postgres user (release
+    unpacked under umask 027), so the database came up healthy without the role and the backend restarted forever.
+    The role is now ensured on every start, before the backend, idempotently and without recreating the volume."""
+
+    def starts(self, tag):
+        return [c for c in self.calls() if c.startswith(f"LAWDESK_TAG={tag}") and (" up " in c or " exec -T db psql" in c)]
+
+    def test_database_starts_first_then_the_role_is_ensured_then_the_stack(self):
+        result = self.run_script(DEPLOY, SHA_A)
+
+        self.assertEqual(0, result.returncode, result.stderr)
+        steps = self.starts(SHA_A)
+        self.assertEqual(3, len(steps), steps)
+        self.assertIn(" up -d --wait --wait-timeout 240 db", steps[0])
+        self.assertIn(" exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d postgres", steps[1])
+        self.assertRegex(steps[2], r" up -d --wait --wait-timeout 240\s*$")
+
+    def test_failed_role_setup_fails_the_release_and_rolls_back(self):
+        self.run_script(DEPLOY, SHA_A)
+
+        result = self.run_script(DEPLOY, SHA_B, FAKE_FAIL_ROLE_TAG=SHA_B)
+
+        self.assertEqual(1, result.returncode)
+        self.assertEqual(SHA_A, self.current())
+        self.assertFalse(any(" up -d --wait --wait-timeout 240" in c and not c.rstrip().endswith(" db")
+                             for c in self.starts(SHA_B)), self.starts(SHA_B))
+
+    def test_rollback_target_gets_its_role_ensured_too(self):
+        self.run_script(DEPLOY, SHA_A)
+        before = len(self.calls())
+
+        self.run_script(DEPLOY, SHA_B, FAKE_FAIL_UP_TAG=SHA_B)
+
+        self.assertTrue(any(c.startswith(f"LAWDESK_TAG={SHA_A}") and " exec -T db psql" in c
+                            for c in self.calls()[before:]))
+
+    def test_role_sql_is_idempotent_and_reads_the_password_inside_the_container(self):
+        sql = (DEPLOY_DIR / "postgres" / "app-role.sql").read_text(encoding="utf-8")
+        self.assertIn("/run/secrets/db_app_password", sql)
+        self.assertIn("WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'lawdesk_app')", sql)
+        self.assertIn("CREATE SCHEMA IF NOT EXISTS lawdesk AUTHORIZATION lawdesk_app", sql)
+        self.assertRegex(sql, r"ALTER ROLE lawdesk_app LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE[^;]*PASSWORD :'app_password'")
+        self.assertNotIn("DROP", sql.upper())
 
 
 class FailedDeployTest(DeployScriptTestCase):

@@ -53,6 +53,7 @@ compose_for() {
     if [[ -n ${LAWDESK_RELEASES_DIR:-} && -f $LAWDESK_RELEASES_DIR/$1/deploy/compose.yaml ]]; then
         file=$LAWDESK_RELEASES_DIR/$1/deploy/compose.yaml
     fi
+    compose_dir=$(dirname "$file")
     compose=(docker compose -p lawdesk-staging -f "$file")
     if [[ -n $env_file ]]; then
         compose+=(--env-file "$env_file")
@@ -93,7 +94,13 @@ start_release() {
     else
         local_images_match "$1" || return 1
     fi
-    LAWDESK_TAG=$1 "${compose[@]}" up -d --wait --wait-timeout 240 &&
+    # Database first, then its least-privilege role (idempotent; repairs a volume whose role is missing), then the rest.
+    # A release older than this step has no app-role.sql of its own; the running release's copy is used for it.
+    local role_sql=$compose_dir/postgres/app-role.sql
+    [[ -f $role_sql ]] || role_sql=$deploy_dir/postgres/app-role.sql
+    LAWDESK_TAG=$1 "${compose[@]}" up -d --wait --wait-timeout 240 db &&
+        LAWDESK_TAG=$1 "${compose[@]}" exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d postgres -q < "$role_sql" &&
+        LAWDESK_TAG=$1 "${compose[@]}" up -d --wait --wait-timeout 240 &&
         LAWDESK_TAG=$1 LAWDESK_ENV_FILE=$env_file "$smoke"
 }
 

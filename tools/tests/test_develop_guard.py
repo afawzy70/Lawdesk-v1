@@ -94,9 +94,11 @@ class DevelopGuardTest(unittest.TestCase):
             responses[f"{base}/contents/tools/develop_guard.py"] = {"fake_http_status": before_has_guard}
         self.responses.write_text(json.dumps(responses), encoding="utf-8")
 
-    def guard(self, forced="false", before=BEFORE):
-        return subprocess.run(["python3", str(GUARD), "--sha", SHA, "--before", before, "--forced", forced],
-                              env=self.env, capture_output=True, text=True, check=False, timeout=30)
+    def guard(self, forced="false", before=BEFORE, policy=None):
+        command = ["python3", str(GUARD), "--sha", SHA, "--before", before, "--forced", forced]
+        if policy is not None:
+            command += ["--policy", policy]
+        return subprocess.run(command, env=self.env, capture_output=True, text=True, check=False, timeout=30)
 
     def test_a_qa_cleared_pull_request_merge_passes(self):
         result = self.guard()
@@ -249,6 +251,41 @@ class DevelopGuardTest(unittest.TestCase):
         import yaml
         ci = yaml.safe_load((GUARD.parents[1] / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8"))
         self.assertEqual(GUARD_CHECK, ci["jobs"]["develop-guard"]["name"])
+
+    # Development/UAT policy (owner, 2026-10-23): merged pull requests deploy without a QA verdict; QA verifies in
+    # parallel. The structural checks (no force push, one merge per push, a real pull request merge) still apply.
+
+    def test_uat_policy_accepts_a_pull_request_merge_without_a_qa_verdict(self):
+        self.respond(pulls=[pull()], comments=[])
+
+        result = self.guard(policy="uat")
+
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertIn("UAT", result.stdout)
+
+    def test_uat_policy_accepts_a_merge_on_top_of_a_commit_that_failed_the_qa_policy(self):
+        # bfddb5b was merged by owner exception and failed the QA-verdict check; later merges must still deploy.
+        self.respond(pulls=[pull()], comments=[], before_checks=(check_run(conclusion="failure"),))
+
+        self.assertEqual(0, self.guard(policy="uat").returncode)
+
+    def test_uat_policy_still_refuses_force_pushes_direct_pushes_and_extra_commits(self):
+        self.respond(pulls=[pull()], comments=[])
+        self.assertEqual(1, self.guard(forced="true", policy="uat").returncode)
+        self.assertEqual(1, self.guard(before="4" * 40, policy="uat").returncode)
+        for pulls in [[], [pull(merged=False)], [pull(base="main")], [pull(merge_commit="3" * 40)]]:
+            with self.subTest(pulls=pulls):
+                self.respond(pulls=pulls, comments=[])
+                self.assertEqual(1, self.guard(policy="uat").returncode)
+
+    def test_the_default_policy_still_requires_the_qa_verdict(self):
+        self.respond(pulls=[pull()], comments=[])
+
+        self.assertEqual(1, self.guard().returncode)
+        self.assertEqual(1, self.guard(policy="qa").returncode)
+
+    def test_an_unknown_policy_is_refused(self):
+        self.assertEqual(2, self.guard(policy="none").returncode)
 
     def test_malformed_arguments_are_refused(self):
         result = subprocess.run(["python3", str(GUARD), "--sha", "HEAD", "--before", BEFORE, "--forced", "false"],

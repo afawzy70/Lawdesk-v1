@@ -177,7 +177,12 @@ jobs:
           openssl rand -hex 24 > deploy/secrets/db_app_password.txt
           docker network create lawdesk-edge
       - name: Start the stack and wait for health checks
-        run: docker compose -p lawdesk-staging -f deploy/compose.yaml up -d --wait --wait-timeout 300
+        run: |
+          # Same order as deploy/scripts/deploy.sh: database, its least-privilege role, then everything.
+          compose() { docker compose -p lawdesk-staging -f deploy/compose.yaml "$@"; }
+          compose up -d --wait --wait-timeout 300 db
+          compose exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d postgres -q < deploy/postgres/app-role.sql
+          compose up -d --wait --wait-timeout 300
       - name: Smoke test
         run: deploy/scripts/smoke.sh
       - name: Backend runs as the least-privilege role
@@ -210,12 +215,14 @@ jobs:
           deploy/scripts/smoke.sh
       - name: Host-mode deploy, repeat deploy and rollback drill on real images
         run: |
-          # The host layout of /srv/deployments/lawdesk, on this disposable runner: the release unpacked by commit,
-          # the secrets the running database was initialised with, state, backups.
+          # The host layout of /srv/deployments/lawdesk, on this disposable runner: the release unpacked by commit as
+          # the gate and the operator unpack it (umask 027, so nothing is world-readable), a fresh database volume,
+          # the generated secrets, state, backups. This is how the first install on Contabo starts.
+          docker compose -p lawdesk-staging -f deploy/compose.yaml down -v
           home=$RUNNER_TEMP/lawdesk
           release=$home/releases/$LAWDESK_TAG
           mkdir -p "$release" "$home/state"
-          git archive HEAD deploy | tar -x -C "$release"
+          (umask 027 && git archive HEAD deploy | tar -x -C "$release")
           cp -r deploy/secrets "$home/secrets"
           touch "$home/staging.env"
           host_env=(LAWDESK_IMAGE_SOURCE=local "LAWDESK_STATE_DIR=$home/state" "LAWDESK_RELEASES_DIR=$home/releases"
@@ -270,7 +277,9 @@ jobs:
           SHA: ${{ github.sha }}
           BEFORE: ${{ github.event.before }}
           FORCED: ${{ github.event.forced }}
-        run: python3 tools/develop_guard.py --sha "$SHA" --before "$BEFORE" --forced "$FORCED"
+          # "uat": merged pull requests deploy without a QA verdict (owner decision 2026-10-23); unset: strict QA.
+          POLICY: ${{ vars.LAWDESK_DEVELOP_POLICY || 'qa' }}
+        run: python3 tools/develop_guard.py --sha "$SHA" --before "$BEFORE" --forced "$FORCED" --policy "$POLICY"
 
   deploy-staging:
     name: Deploy staging
