@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+# LawDesk staging deploy gate. Installed root-owned as /usr/local/sbin/lawdesk-deploy-gate and run as the
+# `lawdesk-deploy` user, either as the forced command of the CI deploy key
+#   restrict,command="/usr/local/sbin/lawdesk-deploy-gate" ssh-ed25519 AAAA... lawdesk-ci-deploy
+# or by an operator: sudo -u lawdesk-deploy lawdesk-deploy-gate status
+#
+# Requests (exactly one, nothing else is accepted):
+#   deploy <40-hex sha>  fetch develop from GitHub, require the commit to be on it, unpack it into its own release
+#                        directory, build both images on this host, then run that release's deploy/scripts/deploy.sh
+#   rollback             run the current release's rollback.sh (redeploys the previous release)
+#   status               current and previous release and recent history
+#
+# Exit codes: 0 ok, 1 deployment failed (rolled back when possible), 2 usage, 3 another gate run in progress,
+# 4 deployment and rollback failed, 5 commit is not on develop, 6 fetch or image build failed (nothing changed).
+set -euo pipefail
+umask 027
+
+home=${LAWDESK_HOME:-/srv/lawdesk-staging}
+branch=develop
+registry=lawdesk-local
+request=${SSH_ORIGINAL_COMMAND-$*}
+
+usage() {
+    echo "usage: lawdesk-deploy-gate deploy <40-character lowercase sha> | rollback | status" >&2
+    exit 2
+}
+
+# The whole request must match; no shell ever interprets it.
+[[ $request =~ ^(deploy [0-9a-f]{40}|rollback|status)$ ]] || usage
+read -r command sha <<< "$request"
+
+state=$home/state
+releases=$home/releases
+mkdir -p "$state" "$releases" "$home/logs" "$home/backups"
+
+read_state() {
+    [[ -f $state/$1 ]] && cat "$state/$1" || true
+}
+
+if [[ $command == status ]]; then
+    echo "current=$(read_state current-release)"
+    echo "previous=$(read_state previous-release)"
+    echo "history:"
+    [[ -f $state/history.log ]] && tail -n 20 "$state/history.log"
+    exit 0
+fi
+
+exec 8> "$state/gate.lock"
+if ! flock -n 8; then
+    echo "gate: another deployment is in progress" >&2
+    exit 3
+fi
+
+# A CI runner that disconnects must not interrupt a deployment half-way; the log file keeps everything.
+trap '' HUP PIPE
+log=$home/logs/$(date -u +%Y%m%dT%H%M%SZ)-$command${sha:+-$sha}.log
+exec > >(tee -p -a "$log") 2> >(tee -p -a "$log" >&2)
+
+release_env=(
+    LAWDESK_REGISTRY=$registry
+    LAWDESK_IMAGE_SOURCE=local
+    LAWDESK_STATE_DIR=$state
+    LAWDESK_RELEASES_DIR=$releases
+    LAWDESK_ENV_FILE=$home/staging.env
+    LAWDESK_BACKUP_DIR=$home/backups
+    LAWDESK_SECRETS_DIR=$home/secrets
+)
+
+if [[ $command == rollback ]]; then
+    current=$(read_state current-release)
+    if [[ -z $current || ! -x $releases/$current/deploy/scripts/rollback.sh ]]; then
+        echo "gate: no current release to roll back from" >&2
+        exit 2
+    fi
+    status=0
+    env "${release_env[@]}" "$releases/$current/deploy/scripts/rollback.sh" || status=$?
+    echo "RESULT rollback exit=$status"
+    exit "$status"
+fi
+
+repo=$home/repo.git
+echo "gate: fetching $branch"
+if ! git -C "$repo" fetch --quiet --prune origin "+refs/heads/$branch:refs/remotes/origin/$branch"; then
+    echo "gate: fetch failed" >&2
+    exit 6
+fi
+if ! git -C "$repo" cat-file -e "$sha^{commit}" 2> /dev/null ||
+    ! git -C "$repo" merge-base --is-ancestor "$sha" "refs/remotes/origin/$branch"; then
+    echo "gate: $sha is not on $branch; only merged commits are deployed" >&2
+    exit 5
+fi
+
+release=$releases/$sha
+if [[ ! -d $release ]]; then
+    unpack=$releases/.unpack-$sha
+    mkdir -p "$unpack"
+    git -C "$repo" archive --format=tar "$sha" | tar -x -C "$unpack"
+    mv -- "$unpack" "$release"
+fi
+
+for image in backend:backend web:frontend; do
+    name=${image%%:*}
+    context=$release/${image#*:}
+    if docker image inspect "$registry/$name:$sha" > /dev/null 2>&1; then
+        echo "gate: image $registry/$name:$sha already built"
+        continue
+    fi
+    if ! docker build --label "org.opencontainers.image.revision=$sha" -t "$registry/$name:$sha" \
+        -f "$context/Dockerfile" "$context"; then
+        echo "gate: image build failed for $name; the running release is unchanged" >&2
+        exit 6
+    fi
+done
+
+status=0
+env "${release_env[@]}" "$release/deploy/scripts/deploy.sh" "$sha" || status=$?
+if [[ $status == 0 ]]; then
+    echo "RESULT deployed $sha"
+else
+    echo "RESULT failed $sha exit=$status"
+fi
+exit "$status"
