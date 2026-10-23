@@ -27,11 +27,17 @@ FAKE_GH = textwrap.dedent("""\
         f.write(path + "\\n")
     responses = json.load(open(os.environ["FAKE_GH_RESPONSES"]))
     if path.split("?")[0] not in responses:
+        sys.stderr.write("gh: Not Found (HTTP 404)\\n")
         sys.exit(1)
     body = responses[path.split("?")[0]]
-    if "--jq" in args:  # only ".[]" is used: one compact item per line, as gh prints it
-        assert args[args.index("--jq") + 1] == ".[]"
-        for item in body:
+    if isinstance(body, dict) and "fake_http_status" in body:
+        sys.stderr.write(f"gh: error (HTTP {body['fake_http_status']})\\n")
+        sys.exit(1)
+    if "--jq" in args:  # ".[]" or ".check_runs[]": one compact item per line, as gh prints it
+        expression = args[args.index("--jq") + 1]
+        items = body["check_runs"] if expression == ".check_runs[]" else body
+        assert expression in (".[]", ".check_runs[]"), expression
+        for item in items:
             print(json.dumps(item, separators=(",", ":")))
     else:
         json.dump(body, sys.stdout)
@@ -39,12 +45,21 @@ FAKE_GH = textwrap.dedent("""\
 
 
 def pull(number=7, base="develop", merged=True, merge_commit=SHA, head=HEAD):
-    return {"number": number, "base": {"ref": base}, "merged_at": "2026-10-23T00:00:00Z" if merged else None,
+    return {"number": number, "base": {"ref": base}, "merged_at": MERGED_AT if merged else None,
             "merge_commit_sha": merge_commit, "head": {"sha": head}}
 
 
-def comment(body):
-    return {"body": body, "user": {"login": "afawzy70"}}
+GUARD_CHECK = "Develop guard (QA-cleared merge)"
+MERGED_AT = "2026-10-23T12:00:00Z"
+BEFORE_MERGE = "2026-10-23T11:00:00Z"
+
+
+def comment(body, created=BEFORE_MERGE, updated=None):
+    return {"body": body, "user": {"login": "afawzy70"}, "created_at": created, "updated_at": updated or created}
+
+
+def check_run(name=GUARD_CHECK, conclusion="success", app="github-actions"):
+    return {"name": name, "conclusion": conclusion, "app": {"slug": app}}
 
 
 class DevelopGuardTest(unittest.TestCase):
@@ -65,13 +80,19 @@ class DevelopGuardTest(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def respond(self, pulls, comments, parents=(BEFORE, HEAD)):
+    def respond(self, pulls, comments, parents=(BEFORE, HEAD), before_checks=(check_run(),), before_has_guard=True):
         base = "repos/afawzy70/Lawdesk-v1"
-        self.responses.write_text(json.dumps({
+        responses = {
             f"{base}/commits/{SHA}/pulls": pulls,
             f"{base}/commits/{SHA}": {"sha": SHA, "parents": [{"sha": p} for p in parents]},
             f"{base}/issues/7/comments": comments,
-        }), encoding="utf-8")
+            f"{base}/commits/{BEFORE}/check-runs": {"check_runs": list(before_checks)},
+        }
+        if before_has_guard is True:
+            responses[f"{base}/contents/tools/develop_guard.py"] = {"type": "file"}
+        elif before_has_guard is not False:
+            responses[f"{base}/contents/tools/develop_guard.py"] = {"fake_http_status": before_has_guard}
+        self.responses.write_text(json.dumps(responses), encoding="utf-8")
 
     def guard(self, forced="false", before=BEFORE):
         return subprocess.run(["python3", str(GUARD), "--sha", SHA, "--before", before, "--forced", forced],
@@ -130,6 +151,78 @@ class DevelopGuardTest(unittest.TestCase):
 
     def test_the_first_push_of_a_new_develop_branch_skips_the_parent_check(self):
         self.assertEqual(0, self.guard(before="0" * 40).returncode)
+
+    # Bypass scenarios (owner decision 2026-10-23: test them, document what remains; DEVELOP-PROTECTION.md).
+
+    def test_bypass_verdict_posted_after_the_merge_does_not_count(self):
+        # Merge first, post the verdict, re-run the failed guard: must still fail.
+        self.respond(pulls=[pull()], comments=[comment(f"QA-VERDICT: PASS {HEAD}", created="2026-10-23T12:00:01Z")])
+
+        result = self.guard()
+
+        self.assertEqual(1, result.returncode, result.stdout)
+        self.assertIn("QA-VERDICT: PASS", result.stdout)
+
+    def test_bypass_verdict_edited_after_the_merge_does_not_count(self):
+        self.respond(pulls=[pull()], comments=[comment(f"QA-VERDICT: PASS {HEAD}", updated="2026-10-23T13:00:00Z")])
+
+        self.assertEqual(1, self.guard().returncode)
+
+    def test_bypass_verdict_inside_a_code_block_does_not_count(self):
+        body = f"Post this when you are done:\n```\nQA-VERDICT: PASS {HEAD}\n```\n"
+        self.respond(pulls=[pull()], comments=[comment(body)])
+
+        self.assertEqual(1, self.guard().returncode)
+
+    def test_bypass_skip_ci_direct_push_before_a_merge_is_caught(self):
+        # "[skip ci]" on a direct push means no guard run for it; the next merge would carry it along.
+        self.respond(pulls=[pull()], comments=[comment(f"QA-VERDICT: PASS {HEAD}")], before_checks=())
+
+        result = self.guard()
+
+        self.assertEqual(1, result.returncode, result.stdout)
+        self.assertIn("has not passed the develop guard", result.stdout)
+
+    def test_bypass_merging_on_top_of_a_flagged_push_is_caught(self):
+        for checks in [(check_run(conclusion="failure"),), (check_run(app="impostor"),),
+                       (check_run(name="Repository policy"),)]:
+            with self.subTest(checks=checks):
+                self.respond(pulls=[pull()], comments=[comment(f"QA-VERDICT: PASS {HEAD}")], before_checks=checks)
+                self.assertEqual(1, self.guard().returncode)
+
+    def test_qa_recovery_verdict_for_the_exact_unguarded_commit_accepts_the_merge(self):
+        comments = [comment(f"QA-VERDICT: PASS {HEAD}\nQA-VERDICT: RECOVER {BEFORE}")]
+        self.respond(pulls=[pull()], comments=comments, before_checks=())
+
+        result = self.guard()
+
+        self.assertEqual(0, result.returncode, result.stdout)
+        self.assertIn("recover", result.stdout.lower())
+
+    def test_recovery_verdict_for_another_commit_does_not_count(self):
+        comments = [comment(f"QA-VERDICT: PASS {HEAD}\nQA-VERDICT: RECOVER {'6' * 40}")]
+        self.respond(pulls=[pull()], comments=comments, before_checks=())
+
+        self.assertEqual(1, self.guard().returncode)
+
+    def test_the_first_guarded_push_accepts_a_develop_head_from_before_the_guard(self):
+        self.respond(pulls=[pull()], comments=[comment(f"QA-VERDICT: PASS {HEAD}")], before_checks=(),
+                     before_has_guard=False)
+
+        self.assertEqual(0, self.guard().returncode)
+
+    def test_api_errors_fail_closed(self):
+        self.respond(pulls=[pull()], comments=[comment(f"QA-VERDICT: PASS {HEAD}")], before_checks=(),
+                     before_has_guard=500)
+
+        result = self.guard()
+
+        self.assertNotEqual(0, result.returncode)
+
+    def test_the_check_name_matches_the_ci_job(self):
+        import yaml
+        ci = yaml.safe_load((GUARD.parents[1] / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8"))
+        self.assertEqual(GUARD_CHECK, ci["jobs"]["develop-guard"]["name"])
 
     def test_malformed_arguments_are_refused(self):
         result = subprocess.run(["python3", str(GUARD), "--sha", "HEAD", "--before", BEFORE, "--forced", "false"],
