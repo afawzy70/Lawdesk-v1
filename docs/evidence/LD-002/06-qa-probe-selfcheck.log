@@ -1,0 +1,14 @@
+# Developer self-check of docs/delivery/phase-1-qa-probes.json with QA's runner   # 2026-10-23T15:20:47Z
+# NOT independent QA and NOT an approval. Target: backend jar built at db4bf14 on 127.0.0.1:18090, throwaway PostgreSQL 18.6 on 127.0.0.1:55432.
+# Worktree dirty only because docs/delivery/phase-1-qa-probes.json was not yet committed.
+$ LAWDESK_QA_BASE_URL=http://127.0.0.1:18090 python3 -I qa/independent/run.py --contract <copy bound to HEAD> --output <scratch>
+tested_sha db4bf14af37ef7c14a2b966f1b70b63165d17fb7 dirty_worktree True
+  PASS health-public-up ['QA-0009']
+  PASS liveness-up ['QA-0009']
+  PASS readiness-up-with-database ['QA-0009', 'QA-0032']
+  PASS unknown-health-group ['QA-0010']
+  PASS api-anonymous-denied ['QA-0012']
+  PASS actuator-env-not-public ['QA-0013']
+  PASS security-headers ['QA-0349']
+product cases: {'BLOCKED': 351}
+runner exit=2 (expected: probes alone never mark a case PASS)
