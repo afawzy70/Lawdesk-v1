@@ -149,6 +149,30 @@ class FailedDeployTest(DeployScriptTestCase):
         self.assertEqual(SHA_A, self.current())
         self.assertIn(f"rolled back to {SHA_A}", self.history())
 
+    def test_failed_redeploy_of_the_current_release_rolls_back_to_the_previous_one(self):
+        # QAD-013: current B, previous A; B no longer starts, so A must be brought back.
+        self.run_script(DEPLOY, SHA_A)
+        self.run_script(DEPLOY, SHA_B)
+        before = len(self.calls())
+
+        result = self.run_script(DEPLOY, SHA_B, FAKE_FAIL_UP_TAG=SHA_B)
+
+        self.assertEqual(1, result.returncode, result.stderr)
+        self.assertTrue(any(c.startswith(f"LAWDESK_TAG={SHA_A}") and " up -d --wait" in c
+                            for c in self.calls()[before:]), self.calls()[before:])
+        self.assertEqual(SHA_A, self.current())
+        self.assertIsNone(self.previous(), "the failed release must not stay a rollback target")
+        self.assertIn(f"rolled back to {SHA_A}", self.history())
+
+    def test_failed_redeploy_without_a_previous_release_reports_it(self):
+        self.run_script(DEPLOY, SHA_A)
+
+        result = self.run_script(DEPLOY, SHA_A, FAKE_FAIL_UP_TAG=SHA_A)
+
+        self.assertEqual(1, result.returncode)
+        self.assertIn("no previous release", result.stderr)
+        self.assertEqual(SHA_A, self.current())
+
     def test_failed_first_deploy_records_nothing_as_current(self):
         result = self.run_script(DEPLOY, SHA_A, FAKE_FAIL_UP_TAG=SHA_A)
 
