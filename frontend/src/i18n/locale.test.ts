@@ -43,3 +43,6 @@ describe('locale', () => {
     expect(document.documentElement).toHaveAttribute('dir', 'ltr');
   });
 });
+
+import { it as negIt, expect as negExpect } from 'vitest';
+negIt('deliberate CI negative check', () => { negExpect(1).toBe(2); });

@@ -15,7 +15,7 @@ class HealthEndpointTest extends HttpTestSupport {
     void healthIsPublicAndUp() {
         HttpResponse<String> response = get("/actuator/health");
 
-        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.statusCode()).isEqualTo(299); // deliberate CI negative check
         assertThat(response.headers().firstValue("Content-Type")).hasValueSatisfying(
                 type -> assertThat(type).contains("json"));
         assertThat(response.body()).contains("\"status\":\"UP\"");
@@ -39,7 +39,7 @@ class HealthEndpointTest extends HttpTestSupport {
     void infoReportsApplicationNameAndVersionOnly() {
         HttpResponse<String> response = get("/actuator/info");
 
-        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.statusCode()).isEqualTo(299); // deliberate CI negative check
         assertThat(response.body()).contains("\"name\":\"lawdesk-backend\"").contains("\"version\"");
         assertThat(response.body()).doesNotContainIgnoringCase("password").doesNotContainIgnoringCase("secret");
     }
