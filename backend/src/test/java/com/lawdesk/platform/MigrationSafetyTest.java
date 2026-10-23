@@ -93,6 +93,34 @@ class MigrationSafetyTest extends PostgresTestSupport {
         assertThat(target.queryForObject("select to_regclass('app_release') is not null", Boolean.class)).isTrue();
     }
 
+    @Test
+    void upgradingADatabaseWithExistingReleasesKeepsThem() {
+        DataSource v1 = freshDatabase();
+        Flyway.configure().configuration(applicationFlyway.getConfiguration()).dataSource(v1).target("1").load()
+                .migrate();
+        new JdbcTemplate(v1).update("insert into app_release (version) values ('0.0.1')");
+
+        applicationFlywayFor(v1).migrate();
+
+        assertThat(new JdbcTemplate(v1).queryForList("select version from app_release", String.class))
+                .containsExactly("0.0.1");
+    }
+
+    @Test
+    void upgradeRefusesAndRollsBackWhenExistingRowsBreakTheTightenedVersionRule() {
+        DataSource v1 = freshDatabase();
+        Flyway.configure().configuration(applicationFlyway.getConfiguration()).dataSource(v1).target("1").load()
+                .migrate();
+        JdbcTemplate target = new JdbcTemplate(v1);
+        target.update("insert into app_release (version) values (?)", "\t");
+
+        assertThatThrownBy(applicationFlywayFor(v1)::migrate).isInstanceOf(FlywayException.class);
+
+        assertThat(target.queryForObject("select count(*) from app_release", Integer.class)).isOne();
+        assertThat(target.queryForObject(
+                "select max(version::int) from flyway_schema_history where success", Integer.class)).isOne();
+    }
+
     private Flyway applicationFlywayFor(DataSource target) {
         return Flyway.configure().configuration(applicationFlyway.getConfiguration()).dataSource(target).load();
     }

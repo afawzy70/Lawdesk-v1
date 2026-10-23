@@ -7,11 +7,12 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.CreationTimestamp;
 
-/** An application start recorded against this database (see {@code V1__app_release.sql}). */
+/** An application start recorded against this database (see {@code V1__app_release.sql} and {@code V2}). */
 @Entity
 public class AppRelease {
 
@@ -19,7 +20,9 @@ public class AppRelease {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
+    /** Same rule as the database check in {@code V2__app_release_version_visible.sql}: not only whitespace. */
+    @NotNull
+    @Pattern(regexp = "(?s).*[^\\p{IsWhite_Space}\\u200B\\uFEFF].*", message = "must contain a visible character")
     @Size(max = 64)
     @Column(nullable = false, length = 64, updatable = false)
     private String version;
