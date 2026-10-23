@@ -205,7 +205,8 @@ never the current or previous release: `docker image rm lawdesk-local/backend:<o
 | CI cannot run arbitrary commands | forced command + exact request regex | `test_gate.py`, `test_cd_workflow.py` |
 | Only merged code deploys | CI condition + host-side `merge-base --is-ancestor` | `test_cd_workflow.py`, `test_gate.py` |
 | Proxy change is additive and reversible | backup, validate, reload in place, Matbakhy host comparison, auto-restore | `test_proxy_scripts.py`, real Caddy 2.10.2 validation (`docs/evidence/CD/10-*`) |
-| Matbakhy untouched | no compose/restart/stop/rm calls anywhere in LawDesk scripts | `test_proxy_scripts.py`, step 0/9 |
+| Matbakhy containers, volumes and compose project never stopped, restarted or recreated | no compose/restart/stop/rm calls anywhere in LawDesk scripts | `test_proxy_scripts.py`, step 0/9 |
+| **Matbakhy's proxy is modified** (owner-authorised, operator-run only) | `attach.sh`/`detach.sh` copy files into it, connect it to `lawdesk-edge` and reload Caddy; deployments and CI never run them; the live run is not yet validated | `test_proxy_scripts.py`, `docs/evidence/CD/21-*`; live run NOT_RUN |
 
 Residual risk, accepted for staging: `devops` is in the `docker` group, so code merged into `develop` runs with Docker
 rights on this host during deployment. Merges are gated by review, CI and independent QA.

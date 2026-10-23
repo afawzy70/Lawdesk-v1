@@ -174,6 +174,32 @@ class DevelopGuardTest(unittest.TestCase):
 
         self.assertEqual(1, self.guard().returncode)
 
+    def test_bypass_verdict_inside_any_code_fence_does_not_count(self):
+        # Review finding on f492e0c: unclosed and indented fences, tildes, and a shorter closing fence.
+        verdict = f"QA-VERDICT: PASS {HEAD}"
+        for label, body in {
+            "unclosed fence": f"Example:\n```\n{verdict}\n",
+            "fence indented two spaces": f"Example:\n  ```\n{verdict}\n  ```\n",
+            "tilde fence": f"~~~text\n{verdict}\n~~~\n",
+            "longer fence not closed by a shorter one": f"````\n```\n{verdict}\n````\n",
+            "closing fence of the other kind": f"```\n~~~\n{verdict}\n```\n",
+        }.items():
+            with self.subTest(label):
+                self.respond(pulls=[pull()], comments=[comment(body)])
+                self.assertEqual(1, self.guard().returncode, body)
+
+    def test_verdict_after_a_closed_fence_counts(self):
+        body = f"```\nexample\n```\nQA-VERDICT: PASS {HEAD}\n"
+        self.respond(pulls=[pull()], comments=[comment(body)])
+
+        self.assertEqual(0, self.guard().returncode)
+
+    def test_recover_verdict_inside_a_code_fence_does_not_count(self):
+        comments = [comment(f"QA-VERDICT: PASS {HEAD}\n```\nQA-VERDICT: RECOVER {BEFORE}\n")]
+        self.respond(pulls=[pull()], comments=comments, before_checks=())
+
+        self.assertEqual(1, self.guard().returncode)
+
     def test_bypass_skip_ci_direct_push_before_a_merge_is_caught(self):
         # "[skip ci]" on a direct push means no guard run for it; the next merge would carry it along.
         self.respond(pulls=[pull()], comments=[comment(f"QA-VERDICT: PASS {HEAD}")], before_checks=())

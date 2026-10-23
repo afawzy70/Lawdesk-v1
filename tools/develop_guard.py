@@ -21,10 +21,12 @@ import subprocess
 import sys
 
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
-VERDICT_RE = re.compile(r"^QA-VERDICT: ([A-Z_]+) ([0-9a-f]{40})\s*$", re.MULTILINE)
+VERDICT_RE = re.compile(r"QA-VERDICT: ([A-Z_]+) ([0-9a-f]{40})\s*")
 ZERO = "0" * 40
 GUARD_CHECK = "Develop guard (QA-cleared merge)"  # the name of the develop-guard job in ci.yml
-FENCE_RE = re.compile(r"^(```|~~~).*?^\1[^\n]*$", re.MULTILINE | re.DOTALL)
+# A fence opens with 3+ backticks or tildes indented at most 3 spaces; only the same character, at least as long and with
+# nothing after it, closes it; an unclosed fence runs to the end of the comment (CommonMark).
+FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
 
 
 def api(path):
@@ -54,10 +56,27 @@ def latest_verdict(comments, sha, merged_at):
     for comment in comments:
         if comment["created_at"] > merged_at or comment.get("updated_at", comment["created_at"]) > merged_at:
             continue
-        for state, verdict_sha in VERDICT_RE.findall(FENCE_RE.sub("", comment.get("body") or "")):
+        for state, verdict_sha in verdicts(comment.get("body") or ""):
             if verdict_sha == sha:
                 verdict = state
     return verdict
+
+
+def verdicts(body):
+    """(state, sha) for each verdict line: unindented, unquoted and outside code fences."""
+    fence = None
+    for line in body.splitlines():
+        opening = FENCE_RE.match(line)
+        if fence is None:
+            if opening and not (opening.group(1)[0] == "`" and "`" in opening.group(2)):
+                fence = opening.group(1)
+                continue
+            verdict = VERDICT_RE.fullmatch(line)
+            if verdict:
+                yield verdict.group(1), verdict.group(2)
+        elif opening and opening.group(1)[0] == fence[0] and len(opening.group(1)) >= len(fence) \
+                and not opening.group(2).strip():
+            fence = None
 
 
 def guarded(repo, sha):

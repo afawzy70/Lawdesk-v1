@@ -76,7 +76,9 @@ class CallFromCiTest(unittest.TestCase):
         guard = self.ci["jobs"][GUARD]
         self.assertIn("github.event_name == 'push'", guard["if"])
         self.assertIn("github.ref == 'refs/heads/develop'", guard["if"])
-        self.assertEqual({"contents": "read", "pull-requests": "read"}, guard["permissions"])
+        # contents: the guard file at the parent; pull-requests: the merged PR and its comments; checks: the parent's
+        # guard run (the check-runs endpoint needs Checks read on a private repository).
+        self.assertEqual({"contents": "read", "pull-requests": "read", "checks": "read"}, guard["permissions"])
         script = "\n".join(s["run"] for s in guard["steps"] if "run" in s)
         self.assertIn("tools/develop_guard.py", script)
         self.assertNotIn("${{", script)

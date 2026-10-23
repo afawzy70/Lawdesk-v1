@@ -1,0 +1,9 @@
+# RED for review findings on f492e0c (P1 guard permissions, P2 code fences) 2026-10-23T19:50:45Z
+$ python3 -m unittest discover -s tools/tests
+FAIL: test_develop_guard_checks_every_push_to_develop (test_cd_workflow.CallFromCiTest.test_develop_guard_checks_every_push_to_develop)
+FAIL: test_bypass_verdict_inside_any_code_fence_does_not_count (test_develop_guard.DevelopGuardTest.test_bypass_verdict_inside_any_code_fence_does_not_count) [unclosed fence]
+FAIL: test_bypass_verdict_inside_any_code_fence_does_not_count (test_develop_guard.DevelopGuardTest.test_bypass_verdict_inside_any_code_fence_does_not_count) [fence indented two spaces]
+FAIL: test_bypass_verdict_inside_any_code_fence_does_not_count (test_develop_guard.DevelopGuardTest.test_bypass_verdict_inside_any_code_fence_does_not_count) [longer fence not closed by a shorter one]
+FAIL: test_recover_verdict_inside_a_code_fence_does_not_count (test_develop_guard.DevelopGuardTest.test_recover_verdict_inside_a_code_fence_does_not_count)
+Ran 84 tests in 12.798s
+FAILED (failures=5)
