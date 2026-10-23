@@ -1,0 +1,51 @@
+$ python3 -I -m unittest discover -s tools/tests -v   # 2026-10-23T14:47:04Z — after correcting the gitleaks command assertion
+test_backend_gate_runs_full_maven_verify_on_java_21 (test_ci_workflow.RequiredGatesTest.test_backend_gate_runs_full_maven_verify_on_java_21) ... ok
+test_backend_suite_also_runs_against_the_official_postgres_image (test_ci_workflow.RequiredGatesTest.test_backend_suite_also_runs_against_the_official_postgres_image) ... ok
+test_downloaded_tools_are_checksum_verified (test_ci_workflow.RequiredGatesTest.test_downloaded_tools_are_checksum_verified) ... ok
+test_frontend_gate_runs_lint_typecheck_tests_with_coverage_and_build (test_ci_workflow.RequiredGatesTest.test_frontend_gate_runs_lint_typecheck_tests_with_coverage_and_build) ... ok
+test_repository_policy_gate (test_ci_workflow.RequiredGatesTest.test_repository_policy_gate) ... ok
+test_secret_scan_gate_covers_full_history (test_ci_workflow.RequiredGatesTest.test_secret_scan_gate_covers_full_history) ... ok
+test_every_third_party_action_is_pinned_to_a_commit_sha (test_ci_workflow.SecurityPostureTest.test_every_third_party_action_is_pinned_to_a_commit_sha) ... ok
+test_jobs_have_timeouts (test_ci_workflow.SecurityPostureTest.test_jobs_have_timeouts) ... ok
+test_pull_request_target_is_never_used (test_ci_workflow.SecurityPostureTest.test_pull_request_target_is_never_used) ... ok
+test_token_is_read_only_by_default (test_ci_workflow.SecurityPostureTest.test_token_is_read_only_by_default) ... ok
+test_runs_on_pull_requests_and_pushes_to_integration_branches (test_ci_workflow.TriggerTest.test_runs_on_pull_requests_and_pushes_to_integration_branches) ... ok
+test_accepts_long_lived_and_conventional_work_branches (test_repo_policy.BranchNameTest.test_accepts_long_lived_and_conventional_work_branches) ... ok
+test_rejects_malformed_names (test_repo_policy.BranchNameTest.test_rejects_malformed_names) ... ok
+test_rejects_unknown_prefix_with_actionable_message (test_repo_policy.BranchNameTest.test_rejects_unknown_prefix_with_actionable_message) ... ok
+test_commit_msg_reads_file (test_repo_policy.CommandLineTest.test_commit_msg_reads_file) ... ok
+test_invalid_branch_exits_nonzero_with_message_on_stderr (test_repo_policy.CommandLineTest.test_invalid_branch_exits_nonzero_with_message_on_stderr) ... ok
+test_pr_flow (test_repo_policy.CommandLineTest.test_pr_flow) ... ok
+test_unknown_command_is_usage_error (test_repo_policy.CommandLineTest.test_unknown_command_is_usage_error) ... ok
+test_valid_branch_exits_zero (test_repo_policy.CommandLineTest.test_valid_branch_exits_zero) ... ok
+test_accepts_conventional_commits (test_repo_policy.CommitMessageTest.test_accepts_conventional_commits) ... ok
+test_ignores_git_comment_lines (test_repo_policy.CommitMessageTest.test_ignores_git_comment_lines) ... ok
+test_rejects_empty_message (test_repo_policy.CommitMessageTest.test_rejects_empty_message) ... ok
+test_rejects_free_form_subject (test_repo_policy.CommitMessageTest.test_rejects_free_form_subject) ... ok
+test_rejects_overlong_subject (test_repo_policy.CommitMessageTest.test_rejects_overlong_subject) ... ok
+test_feature_branch_into_main_is_rejected (test_repo_policy.PullRequestFlowTest.test_feature_branch_into_main_is_rejected) ... ok
+test_invalid_head_name_is_reported (test_repo_policy.PullRequestFlowTest.test_invalid_head_name_is_reported) ... ok
+test_only_release_and_hotfix_target_main (test_repo_policy.PullRequestFlowTest.test_only_release_and_hotfix_target_main) ... ok
+test_unknown_base_is_rejected (test_repo_policy.PullRequestFlowTest.test_unknown_base_is_rejected) ... ok
+test_work_branches_target_develop (test_repo_policy.PullRequestFlowTest.test_work_branches_target_develop) ... ok
+test_missing_files_are_listed (test_repo_policy.RepositoryLayoutTest.test_missing_files_are_listed) ... ok
+test_this_repository_satisfies_required_layout (test_repo_policy.RepositoryLayoutTest.test_this_repository_satisfies_required_layout) ... ok
+
+----------------------------------------------------------------------
+Ran 31 tests in 0.716s
+
+OK
+exit=0
+
+$ actionlint
+exit=0
+
+# gitleaks scans committed history; staged working tree scanned separately
+$ gitleaks git --redact --no-banner --exit-code 1 .
+4:47PM INF scanned ~2529645 bytes (2.53 MB) in 1.07s
+4:47PM INF no leaks found
+exit=0
+$ gitleaks dir --redact --no-banner --exit-code 1 .   # working tree
+4:47PM INF scanned ~2262251 bytes (2.26 MB) in 437ms
+4:47PM INF no leaks found
+exit=0

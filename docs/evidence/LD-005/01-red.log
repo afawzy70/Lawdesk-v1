@@ -1,0 +1,203 @@
+$ python3 -I -m unittest discover -s tools/tests -v   # 2026-10-23T14:43:53Z — CI contract tests written, no workflow yet
+test_backend_gate_runs_full_maven_verify_on_java_21 (test_ci_workflow.RequiredGatesTest.test_backend_gate_runs_full_maven_verify_on_java_21) ... ERROR
+test_backend_suite_also_runs_against_the_official_postgres_image (test_ci_workflow.RequiredGatesTest.test_backend_suite_also_runs_against_the_official_postgres_image) ... ERROR
+test_downloaded_tools_are_checksum_verified (test_ci_workflow.RequiredGatesTest.test_downloaded_tools_are_checksum_verified) ... ERROR
+test_frontend_gate_runs_lint_typecheck_tests_with_coverage_and_build (test_ci_workflow.RequiredGatesTest.test_frontend_gate_runs_lint_typecheck_tests_with_coverage_and_build) ... ERROR
+test_repository_policy_gate (test_ci_workflow.RequiredGatesTest.test_repository_policy_gate) ... ERROR
+test_secret_scan_gate_covers_full_history (test_ci_workflow.RequiredGatesTest.test_secret_scan_gate_covers_full_history) ... ERROR
+test_every_third_party_action_is_pinned_to_a_commit_sha (test_ci_workflow.SecurityPostureTest.test_every_third_party_action_is_pinned_to_a_commit_sha) ... ERROR
+test_jobs_have_timeouts (test_ci_workflow.SecurityPostureTest.test_jobs_have_timeouts) ... ERROR
+test_pull_request_target_is_never_used (test_ci_workflow.SecurityPostureTest.test_pull_request_target_is_never_used) ... ERROR
+test_token_is_read_only_by_default (test_ci_workflow.SecurityPostureTest.test_token_is_read_only_by_default) ... ERROR
+test_runs_on_pull_requests_and_pushes_to_integration_branches (test_ci_workflow.TriggerTest.test_runs_on_pull_requests_and_pushes_to_integration_branches) ... ERROR
+test_accepts_long_lived_and_conventional_work_branches (test_repo_policy.BranchNameTest.test_accepts_long_lived_and_conventional_work_branches) ... ok
+test_rejects_malformed_names (test_repo_policy.BranchNameTest.test_rejects_malformed_names) ... ok
+test_rejects_unknown_prefix_with_actionable_message (test_repo_policy.BranchNameTest.test_rejects_unknown_prefix_with_actionable_message) ... ok
+test_commit_msg_reads_file (test_repo_policy.CommandLineTest.test_commit_msg_reads_file) ... ok
+test_invalid_branch_exits_nonzero_with_message_on_stderr (test_repo_policy.CommandLineTest.test_invalid_branch_exits_nonzero_with_message_on_stderr) ... ok
+test_pr_flow (test_repo_policy.CommandLineTest.test_pr_flow) ... ok
+test_unknown_command_is_usage_error (test_repo_policy.CommandLineTest.test_unknown_command_is_usage_error) ... ok
+test_valid_branch_exits_zero (test_repo_policy.CommandLineTest.test_valid_branch_exits_zero) ... ok
+test_accepts_conventional_commits (test_repo_policy.CommitMessageTest.test_accepts_conventional_commits) ... ok
+test_ignores_git_comment_lines (test_repo_policy.CommitMessageTest.test_ignores_git_comment_lines) ... ok
+test_rejects_empty_message (test_repo_policy.CommitMessageTest.test_rejects_empty_message) ... ok
+test_rejects_free_form_subject (test_repo_policy.CommitMessageTest.test_rejects_free_form_subject) ... ok
+test_rejects_overlong_subject (test_repo_policy.CommitMessageTest.test_rejects_overlong_subject) ... ok
+test_feature_branch_into_main_is_rejected (test_repo_policy.PullRequestFlowTest.test_feature_branch_into_main_is_rejected) ... ok
+test_invalid_head_name_is_reported (test_repo_policy.PullRequestFlowTest.test_invalid_head_name_is_reported) ... ok
+test_only_release_and_hotfix_target_main (test_repo_policy.PullRequestFlowTest.test_only_release_and_hotfix_target_main) ... ok
+test_unknown_base_is_rejected (test_repo_policy.PullRequestFlowTest.test_unknown_base_is_rejected) ... ok
+test_work_branches_target_develop (test_repo_policy.PullRequestFlowTest.test_work_branches_target_develop) ... ok
+test_missing_files_are_listed (test_repo_policy.RepositoryLayoutTest.test_missing_files_are_listed) ... ok
+test_this_repository_satisfies_required_layout (test_repo_policy.RepositoryLayoutTest.test_this_repository_satisfies_required_layout) ... ok
+
+======================================================================
+ERROR: test_backend_gate_runs_full_maven_verify_on_java_21 (test_ci_workflow.RequiredGatesTest.test_backend_gate_runs_full_maven_verify_on_java_21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 62, in setUp
+    self.jobs = load_workflow()["jobs"]
+                ^^^^^^^^^^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 18, in load_workflow
+    with WORKFLOW.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/.github/workflows/ci.yml'
+
+======================================================================
+ERROR: test_backend_suite_also_runs_against_the_official_postgres_image (test_ci_workflow.RequiredGatesTest.test_backend_suite_also_runs_against_the_official_postgres_image)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 62, in setUp
+    self.jobs = load_workflow()["jobs"]
+                ^^^^^^^^^^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 18, in load_workflow
+    with WORKFLOW.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/.github/workflows/ci.yml'
+
+======================================================================
+ERROR: test_downloaded_tools_are_checksum_verified (test_ci_workflow.RequiredGatesTest.test_downloaded_tools_are_checksum_verified)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 62, in setUp
+    self.jobs = load_workflow()["jobs"]
+                ^^^^^^^^^^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 18, in load_workflow
+    with WORKFLOW.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/.github/workflows/ci.yml'
+
+======================================================================
+ERROR: test_frontend_gate_runs_lint_typecheck_tests_with_coverage_and_build (test_ci_workflow.RequiredGatesTest.test_frontend_gate_runs_lint_typecheck_tests_with_coverage_and_build)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 62, in setUp
+    self.jobs = load_workflow()["jobs"]
+                ^^^^^^^^^^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 18, in load_workflow
+    with WORKFLOW.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/.github/workflows/ci.yml'
+
+======================================================================
+ERROR: test_repository_policy_gate (test_ci_workflow.RequiredGatesTest.test_repository_policy_gate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 62, in setUp
+    self.jobs = load_workflow()["jobs"]
+                ^^^^^^^^^^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 18, in load_workflow
+    with WORKFLOW.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/.github/workflows/ci.yml'
+
+======================================================================
+ERROR: test_secret_scan_gate_covers_full_history (test_ci_workflow.RequiredGatesTest.test_secret_scan_gate_covers_full_history)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 62, in setUp
+    self.jobs = load_workflow()["jobs"]
+                ^^^^^^^^^^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 18, in load_workflow
+    with WORKFLOW.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/.github/workflows/ci.yml'
+
+======================================================================
+ERROR: test_every_third_party_action_is_pinned_to_a_commit_sha (test_ci_workflow.SecurityPostureTest.test_every_third_party_action_is_pinned_to_a_commit_sha)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 46, in test_every_third_party_action_is_pinned_to_a_commit_sha
+    for name, job in load_workflow()["jobs"].items():
+                     ^^^^^^^^^^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 18, in load_workflow
+    with WORKFLOW.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/.github/workflows/ci.yml'
+
+======================================================================
+ERROR: test_jobs_have_timeouts (test_ci_workflow.SecurityPostureTest.test_jobs_have_timeouts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 52, in test_jobs_have_timeouts
+    for name, job in load_workflow()["jobs"].items():
+                     ^^^^^^^^^^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 18, in load_workflow
+    with WORKFLOW.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/.github/workflows/ci.yml'
+
+======================================================================
+ERROR: test_pull_request_target_is_never_used (test_ci_workflow.SecurityPostureTest.test_pull_request_target_is_never_used)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 57, in test_pull_request_target_is_never_used
+    self.assertNotIn("pull_request_target", load_workflow()["on"])
+                                            ^^^^^^^^^^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 18, in load_workflow
+    with WORKFLOW.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/.github/workflows/ci.yml'
+
+======================================================================
+ERROR: test_token_is_read_only_by_default (test_ci_workflow.SecurityPostureTest.test_token_is_read_only_by_default)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 43, in test_token_is_read_only_by_default
+    self.assertEqual({"contents": "read"}, load_workflow()["permissions"])
+                                           ^^^^^^^^^^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 18, in load_workflow
+    with WORKFLOW.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/.github/workflows/ci.yml'
+
+======================================================================
+ERROR: test_runs_on_pull_requests_and_pushes_to_integration_branches (test_ci_workflow.TriggerTest.test_runs_on_pull_requests_and_pushes_to_integration_branches)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 35, in test_runs_on_pull_requests_and_pushes_to_integration_branches
+    on = load_workflow()["on"]
+         ^^^^^^^^^^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_ci_workflow.py", line 18, in load_workflow
+    with WORKFLOW.open(encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/.github/workflows/ci.yml'
+
+----------------------------------------------------------------------
+Ran 31 tests in 0.373s
+
+FAILED (errors=11)
+exit=1
