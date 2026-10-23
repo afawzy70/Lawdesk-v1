@@ -68,40 +68,6 @@ Acceptance criteria:
 Cross-cutting cases touched (not closed): QA-0348 (no request data in logs — `completedRequestIsLoggedAsStructuredJson…`),
 QA-0349 (security headers — `responsesCarryBaselineSecurityHeaders`). Secure cookies are Phase 2.
 
-## LD-004 PostgreSQL migrations and test isolation
-
-Acceptance criteria:
-
-1. PostgreSQL 18 (18.6) is the database. Schema changes happen only through versioned Flyway migrations in
-   `backend/src/main/resources/db/migration`; Hibernate runs with `ddl-auto=validate` and open-in-view is off.
-2. The baseline migration `V1__app_release.sql` creates `app_release`; the application records its build version
-   there at every start, giving deployment and rollback evidence.
-3. Validation is enforced twice: bean validation rejects blank or >64-character versions before SQL is issued, and
-   database constraints reject the same values when the application is bypassed. Rejected writes persist nothing.
-4. A failed transaction leaves no partial rows; a failing migration leaves no partial schema and no success entry.
-5. After a rollback to a previous release, that release still validates against a schema that already contains the
-   newer release's migrations (Flyway ignores future migrations).
-6. Readiness includes database health; liveness does not.
-7. Tests use real PostgreSQL, never H2: each Spring test context gets a freshly created database with migrations
-   applied from scratch, on an embedded PostgreSQL 18.6 server by default or on an external server given by
-   `LAWDESK_TEST_DB_URL`/`_USER`/`_PASSWORD` (CI runs the official image this way from LD-005). Connection
-   settings come only from environment variables; no credentials are committed.
-
-| QA case | Scenario | Mapping | Status |
-|---------|----------|---------|--------|
-| QA-0025 | authorized happy path | `baselineMigrationIsApplied`, `persistsAndReadsBackARelease`, `recordsTheRunningReleaseAtStartup` | AUTOMATED |
-| QA-0026 | required-field validation | `rejectsMissingVersionWithoutPersisting` (blank, null) | AUTOMATED |
-| QA-0027 | invalid input boundary | `acceptsVersionAtTheLengthLimitAndRejectsOneCharacterMore`, `databaseEnforcesTheSameRules…` | AUTOMATED |
-| QA-0028 | unauthenticated access | No data endpoints exist; `/api/**` is deny-by-default (LD-002). DB credentials only via environment | N/A (reviewer to confirm) |
-| QA-0029 | insufficient permission | Least-privilege DB role (app user owns only its schema, no superuser) is configured in LD-006 compose | BLOCKED until LD-006 |
-| QA-0030 | record integrity and rollback | `failedTransactionLeavesNoPartialData`, `failingMigrationIsRolledBackCompletely`, `previousReleaseStillValidates…` | AUTOMATED |
-| QA-0031 | concurrent or repeat request | `concurrentInsertsGetDistinctIdentifiers` (10 parallel inserts) | AUTOMATED |
-| QA-0032 | API-to-UI state and error handling | `readinessDependsOnTheDatabaseButLivenessDoesNot`; UI shows "API unavailable" when readiness fails (LD-003) | AUTOMATED (partial) |
-
-## LD-005 … LD-006
-
-Refined in each story's kickoff commit before its RED step.
-
 ## LD-003 React application shell
 
 Acceptance criteria:
@@ -140,3 +106,37 @@ Acceptance criteria:
 
 Evidence: `docs/evidence/LD-003/` (`01-red.log` missing modules, `02-red-stubs.log` failing assertions against
 signature stubs, `03-green.log`, `04-refactor.log` with lint, typecheck, tests, coverage, build and repo tooling).
+
+## LD-004 PostgreSQL migrations and test isolation
+
+Acceptance criteria:
+
+1. PostgreSQL 18 (18.6) is the database. Schema changes happen only through versioned Flyway migrations in
+   `backend/src/main/resources/db/migration`; Hibernate runs with `ddl-auto=validate` and open-in-view is off.
+2. The baseline migration `V1__app_release.sql` creates `app_release`; the application records its build version
+   there at every start, giving deployment and rollback evidence.
+3. Validation is enforced twice: bean validation rejects blank or >64-character versions before SQL is issued, and
+   database constraints reject the same values when the application is bypassed. Rejected writes persist nothing.
+4. A failed transaction leaves no partial rows; a failing migration leaves no partial schema and no success entry.
+5. After a rollback to a previous release, that release still validates against a schema that already contains the
+   newer release's migrations (Flyway ignores future migrations).
+6. Readiness includes database health; liveness does not.
+7. Tests use real PostgreSQL, never H2: each Spring test context gets a freshly created database with migrations
+   applied from scratch, on an embedded PostgreSQL 18.6 server by default or on an external server given by
+   `LAWDESK_TEST_DB_URL`/`_USER`/`_PASSWORD` (CI runs the official image this way from LD-005). Connection
+   settings come only from environment variables; no credentials are committed.
+
+| QA case | Scenario | Mapping | Status |
+|---------|----------|---------|--------|
+| QA-0025 | authorized happy path | `baselineMigrationIsApplied`, `persistsAndReadsBackARelease`, `recordsTheRunningReleaseAtStartup` | AUTOMATED |
+| QA-0026 | required-field validation | `rejectsMissingVersionWithoutPersisting` (blank, null) | AUTOMATED |
+| QA-0027 | invalid input boundary | `acceptsVersionAtTheLengthLimitAndRejectsOneCharacterMore`, `databaseEnforcesTheSameRules…` | AUTOMATED |
+| QA-0028 | unauthenticated access | No data endpoints exist; `/api/**` is deny-by-default (LD-002). DB credentials only via environment | N/A (reviewer to confirm) |
+| QA-0029 | insufficient permission | Least-privilege DB role (app user owns only its schema, no superuser) is configured in LD-006 compose | BLOCKED until LD-006 |
+| QA-0030 | record integrity and rollback | `failedTransactionLeavesNoPartialData`, `failingMigrationIsRolledBackCompletely`, `previousReleaseStillValidates…` | AUTOMATED |
+| QA-0031 | concurrent or repeat request | `concurrentInsertsGetDistinctIdentifiers` (10 parallel inserts) | AUTOMATED |
+| QA-0032 | API-to-UI state and error handling | `readinessDependsOnTheDatabaseButLivenessDoesNot`; UI shows "API unavailable" when readiness fails (LD-003) | AUTOMATED (partial) |
+
+## LD-005 … LD-006
+
+Refined in each story's kickoff commit before its RED step.

@@ -8,9 +8,9 @@ Branch: `feature/phase-1-foundation` → PR into `develop`. Update this file at 
 |-------|-------------------------|--------|----------|
 | LD-001 | Repository structure and conventions (item 1) | GREEN + REFACTOR done, awaiting QA review | `docs/evidence/LD-001/` |
 | LD-002 | Spring Boot backend, health checks, structured logging (items 2, 8) | GREEN + REFACTOR done (23 tests), awaiting QA review | `docs/evidence/LD-002/` |
-| LD-003 | React + TypeScript shell (item 3) | In progress in parallel on `feature/LD-003-react-shell`, to be merged into the phase branch | `docs/evidence/LD-003/` |
+| LD-003 | React + TypeScript shell (item 3) | GREEN + REFACTOR done (50 tests), merged from `feature/LD-003-react-shell` and re-verified by lead; awaiting QA review | `docs/evidence/LD-003/` |
 | LD-004 | PostgreSQL migrations, test isolation (items 4, 5) | GREEN + REFACTOR done (37 backend tests), awaiting QA review | `docs/evidence/LD-004/` |
-| LD-005 | GitHub Actions CI gates (items 5, 6) | Not started | — |
+| LD-005 | GitHub Actions CI gates (items 5, 6) | In progress | `docs/evidence/LD-005/` |
 | LD-006 | Compose staging, observability, deploy + rollback, HTTPS proxy (items 7, 8, 9) | Not started; deploy blocked on B1, B2 | — |
 
 ## Open blockers / owner decisions
