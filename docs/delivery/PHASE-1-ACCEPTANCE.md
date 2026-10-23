@@ -189,7 +189,7 @@ Acceptance criteria:
 5. Smoke test from inside the web container: `/healthz`, `/`, readiness UP, `/api/v1/cases` → 401, `/actuator/env` → 404.
 6. Baseline observability: ECS JSON logs with request ids, readiness tied to the database (503 during an outage,
    recovering afterwards, liveness unaffected), `app_release` row and log line per start, deploy history file.
-7. HTTPS on a dedicated hostname through the shared proxy — **prepared, not applied** (`deploy/proxy/lawdesk.caddy`,
+7. HTTPS on a dedicated hostname through the shared proxy — **prepared, not applied** (`deploy/proxy/attach.sh`,
    B1). Deployment on Contabo — **blocked** (B2: no deploy mechanism, `aiagent` has no Docker access).
 
 | QA case | Scenario | Mapping | Status |

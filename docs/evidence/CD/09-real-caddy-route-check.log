@@ -1,0 +1,12 @@
+LawDesk Caddy block on real Caddy 2.10.2 (HTTP stand-in for TLS). Upstream = python http.server serving index.html and actuator/health/index.html; 'via' is a body heuristic.
+/                                200 bytes=12 via=upstream
+/index.html                      200 bytes=12 via=upstream
+/actuator/health                 301 bytes=0 via=caddy
+/actuator/health/liveness        404 bytes=335 via=upstream
+/actuator/health/readiness       404 bytes=335 via=upstream
+/actuator/env                    404 bytes=0 via=caddy
+/actuator                        404 bytes=0 via=caddy
+/actuator/info                   404 bytes=0 via=caddy
+/actuator/heapdump               404 bytes=0 via=caddy
+/actuator/healthz                404 bytes=0 via=caddy
+Note: /actuator/health 301 is python http.server's directory redirect (upstream reached); liveness/readiness 404 pages are python's (upstream reached). Every other /actuator path is answered by Caddy itself with an empty 404.
