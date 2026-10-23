@@ -1,0 +1,216 @@
+[
+  {
+    "id": "QAD-001",
+    "type": "BASELINE_GAP",
+    "status": "OPEN",
+    "severity": "High",
+    "title": "All stories use generic acceptance criteria",
+    "tested_sha": "8ff061cf59c1bdd2e2ef41c2cc6fbc53acc0af4d",
+    "environment": "repository-only static review; no product runtime",
+    "source": "product/stories.json",
+    "story_ids": [
+      "LD-001",
+      "LD-002",
+      "LD-003",
+      "LD-004",
+      "LD-005",
+      "LD-006",
+      "LD-007",
+      "LD-008",
+      "LD-009",
+      "LD-010",
+      "LD-011",
+      "LD-012",
+      "LD-013",
+      "LD-014",
+      "LD-015",
+      "LD-016",
+      "LD-017",
+      "LD-018",
+      "LD-019",
+      "LD-020",
+      "LD-021",
+      "LD-022",
+      "LD-023",
+      "LD-024",
+      "LD-025",
+      "LD-026",
+      "LD-027",
+      "LD-028",
+      "LD-029",
+      "LD-030",
+      "LD-031",
+      "LD-032",
+      "LD-033",
+      "LD-034",
+      "LD-035",
+      "LD-036",
+      "LD-037",
+      "LD-038",
+      "LD-039",
+      "LD-040",
+      "LD-041",
+      "LD-042"
+    ],
+    "preconditions": [
+      "Checkout baseline SHA; no application required."
+    ],
+    "test_data": {
+      "documents": "approved repository baseline files"
+    },
+    "reproduction_steps": [
+      "Read every acceptance_criteria array; compare after replacing the title."
+    ],
+    "actual_result": "42 stories; each has 3 generic criteria and DRAFT_NEEDS_REFINEMENT.",
+    "expected_result": "Story-specific observable outcomes, data contracts, roles, edge and error rules.",
+    "failed_assertion": "42 stories; each has 3 generic criteria and DRAFT_NEEDS_REFINEMENT.",
+    "product_vulnerability_confirmed": false
+  },
+  {
+    "id": "QAD-002",
+    "type": "BASELINE_GAP",
+    "status": "OPEN",
+    "severity": "High",
+    "title": "Baseline cases lack executable data and priority",
+    "tested_sha": "8ff061cf59c1bdd2e2ef41c2cc6fbc53acc0af4d",
+    "environment": "repository-only static review; no product runtime",
+    "source": "qa/test-cases.json",
+    "story_ids": [
+      "LD-039"
+    ],
+    "preconditions": [
+      "Checkout baseline SHA; no application required."
+    ],
+    "test_data": {
+      "documents": "approved repository baseline files"
+    },
+    "reproduction_steps": [
+      "Inspect all 351 cases for priority and test_data, and concrete steps/expected outputs."
+    ],
+    "actual_result": "No case contains priority or test_data; steps and expected are generic templates.",
+    "expected_result": "Each case has concrete fixtures, steps, oracles, priority, traceability and execution evidence.",
+    "failed_assertion": "No case contains priority or test_data; steps and expected are generic templates.",
+    "product_vulnerability_confirmed": false
+  },
+  {
+    "id": "QAD-003",
+    "type": "BASELINE_GAP",
+    "status": "OPEN",
+    "severity": "High",
+    "title": "Security contract incomplete",
+    "tested_sha": "8ff061cf59c1bdd2e2ef41c2cc6fbc53acc0af4d",
+    "environment": "repository-only static review; no product runtime",
+    "source": "architecture/DECISIONS.md",
+    "story_ids": [
+      "LD-007",
+      "LD-008",
+      "LD-009",
+      "LD-010",
+      "LD-011",
+      "LD-040"
+    ],
+    "preconditions": [
+      "Checkout baseline SHA; no application required."
+    ],
+    "test_data": {
+      "documents": "approved repository baseline files"
+    },
+    "reproduction_steps": [
+      "Read session/CSRF decision and compare LD-007 through LD-011 criteria."
+    ],
+    "actual_result": "Session/CSRF deferred; no endpoint/role/record scope matrix or revocation policy.",
+    "expected_result": "Signed security contract before accepting security implementation.",
+    "failed_assertion": "Session/CSRF deferred; no endpoint/role/record scope matrix or revocation policy.",
+    "product_vulnerability_confirmed": false
+  },
+  {
+    "id": "QAD-004",
+    "type": "BASELINE_GAP",
+    "status": "OPEN",
+    "severity": "High",
+    "title": "Judicial/date rules undefined",
+    "tested_sha": "8ff061cf59c1bdd2e2ef41c2cc6fbc53acc0af4d",
+    "environment": "repository-only static review; no product runtime",
+    "source": "product/stories.json",
+    "story_ids": [
+      "LD-017",
+      "LD-019",
+      "LD-020",
+      "LD-021",
+      "LD-023",
+      "LD-024",
+      "LD-028"
+    ],
+    "preconditions": [
+      "Checkout baseline SHA; no application required."
+    ],
+    "test_data": {
+      "documents": "approved repository baseline files"
+    },
+    "reproduction_steps": [
+      "Read LD-017 through LD-028; look for states, transitions, eligibility, deadlines and timezone."
+    ],
+    "actual_result": "Titles and generic criteria do not define these rules.",
+    "expected_result": "Product-approved transition/eligibility/date decision tables.",
+    "failed_assertion": "Titles and generic criteria do not define these rules.",
+    "product_vulnerability_confirmed": false
+  },
+  {
+    "id": "QAD-005",
+    "type": "BASELINE_GAP",
+    "status": "OPEN",
+    "severity": "Medium",
+    "title": "Cross-cutting traceability and applicability unresolved",
+    "tested_sha": "8ff061cf59c1bdd2e2ef41c2cc6fbc53acc0af4d",
+    "environment": "repository-only static review; no product runtime",
+    "source": "qa/test-cases.json",
+    "story_ids": [
+      "LD-001",
+      "LD-008",
+      "LD-039"
+    ],
+    "preconditions": [
+      "Checkout baseline SHA; no application required."
+    ],
+    "test_data": {
+      "documents": "approved repository baseline files"
+    },
+    "reproduction_steps": [
+      "Inspect QA-0337..QA-0351 story_id, reset scenario QA-0343 and infrastructure scenarios QA-0001..QA-0008."
+    ],
+    "actual_result": "15 non-story CROSS-CUTTING references; reset has no explicit feature story; generic application scenarios applied to repository policy.",
+    "expected_result": "Explicit multi-story mapping, reset scope decision and story-appropriate test replacement.",
+    "failed_assertion": "15 non-story CROSS-CUTTING references; reset has no explicit feature story; generic application scenarios applied to repository policy.",
+    "product_vulnerability_confirmed": false
+  },
+  {
+    "id": "QAD-006",
+    "type": "BASELINE_GAP",
+    "status": "OPEN",
+    "severity": "High",
+    "title": "Gate execution and artifact evidence contract absent",
+    "tested_sha": "8ff061cf59c1bdd2e2ef41c2cc6fbc53acc0af4d",
+    "environment": "repository-only static review; no product runtime",
+    "source": "product/DELIVERY-PLAN.md; architecture/DECISIONS.md",
+    "story_ids": [
+      "LD-005",
+      "LD-006",
+      "LD-039",
+      "LD-041",
+      "LD-042"
+    ],
+    "preconditions": [
+      "Checkout baseline SHA; no application required."
+    ],
+    "test_data": {
+      "documents": "approved repository baseline files"
+    },
+    "reproduction_steps": [
+      "Compare phase exit gates, staging-on-merge rule, and repository contents."
+    ],
+    "actual_result": "Gates require independent QA; staging follows merge; no pre-merge QA environment/immutable artifact evidence procedure exists yet.",
+    "expected_result": "Document isolated pre-merge QA followed by same-artifact staging verification; define required evidence/checks.",
+    "failed_assertion": "Gates require independent QA; staging follows merge; no pre-merge QA environment/immutable artifact evidence procedure exists yet.",
+    "product_vulnerability_confirmed": false
+  }
+]
