@@ -270,7 +270,9 @@ jobs:
           SHA: ${{ github.sha }}
           BEFORE: ${{ github.event.before }}
           FORCED: ${{ github.event.forced }}
-        run: python3 tools/develop_guard.py --sha "$SHA" --before "$BEFORE" --forced "$FORCED"
+          # "uat": merged pull requests deploy without a QA verdict (owner decision 2026-10-23); unset: strict QA.
+          POLICY: ${{ vars.LAWDESK_DEVELOP_POLICY || 'qa' }}
+        run: python3 tools/develop_guard.py --sha "$SHA" --before "$BEFORE" --forced "$FORCED" --policy "$POLICY"
 
   deploy-staging:
     name: Deploy staging

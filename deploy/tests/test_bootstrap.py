@@ -151,6 +151,29 @@ class BootstrapTest(unittest.TestCase):
         self.assertTrue(fetch_key.exists())
         self.assertIn(fetch_key.read_text(encoding="utf-8").strip(), result.stdout)
 
+    def test_can_fetch_with_the_operator_existing_github_access_instead_of_a_new_key(self):
+        # Owner decision 2026-10-23: devops already reads the private repository; no extra deploy key for UAT.
+        self.env["LAWDESK_FETCH_WITH"] = "existing"
+
+        result = self.bootstrap(str(self.ci_pub))
+
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertFalse((self.user_home / ".ssh" / "lawdesk_github_ro").exists())
+        config = subprocess.run(["git", "-C", str(self.home / "repo.git"), "config", "core.sshCommand"],
+                                capture_output=True, text=True, check=True).stdout
+        self.assertIn("StrictHostKeyChecking=yes", config)
+        self.assertIn(f"UserKnownHostsFile={self.home / 'github_known_hosts'}", config)
+        self.assertNotIn("-i ", config)
+        self.assertNotIn("deploy key", result.stdout.lower())
+
+    def test_unknown_fetch_mode_is_refused_before_any_change(self):
+        self.env["LAWDESK_FETCH_WITH"] = "anything"
+
+        result = self.bootstrap(str(self.ci_pub))
+
+        self.assertEqual(2, result.returncode)
+        self.assertFalse((self.home / "secrets").exists())
+
     def test_creates_the_internal_edge_network_only_when_missing(self):
         self.bootstrap(str(self.ci_pub))
         self.bootstrap(str(self.ci_pub))

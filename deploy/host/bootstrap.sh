@@ -16,6 +16,14 @@ gate=/usr/local/sbin/lawdesk-deploy-gate
 repo_url=git@github.com:afawzy70/Lawdesk-v1.git
 github_host_key="github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl"
 
+# How the gate fetches develop: "deploy-key" (default) generates a read-only deploy key; "existing" uses the GitHub
+# access the operator account already has (owner decision 2026-10-23, development/UAT).
+fetch_with=${LAWDESK_FETCH_WITH:-deploy-key}
+if [[ $fetch_with != deploy-key && $fetch_with != existing ]]; then
+    echo "bootstrap: LAWDESK_FETCH_WITH must be 'deploy-key' or 'existing'" >&2
+    exit 2
+fi
+
 ci_key=${1:-}
 if [[ $# -ne 1 || ! -f $ci_key ]]; then
     echo "usage: bootstrap.sh <ci-public-key.pub>" >&2
@@ -59,15 +67,19 @@ done
 
 echo "== read-only fetch of develop from GitHub"
 install -d -m 700 "$HOME/.ssh"
-[[ -f $HOME/.ssh/lawdesk_github_ro ]] ||
-    ssh-keygen -q -t ed25519 -N "" -C "lawdesk-staging-fetch" -f "$HOME/.ssh/lawdesk_github_ro"
 echo "$github_host_key" > "$home/github_known_hosts"
 if [[ ! -d $home/repo.git ]]; then
     git init -q --bare "$home/repo.git"
     git -C "$home/repo.git" remote add origin "$repo_url"
 fi
-git -C "$home/repo.git" config core.sshCommand \
-    "ssh -i $HOME/.ssh/lawdesk_github_ro -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$home/github_known_hosts"
+pinned="-o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$home/github_known_hosts"
+if [[ $fetch_with == existing ]]; then
+    git -C "$home/repo.git" config core.sshCommand "ssh $pinned"
+else
+    [[ -f $HOME/.ssh/lawdesk_github_ro ]] ||
+        ssh-keygen -q -t ed25519 -N "" -C "lawdesk-staging-fetch" -f "$HOME/.ssh/lawdesk_github_ro"
+    git -C "$home/repo.git" config core.sshCommand "ssh -i $HOME/.ssh/lawdesk_github_ro -o IdentitiesOnly=yes $pinned"
+fi
 
 echo "== CI key bound to the gate"
 touch "$authorized"
@@ -81,8 +93,12 @@ host_key=$(cut -d ' ' -f 1,2 "${LAWDESK_SSH_HOST_KEY:-/etc/ssh/ssh_host_ed25519_
 cat << EOF
 
 Next steps for the owner:
-  1. Add this public key to GitHub as a READ-ONLY deploy key (Settings > Deploy keys), title lawdesk-staging-fetch:
-     $(cat "$HOME/.ssh/lawdesk_github_ro.pub")
+  1. $(if [[ $fetch_with == existing ]]; then
+        echo "Fetching uses this account's existing GitHub access (check: git -C $home/repo.git fetch origin develop)."
+     else
+        echo "Add this public key to GitHub as a READ-ONLY deploy key (Settings > Deploy keys), title lawdesk-staging-fetch:"
+        echo "     $(cat "$HOME/.ssh/lawdesk_github_ro.pub")"
+     fi)
   2. Repository secret LAWDESK_STAGING_KNOWN_HOSTS:
      167.86.90.174 ${host_key:-<ssh-ed25519 host key from /etc/ssh/ssh_host_ed25519_key.pub>}
   3. Install the gate root-owned (one root step): see docs/operations/STAGING-RUNBOOK.md.

@@ -85,6 +85,9 @@ class CallFromCiTest(unittest.TestCase):
         env = {k: v for s in guard["steps"] for k, v in s.get("env", {}).items()}
         self.assertEqual("${{ github.event.before }}", env["BEFORE"])
         self.assertEqual("${{ github.event.forced }}", env["FORCED"])
+        # The owner chooses the policy with a repository variable; unset means the strict QA policy.
+        self.assertEqual("${{ vars.LAWDESK_DEVELOP_POLICY || 'qa' }}", env["POLICY"])
+        self.assertIn('--policy "$POLICY"', script)
 
     def test_deploy_runs_only_for_pushes_to_develop_in_this_repository(self):
         condition = self.job["if"]

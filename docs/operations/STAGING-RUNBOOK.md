@@ -91,6 +91,8 @@ shred -u lawdesk_ci_deploy        # the private half now exists only in GitHub S
 ```bash
 cd /srv/deployments/lawdesk/setup
 deploy/host/bootstrap.sh lawdesk_ci_deploy.pub
+# devops already reads the private repository (development/UAT): reuse that access, no deploy key
+LAWDESK_FETCH_WITH=existing deploy/host/bootstrap.sh lawdesk_ci_deploy.pub
 ```
 
 If `~devops/.ssh/authorized_keys` already lists the CI key with any other options (or without restriction), bootstrap
