@@ -1,0 +1,91 @@
+# RED for QAD-016..021 at 32724ae88983ac72a43d49d7f3a8db3e253a989e (2026-10-23T18:38:08Z)
+## tools/tests/test_cd_workflow.py
+======================================================================
+FAIL: test_dispatch_from_any_branch_but_develop_is_refused (test_cd_workflow.ValidateReleaseStepTest.test_dispatch_from_any_branch_but_develop_is_refused) (ref='')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_cd_workflow.py", line 240, in test_dispatch_from_any_branch_but_develop_is_refused
+    self.assertNotEqual(0, result.returncode)
+AssertionError: 0 == 0
+
+======================================================================
+FAIL: test_dispatch_is_refused_when_a_gate_failed_or_never_ran_for_that_commit (test_cd_workflow.ValidateReleaseStepTest.test_dispatch_is_refused_when_a_gate_failed_or_never_ran_for_that_commit) [failed]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_cd_workflow.py", line 228, in test_dispatch_is_refused_when_a_gate_failed_or_never_ran_for_that_commit
+    self.assertNotEqual(0, result.returncode, result.stdout)
+AssertionError: 0 == 0 : 
+
+======================================================================
+FAIL: test_dispatch_is_refused_when_a_gate_failed_or_never_ran_for_that_commit (test_cd_workflow.ValidateReleaseStepTest.test_dispatch_is_refused_when_a_gate_failed_or_never_ran_for_that_commit) [missing]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_cd_workflow.py", line 228, in test_dispatch_is_refused_when_a_gate_failed_or_never_ran_for_that_commit
+    self.assertNotEqual(0, result.returncode, result.stdout)
+AssertionError: 0 == 0 : 
+
+======================================================================
+FAIL: test_dispatch_is_refused_when_a_gate_failed_or_never_ran_for_that_commit (test_cd_workflow.ValidateReleaseStepTest.test_dispatch_is_refused_when_a_gate_failed_or_never_ran_for_that_commit) [none]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_cd_workflow.py", line 228, in test_dispatch_is_refused_when_a_gate_failed_or_never_ran_for_that_commit
+    self.assertNotEqual(0, result.returncode, result.stdout)
+AssertionError: 0 == 0 : 
+
+======================================================================
+FAIL: test_dispatch_is_refused_when_a_gate_failed_or_never_ran_for_that_commit (test_cd_workflow.ValidateReleaseStepTest.test_dispatch_is_refused_when_a_gate_failed_or_never_ran_for_that_commit) [other app]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_cd_workflow.py", line 228, in test_dispatch_is_refused_when_a_gate_failed_or_never_ran_for_that_commit
+    self.assertNotEqual(0, result.returncode, result.stdout)
+AssertionError: 0 == 0 : 
+
+======================================================================
+FAIL: test_dispatch_of_a_merged_commit_whose_gates_all_passed_deploys (test_cd_workflow.ValidateReleaseStepTest.test_dispatch_of_a_merged_commit_whose_gates_all_passed_deploys)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_cd_workflow.py", line 215, in test_dispatch_of_a_merged_commit_whose_gates_all_passed_deploys
+    self.assertIn(f"repos/afawzy70/Lawdesk-v1/commits/{SHA}/check-runs", self.gh_log.read_text(encoding="utf-8"))
+AssertionError: 'repos/afawzy70/Lawdesk-v1/commits/e5db1904666bdf45b470c30efa4a662c1cf4709b/check-runs' not found in 'api repos/afawzy70/Lawdesk-v1/compare/e5db1904666bdf45b470c30efa4a662c1cf4709b...develop --jq .status\n'
+
+======================================================================
+FAIL: test_required_gates_are_exactly_the_ci_gate_jobs (test_cd_workflow.ValidateReleaseStepTest.test_required_gates_are_exactly_the_ci_gate_jobs)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/tools/tests/test_cd_workflow.py", line 263, in test_required_gates_are_exactly_the_ci_gate_jobs
+    self.assertIn(name, self.script)
+AssertionError: 'Backend (Java 21, embedded PostgreSQL 18.6)' not found in 'if [[ ! $SHA =~ ^[0-9a-f]{40}$ ]]; then\n  echo "::error::\'$SHA\' is not a full lowercase commit SHA"\n  exit 1\nfi\n# "identical": SHA is the develop head; "ahead": develop contains SHA and has moved on.\nstatus=$(gh api "repos/$REPO/compare/$SHA...develop" --jq .status)\ncase $status in\n  identical|ahead) ;;\n  *) echo "::error::$SHA is not on develop ($status); only merged commits are deployed"; exit 1 ;;\nesac\nif [[ $status == ahead && $EVENT != workflow_dispatch ]]; then\n  echo "::notice::develop has moved past $SHA; the run for the newer push deploys instead"\n  echo "skip=true" >> "$GITHUB_OUTPUT"\nelse\n  echo "skip=false" >> "$GITHUB_OUTPUT"\nfi\n'
+
+----------------------------------------------------------------------
+Ran 25 tests in 2.296s
+
+FAILED (failures=11, errors=1)
+## deploy/tests
+FAIL: test_refuses_when_the_ci_key_is_already_authorized_without_the_gate_restriction (test_bootstrap.BootstrapTest.test_refuses_when_the_ci_key_is_already_authorized_without_the_gate_restriction) (existing='ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMNn')
+FAIL: test_refuses_when_the_ci_key_is_already_authorized_without_the_gate_restriction (test_bootstrap.BootstrapTest.test_refuses_when_the_ci_key_is_already_authorized_without_the_gate_restriction) (existing='command="/bin/sh" ssh-ed25519 AAAAC3NzaC')
+FAIL: test_refuses_when_the_ci_key_is_already_authorized_without_the_gate_restriction (test_bootstrap.BootstrapTest.test_refuses_when_the_ci_key_is_already_authorized_without_the_gate_restriction) (existing='no-pty ssh-ed25519 AAAAC3NzaC1lZDI1NTE5A')
+FAIL: test_refuses_when_the_ci_key_is_already_authorized_without_the_gate_restriction (test_bootstrap.BootstrapTest.test_refuses_when_the_ci_key_is_already_authorized_without_the_gate_restriction) (existing='restrict,command="/usr/local/sbin/lawdes')
+FAIL: test_local_image_labelled_with_another_revision_is_refused (test_deploy_scripts.LocalImagesTest.test_local_image_labelled_with_another_revision_is_refused) (other='cccccccccccccccccccccccccccccccccccccccc')
+FAIL: test_local_image_labelled_with_another_revision_is_refused (test_deploy_scripts.LocalImagesTest.test_local_image_labelled_with_another_revision_is_refused) (other='')
+FAIL: test_rollback_target_with_a_wrong_revision_label_is_not_started (test_deploy_scripts.LocalImagesTest.test_rollback_target_with_a_wrong_revision_label_is_not_started)
+FAIL: test_rollback_is_smoke_tested_with_the_target_release_own_contract (test_deploy_scripts.ReleaseDirectoriesTest.test_rollback_is_smoke_tested_with_the_target_release_own_contract) (call='LAWDESK_TAG=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa compose -p lawdesk-staging -f /home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml exec -T web sh -euc      base=http://127.0.0.1:8080     fail() { echo "FAIL $*" >&2; exit 1; }     # busybox wget prints the status in a header line and, on errors, in "server returned error: HTTP/1.1 401 ...".     status_of() { wget -q -S -O /dev/null "$base$1" 2>&1 | grep -o "HTTP/1\\.[01] [0-9][0-9][0-9]" | tail -n 1 | cut -d " " -f 2; }     expect_ok() { wget -q -O /dev/null "$base$1" || fail "$1 is not reachable with a 2xx status"; echo "ok   $1"; }     expect_status() {         actual=$(status_of "$1")         [ "$actual" = "$2" ] || fail "$1 -> ${actual:-no response}, expected $2"         echo "ok   $1 -> $2"     }     expect_ok /healthz     expect_ok /     readiness=$(wget -q -O - "$base/actuator/health/readiness") || fail "readiness is not reachable with a 2xx status"     case "$readiness" in         *"\\"status\\":\\"UP\\""*) echo "ok   readiness UP" ;;         *) fail "readiness is not UP" ;;     esac     expect_status /api/v1/cases 401     expect_status /actuator/env 404  ', failure={'FAKE_FAIL_UP_TAG': 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'})
+FAIL: test_rollback_is_smoke_tested_with_the_target_release_own_contract (test_deploy_scripts.ReleaseDirectoriesTest.test_rollback_is_smoke_tested_with_the_target_release_own_contract) (call='LAWDESK_TAG=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa compose -p lawdesk-staging -f /home/aiagent/workspaces/lawdesk-claude/deploy/compose.yaml exec -T web sh -euc      base=http://127.0.0.1:8080     fail() { echo "FAIL $*" >&2; exit 1; }     # busybox wget prints the status in a header line and, on errors, in "server returned error: HTTP/1.1 401 ...".     status_of() { wget -q -S -O /dev/null "$base$1" 2>&1 | grep -o "HTTP/1\\.[01] [0-9][0-9][0-9]" | tail -n 1 | cut -d " " -f 2; }     expect_ok() { wget -q -O /dev/null "$base$1" || fail "$1 is not reachable with a 2xx status"; echo "ok   $1"; }     expect_status() {         actual=$(status_of "$1")         [ "$actual" = "$2" ] || fail "$1 -> ${actual:-no response}, expected $2"         echo "ok   $1 -> $2"     }     expect_ok /healthz     expect_ok /     readiness=$(wget -q -O - "$base/actuator/health/readiness") || fail "readiness is not reachable with a 2xx status"     case "$readiness" in         *"\\"status\\":\\"UP\\""*) echo "ok   readiness UP" ;;         *) fail "readiness is not UP" ;;     esac     expect_status /api/v1/cases 401     expect_status /actuator/env 404  ', failure={'FAKE_FAIL_SMOKE_TAG': 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'})
+FAIL: test_cached_image_with_another_revision_label_is_rebuilt (test_gate.DeployTest.test_cached_image_with_another_revision_label_is_rebuilt)
+FAIL: test_cached_image_without_a_revision_label_is_rebuilt (test_gate.DeployTest.test_cached_image_without_a_revision_label_is_rebuilt)
+FAIL: test_release_is_refused_when_the_built_image_does_not_carry_its_revision (test_gate.DeployTest.test_release_is_refused_when_the_built_image_does_not_carry_its_revision)
+FAIL: test_a_foreign_site_inside_the_lawdesk_markers_is_never_removed (test_proxy_scripts.AttachTest.test_a_foreign_site_inside_the_lawdesk_markers_is_never_removed)
+FAIL: test_failed_persistence_after_a_successful_reload_restores_the_running_configuration (test_proxy_scripts.AttachTest.test_failed_persistence_after_a_successful_reload_restores_the_running_configuration)
+FAIL: test_literal_host_sites_are_part_of_the_baseline (test_proxy_scripts.AttachTest.test_literal_host_sites_are_part_of_the_baseline)
+FAIL: test_refuses_without_a_complete_matbakhy_baseline (test_proxy_scripts.AttachTest.test_refuses_without_a_complete_matbakhy_baseline) [unreachable host]
+FAIL: test_refuses_without_a_complete_matbakhy_baseline (test_proxy_scripts.AttachTest.test_refuses_without_a_complete_matbakhy_baseline)
+FAIL: test_unbalanced_or_repeated_markers_are_refused_before_any_change (test_proxy_scripts.AttachTest.test_unbalanced_or_repeated_markers_are_refused_before_any_change) [begin without end]
+FAIL: test_unbalanced_or_repeated_markers_are_refused_before_any_change (test_proxy_scripts.AttachTest.test_unbalanced_or_repeated_markers_are_refused_before_any_change) [end without begin]
+FAIL: test_unbalanced_or_repeated_markers_are_refused_before_any_change (test_proxy_scripts.AttachTest.test_unbalanced_or_repeated_markers_are_refused_before_any_change) [end before begin]
+FAIL: test_unbalanced_or_repeated_markers_are_refused_before_any_change (test_proxy_scripts.AttachTest.test_unbalanced_or_repeated_markers_are_refused_before_any_change) [two blocks]
+FAIL: test_unbalanced_or_repeated_markers_are_refused_before_any_change (test_proxy_scripts.AttachTest.test_unbalanced_or_repeated_markers_are_refused_before_any_change) [indented marker]
+FAIL: test_failed_persistence_restores_the_running_configuration (test_proxy_scripts.DetachTest.test_failed_persistence_restores_the_running_configuration)
+FAIL: test_refuses_unbalanced_markers (test_proxy_scripts.DetachTest.test_refuses_unbalanced_markers)
+FAIL: test_broken_release_is_rolled_back_and_the_running_release_still_passes_smoke (test_rollback_drill.RollbackDrillTest.test_broken_release_is_rolled_back_and_the_running_release_still_passes_smoke)
+FAIL: test_drill_fails_if_deploy_refused_the_release_instead_of_starting_it (test_rollback_drill.RollbackDrillTest.test_drill_fails_if_deploy_refused_the_release_instead_of_starting_it)
+Ran 111 tests in 52.222s
+FAILED (failures=26)

@@ -26,6 +26,21 @@ if [[ $(wc -l < "$ci_key") -ne 1 ]] || ! grep -Eq '^ssh-ed25519 [A-Za-z0-9+/]+=*
     exit 2
 fi
 
+# Every line that already authorises the CI key, matched on the key field itself. Any entry other than exactly the
+# gate-bound one (unrestricted, other options, a duplicate) would let the key do more than run the gate; it is never
+# edited silently, so bootstrap refuses before changing anything (QAD-018).
+entry="restrict,command=\"$gate\" $(cat "$ci_key")"
+authorized=$HOME/.ssh/authorized_keys
+key_body=$(cut -d ' ' -f 2 "$ci_key")
+existing=$([[ -f $authorized ]] && awk -v key="$key_body" '
+    { for (i = 1; i <= NF; i++) if ($i == key) { print; next } }' "$authorized" || true)
+if [[ -n $existing && $existing != "$entry" ]]; then
+    echo "bootstrap: $authorized already authorises this CI key with other options:" >&2
+    printf '  %s\n' "$existing" >&2
+    echo "remove those lines (or use a new CI key) and run bootstrap again" >&2
+    exit 2
+fi
+
 echo "== directories ($home)"
 mkdir -p "$home"/{state,releases,logs,proxy-backups}
 install -d -m 700 "$home/secrets" "$home/backups"
@@ -55,14 +70,9 @@ git -C "$home/repo.git" config core.sshCommand \
     "ssh -i $HOME/.ssh/lawdesk_github_ro -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$home/github_known_hosts"
 
 echo "== CI key bound to the gate"
-entry="restrict,command=\"$gate\" $(cat "$ci_key")"
-authorized=$HOME/.ssh/authorized_keys
 touch "$authorized"
 chmod 600 "$authorized"
-key_body=$(cut -d ' ' -f 2 "$ci_key")
-if ! grep -qF "$key_body" "$authorized"; then
-    echo "$entry" >> "$authorized"
-fi
+[[ -n $existing ]] || echo "$entry" >> "$authorized"
 
 echo "== Docker network lawdesk-edge (internal: no route out, only the proxy and lawdesk web join it)"
 docker network inspect lawdesk-edge > /dev/null 2>&1 || docker network create --internal lawdesk-edge

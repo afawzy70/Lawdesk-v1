@@ -5,7 +5,12 @@ request code is never deployed. The runner reaches the host only through the SSH
 deploy/host/lawdesk-deploy-gate, which accepts `deploy <sha>`, `rollback` and `status` and nothing else.
 """
 
+import json
+import os
 import re
+import subprocess
+import tempfile
+import textwrap
 import unittest
 from pathlib import Path
 
@@ -16,6 +21,29 @@ CI = REPO_ROOT / ".github" / "workflows" / "ci.yml"
 CD = REPO_ROOT / ".github" / "workflows" / "deploy-staging.yml"
 PINNED_ACTION = re.compile(r"^[\w.-]+/[\w./-]+@[0-9a-f]{40}$")
 GATES = {"policy", "backend", "backend-postgres-image", "frontend", "stack", "secrets"}
+SHA = "e5db1904666bdf45b470c30efa4a662c1cf4709b"
+
+# Plays the GitHub API for the "Validate the release commit" step: answers compare and check-runs from fixtures, applies
+# --jq with the real jq, and records each call.
+FAKE_GH = textwrap.dedent("""\
+    #!/usr/bin/env python3
+    import json, os, subprocess, sys
+    args = sys.argv[1:]
+    with open(os.environ["FAKE_GH_LOG"], "a") as f:
+        f.write(" ".join(args) + "\\n")
+    path = args[1]
+    if "/compare/" in path:
+        body = {"status": os.environ["FAKE_COMPARE"]}
+    elif "/check-runs" in path:
+        body = json.loads(os.environ["FAKE_CHECK_RUNS"])
+    else:
+        sys.exit(1)
+    text = json.dumps(body)
+    if "--jq" in args:
+        text = subprocess.run(["jq", "-r", args[args.index("--jq") + 1]], input=text, text=True, check=True,
+                              capture_output=True).stdout
+    sys.stdout.write(text)
+    """)
 
 
 def load(path):
@@ -49,6 +77,10 @@ class CallFromCiTest(unittest.TestCase):
         self.assertIn("github.repository == 'afawzy70/Lawdesk-v1'", condition)
         self.assertNotIn("pull_request", condition)
 
+    def test_deploy_job_may_read_check_results_and_nothing_more(self):
+        # The called workflow reads the commit's check runs for hand-dispatched redeploys (QAD-016).
+        self.assertEqual({"contents": "read", "checks": "read"}, self.job["permissions"])
+
     def test_deploy_uses_the_staging_workflow_with_the_pushed_commit(self):
         self.assertEqual("./.github/workflows/deploy-staging.yml", self.job["uses"])
         self.assertEqual("${{ github.sha }}", self.job["with"]["sha"])
@@ -70,7 +102,7 @@ class DeployWorkflowTest(unittest.TestCase):
             self.assertTrue(trigger["inputs"]["sha"]["required"])
 
     def test_token_is_read_only(self):
-        self.assertEqual({"contents": "read"}, self.cd["permissions"])
+        self.assertEqual({"contents": "read", "checks": "read"}, self.cd["permissions"])
         self.assertNotIn("permissions", self.job)
 
     def test_one_deployment_at_a_time_and_none_is_cancelled(self):
@@ -134,6 +166,101 @@ class DeployWorkflowTest(unittest.TestCase):
 
     def test_deployment_result_is_recorded_in_the_job_summary(self):
         self.assertIn("GITHUB_STEP_SUMMARY", CD.read_text(encoding="utf-8"))
+
+
+def check_runs(*passed, failed=(), app="github-actions"):
+    runs = [{"name": n, "conclusion": "success", "app": {"slug": app}} for n in passed]
+    runs += [{"name": n, "conclusion": "failure", "app": {"slug": app}} for n in failed]
+    return json.dumps({"total_count": len(runs), "check_runs": runs})
+
+
+class ValidateReleaseStepTest(unittest.TestCase):
+    """Runs the real "Validate the release commit" script against a fake GitHub API (QAD-016)."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        root = Path(self.tmp.name)
+        bin_dir = root / "bin"
+        bin_dir.mkdir()
+        (bin_dir / "gh").write_text(FAKE_GH, encoding="utf-8")
+        (bin_dir / "gh").chmod(0o755)
+        self.gh_log = root / "gh.log"
+        self.gh_log.touch()
+        self.output = root / "output"
+        self.output.touch()
+        step = next(s for s in steps(load(CD)) if s.get("name", "").startswith("Validate the release commit"))
+        self.script = step["run"]
+        ci = load(CI)
+        self.gate_names = [ci["jobs"][job]["name"] for job in sorted(GATES)]
+        self.env = {"PATH": f"{bin_dir}:/usr/bin:/bin", "HOME": str(root), "GITHUB_OUTPUT": str(self.output),
+                    "SHA": SHA, "REPO": "afawzy70/Lawdesk-v1", "GH_TOKEN": "x", "EVENT": "workflow_dispatch",
+                    "REF": "refs/heads/develop", "FAKE_GH_LOG": str(self.gh_log), "FAKE_COMPARE": "identical",
+                    "FAKE_CHECK_RUNS": check_runs(*self.gate_names)}
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def validate(self, **extra):
+        return subprocess.run(["bash", "-e", "-c", self.script], env={**self.env, **extra}, capture_output=True,
+                              text=True, check=False, timeout=30)
+
+    def outputs(self):
+        return self.output.read_text(encoding="utf-8")
+
+    def test_dispatch_of_a_merged_commit_whose_gates_all_passed_deploys(self):
+        result = self.validate()
+
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertIn("skip=false", self.outputs())
+        self.assertIn(f"repos/afawzy70/Lawdesk-v1/commits/{SHA}/check-runs", self.gh_log.read_text(encoding="utf-8"))
+
+    def test_dispatch_is_refused_when_a_gate_failed_or_never_ran_for_that_commit(self):
+        fixtures = {
+            "failed": check_runs(*self.gate_names[1:], failed=self.gate_names[:1]),
+            "missing": check_runs(*self.gate_names[1:]),
+            "none": check_runs(),
+            "other app": check_runs(*self.gate_names, app="impostor"),
+        }
+        for label, runs in fixtures.items():
+            with self.subTest(label):
+                self.output.write_text("", encoding="utf-8")
+                result = self.validate(FAKE_CHECK_RUNS=runs)
+                self.assertNotEqual(0, result.returncode, result.stdout)
+                self.assertNotIn("skip=false", self.outputs())
+
+    def test_a_gate_that_failed_once_and_passed_on_rerun_counts_as_passed(self):
+        runs = check_runs(*self.gate_names, failed=self.gate_names[:1])
+
+        self.assertEqual(0, self.validate(FAKE_CHECK_RUNS=runs).returncode)
+
+    def test_dispatch_from_any_branch_but_develop_is_refused(self):
+        for ref in ["refs/heads/feature/x", "refs/heads/main", "refs/tags/v1", ""]:
+            with self.subTest(ref=ref):
+                result = self.validate(REF=ref)
+                self.assertNotEqual(0, result.returncode)
+                self.assertNotIn("skip=false", self.outputs())
+
+    def test_commit_not_on_develop_is_refused(self):
+        for status in ["behind", "diverged", ""]:
+            with self.subTest(status=status):
+                self.assertNotEqual(0, self.validate(FAKE_COMPARE=status).returncode)
+
+    def test_call_from_ci_relies_on_the_gates_it_needs(self):
+        # The calling CI run is still in progress; its deploy job runs only after every gate passed (needs:).
+        result = self.validate(EVENT="workflow_call", FAKE_CHECK_RUNS=check_runs())
+
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertIn("skip=false", self.outputs())
+
+    def test_call_for_a_superseded_commit_is_skipped(self):
+        result = self.validate(EVENT="workflow_call", FAKE_COMPARE="ahead")
+
+        self.assertEqual(0, result.returncode)
+        self.assertIn("skip=true", self.outputs())
+
+    def test_required_gates_are_exactly_the_ci_gate_jobs(self):
+        for name in self.gate_names:
+            self.assertIn(name, self.script)
 
 
 if __name__ == "__main__":

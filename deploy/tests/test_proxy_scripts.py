@@ -55,7 +55,11 @@ FAKE_DOCKER = textwrap.dedent("""\
             shutil.copyfile(path_in(src.split(":", 1)[1]), dst)
         else:
             if os.environ.get("FAKE_FAIL_CP_TO") and dst.endswith(os.environ["FAKE_FAIL_CP_TO"]):
-                sys.exit(1)
+                count = os.path.join(root, "failed-cp")
+                failures = len(open(count).read()) if os.path.exists(count) else 0
+                if failures < int(os.environ.get("FAKE_FAIL_CP_TIMES", "1")):
+                    open(count, "a").write("x")
+                    sys.exit(1)
             shutil.copyfile(src, path_in(dst.split(":", 1)[1]))
     elif args[:2] == ["network", "connect"]:
         nets.append(args[2]); json.dump(nets, open(nets_file, "w"))
@@ -72,6 +76,17 @@ FAKE_DOCKER = textwrap.dedent("""\
         elif rest[:2] == ["caddy", "validate"]:
             config = open(path_in(rest[rest.index("--config") + 1])).read()
             sys.exit(1 if "INVALID" in config or os.environ.get("FAKE_FAIL_VALIDATE") else 0)
+        elif rest[:2] == ["caddy", "adapt"]:
+            # Like Caddy: one route per site block, its addresses in match[].host, env placeholders expanded.
+            config = open(path_in(rest[rest.index("--config") + 1])).read()
+            routes, depth = [], 0
+            for line in config.splitlines():
+                text = line.split("#", 1)[0].strip()
+                if depth == 0 and text.endswith("{") and text != "{" and not text.startswith("("):  # snippets
+                    hosts = text[:-1].replace("{$PREVIEW_DOMAIN}", "167-86-90-174.sslip.io").replace(",", " ").split()
+                    routes.append({"match": [{"host": hosts}], "handle": [{"handler": "subroute"}]})
+                depth += text.count("{") - text.count("}")
+            print(json.dumps({"apps": {"http": {"servers": {"srv0": {"listen": [":443"], "routes": routes}}}}}))
         elif rest[:2] == ["caddy", "reload"]:
             if os.environ.get("FAKE_FAIL_RELOAD"):
                 sys.exit(1)
@@ -138,6 +153,9 @@ class ProxyTestCase(unittest.TestCase):
         path = self.root / "calls.log"
         return path.read_text(encoding="utf-8").splitlines() if path.exists() else []
 
+    def set_live(self, text):
+        (self.root / "container" / "etc" / "caddy" / "Caddyfile").write_text(text, encoding="utf-8")
+
     def set_statuses(self, statuses):
         (self.root / "statuses.json").write_text(json.dumps(statuses), encoding="utf-8")
 
@@ -189,7 +207,7 @@ class AttachTest(ProxyTestCase):
                     self.assertEqual("lawdesk-edge", words[2])
                 if words[0] == "exec":
                     self.assertIn(words[2:4], [["printenv", "PREVIEW_DOMAIN"], ["caddy", "validate"],
-                                               ["caddy", "reload"]])
+                                               ["caddy", "adapt"], ["caddy", "reload"]])
         for script in [ATTACH, DETACH]:
             text = script.read_text(encoding="utf-8")
             for forbidden in ["docker compose", "docker restart", "docker stop", "docker rm", "--force"]:
@@ -263,6 +281,85 @@ class AttachTest(ProxyTestCase):
                 self.assertEqual(2, result.returncode)
                 self.assertEqual(ORIGINAL, self.live())
 
+    def test_failed_persistence_after_a_successful_reload_restores_the_running_configuration(self):
+        # QAD-019: the reload made the candidate active, then writing it to the live path failed.
+        result = self.run_script(ATTACH, FAKE_FAIL_CP_TO="/etc/caddy/Caddyfile")
+
+        self.assertEqual(1, result.returncode)
+        self.assertEqual(ORIGINAL, self.live())
+        self.assertEqual(ORIGINAL, self.active(), "the proxy must not keep running the unpersisted candidate")
+        self.assertNotIn("lawdesk-edge", self.networks())
+        self.assertNotIn("RESTORE FAILED", result.stderr)
+
+    def test_unbalanced_or_repeated_markers_are_refused_before_any_change(self):
+        # QAD-020: a BEGIN without END would make strip_block drop every later site.
+        tail = "\napi2.example.invalid {\n\trespond \"later\"\n}\n"
+        for label, marked in {
+            "begin without end": ORIGINAL + "# BEGIN lawdesk-staging\n" + tail,
+            "end without begin": ORIGINAL + "# END lawdesk-staging\n" + tail,
+            "end before begin": ORIGINAL + "# END lawdesk-staging\n# BEGIN lawdesk-staging\n" + tail,
+            "two blocks": ORIGINAL + ("# BEGIN lawdesk-staging\n# END lawdesk-staging\n" * 2) + tail,
+            "indented marker": ORIGINAL + "  # BEGIN lawdesk-staging\n" + tail,
+        }.items():
+            with self.subTest(label):
+                (self.root / "calls.log").unlink(missing_ok=True)
+                self.set_live(marked)
+
+                result = self.run_script(ATTACH)
+
+                self.assertEqual(2, result.returncode, result.stdout + result.stderr)
+                self.assertIn("marker", result.stderr)
+                self.assertEqual(marked, self.live())
+                self.assertIsNone(self.active())
+                self.assertFalse(any(c.startswith(("network connect", "exec c0ffee caddy reload")) for c in self.calls()))
+
+    def test_literal_host_sites_are_part_of_the_baseline(self):
+        self.set_live(ORIGINAL + "\nstatus.example.invalid {\n\trespond \"ok\"\n}\n")
+        self.set_statuses({"status.example.invalid": ["200", "502"]})
+
+        result = self.run_script(ATTACH)
+
+        self.assertEqual(1, result.returncode, result.stdout)
+        self.assertIn("status.example.invalid", result.stderr)
+        self.assertNotIn("# BEGIN lawdesk-staging", self.active())
+
+    def test_a_foreign_site_inside_the_lawdesk_markers_is_never_removed(self):
+        # Belt and braces behind the marker check: only LawDesk hosts may disappear, and the adapted candidate must
+        # serve every remaining host plus LawDesk.
+        marked = (ORIGINAL + "\n# BEGIN lawdesk-staging\nlawdesk.old.invalid {\n}\nshop.example.invalid {\n}\n"
+                  "# END lawdesk-staging\n")
+        self.set_live(marked)
+
+        result = self.run_script(ATTACH)
+
+        self.assertEqual(2, result.returncode, result.stdout + result.stderr)
+        self.assertIn("shop.example.invalid", result.stderr)
+        self.assertEqual(marked, self.live())
+        self.assertIsNone(self.active())
+
+    def test_an_earlier_lawdesk_site_is_replaced(self):
+        self.set_live(ORIGINAL + "# BEGIN lawdesk-staging\nlawdesk.old.invalid {\n}\n# END lawdesk-staging\n")
+
+        result = self.run_script(ATTACH)
+
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertNotIn("lawdesk.old.invalid", self.live())
+        self.assertIn(f"{HOST} {{", self.active())
+
+    def test_refuses_without_a_complete_matbakhy_baseline(self):
+        for label, statuses in {"unreachable host": {"api.167-86-90-174.sslip.io": "000"}}.items():
+            with self.subTest(label):
+                self.set_statuses(statuses)
+                result = self.run_script(ATTACH)
+                self.assertEqual(2, result.returncode, result.stdout + result.stderr)
+                self.assertIn("baseline", result.stderr)
+                self.assertIsNone(self.active())
+        self.set_statuses({})
+        self.set_live("{\n\temail x@example.invalid\n}\n")
+        result = self.run_script(ATTACH)
+        self.assertEqual(2, result.returncode)
+        self.assertIn("baseline", result.stderr)
+
     def test_optional_allow_list_restricts_the_lawdesk_site(self):
         result = self.run_script(ATTACH, LAWDESK_ALLOWED_IPS="203.0.113.7/32 2001:db8::/32")
 
@@ -290,6 +387,26 @@ class DetachTest(ProxyTestCase):
 
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertEqual("# newer matbakhy line\n" + ORIGINAL, self.live())
+
+    def test_failed_persistence_restores_the_running_configuration(self):
+        self.run_script(ATTACH)
+        attached = self.live()
+
+        result = self.run_script(DETACH, FAKE_FAIL_CP_TO="/etc/caddy/Caddyfile")
+
+        self.assertEqual(1, result.returncode)
+        self.assertEqual(attached, self.live())
+        self.assertEqual(attached, self.active())
+
+    def test_refuses_unbalanced_markers(self):
+        broken = ORIGINAL + "# BEGIN lawdesk-staging\nlawdesk.x {\n}\n"
+        self.set_live(broken)
+
+        result = self.run_script(DETACH)
+
+        self.assertEqual(2, result.returncode)
+        self.assertEqual(broken, self.live())
+        self.assertIsNone(self.active())
 
     def test_without_a_lawdesk_site_there_is_nothing_to_do(self):
         result = self.run_script(DETACH)

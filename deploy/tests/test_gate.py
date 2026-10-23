@@ -14,13 +14,27 @@ from pathlib import Path
 
 GATE = Path(__file__).resolve().parents[1] / "host" / "lawdesk-deploy-gate"
 
+# FAKE_IMAGES holds one "<tag> <revision label>" line per image; a build replaces the tag's line.
 FAKE_DOCKER = textwrap.dedent("""\
-    #!/bin/sh
+    #!/bin/bash
     echo "$*" >> "$FAKE_DOCKER_LOG"
     case "$1 $2" in
-      "image inspect") grep -qxF "$3" "$FAKE_IMAGES" ;;
-      "build "*) [ -n "${FAKE_FAIL_BUILD:-}" ] && exit 1
-                 for a in "$@"; do [ "$prev" = "-t" ] && echo "$a" >> "$FAKE_IMAGES"; prev=$a; done; exit 0 ;;
+      "image inspect")
+        tag=${!#}
+        line=$(grep -m1 "^$tag " "$FAKE_IMAGES") || exit 1
+        [[ " $* " == *" -f "* || " $* " == *" --format "* ]] && echo "${line#* }"
+        exit 0 ;;
+      "build "*)
+        [ -n "${FAKE_FAIL_BUILD:-}" ] && exit 1
+        for a in "$@"; do
+          [ "$prev" = "-t" ] && tag=$a
+          [ "$prev" = "--label" ] && revision=${a#org.opencontainers.image.revision=}
+          prev=$a
+        done
+        grep -v "^$tag " "$FAKE_IMAGES" > "$FAKE_IMAGES.new"; mv "$FAKE_IMAGES.new" "$FAKE_IMAGES"
+        [ -n "${FAKE_BUILD_REVISION:-}" ] && revision=$FAKE_BUILD_REVISION
+        echo "$tag $revision" >> "$FAKE_IMAGES"
+        exit 0 ;;
     esac
     """)
 
@@ -177,6 +191,34 @@ class DeployTest(GateTestCase):
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertEqual(builds_before, sum(c.startswith("build ") for c in self.docker_calls()))
         self.assertEqual(2, sum(c.startswith("deploy.sh ") for c in self.deploy_calls()))
+
+    def test_cached_image_with_another_revision_label_is_rebuilt(self):
+        # QAD-017: a tag can be reused for other code (manual tag, interrupted build); its label is the evidence.
+        other = "b" * 40
+        self.images.write_text(f"lawdesk-local/backend:{self.sha_b} {other}\n"
+                               f"lawdesk-local/web:{self.sha_b} {other}\n", encoding="utf-8")
+
+        result = self.gate(f"deploy {self.sha_b}")
+
+        self.assertEqual(0, result.returncode, result.stderr)
+        builds = [c for c in self.docker_calls() if c.startswith("build ")]
+        self.assertEqual(2, len(builds), self.docker_calls())
+        self.assertIn("revision", result.stdout + result.stderr)
+        self.assertEqual(f"deploy.sh {self.sha_b}", self.deploy_calls()[0])
+
+    def test_cached_image_without_a_revision_label_is_rebuilt(self):
+        self.images.write_text(f"lawdesk-local/backend:{self.sha_b} \nlawdesk-local/web:{self.sha_b} \n",
+                               encoding="utf-8")
+
+        self.assertEqual(0, self.gate(f"deploy {self.sha_b}").returncode)
+        self.assertEqual(2, sum(c.startswith("build ") for c in self.docker_calls()))
+
+    def test_release_is_refused_when_the_built_image_does_not_carry_its_revision(self):
+        result = self.gate(f"deploy {self.sha_b}", FAKE_BUILD_REVISION="c" * 40)
+
+        self.assertEqual(6, result.returncode, result.stderr)
+        self.assertIn("revision", result.stderr)
+        self.assertEqual([], self.deploy_calls())
 
     def test_failed_build_changes_nothing(self):
         result = self.gate(f"deploy {self.sha_b}", FAKE_FAIL_BUILD="1")

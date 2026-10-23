@@ -12,10 +12,12 @@ mkdir -p "$backup"
 docker cp "$proxy:$LIVE" "$backup/Caddyfile"
 echo "backup: $backup"
 
+check_markers "$backup/Caddyfile"
 if grep -q "^$BEGIN_MARK" "$backup/Caddyfile"; then
     strip_block "$backup/Caddyfile" > "$backup/Caddyfile.candidate"
     stage "$backup/Caddyfile.candidate" || die "validation failed; nothing changed"
-    activate "$backup/Caddyfile.candidate" || die "reload failed; the proxy keeps its previous configuration"
+    activate "$backup/Caddyfile.candidate" "$backup/Caddyfile" ||
+        die "activation failed; the proxy keeps its previous configuration"
     echo "removed the LawDesk site"
 else
     echo "no LawDesk site in the live Caddyfile"

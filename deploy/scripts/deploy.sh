@@ -67,18 +67,34 @@ read_state() {
     [[ -f $state_dir/$1 ]] && cat "$state_dir/$1" || true
 }
 
-images_present() {
-    docker image inspect "$LAWDESK_REGISTRY/backend:$1" > /dev/null &&
-        docker image inspect "$LAWDESK_REGISTRY/web:$1" > /dev/null
+# Locally built images are accepted only when their revision label names the release they are tagged for (QAD-017).
+local_images_match() {
+    local name revision
+    for name in backend web; do
+        revision=$(docker image inspect -f '{{index .Config.Labels "org.opencontainers.image.revision"}}' \
+            "$LAWDESK_REGISTRY/$name:$1" 2> /dev/null) || { echo "deploy: image $name:$1 is not built" >&2; return 1; }
+        if [[ $revision != "$1" ]]; then
+            echo "deploy: image $name:$1 carries revision '$revision', not $1" >&2
+            return 1
+        fi
+    done
 }
 
+# Starts a release with its own compose file and verifies it with its own smoke test, so a rollback target is checked
+# against its own contract and not the failed release's (QAD-021).
 start_release() {
+    local smoke=$script_dir/smoke.sh
+    if [[ -n ${LAWDESK_RELEASES_DIR:-} && -x $LAWDESK_RELEASES_DIR/$1/deploy/scripts/smoke.sh ]]; then
+        smoke=$LAWDESK_RELEASES_DIR/$1/deploy/scripts/smoke.sh
+    fi
     compose_for "$1"
     if [[ $image_source == registry ]]; then
         LAWDESK_TAG=$1 "${compose[@]}" pull backend web || return 1
+    else
+        local_images_match "$1" || return 1
     fi
     LAWDESK_TAG=$1 "${compose[@]}" up -d --wait --wait-timeout 240 &&
-        LAWDESK_TAG=$1 LAWDESK_ENV_FILE=$env_file "$script_dir/smoke.sh"
+        LAWDESK_TAG=$1 LAWDESK_ENV_FILE=$env_file "$smoke"
 }
 
 # Dumps the running database before a new release can migrate it. Migrations are forward-only, so this dump is the
@@ -102,8 +118,8 @@ backup_database() {
 current=$(read_state current-release)
 log "deploying $release (current: ${current:-none})"
 
-if [[ $image_source == local ]] && ! images_present "$release"; then
-    log "refused $release: images are not built on this host"
+if [[ $image_source == local ]] && ! local_images_match "$release"; then
+    log "refused $release: its images are not built on this host with revision $release"
     exit 1
 fi
 if [[ -n $backup_dir && -n $current ]] && ! backup_database "$current"; then

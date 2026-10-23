@@ -2,20 +2,23 @@
 # Shared by attach.sh and detach.sh; sourced, not executed.
 # The shared proxy belongs to Matbakhy (compose project matbakhy-preview, service proxy). LawDesk only ever edits the
 # block between its own markers, through the container's filesystem and `caddy reload`; the container is never
-# stopped, restarted or recreated.
+# stopped, restarted or recreated. Besides the live Caddyfile, LawDesk writes only its own Caddyfile.lawdesk-* files.
 
 BEGIN_MARK="# BEGIN lawdesk-staging"
 END_MARK="# END lawdesk-staging"
 EDGE_NETWORK=lawdesk-edge
 LIVE=/etc/caddy/Caddyfile
 CANDIDATE=/etc/caddy/Caddyfile.lawdesk-candidate
+CHECK=/etc/caddy/Caddyfile.lawdesk-check
+PREVIOUS=/etc/caddy/Caddyfile.lawdesk-previous
+LAWDESK_HOST_RE='^lawdesk(-[a-z0-9]+)?(\.[a-z0-9-]+)+$'
 
 project=${LAWDESK_PROXY_PROJECT:-matbakhy-preview}
 service=${LAWDESK_PROXY_SERVICE:-proxy}
 backup_root=${LAWDESK_PROXY_BACKUP_DIR:-/srv/deployments/lawdesk/proxy-backups}
 
 die() {
-    echo "proxy: $*" >&2
+    echo "proxy: $1" >&2
     exit "${2:-1}"
 }
 
@@ -33,7 +36,19 @@ on_edge() {
         tr ' ' '\n' | grep -qx "$EDGE_NETWORK"
 }
 
-# Prints a Caddyfile without the LawDesk block.
+# Refuses (exit 2) unless the file holds no LawDesk block or exactly one well-formed one: both markers at the start of
+# their own lines, BEGIN before END. strip_block on anything else could drop unrelated sites (QAD-020).
+check_markers() {
+    local sequence
+    sequence=$(awk -v begin="$BEGIN_MARK" -v end="$END_MARK" '
+        /(BEGIN|END) lawdesk-staging/ {
+            if (index($0, begin) == 1) printf "B"; else if (index($0, end) == 1) printf "E"; else printf "?"
+        }' "$1")
+    [[ -z $sequence || $sequence == BE ]] ||
+        die "the LawDesk markers in the live Caddyfile are malformed (found ${sequence//\?/x}); fix them by hand" 2
+}
+
+# Prints a Caddyfile without the LawDesk block (call check_markers first).
 strip_block() {
     awk -v begin="$BEGIN_MARK" -v end="$END_MARK" '
         index($0, begin) == 1 { skip = 1; next }
@@ -41,21 +56,23 @@ strip_block() {
         !skip' "$1"
 }
 
-# The public hosts the proxy serves for Matbakhy, from its own Caddyfile and PREVIEW_DOMAIN.
-matbakhy_hosts() {
-    local domain
-    domain=$(docker exec "$proxy" printenv PREVIEW_DOMAIN)
-    # shellcheck disable=SC2016 # matches the literal {$PREVIEW_DOMAIN} placeholder
-    sed -n 's/^\([a-z0-9-]*\)\.{\$PREVIEW_DOMAIN} {$/\1/p' "$1" | while read -r sub; do echo "$sub.$domain"; done
+# The host names Caddy itself serves for a Caddyfile inside the proxy (its placeholders expanded with the proxy's
+# environment), sorted, one per line. Fails when Caddy cannot adapt the file.
+served_hosts() {
+    local json
+    json=$(docker exec "$proxy" caddy adapt --config "$1" --adapter caddyfile 2> /dev/null) || return 1
+    { grep -o '"host": *\[[^]]*\]' <<< "$json" || true; } | grep -o '"[^"]*"' | grep -vx '"host"' | tr -d '"' |
+        sort -u || true
 }
 
-# "<host> <status>" for each Matbakhy host, asked through the local 443 listener.
+# "<host> <status>" for each host listed in a file, asked through the local 443 listener (000: no answer).
 host_statuses() {
     local host
-    for host in $(matbakhy_hosts "$1"); do
+    while read -r host; do
+        [[ $host == *'*'* ]] && continue
         echo "$host $(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 --resolve "$host:443:127.0.0.1" \
             "https://$host/" 2> /dev/null || true)"
-    done
+    done < "$1"
 }
 
 # Copies a local Caddyfile into the proxy beside the live one and validates it there (nothing is running it yet).
@@ -63,8 +80,15 @@ stage() {
     docker cp "$1" "$proxy:$CANDIDATE" && docker exec "$proxy" caddy validate --config "$CANDIDATE" --adapter caddyfile
 }
 
-# Makes the staged file the running configuration (graceful, in place), then the persisted one. If the reload fails
-# Caddy keeps serving the previous configuration.
+# activate <staged file> <file it replaces>: makes the staged file the running configuration (graceful, in place),
+# then the persisted one. A failed reload leaves Caddy on its previous configuration; a failed persist reloads the
+# replaced file again, so the proxy never keeps running what it would not restart with (QAD-019).
 activate() {
-    docker exec "$proxy" caddy reload --config "$CANDIDATE" --adapter caddyfile && docker cp "$1" "$proxy:$LIVE"
+    docker cp "$2" "$proxy:$PREVIOUS" || return 1
+    docker exec "$proxy" caddy reload --config "$CANDIDATE" --adapter caddyfile || return 1
+    docker cp "$1" "$proxy:$LIVE" && return 0
+    echo "proxy: the new configuration could not be persisted; reloading the previous one" >&2
+    docker exec "$proxy" caddy reload --config "$PREVIOUS" --adapter caddyfile ||
+        echo "proxy: RESTORE FAILED: the proxy runs a configuration that is not its persisted one" >&2
+    return 1
 }

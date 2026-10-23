@@ -1,0 +1,34 @@
+# Real Caddy v2.10.2 check of attach.sh after QAD-019/020 (2026-10-23T18:47:00Z); validate and adapt run the real binary
+# shared.caddy = copy of /srv/matbakhy-preview/Caddyfile (sha256 e5f14c7f1e457dc7); unbalanced.caddy = QA's QAD-020 shape
+== shared Caddyfile copy: attach exit 0
+backup: <tmp>/backups/20261023T184700Z
+before: api.167-86-90-174.sslip.io 200
+before: app.167-86-90-174.sslip.io 200
+before: id.167-86-90-174.sslip.io 200
+before: media.167-86-90-174.sslip.io 200
+before: ops.167-86-90-174.sslip.io 200
+Valid configuration
+after:  api.167-86-90-174.sslip.io 200
+after:  app.167-86-90-174.sslip.io 200
+after:  id.167-86-90-174.sslip.io 200
+after:  media.167-86-90-174.sslip.io 200
+after:  ops.167-86-90-174.sslip.io 200
+attached: https://lawdesk.167-86-90-174.sslip.io -> lawdesk-web:8080 (backup <tmp>/backups/20261023T184700Z)
+
+
+live Caddyfile unchanged: False
+active (reloaded) config: LawDesk block present
+== BEGIN without END + later literal api host: attach exit 2
+backup: <tmp>/backups/20261023T184704Z
+
+proxy: the LawDesk markers in the live Caddyfile are malformed (found B); fix them by hand
+
+live Caddyfile unchanged: True
+active (reloaded) config: none
+== foreign site inside balanced LawDesk markers: attach exit 2
+backup: <tmp>/backups/20261023T184704Z
+
+proxy: the LawDesk markers enclose other sites; fix by hand: shop.qa.invalid
+
+live Caddyfile unchanged: True
+active (reloaded) config: none

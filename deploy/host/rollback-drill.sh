@@ -28,18 +28,27 @@ release_env=(
 )
 
 echo "drill: running release $current; building the broken drill release $drill"
-docker build -t "$registry/backend:$drill" - << EOF
+# Labelled with the drill revision: deploy.sh accepts only images whose label matches their tag.
+docker build --label "org.opencontainers.image.revision=$drill" -t "$registry/backend:$drill" - << EOF
 FROM $registry/backend:$current
 ENTRYPOINT ["sh", "-c", "echo 'LawDesk rollback drill: this release refuses to start' >&2; exit 1"]
 EOF
-docker tag "$registry/web:$current" "$registry/web:$drill"
+docker build --label "org.opencontainers.image.revision=$drill" -t "$registry/web:$drill" - << EOF
+FROM $registry/web:$current
+EOF
 
 verdict=passed
 deploy_status=0
+history_before=$( [[ -f $state/history.log ]] && wc -l < "$state/history.log" || echo 0 )
 env "${release_env[@]}" "$scripts/deploy.sh" "$drill" || deploy_status=$?
 after=$(cat "$state/current-release")
 if [[ $deploy_status != 1 ]]; then
     echo "drill: deploy.sh exited $deploy_status, expected 1 (failed and rolled back)"
+    verdict=failed
+fi
+# Exit 1 also means "refused before starting"; only a release that started and failed exercises the rollback.
+if ! tail -n "+$((history_before + 1))" "$state/history.log" | grep -q "failed $drill"; then
+    echo "drill: deploy.sh did not start the drill release, so the rollback was not exercised"
     verdict=failed
 fi
 if [[ $after != "$current" ]]; then

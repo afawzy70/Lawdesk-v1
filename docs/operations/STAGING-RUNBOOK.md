@@ -22,7 +22,10 @@ merge into develop ─► CI (6 gates) ─► deploy-staging job ─ssh─► la
 
 * Unmerged pull-request code never deploys: the job runs only for `push` to `develop` after every gate, and the host
   itself refuses any commit that is not on `develop`.
-* No images are published; GitHub Packages is not used (storage quota, B6). Images are `lawdesk-local/{backend,web}:<sha>`.
+* No images are published; GitHub Packages is not used (storage quota, B6). Images are `lawdesk-local/{backend,web}:<sha>`
+  and carry the label `org.opencontainers.image.revision=<sha>`. The gate rebuilds a cached tag whose label names other
+  code, and `deploy.sh` starts a release (or a rollback target) only when both labels match its commit (QAD-017).
+* A rollback target is started with its own `compose.yaml` and verified with its own `smoke.sh` (QAD-021).
 * The runner's key can only run the gate (`restrict,command=…`): no shell, no forwarding, three requests
   (`deploy <sha>`, `rollback`, `status`).
 * Migrations are forward-only (Flyway). A rollback restarts the previous images against the newer schema, which works
@@ -39,7 +42,7 @@ merge into develop ─► CI (6 gates) ─► deploy-staging job ─ssh─► la
 | 3 | another deployment is running |
 | 4 | release failed **and** the rollback failed — staging needs attention |
 | 5 | commit is not on `develop` |
-| 6 | fetch or image build failed; the running release is unchanged |
+| 6 | fetch or image build failed, or a built image does not carry its commit's revision label; the running release is unchanged |
 
 ## One-time setup (devops)
 
@@ -90,7 +93,9 @@ cd /srv/deployments/lawdesk/setup
 deploy/host/bootstrap.sh lawdesk_ci_deploy.pub
 ```
 
-It creates `state/ releases/ logs/ backups/ secrets/ proxy-backups/`, generates the two database passwords once,
+If `~devops/.ssh/authorized_keys` already lists the CI key with any other options (or without restriction), bootstrap
+refuses with exit 2 before changing anything; remove that line by hand (QAD-018). Otherwise it creates
+`state/ releases/ logs/ backups/ secrets/ proxy-backups/`, generates the two database passwords once,
 creates the bare repository with a read-only GitHub deploy key, binds the CI key to the gate in
 `~devops/.ssh/authorized_keys`, and creates the `--internal` network `lawdesk-edge`. It prints the next two items.
 
@@ -136,8 +141,12 @@ deploy/proxy/attach.sh            # backup → validate in the proxy → join la
 curl -sS -o /dev/null -w '%{http_code} %{ssl_verify_result}\n' https://lawdesk.167-86-90-174.sslip.io/healthz
 ```
 
-Caddy obtains the certificate on the first request (ACME through the proxy's existing 80/443). The script refuses or
-restores automatically if validation, reload or any Matbakhy host check fails. Undo at any time:
+Caddy obtains the certificate on the first request (ACME through the proxy's existing 80/443). The script refuses
+before any change if the LawDesk markers are malformed, if they enclose any non-LawDesk site, if no other site is found
+or one of them does not answer, or if the adapted candidate would not serve exactly the existing hosts plus LawDesk
+(hosts as Caddy itself adapts them, literal or `{$PREVIEW_DOMAIN}`; QAD-020). It restores automatically if reload,
+persisting the file (QAD-019) or any Matbakhy host check fails. Besides the live Caddyfile it writes only
+`/etc/caddy/Caddyfile.lawdesk-{candidate,check,previous}` inside the proxy. Undo at any time:
 `deploy/proxy/detach.sh` (removes only the LawDesk block from the *live* file, reloads, leaves `lawdesk-edge`).
 
 **Persistence:** the change lives in the running proxy container. A Matbakhy redeploy that *recreates* the proxy
@@ -152,7 +161,14 @@ gh variable set LAWDESK_STAGING_DEPLOY --repo afawzy70/Lawdesk-v1 --body enabled
 ```
 
 From now on every merge into `develop` that passes CI deploys. Manual redeploy of a merged commit:
-`gh workflow run deploy-staging.yml -f sha=<sha>`. Switch off: `gh variable set LAWDESK_STAGING_DEPLOY --body disabled`.
+`gh workflow run deploy-staging.yml --ref develop -f sha=<sha>`. A dispatched run is refused unless it runs develop's
+copy of the workflow and all six CI gates succeeded for that exact commit, as GitHub Actions reported them (QAD-016).
+Switch off: `gh variable set LAWDESK_STAGING_DEPLOY --body disabled`.
+
+Who may deploy: anyone with write access can dispatch the workflow, so the guards above plus the host's own
+"is it on develop" check are what limit it. If the repository plan offers environment protection, put the two
+`LAWDESK_STAGING_*` secrets in the `staging` environment and restrict its deployment branches to `develop`; then no
+workflow from another branch can read the key at all.
 
 ### 9. Prove Matbakhy was not disturbed
 

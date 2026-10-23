@@ -108,6 +108,36 @@ class BootstrapTest(unittest.TestCase):
 
         self.assertIn("ssh-ed25519 AAAAexisting operator", (ssh / "authorized_keys").read_text(encoding="utf-8"))
 
+    def test_refuses_when_the_ci_key_is_already_authorized_without_the_gate_restriction(self):
+        # QAD-018: an existing unrestricted (or differently restricted) entry for the same key would keep shell access.
+        ssh = self.user_home / ".ssh"
+        ssh.mkdir(mode=0o700)
+        key = self.ci_pub.read_text(encoding="utf-8").strip()
+        for existing in [key, f'command="/bin/sh" {key}', f"no-pty {key}",
+                         f'restrict,command="/usr/local/sbin/lawdesk-deploy-gate",permitopen="*:*" {key}']:
+            with self.subTest(existing=existing[:40]):
+                (ssh / "authorized_keys").write_text(f"ssh-ed25519 AAAAother operator\n{existing}\n",
+                                                     encoding="utf-8")
+
+                result = self.bootstrap(str(self.ci_pub))
+
+                self.assertEqual(2, result.returncode, result.stdout)
+                self.assertIn("authorized_keys", result.stderr)
+                self.assertEqual(f"ssh-ed25519 AAAAother operator\n{existing}\n",
+                                 (ssh / "authorized_keys").read_text(encoding="utf-8"))
+                self.assertFalse((self.home / "secrets").exists(), "refused before any change")
+
+    def test_a_different_key_with_the_same_comment_is_not_mistaken_for_the_ci_key(self):
+        ssh = self.user_home / ".ssh"
+        ssh.mkdir(mode=0o700)
+        (ssh / "authorized_keys").write_text("ssh-ed25519 AAAAdifferent lawdesk-ci-deploy\n", encoding="utf-8")
+
+        result = self.bootstrap(str(self.ci_pub))
+
+        self.assertEqual(0, result.returncode, result.stderr)
+        lines = (ssh / "authorized_keys").read_text(encoding="utf-8").splitlines()
+        self.assertTrue(any(line.startswith('restrict,command="/usr/local/sbin/lawdesk-deploy-gate" ') for line in lines))
+
     def test_prepares_a_read_only_fetch_from_github_with_a_pinned_host_key(self):
         result = self.bootstrap(str(self.ci_pub))
 

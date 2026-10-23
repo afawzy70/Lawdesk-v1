@@ -99,16 +99,29 @@ if [[ ! -d $release ]]; then
     mv -- "$unpack" "$release"
 fi
 
+# The revision label every image is built with; a tag alone could point at other code (QAD-017).
+revision_of() {
+    docker image inspect -f '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$1" 2> /dev/null
+}
+
 for image in backend:backend web:frontend; do
     name=${image%%:*}
     context=$release/${image#*:}
-    if docker image inspect "$registry/$name:$sha" > /dev/null 2>&1; then
+    found=$(revision_of "$registry/$name:$sha") || found=missing
+    if [[ $found == "$sha" ]]; then
         echo "gate: image $registry/$name:$sha already built"
         continue
+    fi
+    if [[ $found != missing ]]; then
+        echo "gate: image $registry/$name:$sha carries revision '${found}', not $sha; rebuilding it"
     fi
     if ! docker build --label "org.opencontainers.image.revision=$sha" -t "$registry/$name:$sha" \
         -f "$context/Dockerfile" "$context"; then
         echo "gate: image build failed for $name; the running release is unchanged" >&2
+        exit 6
+    fi
+    if [[ $(revision_of "$registry/$name:$sha") != "$sha" ]]; then
+        echo "gate: image $registry/$name:$sha does not carry revision $sha after the build; refusing it" >&2
         exit 6
     fi
 done

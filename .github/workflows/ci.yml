@@ -226,6 +226,9 @@ jobs:
     needs: [policy, backend, backend-postgres-image, frontend, stack, secrets]
     # Merged code only: pushes to develop in this repository, after every gate above passed.
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop' && github.repository == 'afawzy70/Lawdesk-v1'
+    permissions:
+      contents: read
+      checks: read
     uses: ./.github/workflows/deploy-staging.yml
     with:
       sha: ${{ github.sha }}

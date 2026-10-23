@@ -14,6 +14,7 @@ from pathlib import Path
 DEPLOY_DIR = Path(__file__).resolve().parents[1]
 DEPLOY = DEPLOY_DIR / "scripts" / "deploy.sh"
 ROLLBACK = DEPLOY_DIR / "scripts" / "rollback.sh"
+SMOKE = DEPLOY_DIR / "scripts" / "smoke.sh"
 
 SHA_A = "a" * 40
 SHA_B = "b" * 40
@@ -25,7 +26,13 @@ FAKE_DOCKER = textwrap.dedent("""\
     echo "LAWDESK_TAG=${LAWDESK_TAG:-} $*" | tr '\n' ' ' >> "$FAKE_DOCKER_LOG"
     echo >> "$FAKE_DOCKER_LOG"
     case "$*" in
-      "image inspect "*) case "$*" in *":${FAKE_MISSING_IMAGE_TAG:-none}"*) exit 1 ;; esac ;;
+      "image inspect "*)
+        case "$*" in *":${FAKE_MISSING_IMAGE_TAG:-none}"*) exit 1 ;; esac
+        # With a format, answer the revision label: the image's own tag unless told otherwise.
+        for last in "$@"; do :; done
+        case "$*" in *" -f "*|*" --format "*)
+          if [ "${last##*:}" = "${FAKE_WRONG_REVISION_TAG:-none}" ]; then echo "${FAKE_OTHER_REVISION:-}"; else echo "${last##*:}"; fi ;;
+        esac ;;
       *" up "*) [ "${LAWDESK_TAG:-}" = "${FAKE_FAIL_UP_TAG:-none}" ] && exit 1 ;;
       *" exec -T db pg_dump "*) [ -n "${FAKE_FAIL_DUMP:-}" ] && exit 1; echo "DUMP-OF-${LAWDESK_TAG:-}" ;;
       *" exec "*) [ "${LAWDESK_TAG:-}" = "${FAKE_FAIL_SMOKE_TAG:-none}" ] && exit 1 ;;
@@ -230,8 +237,9 @@ class LocalImagesTest(DeployScriptTestCase):
         self.assertEqual(0, result.returncode, result.stderr)
         calls = self.calls()
         self.assertFalse(any(" pull" in c for c in calls), calls)
-        self.assertTrue(any(f"image inspect ghcr.io/example/lawdesk/backend:{SHA_A}" in c for c in calls), calls)
-        self.assertTrue(any(f"image inspect ghcr.io/example/lawdesk/web:{SHA_A}" in c for c in calls), calls)
+        inspects = [c for c in calls if " image inspect " in c]
+        self.assertTrue(any(c.rstrip().endswith(f" ghcr.io/example/lawdesk/backend:{SHA_A}") for c in inspects), calls)
+        self.assertTrue(any(c.rstrip().endswith(f" ghcr.io/example/lawdesk/web:{SHA_A}") for c in inspects), calls)
 
     def test_release_without_built_images_is_refused_before_touching_the_stack(self):
         self.run_script(DEPLOY, SHA_A, LAWDESK_IMAGE_SOURCE="local")
@@ -243,6 +251,31 @@ class LocalImagesTest(DeployScriptTestCase):
         self.assertIn("not built", result.stderr)
         self.assertFalse(any(" up " in c for c in self.calls()[before:]), self.calls()[before:])
         self.assertEqual(SHA_A, self.current())
+
+    def test_local_image_labelled_with_another_revision_is_refused(self):
+        # QAD-017: the tag alone does not prove which code an image holds; its revision label must match.
+        self.run_script(DEPLOY, SHA_A, LAWDESK_IMAGE_SOURCE="local")
+        before = len(self.calls())
+
+        for other in [SHA_C, ""]:
+            with self.subTest(other=other):
+                result = self.run_script(DEPLOY, SHA_B, LAWDESK_IMAGE_SOURCE="local", FAKE_WRONG_REVISION_TAG=SHA_B,
+                                         FAKE_OTHER_REVISION=other)
+
+                self.assertEqual(1, result.returncode)
+                self.assertIn("revision", result.stderr)
+                self.assertFalse(any(" up " in c for c in self.calls()[before:]), self.calls()[before:])
+                self.assertEqual(SHA_A, self.current())
+
+    def test_rollback_target_with_a_wrong_revision_label_is_not_started(self):
+        self.run_script(DEPLOY, SHA_A, LAWDESK_IMAGE_SOURCE="local")
+        before = len(self.calls())
+
+        result = self.run_script(DEPLOY, SHA_B, LAWDESK_IMAGE_SOURCE="local", FAKE_FAIL_UP_TAG=SHA_B,
+                                 FAKE_WRONG_REVISION_TAG=SHA_A, FAKE_OTHER_REVISION=SHA_C)
+
+        self.assertEqual(4, result.returncode, result.stderr)
+        self.assertFalse(any(c.startswith(f"LAWDESK_TAG={SHA_A}") and " up " in c for c in self.calls()[before:]))
 
     def test_unknown_image_source_is_a_usage_error(self):
         result = self.run_script(DEPLOY, SHA_A, LAWDESK_IMAGE_SOURCE="somewhere")
@@ -327,6 +360,27 @@ class ReleaseDirectoriesTest(DeployScriptTestCase):
             if " up " in call:
                 with self.subTest(call=call):
                     self.assertIn(str(self.releases / tag / "deploy" / "compose.yaml"), call)
+
+    def test_rollback_is_smoke_tested_with_the_target_release_own_contract(self):
+        # QAD-021: after B fails, A is started with A's compose file and must be verified with A's, not B's.
+        for sha in [SHA_A, SHA_B]:
+            scripts = self.releases / sha / "deploy" / "scripts"
+            scripts.mkdir()
+            (scripts / "smoke.sh").write_text(SMOKE.read_text(encoding="utf-8"), encoding="utf-8")
+            (scripts / "smoke.sh").chmod(0o755)
+        self.run_script(DEPLOY, SHA_A)
+
+        for failure in [{"FAKE_FAIL_UP_TAG": SHA_B}, {"FAKE_FAIL_SMOKE_TAG": SHA_B}]:
+            with self.subTest(failure=failure):
+                before = len(self.calls())
+                result = self.run_script(DEPLOY, SHA_B, **failure)
+
+                self.assertEqual(1, result.returncode, result.stderr)
+                rollback = [c for c in self.calls()[before:] if c.startswith(f"LAWDESK_TAG={SHA_A}")]
+                self.assertTrue(any(" exec -T web " in c for c in rollback), rollback)
+                for call in rollback:
+                    with self.subTest(call=call):
+                        self.assertIn(str(self.releases / SHA_A / "deploy" / "compose.yaml"), call)
 
     def test_secrets_and_environment_file_come_from_the_host_configuration(self):
         env_file = Path(self.tmp.name) / "staging.env"

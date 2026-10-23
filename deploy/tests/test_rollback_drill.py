@@ -26,6 +26,8 @@ FIXTURE_DEPLOY = textwrap.dedent("""\
     #!/usr/bin/env bash
     echo "deploy.sh $* registry=$LAWDESK_REGISTRY source=$LAWDESK_IMAGE_SOURCE" >> "$FAKE_DEPLOY_LOG"
     [[ -n ${FAKE_DRILL_DEPLOYED:-} ]] && { echo "$1" > "$LAWDESK_STATE_DIR/current-release"; exit 0; }
+    [[ -n ${FAKE_DRILL_REFUSED:-} ]] && { echo "x refused $1: images are not built" >> "$LAWDESK_STATE_DIR/history.log"; exit 1; }
+    echo "x failed $1" >> "$LAWDESK_STATE_DIR/history.log"
     echo "x rolled back to $(cat "$LAWDESK_STATE_DIR/current-release")" >> "$LAWDESK_STATE_DIR/history.log"
     exit 1
     """)
@@ -86,7 +88,12 @@ class RollbackDrillTest(unittest.TestCase):
         docker = self.docker_log.read_text(encoding="utf-8")
         self.assertIn(f"-t lawdesk-local/backend:{DRILL_SHA}", docker)
         self.assertIn(f"FROM lawdesk-local/backend:{CURRENT}", docker)
-        self.assertIn(f"tag lawdesk-local/web:{CURRENT} lawdesk-local/web:{DRILL_SHA}", docker)
+        # deploy.sh accepts an image only when its revision label matches its tag (QAD-017).
+        builds = [line for line in docker.splitlines() if line.startswith("build ")]
+        self.assertEqual(2, len(builds), docker)
+        self.assertTrue(all(f"--label org.opencontainers.image.revision={DRILL_SHA}" in b for b in builds), builds)
+        self.assertTrue(any(f"-t lawdesk-local/web:{DRILL_SHA}" in b and f"FROM lawdesk-local/web:{CURRENT}" in b
+                            for b in builds), builds)
         deploy = self.deploy_log.read_text(encoding="utf-8").splitlines()
         self.assertEqual(f"deploy.sh {DRILL_SHA} registry=lawdesk-local source=local", deploy[0])
         self.assertIn(f"smoke.sh tag={CURRENT}", deploy)
@@ -104,6 +111,15 @@ class RollbackDrillTest(unittest.TestCase):
         self.set_current()
 
         result = self.drill(FAKE_DRILL_DEPLOYED="1")
+
+        self.assertEqual(1, result.returncode)
+        self.assertIn("DRILL FAILED", result.stdout)
+
+    def test_drill_fails_if_deploy_refused_the_release_instead_of_starting_it(self):
+        # A refusal (exit 1 without "failed <sha>") leaves current unchanged too, but proves nothing about rollback.
+        self.set_current()
+
+        result = self.drill(FAKE_DRILL_REFUSED="1")
 
         self.assertEqual(1, result.returncode)
         self.assertIn("DRILL FAILED", result.stdout)
