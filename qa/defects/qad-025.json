@@ -1,0 +1,30 @@
+{
+  "id": "QAD-025",
+  "title": "Null member in roles array causes500 during user creation",
+  "priority": "P2",
+  "severity": "S2",
+  "stories": [
+    "LD-009"
+  ],
+  "affected": [
+    "4a9263ce2a76fce9a620c185f461b52bc7a01970",
+    "f6bc3e37ee8dd46debd5b9ff5b946b1b731b3a23"
+  ],
+  "steps": [
+    "Authenticate ADMIN; include session and CSRF",
+    "POST /api/v1/users with new valid username/email/displayName/locale, valid temporaryPassword and roles:[null]"
+  ],
+  "expected": "400 field validation or UnknownRole; no user or role assignment stored",
+  "actual": "500 Internal Server Error (TreeSet null element)",
+  "uat_policy": "Input-validation defect; not proof of privilege escalation",
+  "status": "CONFIRMED_OPEN",
+  "environment": "Ubuntu24.04 Java21 PostgreSQL18.6; QA-owned loopback services; React Vitest/jsdom for QAD023",
+  "preconditions": [
+    "Use synthetic data and exact indicated SHA",
+    "Use QA independent scripts, not developer MockMvc tests"
+  ],
+  "evidence": "qa/evidence/phase234-20261024/",
+  "first_confirmed_utc": "2026-10-24T05:17:19.380831+00:00",
+  "latest_retest_utc": "2026-10-24T05:27:30.953009+00:00",
+  "latest_retest": "Still reproduced at applicable current HEAD; old evidence retained"
+}

@@ -1,0 +1,36 @@
+{
+  "id": "QAD-022",
+  "title": "Password policy accepts 73–128 characters but bcrypt encoder returns HTTP500",
+  "priority": "P2",
+  "severity": "S2",
+  "stories": [
+    "LD-008"
+  ],
+  "affected": [
+    "71007a02f8b79d0dccc0592af7d3e49b5bf4530d",
+    "0ea8d99742a747ed42e1ad1714d288569cbbed07",
+    "9daaf2bd679ef6ceddd65e839bd25ff92acda484",
+    "175881a2fe6054eea8f9ab5ec135abe65d397c6e",
+    "4a9263ce2a76fce9a620c185f461b52bc7a01970",
+    "45590ab0669c0b030bd22cfa5947fcfc96a799c5",
+    "f6bc3e37ee8dd46debd5b9ff5b946b1b731b3a23"
+  ],
+  "steps": [
+    "Start independent phase234_review.py on exact SHA using disposable PostgreSQL and bootstrap fixture",
+    "Login; complete forced password change",
+    "POST /api/v1/me/password with correct currentPassword and newPassword consisting of 73 ASCII Q characters; include session and CSRF"
+  ],
+  "expected": "Policy accepts12–128 characters; successful204 and usable new credential, or formally revised safe policy with400; never500",
+  "actual": "500 Internal Server Error; IllegalArgumentException: password cannot be more than72 bytes",
+  "uat_policy": "Does not by itself prohibit ordinary Dev/UAT deployment; documented functional/security-policy defect",
+  "status": "CONFIRMED_OPEN",
+  "environment": "Ubuntu24.04 Java21 PostgreSQL18.6; QA-owned loopback services; React Vitest/jsdom for QAD023",
+  "preconditions": [
+    "Use synthetic data and exact indicated SHA",
+    "Use QA independent scripts, not developer MockMvc tests"
+  ],
+  "evidence": "qa/evidence/phase234-20261024/",
+  "first_confirmed_utc": "2026-10-24T05:17:19.372690+00:00",
+  "latest_retest_utc": "2026-10-24T05:27:30.952459+00:00",
+  "latest_retest": "Still reproduced at applicable current HEAD; old evidence retained"
+}
