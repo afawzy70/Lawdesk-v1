@@ -52,6 +52,25 @@ names the tests that cover it. Developer runs are not independent QA.
    `rule: "PASSWORD_CHANGE_REQUIRED"`. A successful change clears the flag.
 6. **Administrative reset (LD-009).** `USER_MANAGE` sets a new temporary password and `mustChangePassword = true`, and
    the change is audited.
+7. **Session revocation (QAD-028).** An administrative reset, a successful password change and a disablement end every
+   session of that user that signed in before the event (`SessionRevocationTest`).
+   - **ASSUMPTION**: the session that changed its own password stays signed in; every other session of the user is
+     revoked. A reset or a disablement revokes all of the user's sessions, including the administrator's own session
+     when they reset their own password.
+   - A revoked session answers 401 to every API call, safe or unsafe, including `POST /api/v1/me/password`. It never
+     becomes valid again: not after a later password change, a re-enable, a role change or a restart. `app_user`
+     carries a `credential_version` (V102) that only rises. The session remembers the version it signed in with, and
+     every request compares it with the database.
+   - Concurrent requests are covered. A login that read the account just before a reset gets a session that is already
+     revoked. A password change that races a reset changes nothing and answers 401, so the reset stays in force.
+     Parallel sessions are all revoked.
+   - Role changes still apply on the next request without revoking the session (LD-007.7). They do not change
+     credentials, and no test showed a need to revoke. Logout keeps answering 204, also for a revoked session.
+   - The first refused request is audited as `SESSION_REVOKED` / `DENIED` with the user as actor and target. No session
+     id, cookie or token is recorded. The server session is then invalidated, so later requests with that cookie are
+     ordinary anonymous 401s.
+   - **ASSUMPTION**: sessions stored before this release carry no version. They no longer deserialize, which signs
+     them out (principal `serialVersionUID` 2). Sessions are currently in memory and end on restart anyway.
 
 ## LD-009 Role and permission administration
 
@@ -104,7 +123,8 @@ names the tests that cover it. Developer runs are not independent QA.
    - `PASSWORD_CHANGE`, `PASSWORD_RESET`;
    - `USER_CREATE`, `USER_UPDATE`, `USER_ENABLE`, `USER_DISABLE`, `USER_ROLES_CHANGE`;
    - `ROLE_CREATE`, `ROLE_UPDATE`, `ROLE_PERMISSIONS_CHANGE`;
-   - `ACCESS_DENIED` (403 on `/api/**`).
+   - `ACCESS_DENIED` (403 on `/api/**`);
+   - `SESSION_REVOKED` (DENIED: a request of a session revoked by LD-008.7).
 3. **The attempted login.** For an unknown user it is stored truncated to 64 characters and never echoed back. No
    password, hash, session id or CSRF token is ever stored.
 4. **Request id.** `request_id` is the correlation id of the request (`X-Request-Id`).

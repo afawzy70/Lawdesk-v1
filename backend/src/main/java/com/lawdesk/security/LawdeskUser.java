@@ -21,10 +21,11 @@ import com.lawdesk.users.Account;
  */
 public record LawdeskUser(UUID id, String username, String email, String displayName, String locale,
         String passwordHash, boolean enabled, boolean mustChangePassword, Instant lockedUntil, Set<String> roles,
-        Set<String> permissions) implements UserDetails, ActorPrincipal {
+        Set<String> permissions, long credentialVersion) implements UserDetails, ActorPrincipal {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    // 2: credentialVersion (LD-008.7). Sessions serialized before it no longer deserialize, so they end.
+    private static final long serialVersionUID = 2L;
 
     public static final String ADMIN = "ADMIN";
 
@@ -38,7 +39,7 @@ public record LawdeskUser(UUID id, String username, String email, String display
         }
         return new LawdeskUser(account.id(), account.username(), account.email(), account.displayName(),
                 account.locale(), account.passwordHash(), account.enabled(), account.mustChangePassword(),
-                account.lockedUntil(), Set.copyOf(account.roles()), Set.copyOf(granted));
+                account.lockedUntil(), Set.copyOf(account.roles()), Set.copyOf(granted), account.credentialVersion());
     }
 
     private static boolean known(String code) {
@@ -73,7 +74,13 @@ public record LawdeskUser(UUID id, String username, String email, String display
     /** The principal kept in the session and in the context: without the password hash. */
     public LawdeskUser withoutPassword() {
         return new LawdeskUser(id, username, email, displayName, locale, null, enabled, mustChangePassword,
-                lockedUntil, roles, permissions);
+                lockedUntil, roles, permissions, credentialVersion);
+    }
+
+    /** The same principal after its own password change raised the credential version (LD-008.7). */
+    public LawdeskUser withCredentialVersion(long version) {
+        return new LawdeskUser(id, username, email, displayName, locale, passwordHash, enabled, mustChangePassword,
+                lockedUntil, roles, permissions, version);
     }
 
     public List<String> sortedRoles() {

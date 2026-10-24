@@ -1,0 +1,57 @@
+# QAD-027 RED - 2026-10-24T12:53:18Z - origin/develop 8b0928b + new tests, product CSS unchanged
+## 1. Regression tests (vitest, jsdom): npx vitest run src/features/cases/CaseMobileLayout.test.tsx
+     × scroll regions clip their positioned descendants, such as visually hidden captions 20ms
+     × page headings wrap long references instead of widening the page 4ms
+     × case facts wrap long values inside a shrinkable column 3ms
+     × .case-table td:first-child wraps long names 2ms
+     × .case-timeline wraps long names 2ms
+     × .case-found wraps long names 2ms
+     × row actions keep at least a 24px target 3ms
+     × .judicial-stage wraps long court references 2ms
+     × .judicial-form wraps long court references 2ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+AssertionError: expected { 'overflow-x': 'auto' } to match object { 'overflow-x': 'auto', …(1) }
+AssertionError: expected {} to match object { 'overflow-wrap': 'anywhere' }
+AssertionError: expected { display: 'grid', …(2) } to match object { Object (grid-template-columns) }
+AssertionError: expected {} to match object { 'overflow-wrap': 'anywhere' }
+AssertionError: expected {} to match object { 'min-block-size': '1.5rem', …(1) }
+AssertionError: expected { padding: '1rem', …(3) } to match object { 'overflow-wrap': 'anywhere' }
+AssertionError: expected { display: 'grid', …(6) } to match object { 'overflow-wrap': 'anywhere' }
+ Test Files  1 failed (1)
+      Tests  9 failed | 3 passed (12)
+
+## 2. Real browser: Chromium headless shell build 1248 via Playwright 1.64.1 (pre-installed on the host),
+##    against 'npm run build && npx vite preview --port 4179', every API call answered with synthetic data.
+## $ node scripts/mobile-layout-check.mjs http://localhost:4179
+FAIL case-details width=320 lang=en dir=ltr innerWidth=320 scrollWidth=475 buttons=9 under24px=0 rowActionsOffscreen=1 widenedBy=h1,dd,dd,dd,dd
+PASS case-list width=320 lang=en dir=ltr innerWidth=320 scrollWidth=320 buttons=2 under24px=0 rowActionsOffscreen=0
+FAIL case-edit width=320 lang=en dir=ltr innerWidth=320 scrollWidth=475 buttons=1 under24px=0 rowActionsOffscreen=0 widenedBy=h1
+PASS courts width=320 lang=en dir=ltr innerWidth=320 scrollWidth=320 buttons=4 under24px=0 rowActionsOffscreen=0
+FAIL proceeding-form width=320 lang=en dir=ltr innerWidth=320 scrollWidth=475 buttons=11 under24px=0 rowActionsOffscreen=1 widenedBy=h1,dd,dd,dd,dd
+FAIL case-details width=320 lang=ar dir=rtl innerWidth=320 scrollWidth=475 buttons=9 under24px=0 rowActionsOffscreen=1 widenedBy=h1,dd,dd,dd,dd
+PASS case-list width=320 lang=ar dir=rtl innerWidth=320 scrollWidth=320 buttons=2 under24px=0 rowActionsOffscreen=0
+FAIL case-edit width=320 lang=ar dir=rtl innerWidth=320 scrollWidth=475 buttons=1 under24px=0 rowActionsOffscreen=0 widenedBy=h1
+PASS courts width=320 lang=ar dir=rtl innerWidth=320 scrollWidth=320 buttons=4 under24px=0 rowActionsOffscreen=0
+FAIL proceeding-form width=320 lang=ar dir=rtl innerWidth=320 scrollWidth=475 buttons=11 under24px=0 rowActionsOffscreen=1 widenedBy=h1,dd,dd,dd,dd
+FAIL case-details width=375 lang=en dir=ltr innerWidth=375 scrollWidth=475 buttons=9 under24px=0 rowActionsOffscreen=1 widenedBy=h1,span.visually-hidden
+PASS case-list width=375 lang=en dir=ltr innerWidth=375 scrollWidth=375 buttons=2 under24px=0 rowActionsOffscreen=0
+FAIL case-edit width=375 lang=en dir=ltr innerWidth=375 scrollWidth=475 buttons=1 under24px=0 rowActionsOffscreen=0 widenedBy=h1
+PASS courts width=375 lang=en dir=ltr innerWidth=375 scrollWidth=375 buttons=4 under24px=0 rowActionsOffscreen=0
+FAIL proceeding-form width=375 lang=en dir=ltr innerWidth=375 scrollWidth=475 buttons=11 under24px=0 rowActionsOffscreen=1 widenedBy=h1,span.visually-hidden
+FAIL case-details width=375 lang=ar dir=rtl innerWidth=375 scrollWidth=475 buttons=9 under24px=0 rowActionsOffscreen=1 widenedBy=h1
+PASS case-list width=375 lang=ar dir=rtl innerWidth=375 scrollWidth=375 buttons=2 under24px=0 rowActionsOffscreen=0
+FAIL case-edit width=375 lang=ar dir=rtl innerWidth=375 scrollWidth=475 buttons=1 under24px=0 rowActionsOffscreen=0 widenedBy=h1
+PASS courts width=375 lang=ar dir=rtl innerWidth=375 scrollWidth=375 buttons=4 under24px=0 rowActionsOffscreen=0
+FAIL proceeding-form width=375 lang=ar dir=rtl innerWidth=375 scrollWidth=475 buttons=11 under24px=0 rowActionsOffscreen=1 widenedBy=h1
+PASS case-details width=1366 lang=en dir=ltr innerWidth=1366 scrollWidth=1366 buttons=9 under24px=0 rowActionsOffscreen=0
+PASS case-list width=1366 lang=en dir=ltr innerWidth=1366 scrollWidth=1366 buttons=2 under24px=0 rowActionsOffscreen=0
+PASS case-edit width=1366 lang=en dir=ltr innerWidth=1366 scrollWidth=1366 buttons=1 under24px=0 rowActionsOffscreen=0
+PASS courts width=1366 lang=en dir=ltr innerWidth=1366 scrollWidth=1366 buttons=4 under24px=0 rowActionsOffscreen=0
+PASS proceeding-form width=1366 lang=en dir=ltr innerWidth=1366 scrollWidth=1366 buttons=11 under24px=0 rowActionsOffscreen=0
+PASS case-details width=1366 lang=ar dir=rtl innerWidth=1366 scrollWidth=1366 buttons=9 under24px=0 rowActionsOffscreen=0
+PASS case-list width=1366 lang=ar dir=rtl innerWidth=1366 scrollWidth=1366 buttons=2 under24px=0 rowActionsOffscreen=0
+PASS case-edit width=1366 lang=ar dir=rtl innerWidth=1366 scrollWidth=1366 buttons=1 under24px=0 rowActionsOffscreen=0
+PASS courts width=1366 lang=ar dir=rtl innerWidth=1366 scrollWidth=1366 buttons=4 under24px=0 rowActionsOffscreen=0
+PASS proceeding-form width=1366 lang=ar dir=rtl innerWidth=1366 scrollWidth=1366 buttons=11 under24px=0 rowActionsOffscreen=0
+RESULT: FAIL (12 checks)
+exit=1
