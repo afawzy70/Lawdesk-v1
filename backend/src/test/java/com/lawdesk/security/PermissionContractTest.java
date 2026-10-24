@@ -23,6 +23,15 @@ class PermissionContractTest {
                 "JUDGMENT_MANAGE");
     }
 
+    // Phases 5 and 6 (architecture/CONTRACTS.md §8), reserved before the two workstreams start.
+    @Test
+    void containsThePermissionsOfLegalOperationsAndReporting() {
+        Set<String> names = Arrays.stream(Permission.values()).map(Enum::name).collect(Collectors.toSet());
+
+        assertThat(names).contains("HEARING_VIEW", "HEARING_MANAGE", "EXPERT_VIEW", "EXPERT_MANAGE", "DOCUMENT_VIEW",
+                "DOCUMENT_MANAGE", "TASK_VIEW", "TASK_MANAGE", "NOTE_MANAGE", "REPORT_VIEW", "REPORT_EXPORT");
+    }
+
     @Test
     void codesAreUpperSnakeCase() {
         for (Permission permission : Permission.values()) {

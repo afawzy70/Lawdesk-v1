@@ -26,12 +26,14 @@ class MigrationRangeTest(unittest.TestCase):
         self.assertEqual([], contracts.migration_errors(["V1__app_release.sql", "V2__app_release_version_visible.sql"]))
 
     def test_each_phase_uses_its_own_range(self):
-        good = ["V100__LD-007_app_user.sql", "V200__LD-012_legal_case.sql", "V305__LD-022_judgment.sql"]
+        good = ["V100__LD-007_app_user.sql", "V200__LD-012_legal_case.sql", "V305__LD-022_judgment.sql",
+                "V400__LD-024_hearing.sql", "V499__LD-029_note.sql", "V500__LD-030_report_index.sql",
+                "V599__LD-034_export.sql"]
         self.assertEqual([], contracts.migration_errors(good))
 
     def test_versions_outside_the_story_phase_range_are_refused(self):
         for name in ["V150__LD-012_legal_case.sql", "V250__LD-018_court.sql", "V399__LD-009_roles.sql",
-                     "V400__LD-024_hearing.sql"]:
+                     "V500__LD-024_hearing.sql", "V450__LD-031_case_report.sql", "V600__LD-035_locale.sql"]:
             with self.subTest(name=name):
                 self.assertTrue(contracts.migration_errors([name]), name)
 

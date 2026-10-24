@@ -25,4 +25,17 @@ describe('visibleNav', () => {
     expect(visibleNav(new Set(), items).map((item) => item.path)).toEqual(['/']);
     expect(visibleNav(new Set<Permission>(['CASE_VIEW']), items).map((item) => item.path)).toEqual(['/', '/ready']);
   });
+
+  // architecture/CONTRACTS.md §8: each Phase 5 and 6 area is opened by its own permission.
+  it('guards the legal operations and reporting areas with their own permissions', () => {
+    const requires = Object.fromEntries(NAV_ITEMS.map((item) => [item.path, item.requires]));
+
+    expect(requires).toMatchObject({
+      '/hearings': 'HEARING_VIEW',
+      '/experts': 'EXPERT_VIEW',
+      '/documents': 'DOCUMENT_VIEW',
+      '/tasks': 'TASK_VIEW',
+      '/reports': 'REPORT_VIEW',
+    });
+  });
 });

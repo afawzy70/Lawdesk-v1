@@ -11,7 +11,8 @@ PERMISSION_TS = Path("frontend/src/api/permissions.ts")
 MIGRATIONS = Path("backend/src/main/resources/db/migration")
 
 # Flyway version range of each phase, and the stories of that phase (product/DELIVERY-PLAN.md).
-RANGES = {2: (100, 199, range(7, 12)), 3: (200, 299, range(12, 18)), 4: (300, 399, range(18, 24))}
+RANGES = {2: (100, 199, range(7, 12)), 3: (200, 299, range(12, 18)), 4: (300, 399, range(18, 24)),
+          5: (400, 499, range(24, 30)), 6: (500, 599, range(30, 35))}
 
 _MIGRATION_RE = re.compile(r"V(?P<version>\d+)__(?:LD-(?P<story>\d{3})_)?[a-z0-9_]+\.sql")
 

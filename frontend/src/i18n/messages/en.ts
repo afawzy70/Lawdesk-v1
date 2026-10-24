@@ -3,6 +3,8 @@ import { adminEn } from './admin.en';
 import { casesEn } from './cases.en';
 import { courtsEn } from './courts.en';
 import { proceedingsEn } from './proceedings.en';
+import { operationsEn } from './operations.en';
+import { reportsEn } from './reports.en';
 
 /**
  * English message catalog. This object defines the set of message keys: every other catalog is typed as
@@ -30,6 +32,7 @@ export const en = {
   'nav.judgments': 'Judgments',
   'nav.experts': 'Experts',
   'nav.documents': 'Documents',
+  'nav.tasks': 'Tasks',
   'nav.reports': 'Reports',
   'nav.admin': 'Administration',
 
@@ -71,6 +74,8 @@ export const en = {
   ...casesEn,
   ...courtsEn,
   ...proceedingsEn,
+  ...operationsEn,
+  ...reportsEn,
 };
 
 export type MessageKey = keyof typeof en;
