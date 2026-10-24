@@ -72,6 +72,60 @@ final class ReportTestData {
         return id;
     }
 
+    /** A hearing; a status other than SCHEDULED carries the result columns its check constraint requires. */
+    UUID insertHearing(UUID caseId, UUID proceedingId, LocalDate date, String status) {
+        boolean scheduled = "SCHEDULED".equals(status);
+        UUID id = jdbc.queryForObject("""
+                insert into hearing (case_id, proceeding_id, hearing_date, purpose, status, result_recorded_at,
+                                     result_recorded_by, created_by, updated_by)
+                values (?, ?, ?, 'PLEADING', ?, ?, ?, ?, ?) returning id""", UUID.class, caseId, proceedingId, date,
+                status, scheduled ? null : java.sql.Timestamp.from(java.time.Instant.now()),
+                scheduled ? null : CREATOR, CREATOR, CREATOR);
+        created.push(new String[] {"hearing", id.toString()});
+        return id;
+    }
+
+    /** A task assigned to {@code assignee}; a done task has its completion time. */
+    UUID insertTask(UUID caseId, UUID assignee, String title, LocalDate due, String status) {
+        UUID id = jdbc.queryForObject("""
+                insert into task (case_id, title, assignee_id, due_date, status, completed_at, created_by, updated_by)
+                values (?, ?, ?, ?, ?, ?, ?, ?) returning id""", UUID.class, caseId, title, assignee, due, status,
+                "DONE".equals(status) ? java.sql.Timestamp.from(java.time.Instant.now()) : null, CREATOR, CREATOR);
+        created.push(new String[] {"task", id.toString()});
+        return id;
+    }
+
+    /** A user account named {@code displayName}, enabled; it holds no role. */
+    UUID insertUser(String displayName) {
+        String username = (marker + "-" + (++sequence)).toLowerCase();
+        UUID id = jdbc.queryForObject("""
+                insert into app_user (username, email, display_name, password_hash, enabled, created_by, updated_by)
+                values (?, ?, ?, 'x', true, ?, ?) returning id""", UUID.class, username, username + "@example.invalid",
+                displayName, CREATOR, CREATOR);
+        created.push(new String[] {"app_user", id.toString()});
+        return id;
+    }
+
+    UUID insertExpert(String name, String specialty) {
+        UUID id = jdbc.queryForObject("""
+                insert into expert (name, specialty, created_by, updated_by) values (?, ?, ?, ?) returning id""",
+                UUID.class, name, specialty, CREATOR, CREATOR);
+        created.push(new String[] {"expert", id.toString()});
+        return id;
+    }
+
+    /** A referral of the case's proceeding to an expert; a submitted report is dated on its due day. */
+    UUID insertReferral(UUID caseId, UUID proceedingId, UUID expertId, LocalDate referred, LocalDate due,
+            String status) {
+        UUID id = jdbc.queryForObject("""
+                insert into expert_referral (case_id, proceeding_id, expert_id, referral_date, report_due_date, status,
+                                             report_submitted_date, created_by, updated_by)
+                values (?, ?, ?, ?, ?, ?, ?, ?, ?) returning id""", UUID.class, caseId, proceedingId, expertId,
+                referred, due, status, "REPORT_SUBMITTED".equals(status) ? due : null, CREATOR, CREATOR);
+        created.push(new String[] {"expert_referral", id.toString()});
+        return id;
+    }
+
     /** Inserts {@code count} civil open cases at once, referenced {@code <marker>-BULK-<n>}; they have no proceedings. */
     void insertBulkCases(int count) {
         jdbc.update("""

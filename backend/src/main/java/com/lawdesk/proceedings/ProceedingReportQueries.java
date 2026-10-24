@@ -126,6 +126,30 @@ public class ProceedingReportQueries {
         return counts;
     }
 
+    /** A proceeding as reports name it: its stage, court and number at the court. */
+    public record ProceedingRef(UUID id, Stage stage, CourtRef court, String courtCaseNumber, int courtCaseYear) {
+    }
+
+    /** The proceedings with these ids that exist, by id. */
+    public Map<UUID, ProceedingRef> proceedings(Collection<UUID> ids) {
+        Map<UUID, ProceedingRef> found = new HashMap<>();
+        if (ids.isEmpty()) {
+            return found;
+        }
+        jdbc.sql("""
+                select p.id, p.stage, p.court_case_number, p.court_case_year, c.id as court_id, c.code, c.name_ar,
+                       c.name_en
+                from proceeding p join court c on c.id = p.court_id where p.id = any(cast(:ids as uuid[]))""")
+                .param("ids", uuidArray(ids)).query(rs -> {
+                    UUID id = rs.getObject("id", UUID.class);
+                    found.put(id, new ProceedingRef(id, Stage.valueOf(rs.getString("stage")),
+                            new CourtRef(rs.getObject("court_id", UUID.class), rs.getString("code"),
+                                    rs.getString("name_ar"), rs.getString("name_en")),
+                            rs.getString("court_case_number"), rs.getInt("court_case_year")));
+                });
+        return found;
+    }
+
     /** A PostgreSQL array literal of ids; UUIDs hold only hex digits and hyphens, so nothing needs quoting. */
     private static String uuidArray(Collection<UUID> ids) {
         return ids.stream().map(UUID::toString).collect(Collectors.joining(",", "{", "}"));

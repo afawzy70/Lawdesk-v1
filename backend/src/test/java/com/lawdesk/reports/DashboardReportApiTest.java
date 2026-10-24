@@ -3,6 +3,7 @@ package com.lawdesk.reports;
 import static com.lawdesk.security.TestActors.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.empty;
 import static org.mockito.Mockito.doReturn;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -53,7 +54,9 @@ class DashboardReportApiTest extends PostgresTestSupport {
             "$.proceedings.byStage[1].awaitingJudgment", "$.proceedings.byStage[2].total",
             "$.proceedings.byStage[2].awaitingJudgment", "$.judgments.recorded", "$.judgments.final",
             "$.judgments.byOutcome.IN_FAVOUR", "$.judgments.byOutcome.AGAINST", "$.judgments.byOutcome.PARTIAL",
-            "$.judgments.byOutcome.DISMISSED", "$.judgments.byOutcome.OTHER");
+            "$.judgments.byOutcome.DISMISSED", "$.judgments.byOutcome.OTHER", "$.operations.hearingsThisWeek",
+            "$.operations.hearingsAwaitingResult", "$.operations.expertReportsOverdue", "$.operations.overdueTasks",
+            "$.operations.tasksDueSoon");
 
     @Autowired
     MockMvc mvc;
@@ -105,7 +108,7 @@ class DashboardReportApiTest extends PostgresTestSupport {
     }
 
     @Test
-    void reportsEveryFigureInAStableShapeWithThePendingPhase5Figures() throws Exception {
+    void reportsEveryFigureInAStableShapeWithNothingPending() throws Exception {
         mvc.perform(dashboard()).andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.proceedings.byStage[*].stage",
@@ -113,8 +116,10 @@ class DashboardReportApiTest extends PostgresTestSupport {
                 .andExpect(jsonPath("$.judgments.from").value("2031-03-01"))
                 .andExpect(jsonPath("$.judgments.to").value("2031-03-31"))
                 .andExpect(jsonPath("$.month").value("2031-03"))
-                .andExpect(jsonPath("$.pending", contains("HEARINGS_THIS_WEEK", "EXPERT_REPORTS_DUE",
-                        "OVERDUE_TASKS")));
+                .andExpect(jsonPath("$.pending", empty()))
+                .andExpect(jsonPath("$.operations.hearingsThisWeek").isNumber())
+                .andExpect(jsonPath("$.operations.expertReportsOverdue").isNumber())
+                .andExpect(jsonPath("$.operations.overdueTasks").isNumber());
     }
 
     @Test
@@ -200,6 +205,43 @@ class DashboardReportApiTest extends PostgresTestSupport {
         assertThat(delta(beforeOneDay, figures(oneDay))).containsExactlyInAnyOrderEntriesOf(Map.ofEntries(
                 Map.entry("$.proceedings.byStage[0].total", 4), Map.entry("$.judgments.recorded", 1),
                 Map.entry("$.judgments.final", 1), Map.entry("$.judgments.byOutcome.DISMISSED", 1)));
+    }
+
+    /**
+     * The legal-operations figures come from the Phase 5 ports, whose "today" is the real calendar day in Egypt (each
+     * port's own clock), so these rows are dated relative to it.
+     */
+    @Test
+    void countsUpcomingHearingsOverdueExpertReportsAndOverdueTasksFromThePhase5Ports() throws Exception {
+        LocalDate today = LocalDate.now(java.time.ZoneId.of("Africa/Cairo"));
+        UUID caseId = data.insertCase("operations", "CIVIL", "ACTIVE", today.minusYears(1));
+        UUID court = data.insertCourt("FIRST_INSTANCE");
+        UUID proceeding = data.insertProceeding(caseId, "FIRST_INSTANCE", court, today.minusYears(1), null);
+        UUID other = data.insertProceeding(caseId, "FIRST_INSTANCE", court, today.minusYears(1), null);
+        UUID expert = data.insertExpert("Expert " + data.marker(), "Accounting");
+        UUID assignee = UUID.randomUUID();
+        Map<String, Integer> before = figures(dashboard());
+
+        data.insertHearing(caseId, proceeding, today, "SCHEDULED");
+        data.insertHearing(caseId, proceeding, today.plusDays(6), "SCHEDULED");
+        data.insertHearing(caseId, proceeding, today.plusDays(7), "SCHEDULED");
+        data.insertHearing(caseId, proceeding, today.minusDays(1), "SCHEDULED");
+        data.insertHearing(caseId, other, today.plusDays(1), "CANCELLED");
+        data.insertHearing(caseId, proceeding, today.minusDays(2), "HELD");
+        data.insertReferral(caseId, proceeding, expert, today.minusDays(30), today.minusDays(1), "OPEN");
+        data.insertReferral(caseId, proceeding, expert, today.minusDays(30), today, "OPEN");
+        data.insertReferral(caseId, proceeding, expert, today.minusDays(30), today.minusDays(5), "REPORT_SUBMITTED");
+        data.insertTask(caseId, assignee, "overdue", today.minusDays(1), "OPEN");
+        data.insertTask(caseId, assignee, "overdue in progress", today.minusDays(5), "IN_PROGRESS");
+        data.insertTask(caseId, assignee, "due today", today, "OPEN");
+        data.insertTask(caseId, assignee, "due in three days", today.plusDays(3), "OPEN");
+        data.insertTask(caseId, assignee, "due in four days", today.plusDays(4), "OPEN");
+        data.insertTask(caseId, assignee, "done late", today.minusDays(1), "DONE");
+
+        Map<String, Integer> changed = delta(before, figures(dashboard()));
+        assertThat(changed).containsAllEntriesOf(Map.of("$.operations.hearingsThisWeek", 2,
+                "$.operations.hearingsAwaitingResult", 1, "$.operations.expertReportsOverdue", 1,
+                "$.operations.overdueTasks", 2, "$.operations.tasksDueSoon", 2));
     }
 
     @Test
