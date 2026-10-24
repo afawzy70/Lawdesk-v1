@@ -16,7 +16,7 @@ function calendarApi(permissions = ADMIN.permissions) {
     'fetch',
     vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url, 'http://localhost');
-      if (url.pathname === '/api/v1/hearings') return Promise.resolve(jsonResponse(EMPTY));
+      if (['/api/v1/hearings', '/api/v1/documents'].includes(url.pathname)) return Promise.resolve(jsonResponse(EMPTY));
       return base(input, init);
     }),
   );
@@ -28,6 +28,22 @@ describe('operations routes', () => {
       status: 'ready',
       requires: 'HEARING_VIEW',
     });
+  });
+
+  it('marks the documents screen ready behind DOCUMENT_VIEW and opens it', async () => {
+    expect(NAV_ITEMS.find((item) => item.path === '/documents')).toMatchObject({
+      status: 'ready',
+      requires: 'DOCUMENT_VIEW',
+    });
+    calendarApi();
+    render(
+      <MemoryRouter initialEntries={['/documents?lang=en']}>
+        <AppRoutes />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole('heading', { level: 1, name: 'Documents' })).toBeInTheDocument();
+    const nav = screen.getByRole('navigation', { name: 'Primary' });
+    expect(within(nav).getByRole('link', { name: 'Documents' })).toHaveAttribute('aria-current', 'page');
   });
 
   it('marks the task list ready behind TASK_VIEW and opens it', async () => {

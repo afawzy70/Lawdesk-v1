@@ -12,11 +12,16 @@ export function fieldMessage(code: string): MessageKey {
   switch (code) {
     case 'NotBlank':
     case 'NotNull':
+    case 'NotEmpty':
       return 'operations.fieldError.required';
     case 'Size':
       return 'operations.fieldError.tooLong';
     case 'Range':
       return 'operations.fieldError.range';
+    case 'PdfOnly':
+      return 'operations.fieldError.pdfOnly';
+    case 'MaxSize':
+      return 'operations.fieldError.maxSize';
     case 'FutureOrPresent':
       return 'operations.fieldError.past';
     case 'Null':

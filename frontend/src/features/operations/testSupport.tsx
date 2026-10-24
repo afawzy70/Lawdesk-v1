@@ -8,6 +8,7 @@ import type { Proceeding } from '../proceedings/proceedingsApi';
 import { CaseOperations } from './CaseOperations';
 import type { Hearing } from './hearings/hearingsApi';
 import { operationsRoutes } from './routes';
+import type { CaseDocument } from './documents/documentsApi';
 import type { Task } from './tasks/tasksApi';
 
 /** Test-only helpers for the legal operations screens: their routes, a case page hosting them, a scripted backend. */
@@ -142,6 +143,24 @@ export function task(overrides: Partial<Task> = {}): Task {
     createdAt: '2025-02-01T08:00:00Z',
     createdBy: 'u9',
     updatedAt: '2025-02-01T08:00:00Z',
+    ...overrides,
+  };
+}
+
+export function caseDocument(overrides: Partial<CaseDocument> = {}): CaseDocument {
+  return {
+    id: 'd1',
+    caseId: CASE,
+    caseReferenceNo: 'LD-2025-00042',
+    caseTitle: 'Rent dispute',
+    title: 'Statement of claim',
+    fileName: 'statement-of-claim.pdf',
+    mediaType: 'application/pdf',
+    sizeBytes: 12 * 1024,
+    sha256: 'a'.repeat(64),
+    version: 0,
+    createdAt: '2025-03-01T09:00:00Z',
+    createdBy: 'u9',
     ...overrides,
   };
 }

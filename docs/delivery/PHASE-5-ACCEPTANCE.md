@@ -196,23 +196,45 @@ Acceptance criteria:
 ## LD-026 Legal PDF attachments, up to ten per case
 
 1. `POST /api/v1/cases/{caseId}/documents` (`DOCUMENT_MANAGE`, `multipart/form-data`: `file`, optional `title` ≤ 200
-   characters) stores one PDF in PostgreSQL (`bytea`, §8.3): 201, `Location`, the metadata (`id`, `caseId`, `title`,
-   `fileName`, `sizeBytes`, `sha256`, `createdAt`, `createdBy`) and never the content. Timeline: `DOCUMENT_ATTACHED`.
+   characters, defaulting to the file name) stores one PDF in PostgreSQL (`bytea` in its own table, §8.3): 201,
+   `Location`, the metadata (`id`, `caseId`, `caseReferenceNo`, `caseTitle`, `title`, `fileName`, `mediaType`,
+   `sizeBytes`, `sha256`, `version`, `createdAt`, `createdBy`) and never the content. Timeline: `DOCUMENT_ATTACHED`.
+   An unknown case is 404, an `ARCHIVED` case `422 CASE_ARCHIVED`; a body that is not multipart is 415.
 2. A file is accepted only when its declared type is `application/pdf` and its content starts with `%PDF-`
-   (`400`, field `file`, code `PdfOnly`); an empty file is `400 NotEmpty`; a file over 10 MiB is `400 MaxSize`
-   (the multipart limit is 10 MiB, so larger uploads are refused before they reach the database).
+   (`400`, field `file`, code `PdfOnly`); no file is `400 NotNull`, an empty file `400 NotEmpty`, a file over 10 MiB
+   `400 MaxSize` (exactly 10 MiB is accepted). The container's multipart limit is the same 10 MiB
+   (`spring.servlet.multipart.*`, the one `application.yaml` change §8.1 allows); parts are read lazily, so the
+   permission is checked before the upload is parsed (QAD-026) and an oversized upload through the real container is
+   a `400 MaxSize` problem, never a 500 or a broken connection. Uploads need the CSRF token like every unsafe request.
 3. At most 10 documents per case: the 11th is `422 DOCUMENT_LIMIT_REACHED`. The count is checked while holding a lock on
-   a per-case counter row, so two concurrent uploads to a case holding 9 store exactly one.
-4. `GET /api/v1/cases/{caseId}/documents` (`DOCUMENT_VIEW`) lists the metadata, newest first.
-   `GET /api/v1/documents/{id}/content` (`DOCUMENT_VIEW`) answers the bytes with `Content-Type: application/pdf`,
-   `Content-Disposition: attachment` (UTF-8 file name), `X-Content-Type-Options: nosniff` and `Cache-Control: no-store`.
-5. `DELETE /api/v1/documents/{id}?version=` (`DOCUMENT_MANAGE`) removes the file: 204. Timeline: `DOCUMENT_REMOVED`.
-   **ASSUMPTION:** removal deletes the bytes (the slot is freed); the timeline keeps that it existed.
-6. The file name is reduced to its last path segment, control characters removed, at most 255 characters.
+   a per-case row (`case_document_quota`, `select ... for update`), so two concurrent uploads to a case holding nine
+   store exactly one; removals take the same lock.
+4. `GET /api/v1/cases/{caseId}/documents` (`DOCUMENT_VIEW`) lists the case's metadata, newest first;
+   `GET /api/v1/documents` (`DOCUMENT_VIEW`, paged) the latest documents of every case for the documents screen;
+   `GET /api/v1/documents/{id}` one document. `GET /api/v1/documents/{id}/content` (`DOCUMENT_VIEW`) answers the bytes
+   with `Content-Type: application/pdf`, `Content-Disposition: attachment` (UTF-8 file name),
+   `X-Content-Type-Options: nosniff` and `Cache-Control: no-store`. **ASSUMPTION:** every download is recorded in the
+   security audit log as `DOCUMENT_DOWNLOAD` (actor, document id, no content).
+5. `DELETE /api/v1/documents/{id}?version=` (`DOCUMENT_MANAGE`) removes the file: 204; a missing `version` is `400`, a
+   stale one 409. Timeline: `DOCUMENT_REMOVED`. **ASSUMPTION:** removal deletes the bytes (the slot is freed); the
+   timeline keeps that it existed. Documents are not edited (remove and attach again).
+6. The file name is reduced to its last path segment, control characters removed, at most 255 characters
+   (`document.pdf` when nothing is left).
+7. Screens: `/documents` (ready, `DOCUMENT_VIEW`) lists the latest documents of every case with download links; the
+   case's documents section in `CaseOperations` shows "n of 10", downloads, removal after confirmation and an upload
+   form that checks type and size in the browser first (the backend checks again).
+8. **ASSUMPTION:** no report port for documents in v1 (Phase 6 needs none per §8.3).
 
 | QA case | Scenario | Mapping | Status |
 |---------|----------|---------|--------|
-| QA-0201…QA-0208 | the eight standard scenarios | `DocumentApiTest`, `CaseDocuments.test.tsx` | PLANNED |
+| QA-0201 | authorized happy path | `DocumentApiTest`: attach (201, `Location`, sha256, timeline), read, list per case and across cases, download headers and audit, remove | AUTOMATED |
+| QA-0202 | required-field validation | `DocumentApiTest.aFileIsRequiredAndMustNotBeEmpty` (no file, empty file, JSON body 415) | AUTOMATED |
+| QA-0203 | invalid input boundary | `onlyPdfFilesUpToTenMebibytesAreAccepted` (type, magic bytes, 10 MiB ± 1, title 201), `fileNamesAreReducedToASafeLastSegment`, `aCaseHoldsAtMostTenDocuments`; `DocumentUploadOverHttpTest` (real container limit) | AUTOMATED |
+| QA-0204 | unauthenticated access | `DocumentApiTest.everyEndpointNeedsASession` | AUTOMATED |
+| QA-0205 | insufficient permission | `viewersCannotWriteAndOthersCannotRead` (with the `ACCESS_DENIED` audit row), `anUploadWithoutTheCsrfTokenIsRefused`, `DocumentUploadOverHttpTest.aUserWithoutTheManagePermissionIsRefusedBeforeTheBodyIsRead` | AUTOMATED |
+| QA-0206 | record integrity and rollback | `aFailingTimelineEventStoresNothing`, `anArchivedOrUnknownCaseTakesNoDocuments`, database checks on type, size and hash | AUTOMATED |
+| QA-0207 | concurrent or repeat request | `twoConcurrentUploadsToACaseHoldingNineStoreExactlyOne`; stale removal 409 | AUTOMATED |
+| QA-0208 | API-to-UI state and error handling | `CaseDocuments.test.tsx`, `DocumentsPage.test.tsx`, `routes.test.tsx`; real-browser layout `LD-026-07-layout-375-1366.log` | AUTOMATED |
 
 ## LD-025 Expert referrals and sessions
 
@@ -260,4 +282,5 @@ Acceptance criteria:
 - Follow-up in `com.lawdesk.proceedings` (Workstream C package, integration owner): a proceeding's filing date should
   not move after the earliest hearing or expert referral of that proceeding; the check needs a read of Phase 5 tables
   or a small port, and a row lock shared with the Phase 5 writes.
-- Uploading files from the browser needs `src/api/http.ts` to send `FormData` bodies (shared file).
+- Uploading files from the browser uses `src/api/http.ts` with `FormData` bodies, added by the integration owner
+  (branch `feature/LD-026-http-multipart`, PR #38), which the LD-026 branch merges.
