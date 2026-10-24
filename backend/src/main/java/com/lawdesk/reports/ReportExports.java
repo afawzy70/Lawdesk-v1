@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.lawdesk.api.BusinessRuleException;
+import com.lawdesk.hearings.HearingReportQueries;
+import com.lawdesk.hearings.HearingReportQueries.HearingFilter;
 import com.lawdesk.cases.CaseReportQueries;
 import com.lawdesk.cases.CaseReportQueries.CaseFilter;
 import com.lawdesk.cases.CaseReportQueries.SortField;
@@ -35,14 +37,71 @@ class ReportExports {
     private final JudgmentReportQueries judgments;
     private final JudgmentList judgmentList;
     private final ReportCalendar calendar;
+    private final HearingReportQueries hearings;
+    private final HearingList hearingList;
+    private final WorkloadReport workload;
+    private final ExpertReport experts;
 
     ReportExports(CaseReportQueries cases, CaseInventory inventory, JudgmentReportQueries judgments,
-            JudgmentList judgmentList, ReportCalendar calendar) {
+            JudgmentList judgmentList, ReportCalendar calendar, HearingReportQueries hearings, HearingList hearingList,
+            WorkloadReport workload, ExpertReport experts) {
         this.cases = cases;
         this.inventory = inventory;
         this.judgments = judgments;
         this.judgmentList = judgmentList;
         this.calendar = calendar;
+        this.hearings = hearings;
+        this.hearingList = hearingList;
+        this.workload = workload;
+        this.experts = experts;
+    }
+
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
+    public ExportFile hearings(HearingReportQuery query, ExportQuery export) {
+        HearingFilter filter = hearingList.filter(query);
+        requireWithinLimit(hearings.count(filter));
+        ReportLabels labels = ReportLabels.of(export.lang());
+        List<List<Object>> rows = new ArrayList<>();
+        for (HearingReport.Row row : hearingList.rows(hearings.find(filter, 0, MAX_ROWS))) {
+            rows.add(Arrays.asList(row.hearingDate(), row.hearingTime(), row.caseReferenceNo(), row.caseTitle(),
+                    labels.stage(row.stage()), labels.court(row.court()),
+                    row.courtCaseNumber() == null ? null : row.courtCaseNumber() + "/" + row.courtCaseYear(),
+                    labels.word("purpose." + row.purpose().name()), labels.word("hearing." + row.status().name()),
+                    labels.yesNo(row.awaitingResult())));
+        }
+        List<String> header = headers(labels, "hearingDate", "hearingTime", "caseReferenceNo", "caseTitle", "stage",
+                "court", "number", "purpose", "status", "awaitingResult");
+        return file("HEARINGS", "hearings", export,
+                new ExportTable(labels.word("report.HEARINGS"), filter.from() + " – " + filter.to(), labels, header,
+                        rows));
+    }
+
+    public ExportFile workload(ExportQuery export) {
+        WorkloadReport.Report report = workload.read();
+        requireWithinLimit(report.items().size());
+        ReportLabels labels = ReportLabels.of(export.lang());
+        List<List<Object>> rows = new ArrayList<>();
+        for (WorkloadReport.Row row : report.items()) {
+            rows.add(Arrays.asList(row.displayName() == null ? labels.word("unknownUser") : row.displayName(),
+                    row.open(), row.inProgress(), row.overdue()));
+        }
+        return file("WORKLOAD", "workload", export, new ExportTable(labels.word("report.WORKLOAD"),
+                calendar.today().toString(), labels, headers(labels, "assignee", "open", "inProgress", "overdue"),
+                rows));
+    }
+
+    public ExportFile experts(ExportQuery export) {
+        ExpertReport.Report report = experts.read();
+        requireWithinLimit(report.items().size());
+        ReportLabels labels = ReportLabels.of(export.lang());
+        List<List<Object>> rows = new ArrayList<>();
+        for (ExpertReport.Row row : report.items()) {
+            rows.add(Arrays.asList(row.name(), row.specialty(), labels.yesNo(row.active()), row.open(),
+                    row.overdue()));
+        }
+        return file("EXPERTS", "experts", export, new ExportTable(labels.word("report.EXPERTS"),
+                calendar.today().toString(), labels,
+                headers(labels, "expert", "specialty", "active", "openReferrals", "overdueReports"), rows));
     }
 
     @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)

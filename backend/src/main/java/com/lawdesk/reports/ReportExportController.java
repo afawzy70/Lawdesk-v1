@@ -52,6 +52,25 @@ class ReportExportController {
         return attachment(exports.judgments(query, export), export);
     }
 
+    @GetMapping("/hearings/export")
+    @PreAuthorize(Permission.Codes.REPORT_EXPORT)
+    ResponseEntity<byte[]> hearings(@Valid @ModelAttribute HearingReportQuery query,
+            @Valid @ModelAttribute ExportQuery export) {
+        return attachment(exports.hearings(query, export), export);
+    }
+
+    @GetMapping("/workload/export")
+    @PreAuthorize(Permission.Codes.REPORT_EXPORT)
+    ResponseEntity<byte[]> workload(@Valid @ModelAttribute ExportQuery export) {
+        return attachment(exports.workload(export), export);
+    }
+
+    @GetMapping("/experts/export")
+    @PreAuthorize(Permission.Codes.REPORT_EXPORT)
+    ResponseEntity<byte[]> experts(@Valid @ModelAttribute ExportQuery export) {
+        return attachment(exports.experts(export), export);
+    }
+
     private ResponseEntity<byte[]> attachment(ReportExports.ExportFile file, ExportQuery export) {
         ActorRef actor = actors.require();
         audit.record("REPORT_EXPORT", AuditLog.Outcome.SUCCESS, actor.id(), actor.username(), "REPORT",
