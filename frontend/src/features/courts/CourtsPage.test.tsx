@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppRoutes } from '../../App';
+import { fakeApi } from '../../test/api';
 import { jsonResponse } from '../../test/http';
 import type { Court, CourtPage } from './courtsApi';
 
@@ -45,11 +46,12 @@ function urlOf(input: RequestInfo | URL): string {
 
 type Handler = (url: URL, init: RequestInit) => Response | Promise<Response>;
 
-/** Routes fetch calls to `handler`; the shell's health check always answers UP. */
+/** Routes court calls to `handler`; everything else (session, CSRF, health) goes to the shared fake API. */
 function serve(handler: Handler) {
+  const base = fakeApi();
   const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
     const url = new URL(urlOf(input), 'http://localhost');
-    if (url.pathname === '/actuator/health') return Promise.resolve(jsonResponse({ status: 'UP' }));
+    if (!url.pathname.startsWith('/api/v1/courts')) return base(input, init);
     return Promise.resolve(handler(url, init ?? {}));
   });
   vi.stubGlobal('fetch', fetchMock);
@@ -79,7 +81,7 @@ describe('court list', () => {
     serve(() => jsonResponse(page([court(), court({ id: '2', code: 'GEN-AP-1', level: 'APPEAL', active: false, governorate: null })])));
     renderCourts();
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Courts' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Courts' })).toBeInTheDocument();
     const table = await screen.findByRole('table', { name: 'Courts' });
     const rows = within(table).getAllByRole('row').slice(1);
     expect(rows).toHaveLength(2);
@@ -142,17 +144,19 @@ describe('court list', () => {
     await screen.findByText('P-0');
   });
 
-  it('says so when the user may not see courts', async () => {
+  it('shows the access-denied page when the user may not see courts', async () => {
     serve(() => problem(403));
     renderCourts();
-    expect(await screen.findByRole('alert')).toHaveTextContent('You do not have permission to view courts.');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Access denied' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Courts' })).not.toBeInTheDocument();
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
 
-  it('asks the user to sign in when there is no session', async () => {
+  it('returns to the sign-in page when the session has ended', async () => {
     serve(() => problem(401));
     renderCourts();
-    expect(await screen.findByRole('alert')).toHaveTextContent('Please sign in to continue.');
+    expect(await screen.findByText('Your session has ended. Sign in again to continue.')).toBeInTheDocument();
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
 
   it('offers a retry when the API cannot be reached', async () => {
@@ -332,7 +336,7 @@ describe('court administration in Arabic', () => {
     const user = userEvent.setup();
     serve(() => jsonResponse(page([court({ level: 'CASSATION' })])));
     renderCourts('ar');
-    expect(screen.getByRole('heading', { level: 1, name: 'المحاكم' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'المحاكم' })).toBeInTheDocument();
     const table = await screen.findByRole('table', { name: 'المحاكم' });
     expect(within(table).getAllByRole('row')[1]).toHaveTextContent('النقض');
     expect(within(table).getAllByRole('row')[1]).toHaveTextContent('فعّالة');
