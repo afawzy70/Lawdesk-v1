@@ -76,6 +76,12 @@ public class ContractTestController {
         return currentActor.require();
     }
 
+    @GetMapping("/typed/{id}")
+    @PreAuthorize(Permission.Codes.CASE_VIEW)
+    String typed(@org.springframework.web.bind.annotation.PathVariable java.util.UUID id) {
+        return id.toString();
+    }
+
     @GetMapping("/page")
     @PreAuthorize(Permission.Codes.CASE_VIEW)
     PageResponse<String> page(Pageable pageable) {
