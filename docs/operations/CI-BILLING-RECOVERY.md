@@ -2,6 +2,10 @@
 
 Status: investigation and proof preparation, 2026-10-24. No self-hosted job has run. Do not treat this document or the scheduling probe as a green CI result.
 
+## Execution preflight and current blocker
+
+On 2026-10-24 the available agent host ran as `aiagent`, exposed `/srv/ai-workspaces/secrets` to that identity, and rejected an unprivileged user/mount namespace with `unshare: Operation not permitted`. It therefore fails the required execution boundary for this proof. The local `gh` credential reports invalid, and the connected GitHub app rejects the repository runner-administration endpoint. No separate VM or runner registration capability is attached to this session. The current-head PR #49 probe is queued with no runner or steps; its outcome is **NOT_RUN**, not PASS or a proven billing rejection. The minimal external action is for the operator to provide the isolated VM and enter a short-lived registration token there using the procedure below. No token should be sent to this session.
+
 ## Observed blockage
 
 - CI run [#160](https://github.com/afawzy70/Lawdesk-v1/actions/runs/40118354959) on `develop` at `19ad5386fa586e2469ecad36a677632273712f44` executed all six quality jobs and the develop guard successfully. It deployed staging.
