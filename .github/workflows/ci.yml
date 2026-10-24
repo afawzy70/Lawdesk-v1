@@ -175,6 +175,7 @@ jobs:
           mkdir -p deploy/secrets
           openssl rand -hex 24 > deploy/secrets/db_admin_password.txt
           openssl rand -hex 24 > deploy/secrets/db_app_password.txt
+          openssl rand -hex 16 > deploy/secrets/admin_bootstrap_password.txt
           docker network create lawdesk-edge
       - name: Start the stack and wait for health checks
         run: |
@@ -185,6 +186,21 @@ jobs:
           compose up -d --wait --wait-timeout 300
       - name: Smoke test
         run: deploy/scripts/smoke.sh
+      - name: The bootstrap administrator signs in through nginx
+        run: |
+          # LD-007/LD-008.4: CSRF cookie, then sign-in, both through the web container, as the browser does.
+          docker compose -p lawdesk-staging -f deploy/compose.yaml exec -T \
+            -e PW="$(cat deploy/secrets/admin_bootstrap_password.txt)" web sh -euc '
+            base=http://127.0.0.1:8080
+            token=$(wget -q -S -O /dev/null "$base/api/v1/auth/csrf" 2>&1 | sed -n "s/.*Set-Cookie: XSRF-TOKEN=\([^;]*\).*/\1/p")
+            [ -n "$token" ]
+            body=$(wget -q -O - --header "Content-Type: application/json" --header "X-XSRF-TOKEN: $token" \
+              --header "Cookie: XSRF-TOKEN=$token" --post-data "{\"login\":\"admin\",\"password\":\"$PW\"}" \
+              "$base/api/v1/auth/login")
+            case "$body" in
+              *"\"mustChangePassword\":true"*) echo "ok   admin signed in; password change required" ;;
+              *) echo "FAIL sign-in answered: $body" >&2; exit 1 ;;
+            esac'
       - name: Backend runs as the least-privilege role
         run: |
           docker compose -p lawdesk-staging -f deploy/compose.yaml exec -T db \

@@ -1,5 +1,6 @@
 import { useEffect, useId, useState } from 'react';
 import { ApiError } from '../../api/http';
+import { AccessDeniedPage } from '../auth/AccessDeniedPage';
 import type { MessageKey } from '../../i18n/catalog';
 import { formatNumber } from '../../i18n/format';
 import { useI18n } from '../../i18n/I18nContext';
@@ -68,6 +69,11 @@ export function CourtsPage() {
     setSaved(false);
     setEditing(target);
   };
+
+  // The backend refused COURT_VIEW: the shared access-denied page replaces the whole screen.
+  if (load.state === 'failed' && load.error === 'courts.error.viewForbidden') {
+    return <AccessDeniedPage />;
+  }
 
   return (
     <>
