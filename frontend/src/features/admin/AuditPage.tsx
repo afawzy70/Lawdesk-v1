@@ -23,6 +23,7 @@ const ACTIONS = [
   'ROLE_UPDATE',
   'ROLE_PERMISSIONS_CHANGE',
   'ACCESS_DENIED',
+  'SESSION_REVOKED',
 ] as const;
 const OUTCOMES = ['SUCCESS', 'FAILURE', 'DENIED'] as const;
 const NO_FILTER: AuditFilter = { action: '', actor: '', outcome: '' };
