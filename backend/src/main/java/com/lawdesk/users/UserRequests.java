@@ -19,7 +19,7 @@ final class UserRequests {
             @NotBlank @Email @Size(max = 254) String email,
             @NotBlank @Size(max = 128) String displayName,
             @NotNull @Pattern(regexp = "ar|en") String locale,
-            @NotNull List<String> roles,
+            @NotNull List<@NotNull String> roles,
             @NotNull @Size(min = 12, max = 128) String temporaryPassword) {
     }
 
@@ -33,7 +33,7 @@ final class UserRequests {
     record Enabled(@NotNull Boolean enabled) {
     }
 
-    record Roles(@NotNull List<String> roles) {
+    record Roles(@NotNull List<@NotNull String> roles) {
     }
 
     record PasswordReset(String temporaryPassword) {

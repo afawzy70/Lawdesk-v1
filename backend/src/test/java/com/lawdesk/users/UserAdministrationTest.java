@@ -132,6 +132,28 @@ class UserAdministrationTest extends PostgresTestSupport {
                 .andExpect(jsonPath("$.errors[0].field").value("roles"));
     }
 
+    // QAD-025: a null role code is a field error, not a server error, and nothing is stored.
+    @Test
+    void nullRoleCodesAreFieldErrors() throws Exception {
+        String name = unique();
+        String body = newUser(name, name + "@example.invalid").replace("[\"LEGAL_STAFF\"]", "[null]");
+
+        String answer = mvc.perform(json(post(USERS), body).with(admin())).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("roles[0]"))
+                .andReturn().getResponse().getContentAsString();
+        assertThat(answer).doesNotContainIgnoringCase("exception").doesNotContain("TreeSet");
+        assertThat(jdbc.queryForObject("select count(*) from app_user where username = ?", Integer.class, name))
+                .isZero();
+
+        var target = users.create("LEGAL_STAFF");
+        mvc.perform(json(put(USERS + "/" + target.id() + "/roles"), "{\"roles\":[\"LEGAL_STAFF\",null]}")
+                .with(admin())).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("roles[1]"));
+        assertThat(jdbc.queryForList("""
+                select r.code from user_role ur join app_role r on r.id = ur.role_id where ur.user_id = ?""",
+                String.class, target.id())).containsExactly("LEGAL_STAFF");
+    }
+
     @Test
     void readingUsersNeedsUserViewAndChangingThemUserManage() throws Exception {
         var target = users.create("LEGAL_STAFF");
