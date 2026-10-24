@@ -1,19 +1,26 @@
 package com.lawdesk.experts;
 
+import static com.lawdesk.security.TestActors.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 
+import com.lawdesk.experts.ExpertReportQueries.ExpertRef;
 import com.lawdesk.experts.ExpertReportQueries.ExpertWorkload;
 import com.lawdesk.experts.ExpertReportQueries.ReferralFilter;
 import com.lawdesk.experts.ExpertReportQueries.ReferralRow;
+import com.lawdesk.security.Permission;
 
 /** The read-only expert port for Phase 6 reports (architecture/CONTRACTS.md §8.3, PHASE-5-ACCEPTANCE LD-025.5). */
 class ExpertReportQueriesTest extends ExpertTestSupport {
@@ -57,6 +64,26 @@ class ExpertReportQueriesTest extends ExpertTestSupport {
         assertThat(reports.workload()).containsExactlyInAnyOrder(new ExpertWorkload(samir, 2, 1),
                 new ExpertWorkload(hoda, 0, 0));
         assertThat(reports.today()).isEqualTo(today());
+    }
+
+    @Test
+    void namesTheExpertsReportsShowInOneQuery() throws Exception {
+        UUID samir = createExpert("Samir");
+        UUID hoda = createExpert("Hoda");
+        mvc.perform(put("/api/v1/experts/" + hoda).with(as(Permission.EXPERT_MANAGE)).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(ExpertApiTest.edit("Hoda", "Accounting", false, 0)))
+                .andExpect(status().isOk());
+
+        Map<UUID, ExpertRef> named = reports.experts(Set.of(samir, hoda, UUID.randomUUID()));
+        assertThat(named).containsOnlyKeys(samir, hoda);
+        assertThat(named.get(samir)).isEqualTo(new ExpertRef(samir, "Samir", "Engineering", true));
+        assertThat(named.get(hoda)).isEqualTo(new ExpertRef(hoda, "Hoda", "Accounting", false));
+        assertThat(reports.experts(Set.of())).isEmpty();
+        assertThatThrownBy(() -> reports.experts(Stream.generate(UUID::randomUUID).limit(10_001)
+                .toList())).isInstanceOf(IllegalArgumentException.class);
+        assertThat(reports.experts(Stream.generate(UUID::randomUUID).limit(10_000).toList()))
+                .isEmpty();
     }
 
     @Test
