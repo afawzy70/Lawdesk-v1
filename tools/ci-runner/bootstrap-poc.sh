@@ -12,16 +12,18 @@ fail() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 
 [[ $(id -un) == lawdesk-poc ]] || fail 'run as the dedicated lawdesk-poc identity'
 [[ $(id -u) != 0 ]] || fail 'root execution is forbidden'
+[[ ! " $(id -nG) " =~ [[:space:]](sudo|wheel|docker|lxd)[[:space:]] ]] || fail 'privileged group membership is forbidden'
 [[ ! -e /var/run/docker.sock ]] || fail 'Docker socket is present'
 [[ ! -e /srv/deployments/lawdesk && ! -e /srv/ai-workspaces/secrets ]] || fail 'shared-server paths are present'
 [[ -f /etc/lawdesk-ci-poc-vm ]] || fail 'operator VM isolation attestation is absent'
-[[ -n ${RUNNER_REGISTRATION_TOKEN_FILE:-} && -r $RUNNER_REGISTRATION_TOKEN_FILE ]] || fail 'readable token file required'
+[[ -n ${RUNNER_REGISTRATION_TOKEN_FILE:-} && -f $RUNNER_REGISTRATION_TOKEN_FILE && ! -L $RUNNER_REGISTRATION_TOKEN_FILE && -r $RUNNER_REGISTRATION_TOKEN_FILE ]] || fail 'regular readable token file required'
 [[ -n ${RUNNER_NAME:-} && $RUNNER_NAME =~ ^lawdesk-ci-poc-[a-z0-9-]+$ ]] || fail 'set a unique RUNNER_NAME'
 [[ $(stat -c %a "$RUNNER_REGISTRATION_TOKEN_FILE") == 600 ]] || fail 'token file must be mode 0600'
+[[ $(stat -c %u "$RUNNER_REGISTRATION_TOKEN_FILE") == $(id -u) ]] || fail 'token file must be owned by lawdesk-poc'
 for command in curl sha256sum tar; do command -v "$command" >/dev/null || fail "missing $command"; done
 
 umask 077
-workdir=${RUNNER_WORKDIR:-$HOME/actions-runner-poc}
+workdir=$HOME/actions-runner-poc
 [[ ! -e $workdir ]] || fail 'runner directory already exists'
 mkdir -m 700 "$workdir"
 cd "$workdir"
