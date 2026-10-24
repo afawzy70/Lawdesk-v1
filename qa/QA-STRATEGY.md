@@ -1,5 +1,7 @@
 # Independent QA strategy
 
+> The owner-approved delivery strategy, [docs/governance/LAWDESK-DELIVERY-STRATEGY.md](../docs/governance/LAWDESK-DELIVERY-STRATEGY.md), also governs QA: security and performance testing, the shared-host limits, Phase 8 gates and the delivery states.
+
 Claude implements each story with test-driven development (RED failing test -> minimal GREEN implementation -> REFACTOR). Codex runs an independent suite and inspects failures; ChatGPT owns the acceptance criteria and QA baseline, reports findings, and reviews PR evidence. A single developer's tests cannot be sole release proof.
 
 ## Case status

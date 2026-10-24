@@ -14,6 +14,7 @@ If you change a rule, change the script and its tests in the same pull request.
 | `.github/` | CI workflows, PR template, code owners |
 | `product/`, `qa/`, `architecture/`, `operations/` | Approved product and QA baseline (owned by product/QA) |
 | `docs/delivery/` | Phase checkpoints and refined acceptance criteria |
+| `docs/governance/` | Owner-approved delivery strategy (priorities, Phase 7 deferral, security, performance, release gates, delivery states) |
 | `docs/evidence/<story>/` | RED/GREEN/REFACTOR logs for each story |
 
 ## Branches
@@ -48,6 +49,8 @@ Each log starts with the command and UTC timestamp. Never mark a skipped or unex
 
 ## Pull requests
 
+- Follow the owner-approved [delivery strategy](docs/governance/LAWDESK-DELIVERY-STRATEGY.md): priorities, delivery
+  states (IMPLEMENTED, INTEGRATED, DEPLOYED, QA ACCEPTED, PRODUCTION READY) and the testing rules for the shared host.
 - Target `develop`; fill in `.github/pull_request_template.md` (story IDs, QA case IDs, commands and results).
 - The author never approves or merges their own pull request; independent QA review is required.
 - Do not bypass failing checks. If a check is wrong, fix it in a separate reviewed change.
