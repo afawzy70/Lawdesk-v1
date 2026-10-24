@@ -148,8 +148,26 @@ Acceptance criteria:
    judgment for the same proceeding is 409. Interim rulings are special decisions (LD-023).
 4. Rule (422) `JUDGMENT_BEFORE_FILING`: the judgment date cannot be before the proceeding's filing date, when the
    judgment is recorded or corrected, and a proceeding's filing date cannot be moved after its judgment.
-   **ASSUMPTION:** correcting a judgment date to a day after an appeal already filed against it is not refused in this
-   phase.
+   Rule (422) `JUDGMENT_AFTER_CHALLENGE_FILING` (QAD-024): a judgment date cannot be corrected to a day after the
+   filing date of any appeal or cassation that attacks it (the earliest one bounds it; the same day is allowed). The
+   correction is refused as a whole: date, outcome, summary, finality and `version` stay unchanged. Dates are never
+   rewritten and proceedings are never deleted to make the chronology fit. Together with `FILED_BEFORE_PARENT_JUDGMENT`
+   (on create and on correcting a child's filing date) and `JUDGMENT_BEFORE_FILING`, every write keeps the chronology
+   *filing ≤ judgment ≤ filing of each challenge*.
+   Concurrency: every write that compares these dates first locks the proceeding row(s) involved with
+   `select ... for update` (child before parent): recording or correcting a judgment locks its proceeding; recording
+   an appeal or cassation locks its parent; correcting a proceeding locks it and then its parent. Two racing writes are
+   therefore serialised and the second one sees the first one's committed dates. No migration is needed.
+   Tests: `JudicialChronologyTest` — direct updates `aJudgmentDateCannotMovePastAnAppealFiledAgainstIt`,
+   `anAppealJudgmentDateCannotMovePastACassationFiledAgainstIt`, `theEarliestOfSeveralAppealsBoundsTheJudgmentDate`
+   (rollback: the stored row is compared before and after); valid corrections with existing appeals and cassations
+   `aCorrectionThatKeepsTheChronologySucceeds` (200, version bumped); the other edit paths
+   `anAppealsFilingDateCannotMoveBeforeTheJudgmentItAttacks`, `aParentProceedingsFilingDateStaysBoundByItsOwnJudgment`;
+   races (one request paused inside its transaction by a test-only trigger, final database state checked)
+   `anAppealFiledWhileTheJudgmentDateMovesLaterIsRefused`, `aJudgmentDateMovedWhileAnAppealIsFiledIsRefused`,
+   `anAppealMovedEarlierWhileTheJudgmentDateMovesLaterIsRefused`, `aJudgmentDateMovedWhileTheAppealMovesEarlierIsRefused`,
+   `aJudgmentRecordedWhileTheFilingDateMovesLaterIsRefused`. Evidence: `docs/evidence/PHASE-4/17-red-QAD-024-backend.log`,
+   `18-green-QAD-024-backend.log` (numbers 11–16 are used by the stacked LD-023 branch).
 5. Recording a judgment adds a timeline entry `JUDGMENT_RECORDED` through `CaseLookup#recordEvent`, in the same
    transaction. **ASSUMPTION:** corrections (updates) of proceedings and judgments add no timeline entry, and
    proceedings and judgments cannot be deleted in this phase.

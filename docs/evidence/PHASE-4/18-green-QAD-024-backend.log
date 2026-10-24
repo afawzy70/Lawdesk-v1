@@ -1,0 +1,15 @@
+# QAD-024 GREEN: ./mvnw -B test -Dtest='JudicialChronologyTest,JudgmentApiTest,ProceedingApiTest,StageRulesTest' -Djacoco.skip=true
+# After the fix: rule JUDGMENT_AFTER_CHALLENGE_FILING and select ... for update on the parent proceeding row.
+# Mutation check (not committed): with @Lock removed from ProceedingRepository.lockById the 5 race tests fail again
+# (Tests run: 11, Failures: 5), so they depend on the row lock.
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 47.06 s -- in com.lawdesk.proceedings.JudgmentApiTest
+[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.842 s -- in com.lawdesk.proceedings.ProceedingApiTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.948 s -- in com.lawdesk.proceedings.StageRulesTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 13.32 s -- in com.lawdesk.proceedings.JudicialChronologyTest
+[INFO] Tests run: 48, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+
+# Full regression: ./mvnw -B verify (all backend tests, JaCoCo check)
+[INFO] Tests run: 283, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+# Policy tests: python3 -m unittest discover -s tools/tests -> Ran 97 tests, OK

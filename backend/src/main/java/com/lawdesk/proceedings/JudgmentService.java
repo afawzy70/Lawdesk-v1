@@ -51,7 +51,7 @@ class JudgmentService {
     @Transactional
     JudgmentRequests.Response create(UUID proceedingId, JudgmentRequests.Create request) {
         ActorRef actor = currentActor.require();
-        Proceeding proceeding = records.proceeding(proceedingId);
+        Proceeding proceeding = records.lockedProceeding(proceedingId);
         if (judgments.existsByProceedingId(proceedingId)) {
             throw new ConflictException("the proceeding already has a judgment");
         }
@@ -67,10 +67,17 @@ class JudgmentService {
     JudgmentRequests.Response update(UUID id, JudgmentRequests.Update request) {
         ActorRef actor = currentActor.require();
         Judgment judgment = judgment(id);
+        // Locked before the checks, so an appeal or cassation filed meanwhile is either seen here or waits (QAD-024).
+        Proceeding proceeding = records.lockedProceeding(judgment.getProceedingId());
         if (judgment.getVersion() != request.version()) {
             throw new ConflictException("judgment was changed by someone else");
         }
-        Proceeding proceeding = records.proceeding(judgment.getProceedingId());
+        records.earliestChallengeFiling(proceeding.getId())
+                .filter(filed -> filed.isBefore(request.decision().judgmentDate()))
+                .ifPresent(filed -> {
+                    throw new BusinessRuleException(Rules.JUDGMENT_AFTER_CHALLENGE_FILING,
+                            "the judgment would come after the appeal or cassation filed against it on " + filed);
+                });
         decide(judgment, proceeding, request.decision());
         judgment.touch(actor, JudicialRecords.now());
         return JudgmentRequests.Response.of(store(judgment), proceeding.getCaseId());

@@ -85,7 +85,8 @@ class ProceedingService {
     @Transactional
     ProceedingRequests.Response update(UUID id, ProceedingRequests.Update request) {
         ActorRef actor = currentActor.require();
-        Proceeding proceeding = records.proceeding(id);
+        // Child before parent: this proceeding, then the one it attacks (QAD-024).
+        Proceeding proceeding = records.lockedProceeding(id);
         if (proceeding.getVersion() != request.version()) {
             throw new ConflictException("proceeding was changed by someone else");
         }
@@ -100,6 +101,7 @@ class ProceedingService {
             throw new BusinessRuleException(Rules.JUDGMENT_BEFORE_FILING, "the judgment would precede the filing");
         }
         if (proceeding.getParentProceedingId() != null) {
+            records.lockedProceeding(proceeding.getParentProceedingId());
             requireFiledAfter(judgments.findByProceedingId(proceeding.getParentProceedingId()), request.filingDate());
         }
         place(proceeding, request.courtId(), request.courtCaseNumber(), request.courtCaseYear(), request.filingDate());
@@ -133,7 +135,8 @@ class ProceedingService {
         if (parentId == null) {
             throw new BusinessRuleException(Rules.PARENT_PROCEEDING_REQUIRED, stage + " needs a parent proceeding");
         }
-        Proceeding parent = records.proceeding(parentId);
+        // Locked so the parent's judgment cannot move while this proceeding is checked against it (QAD-024).
+        Proceeding parent = records.lockedProceeding(parentId);
         if (!parent.getCaseId().equals(caseId)) {
             throw new BusinessRuleException(Rules.PARENT_PROCEEDING_OTHER_CASE, "parent belongs to another case");
         }
