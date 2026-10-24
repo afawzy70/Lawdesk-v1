@@ -1,12 +1,53 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppRoutes } from '../App';
-import { formatDateTime, formatNumber } from '../i18n/format';
-import { PREVIEW_CASES_BY_STAGE, PREVIEW_HEARINGS, PREVIEW_KPIS } from '../preview/mockData';
-import { fakeApi } from '../test/api';
+import type { Me } from '../features/auth/me';
+import type { DashboardReport } from '../features/reports/dashboardApi';
+import { formatNumber } from '../i18n/format';
+import { ADMIN, fakeApi } from '../test/api';
+import { jsonResponse } from '../test/http';
 
-/** Renders the dashboard and waits until the session has loaded. */
+const DASHBOARD = 'GET /api/v1/reports/dashboard';
+
+const REPORTER: Me = { ...ADMIN, permissions: [...ADMIN.permissions, 'REPORT_VIEW'] };
+
+const FIGURES: DashboardReport = {
+  month: '2026-10',
+  cases: {
+    total: 1234,
+    open: 1200,
+    closed: 34,
+    newThisMonth: 17,
+    byStatus: { OPEN: 700, ACTIVE: 450, SUSPENDED: 50, CLOSED: 30, ARCHIVED: 4 },
+    byType: { CIVIL: 600, CRIMINAL: 0, COMMERCIAL: 400, LABOR: 100, FAMILY: 120, ADMINISTRATIVE: 14 },
+  },
+  proceedings: {
+    awaitingJudgment: 61,
+    byStage: [
+      { stage: 'FIRST_INSTANCE', total: 90, awaitingJudgment: 40 },
+      { stage: 'APPEAL', total: 25, awaitingJudgment: 15 },
+      { stage: 'CASSATION', total: 6, awaitingJudgment: 6 },
+    ],
+  },
+  judgments: {
+    from: '2026-10-01',
+    to: '2026-10-31',
+    recorded: 12,
+    final: 5,
+    byOutcome: { IN_FAVOUR: 6, AGAINST: 3, PARTIAL: 2, DISMISSED: 1, OTHER: 0 },
+  },
+  pending: ['HEARINGS_THIS_WEEK', 'EXPERT_REPORTS_DUE', 'OVERDUE_TASKS'],
+};
+
+function problem(status: number): Response {
+  return new Response(JSON.stringify({ type: 'about:blank', status }), {
+    status,
+    headers: { 'Content-Type': 'application/problem+json' },
+  });
+}
+
 async function renderDashboard(lang: 'en' | 'ar' = 'en') {
   const result = render(
     <MemoryRouter initialEntries={[`/?lang=${lang}`]}>
@@ -14,120 +55,162 @@ async function renderDashboard(lang: 'en' | 'ar' = 'en') {
     </MemoryRouter>,
   );
   await screen.findByRole('banner');
-  // The page sets its title in an effect once the session has loaded.
   await waitFor(() => {
     expect(document.title).not.toBe('');
   });
   return result;
 }
 
-const kpi = (id: string) => PREVIEW_KPIS.find((k) => k.id === id)?.value ?? -1;
+function stub(me: Me, dashboard: () => Response = () => jsonResponse(FIGURES)) {
+  const fetchMock = fakeApi({ me, routes: { [DASHBOARD]: dashboard } });
+  vi.stubGlobal('fetch', fetchMock);
+  return fetchMock;
+}
 
-beforeEach(() => {
-  // Signed in: the shell needs a session since LD-007 (src/test/api.ts).
-  vi.stubGlobal('fetch', fakeApi());
-});
+function pathOf(input: RequestInfo | URL): string {
+  return typeof input === 'string' ? input : input instanceof URL ? input.pathname : input.url;
+}
 
-describe('dashboard preview (English)', () => {
-  it('states in its introduction that every figure is invented sample data', async () => {
+function requested(fetchMock: ReturnType<typeof fakeApi>, path: string): number {
+  return fetchMock.mock.calls.filter(([input]) => pathOf(input).startsWith(path)).length;
+}
+
+const region = (name: string) => screen.getByRole('region', { name });
+const items = (name: string) => within(region(name)).getAllByRole('listitem').map((item) => item.textContent);
+
+describe('dashboard with real figures (LD-030)', () => {
+  beforeEach(() => {
+    stub(REPORTER);
+  });
+
+  it('shows the case figures from the reports API, with no sample data left', async () => {
     await renderDashboard();
+    expect(await screen.findByRole('region', { name: 'Cases' })).toBeInTheDocument();
+    expect(items('Cases')).toEqual(['1,200Open cases', '34Closed cases', '1,234All cases', '17Opened this month']);
+    expect(screen.queryByText('Sample data')).not.toBeInTheDocument();
     expect(screen.getByRole('main')).toHaveTextContent(
-      'This preview shows a possible dashboard layout. Every figure and record on this page is invented sample data.',
+      'Figures are computed from the records stored in LawDesk when the page opens.',
     );
   });
 
-  it('labels each mock data region as sample data, visibly and in its accessible description', async () => {
+  it('breaks the cases down by status and by type, zeros included', async () => {
     await renderDashboard();
-    for (const name of ['Key figures', 'Upcoming hearings', 'Cases by stage']) {
-      const region = screen.getByRole('region', { name });
-      expect(region).toHaveAccessibleDescription('Sample data');
-      expect(within(region).getByText('Sample data')).toBeVisible();
-    }
-  });
-
-  it('shows the four KPI tiles from the mock data module', async () => {
-    await renderDashboard();
-    const tiles = within(screen.getByRole('region', { name: 'Key figures' })).getAllByRole('listitem');
-    expect(tiles.map((t) => t.textContent)).toEqual([
-      `${String(kpi('openCases'))}Open cases`,
-      `${String(kpi('hearingsThisWeek'))}Hearings this week`,
-      `${String(kpi('pendingJudgments'))}Pending judgments`,
-      `${String(kpi('expertReportsDue'))}Expert reports due`,
+    await screen.findByRole('region', { name: 'Cases by status' });
+    expect(items('Cases by status')).toEqual(['Open700', 'Active450', 'Suspended50', 'Closed30', 'Archived4']);
+    expect(items('Cases by type')).toEqual([
+      'Civil600',
+      'Criminal0',
+      'Commercial400',
+      'Labour100',
+      'Family (personal status)120',
+      'Administrative14',
     ]);
   });
 
-  it('lists upcoming hearings in a captioned table marked as sample data', async () => {
+  it('shows proceedings by stage and those awaiting a judgment', async () => {
     await renderDashboard();
-    const table = screen.getByRole('table', { name: /Upcoming hearings/ });
-    expect(table).toHaveAccessibleName('Upcoming hearings (Sample data)');
-    const headers = within(table).getAllByRole('columnheader').map((h) => h.textContent);
-    expect(headers).toEqual(['Case', 'Court', 'Stage', 'Date and time']);
-
-    const rows = within(table).getAllByRole('row').slice(1);
-    expect(rows).toHaveLength(PREVIEW_HEARINGS.length);
-    const first = PREVIEW_HEARINGS[0];
-    if (!first) throw new Error('mock data must contain hearings');
-    const cells = within(rows[0] as HTMLElement).getAllByRole('cell').map((c) => c.textContent);
-    expect(cells[0]).toBe(`Sample Case ${formatNumber(first.sampleCaseNumber, 'en', { minimumIntegerDigits: 3 })}`);
-    expect(cells[1]).toBe(first.court.en);
-    expect(cells[3]).toBe(formatDateTime(first.startsAt, 'en'));
-    expect(within(rows[0] as HTMLElement).getByText(formatDateTime(first.startsAt, 'en')).tagName).toBe('TIME');
+    await screen.findByRole('region', { name: 'Proceedings by stage' });
+    expect(items('Proceedings by stage')).toEqual([
+      'Awaiting judgment61',
+      'First instance90 proceedings, 40 awaiting judgment',
+      'Appeal25 proceedings, 15 awaiting judgment',
+      'Cassation6 proceedings, 6 awaiting judgment',
+    ]);
   });
 
-  it('breaks down cases by stage with text values and decorative bars', async () => {
+  it('shows the judgments of the period with its dates and outcomes', async () => {
     await renderDashboard();
-    const region = screen.getByRole('region', { name: 'Cases by stage' });
-    const items = within(region).getAllByRole('listitem');
-    expect(items).toHaveLength(3);
-    const total = PREVIEW_CASES_BY_STAGE.reduce((sum, s) => sum + s.count, 0);
-    const first = PREVIEW_CASES_BY_STAGE[0];
-    if (!first) throw new Error('mock data must contain stages');
-    expect(items[0]).toHaveTextContent('First instance');
-    expect(items[0]).toHaveTextContent(`${String(first.count)} cases (${String(Math.round((first.count / total) * 100))}%)`);
-    expect(items[1]).toHaveTextContent('Appeal');
-    expect(items[2]).toHaveTextContent('Cassation');
+    const judgments = await screen.findByRole('region', { name: 'Judgments from 1 Oct 2026 to 31 Oct 2026' });
+    expect(within(judgments).getAllByRole('listitem').map((item) => item.textContent)).toEqual([
+      '12Judgments recorded',
+      '5Final judgments',
+      'In favour of the client6',
+      'Against the client3',
+      'Partly in favour2',
+      'Dismissed1',
+      'Other0',
+    ]);
+  });
 
-    const bar = (items[0] as HTMLElement).querySelector('.stage-bar-fill');
-    expect(bar).toHaveAttribute('aria-hidden', 'true');
-    expect((bar as HTMLElement).style.inlineSize).toBe(`${String((first.count / total) * 100)}%`);
+  it('shows the Phase 5 figures as not available yet, never as numbers', async () => {
+    await renderDashboard();
+    await screen.findByRole('region', { name: 'Legal operations' });
+    expect(items('Legal operations')).toEqual([
+      'Hearings this weekNot available yet',
+      'Expert reports dueNot available yet',
+      'Overdue tasksNot available yet',
+    ]);
+    expect(region('Legal operations').textContent).not.toMatch(/[0-9]/);
   });
 });
 
-describe('dashboard preview (Arabic)', () => {
-  it('labels regions and the table in Arabic, as sample data', async () => {
+describe('dashboard in Arabic', () => {
+  it('labels the figures in Arabic and writes them with Arabic-Indic digits', async () => {
+    stub(REPORTER);
     await renderDashboard('ar');
-    for (const name of ['مؤشرات رئيسية', 'الجلسات القادمة', 'القضايا حسب درجة التقاضي']) {
-      expect(screen.getByRole('region', { name })).toHaveAccessibleDescription('بيانات نموذجية');
-    }
-    expect(screen.getByRole('table')).toHaveAccessibleName('الجلسات القادمة (بيانات نموذجية)');
-  });
-
-  it('formats figures, sample references and dates with Arabic-Indic digits', async () => {
-    await renderDashboard('ar');
-    const tiles = within(screen.getByRole('region', { name: 'مؤشرات رئيسية' })).getAllByRole('listitem');
-    expect(tiles[0]).toHaveTextContent(formatNumber(kpi('openCases'), 'ar'));
-    expect(tiles[0]).toHaveTextContent('القضايا المفتوحة');
-
-    const first = PREVIEW_HEARINGS[0];
-    if (!first) throw new Error('mock data must contain hearings');
-    const row = within(screen.getByRole('table')).getAllByRole('row')[1] as HTMLElement;
-    expect(row).toHaveTextContent(`قضية نموذجية ${formatNumber(first.sampleCaseNumber, 'ar', { minimumIntegerDigits: 3 })}`);
-    expect(row).toHaveTextContent(first.court.ar);
-    expect(row).toHaveTextContent(formatDateTime(first.startsAt, 'ar'));
-    expect(screen.getByRole('table').textContent).not.toMatch(/[0-9]/);
+    await screen.findByRole('region', { name: 'القضايا' });
+    expect(items('القضايا')[0]).toBe(`${formatNumber(1200, 'ar')}القضايا المفتوحة`);
+    expect(items('القضايا حسب الحالة')[0]).toBe(`مفتوحة${formatNumber(700, 'ar')}`);
+    expect(region('العمليات القانونية')).toHaveTextContent('غير متاح بعد');
+    expect(screen.getByRole('region', { name: /^الأحكام من/ }).textContent).not.toMatch(/[0-9]/);
+    expect(screen.getByRole('main').textContent).not.toMatch(/[0-9]/);
   });
 });
 
-describe('hearings table scroll region (QAD-015)', () => {
-  it.each([
-    { lang: 'en' as const, name: 'Upcoming hearings (Sample data)' },
-    { lang: 'ar' as const, name: 'الجلسات القادمة (بيانات نموذجية)' },
-  ])('is a keyboard-focusable, named region ($lang)', async ({ lang, name }) => {
-    const { container } = await renderDashboard(lang);
-    const scroller = container.querySelector('.table-scroll');
-    expect(scroller).not.toBeNull();
-    expect(scroller).toHaveAttribute('tabindex', '0');
-    expect(screen.getByRole('region', { name })).toBe(scroller);
-    expect(within(scroller as HTMLElement).getByRole('table', { name })).toBeInTheDocument();
+describe('dashboard without the figures', () => {
+  it('shows the page without statistics, and asks nothing, when the user lacks REPORT_VIEW', async () => {
+    const fetchMock = stub(ADMIN);
+    await renderDashboard();
+    expect(screen.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeInTheDocument();
+    expect(screen.getByText('Statistics are shown to users with the report permission.')).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Cases' })).not.toBeInTheDocument();
+    expect(requested(fetchMock, '/api/v1/reports')).toBe(0);
+  });
+
+  it('treats a 403 from the API like a missing permission, without an error page', async () => {
+    stub(REPORTER, () => problem(403));
+    await renderDashboard();
+    expect(await screen.findByText('Statistics are shown to users with the report permission.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('reports a failure and loads again on retry', async () => {
+    let calls = 0;
+    const fetchMock = stub(REPORTER, () => {
+      calls += 1;
+      return calls === 1 ? problem(500) : jsonResponse(FIGURES);
+    });
+    await renderDashboard();
+    expect(await screen.findByRole('alert')).toHaveTextContent('The figures could not be loaded.');
+    await userEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    expect(await screen.findByRole('region', { name: 'Cases' })).toBeInTheDocument();
+    expect(requested(fetchMock, '/api/v1/reports/dashboard')).toBe(2);
+  });
+
+  it('says it is loading while the figures are on their way', async () => {
+    let answer: (response: Response) => void = () => undefined;
+    const api = fakeApi({ me: REPORTER });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) =>
+        pathOf(input) === '/api/v1/reports/dashboard'
+          ? new Promise<Response>((resolve) => {
+              answer = resolve;
+            })
+          : api(input, init),
+      ),
+    );
+    await renderDashboard();
+    expect(within(screen.getByRole('main')).getByRole('status')).toHaveTextContent('Loading figures…');
+    answer(jsonResponse(FIGURES));
+    expect(await screen.findByRole('region', { name: 'Cases' })).toBeInTheDocument();
+    expect(within(screen.getByRole('main')).queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  it('rejects an answer without figures as a failure', async () => {
+    stub(REPORTER, () => jsonResponse({}));
+    await renderDashboard();
+    expect(await screen.findByRole('alert')).toHaveTextContent('The figures could not be loaded.');
   });
 });
