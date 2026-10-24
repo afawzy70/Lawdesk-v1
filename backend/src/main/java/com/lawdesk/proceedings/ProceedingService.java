@@ -2,6 +2,7 @@ package com.lawdesk.proceedings;
 
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -37,14 +38,17 @@ class ProceedingService {
     private final JudgmentRepository judgments;
     private final SpecialDecisionRepository decisions;
     private final CurrentActor currentActor;
+    /** QAD-032: records of other modules dated against the filing date (Phase 5 hearings, expert referrals). */
+    private final List<ProceedingDependentDates> dependents;
 
     ProceedingService(JudicialRecords records, ProceedingRepository proceedings, JudgmentRepository judgments,
-            SpecialDecisionRepository decisions, CurrentActor currentActor) {
+            SpecialDecisionRepository decisions, CurrentActor currentActor, List<ProceedingDependentDates> dependents) {
         this.records = records;
         this.proceedings = proceedings;
         this.judgments = judgments;
         this.decisions = decisions;
         this.currentActor = currentActor;
+        this.dependents = dependents;
     }
 
     @Transactional(readOnly = true)
@@ -104,6 +108,12 @@ class ProceedingService {
         }
         if (decisions.earliestDecisionDate(id).filter(d -> d.isBefore(request.filingDate())).isPresent()) {
             throw new BusinessRuleException(Rules.DECISION_BEFORE_FILING, "a special decision would precede the filing");
+        }
+        // QAD-032: checked while this proceeding's row lock is held; the dependent modules take the same lock.
+        for (ProceedingDependentDates dependent : dependents) {
+            if (dependent.earliestDependentDate(id).filter(d -> d.isBefore(request.filingDate())).isPresent()) {
+                throw new BusinessRuleException(dependent.rule(), "a dependent record would precede the filing");
+            }
         }
         if (proceeding.getParentProceedingId() != null) {
             records.lockedProceeding(proceeding.getParentProceedingId());
