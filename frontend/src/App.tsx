@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from 'react-router';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { SessionGate } from './features/auth/SessionGate';
+import { CourtsPage } from './features/courts/CourtsPage';
 import { LocaleProvider } from './i18n/LocaleProvider';
 import { AppLayout } from './layout/AppLayout';
 import { PLANNED_AREAS } from './layout/navigation';
@@ -25,6 +26,7 @@ export function AppRoutes({ locale }: LocaleProps) {
               {PLANNED_AREAS.map((area) => (
                 <Route key={area.path} path={area.path} element={<ComingSoonPage title={area.label} />} />
               ))}
+              <Route path="/courts" element={<CourtsPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Routes>
