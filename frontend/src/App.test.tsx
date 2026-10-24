@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import pkg from '../package.json';
 import { App, AppRoutes } from './App';
+import { PLANNED_AREAS } from './layout/navigation';
 import { fakeApi } from './test/api';
 
 /** Renders the shell at `path` and waits until the session has loaded. */
@@ -38,9 +39,13 @@ const NAV = [
   { path: '/admin', en: 'Administration', ar: 'الإدارة' },
 ] as const;
 
-/** Areas whose screens work; the rest keep the "coming later" page. */
-const READY = new Set(['/', '/cases', '/courts']);
-const PLACEHOLDERS = NAV.filter((item) => !READY.has(item.path));
+/**
+ * Areas still shown as preview placeholders: those `planned` in navigation. An area that becomes a working screen
+ * (Administration in LD-009) leaves these checks by flipping its own status.
+ */
+const PLANNED = new Set(PLANNED_AREAS.filter((area) => area.status === 'planned').map((area) => area.path));
+const PLACEHOLDERS = NAV.filter((item) => PLANNED.has(item.path));
+const PREVIEW_ROUTES = [...NAV.map((n) => n.path).filter((path) => path === '/' || PLANNED.has(path)), '/no-such-page'];
 
 function primaryNav(name: string | RegExp = 'Primary') {
   return screen.getByRole('navigation', { name });
@@ -201,10 +206,7 @@ describe('preview labelling', () => {
     },
   );
 
-  // Working screens (READY) have forms by design; the dashboard sample and the "coming later" pages stay read-only.
-  const readOnly = ['/', ...PLACEHOLDERS.map((n) => n.path), '/no-such-page'];
-
-  it.each(readOnly)('offers no forms, inputs or save/create/edit/login actions on %s', async (path) => {
+  it.each(PREVIEW_ROUTES)('offers no forms, inputs or save/create/edit/login actions on %s', async (path) => {
     const { container } = await renderAt(path);
     expect(container.querySelector('form, input, textarea, select')).toBeNull();
     const buttons = screen.queryAllByRole('button').map((b) => b.textContent);

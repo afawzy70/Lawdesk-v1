@@ -23,7 +23,7 @@ export const PLANNED_AREAS: readonly NavItem[] = [
   { path: '/experts', label: 'nav.experts', requires: 'CASE_VIEW', status: 'planned' },
   { path: '/documents', label: 'nav.documents', requires: 'CASE_VIEW', status: 'planned' },
   { path: '/reports', label: 'nav.reports', requires: 'CASE_VIEW', status: 'planned' },
-  { path: '/admin', label: 'nav.admin', requires: 'USER_VIEW', status: 'planned' },
+  { path: '/admin', label: 'nav.admin', requires: 'USER_VIEW', status: 'ready' },
 ];
 
 export const NAV_ITEMS: readonly NavItem[] = [DASHBOARD, ...PLANNED_AREAS];
