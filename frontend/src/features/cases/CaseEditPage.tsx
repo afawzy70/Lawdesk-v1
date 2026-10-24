@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 import type { MessageKey } from '../../i18n/catalog';
 import { useI18n } from '../../i18n/I18nContext';
 import { withLang } from '../../i18n/locale';
 import { usePageTitle } from '../../i18n/usePageTitle';
 import { getCase, updateCase, type LegalCase, type NewCase } from './api';
 import { CaseForm, type Failure } from './CaseForm';
-import type { CreatedState } from './CaseCreatePage';
 import { AccessDeniedPage } from '../auth/AccessDeniedPage';
-import { CASES_PATH } from './paths';
+import { CASES_PATH, casePath } from './paths';
 import { fieldErrors, isStatus, problemMessage } from './problems';
 
 type Load = { kind: 'loading' } | { kind: 'forbidden' } | { kind: 'failed'; message: MessageKey } | { kind: 'loaded'; legalCase: LegalCase };
@@ -44,7 +43,6 @@ function formValues(legalCase: LegalCase): NewCase {
 export function CaseEditPage() {
   const { locale, t } = useI18n();
   const { id = '' } = useParams();
-  const created = (useLocation().state as CreatedState | null)?.created;
   const [generation, setGeneration] = useState(0);
   // The answer for one request key; any other key (a different case, or a reload) is still loading.
   const key = `${id}#${String(generation)}`;
@@ -79,6 +77,11 @@ export function CaseEditPage() {
   const back = (
     <p>
       <Link to={withLang(CASES_PATH, locale)}>{t('cases.form.back')}</Link>
+    </p>
+  );
+  const toCase = (caseId: string) => (
+    <p>
+      <Link to={withLang(casePath(caseId), locale)}>{t('cases.edit.toCase')}</Link>
     </p>
   );
 
@@ -119,10 +122,10 @@ export function CaseEditPage() {
   return (
     <>
       <h1>{t('cases.edit.title', { referenceNo: legalCase.referenceNo })}</h1>
-      {back}
-      {saved || created !== undefined ? (
+      {toCase(legalCase.id)}
+      {saved ? (
         <p className="case-notice" role="status">
-          {saved ? t('cases.edit.saved') : t('cases.create.done', { referenceNo: created ?? '' })}
+          {t('cases.edit.saved')}
         </p>
       ) : null}
       <dl className="case-facts">

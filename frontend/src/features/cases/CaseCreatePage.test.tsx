@@ -31,7 +31,7 @@ describe('create case (LD-012)', () => {
     expect(document.title).toBe('New case — LawDesk (Preview)');
   });
 
-  it('creates the case and opens it with a confirmation', async () => {
+  it('creates the case and opens its details with a confirmation', async () => {
     const user = userEvent.setup();
     const created = aCase();
     const { requests } = scriptedFetch((request) =>
@@ -43,7 +43,7 @@ describe('create case (LD-012)', () => {
     await user.click(screen.getByRole('button', { name: 'Create case' }));
 
     expect(await screen.findByText('Case LD-2026-00001 created.')).toHaveAttribute('role', 'status');
-    expect(url()).toBe(`/cases/${created.id}/edit?lang=en`);
+    expect(url()).toBe(`/cases/${created.id}?lang=en`);
     expect(requests[0]).toEqual({
       method: 'POST',
       url: '/api/v1/cases',
