@@ -47,6 +47,7 @@ abstract class JudicialApiTestSupport extends PostgresTestSupport {
 
     @AfterEach
     void removeJudicialRecords() {
+        jdbc.update("delete from special_decision");
         jdbc.update("delete from judgment");
         // Children before parents: cassations attack appeals, appeals attack first-instance proceedings.
         jdbc.update("delete from proceeding where stage = 'CASSATION'");
