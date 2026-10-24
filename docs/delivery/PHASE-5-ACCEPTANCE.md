@@ -1,0 +1,241 @@
+# Phase 5 — refined acceptance criteria (PROPOSED, awaiting owner review)
+
+Workstream D, legal operations (LD-024…LD-029, architecture/CONTRACTS.md §8). `product/stories.json` holds these
+stories with templated criteria (`DRAFT_NEEDS_REFINEMENT`), and `qa/test-cases.json` holds the generic scenarios
+QA-0185…QA-0232. This file proposes concrete, testable criteria in the style of `PHASE-3-ACCEPTANCE.md` and
+`PHASE-4-ACCEPTANCE.md`, and maps each QA case to an executable check as the stories land. The baseline files are not
+edited here.
+
+Every rule marked **ASSUMPTION** is a product decision taken by the developer so that work can start; the owner
+confirms or changes it, and changing one changes the tests named next to it. Status values: `AUTOMATED` (a test exists
+and was run by the developer), `PLANNED` (criterion agreed, story not delivered yet), `BLOCKED` (reason given).
+Developer runs are not independent QA: every case stays `NOT_RUN` in `qa/test-cases.json` until QA executes it.
+
+The Egyptian legal-practice model is the one Phase 4 built: a case (B) holds proceedings (C) by stage —
+first instance, appeal, cassation — each before a court, with a court number and year (رقم الدعوى / السنة) and a filing
+date; a proceeding ends with a judgment. Phase 5 attaches the day-to-day work to that model: the hearings (الجلسات) of
+a proceeding, the expert referrals (ندب الخبراء) a court orders, the PDF papers of the case, the tasks and deadlines of
+the office, and its internal legal notes.
+
+## Common rules (all Phase 5 endpoints)
+
+1. Every endpoint lives under `/api/v1`, answers JSON in camelCase and follows CONTRACTS §4: 400 with
+   `errors[{field, code}]` for a validation failure (no rejected values echoed), 400 without a field list for unreadable
+   JSON (including an unknown enum value) and for a malformed id or date in the path or query, 404 for an unknown id,
+   409 for a duplicate or a stale `version`, 422 with a stable `rule` code for a refused business rule, 500 without
+   details.
+2. Without a session the answer is 401; a signed-in user without the permission gets 403; both are
+   `application/problem+json`, and the request changes nothing. Unsafe requests need the CSRF token. The permission is
+   checked before the body is read (QAD-026), so a refused caller never learns field rules. Every 403 is recorded by
+   the platform in the security audit log as `ACCESS_DENIED` (outcome `DENIED`, target `"<METHOD> <path>"`, LD-011);
+   each story has one test that checks the audit row for one of its endpoints.
+3. Permissions (CONTRACTS §8.2): `HEARING_VIEW` / `HEARING_MANAGE`, `EXPERT_VIEW` / `EXPERT_MANAGE`, `DOCUMENT_VIEW` /
+   `DOCUMENT_MANAGE`, `TASK_VIEW` / `TASK_MANAGE`, `NOTE_MANAGE` (reading notes needs `CASE_VIEW`).
+4. Writes record the acting user (`CurrentActor`) in `created_by` / `updated_by` and the time in `created_at` /
+   `updated_at` (UTC). Editable records carry `version`; an update with another `version` gets 409 and changes nothing.
+   Updates that compare stored state lock the row (`select ... for update`) first, so two racing writes are serialised.
+5. Text input is trimmed; an optional text that is empty after trimming is stored as `null`, a required one counts as
+   missing (`NotBlank`). Length limits count characters after trimming.
+6. Lists are `PageResponse` (`page`, `size` default 20, capped at 100). **ASSUMPTION:** list order is fixed per
+   endpoint (given below); `sort` is ignored.
+7. Each recording write adds one case timeline entry through `CaseLookup#recordEvent(caseId, type, summary)` in the same
+   transaction: if the event fails, the write is rolled back. Summaries name dates, numbers and statuses only, never
+   the free text of notes, decisions or task descriptions (the timeline is shown to every `CASE_VIEW` holder).
+8. **ASSUMPTION:** an `ARCHIVED` case (LD-017, read-only) accepts no new or changed operations records:
+   `422 CASE_ARCHIVED`. Reading stays possible. `CLOSED` cases still accept them (for example a hearing on enforcement
+   or a task after closure).
+9. **ASSUMPTION:** "today" is the calendar date in Egypt (`Africa/Cairo`), for due-soon, overdue and default calendar
+   windows.
+10. Cases are read through `CaseLookup`, proceedings through `ProceedingLookup`, people through `UserDirectory` (§8.3).
+    Phase 5 never writes the tables of Phases 2–4.
+
+## LD-024 Schedule and record hearings
+
+A hearing (جلسة) belongs to one proceeding (and so to its case and court).
+
+| Field | Rule |
+|-------|------|
+| `hearingDate` | Required date. Not before the proceeding's filing date (`422 HEARING_BEFORE_FILING`). At most two years after today (`400`, field `hearingDate`, code `Range`) — **ASSUMPTION** (catches typing errors in the year). Past dates are allowed, to record hearings of files taken over from elsewhere. |
+| `hearingTime` | Optional time of day (`HH:mm`). **ASSUMPTION**: Egyptian courts call a whole roll from the morning, so most hearings have no time. |
+| `purpose` | Required: `FIRST_SESSION` (أول جلسة), `PLEADING` (مرافعة), `EVIDENCE` (إثبات / تحقيق / سماع شهود), `EXPERT_REPORT` (مناقشة تقرير الخبير), `JUDGMENT` (للنطق بالحكم), `OTHER`. **ASSUMPTION** (list of purposes). |
+| `notes` | Optional, at most 2000 characters (preparation notes). |
+| `status` | `SCHEDULED` when created; then exactly once `HELD` (انعقدت), `ADJOURNED` (تأجلت) or `CANCELLED` (ألغيت / شطبت). |
+| `decision` | Optional, at most 2000 characters: what the court decided at the hearing (قرار الجلسة), set with the result. |
+
+Acceptance criteria:
+
+1. `POST /api/v1/proceedings/{proceedingId}/hearings` (`HEARING_MANAGE`) schedules a hearing: 201, `Location:
+   /api/v1/hearings/{id}`, the stored hearing. An unknown proceeding is 404. The answer names the case (`caseId`,
+   `caseReferenceNo`, `caseTitle`), the proceeding (`stage`, `courtCaseNumber`, `courtCaseYear`) and the court
+   (`courtCode`, `courtNameAr`, `courtNameEn`), so lists need no further lookups. Timeline: `HEARING_SCHEDULED` with the
+   date and the proceeding's number and year.
+2. **ASSUMPTION:** one hearing per proceeding and day: a second hearing (not cancelled) on the same proceeding and date
+   is 409 and stores nothing. The database enforces it with a partial unique index, so a repeated or concurrent request
+   also gets 409.
+3. `GET /api/v1/hearings/{id}` (`HEARING_VIEW`) reads one hearing. `GET /api/v1/cases/{caseId}/hearings`
+   (`HEARING_VIEW`) lists the case's hearings oldest first (date, then time with untimed hearings first, then order of
+   recording); an unknown case is 404. **ASSUMPTION:** `HEARING_VIEW` alone shows the case reference and title in
+   hearing answers (a hearing calendar is unusable without them).
+4. `PUT /api/v1/hearings/{id}` (`HEARING_MANAGE`) changes date, time, purpose and notes of a `SCHEDULED` hearing, with
+   `version`. A hearing with a result is `422 HEARING_NOT_SCHEDULED`. The filing-date rule applies; a hearing created by
+   an adjournment cannot move to or before the hearing it continues (`422 ADJOURNMENT_NOT_LATER`). Timeline:
+   `HEARING_RESCHEDULED` when the date or time changes, nothing otherwise.
+5. `POST /api/v1/hearings/{id}/result` (`HEARING_MANAGE`) records the outcome once, with `version`:
+   - `{ status: HELD, decision }` — the hearing took place (for example "reserved for judgment").
+   - `{ status: ADJOURNED, decision, nextHearingDate, nextHearingTime, nextHearingPurpose }` — the court adjourned the
+     case (تأجيل). In the same transaction a new `SCHEDULED` hearing is created on the same proceeding with
+     `adjournedFromId` pointing back; the adjourned hearing answers its `nextHearingId`. `nextHearingDate` is required
+     (`400 NotNull`) and must be after the adjourned hearing's date (`422 ADJOURNMENT_NOT_LATER`); the purpose defaults
+     to the adjourned hearing's purpose (**ASSUMPTION**); a next hearing already scheduled that day is 409.
+   - `{ status: CANCELLED, decision }` — the hearing will not take place (for example struck off the roll).
+   Rules: a hearing with a result is `422 HEARING_NOT_SCHEDULED`; `HELD` and `ADJOURNED` need the hearing day to have
+   come (`422 HEARING_NOT_YET_HELD`), `CANCELLED` is allowed before it; `nextHearing*` fields with `HELD` or
+   `CANCELLED` are `400` (code `Null`). Timeline: `HEARING_HELD`, `HEARING_ADJOURNED` (naming the next date) or
+   `HEARING_CANCELLED`. **ASSUMPTION:** a recorded result is final in v1 — no correction endpoint; hearings are never
+   deleted (cancel instead).
+6. `GET /api/v1/hearings?from=&to=&status=&page=&size=` (`HEARING_VIEW`) is the hearing calendar across cases: hearings
+   with `from ≤ hearingDate ≤ to`, optionally of one `status`, ordered by date, time (untimed first), order of
+   recording. **ASSUMPTION:** `from` defaults to today and `to` to `from` + 30 days; `to` before `from`, or a range of
+   more than 366 days, is `400` (field `to`, code `Range`).
+7. **ASSUMPTION:** the date of a hearing is not checked against the proceeding's judgment date (the read port gives no
+   judgments), and Phase 4 does not stop a filing date from being corrected to after an existing hearing. Both are
+   follow-ups that need a change in `com.lawdesk.proceedings` (see "Dependencies").
+8. **Report port for Phase 6:** `com.lawdesk.hearings.HearingReportQueries` (read-only, no security of its own: the
+   reports module checks `REPORT_VIEW`): hearings in a date range with optional status, case and proceeding filters,
+   paged, with their total, and counts by status. The rules "upcoming" (`SCHEDULED` and dated today or later) and
+   "awaiting a result" (`SCHEDULED` and dated before today) are defined there.
+9. Screens (Arabic and English, 375 px and 1366 px wide, keyboard only):
+   - `/hearings`, the hearing calendar: an agenda list for a date range (default the next 30 days) and a status filter,
+     paged; each row shows the day, time, case reference (linking to the case), court, court number, purpose and
+     status. A `SCHEDULED` hearing offers "Record result" and "Reschedule"; adjourning asks for the next date.
+     Hearings whose day has passed without a result are marked "awaiting result".
+   - In the case's operations section (`CaseOperations`): the case's hearings and a "Schedule hearing" form that picks
+     one of the case's proceedings.
+   Field errors appear next to their field; 409 asks to reload; 422 explains the rule; 403 shows "not permitted".
+   The navigation item `/hearings` is `ready` (shown to `HEARING_VIEW` holders) and its route lives in
+   `operations/routes.tsx`; the case-level section is mounted on the case details page.
+
+| QA case | Scenario | Mapping | Status |
+|---------|----------|---------|--------|
+| QA-0185 | authorized happy path | `HearingApiTest`: schedule (201, `Location`, timeline), read, case list, calendar, reschedule, hold, adjourn (next hearing created), cancel | AUTOMATED |
+| QA-0186 | required-field validation | `HearingApiTest.requiredFieldsAreValidated`, result `nextHearingDate` required when adjourned | AUTOMATED |
+| QA-0187 | invalid input boundary | `HearingApiTest`: notes and decision 2000/2001 characters, date two years ahead, filing-date rule, calendar range | AUTOMATED |
+| QA-0188 | unauthenticated access | `HearingApiTest.everyEndpointNeedsASession` | AUTOMATED |
+| QA-0189 | insufficient permission | `HearingApiTest.viewersCannotWriteAndOthersCannotRead`, `aRefusalIsAuditedAsAccessDenied` | AUTOMATED |
+| QA-0190 | record integrity and rollback | Unknown proceeding/case → 404, nothing stored; a failing timeline event rolls the hearing (and an adjournment's next hearing) back; database checks | AUTOMATED |
+| QA-0191 | concurrent or repeat request | Same proceeding and day → 409; second result → 422; stale version → 409; two racing results → one wins | AUTOMATED |
+| QA-0192 | API-to-UI state and error handling | `HearingsPage.test.tsx`, `CaseHearings.test.tsx`, `OperationsLayout.test.tsx` (case page mount, narrow-screen CSS); real-browser check at 375 px and 1366 px in both languages (`docs/evidence/PHASE-5/LD-024-09-layout-375-1366.log`) | AUTOMATED |
+
+## LD-027 Tasks and assignments
+
+| Field | Rule |
+|-------|------|
+| `title` | Required, at most 200 characters. |
+| `description` | Optional, at most 4000 characters. |
+| `caseId` | Optional: a task may belong to a case (404 when unknown); fixed once created. |
+| `assigneeId` | Required: an enabled user of `UserDirectory` (`GET /api/v1/users/directory`); an unknown or disabled user is `422 ASSIGNEE_NOT_ASSIGNABLE`. Stored without a foreign key (§8.3). |
+| `dueDate` | Optional date. A new or changed due date cannot be before today (`400`, code `FutureOrPresent`); an unchanged past due date may stay. **ASSUMPTION**: tasks have dates, not times. |
+| `priority` | `LOW`, `NORMAL` (default), `HIGH`, `URGENT`. **ASSUMPTION**. |
+| `status` | `OPEN` → `IN_PROGRESS` → `DONE`; `OPEN` / `IN_PROGRESS` → `CANCELLED`; `DONE` / `CANCELLED` → `OPEN` (reopen); `IN_PROGRESS` → `OPEN`. Other moves are `422 TASK_STATUS_TRANSITION`. **ASSUMPTION**. |
+
+1. `POST /api/v1/tasks` (`TASK_MANAGE`): 201, `Location`. `GET /api/v1/tasks/{id}` (`TASK_VIEW`). `PUT
+   /api/v1/tasks/{id}` (`TASK_MANAGE`, with `version`) changes title, description, assignee, due date and priority.
+   `POST /api/v1/tasks/{id}/status` (`TASK_MANAGE`, `{status, version}`) moves the status; `completedAt` is set when it
+   becomes `DONE` and cleared when it is reopened.
+2. `GET /api/v1/tasks?assignee=<id|me>&status=&caseId=&due=<overdue|soon>&page=&size=` (`TASK_VIEW`) lists tasks by due
+   date (undated last), then priority (urgent first), then creation. Answers carry the assignee's display name and, for
+   case tasks, the case reference.
+3. Timeline (case tasks only): `TASK_CREATED`, `TASK_ASSIGNED` (assignee changed), `TASK_COMPLETED`, `TASK_CANCELLED`,
+   `TASK_REOPENED`. Other edits add no entry.
+4. **ASSUMPTION:** any `TASK_MANAGE` holder may change any task (a small office shares the work); tasks are never
+   deleted (cancel instead).
+5. **Report port:** `com.lawdesk.tasks.TaskReportQueries`: tasks by status, assignee and overdue state; workload per
+   assignee. "Open" (`OPEN`, `IN_PROGRESS`) and "overdue" (open and due before today) are defined there.
+6. Screen `/tasks`: "My tasks" and "All tasks", filters by status and due state, create, edit, change status; the
+   case's tasks in `CaseOperations`.
+
+| QA case | Scenario | Mapping | Status |
+|---------|----------|---------|--------|
+| QA-0209…QA-0216 | the eight standard scenarios | `TaskApiTest`, `TasksPage.test.tsx` | PLANNED |
+
+## LD-028 Calendar and deadline reminders
+
+1. Reminders are in-app only (§8.3, **ASSUMPTION**: no e-mail or SMS): due-soon and overdue lists and counts.
+2. `GET /api/v1/tasks/reminders` (`TASK_VIEW`) answers, for the signed-in user's open tasks, `{ today, dueSoonDays,
+   overdue, dueSoon }` counts. **ASSUMPTION:** "due soon" is due today or within the next 3 days.
+3. The `/tasks` screen opens with a reminder banner (overdue and due-soon counts, each linking to its filtered list),
+   overdue rows are marked, and the `/hearings` calendar is the calendar of court dates. **ASSUMPTION:** an agenda list
+   for a date range stands in for a month grid in v1.
+
+| QA case | Scenario | Mapping | Status |
+|---------|----------|---------|--------|
+| QA-0217…QA-0224 | the eight standard scenarios | `TaskReminderApiTest`, `TasksPage.test.tsx` | PLANNED |
+
+## LD-026 Legal PDF attachments, up to ten per case
+
+1. `POST /api/v1/cases/{caseId}/documents` (`DOCUMENT_MANAGE`, `multipart/form-data`: `file`, optional `title` ≤ 200
+   characters) stores one PDF in PostgreSQL (`bytea`, §8.3): 201, `Location`, the metadata (`id`, `caseId`, `title`,
+   `fileName`, `sizeBytes`, `sha256`, `createdAt`, `createdBy`) and never the content. Timeline: `DOCUMENT_ATTACHED`.
+2. A file is accepted only when its declared type is `application/pdf` and its content starts with `%PDF-`
+   (`400`, field `file`, code `PdfOnly`); an empty file is `400 NotEmpty`; a file over 10 MiB is `400 MaxSize`
+   (the multipart limit is 10 MiB, so larger uploads are refused before they reach the database).
+3. At most 10 documents per case: the 11th is `422 DOCUMENT_LIMIT_REACHED`. The count is checked while holding a lock on
+   a per-case counter row, so two concurrent uploads to a case holding 9 store exactly one.
+4. `GET /api/v1/cases/{caseId}/documents` (`DOCUMENT_VIEW`) lists the metadata, newest first.
+   `GET /api/v1/documents/{id}/content` (`DOCUMENT_VIEW`) answers the bytes with `Content-Type: application/pdf`,
+   `Content-Disposition: attachment` (UTF-8 file name), `X-Content-Type-Options: nosniff` and `Cache-Control: no-store`.
+5. `DELETE /api/v1/documents/{id}?version=` (`DOCUMENT_MANAGE`) removes the file: 204. Timeline: `DOCUMENT_REMOVED`.
+   **ASSUMPTION:** removal deletes the bytes (the slot is freed); the timeline keeps that it existed.
+6. The file name is reduced to its last path segment, control characters removed, at most 255 characters.
+
+| QA case | Scenario | Mapping | Status |
+|---------|----------|---------|--------|
+| QA-0201…QA-0208 | the eight standard scenarios | `DocumentApiTest`, `CaseDocuments.test.tsx` | PLANNED |
+
+## LD-025 Expert referrals and sessions
+
+1. Expert registry (reference data, like courts): `name` (required, ≤ 200), `specialty` (required, ≤ 100, for example
+   engineering, accounting, agriculture), `office` (optional, ≤ 200, for example the Ministry of Justice experts office
+   of a governorate — مكتب خبراء وزارة العدل), `phone` (optional), `active`. `GET /api/v1/experts` (`EXPERT_VIEW`),
+   `POST` / `PUT` (`EXPERT_MANAGE`, with `version`). No deletion; deactivate. **ASSUMPTION:** no experts are seeded.
+2. A referral (ندب خبير) belongs to a proceeding: `expertId` (active, `422 EXPERT_INACTIVE`), `referralDate` (not before
+   the filing date, `422 REFERRAL_BEFORE_FILING`; not in the future), `mission` (optional, ≤ 4000), `reportDueDate`
+   (optional, not before the referral date, `422 REPORT_DUE_BEFORE_REFERRAL`), `status` `OPEN` →
+   `REPORT_SUBMITTED` (with `reportSubmittedDate`, between the referral date and today) or `CANCELLED`.
+3. Expert sessions (محاضر أعمال الخبير) of an open referral: `sessionDate` (not before the referral date), optional
+   `sessionTime`, `location` (≤ 200) and `notes` (≤ 2000). A referral that is no longer open accepts no sessions
+   (`422 REFERRAL_CLOSED`).
+4. Timeline: `EXPERT_REFERRED`, `EXPERT_SESSION_RECORDED`, `EXPERT_REPORT_SUBMITTED`, `EXPERT_REFERRAL_CANCELLED`.
+5. **Report port:** `com.lawdesk.experts.ExpertReportQueries`: referrals by expert and status; overdue reports (open and
+   report due before today).
+6. Screen `/experts`: the registry; the case's referrals and sessions in `CaseOperations`.
+
+| QA case | Scenario | Mapping | Status |
+|---------|----------|---------|--------|
+| QA-0193…QA-0200 | the eight standard scenarios | `ExpertApiTest`, `ExpertReferralApiTest`, `ExpertsPage.test.tsx` | PLANNED |
+
+## LD-029 Legal notes and activity history
+
+1. A note belongs to a case: `body` (required, ≤ 4000). `POST /api/v1/cases/{caseId}/notes` (`NOTE_MANAGE`),
+   `PUT /api/v1/notes/{id}` (`NOTE_MANAGE`, with `version`), `DELETE /api/v1/notes/{id}?version=` (`NOTE_MANAGE`),
+   `GET /api/v1/cases/{caseId}/notes` (`CASE_VIEW`, newest first).
+2. **ASSUMPTION:** only the author changes or deletes a note (`422 NOTE_AUTHOR_ONLY`); notes are internal to the office
+   and their text never enters the timeline.
+3. Timeline: `NOTE_ADDED`, `NOTE_REMOVED`. The activity history of a case is its timeline (LD-014,
+   `GET /api/v1/cases/{id}/timeline`), which Phase 5 feeds through `CaseLookup#recordEvent`; the case details page shows
+   it already.
+
+| QA case | Scenario | Mapping | Status |
+|---------|----------|---------|--------|
+| QA-0225…QA-0232 | the eight standard scenarios | `NoteApiTest`, `CaseNotes.test.tsx` | PLANNED |
+
+## Dependencies
+
+- `CaseOperations.tsx` is mounted on the case details page by one line in `CaseDetailsPage.tsx` (§8.1), added in the
+  LD-024 pull request after the mobile fix QAD-027 (PR #29) reached `develop`.
+- The shell tests see every navigation area because the shared test administrator (`src/test/api.ts`) holds every
+  permission (integration owner, contracts branch `c11bd48`); each Phase 5 item is flipped with its working screen.
+- Follow-up in `com.lawdesk.proceedings` (Workstream C package, integration owner): a proceeding's filing date should
+  not move after the earliest hearing or expert referral of that proceeding; the check needs a read of Phase 5 tables
+  or a small port, and a row lock shared with the Phase 5 writes.
+- Uploading files from the browser needs `src/api/http.ts` to send `FormData` bodies (shared file).

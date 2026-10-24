@@ -8,6 +8,7 @@ import { usePageTitle } from '../../i18n/usePageTitle';
 import { NotFoundPage } from '../../pages/NotFoundPage';
 import { AccessDeniedPage } from '../auth/AccessDeniedPage';
 import { getCase, type LegalCase } from './api';
+import { CaseOperations } from '../operations/CaseOperations';
 import { CaseProceedings } from '../proceedings/CaseProceedings';
 import { CasePartiesSection } from './CasePartiesSection';
 import { CaseStatusForm } from './CaseStatusForm';
@@ -158,6 +159,7 @@ function CaseDetails({ id }: { id: string }) {
       />
       {/* Judicial stages belong to Workstream C; the case only hosts them (architecture/CONTRACTS.md §5). */}
       <CaseProceedings caseId={legalCase.id} />
+      <CaseOperations caseId={legalCase.id} />
       <CaseTimelineList caseId={legalCase.id} generation={generation} />
     </>
   );
