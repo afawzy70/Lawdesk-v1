@@ -1,0 +1,422 @@
+
+ RUN  v5.0.5 /home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/casesroute/frontend
+
+ ❯ src/App.test.tsx (66 tests | 25 failed) 14330ms
+   ❯ application shell (10)
+     × lists every planned area in the primary navigation, in order 335ms
+   ❯ locale switching (3)
+     × switches the whole shell to Arabic, right-to-left, from the header toggle 637ms
+   ❯ preview labelling (30)
+     × shows the non-dismissible preview notice on / in en 230ms
+     × shows the non-dismissible preview notice on / in ar 79ms
+     × shows the non-dismissible preview notice on /cases in en 40ms
+     × shows the non-dismissible preview notice on /cases in ar 140ms
+     × shows the non-dismissible preview notice on /courts in en 169ms
+     × shows the non-dismissible preview notice on /courts in ar 166ms
+     × shows the non-dismissible preview notice on /hearings in en 94ms
+     × shows the non-dismissible preview notice on /hearings in ar 127ms
+     × shows the non-dismissible preview notice on /judgments in en 165ms
+     × shows the non-dismissible preview notice on /judgments in ar 59ms
+     × shows the non-dismissible preview notice on /experts in en 465ms
+     × shows the non-dismissible preview notice on /experts in ar 54ms
+     × shows the non-dismissible preview notice on /documents in en 90ms
+     × shows the non-dismissible preview notice on /documents in ar 293ms
+     × shows the non-dismissible preview notice on /reports in en 196ms
+     × shows the non-dismissible preview notice on /reports in ar 83ms
+     × shows the non-dismissible preview notice on /admin in en 94ms
+     × shows the non-dismissible preview notice on /admin in ar 43ms
+     × shows the non-dismissible preview notice on /no-such-page in en 62ms
+     × shows the non-dismissible preview notice on /no-such-page in ar 156ms
+     × offers no forms, inputs or save/create/edit/login actions on /courts 58ms
+   ❯ working areas (2)
+     × opens the case list from the navigation and loads cases 195ms
+     × links courts for users who may view them 132ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 25 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/App.test.tsx > application shell > lists every planned area in the primary navigation, in order
+AssertionError: expected [ 'Dashboard', 'Cases', …(6) ] to deeply equal [ Array(9) ]
+
+- Expected
++ Received
+
+@@ -1,9 +1,8 @@
+  [
+    "Dashboard",
+    "Cases",
+-   "Courts",
+    "Hearings",
+    "Judgments",
+    "Experts",
+    "Documents",
+    "Reports",
+
+ ❯ src/App.test.tsx:76:45
+     74|     await renderAt('/');
+     75|     const links = within(primaryNav()).getAllByRole('link');
+     76|     expect(links.map((l) => l.textContent)).toEqual(NAV.map((n) => n.e…
+       |                                             ^
+     77|     expect(links.map((l) => l.getAttribute('href'))).toEqual(NAV.map((…
+     78|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/25]⎯
+
+ FAIL  src/App.test.tsx > locale switching > switches the whole shell to Arabic, right-to-left, from the header toggle
+AssertionError: expected [ 'لوحة المعلومات', 'القضايا', …(6) ] to deeply equal [ 'لوحة المعلومات', 'القضايا', …(7) ]
+
+- Expected
++ Received
+
+@@ -1,9 +1,8 @@
+  [
+    "لوحة المعلومات",
+    "القضايا",
+-   "المحاكم",
+    "الجلسات",
+    "الأحكام",
+    "الخبراء",
+    "المستندات",
+    "التقارير",
+
+ ❯ src/App.test.tsx:160:97
+    158|     expect(document.documentElement).toHaveAttribute('dir', 'rtl');
+    159|     expect(screen.getByRole('heading', { level: 1, name: 'لوحة المعلوم…
+    160|     expect(within(primaryNav('التنقل الرئيسي')).getAllByRole('link').m…
+       |                                                                                                 ^
+    161|       NAV.map((n) => n.ar),
+    162|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/25]⎯
+
+ FAIL  src/App.test.tsx > preview labelling > shows the non-dismissible preview notice on / in en
+ FAIL  src/App.test.tsx > preview labelling > shows the non-dismissible preview notice on /cases in en
+ FAIL  src/App.test.tsx > preview labelling > shows the non-dismissible preview notice on /courts in en
+ FAIL  src/App.test.tsx > preview labelling > shows the non-dismissible preview notice on /hearings in en
+ FAIL  src/App.test.tsx > preview labelling > shows the non-dismissible preview notice on /judgments in en
+ FAIL  src/App.test.tsx > preview labelling > shows the non-dismissible preview notice on /experts in en
+ FAIL  src/App.test.tsx > preview labelling > shows the non-dismissible preview notice on /documents in en
+ FAIL  src/App.test.tsx > preview labelling > shows the non-dismissible preview notice on /reports in en
+ FAIL  src/App.test.tsx > preview labelling > shows the non-dismissible preview notice on /admin in en
+ FAIL  src/App.test.tsx > preview labelling > shows the non-dismissible preview notice on /no-such-page in en
+Error: [2mexpect([22m[31melement[39m[2m).toHaveTextContent()[22m
+
+Expected element to have text content:
+[32m  UAT test environment — enter test data only, never real client data. The dashboard shows sample figures, and areas marked “coming later” are not built yet.[39m
+Received:
+[31m  UAT preview — sample data only. This is not a working case management system.[39m
+ ❯ src/App.test.tsx:198:22
+    196|       await renderAt(`${path}?lang=${lang}`);
+    197|       const notice = screen.getByRole('note', { name: lang === 'en' ? …
+    198|       expect(notice).toHaveTextContent(BANNER[lang]);
+       |                      ^
+    199|       expect(within(notice).queryByRole('button')).not.toBeInTheDocume…
+    200|       expect(document.title).toMatch(lang === 'en' ? / — LawDesk \(Pre…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/25]⎯
+
+ FAIL  src/App.test.tsx > preview labelling > shows the non-dismissible preview notice on / in ar
+ FAIL  src/App.test.tsx > preview labelling > shows the non-dismissible preview notice on /courts in ar
+ FAIL  src/App.test.tsx > preview labelling > shows the non-dismissible preview notice on /hearings in ar
+ FAIL  src/App.test.tsx > preview labelling > shows the non-dismissible preview notice on /judgments in ar
+ FAIL  src/App.test.tsx > preview labelling > shows the non-dismissible preview notice on /experts in ar
+ FAIL  src/App.test.tsx > preview labelling > shows the non-dismissible preview notice on /documents in ar
+ FAIL  src/App.test.tsx > preview labelling > shows the non-dismissible preview notice on /reports in ar
+ FAIL  src/App.test.tsx > preview labelling > shows the non-dismissible preview notice on /admin in ar
+ FAIL  src/App.test.tsx > preview labelling > shows the non-dismissible preview notice on /no-such-page in ar
+Error: [2mexpect([22m[31melement[39m[2m).toHaveTextContent()[22m
+
+Expected element to have text content:
+[32m  بيئة اختبار UAT — أدخل بيانات تجريبية فقط، ولا تُدخل بيانات موكلين حقيقية. لوحة المعلومات تعرض أرقامًا نموذجية، والأقسام المعلَّمة «لاحقًا» لم تُبنَ بعد.[39m
+Received:
+[31m  معاينة UAT — بيانات نموذجية فقط. هذا ليس نظامًا فعّالًا لإدارة القضايا.[39m
+ ❯ src/App.test.tsx:198:22
+    196|       await renderAt(`${path}?lang=${lang}`);
+    197|       const notice = screen.getByRole('note', { name: lang === 'en' ? …
+    198|       expect(notice).toHaveTextContent(BANNER[lang]);
+       |                      ^
+    199|       expect(within(notice).queryByRole('button')).not.toBeInTheDocume…
+    200|       expect(document.title).toMatch(lang === 'en' ? / — LawDesk \(Pre…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/25]⎯
+
+ FAIL  src/App.test.tsx > preview labelling > shows the non-dismissible preview notice on /cases in ar
+Error: [2mexpect([22m[31melement[39m[2m).toHaveTextContent()[22m
+
+Expected element to have text content:
+[32m  بيئة اختبار UAT — أدخل بيانات تجريبية فقط، ولا تُدخل بيانات موكلين حقيقية. لوحة المعلومات تعرض أرقامًا نموذجية، والأقسام المعلَّمة «لاحقًا» لم تُبنَ بعد.[39m
+Received:
+[31m  معاينة UAT — بيانات نموذجية فقط. هذا ليس نظامًا فعّالًا لإدارة القضايا.[39m
+ ❯ src/App.test.tsx:198:22
+    196|       await renderAt(`${path}?lang=${lang}`);
+    197|       const notice = screen.getByRole('note', { name: lang === 'en' ? …
+    198|       expect(notice).toHaveTextContent(BANNER[lang]);
+       |                      ^
+    199|       expect(within(notice).queryByRole('button')).not.toBeInTheDocume…
+    200|       expect(document.title).toMatch(lang === 'en' ? / — LawDesk \(Pre…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/25]⎯
+
+ FAIL  src/App.test.tsx > preview labelling > offers no forms, inputs or save/create/edit/login actions on /courts
+AssertionError: expected <select id="_r_3e_-level">…(4)</select> to be null
+
+- Expected:
+null
+
++ Received:
+<select
+  id="_r_3e_-level"
+>
+  <option
+    value=""
+  >
+    All
+  </option>
+  <option
+    value="FIRST_INSTANCE"
+  >
+    First instance
+  </option>
+  <option
+    value="APPEAL"
+  >
+    Appeal
+  </option>
+  <option
+    value="CASSATION"
+  >
+    Cassation
+  </option>
+</select>
+
+ ❯ src/App.test.tsx:206:70
+    204|   it.each(routes)('offers no forms, inputs or save/create/edit/login a…
+    205|     const { container } = await renderAt(path);
+    206|     expect(container.querySelector('form, input, textarea, select')).t…
+       |                                                                      ^
+    207|     const buttons = screen.queryAllByRole('button').map((b) => b.textC…
+    208|     for (const label of buttons) {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/25]⎯
+
+ FAIL  src/App.test.tsx > working areas > opens the case list from the navigation and loads cases
+Error: [2mexpect([22m[31melement[39m[2m).not.toBeInTheDocument()[22m
+
+[31mexpected document not to contain element, found <p>
+  This feature is not available in this preview. It will be built and tested in a later phase of LawDesk.
+</p> instead[39m
+ ❯ src/App.test.tsx:350:69
+    348|
+    349|     expect(await screen.findByRole('heading', { level: 1, name: 'Cases…
+    350|     expect(screen.queryByText(/not available in this preview/)).not.to…
+       |                                                                     ^
+    351|     expect(fetchMock.mock.calls.some(([input]) => String(input).starts…
+    352|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/25]⎯
+
+ FAIL  src/App.test.tsx > working areas > links courts for users who may view them
+TestingLibraryElementError: Unable to find an accessible element with the role "link" and name "Courts"
+
+Here are the accessible roles:
+
+  list:
+
+  Name "":
+  [36m<ul />[39m
+
+  --------------------------------------------------
+  listitem:
+
+  Name "":
+  [36m<li />[39m
+
+  Name "":
+  [36m<li />[39m
+
+  Name "":
+  [36m<li />[39m
+
+  Name "":
+  [36m<li />[39m
+
+  Name "":
+  [36m<li />[39m
+
+  Name "":
+  [36m<li />[39m
+
+  Name "":
+  [36m<li />[39m
+
+  Name "":
+  [36m<li />[39m
+
+  --------------------------------------------------
+  link:
+
+  Name "Dashboard":
+  [36m<a[39m
+    [33maria-current[39m=[32m"page"[39m
+    [33mclass[39m=[32m"active"[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/?lang=en"[39m
+  [36m/>[39m
+
+  Name "Cases":
+  [36m<a[39m
+    [33mclass[39m=[32m""[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/cases?lang=en"[39m
+  [36m/>[39m
+
+  Name "Hearings":
+  [36m<a[39m
+    [33mclass[39m=[32m""[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/hearings?lang=en"[39m
+  [36m/>[39m
+
+  Name "Judgments":
+  [36m<a[39m
+    [33mclass[39m=[32m""[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/judgments?lang=en"[39m
+  [36m/>[39m
+
+  Name "Experts":
+  [36m<a[39m
+    [33mclass[39m=[32m""[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/experts?lang=en"[39m
+  [36m/>[39m
+
+  Name "Documents":
+  [36m<a[39m
+    [33mclass[39m=[32m""[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/documents?lang=en"[39m
+  [36m/>[39m
+
+  Name "Reports":
+  [36m<a[39m
+    [33mclass[39m=[32m""[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/reports?lang=en"[39m
+  [36m/>[39m
+
+  Name "Administration":
+  [36m<a[39m
+    [33mclass[39m=[32m""[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/admin?lang=en"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<nav[39m
+  [33maria-label[39m=[32m"Primary"[39m
+  [33mclass[39m=[32m"app-nav"[39m
+  [33mdata-open[39m=[32m"false"[39m
+  [33mid[39m=[32m"primary-nav"[39m
+[36m>[39m
+  [36m<ul>[39m
+    [36m<li>[39m
+      [36m<a[39m
+        [33maria-current[39m=[32m"page"[39m
+        [33mclass[39m=[32m"active"[39m
+        [33mdata-discover[39m=[32m"true"[39m
+        [33mhref[39m=[32m"/?lang=en"[39m
+      [36m>[39m
+        [0mDashboard[0m
+      [36m</a>[39m
+    [36m</li>[39m
+    [36m<li>[39m
+      [36m<a[39m
+        [33mclass[39m=[32m""[39m
+        [33mdata-discover[39m=[32m"true"[39m
+        [33mhref[39m=[32m"/cases?lang=en"[39m
+      [36m>[39m
+        [0mCases[0m
+      [36m</a>[39m
+    [36m</li>[39m
+    [36m<li>[39m
+      [36m<a[39m
+        [33mclass[39m=[32m""[39m
+        [33mdata-discover[39m=[32m"true"[39m
+        [33mhref[39m=[32m"/hearings?lang=en"[39m
+      [36m>[39m
+        [0mHearings[0m
+      [36m</a>[39m
+    [36m</li>[39m
+    [36m<li>[39m
+      [36m<a[39m
+        [33mclass[39m=[32m""[39m
+        [33mdata-discover[39m=[32m"true"[39m
+        [33mhref[39m=[32m"/judgments?lang=en"[39m
+      [36m>[39m
+        [0mJudgments[0m
+      [36m</a>[39m
+    [36m</li>[39m
+    [36m<li>[39m
+      [36m<a[39m
+        [33mclass[39m=[32m""[39m
+        [33mdata-discover[39m=[32m"true"[39m
+        [33mhref[39m=[32m"/experts?lang=en"[39m
+      [36m>[39m
+        [0mExperts[0m
+      [36m</a>[39m
+    [36m</li>[39m
+    [36m<li>[39m
+      [36m<a[39m
+        [33mclass[39m=[32m""[39m
+        [33mdata-discover[39m=[32m"true"[39m
+        [33mhref[39m=[32m"/documents?lang=en"[39m
+      [36m>[39m
+        [0mDocuments[0m
+      [36m</a>[39m
+    [36m</li>[39m
+    [36m<li>[39m
+      [36m<a[39m
+        [33mclass[39m=[32m""[39m
+        [33mdata-discover[39m=[32m"true"[39m
+        [33mhref[39m=[32m"/reports?lang=en"[39m
+      [36m>[39m
+        [0mReports[0m
+      [36m</a>[39m
+    [36m</li>[39m
+    [36m<li>[39m
+      [36m<a[39m
+        [33mclass[39m=[32m""[39m
+        [33mdata-discover[39m=[32m"true"[39m
+        [33mhref[39m=[32m"/admin?lang=en"[39m
+      [36m>[39m
+        [0mAdministration[0m
+      [36m</a>[39m
+    [36m</li>[39m
+  [36m</ul>[39m
+[36m</nav>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/App.test.tsx:357:33
+    355|     await renderAt('/');
+    356|
+    357|     expect(within(primaryNav()).getByRole('link', { name: 'Courts' }))…
+       |                                 ^
+    358|   });
+    359| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/25]⎯
+
+
+ Test Files  1 failed | 17 passed (18)
+      Tests  25 failed | 200 passed (225)
+   Start at  08:00:47
+   Duration  26.33s (environment 40%, tests 40%, transform 10%, setup 6%, import 3%)
+
+Environment  jsdom was created 18 times · 59.95s total, 40% of tracked time
+             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+             learn more: https://vitest.dev/guide/improving-performance#test-environments
+

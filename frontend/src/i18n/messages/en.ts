@@ -12,7 +12,8 @@ export const en = {
   'app.name': 'LawDesk',
   'footer.version': 'LawDesk v{version}',
 
-  'preview.banner': 'UAT preview — sample data only. This is not a working case management system.',
+  'preview.banner':
+    'UAT test environment — enter test data only, never real client data. The dashboard shows sample figures, and areas marked “coming later” are not built yet.',
   'preview.bannerLabel': 'Preview notice',
   'preview.titleSuffix': '(Preview)',
   'preview.sampleData': 'Sample data',
@@ -24,6 +25,7 @@ export const en = {
 
   'nav.dashboard': 'Dashboard',
   'nav.cases': 'Cases',
+  'nav.courts': 'Courts',
   'nav.hearings': 'Hearings',
   'nav.judgments': 'Judgments',
   'nav.experts': 'Experts',

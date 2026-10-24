@@ -23,13 +23,14 @@ async function renderAt(path: string) {
 }
 
 const BANNER = {
-  en: 'UAT preview — sample data only. This is not a working case management system.',
-  ar: 'معاينة UAT — بيانات نموذجية فقط. هذا ليس نظامًا فعّالًا لإدارة القضايا.',
+  en: 'UAT test environment — enter test data only, never real client data. The dashboard shows sample figures, and areas marked “coming later” are not built yet.',
+  ar: 'بيئة اختبار UAT — أدخل بيانات تجريبية فقط، ولا تُدخل بيانات موكلين حقيقية. لوحة المعلومات تعرض أرقامًا نموذجية، والأقسام المعلَّمة «لاحقًا» لم تُبنَ بعد.',
 } as const;
 
 const NAV = [
   { path: '/', en: 'Dashboard', ar: 'لوحة المعلومات' },
   { path: '/cases', en: 'Cases', ar: 'القضايا' },
+  { path: '/courts', en: 'Courts', ar: 'المحاكم' },
   { path: '/hearings', en: 'Hearings', ar: 'الجلسات' },
   { path: '/judgments', en: 'Judgments', ar: 'الأحكام' },
   { path: '/experts', en: 'Experts', ar: 'الخبراء' },
@@ -327,5 +328,37 @@ describe('coming-soon placeholders', () => {
     expect(within(main).getByRole('heading', { level: 1, name: ar })).toBeInTheDocument();
     expect(within(main).getByText('قادمة في مرحلة لاحقة')).toBeInTheDocument();
     expect(main).toHaveTextContent('هذه الميزة غير متاحة في هذه المعاينة.');
+  });
+});
+
+// QAD-023 / LD-015: the merged case list is a working screen, reachable from the navigation.
+describe('working areas', () => {
+  it('opens the case list from the navigation and loads cases', async () => {
+    const api = fakeApi();
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const path = typeof input === 'string' ? input : input instanceof URL ? input.pathname : input.url;
+      if (path.startsWith('/api/v1/cases')) {
+        return Promise.resolve(new Response(JSON.stringify({ items: [], page: 0, size: 20, totalItems: 0, totalPages: 0 }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }));
+      }
+      return api(input, init);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
+    await renderAt('/');
+
+    await user.click(within(primaryNav()).getByRole('link', { name: 'Cases' }));
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Cases' })).toBeInTheDocument();
+    expect(screen.queryByText(/not available in this preview/)).not.toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([input]) => typeof input === 'string' && input.startsWith('/api/v1/cases'))).toBe(true);
+  });
+
+  it('links courts for users who may view them', async () => {
+    await renderAt('/');
+
+    expect(within(primaryNav()).getByRole('link', { name: 'Courts' })).toHaveAttribute('href', '/courts?lang=en');
   });
 });

@@ -200,9 +200,9 @@ in as each slice is delivered.
 | QA-0117 | insufficient permission | same test; security event part BLOCKED on LD-011 | AUTOMATED (partial) |
 | QA-0118 | record integrity and rollback | Read-only endpoint; nothing is written | N/A (reviewer to confirm) |
 | QA-0119 | concurrent or repeat request | Repeating a query gives the same page (stable order with `id` tie-break); no dedicated concurrency test | N/A (reviewer to confirm) |
-| QA-0120 | API-to-UI state and error handling | `CaseListPage.test.tsx` (filters in the address, paging, empty/loading/error/401/403 states, Arabic digits) | AUTOMATED (component level); the `/cases` route stays `planned`, see note |
+| QA-0120 | API-to-UI state and error handling | `CaseListPage.test.tsx` (filters in the address, paging, empty/loading/error/401/403 states, Arabic digits) | AUTOMATED (component level and the routed `/cases` screen), see note |
 
-**Note on `/cases` navigation.** The list screen is built and tested, but `/cases` still shows the "coming later" page
-because the shared `src/App.test.tsx` asserts that every navigation path, `/cases` included, renders no form or input
-(the preview rule of Phase 1). Flipping the item to `ready` needs the integration owner to change that test; the create
-and edit screens are mounted at `/cases/new` and `/cases/:id/edit`.
+**Note on `/cases` navigation.** Since the integration PR for QAD-023, `/cases` is a `ready` navigation item that
+mounts `CaseListPage`; `src/App.test.tsx` ("opens the case list from the navigation and loads cases") covers the route,
+and the Phase 1 "no forms" rule now applies only to the dashboard sample and the "coming later" pages. The create and
+edit screens are mounted at `/cases/new` and `/cases/:id/edit`.
