@@ -5,13 +5,17 @@ import { LocaleToggle } from '../components/LocaleToggle';
 import { PreviewBanner } from '../components/PreviewBanner';
 import { useI18n } from '../i18n/I18nContext';
 import { withLang } from '../i18n/locale';
-import { NAV_ITEMS } from './navigation';
+import { useAuth } from '../features/auth/AuthContext';
+import { visibleNav } from './navigation';
 
 const NAV_ID = 'primary-nav';
 const MAIN_ID = 'main-content';
 
 export function AppLayout() {
   const { locale, t } = useI18n();
+  const { state, signOut } = useAuth();
+  const me = state.status === 'signedIn' ? state.me : null;
+  const navItems = visibleNav(new Set(me?.permissions ?? []));
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
 
@@ -61,6 +65,16 @@ export function AppLayout() {
           <p className="app-name">{t('app.name')}</p>
           <ApiStatus />
           <LocaleToggle />
+          {me !== null && (
+            <div className="user-menu">
+              <span className="user-name" title={t('auth.signedInAs', { name: me.displayName })}>
+                {me.displayName}
+              </span>
+              <button type="button" className="link-button" onClick={() => void signOut()}>
+                {t('auth.signOut')}
+              </button>
+            </div>
+          )}
         </div>
       </header>
       <div className="app-body">
@@ -71,7 +85,7 @@ export function AppLayout() {
           data-open={menuOpen}
         >
           <ul>
-            {NAV_ITEMS.map((item) => (
+            {navItems.map((item) => (
               <li key={item.path}>
                 <NavLink to={withLang(item.path, locale)} end onClick={closeMenu}>
                   {t(item.label)}

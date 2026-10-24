@@ -2,5 +2,27 @@ import type { authEn } from './auth.en';
 
 /** Arabic auth messages; exactly the keys of auth.en.ts. */
 export const authAr: Record<keyof typeof authEn, string> = {
-  'auth.title': 'تسجيل الدخول',
+  'auth.title': 'تسجيل الدخول إلى LawDesk',
+  'auth.login': 'اسم المستخدم أو البريد الإلكتروني',
+  'auth.password': 'كلمة المرور',
+  'auth.signIn': 'تسجيل الدخول',
+  'auth.signOut': 'تسجيل الخروج',
+  'auth.loading': 'جارٍ التحميل…',
+  'auth.refused': 'اسم المستخدم أو البريد الإلكتروني أو كلمة المرور غير صحيحة.',
+  'auth.unavailable': 'تعذّر تسجيل الدخول الآن. حاول مرة أخرى لاحقًا.',
+  'auth.sessionExpired': 'انتهت جلستك. سجّل الدخول مرة أخرى للمتابعة.',
+  'auth.signedInAs': 'مسجّل الدخول باسم {name}',
+  'auth.deniedTitle': 'غير مسموح بالوصول',
+  'auth.deniedBody': 'ليست لديك صلاحية لفتح هذه الصفحة. اطلب الصلاحية من المسؤول إذا احتجتها.',
+  'password.title': 'اختر كلمة مرور جديدة',
+  'password.intro': 'لأمانك، اختر كلمة مرور جديدة قبل المتابعة. استخدم 12 حرفًا على الأقل.',
+  'password.current': 'كلمة المرور الحالية',
+  'password.new': 'كلمة المرور الجديدة',
+  'password.repeat': 'أعد كتابة كلمة المرور الجديدة',
+  'password.submit': 'تغيير كلمة المرور',
+  'password.tooShort': 'يجب أن تتكون كلمة المرور الجديدة من 12 حرفًا على الأقل.',
+  'password.mismatch': 'كلمتا المرور الجديدتان غير متطابقتين.',
+  'password.currentWrong': 'كلمة المرور الحالية غير صحيحة.',
+  'password.policy': 'كلمة المرور الجديدة لا تستوفي القواعد: من 12 إلى 128 حرفًا، وألا تكون اسم المستخدم أو البريد الإلكتروني.',
+  'password.failed': 'تعذّر تغيير كلمة المرور. حاول مرة أخرى لاحقًا.',
 };

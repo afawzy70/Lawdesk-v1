@@ -1,0 +1,10 @@
+# RED: frontend sign-in, sign-out, expired session, forced password change
+$ npx vitest run src/features/auth
+⎯⎯⎯⎯⎯⎯ Failed Tests 10 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  src/features/auth/Auth.test.tsx > signing in > asks a visitor without a session to sign in, and shows no application content
+TestingLibraryElementError: Unable to find role="heading" and name "Sign in to LawDesk"
+ FAIL  src/features/auth/Auth.test.tsx > signing in > signs in with the CSRF header and then shows the shell with the user name
+TestingLibraryElementError: Unable to find a label with the text of: Username or email
+ FAIL  src/features/auth/Auth.test.tsx > signing in > tells a refused user nothing about why, and keeps the password field empty
+TestingLibraryElementError: Unable to find a label with the text of: Username or email
+ FAIL  src/features/auth/Auth.test.tsx > signing in > reports an unreachable server without technical details
