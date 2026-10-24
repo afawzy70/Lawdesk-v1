@@ -4,14 +4,8 @@ import { formatDateTime } from '../../i18n/format';
 import { useI18n } from '../../i18n/I18nContext';
 import { getTimeline, type CaseEvent } from './api';
 import { problemMessage } from './problems';
+import { eventLabel } from './timelineEvents';
 
-const KNOWN_EVENTS: Record<string, MessageKey> = {
-  CASE_CREATED: 'cases.event.CASE_CREATED',
-  CASE_UPDATED: 'cases.event.CASE_UPDATED',
-  CASE_STATUS_CHANGED: 'cases.event.CASE_STATUS_CHANGED',
-  PARTY_ADDED: 'cases.event.PARTY_ADDED',
-  PARTY_REMOVED: 'cases.event.PARTY_REMOVED',
-};
 
 interface Loaded {
   key: string;
@@ -76,7 +70,7 @@ export function CaseTimelineList({ caseId, generation }: Props) {
         <ol className="case-timeline" aria-labelledby={headingId}>
           {current.events.map((event) => (
             <li key={event.id}>
-              <strong>{t(KNOWN_EVENTS[event.type] ?? 'cases.event.other')}</strong>{' '}
+              <strong>{t(eventLabel(event.type))}</strong>{' '}
               <time dateTime={event.occurredAt}>{formatDateTime(event.occurredAt, locale)}</time>
               <p>{event.summary}</p>
             </li>

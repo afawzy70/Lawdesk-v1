@@ -15,10 +15,9 @@ export const en = {
   'footer.version': 'LawDesk v{version}',
 
   'preview.banner':
-    'UAT test environment — enter test data only, never real client data. The dashboard shows sample figures, and areas marked “coming later” are not built yet.',
+    'UAT test environment — enter test data only, never real client data. Areas marked “coming later” are not built yet.',
   'preview.bannerLabel': 'Preview notice',
   'preview.titleSuffix': '(Preview)',
-  'preview.sampleData': 'Sample data',
 
   'shell.skipToContent': 'Skip to main content',
   'shell.primaryNav': 'Primary',
@@ -47,26 +46,6 @@ export const en = {
   'notFound.title': 'Page not found',
   'notFound.body': 'We could not find that page. Check the address, or go back to the home page.',
   'notFound.homeLink': 'Go to the home page',
-
-  'dashboard.intro':
-    'This preview shows a possible dashboard layout. Every figure and record on this page is invented sample data.',
-  'dashboard.kpis': 'Key figures',
-  'kpi.openCases': 'Open cases',
-  'kpi.hearingsThisWeek': 'Hearings this week',
-  'kpi.pendingJudgments': 'Pending judgments',
-  'kpi.expertReportsDue': 'Expert reports due',
-  'dashboard.hearings': 'Upcoming hearings',
-  'hearings.case': 'Case',
-  'hearings.court': 'Court',
-  'hearings.stage': 'Stage',
-  'hearings.when': 'Date and time',
-  'dashboard.stages': 'Cases by stage',
-  'stages.value': '{count} cases ({percent})',
-  'stage.firstInstance': 'First instance',
-  'stage.appeal': 'Appeal',
-  'stage.cassation': 'Cassation',
-
-  'sample.caseRef': 'Sample Case {number}',
 
   // Area messages, one file per workstream (architecture/CONTRACTS.md §6).
   ...authEn,
