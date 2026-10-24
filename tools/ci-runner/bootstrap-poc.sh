@@ -36,7 +36,7 @@ rm -- "$archive"
 # The disposable VM must have no other local users who could read its process list.
 ./config.sh --unattended --url "$repo" \
   --token "$(cat "$RUNNER_REGISTRATION_TOKEN_FILE")" \
-  --name "$RUNNER_NAME" --labels lawdesk-ci-poc --ephemeral --work _work
+  --name "$RUNNER_NAME" --labels lawdesk-ci-poc-49 --ephemeral --work _work
 rm -- "$RUNNER_REGISTRATION_TOKEN_FILE"
 
 printf 'Runner registered. Starting one ephemeral job. Destroy VM and remove any stale registration afterward.\n'
