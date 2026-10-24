@@ -162,10 +162,11 @@ describe('case list (LD-015)', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('The cases could not be loaded. Try again later.');
   });
 
-  it('explains a missing permission or session', async () => {
+  it('shows the shared access-denied page without the permission', async () => {
     scriptedFetch(() => problem(403));
     renderCases('/cases');
-    expect(await screen.findByRole('alert')).toHaveTextContent('You do not have permission to do this.');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Access denied' })).toBeInTheDocument();
+    expect(screen.queryByRole('search')).not.toBeInTheDocument();
   });
 
   it('asks to sign in when there is no session', async () => {

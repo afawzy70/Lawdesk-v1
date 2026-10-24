@@ -7,10 +7,11 @@ import { usePageTitle } from '../../i18n/usePageTitle';
 import { getCase, updateCase, type LegalCase, type NewCase } from './api';
 import { CaseForm, type Failure } from './CaseForm';
 import type { CreatedState } from './CaseCreatePage';
+import { AccessDeniedPage } from '../auth/AccessDeniedPage';
 import { CASES_PATH } from './paths';
 import { fieldErrors, isStatus, problemMessage } from './problems';
 
-type Load = { kind: 'loading' } | { kind: 'failed'; message: MessageKey } | { kind: 'loaded'; legalCase: LegalCase };
+type Load = { kind: 'loading' } | { kind: 'forbidden' } | { kind: 'failed'; message: MessageKey } | { kind: 'loaded'; legalCase: LegalCase };
 
 function explain(error: unknown): Failure {
   if (isStatus(error, 409)) {
@@ -62,7 +63,12 @@ export function CaseEditPage() {
         if (!controller.signal.aborted) setResult({ key, load: { kind: 'loaded', legalCase } });
       },
       (error: unknown) => {
-        if (!controller.signal.aborted) setResult({ key, load: { kind: 'failed', message: loadFailure(error) } });
+        if (!controller.signal.aborted) {
+          setResult({
+            key,
+            load: isStatus(error, 403) ? { kind: 'forbidden' } : { kind: 'failed', message: loadFailure(error) },
+          });
+        }
       },
     );
     return () => {
@@ -76,6 +82,9 @@ export function CaseEditPage() {
     </p>
   );
 
+  if (load.kind === 'forbidden') {
+    return <AccessDeniedPage />;
+  }
   if (load.kind === 'loading') {
     return (
       <>

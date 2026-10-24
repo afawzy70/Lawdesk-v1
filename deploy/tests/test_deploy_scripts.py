@@ -181,6 +181,39 @@ class DatabaseRoleTest(DeployScriptTestCase):
         self.assertNotIn("DROP", sql.upper())
 
 
+class AdminSecretTest(DeployScriptTestCase):
+    """LD-008.4: the first administrator's password is generated on the host once, never committed or printed."""
+
+    def setUp(self):
+        super().setUp()
+        self.secrets = Path(self.tmp.name) / "secrets"
+        self.secrets.mkdir(mode=0o700)
+        self.env["LAWDESK_SECRETS_DIR"] = str(self.secrets)
+
+    def test_a_missing_password_file_is_generated_once_before_the_stack_starts(self):
+        result = self.run_script(DEPLOY, SHA_A)
+
+        self.assertEqual(0, result.returncode, result.stderr)
+        secret = self.secrets / "admin_bootstrap_password.txt"
+        password = secret.read_text(encoding="utf-8").strip()
+        self.assertGreaterEqual(len(password), 20)
+        self.assertRegex(password, r"^[A-Za-z0-9]+$")
+        self.assertEqual(0o644, secret.stat().st_mode & 0o777, "readable by the backend user; the 0700 directory guards it")
+        self.assertNotIn(password, result.stdout + result.stderr + self.history())
+
+        self.run_script(DEPLOY, SHA_B)
+
+        self.assertEqual(password, secret.read_text(encoding="utf-8").strip(), "never regenerated")
+
+    def test_an_existing_password_file_is_kept(self):
+        secret = self.secrets / "admin_bootstrap_password.txt"
+        secret.write_text("chosen by the operator 123\n", encoding="utf-8")
+
+        self.run_script(DEPLOY, SHA_A)
+
+        self.assertEqual("chosen by the operator 123\n", secret.read_text(encoding="utf-8"))
+
+
 class FailedDeployTest(DeployScriptTestCase):
     def test_unhealthy_release_is_rolled_back_to_the_current_one(self):
         self.run_script(DEPLOY, SHA_A)

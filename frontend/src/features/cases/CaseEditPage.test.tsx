@@ -135,7 +135,6 @@ describe('edit case (LD-013)', () => {
 
   it.each([
     [404, 'This case does not exist.'],
-    [403, 'You do not have permission to do this.'],
     [401, 'Sign in to continue.'],
     [500, 'The case could not be loaded. Try again later.'],
   ])('explains a %i answer when loading', async (status, message) => {
@@ -145,6 +144,14 @@ describe('edit case (LD-013)', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(message);
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Back to cases' })).toBeInTheDocument();
+  });
+
+  it('shows the shared access-denied page without the permission to view', async () => {
+    scriptedFetch(() => problem(403));
+    renderCases(EDIT);
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Access denied' })).toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 
   it('renders in Arabic', async () => {

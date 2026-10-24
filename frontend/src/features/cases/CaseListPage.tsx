@@ -18,11 +18,13 @@ import {
 } from './api';
 import { formatDate } from './format';
 import { NEW_CASE_PATH, editCasePath } from './paths';
-import { problemMessage } from './problems';
+import { isStatus, problemMessage } from './problems';
+import { AccessDeniedPage } from '../auth/AccessDeniedPage';
 import './cases.css';
 
 type Load =
   | { kind: 'loading' }
+  | { kind: 'forbidden' }
   | { kind: 'failed'; message: MessageKey }
   | { kind: 'loaded'; result: PageResponse<CaseListItem> };
 
@@ -70,7 +72,12 @@ export function CaseListPage() {
       },
       (error: unknown) => {
         if (!controller.signal.aborted) {
-          setResult({ key, load: { kind: 'failed', message: problemMessage(error, 'cases.list.failed') } });
+          setResult({
+            key,
+            load: isStatus(error, 403)
+              ? { kind: 'forbidden' }
+              : { kind: 'failed', message: problemMessage(error, 'cases.list.failed') },
+          });
         }
       },
     );
@@ -107,6 +114,10 @@ export function CaseListPage() {
   const goToPage = (page: number) => {
     navigate({ ...search, page });
   };
+
+  if (load.kind === 'forbidden') {
+    return <AccessDeniedPage />;
+  }
 
   return (
     <>
