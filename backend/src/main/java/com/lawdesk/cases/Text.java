@@ -25,6 +25,11 @@ final class Text {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
+    /** Escapes the LIKE wildcards so a search text matches literally (with {@code escape '\'}). */
+    static String escapeLike(String text) {
+        return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+    }
+
     /**
      * A path id; anything that is not a UUID cannot name a stored resource and is answered like an unknown id (404),
      * never with a 500 from a failed conversion.

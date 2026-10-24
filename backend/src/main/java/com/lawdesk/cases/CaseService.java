@@ -27,6 +27,8 @@ class CaseService implements CaseLookup {
     static final String REFERENCE_NO_RESERVED = "REFERENCE_NO_RESERVED";
     static final String CASE_READ_ONLY = "CASE_READ_ONLY";
     static final String DATE_RANGE_INVALID = "DATE_RANGE_INVALID";
+    static final String STATUS_TRANSITION_NOT_ALLOWED = "STATUS_TRANSITION_NOT_ALLOWED";
+    static final String REASON_REQUIRED = "REASON_REQUIRED";
 
     /** Supplied numbers may not look generated, so a generated number can never collide with one. */
     private static final Pattern RESERVED = Pattern.compile("(?i)LD-[0-9].*");
@@ -73,7 +75,7 @@ class CaseService implements CaseLookup {
     LegalCase update(UUID id, UpdateCaseRequest request) {
         ActorRef actor = currentActor.require();
         LegalCase current = get(id);
-        if (current.status() == CaseStatus.CLOSED || current.status() == CaseStatus.ARCHIVED) {
+        if (current.status().detailsReadOnly()) {
             throw new BusinessRuleException(CASE_READ_ONLY, "case " + id + " is " + current.status());
         }
         if (current.version() != request.version()) {
@@ -94,6 +96,36 @@ class CaseService implements CaseLookup {
                 .orElseThrow(() -> new ConflictException("case " + id + " has changed concurrently"));
         timeline.append(id, CaseTimeline.CASE_UPDATED, "Changed: " + String.join(", ", changed), actor.id());
         return updated;
+    }
+
+    /** LD-017: applies an allowed transition at the current version and records it in the timeline. */
+    @Transactional
+    LegalCase changeStatus(UUID id, StatusChangeRequest request) {
+        ActorRef actor = currentActor.require();
+        LegalCase current = get(id);
+        CaseStatus target = CaseStatus.valueOf(request.status());
+        if (current.version() != request.version()) {
+            throw new ConflictException("case " + id + " has changed since version " + request.version());
+        }
+        if (!current.status().canChangeTo(target)) {
+            throw new BusinessRuleException(STATUS_TRANSITION_NOT_ALLOWED, current.status() + " -> " + target);
+        }
+        if (current.status() == CaseStatus.CLOSED && target == CaseStatus.ACTIVE && request.reason() == null) {
+            throw new BusinessRuleException(REASON_REQUIRED, "reopening a closed case needs a reason");
+        }
+        LegalCase changed = cases.changeStatus(id, request.version(), current.status(), target, actor.id())
+                .orElseThrow(() -> new ConflictException("case " + id + " has changed concurrently"));
+        String summary = current.status() + " -> " + target + (request.reason() == null ? "" : ": " + request.reason());
+        timeline.append(id, CaseTimeline.CASE_STATUS_CHANGED, CaseTimeline.fit(summary), actor.id());
+        return changed;
+    }
+
+    @Transactional(readOnly = true)
+    PageResponse<CaseEvent> timeline(UUID id, Paging paging) {
+        if (!cases.exists(id)) {
+            throw new NotFoundException("case");
+        }
+        return timeline.page(id, paging);
     }
 
     @Transactional(readOnly = true)

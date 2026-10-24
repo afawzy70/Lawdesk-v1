@@ -75,8 +75,9 @@ Acceptance criteria:
 
 ## LD-014 Case details and timeline
 
-1. `GET /api/v1/cases/{id}` (LD-012) is the details view; the UI shows all case fields, the parties (LD-016), the
-   timeline, and the actions the user's permissions allow.
+1. `GET /api/v1/cases/{id}` (LD-012) is the details view; the UI (`/cases/{id}`) shows all case fields, the
+   parties (LD-016), the status action (LD-017) and the timeline. An address under `/cases/` that is not a UUID shows
+   the not-found page. A 403 shows the shared access-denied page.
 2. `GET /api/v1/cases/{id}/timeline` with `CASE_VIEW` answers a `PageResponse` of `{ id, type, summary, occurredAt,
    actorId }`, newest first (ties by id), with the shared paging rules. Unknown case → `404`.
 3. Event types written by Phase 3: `CASE_CREATED`, `CASE_UPDATED`, `CASE_STATUS_CHANGED`, `PARTY_ADDED`,
@@ -143,7 +144,8 @@ Statuses: `OPEN` (registered), `ACTIVE` (being pursued), `SUSPENDED` (on hold, e
    transition, answers `200` with the case, increases the version and appends `CASE_STATUS_CHANGED` with the old and
    new status and the reason.
 2. `reason` is optional, at most 500 characters, and required when reopening (`CLOSED` → `ACTIVE`):
-   `422 REASON_REQUIRED`. **ASSUMPTION**.
+   `422 REASON_REQUIRED`. **ASSUMPTION**. The event summary is `<OLD> -> <NEW>: <reason>`, shortened with `…` to
+   the 500-character summary limit.
 3. A transition not in the table, including to the same status → `422 STATUS_TRANSITION_NOT_ALLOWED`; nothing changes.
 4. Stale `version` → `409`; unknown status → `400`; no session → `401`; without `CASE_STATUS_CHANGE` → `403`
    (`LEGAL_STAFF` does not hold it by default, CONTRACTS §3).
@@ -158,10 +160,10 @@ in as each slice is delivered.
 |-------|----------|--------|
 | LD-012 | QA-0089…QA-0096 | see LD-012 mapping below |
 | LD-013 | QA-0097…QA-0104 | see LD-013 mapping below |
-| LD-014 | QA-0105…QA-0112 | PLANNED (PR B3) |
+| LD-014 | QA-0105…QA-0112 | see LD-014 mapping below |
 | LD-015 | QA-0113…QA-0120 | see LD-015 mapping below |
-| LD-016 | QA-0121…QA-0128 | PLANNED (PR B3) |
-| LD-017 | QA-0129…QA-0136 | PLANNED (PR B3) |
+| LD-016 | QA-0121…QA-0128 | see LD-016 mapping below |
+| LD-017 | QA-0129…QA-0136 | see LD-017 mapping below |
 
 ### LD-012 mapping
 
@@ -206,3 +208,42 @@ in as each slice is delivered.
 mounts `CaseListPage`; `src/App.test.tsx` ("opens the case list from the navigation and loads cases") covers the route,
 and the Phase 1 "no forms" rule now applies only to the dashboard sample and the "coming later" pages. The create and
 edit screens are mounted at `/cases/new` and `/cases/:id/edit`.
+
+### LD-014 mapping
+
+| QA case | Scenario | Mapping | Status |
+|---------|----------|---------|--------|
+| QA-0105 | authorized happy path | `CaseTimelineApiTest.listsTheEventsNewestFirstInTheSharedPageShape`; `CaseApiTest.readsTheStoredCase` | AUTOMATED |
+| QA-0106 | required-field validation | Read-only; no input besides paging | N/A (reviewer to confirm) |
+| QA-0107 | invalid input boundary | `CaseTimelineApiTest.pagesAndCapsThePageSize` (negative page → 400), `…anUnknownCaseIsNotFound` (malformed id → 404) | AUTOMATED |
+| QA-0108 | unauthenticated access | `CaseTimelineApiTest.needsASessionAndCaseView` | AUTOMATED |
+| QA-0109 | insufficient permission | same test; security event part BLOCKED on LD-011 | AUTOMATED (partial) |
+| QA-0110 | record integrity and rollback | `LegalCaseSchemaTest.aCaseWithTimelineEventsCannotBeDeletedSilently`; `CaseLookupTest.theEventJoinsTheCallersTransaction`; failed writes record no event (`CaseEditApiTest`, `CaseLifecycleApiTest`) | AUTOMATED |
+| QA-0111 | concurrent or repeat request | Events of one transaction keep their order through `seq` (`CaseTimelineApiTest` fixture) | AUTOMATED |
+| QA-0112 | API-to-UI state and error handling | `CaseDetailsPage.test.tsx` (details, timeline labels, older events, not-found address, 403/404/500, Arabic) | AUTOMATED (component level) |
+
+### LD-016 mapping
+
+| QA case | Scenario | Mapping | Status |
+|---------|----------|---------|--------|
+| QA-0121 | authorized happy path | `PartyApiTest.createsAPersonAndAnOrganisation`, `…editsAPartyWithOptimisticLocking`, `…searchesPartiesByNameOrIdentifier`; `CasePartyApiTest.linksPartiesWithTheirRolesAndListsThem`, `…unlinksAPartyAndRecordsIt`, `…theCaseSearchFindsCasesByPartyName` | AUTOMATED |
+| QA-0122 | required-field validation | `PartyApiTest.validatesEveryField`; `CasePartyApiTest.validatesTheLink` | AUTOMATED |
+| QA-0123 | invalid input boundary | `PartyApiTest.validatesEveryField`, `…identifiersMustMatchTheKindOfParty` | AUTOMATED |
+| QA-0124 | unauthenticated access | `PartyApiTest.needsASessionAndTheRightPermission`, `CasePartyApiTest.needsASessionAndTheRightPermission` | AUTOMATED |
+| QA-0125 | insufficient permission | same tests; security event part BLOCKED on LD-011 | AUTOMATED (partial) |
+| QA-0126 | record integrity and rollback | `PartyApiTest.aNationalIdBelongsToOnePartyOnly` (DB unique index), `CasePartyApiTest.partiesOfAnArchivedCaseCannotChange` | AUTOMATED |
+| QA-0127 | concurrent or repeat request | `CasePartyApiTest.aPartyAppearsOnceOnACase` (repeat link → 409, unique constraint); stale party version → 409 | AUTOMATED |
+| QA-0128 | API-to-UI state and error handling | `CaseDetailsPage.test.tsx` "case parties" (create + link, link found party, remove, 409/400/422/403/500, Arabic) | AUTOMATED (component level) |
+
+### LD-017 mapping
+
+| QA case | Scenario | Mapping | Status |
+|---------|----------|---------|--------|
+| QA-0129 | authorized happy path | `CaseLifecycleApiTest.appliesAnAllowedTransitionAndRecordsItInTheTimeline`, `…walksTheWholeLifecycle` | AUTOMATED |
+| QA-0130 | required-field validation | `CaseLifecycleApiTest.invalidInputIsAFieldError`, `…reopeningAClosedCaseNeedsAReason` | AUTOMATED |
+| QA-0131 | invalid input boundary | `CaseLifecycleApiTest.refusesATransitionNotInTheTable` (9 cases), `…theDomainAllowsExactlyTheDocumentedTransitions` (25 pairs), reason 500/501 characters | AUTOMATED |
+| QA-0132 | unauthenticated access | `CaseLifecycleApiTest.needsASessionAndTheStatusChangePermission` | AUTOMATED |
+| QA-0133 | insufficient permission | same test (`CASE_EDIT` without `CASE_STATUS_CHANGE` → 403); security event part BLOCKED on LD-011 | AUTOMATED (partial) |
+| QA-0134 | record integrity and rollback | Refused transitions change nothing and record no event (`refusesATransitionNotInTheTable`) | AUTOMATED |
+| QA-0135 | concurrent or repeat request | `CaseLifecycleApiTest.aStaleVersionIsAConflict`; the update also requires the expected old status | AUTOMATED |
+| QA-0136 | API-to-UI state and error handling | `CaseDetailsPage.test.tsx` "case status" (allowed options only, 422/409/403/400, reload, archived final) | AUTOMATED (component level) |

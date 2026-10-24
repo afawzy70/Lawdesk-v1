@@ -17,7 +17,7 @@ import {
   type PageResponse,
 } from './api';
 import { formatDate } from './format';
-import { NEW_CASE_PATH, editCasePath } from './paths';
+import { NEW_CASE_PATH, casePath } from './paths';
 import { isStatus, problemMessage } from './problems';
 import { AccessDeniedPage } from '../auth/AccessDeniedPage';
 import './cases.css';
@@ -201,7 +201,7 @@ export function CaseListPage() {
                 {load.result.items.map((item) => (
                   <tr key={item.id}>
                     <td>
-                      <Link to={withLang(editCasePath(item.id), locale)}>{item.referenceNo}</Link>
+                      <Link to={withLang(casePath(item.id), locale)}>{item.referenceNo}</Link>
                     </td>
                     <td>{item.title}</td>
                     <td>{t(`cases.type.${item.caseType}`)}</td>

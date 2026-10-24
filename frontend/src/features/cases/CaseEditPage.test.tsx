@@ -58,19 +58,6 @@ describe('edit case (LD-013)', () => {
     expect((requests[2]?.body as { version: number }).version).toBe(5);
   });
 
-  it('shows the confirmation of a case just created', async () => {
-    scriptedFetch((request) =>
-      request.method === 'POST' ? jsonResponse(CASE, 201) : jsonResponse(CASE),
-    );
-    const user = userEvent.setup();
-    renderCases('/cases/new');
-    await user.type(screen.getByRole('textbox', { name: 'Title' }), 'Original title');
-    await user.click(screen.getByRole('button', { name: 'Create case' }));
-
-    expect(await screen.findByText('Case R-1 created.')).toHaveAttribute('role', 'status');
-    expect(await screen.findByRole('heading', { level: 1, name: 'Edit case R-1' })).toBeInTheDocument();
-  });
-
   it('on a stale version offers to reload the latest case', async () => {
     const user = userEvent.setup();
     let latest = CASE;
@@ -147,6 +134,16 @@ describe('edit case (LD-013)', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(message);
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Back to cases' })).toBeInTheDocument();
+  });
+
+  it('links back to the case', async () => {
+    scriptedFetch(() => jsonResponse(CASE));
+    renderCases(EDIT);
+
+    expect(await screen.findByRole('link', { name: 'Back to the case' })).toHaveAttribute(
+      'href',
+      `/cases/${CASE.id}?lang=en`,
+    );
   });
 
   it('shows the shared access-denied page without the permission to view', async () => {
