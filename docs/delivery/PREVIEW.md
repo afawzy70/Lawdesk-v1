@@ -27,8 +27,11 @@
 ## How the preview is labelled
 
 - A persistent, non-dismissible notice (`role="note"`, named "Preview notice") on every page:
-  "Preview — sample data only. This is not a working case management system." /
-  "معاينة — بيانات نموذجية فقط. هذا ليس نظامًا فعّالًا لإدارة القضايا."
+  "UAT test environment — enter test data only, never real client data. The dashboard shows sample figures, and
+  areas marked “coming later” are not built yet." / "بيئة اختبار UAT — أدخل بيانات تجريبية فقط، ولا تُدخل بيانات
+  موكلين حقيقية. لوحة المعلومات تعرض أرقامًا نموذجية، والأقسام المعلَّمة «لاحقًا» لم تُبنَ بعد."
+  The earlier wording ("This is not a working case management system") was retired once cases, courts and sign-in
+  became working screens.
 - Every mock-data region shows a visible "Sample data" / "بيانات نموذجية" badge that is also the region's
   accessible description (`aria-describedby`); the hearings table caption reads "Upcoming hearings (Sample data)".
 - The document title ends with "(Preview)" / "(معاينة)", e.g. "Dashboard — LawDesk (Preview)".

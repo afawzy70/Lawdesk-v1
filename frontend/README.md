@@ -28,8 +28,8 @@ anything else shows "API unavailable" without exposing response or error details
 
 ## Early visual preview
 
-The app currently ships an owner-requested, mock-data preview (see `docs/delivery/PREVIEW.md`); it is not a working
-case management system.
+The dashboard still shows the owner-requested sample data (see `docs/delivery/PREVIEW.md`); sign-in, cases and courts
+are working screens on UAT, and the other areas show a "coming later" page.
 
 - English/Arabic toggle in the header; the language is kept only in the `?lang=en|ar` URL parameter (no browser
   storage). Messages live in typed catalogs `src/i18n/messages/{en,ar}.ts` and are read with `useI18n()`; add every
