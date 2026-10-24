@@ -213,6 +213,11 @@ button {
   max-inline-size: 80rem;
 }
 
+/* Long unbroken case references in page titles wrap instead of widening the page on narrow screens (QAD-027). */
+.app-main h1 {
+  overflow-wrap: anywhere;
+}
+
 .app-main:focus {
   outline: none;
 }
@@ -342,7 +347,12 @@ button {
   }
 }
 
+/*
+ * A wide table scrolls inside its region, never the page. The region is the containing block of positioned
+ * descendants too, so a visually hidden caption cannot escape it and widen the page (QAD-027).
+ */
 .table-scroll {
+  position: relative;
   overflow-x: auto;
 }
 
