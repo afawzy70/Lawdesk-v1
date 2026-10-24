@@ -57,15 +57,22 @@ Acceptance criteria:
      without a judgment (`awaitingJudgment`), and the overall `awaitingJudgment`;
    - `judgments`: for the period (`from`, `to`; default the current month), `recorded` (judgments whose
      `judgmentDate` is in the period), `final` (those marked final) and `byOutcome` (every `Outcome`, zeros included);
-   - `pending`: the figures not built yet because their Phase 5 port is missing, as codes
-     `HEARINGS_THIS_WEEK`, `EXPERT_REPORTS_DUE`, `OVERDUE_TASKS`. A code leaves the list when its figure is delivered.
+   - `operations` (from Workstream D's report ports, each rule evaluated by its owning module): `hearingsThisWeek`
+     (scheduled hearings from today to today + 6 days, `HearingReportQueries.upcomingCount(6)`),
+     `hearingsAwaitingResult` (still scheduled after their day), `expertReportsOverdue` (open referrals whose report
+     was due before today), `overdueTasks` (open tasks due before today) and `tasksDueSoon` (open tasks due today or
+     within `TaskReportQueries.DUE_SOON_DAYS` = 3 days);
+   - `pending`: figures still waiting for a port, as codes; empty since the Phase 5 ports are integrated (LD-033 PR).
 2. Validation: `from`/`to` malformed → 400 (`typeMismatch`); inverted → 422 `DATE_RANGE_INVALID`.
 3. The dashboard page (`/`) shows the figures of criterion 1 for users holding `REPORT_VIEW`; the figures that were
    mock KPIs before (open cases, pending judgments, cases by stage) now come from the API and the sample-data regions
-   and `src/preview/mockData.ts` are removed. The three pending figures are shown as tiles reading "Not available yet",
-   without a number. A user without `REPORT_VIEW` sees the dashboard page with a note that statistics need the report
+   and `src/preview/mockData.ts` are removed. The legal-operations figures are tiles with
+   their numbers (before the Phase 5 ports were integrated they read "Not available yet", never a number). A user without `REPORT_VIEW` sees the dashboard page with a note that statistics need the report
    permission — no error page and no request to the reports API.
-4. **ASSUMPTION:** "pending judgments" means proceedings that have no judgment yet (every stage), and the stage
+4. **ASSUMPTION:** "this week" on the dashboard is today and the six days after it; "expert reports due" is shown as
+   the reports overdue (the expert port's rule). "Today" for these figures is each Phase 5 port's own clock, the
+   calendar day in `Africa/Cairo`.
+5. **ASSUMPTION:** "pending judgments" means proceedings that have no judgment yet (every stage), and the stage
    breakdown counts proceedings, not cases (a case with an appeal counts once at first instance and once at appeal).
 
 | QA case | Scenario | Mapping | Status |
@@ -122,8 +129,16 @@ Acceptance criteria (judgments part):
 3. `summary`: `total`, `final`, `byOutcome`, `byStage` over all matching judgments.
 4. The judgments section (`/reports/judgments`) shows the period, the filters, summary and table.
 
-Hearings part: **PENDING** on Workstream D's `HearingReportQueries` (LD-024). The reports screen lists it as "not
-available yet"; no figure or row is shown.
+Hearings part (through Workstream D's `HearingReportQueries`):
+
+5. `GET /api/v1/reports/hearings` (`REPORT_VIEW`) lists the hearings dated in the period (`from`, `to`, default the
+   current month) with `id`, `hearingDate`, `hearingTime`, `purpose`, `status`, `awaitingResult` (the hearing port's
+   rule: still scheduled after its day), `stage`, `court`, `courtCaseNumber`, `courtCaseYear`, `caseId`,
+   `caseReferenceNo`, `caseTitle`; filter `status` (one or more); `PageResponse` plus `from`, `to` and `summary`
+   (`total`, `byStatus`, `awaitingResult`) over every matching hearing.
+6. **ASSUMPTION:** the hearing port lists hearings in calendar order only (date, untimed first, time, order of
+   recording), so the report offers that order alone: `sort=hearingDate[,asc]`; anything else is 400 `Pattern`.
+7. The hearings section (`/reports/hearings`) shows the period, the filters, the summary, the table and paging.
 
 | QA case | Scenario | Mapping | Status |
 |---------|----------|---------|--------|
@@ -135,16 +150,31 @@ available yet"; no figure or row is shown.
 | QA-0254 | record integrity and rollback | reading changes no row | AUTOMATED |
 | QA-0255 | concurrent or repeat request | identical repeated reads; stable tie-break (newest date, then id) for every sort | AUTOMATED |
 | QA-0256 | API-to-UI state and error handling | `JudgmentReportPage.test.tsx` (filters in the address, `final`, sort, paging, empty, 400/422/403, Arabic) and the Chromium overflow check | AUTOMATED |
-| — | hearings report | waits for `HearingReportQueries` | PENDING |
+| — | hearings report | `HearingReportApiTest` (13: six hearings in May 2013 with "today" pinned, calendar order, case/stage/court, status and period filters, summary incl. awaiting result, paging, 6 malformed parameters, 422, 401/403 + audit, no writes); `OperationsReports.test.tsx` | AUTOMATED |
 
 ## LD-033 Experts and workload reports
 
-**PENDING** on Workstream D's expert referral (LD-025) and task (LD-027) report ports. Nothing is built or shown as a
-figure until they are on `develop`.
+Read through Workstream D's `TaskReportQueries`, `ExpertReportQueries` and the user directory.
+
+1. `GET /api/v1/reports/workload` (`REPORT_VIEW`): one row per assignee with open work (`assigneeId`, `username`,
+   `displayName`, `enabled`, `open`, `inProgress`, `overdue`), by display name, assignees the directory does not know
+   last (shown as "Unknown user"); `dueSoonDays`; `summary` (`byStatus` of every task, `overdue`, `dueSoon`).
+2. `GET /api/v1/reports/experts` (`REPORT_VIEW`): every expert of the registry, deactivated ones included
+   (`expertId`, `name`, `specialty`, `active`, `open` referrals, `overdue` reports), by name; `summary` (`byStatus` of
+   every referral, `overdueReports`).
+3. Screens `/reports/workload` and `/reports/experts`, with the summaries, tables and export links.
+4. **ASSUMPTION:** both reports are short (one row per person) and have no filters or paging.
 
 | QA case | Scenario | Mapping | Status |
 |---------|----------|---------|--------|
-| QA-0257…QA-0264 | the eight standard scenarios | waits for D's ports | PENDING |
+| QA-0257 | authorized happy path | `WorkloadReportApiTest`, `ExpertReportApiTest`: rows per assignee / expert with names and exact counts, totals as deltas from a baseline | AUTOMATED |
+| QA-0258 | required-field validation | no parameter exists | N/A |
+| QA-0259 | invalid input boundary | assignees without open tasks are not listed; unknown assignee; deactivated expert listed with zero | AUTOMATED |
+| QA-0260 | unauthenticated access | `needsASessionAndTheReportPermission` (both) | AUTOMATED |
+| QA-0261 | insufficient permission | `TASK_VIEW` / `EXPERT_VIEW` alone → 403 and one `ACCESS_DENIED` row | AUTOMATED |
+| QA-0262 | record integrity and rollback | reports only read (repeatable-read snapshot) | AUTOMATED |
+| QA-0263 | concurrent or repeat request | stable order (name, then id) | AUTOMATED |
+| QA-0264 | API-to-UI state and error handling | `OperationsReports.test.tsx`: tables, summaries, empty, 403, failures, Arabic digits, export links | AUTOMATED |
 
 ## LD-034 Parameterized filters and CSV / Excel / PDF exports
 
@@ -183,6 +213,7 @@ Acceptance criteria:
 | QA-0270 | record integrity and rollback | a refused export writes no `REPORT_EXPORT` row; exports read one snapshot | AUTOMATED |
 | QA-0271 | concurrent or repeat request | each successful export is audited once | AUTOMATED |
 | QA-0272 | API-to-UI state and error handling | `CaseInventoryPage.test.tsx`, `JudgmentReportPage.test.tsx`: "Download CSV" link with the active filters and language, only with `REPORT_EXPORT` | AUTOMATED (CSV) |
+| — | Exports of the hearings, workload and experts reports | `OperationsExportApiTest`: exact CSV rows (English, Arabic), names in workload and experts exports, Arabic hearings PDF, experts workbook, 403/400/422, audit `HEARINGS:`, `WORKLOAD:`, `EXPERTS:` | AUTOMATED |
 | — | Excel (`.xlsx`) and PDF | `ExportFormatsApiTest` (right-to-left Arabic sheet, text not formulas, shaped Arabic glyphs in visual order with an embedded font, English PDF text, multi-page, row limit, audit `:XLSX`/`:PDF`), `PdfTextTest` (hand-derived presentation forms, lam-alef, mixed Latin/Arabic, isolates, wrapping); rendered samples `docs/evidence/PHASE-6/27-pdf-sample-*.png` | AUTOMATED |
 
 **ASSUMPTIONS (LD-034):** CSV dates are ISO `yyyy-MM-dd` and numbers plain digits (machine-readable in either
@@ -191,10 +222,9 @@ and court cells.
 
 ## Dependencies
 
-- Phase 5 read ports of Workstream D (architecture/CONTRACTS.md §8.3): `HearingReportQueries` (hearings this week, the
-  hearings report), the expert referral port (expert reports due, the experts report) and the task port (overdue tasks,
-  the workload report). Until each is on `develop`, the matching figure is listed in `pending` and the report is
-  PENDING here.
+- Phase 5 read ports of Workstream D (architecture/CONTRACTS.md §8.3): `HearingReportQueries`, `TaskReportQueries`
+  and `ExpertReportQueries` (with `experts(ids)` for names), delivered in PRs #33, #37, #40, #43, #44. The LD-033 PR
+  builds on them and must not be merged before them.
 - `docs/delivery/PREVIEW.md` and the preview banner: once the dashboard shows no sample figures, the banner sentence
   "The dashboard shows sample figures" is no longer true. The banner keys live in the shared catalogs (`en.ts`,
   `ar.ts`), so the change is requested from the integration owner.

@@ -5,6 +5,9 @@ import type { MessageKey } from '../../i18n/catalog';
 
 export const REPORTS_PATH = '/reports';
 export const JUDGMENTS_PATH = '/reports/judgments';
+export const HEARINGS_PATH = '/reports/hearings';
+export const WORKLOAD_PATH = '/reports/workload';
+export const EXPERTS_PATH = '/reports/experts';
 
 /** The message for a failed report request; never shows what the server sent. */
 export function failureMessage(error: unknown): MessageKey {

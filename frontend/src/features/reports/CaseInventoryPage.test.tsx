@@ -271,13 +271,19 @@ describe('case inventory report (LD-031)', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Access denied' })).toBeInTheDocument();
   });
 
-  it('names the report sections, with the reports that wait for Phase 5 marked as not available', async () => {
+  it('links every report section, the Phase 5 reports included', async () => {
     backend(VIEWER, { [REPORT]: () => report([NILE]) });
     await renderAt('/reports');
     const sections = screen.getByRole('navigation', { name: 'Report sections' });
     expect(within(sections).getByRole('link', { name: 'Case inventory' })).toHaveAttribute('aria-current', 'page');
-    expect(sections).toHaveTextContent('Hearings report — not available yet');
-    expect(sections).toHaveTextContent('Experts and workload reports — not available yet');
+    expect(within(sections).getAllByRole('link').map((link) => link.textContent)).toEqual([
+      'Case inventory',
+      'Judgments',
+      'Hearings',
+      'Workload',
+      'Experts',
+    ]);
+    expect(sections).not.toHaveTextContent('not available');
   });
 
   it('opens from the primary navigation for users with REPORT_VIEW', async () => {

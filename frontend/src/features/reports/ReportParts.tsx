@@ -5,28 +5,28 @@ import { formatNumber } from '../../i18n/format';
 import { useI18n } from '../../i18n/I18nContext';
 import { withLang } from '../../i18n/locale';
 import { useAuth } from '../auth/AuthContext';
-import { JUDGMENTS_PATH, REPORTS_PATH } from './common';
+import { EXPERTS_PATH, HEARINGS_PATH, JUDGMENTS_PATH, REPORTS_PATH, WORKLOAD_PATH } from './common';
 
 /** Shared parts of the report screens (docs/delivery/PHASE-6-ACCEPTANCE.md, common rule 8). */
 
-/** The report sections; reports waiting for a Phase 5 port are named as not available, never linked. */
+/** The report sections, each a link; the current one is marked for assistive technology. */
 export function ReportSections() {
   const { locale, t } = useI18n();
-  const pending: MessageKey[] = ['reports.section.hearings', 'reports.section.experts'];
+  const sections: readonly (readonly [string, MessageKey])[] = [
+    [REPORTS_PATH, 'reports.section.inventory'],
+    [JUDGMENTS_PATH, 'reports.section.judgments'],
+    [HEARINGS_PATH, 'reports.section.hearings'],
+    [WORKLOAD_PATH, 'reports.section.workload'],
+    [EXPERTS_PATH, 'reports.section.experts'],
+  ];
   return (
     <nav aria-label={t('reports.sections')} className="rpt-sections">
       <ul>
-        <li>
-          <NavLink end to={withLang(REPORTS_PATH, locale)}>
-            {t('reports.section.inventory')}
-          </NavLink>
-        </li>
-        <li>
-          <NavLink to={withLang(JUDGMENTS_PATH, locale)}>{t('reports.section.judgments')}</NavLink>
-        </li>
-        {pending.map((name) => (
-          <li key={name} className="rpt-section-pending">
-            {t('reports.section.pending', { name: t(name) })}
+        {sections.map(([path, label]) => (
+          <li key={path}>
+            <NavLink end to={withLang(path, locale)}>
+              {t(label)}
+            </NavLink>
           </li>
         ))}
       </ul>

@@ -35,6 +35,15 @@ export interface DashboardReport {
     final: number;
     byOutcome: Record<Outcome, number>;
   };
+  /** Legal operations, from the hearing, expert and task report ports (Phase 5). */
+  operations: {
+    hearingsThisWeek: number;
+    hearingsAwaitingResult: number;
+    expertReportsOverdue: number;
+    overdueTasks: number;
+    tasksDueSoon: number;
+  };
+  /** Figures still waiting for a report port; empty since Phase 5 is integrated. */
   pending: PendingFigure[];
 }
 
@@ -50,6 +59,6 @@ export function isDashboard(value: unknown): value is DashboardReport {
     typeof report.cases?.total === 'number' &&
     Array.isArray(report.proceedings?.byStage) &&
     typeof report.judgments?.recorded === 'number' &&
-    Array.isArray(report.pending)
+    typeof report.operations?.overdueTasks === 'number'
   );
 }
