@@ -11,7 +11,8 @@ import { jsonResponse } from '../test/http';
 
 const DASHBOARD = 'GET /api/v1/reports/dashboard';
 
-const REPORTER: Me = { ...ADMIN, permissions: [...ADMIN.permissions, 'REPORT_VIEW'] };
+const REPORTER: Me = { ...ADMIN, permissions: ['CASE_VIEW', 'REPORT_VIEW'] };
+const NO_REPORTS: Me = { ...ADMIN, permissions: ADMIN.permissions.filter((p) => p !== 'REPORT_VIEW') };
 
 const FIGURES: DashboardReport = {
   month: '2026-10',
@@ -159,7 +160,7 @@ describe('dashboard in Arabic', () => {
 
 describe('dashboard without the figures', () => {
   it('shows the page without statistics, and asks nothing, when the user lacks REPORT_VIEW', async () => {
-    const fetchMock = stub(ADMIN);
+    const fetchMock = stub(NO_REPORTS);
     await renderDashboard();
     expect(screen.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeInTheDocument();
     expect(screen.getByText('Statistics are shown to users with the report permission.')).toBeInTheDocument();
