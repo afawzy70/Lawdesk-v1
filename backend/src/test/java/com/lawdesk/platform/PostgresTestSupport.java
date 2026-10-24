@@ -32,6 +32,9 @@ public abstract class PostgresTestSupport {
         registry.add("spring.datasource.url", () -> url);
         registry.add("spring.datasource.username", () -> server.user);
         registry.add("spring.datasource.password", () -> server.password);
+        // Cached Spring contexts share one PostgreSQL server. Do not eagerly reserve a full idle pool per context;
+        // retain the normal maximum so concurrent login requests and their independent audit transactions fit.
+        registry.add("spring.datasource.hikari.minimum-idle", () -> 0);
     }
 
     /** A new, empty database (no migrations applied) on the same server, for tests that drive Flyway themselves. */
