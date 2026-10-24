@@ -47,28 +47,72 @@ proxy route and every operator command are in [`docs/operations/STAGING-RUNBOOK.
 | `host/bootstrap.sh` | one-time, idempotent host preparation as `devops` |
 | `host/rollback-drill.sh` | proves on the real stack that a broken release is rolled back |
 | `proxy/attach.sh`, `proxy/detach.sh` | add/remove the LawDesk site on the shared Caddy in place (no restart) |
-| `host/qa_accounts.py` | dedicated UAT QA accounts through the user administration API (see below) |
 
 ## Dedicated QA accounts on UAT
 
-Independent QA signs in with its own accounts, never the bootstrap administrator. `host/qa_accounts.py` uses only the
-public user administration API: it creates or rotates `qa.admin` (ADMIN), `qa.manager` (LEGAL_MANAGER), `qa.staff`
-(LEGAL_STAFF) and `qa.viewer` (`QA_READ_ONLY`: view cases, courts, proceedings and judgments), all with
-`@example.invalid` emails. It completes each forced first password change and checks every account's permissions and
-the administration boundary before it releases anything. The administrator's own account is never changed.
+Independent QA signs in with its own accounts, never the bootstrap administrator. `qa/qa_accounts.py` (Python, outside
+the shell-only `host/` directory) uses only the public user administration API. It creates or rotates:
 
-Credentials pass only through a pipe from the operator who holds the administrator password to the QA identity. They
-never go into arguments, files outside the 0700 directory, logs or a terminal (`provision` refuses a terminal):
+| Account | Role |
+|---|---|
+| `qa.admin` | ADMIN |
+| `qa.manager` | LEGAL_MANAGER |
+| `qa.staff` | LEGAL_STAFF |
+| `qa.viewer` | `QA_READ_ONLY` (view cases, courts, proceedings and judgments) |
+
+All of them have `@example.invalid` emails. Before it releases anything, the script:
+- completes each forced first password change;
+- checks that every account's effective permissions match its role;
+- checks the administration boundary: `GET /api/v1/users` returns 200 or 403 as the role requires.
+
+It never changes the administrator's own account. If that account still needs its first password change, the script
+stops with exit 3 and changes nothing.
+
+**Privilege boundary.** Each command runs under one identity and holds only what that identity needs:
+
+| Command | Runs as | Reads | Holds |
+|---|---|---|---|
+| `provision` | the operator who holds the administrator password (`devops` on the host) | the administrator password | the QA passwords only in memory; writes no file |
+| `receive` | the QA execution identity | the bundle from the pipe | never sees the administrator password |
+
+**How the credentials are kept out of every log:**
+- `provision` writes the bundle only when stdout is a pipe or a named pipe. A terminal, a file or a CI log is refused
+  before anything is changed.
+- Passwords never appear in arguments, stderr or tracebacks. An unexpected error prints only its type.
+- Passwords are sent only over https (plain http only to loopback, for the tests).
+- `receive` writes the files atomically, removes its temporary files on failure, and prints only the variable names and
+  paths.
+
+On the host, the QA identity prepares a named pipe that only it and the `users` group (`devops`, `aiagent`) can open,
+and waits on it:
 
 ```sh
-sudo -u devops python3 -I qa_accounts.py provision --base-url https://lawdesk.167-86-90-174.sslip.io \
-    --admin-password-file /srv/deployments/lawdesk/secrets/admin_bootstrap_password.txt \
-  | sudo -u aiagent python3 -I qa_accounts.py receive --dir /srv/ai-workspaces/secrets/lawdesk-qa
+mkfifo -m 0620 /tmp/lawdesk-qa/handoff.fifo && chgrp users /tmp/lawdesk-qa/handoff.fifo
+python3 -I qa_accounts.py receive --dir /srv/ai-workspaces/secrets/lawdesk-qa < /tmp/lawdesk-qa/handoff.fifo
+```
+
+The operator then runs, as `devops`:
+
+```sh
+python3 -I qa_accounts.py provision --base-url https://lawdesk.167-86-90-174.sslip.io \
+    --admin-password-file /srv/deployments/lawdesk/secrets/admin_bootstrap_password.txt > /tmp/lawdesk-qa/handoff.fifo
 ```
 
 Leave out `--admin-password-file` once the administrator has changed the bootstrap password. The script then prompts
-on the terminal without echoing. `receive` writes `admin.json`, `manager.json`, `staff.json` and `viewer.json`
-(`{"username","password"}`, mode 0600) and prints only the variable names and paths
-(`LAWDESK_QA_CREDENTIAL_FILE`, `LAWDESK_QA_MANAGER_CREDENTIAL_FILE`, `LAWDESK_QA_STAFF_CREDENTIAL_FILE`,
-`LAWDESK_QA_VIEWER_CREDENTIAL_FILE`). `qa_accounts.py verify --base-url … --dir …` re-checks them as the QA identity.
-Rerunning `provision` rotates every QA password. To withdraw an account, disable it in Administration → Users.
+on the terminal without echoing.
+
+An operator with sudo can instead pipe the two commands directly:
+`sudo -u devops … provision … | sudo -u aiagent … receive …`.
+
+`receive` writes these files, each `{"username","password"}` with mode 0600, in a 0700 directory:
+
+| File | Variable |
+|---|---|
+| `admin.json` | `LAWDESK_QA_CREDENTIAL_FILE` |
+| `manager.json` | `LAWDESK_QA_MANAGER_CREDENTIAL_FILE` |
+| `staff.json` | `LAWDESK_QA_STAFF_CREDENTIAL_FILE` |
+| `viewer.json` | `LAWDESK_QA_VIEWER_CREDENTIAL_FILE` |
+
+- `qa_accounts.py verify --base-url … --dir …` re-checks the accounts as the QA identity and prints only outcomes.
+- Rerunning `provision` rotates every QA password.
+- To withdraw an account, disable it in Administration → Users.

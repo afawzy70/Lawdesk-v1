@@ -17,7 +17,7 @@ from http.cookies import SimpleCookie
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-SCRIPT = Path(__file__).resolve().parents[1] / "host" / "qa_accounts.py"
+SCRIPT = Path(__file__).resolve().parents[1] / "qa" / "qa_accounts.py"
 
 ALL = ["USER_VIEW", "USER_MANAGE", "ROLE_VIEW", "ROLE_MANAGE", "AUDIT_VIEW", "CASE_VIEW", "CASE_CREATE", "CASE_EDIT",
        "CASE_DELETE", "CASE_STATUS_CHANGE", "PARTY_MANAGE", "COURT_VIEW", "COURT_MANAGE", "PROCEEDING_VIEW",
@@ -39,6 +39,7 @@ class FakeLawdesk:
         self.users = {}
         self.sessions = {}
         self.requests = []
+        self.malformed_users = False
         self.add_user("admin", admin_password, ["ADMIN"], admin_must_change)
         self.server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), self.handler())
         threading.Thread(target=self.server.serve_forever, daemon=True).start()
@@ -159,6 +160,8 @@ class FakeLawdesk:
                 if path == "/api/v1/users" and method == "GET":
                     if not need("USER_VIEW"):
                         return None
+                    if fake.malformed_users:
+                        return self.reply(200, {"unexpected": True})
                     q = parse_qs(url.query).get("q", [""])[0]
                     return self.reply(200, {"items": [fake.view(u) for u in fake.users.values()
                                                       if q in u["username"]]})
@@ -283,6 +286,52 @@ class QaAccountsTest(unittest.TestCase):
         self.assertIn("pipe", result.stderr.decode())
         self.assertIsNone(self.fake.by_name("qa.admin"))
 
+    def test_never_writes_credentials_to_a_regular_file(self):
+        captured = self.root / "captured.json"
+        with captured.open("wb") as file:
+            result = self.run_tool("provision", "--base-url", self.fake.url, "--admin-password-file",
+                                   str(self.admin_file), stdout=file)
+
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("pipe", result.stderr.decode())
+        self.assertEqual(captured.read_bytes(), b"")
+        self.assertIsNone(self.fake.by_name("qa.admin"))
+
+    def test_the_operator_hands_over_through_a_named_pipe_owned_by_the_qa_identity(self):
+        fifo = self.root / "handoff.fifo"
+        os.mkfifo(fifo, 0o620)
+        receiver = subprocess.Popen(["sh", "-c", 'exec "$1" -I "$2" receive --dir "$3" < "$4"', "sh", sys.executable,
+                                     str(SCRIPT), str(self.target), str(fifo)],
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        with fifo.open("wb") as pipe:
+            provision = self.run_tool("provision", "--base-url", self.fake.url, "--admin-password-file",
+                                      str(self.admin_file), stdout=pipe)
+        out, err = receiver.communicate(timeout=60)
+
+        self.assertEqual(provision.returncode, 0, provision.stderr.decode())
+        self.assertEqual(receiver.returncode, 0, err.decode())
+        self.assertIn("LAWDESK_QA_CREDENTIAL_FILE=%s" % (self.target / "admin.json"), out.decode())
+        self.assertEqual(stat.S_IMODE((self.target / "admin.json").stat().st_mode), 0o600)
+
+    def test_passwords_are_only_sent_over_https_except_to_loopback(self):
+        for url in ("http://lawdesk.example.invalid", "ftp://127.0.0.1"):
+            for args in (("provision", "--base-url", url, "--admin-password-file", str(self.admin_file)),
+                         ("verify", "--base-url", url, "--dir", str(self.target))):
+                result = self.run_tool(*args)
+                self.assertEqual(result.returncode, 2, args)
+                self.assertIn("https", result.stderr.decode())
+        self.assertEqual(self.fake.requests, [])
+
+    def test_an_unexpected_response_fails_without_a_traceback(self):
+        self.fake.malformed_users = True
+
+        result = self.provision()
+
+        self.assertEqual(result.returncode, 4)
+        self.assertNotIn("Traceback", result.stderr.decode())
+        self.assertIn("unexpected", result.stderr.decode())
+        self.assertEqual(result.stdout, b"")
+
     def test_an_administrator_still_on_the_bootstrap_password_is_left_to_the_owner(self):
         self.fake.close()
         self.fake = FakeLawdesk(ADMIN_PASSWORD, admin_must_change=True)
@@ -361,6 +410,18 @@ class QaAccountsTest(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertIn("0700", result.stderr.decode())
         self.assertEqual(list(self.target.iterdir()), [])
+
+    def test_receive_stores_nothing_and_leaves_no_temporary_file_when_a_write_fails(self):
+        bundle = self.provision().stdout
+        self.target.mkdir(parents=True, mode=0o700)
+        (self.target / "staff.json").mkdir()
+
+        result = self.receive(bundle)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn("Traceback", result.stderr.decode())
+        self.assertEqual(sorted(p.name for p in self.target.iterdir()), ["staff.json"])
+        self.assertEqual(result.stdout, b"")
 
     def test_receive_refuses_input_that_is_not_a_bundle(self):
         result = self.receive(b'{"accounts": {"admin": {"username": "x"}}}')

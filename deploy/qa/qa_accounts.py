@@ -4,12 +4,13 @@
   provision  run by the operator who holds the UAT administrator password (on the host: `devops`). Creates or rotates
              qa.admin (ADMIN), qa.manager (LEGAL_MANAGER), qa.staff (LEGAL_STAFF) and qa.viewer (QA_READ_ONLY, created
              if absent), completes each forced first password change, checks every role, then writes the credential
-             bundle to stdout, which must be a pipe into `receive`. The administrator's own account is never changed.
+             bundle to stdout, which must be a (named) pipe into `receive`. The administrator's own account is never changed.
   receive    run by the QA execution identity; stores one owner-only JSON file per account and prints only the paths.
   verify     run by the QA execution identity; signs in with the stored files and prints only outcomes.
 
 Passwords exist only in memory, the pipe and the 0600 files: never in arguments, logs or the terminal.
-Exit codes: 0 done, 2 refused input or unsafe output, 3 administrator not usable, 4 a check failed.
+Exit codes: 0 done, 2 refused input or unsafe output, 3 administrator not usable, 4 a check failed or an
+unexpected response.
 """
 
 import argparse
@@ -51,6 +52,12 @@ def say(message):
     print(message, file=sys.stderr, flush=True)
 
 
+def require_https(base_url):
+    url = urllib.parse.urlsplit(base_url)
+    if not (url.scheme == "https" or (url.scheme == "http" and url.hostname in ("127.0.0.1", "localhost", "::1"))):
+        raise Refused(2, "base URL must use https (plain http only to loopback); nothing sent or read")
+
+
 def new_password():
     # 40 URL-safe characters (240 bits); well inside the 12-character / 72-byte policy.
     return secrets.token_urlsafe(30)
@@ -60,6 +67,7 @@ class Session:
     """One signed-in browser-like session: cookies plus the XSRF-TOKEN echo the API expects on writes."""
 
     def __init__(self, base_url):
+        require_https(base_url)
         self.base = base_url.rstrip("/")
         self.jar = http.cookiejar.CookieJar()
         self.opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(self.jar))
@@ -197,8 +205,10 @@ def read_admin_password(path):
 
 
 def provision(args):
-    if sys.stdout.isatty():
-        raise Refused(2, "refusing to print credentials to a terminal: pipe stdout into `qa_accounts.py receive`")
+    require_https(args.base_url)
+    if not stat.S_ISFIFO(os.fstat(sys.stdout.fileno()).st_mode):
+        # A terminal, a file or a CI log would keep the passwords; only a pipe into `receive` is accepted.
+        raise Refused(2, "stdout must be a pipe (or named pipe) into `qa_accounts.py receive`; nothing done")
     admin = admin_session(args.base_url, args.admin_user.strip().lower(), read_admin_password(args.admin_password_file))
     try:
         permissions = ensure_read_only_role(admin)
@@ -236,17 +246,27 @@ def receive(args):
     target.mkdir(mode=0o700, parents=True, exist_ok=True)
     if not owner_only(target, 0o700):
         raise Refused(2, "%s must be owned by this user with mode 0700; nothing stored" % target)
+    paths = {key: target / ("%s.json" % key) for key in VARIABLES}
+    for path in paths.values():
+        if path.is_symlink() or (path.exists() and not (path.is_file() and owner_only(path, 0o600))):
+            raise Refused(2, "%s is not an owner-only regular file; nothing stored" % path)
+    temporaries = {}
+    try:
+        for key in VARIABLES:
+            handle, temporaries[key] = tempfile.mkstemp(dir=target, prefix=".%s." % key)
+            with os.fdopen(handle, "w", encoding="utf-8") as file:
+                json.dump(accounts[key], file)
+        for key in VARIABLES:
+            os.replace(temporaries.pop(key), paths[key])
+    finally:
+        for temporary in temporaries.values():
+            os.unlink(temporary)
     for key, variable in VARIABLES.items():
-        path = target / ("%s.json" % key)
-        handle, temporary = tempfile.mkstemp(dir=target, prefix=".%s." % key)
-        with os.fdopen(handle, "w", encoding="utf-8") as file:
-            json.dump(accounts[key], file)
-        os.chmod(temporary, 0o600)
-        os.replace(temporary, path)
-        print("%s=%s" % (variable, path))
+        print("%s=%s" % (variable, paths[key]))
 
 
 def verify(args):
+    require_https(args.base_url)
     target = Path(args.dir)
     if not owner_only(target, 0o700):
         raise Refused(2, "%s must be owned by this user with mode 0700" % target)
@@ -283,6 +303,10 @@ def main():
     except Refused as e:
         say("qa_accounts: " + str(e))
         return e.code
+    except Exception as e:  # pylint: disable=broad-except
+        # No traceback: it could quote request data. The type is enough to diagnose; nothing was released.
+        say("qa_accounts: stopped on an unexpected %s; no credentials were released" % type(e).__name__)
+        return 4
     return 0
 
 
