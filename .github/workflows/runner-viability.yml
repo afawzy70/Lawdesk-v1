@@ -7,15 +7,17 @@ on:
     branches: [develop]
     paths:
       - .github/workflows/runner-viability.yml
-  workflow_dispatch:
 
 permissions: {}
+
+concurrency:
+  group: lawdesk-ci-poc-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   schedule-probe:
     name: Self-hosted scheduling probe
     if: >-
-      github.event_name == 'pull_request' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.head_ref == 'infra/actions-billing-runner'
     runs-on: [self-hosted, lawdesk-ci-poc]
