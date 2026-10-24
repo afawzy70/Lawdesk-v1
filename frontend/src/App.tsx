@@ -5,6 +5,7 @@ import { SessionGate } from './features/auth/SessionGate';
 import { NewUserPage } from './features/admin/NewUserPage';
 import { UserDetailsPage } from './features/admin/UserDetailsPage';
 import { UsersPage } from './features/admin/UsersPage';
+import { CourtsPage } from './features/courts/CourtsPage';
 import { LocaleProvider } from './i18n/LocaleProvider';
 import { AppLayout } from './layout/AppLayout';
 import { PLANNED_AREAS } from './layout/navigation';
@@ -31,6 +32,7 @@ export function AppRoutes({ locale }: LocaleProps) {
               <Route path="/admin" element={<UsersPage />} />
               <Route path="/admin/users/new" element={<NewUserPage />} />
               <Route path="/admin/users/:id" element={<UserDetailsPage />} />
+              <Route path="/courts" element={<CourtsPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Routes>

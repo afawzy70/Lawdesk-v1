@@ -1,0 +1,60 @@
+  Position: 13
+		at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2993)
+		at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2656)
+		at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:446)
+		at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:533)
+		at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:449)
+		at org.postgresql.jdbc.PgStatement.executeWithFlags(PgStatement.java:371)
+		at org.postgresql.jdbc.PgStatement.executeCachedSql(PgStatement.java:356)
+		at org.postgresql.jdbc.PgStatement.executeWithFlags(PgStatement.java:332)
+		at org.postgresql.jdbc.PgStatement.executeUpdate(PgStatement.java:305)
+		at com.zaxxer.hikari.pool.ProxyStatement.executeUpdate(ProxyStatement.java:120)
+		at com.zaxxer.hikari.pool.HikariProxyStatement.executeUpdate(HikariProxyStatement.java)
+		at org.springframework.jdbc.core.JdbcTemplate$1UpdateStatementCallback.doInStatement(JdbcTemplate.java:568)
+		at org.springframework.jdbc.core.JdbcTemplate$1UpdateStatementCallback.doInStatement(JdbcTemplate.java:565)
+		at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:412)
+		... 2 more
+
+[ERROR] Failures: 
+[ERROR]   CourtApiTest.aBlankGovernorateIsStoredAsNone:302 Status expected:<201> but was:<500>
+[ERROR]   CourtApiTest.aDeactivatedCourtCanBeReactivated:194->createCourt:75 Status expected:<201> but was:<500>
+[ERROR]   CourtApiTest.aDuplicateCodeInAnyLetterCaseIsAConflictAndStoresNothing:354->createCourt:75 Status expected:<201> but was:<500>
+[ERROR]   CourtApiTest.aStaleVersionIsAConflictAndChangesNothing:390->createCourt:75 Status expected:<201> but was:<500>
+[ERROR]   CourtApiTest.anUnknownCourtIsNotFound:211 Status expected:<404> but was:<500>
+[ERROR]   CourtApiTest.anUnknownLevelFilterIsABadRequest:166 Status expected:<400> but was:<500>
+[ERROR]   CourtApiTest.anUnknownLevelIsABadRequest:283 Status expected:<400> but was:<500>
+[ERROR]   CourtApiTest.anUpdateNeedsTheVersionAndTheActiveFlag:236->createCourt:75 Status expected:<201> but was:<500>
+[ERROR]   CourtApiTest.createsACourtAndAnswersWithLocationAndTheStoredRepresentation:90 Status expected:<201> but was:<500>
+[ERROR]   CourtApiTest.keepingTheOwnCodeIsNoConflict:378->createCourt:75 Status expected:<201> but was:<500>
+[ERROR]   CourtApiTest.listsCourtsByCodeAndFiltersByLevelAndActive:124->createCourt:75 Status expected:<201> but was:<500>
+[ERROR]   CourtApiTest.malformedCodesAreRejected:266 Status expected:<400> but was:<500>
+[ERROR]   CourtApiTest.namesAreStoredTrimmed:292 Status expected:<201> but was:<500>
+[ERROR]   CourtApiTest.namesMayHaveTwoHundredCharactersButNotMore:252 Status expected:<201> but was:<500>
+[ERROR]   CourtApiTest.renamingToACodeInUseIsAConflictAndChangesNothing:364->createCourt:75 Status expected:<201> but was:<500>
+[ERROR]   CourtApiTest.requiredFieldsAreValidatedWithFieldCodes:225 Status expected:<400> but was:<500>
+[ERROR]   CourtApiTest.theGovernorateIsOptional:118 Status expected:<201> but was:<500>
+[ERROR]   CourtApiTest.theLocationHeaderPointsAtTheNewCourt:429 Response header 'Location'
+Expected: a string matching the pattern '.*/api/v1/courts/[0-9a-f-]{36}'
+     but: was null
+[ERROR]   CourtApiTest.unknownSortFieldsAreIgnored:157->createCourt:75 Status expected:<201> but was:<500>
+[ERROR]   CourtApiTest.updatesACourtAndRecordsWhoChangedIt:172->createCourt:75 Status expected:<201> but was:<500>
+[ERROR]   CourtApiTest.viewersCannotWriteAndOthersCannotRead:325->createCourt:75 Status expected:<201> but was:<500>
+[ERROR]   CourtApiTest.whitespaceOnlyNamesAreRejected:275 Status expected:<400> but was:<500>
+[ERROR] Errors: 
+[ERROR]   CourtApiTest.everyEndpointNeedsASession:318->courtRows:80 » BadSqlGrammar StatementCallback; bad SQL grammar [select count(*) from court]
+[ERROR]   CourtApiTest.noCourtsAreSeeded:423->courtRows:80 » BadSqlGrammar StatementCallback; bad SQL grammar [select count(*) from court]
+[ERROR]   CourtApiTest.theDatabaseRefusesDuplicateAndLowerCaseCodesOnItsOwn:404 » BadSqlGrammar StatementCallback; bad SQL grammar [insert into court (code, name_ar, name_en, level, created_by, updated_by)
+values ('DB-1', 'س', 'x', 'APPEAL', gen_random_uuid(), gen_random_uuid())]
+[ERROR]   CourtApiTest.writesNeedTheCsrfToken:347->courtRows:80 » BadSqlGrammar StatementCallback; bad SQL grammar [select count(*) from court]
+[ERROR] Tests run: 26, Failures: 22, Errors: 4, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project lawdesk-backend: There are test failures.
+[ERROR] 
+[ERROR] See /home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/agent-a06e15a84a1fc4241/backend/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

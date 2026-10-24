@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import pkg from '../package.json';
 import { App, AppRoutes } from './App';
+import { PLANNED_AREAS } from './layout/navigation';
 import { fakeApi } from './test/api';
 
 /** Renders the shell at `path` and waits until the session has loaded. */
@@ -37,9 +38,13 @@ const NAV = [
   { path: '/admin', en: 'Administration', ar: 'الإدارة' },
 ] as const;
 
-/** Areas still shown as preview placeholders; Administration became a working screen in LD-009. */
-const PLACEHOLDERS = NAV.filter((item) => item.path !== '/' && item.path !== '/admin');
-const PREVIEW_ROUTES = [...NAV.map((n) => n.path).filter((path) => path !== '/admin'), '/no-such-page'];
+/**
+ * Areas still shown as preview placeholders: those `planned` in navigation. An area that becomes a working screen
+ * (Administration in LD-009) leaves these checks by flipping its own status.
+ */
+const PLANNED = new Set(PLANNED_AREAS.filter((area) => area.status === 'planned').map((area) => area.path));
+const PLACEHOLDERS = NAV.filter((item) => PLANNED.has(item.path));
+const PREVIEW_ROUTES = [...NAV.map((n) => n.path).filter((path) => path === '/' || PLANNED.has(path)), '/no-such-page'];
 
 function primaryNav(name: string | RegExp = 'Primary') {
   return screen.getByRole('navigation', { name });
