@@ -67,8 +67,7 @@ class HearingService {
     @Transactional
     HearingRequests.Response create(UUID proceedingId, HearingRequests.Create request) {
         ActorRef actor = currentActor.require();
-        ProceedingSummary proceeding = proceedings.find(proceedingId)
-                .orElseThrow(() -> new NotFoundException("proceeding"));
+        ProceedingSummary proceeding = lockedProceeding(proceedingId);
         CaseSummary legalCase = writableCase(proceeding.caseId());
         LocalDate today = LegalDay.today();
         requireWithinReach("hearingDate", request.hearingDate(), today);
@@ -114,7 +113,7 @@ class HearingService {
         requireScheduled(hearing);
         LocalDate today = LegalDay.today();
         requireWithinReach("hearingDate", request.hearingDate(), today);
-        ProceedingSummary proceeding = proceeding(hearing.getProceedingId());
+        ProceedingSummary proceeding = lockedProceeding(hearing.getProceedingId());
         requireAfterFiling(proceeding, request.hearingDate());
         if (hearing.getAdjournedFromId() != null) {
             Hearing previous = hearings.findById(hearing.getAdjournedFromId()).orElseThrow();
@@ -140,6 +139,7 @@ class HearingService {
         Hearing hearing = lockedCurrent(id, request.version());
         CaseSummary legalCase = writableCase(hearing.getCaseId());
         requireScheduled(hearing);
+        ProceedingSummary proceeding = lockedProceeding(hearing.getProceedingId());
         HearingStatus outcome = request.status().hearingStatus();
         LocalDate today = LegalDay.today();
         if (outcome != HearingStatus.ADJOURNED) {
@@ -154,11 +154,11 @@ class HearingService {
             }
             requireWithinReach("nextHearingDate", request.nextHearingDate(), today);
             requireLater(hearing, request.nextHearingDate());
+            requireAfterFiling(proceeding, request.nextHearingDate());
         }
 
         hearing.recordResult(outcome, request.decision(), actor, LegalDay.now());
         Hearing stored = store(hearing);
-        ProceedingSummary proceeding = proceeding(hearing.getProceedingId());
         String held = "Hearing of %s in proceeding %s".formatted(stored.getHearingDate(), numberOf(proceeding));
         UUID nextId = null;
         if (outcome == HearingStatus.ADJOURNED) {
@@ -190,6 +190,14 @@ class HearingService {
             throw new BusinessRuleException(Rules.CASE_ARCHIVED, "an archived case is read-only");
         }
         return legalCase;
+    }
+
+    /**
+     * The proceeding, row-locked until the transaction ends (QAD-032): the lock a filing-date correction takes, so a
+     * hearing's date is compared with the committed filing date and a correction cannot slip in between.
+     */
+    private ProceedingSummary lockedProceeding(UUID id) {
+        return proceedings.lockForUpdate(id).orElseThrow(() -> new NotFoundException("proceeding"));
     }
 
     private ProceedingSummary proceeding(UUID id) {

@@ -36,6 +36,15 @@ public class ProceedingLookup {
         return jdbc.query(SELECT + " where id = ?", (rs, n) -> summary(rs), id).stream().findFirst();
     }
 
+    /**
+     * The proceeding, row-locked ({@code select ... for update}) until the caller's transaction ends: the same lock a
+     * filing-date correction takes (QAD-024, QAD-032). Modules whose dates must not precede the filing date call it
+     * before they compare them, so a correction and their write are serialised. Needs a surrounding transaction.
+     */
+    public Optional<ProceedingSummary> lockForUpdate(UUID id) {
+        return jdbc.query(SELECT + " where id = ? for update", (rs, n) -> summary(rs), id).stream().findFirst();
+    }
+
     /** The proceedings of a case, first instance first, then by filing date. */
     public List<ProceedingSummary> forCase(UUID caseId) {
         return jdbc.query(SELECT + """
