@@ -101,8 +101,14 @@ Acceptance criteria:
 
 | QA case | Scenario | Mapping | Status |
 |---------|----------|---------|--------|
-| QA-0241…QA-0247 | backend scenarios | `CaseInventoryReportApiTest` | PLANNED |
-| QA-0248 | API-to-UI state and error handling | `ReportsPage.test.tsx` | PLANNED |
+| QA-0241 | authorized happy path | `CaseInventoryReportApiTest`: five cases with proceedings, rows with current stage/court, summary over all matches, empty result | AUTOMATED |
+| QA-0242 | required-field validation | no parameter is required; `CaseInventoryReportApiTest` lists everything without filters | AUTOMATED |
+| QA-0243 | invalid input boundary | `CaseInventoryReportApiTest`: 13 malformed parameters → 400 with field and code, `q` of 101 characters → 400, inverted period → 422, one-day period, size capped at 100, page past the end | AUTOMATED |
+| QA-0244 | unauthenticated access | `CaseInventoryReportApiTest.needsASession` | AUTOMATED |
+| QA-0245 | insufficient permission | `CaseInventoryReportApiTest`: `CASE_VIEW` alone → 403 before validation, one `ACCESS_DENIED` row | AUTOMATED |
+| QA-0246 | record integrity and rollback | reading changes no row | AUTOMATED |
+| QA-0247 | concurrent or repeat request | repeated reads return identical bodies; stable tie-break for every sort | AUTOMATED |
+| QA-0248 | API-to-UI state and error handling | `CaseInventoryPage.test.tsx` (filters in the address, sort, paging, empty, 400/422/500/403, courts only with `COURT_VIEW`, Arabic), `reportsLayout.test.ts`; Chromium check at 320/375/1366 px in both languages: no page overflow | AUTOMATED |
 
 ## LD-032 Hearings and judgments reports
 
