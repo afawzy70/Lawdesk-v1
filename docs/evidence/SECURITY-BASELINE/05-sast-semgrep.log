@@ -1,0 +1,16 @@
+# LD-040 SAST, 2026-10-24, develop 19ad538. Semgrep OSS 1.180.0 (pip install semgrep==1.180.0 in a venv
+# under ~/tools), --metrics=off, --jobs 2, tracked files only, excluding node_modules and docs/evidence;
+# Semgrep's default .semgrepignore also skips test directories (83 files).
+
+$ semgrep scan --config p/java --config p/typescript --config p/react --config p/secrets ...
+  rules run: 173, targets: 323, findings: 0, errors: 0
+
+$ semgrep scan --config p/java --config p/typescript --config p/react --config p/secrets --config p/security-audit --config p/owasp-top-ten ...
+  rules run: 464, targets: 323 (java 107, ts 111, js 2, python 7, bash 13, yaml 4, dockerfile 2, json 14, html 1), findings: 6
+  ERROR    secrets-inherit                          .github/workflows/ci.yml:311
+  MEDIUM   npm-missing-minimum-release-age          frontend/.npmrc:1
+  WARNING  missing-internal                         frontend/nginx.conf:24
+  WARNING  request-host-used                        frontend/nginx.conf:25
+  WARNING  missing-internal                         frontend/nginx.conf:33
+  WARNING  request-host-used                        frontend/nginx.conf:34
+  parse warnings: 2 (PartialParsing of .github/workflows/ci.yml:220 and backend/mvnw; not findings)
