@@ -316,6 +316,14 @@ describe('case inventory export (LD-034)', () => {
       `/api/v1/reports/cases/export?q=nile&courtId=${court}&sort=title%2Cdesc&format=csv&lang=ar`,
     );
     expect(link).toHaveAttribute('download');
+    expect(screen.getByRole('link', { name: 'تنزيل Excel' })).toHaveAttribute(
+      'href',
+      `/api/v1/reports/cases/export?q=nile&courtId=${court}&sort=title%2Cdesc&format=xlsx&lang=ar`,
+    );
+    expect(screen.getByRole('link', { name: 'تنزيل PDF' })).toHaveAttribute(
+      'href',
+      `/api/v1/reports/cases/export?q=nile&courtId=${court}&sort=title%2Cdesc&format=pdf&lang=ar`,
+    );
   });
 
   it('offers no export without REPORT_EXPORT', async () => {
@@ -323,5 +331,6 @@ describe('case inventory export (LD-034)', () => {
     await renderAt('/reports');
     await table();
     expect(screen.queryByRole('link', { name: 'Download CSV' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Download PDF' })).not.toBeInTheDocument();
   });
 });

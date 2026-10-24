@@ -93,16 +93,28 @@ export function ExportLinks({ path, params }: { path: string; params: URLSearchP
   const { locale, t } = useI18n();
   const { state } = useAuth();
   if (state.status !== 'signedIn' || !state.me.permissions.includes('REPORT_EXPORT')) return null;
-  const query = new URLSearchParams(params);
-  query.delete('page');
-  query.set('format', 'csv');
-  query.set('lang', locale);
+  const formats: readonly (readonly ['csv' | 'xlsx' | 'pdf', MessageKey])[] = [
+    ['csv', 'reports.export.csv'],
+    ['xlsx', 'reports.export.xlsx'],
+    ['pdf', 'reports.export.pdf'],
+  ];
+  const href = (format: string) => {
+    const query = new URLSearchParams(params);
+    query.delete('page');
+    query.set('format', format);
+    query.set('lang', locale);
+    return `${path}?${query.toString()}`;
+  };
   return (
-    <p className="rpt-exports">
-      <a href={`${path}?${query.toString()}`} download>
-        {t('reports.export.csv')}
-      </a>
-    </p>
+    <ul className="rpt-exports" aria-label={t('reports.export.label')}>
+      {formats.map(([format, label]) => (
+        <li key={format}>
+          <a href={href(format)} download>
+            {t(label)}
+          </a>
+        </li>
+      ))}
+    </ul>
   );
 }
 

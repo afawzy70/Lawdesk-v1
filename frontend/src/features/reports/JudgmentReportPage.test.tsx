@@ -234,6 +234,14 @@ describe('judgments export (LD-034)', () => {
       'href',
       '/api/v1/reports/judgments/export?from=2026-01-01&final=true&format=csv&lang=en',
     );
+    const formats = within(screen.getByRole('list', { name: 'Downloads' }))
+      .getAllByRole('link')
+      .map((a) => a.textContent);
+    expect(formats).toEqual(['Download CSV', 'Download Excel', 'Download PDF']);
+    expect(screen.getByRole('link', { name: 'Download PDF' })).toHaveAttribute(
+      'href',
+      '/api/v1/reports/judgments/export?from=2026-01-01&final=true&format=pdf&lang=en',
+    );
   });
 
   it('offers no export without REPORT_EXPORT', async () => {

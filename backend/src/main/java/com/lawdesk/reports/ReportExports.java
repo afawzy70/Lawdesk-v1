@@ -52,17 +52,18 @@ class ReportExports {
         Paging.Order<SortField> order = Paging.Order.parse(query.sort(), CaseInventory.SORT_FIELDS,
                 CaseInventory.DEFAULT_ORDER);
         ReportLabels labels = ReportLabels.of(export.lang());
-        List<List<String>> rows = new ArrayList<>();
+        List<List<Object>> rows = new ArrayList<>();
         for (CaseInventoryReport.Row row : inventory.rows(
                 cases.list(filter, order.field(), order.descending(), 0, MAX_ROWS))) {
             rows.add(Arrays.asList(row.referenceNo(), row.title(), labels.type(row.caseType()),
-                    labels.status(row.status()), labels.group(row.statusGroup()), row.openedOn().toString(),
-                    labels.stage(row.currentStage()), labels.court(row.currentCourt()),
-                    Long.toString(row.proceedingCount())));
+                    labels.status(row.status()), labels.group(row.statusGroup()), row.openedOn(),
+                    labels.stage(row.currentStage()), labels.court(row.currentCourt()), row.proceedingCount()));
         }
         List<String> header = headers(labels, "referenceNo", "title", "caseType", "status", "statusGroup",
                 "openedOn", "currentStage", "currentCourt", "proceedingCount");
-        return csv("CASE_INVENTORY", "case-inventory", header, rows);
+        return file("CASE_INVENTORY", "case-inventory", export,
+                new ExportTable(labels.word("report.CASE_INVENTORY"), calendar.today().toString(), labels, header,
+                        rows));
     }
 
     @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
@@ -72,17 +73,19 @@ class ReportExports {
         Paging.Order<JudgmentReportQueries.SortField> order = Paging.Order.parse(query.sort(),
                 JudgmentList.SORT_FIELDS, JudgmentList.DEFAULT_ORDER);
         ReportLabels labels = ReportLabels.of(export.lang());
-        List<List<String>> rows = new ArrayList<>();
+        List<List<Object>> rows = new ArrayList<>();
         for (JudgmentReport.Row row : judgmentList.rows(
                 judgments.list(filter, order.field(), order.descending(), 0, MAX_ROWS))) {
-            rows.add(Arrays.asList(row.judgmentDate().toString(), row.caseReferenceNo(), row.caseTitle(),
+            rows.add(Arrays.asList(row.judgmentDate(), row.caseReferenceNo(), row.caseTitle(),
                     labels.stage(row.stage()), labels.court(row.court()),
                     row.courtCaseNumber() + "/" + row.courtCaseYear(), labels.outcome(row.outcome()),
                     labels.yesNo(row.finalJudgment())));
         }
         List<String> header = headers(labels, "judgmentDate", "caseReferenceNo", "caseTitle", "stage", "court",
                 "number", "outcome", "final");
-        return csv("JUDGMENTS", "judgments", header, rows);
+        return file("JUDGMENTS", "judgments", export,
+                new ExportTable(labels.word("report.JUDGMENTS"), filter.from() + " – " + filter.to(), labels, header,
+                        rows));
     }
 
     private static void requireWithinLimit(long rows) {
@@ -95,8 +98,15 @@ class ReportExports {
         return Arrays.stream(keys).map(labels::word).toList();
     }
 
-    private ExportFile csv(String report, String name, List<String> header, List<List<String>> rows) {
+    private ExportFile file(String report, String name, ExportQuery export, ExportTable table) {
         LocalDate today = calendar.today();
-        return new ExportFile(report, name + "-" + today + ".csv", "text/csv;charset=UTF-8", Csv.write(header, rows));
+        String base = name + "-" + today;
+        return switch (export.format()) {
+            case "xlsx" -> new ExportFile(report, base + ".xlsx",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", Xlsx.write(table));
+            case "pdf" -> new ExportFile(report, base + ".pdf", "application/pdf", Pdf.write(table));
+            default -> new ExportFile(report, base + ".csv", "text/csv;charset=UTF-8",
+                    Csv.write(table.header(), table.textRows()));
+        };
     }
 }

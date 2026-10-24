@@ -97,4 +97,7 @@ export const reportsAr: Record<keyof typeof reportsEn, string> = {
   'reports.summary.final': 'الأحكام النهائية',
   'reports.list.emptyJudgments': 'لا توجد أحكام تطابق عوامل التصفية هذه.',
   'reports.export.csv': 'تنزيل CSV',
+  'reports.export.xlsx': 'تنزيل Excel',
+  'reports.export.pdf': 'تنزيل PDF',
+  'reports.export.label': 'التنزيلات',
 } as const;

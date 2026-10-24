@@ -164,8 +164,13 @@ Acceptance criteria:
    produced, and the user narrows the filters.
 5. A successful export is audited once as `REPORT_EXPORT` (`SUCCESS`, target type `REPORT`, target id
    `<report>:<format>`, e.g. `CASE_INVENTORY:CSV`) — never the exported data or the filter values.
-6. Excel (`.xlsx`) and PDF follow the same columns; the Arabic PDF renders shaped, right-to-left text with an embedded
-   font. Libraries are pinned and permissively licensed.
+6. Excel (`.xlsx`) and PDF follow the same columns and labels. Excel: text cells are never formulas, dates are date
+   cells, counts numbers; an Arabic export is a right-to-left sheet. PDF: A4 landscape, header repeated on every page,
+   DejaVu Sans embedded (subset); Arabic letters are shaped (contextual forms, lam-alef ligatures) and every line is
+   laid out with the Unicode bidirectional algorithm, each cell taking the direction of its first strong letter; an
+   Arabic export mirrors the table (first column on the right, text right-aligned). Libraries are pinned and
+   permissively licensed: fastexcel 0.20.2 (Apache-2.0), Apache PDFBox 3.0.8 (Apache-2.0), ICU4J 78.3 (Unicode-3.0);
+   the font under the Bitstream Vera licence with public-domain DejaVu changes.
 7. The reports screen offers the export buttons only to users holding `REPORT_EXPORT`.
 
 | QA case | Scenario | Mapping | Status |
@@ -178,7 +183,7 @@ Acceptance criteria:
 | QA-0270 | record integrity and rollback | a refused export writes no `REPORT_EXPORT` row; exports read one snapshot | AUTOMATED |
 | QA-0271 | concurrent or repeat request | each successful export is audited once | AUTOMATED |
 | QA-0272 | API-to-UI state and error handling | `CaseInventoryPage.test.tsx`, `JudgmentReportPage.test.tsx`: "Download CSV" link with the active filters and language, only with `REPORT_EXPORT` | AUTOMATED (CSV) |
-| — | Excel (`.xlsx`) and PDF | next slice | PLANNED |
+| — | Excel (`.xlsx`) and PDF | `ExportFormatsApiTest` (right-to-left Arabic sheet, text not formulas, shaped Arabic glyphs in visual order with an embedded font, English PDF text, multi-page, row limit, audit `:XLSX`/`:PDF`), `PdfTextTest` (hand-derived presentation forms, lam-alef, mixed Latin/Arabic, isolates, wrapping); rendered samples `docs/evidence/PHASE-6/27-pdf-sample-*.png` | AUTOMATED |
 
 **ASSUMPTIONS (LD-034):** CSV dates are ISO `yyyy-MM-dd` and numbers plain digits (machine-readable in either
 language); the court column holds the court name in the export language; a case without proceedings has empty stage
