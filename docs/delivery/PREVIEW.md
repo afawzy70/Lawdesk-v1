@@ -21,19 +21,20 @@
 - It does **not** satisfy LD-035/LD-036 (the Phase 7 internationalisation and RTL stories). Those stories still need
   their own refinement, complete catalogs, translation review, RTL QA and acceptance.
 - It is **not** a working case management system: there is no backend data, no authentication, no forms and no
-  create/edit/save actions. Every figure and record is invented and lives in one module,
-  `frontend/src/preview/mockData.ts`.
+  create/edit/save actions. Every figure and record was invented and lived in one module,
+  `frontend/src/preview/mockData.ts`. **Retired with LD-030:** the dashboard now shows real figures, and the module,
+  the sample regions and their badges are gone.
 
 ## How the preview is labelled
 
 - A persistent, non-dismissible notice (`role="note"`, named "Preview notice") on every page:
-  "UAT test environment — enter test data only, never real client data. The dashboard shows sample figures, and
-  areas marked “coming later” are not built yet." / "بيئة اختبار UAT — أدخل بيانات تجريبية فقط، ولا تُدخل بيانات
-  موكلين حقيقية. لوحة المعلومات تعرض أرقامًا نموذجية، والأقسام المعلَّمة «لاحقًا» لم تُبنَ بعد."
-  The earlier wording ("This is not a working case management system") was retired once cases, courts and sign-in
-  became working screens.
-- Every mock-data region shows a visible "Sample data" / "بيانات نموذجية" badge that is also the region's
-  accessible description (`aria-describedby`); the hearings table caption reads "Upcoming hearings (Sample data)".
+  "UAT test environment — enter test data only, never real client data. Areas marked “coming later” are not built
+  yet." / "بيئة اختبار UAT — أدخل بيانات تجريبية فقط، ولا تُدخل بيانات موكلين حقيقية. الأقسام المعلَّمة «لاحقًا»
+  لم تُبنَ بعد."
+  The earlier wordings were retired as their claims stopped being true: "This is not a working case management
+  system" once cases, courts and sign-in worked, and "The dashboard shows sample figures" once LD-030 replaced them.
+- While mock data existed, every mock-data region showed a visible "Sample data" / "بيانات نموذجية" badge (retired
+  with LD-030 together with the data).
 - The document title ends with "(Preview)" / "(معاينة)", e.g. "Dashboard — LawDesk (Preview)".
 - Mock data is obviously synthetic: cases are "Sample Case 001…005", courts are "Sample Court of First Instance /
   Appeal / Cassation"; no parties, lawyers, judges, firms, real case numbers or personal data.

@@ -1,0 +1,70 @@
+/* Phase 6 dashboard and reports (Workstream E). Logical properties only, so Arabic mirrors English. */
+
+.rpt-dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 0 1.5rem;
+}
+
+.rpt-panel {
+  min-inline-size: 0;
+  margin-block: 1rem;
+}
+
+.rpt-panel h2 {
+  margin-block: 0 0.75rem;
+  font-size: 1.125rem;
+  overflow-wrap: anywhere;
+}
+
+.rpt-panel:first-child,
+.rpt-panel:last-child {
+  grid-column: 1 / -1;
+}
+
+.rpt-panel .kpi-grid + .rpt-counts {
+  margin-block-start: 0.75rem;
+}
+
+.rpt-counts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rpt-count {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  padding-block: 0.25rem;
+  border-block-end: 1px solid var(--ld-border);
+  overflow-wrap: anywhere;
+}
+
+.rpt-count-value {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.rpt-pending-value {
+  font-weight: 600;
+  color: var(--ld-muted);
+}
+
+.rpt-note {
+  color: var(--ld-muted);
+}
+
+.rpt-alert {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--ld-border);
+  border-radius: 0.375rem;
+}
+
+.rpt-alert p {
+  margin-block: 0 0.5rem;
+}
