@@ -4,11 +4,16 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
+
+import com.lawdesk.api.PageResponse;
 
 /**
  * SQL access to {@code legal_case} and {@code case_reference_counter}. Plain JDBC keeps identifiers, defaults and
@@ -20,6 +25,14 @@ class CaseRepository {
     private static final String COLUMNS = """
             id, reference_no, title, case_type, subject, opened_on, status, version, created_at, created_by,
             updated_at, updated_by""";
+
+    private static final Map<String, String> SORT_COLUMNS = Map.of(
+            "referenceNo", "reference_no",
+            "title", "title",
+            "openedOn", "opened_on",
+            "status", "status",
+            "createdAt", "created_at",
+            "updatedAt", "updated_at");
 
     private final JdbcClient jdbc;
 
@@ -37,6 +50,87 @@ class CaseRepository {
                 .param("referenceNo", referenceNo).param("title", title).param("caseType", caseType.name())
                 .param("subject", subject).param("openedOn", openedOn).param("actor", actor)
                 .query(CaseRepository::row).single();
+    }
+
+    /**
+     * Applies an edit if {@code expectedVersion} is still current and the case is not read-only; empty otherwise, so
+     * the caller cannot overwrite a change it has not seen.
+     */
+    Optional<LegalCase> update(UUID id, long expectedVersion, String title, CaseType caseType, String subject,
+            LocalDate openedOn, UUID actor) {
+        return jdbc.sql("""
+                        update legal_case
+                        set title = :title, case_type = :caseType, subject = :subject, opened_on = :openedOn,
+                            version = version + 1, updated_at = now(), updated_by = :actor
+                        where id = :id and version = :version and status not in ('CLOSED', 'ARCHIVED')
+                        returning\s""" + COLUMNS)
+                .param("id", id).param("version", expectedVersion).param("title", title)
+                .param("caseType", caseType.name()).param("subject", subject).param("openedOn", openedOn)
+                .param("actor", actor)
+                .query(CaseRepository::row).optional();
+    }
+
+    PageResponse<CaseListItem> search(CaseSearch search) {
+        StringBuilder where = new StringBuilder(" where true");
+        Map<String, Object> params = new HashMap<>();
+        if (search.q() != null) {
+            where.append(" and (reference_no ilike :q escape '\\' or title ilike :q escape '\\')");
+            params.put("q", "%" + escapeLike(search.q()) + "%");
+        }
+        if (!search.status().isEmpty()) {
+            where.append(" and status in (:status)");
+            params.put("status", search.status().stream().map(Enum::name).toList());
+        }
+        if (!search.caseType().isEmpty()) {
+            where.append(" and case_type in (:caseType)");
+            params.put("caseType", search.caseType().stream().map(Enum::name).toList());
+        }
+        if (search.openedFrom() != null) {
+            where.append(" and opened_on >= :openedFrom");
+            params.put("openedFrom", search.openedFrom());
+        }
+        if (search.openedTo() != null) {
+            where.append(" and opened_on <= :openedTo");
+            params.put("openedTo", search.openedTo());
+        }
+        long total = jdbc.sql("select count(*) from legal_case" + where).params(params).query(Long.class).single();
+
+        int page = search.pageOrDefault();
+        int size = search.sizeOrDefault();
+        params.put("limit", size);
+        params.put("offset", (long) page * size);
+        List<CaseListItem> items = jdbc.sql("""
+                        select id, reference_no, title, case_type, status, opened_on, updated_at
+                        from legal_case""" + where + orderBy(search.sort()) + " limit :limit offset :offset")
+                .params(params)
+                .query((rs, rowNum) -> new CaseListItem(
+                        rs.getObject("id", UUID.class),
+                        rs.getString("reference_no"),
+                        rs.getString("title"),
+                        CaseType.valueOf(rs.getString("case_type")),
+                        CaseStatus.valueOf(rs.getString("status")),
+                        rs.getObject("opened_on", LocalDate.class),
+                        rs.getObject("updated_at", OffsetDateTime.class).toInstant()))
+                .list();
+        return new PageResponse<>(items, page, size, total, (int) ((total + size - 1) / size));
+    }
+
+    /** The validated {@code sort} parameter as SQL; only whitelisted columns ever reach the statement. */
+    private static String orderBy(String sort) {
+        if (sort == null) {
+            return " order by created_at desc, id";
+        }
+        String[] parts = sort.split(",");
+        String column = SORT_COLUMNS.get(parts[0]);
+        if (column == null) {
+            throw new IllegalArgumentException("unsupported sort field " + parts[0]);
+        }
+        String direction = parts.length > 1 && parts[1].equals("desc") ? "desc" : "asc";
+        return " order by " + column + " " + direction + ", id";
+    }
+
+    private static String escapeLike(String text) {
+        return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
     Optional<LegalCase> find(UUID id) {

@@ -1,4 +1,76 @@
 /** Cases messages (architecture/CONTRACTS.md §6), owned by its workstream and spread into en.ts. */
 export const casesEn = {
   'cases.title': 'Cases',
+
+  'cases.type.CIVIL': 'Civil',
+  'cases.type.CRIMINAL': 'Criminal',
+  'cases.type.COMMERCIAL': 'Commercial',
+  'cases.type.LABOR': 'Labour',
+  'cases.type.FAMILY': 'Family (personal status)',
+  'cases.type.ADMINISTRATIVE': 'Administrative',
+
+  'cases.status.OPEN': 'Open',
+  'cases.status.ACTIVE': 'Active',
+  'cases.status.SUSPENDED': 'Suspended',
+  'cases.status.CLOSED': 'Closed',
+  'cases.status.ARCHIVED': 'Archived',
+
+  'cases.field.referenceNo': 'Reference number',
+  'cases.field.referenceNoHint': 'Leave empty to generate one (LD-YYYY-NNNNN).',
+  'cases.field.title': 'Title',
+  'cases.field.caseType': 'Case type',
+  'cases.field.subject': 'Subject',
+  'cases.field.openedOn': 'Opened on',
+  'cases.field.status': 'Status',
+  'cases.field.updatedAt': 'Last updated',
+
+  'cases.error.NotBlank': 'This field is required.',
+  'cases.error.NotNull': 'This field is required.',
+  'cases.error.Size': 'This value is too long.',
+  'cases.error.Pattern': 'This value has an invalid format.',
+  'cases.error.PastOrPresent': 'The date cannot be in the future.',
+  'cases.error.invalid': 'This value is not valid.',
+  'cases.error.duplicateReference': 'This reference number is already used by another case.',
+  'cases.error.reservedReference':
+    'Reference numbers starting with "LD-" and a digit are reserved for generated numbers.',
+
+  'cases.problem.unauthenticated': 'Sign in to continue.',
+  'cases.problem.forbidden': 'You do not have permission to do this.',
+
+  'cases.list.search': 'Search by reference or title',
+  'cases.list.filters': 'Search and filters',
+  'cases.list.anyStatus': 'Any status',
+  'cases.list.anyType': 'Any type',
+  'cases.list.apply': 'Search',
+  'cases.list.clear': 'Clear filters',
+  'cases.list.new': 'New case',
+  'cases.list.loading': 'Loading cases…',
+  'cases.list.empty': 'No cases match these filters.',
+  'cases.list.failed': 'The cases could not be loaded. Try again later.',
+  'cases.list.total': 'Results: {count}',
+  'cases.list.page': 'Page {page} of {pages}',
+  'cases.list.pagination': 'Pagination',
+  'cases.list.previous': 'Previous page',
+  'cases.list.next': 'Next page',
+
+  'cases.form.chooseType': 'Choose a type',
+  'cases.form.saving': 'Saving…',
+  'cases.form.invalid': 'Please correct the highlighted fields.',
+  'cases.form.failed': 'The case could not be saved. Try again later.',
+  'cases.form.back': 'Back to cases',
+
+  'cases.create.title': 'New case',
+  'cases.create.submit': 'Create case',
+  'cases.create.done': 'Case {referenceNo} created.',
+
+  'cases.edit.title': 'Edit case {referenceNo}',
+  'cases.edit.submit': 'Save changes',
+  'cases.edit.saved': 'Changes saved.',
+  'cases.edit.loading': 'Loading case…',
+  'cases.edit.notFound': 'This case does not exist.',
+  'cases.edit.loadFailed': 'The case could not be loaded. Try again later.',
+  'cases.edit.conflict':
+    'Someone else changed this case. Reload it to see the latest version, then apply your changes again.',
+  'cases.edit.reload': 'Reload case',
+  'cases.edit.readOnly': 'Closed and archived cases cannot be edited.',
 } as const;

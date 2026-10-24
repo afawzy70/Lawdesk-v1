@@ -2,6 +2,9 @@ import { BrowserRouter, Route, Routes } from 'react-router';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { SessionGate } from './features/auth/SessionGate';
+import { CaseCreatePage } from './features/cases/CaseCreatePage';
+import { CaseEditPage } from './features/cases/CaseEditPage';
+import { EDIT_CASE_ROUTE, NEW_CASE_PATH } from './features/cases/paths';
 import { CourtsPage } from './features/courts/CourtsPage';
 import { LocaleProvider } from './i18n/LocaleProvider';
 import { AppLayout } from './layout/AppLayout';
@@ -23,6 +26,8 @@ export function AppRoutes({ locale }: LocaleProps) {
           <Routes>
             <Route element={<AppLayout />}>
               <Route index element={<DashboardPage />} />
+              <Route path={NEW_CASE_PATH} element={<CaseCreatePage />} />
+              <Route path={EDIT_CASE_ROUTE} element={<CaseEditPage />} />
               {PLANNED_AREAS.map((area) => (
                 <Route key={area.path} path={area.path} element={<ComingSoonPage title={area.label} />} />
               ))}
