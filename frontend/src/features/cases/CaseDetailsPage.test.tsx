@@ -108,12 +108,14 @@ describe('case details (LD-014)', () => {
     expect(requests.some((r) => r.url.startsWith(`${API}/proceedings`))).toBe(true);
   });
 
-  it('labels events of other modules generically', async () => {
-    backend({ legalCase: CASE, parties: [], events: [event(1, 'PROCEEDING_RECORDED')] });
+  it('names the events other modules record, and labels unknown ones generically', async () => {
+    backend({ legalCase: CASE, parties: [], events: [event(2, 'PROCEEDING_RECORDED'), event(1, 'SOMETHING_NEW')] });
     renderCases(PATH);
 
     const timeline = await screen.findByRole('list', { name: 'Timeline' });
-    expect(within(timeline).getByRole('listitem')).toHaveTextContent('Other event');
+    const [known, unknown] = within(timeline).getAllByRole('listitem');
+    expect(known).toHaveTextContent('Proceeding recorded');
+    expect(unknown).toHaveTextContent('Other event');
     expect(await screen.findByText('No parties yet.')).toBeInTheDocument();
   });
 
