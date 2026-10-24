@@ -48,6 +48,23 @@ describe('api client', () => {
     expect(new Headers(call(1)[1].headers).has('X-XSRF-TOKEN')).toBe(false);
   });
 
+  // LD-026: PDF uploads. The browser sets the multipart Content-Type with its boundary; the CSRF header still goes.
+  it('sends form data as multipart, unchanged, with the CSRF header', async () => {
+    document.cookie = 'XSRF-TOKEN=tok; path=/';
+    fetchMock.mockResolvedValue(respond(201, { id: 'd1' }));
+    const form = new FormData();
+    form.append('file', new Blob(['%PDF-1.7'], { type: 'application/pdf' }), 'brief.pdf');
+
+    await expect(api('/api/v1/cases/c1/documents', { method: 'POST', body: form })).resolves.toEqual({ id: 'd1' });
+
+    const [, init] = call(0);
+    expect(init.body).toBe(form);
+    const headers = new Headers(init.headers);
+    expect(headers.has('Content-Type')).toBe(false);
+    expect(headers.get('X-XSRF-TOKEN')).toBe('tok');
+    expect(init.credentials).toBe('same-origin');
+  });
+
   it('sends no CSRF header when there is no token yet', async () => {
     fetchMock.mockResolvedValue(respond(204));
 

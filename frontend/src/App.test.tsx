@@ -23,8 +23,8 @@ async function renderAt(path: string) {
 }
 
 const BANNER = {
-  en: 'UAT test environment — enter test data only, never real client data. The dashboard shows sample figures, and areas marked “coming later” are not built yet.',
-  ar: 'بيئة اختبار UAT — أدخل بيانات تجريبية فقط، ولا تُدخل بيانات موكلين حقيقية. لوحة المعلومات تعرض أرقامًا نموذجية، والأقسام المعلَّمة «لاحقًا» لم تُبنَ بعد.',
+  en: 'UAT test environment — enter test data only, never real client data. Areas marked “coming later” are not built yet.',
+  ar: 'بيئة اختبار UAT — أدخل بيانات تجريبية فقط، ولا تُدخل بيانات موكلين حقيقية. الأقسام المعلَّمة «لاحقًا» لم تُبنَ بعد.',
 } as const;
 
 const NAV = [

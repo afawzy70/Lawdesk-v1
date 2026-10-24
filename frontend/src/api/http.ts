@@ -74,7 +74,9 @@ function isJson(response: Response): boolean {
 export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const method = options.method ?? 'GET';
   const headers = new Headers({ Accept: 'application/json, application/problem+json' });
-  if (options.body !== undefined) {
+  // Form data (LD-026 uploads) goes as multipart: the browser sets Content-Type with its boundary.
+  const multipart = options.body instanceof FormData;
+  if (options.body !== undefined && !multipart) {
     headers.set('Content-Type', 'application/json');
   }
   const token = method === 'GET' ? null : csrfToken();
@@ -88,7 +90,7 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
       method,
       headers,
       credentials: 'same-origin',
-      body: options.body === undefined ? null : JSON.stringify(options.body),
+      body: options.body === undefined ? null : multipart ? (options.body as FormData) : JSON.stringify(options.body),
       signal: options.signal ?? null,
     });
   } catch {
