@@ -99,9 +99,19 @@ Acceptance criteria:
    with `from ≤ hearingDate ≤ to`, optionally of one `status`, ordered by date, time (untimed first), order of
    recording. **ASSUMPTION:** `from` defaults to today and `to` to `from` + 30 days; `to` before `from`, or a range of
    more than 366 days, is `400` (field `to`, code `Range`).
-7. **ASSUMPTION:** the date of a hearing is not checked against the proceeding's judgment date (the read port gives no
-   judgments), and Phase 4 does not stop a filing date from being corrected to after an existing hearing. Both are
-   follow-ups that need a change in `com.lawdesk.proceedings` (see "Dependencies").
+7. QAD-032: the chronology *filing date ≤ every hearing* holds whichever side is edited. Correcting a proceeding's
+   filing date (`PUT /api/v1/proceedings/{id}`, LD-019) to after one of its hearings is `422
+   FILING_AFTER_DEPENDENT_HEARING` and writes nothing; the same day as the earliest hearing is allowed. **ASSUMPTION:**
+   cancelled hearings count too, so the record never shows a hearing before the filing. The proceedings package asks
+   the modules that depend on its filing date through the port `com.lawdesk.proceedings.ProceedingDependentDates`
+   (hearings implement it), while it holds the proceeding row lock it already takes (QAD-024). Scheduling,
+   rescheduling and adjourning a hearing take the same lock first (`ProceedingLookup#lockForUpdate`), so racing writes
+   are serialised and the second one sees the first one's committed date. Tests: `HearingFilingChronologyTest` (direct
+   edit, cancelled hearing, and four races with a test-only pause trigger: filing edit first vs scheduling, scheduling
+   first vs filing edit, reschedule first, adjournment first — each one success and one 422). Evidence:
+   `LD-024-18-red-QAD-032-backend.log`, `LD-024-19-green-QAD-032-backend.log`, `LD-024-20/21` (frontend message).
+   **ASSUMPTION:** the date of a hearing is still not checked against the proceeding's judgment date (hearings after
+   the judgment, such as on enforcement, stay possible).
 8. **Report port for Phase 6:** `com.lawdesk.hearings.HearingReportQueries` (read-only, no security of its own: the
    reports module checks `REPORT_VIEW`): hearings in a date range with optional status, case and proceeding filters,
    paged, with their total, and counts by status. The rules "upcoming" (`SCHEDULED` and dated today or later) and
@@ -279,8 +289,8 @@ Acceptance criteria:
   LD-024 pull request after the mobile fix QAD-027 (PR #29) reached `develop`.
 - The shell tests see every navigation area because the shared test administrator (`src/test/api.ts`) holds every
   permission (integration owner, contracts branch `c11bd48`); each Phase 5 item is flipped with its working screen.
-- Follow-up in `com.lawdesk.proceedings` (Workstream C package, integration owner): a proceeding's filing date should
-  not move after the earliest hearing or expert referral of that proceeding; the check needs a read of Phase 5 tables
-  or a small port, and a row lock shared with the Phase 5 writes.
+- QAD-032 integration exception (authorized by the integration owner): `com.lawdesk.proceedings` gained the port
+  `ProceedingDependentDates`, its call in the filing-date correction and `ProceedingLookup#lockForUpdate`; the
+  proceedings messages gained the rule's text. Nothing else of Workstream C changed.
 - Uploading files from the browser uses `src/api/http.ts` with `FormData` bodies, added by the integration owner
   (branch `feature/LD-026-http-multipart`, PR #38), which the LD-026 branch merges.
