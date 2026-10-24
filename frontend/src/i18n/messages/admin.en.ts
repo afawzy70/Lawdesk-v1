@@ -36,7 +36,7 @@ export const adminEn = {
   'admin.role.LEGAL_MANAGER': 'Legal manager',
   'admin.role.LEGAL_STAFF': 'Legal staff',
   'admin.error.checkValue': 'check this value.',
-  'admin.error.passwordPolicy': 'The password must have 12 to 128 characters and must not be the username or email.',
+  'admin.error.passwordPolicy': 'The password must have at least 12 characters, at most 72 Latin or 36 Arabic letters, and must not be the username or email.',
   'admin.error.conflict': 'This username or email is already in use.',
   'admin.error.lastAdmin': 'The last active administrator must stay an administrator.',
   'admin.error.selfChange': 'You cannot change your own roles or account status.',

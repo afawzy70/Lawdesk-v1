@@ -38,7 +38,7 @@ export const adminAr: Record<keyof typeof adminEn, string> = {
   'admin.role.LEGAL_MANAGER': 'مدير قانوني',
   'admin.role.LEGAL_STAFF': 'موظف قانوني',
   'admin.error.checkValue': 'راجع هذه القيمة.',
-  'admin.error.passwordPolicy': 'يجب أن تتكون كلمة المرور من 12 إلى 128 حرفًا وألا تكون اسم المستخدم أو البريد الإلكتروني.',
+  'admin.error.passwordPolicy': 'يجب أن تتكون كلمة المرور من 12 حرفًا على الأقل، وبحد أقصى 72 حرفًا لاتينيًا أو 36 حرفًا عربيًا، وألا تكون اسم المستخدم أو البريد الإلكتروني.',
   'admin.error.conflict': 'اسم المستخدم أو البريد الإلكتروني مستخدم بالفعل.',
   'admin.error.lastAdmin': 'يجب أن يبقى آخر مسؤول نشط مسؤولًا.',
   'admin.error.selfChange': 'لا يمكنك تغيير أدوارك أو حالة حسابك بنفسك.',

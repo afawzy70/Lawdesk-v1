@@ -132,6 +132,23 @@ class UserAdministrationTest extends PostgresTestSupport {
                 .andExpect(jsonPath("$.errors[0].field").value("roles"));
     }
 
+    // QAD-022: temporary passwords over bcrypt's 72 bytes are a policy error on create and reset, never a 500.
+    @Test
+    void temporaryPasswordsOverSeventyTwoBytesAreRefused() throws Exception {
+        String name = unique();
+        String tooLong = "Q".repeat(73);
+
+        mvc.perform(json(post(USERS), newUser(name, name + "@example.invalid").replace(TEMPORARY, tooLong))
+                        .with(admin())).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].code").value("PasswordPolicy"));
+        var target = users.create("LEGAL_STAFF");
+        mvc.perform(json(post(USERS + "/" + target.id() + "/password-reset"),
+                        "{\"temporaryPassword\":\"" + tooLong + "\"}").with(admin()))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.errors[0].code").value("PasswordPolicy"));
+        assertThat(jdbc.queryForObject("select count(*) from app_user where username = ?", Integer.class, name))
+                .isZero();
+    }
+
     // QAD-025: a null role code is a field error, not a server error, and nothing is stored.
     @Test
     void nullRoleCodesAreFieldErrors() throws Exception {

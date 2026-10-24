@@ -13,7 +13,7 @@ describe('failureMessages', () => {
     expect(failureMessages(error, t, FIELD_LABELS)).toEqual([
       'Email: check this value.',
       'unknownField: check this value.',
-      'The password must have 12 to 128 characters and must not be the username or email.',
+      'The password must have at least 12 characters, at most 72 Latin or 36 Arabic letters, and must not be the username or email.',
     ]);
   });
 
