@@ -118,17 +118,23 @@ Acceptance criteria (judgments part):
    default the current month) with `id`, `judgmentDate`, `outcome`, `final`, `stage`, `court` (`id`, `code`, `nameAr`,
    `nameEn`), `courtCaseNumber`, `courtCaseYear`, `caseId`, `caseReferenceNo`, `caseTitle`.
 2. Filters: `outcome` (one or more), `stage` (one or more), `courtId`, `final` (`true`/`false`). Sort whitelist:
-   `judgmentDate`, `outcome`, `stage`; default `judgmentDate,desc`, ties by id.
+   `judgmentDate`, `outcome`, `stage`; default `judgmentDate,desc`; ties by the newest judgment date, then id. The response also echoes the resolved period (`from`, `to`).
 3. `summary`: `total`, `final`, `byOutcome`, `byStage` over all matching judgments.
-4. The judgments tab of `/reports` shows the filters, summary and table.
+4. The judgments section (`/reports/judgments`) shows the period, the filters, summary and table.
 
 Hearings part: **PENDING** on Workstream D's `HearingReportQueries` (LD-024). The reports screen lists it as "not
 available yet"; no figure or row is shown.
 
 | QA case | Scenario | Mapping | Status |
 |---------|----------|---------|--------|
-| QA-0249…QA-0255 | backend scenarios, judgments | `JudgmentReportApiTest` | PLANNED |
-| QA-0256 | API-to-UI state and error handling | `ReportsPage.test.tsx` | PLANNED |
+| QA-0249 | authorized happy path | `JudgmentReportApiTest`: five judgments around May 2012, default month, rows with case/court/finality, summary over all matches | AUTOMATED |
+| QA-0250 | required-field validation | no parameter is required; the period defaults to the current month (`Africa/Cairo`) | AUTOMATED |
+| QA-0251 | invalid input boundary | `JudgmentReportApiTest`: period boundaries (first/last day, one day, empty), 10 malformed parameters → 400, inverted period → 422, size cap | AUTOMATED |
+| QA-0252 | unauthenticated access | `JudgmentReportApiTest.needsASession` | AUTOMATED |
+| QA-0253 | insufficient permission | `JUDGMENT_VIEW` alone → 403 and one `ACCESS_DENIED` row | AUTOMATED |
+| QA-0254 | record integrity and rollback | reading changes no row | AUTOMATED |
+| QA-0255 | concurrent or repeat request | identical repeated reads; stable tie-break (newest date, then id) for every sort | AUTOMATED |
+| QA-0256 | API-to-UI state and error handling | `JudgmentReportPage.test.tsx` (filters in the address, `final`, sort, paging, empty, 400/422/403, Arabic) and the Chromium overflow check | AUTOMATED |
 | — | hearings report | waits for `HearingReportQueries` | PENDING |
 
 ## LD-033 Experts and workload reports

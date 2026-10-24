@@ -4,7 +4,7 @@ import type { MessageKey } from '../../i18n/catalog';
 import { formatNumber } from '../../i18n/format';
 import { useI18n } from '../../i18n/I18nContext';
 import { withLang } from '../../i18n/locale';
-import { REPORTS_PATH } from './common';
+import { JUDGMENTS_PATH, REPORTS_PATH } from './common';
 
 /** Shared parts of the report screens (docs/delivery/PHASE-6-ACCEPTANCE.md, common rule 8). */
 
@@ -19,6 +19,9 @@ export function ReportSections() {
           <NavLink end to={withLang(REPORTS_PATH, locale)}>
             {t('reports.section.inventory')}
           </NavLink>
+        </li>
+        <li>
+          <NavLink to={withLang(JUDGMENTS_PATH, locale)}>{t('reports.section.judgments')}</NavLink>
         </li>
         {pending.map((name) => (
           <li key={name} className="rpt-section-pending">

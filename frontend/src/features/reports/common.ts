@@ -4,6 +4,7 @@ import type { MessageKey } from '../../i18n/catalog';
 /** Shared rules of the report screens (docs/delivery/PHASE-6-ACCEPTANCE.md, common rules 5 and 8). */
 
 export const REPORTS_PATH = '/reports';
+export const JUDGMENTS_PATH = '/reports/judgments';
 
 /** The message for a failed report request; never shows what the server sent. */
 export function failureMessage(error: unknown): MessageKey {
