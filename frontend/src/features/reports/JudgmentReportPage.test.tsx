@@ -224,3 +224,22 @@ describe('judgments report in Arabic', () => {
     expect(screen.getByRole('main').textContent).not.toMatch(/[0-9]/);
   });
 });
+
+describe('judgments export (LD-034)', () => {
+  it('offers a CSV download of the filtered report to users with REPORT_EXPORT', async () => {
+    backend([...VIEWER, 'REPORT_EXPORT'], { [REPORT]: () => report([AGAINST]) });
+    await renderAt('/reports/judgments?from=2026-01-01&final=true');
+    const link = await screen.findByRole('link', { name: 'Download CSV' });
+    expect(link).toHaveAttribute(
+      'href',
+      '/api/v1/reports/judgments/export?from=2026-01-01&final=true&format=csv&lang=en',
+    );
+  });
+
+  it('offers no export without REPORT_EXPORT', async () => {
+    backend(VIEWER, { [REPORT]: () => report([AGAINST]) });
+    await renderAt('/reports/judgments');
+    await table();
+    expect(screen.queryByRole('link', { name: 'Download CSV' })).not.toBeInTheDocument();
+  });
+});

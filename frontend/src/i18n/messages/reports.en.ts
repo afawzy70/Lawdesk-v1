@@ -94,4 +94,5 @@ export const reportsEn = {
   'reports.summary.judgments': 'Judgments',
   'reports.summary.final': 'Final judgments',
   'reports.list.emptyJudgments': 'No judgments match these filters.',
+  'reports.export.csv': 'Download CSV',
 } as const;

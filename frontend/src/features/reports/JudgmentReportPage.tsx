@@ -19,7 +19,7 @@ import {
   type JudgmentFilter,
   type JudgmentReport,
 } from './judgmentApi';
-import { Field, Pager, ReportSections, Summary } from './ReportParts';
+import { ExportLinks, Field, Pager, ReportSections, Summary } from './ReportParts';
 import './reports.css';
 
 type Load =
@@ -188,6 +188,7 @@ export function JudgmentReportPage() {
           </div>
         </form>
 
+        <ExportLinks path="/api/v1/reports/judgments/export" params={judgmentQuery(filter)} />
         {load.kind === 'loading' ? <p role="status">{t('reports.list.loading')}</p> : null}
         {load.kind === 'failed' ? (
           <p className="rpt-alert" role="alert">

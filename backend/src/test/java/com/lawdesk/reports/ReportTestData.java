@@ -72,11 +72,20 @@ final class ReportTestData {
         return id;
     }
 
+    /** Inserts {@code count} civil open cases at once, referenced {@code <marker>-BULK-<n>}; they have no proceedings. */
+    void insertBulkCases(int count) {
+        jdbc.update("""
+                insert into legal_case (reference_no, title, case_type, opened_on, status, created_by, updated_by)
+                select ? || '-BULK-' || n, 'Bulk case ' || n, 'CIVIL', date '2020-01-01', 'OPEN', ?, ?
+                from generate_series(1, ?) as n""", marker, CREATOR, CREATOR, count);
+    }
+
     /** Deletes what this instance inserted, in reverse order of creation, so references are removed first. */
     void deleteCreated() {
         while (!created.isEmpty()) {
             String[] row = created.pop();
             jdbc.update("delete from " + row[0] + " where id = ?::uuid", row[1]);
         }
+        jdbc.update("delete from legal_case where reference_no like ?", marker + "-BULK-%");
     }
 }

@@ -21,7 +21,7 @@ import {
 } from './inventoryApi';
 import { failureMessage, isForbidden } from './common';
 import { useReportCourts } from './courts';
-import { Field, Pager, ReportSections, Summary } from './ReportParts';
+import { ExportLinks, Field, Pager, ReportSections, Summary } from './ReportParts';
 import './reports.css';
 
 type Load =
@@ -211,6 +211,7 @@ export function CaseInventoryPage() {
           </div>
         </form>
 
+        <ExportLinks path="/api/v1/reports/cases/export" params={inventoryQuery(filter)} />
         {load.kind === 'loading' ? <p role="status">{t('reports.list.loading')}</p> : null}
         {load.kind === 'failed' ? (
           <p className="rpt-alert" role="alert">

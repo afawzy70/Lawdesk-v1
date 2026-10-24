@@ -170,8 +170,19 @@ Acceptance criteria:
 
 | QA case | Scenario | Mapping | Status |
 |---------|----------|---------|--------|
-| QA-0265…QA-0271 | backend scenarios | `ReportExportApiTest`, `CsvTest` | PLANNED |
-| QA-0272 | API-to-UI state and error handling | `ReportsPage.test.tsx` (export links) | PLANNED |
+| QA-0265 | authorized happy path | `ReportExportApiTest`: exact CSV bytes of both reports (BOM, header, rows, CRLF), English and Arabic labels, filters and sort applied, headers `Content-Disposition`, `nosniff`, `no-store`; one `REPORT_EXPORT` audit row without data | AUTOMATED (CSV) |
+| QA-0266 | required-field validation | `format` missing → 400 `NotNull` | AUTOMATED |
+| QA-0267 | invalid input boundary | unknown `format`/`lang` → 400 `Pattern`, malformed filters → 400, inverted period → 422; exactly 10 000 rows exported, 10 001 → 422 `EXPORT_TOO_LARGE` and nothing audited; `CsvTest` quoting and formula neutralisation | AUTOMATED |
+| QA-0268 | unauthenticated access | `ReportExportApiTest.needsASession` | AUTOMATED |
+| QA-0269 | insufficient permission | `REPORT_VIEW` without `REPORT_EXPORT` → 403 and `ACCESS_DENIED` for both exports, no export audited | AUTOMATED |
+| QA-0270 | record integrity and rollback | a refused export writes no `REPORT_EXPORT` row; exports read one snapshot | AUTOMATED |
+| QA-0271 | concurrent or repeat request | each successful export is audited once | AUTOMATED |
+| QA-0272 | API-to-UI state and error handling | `CaseInventoryPage.test.tsx`, `JudgmentReportPage.test.tsx`: "Download CSV" link with the active filters and language, only with `REPORT_EXPORT` | AUTOMATED (CSV) |
+| — | Excel (`.xlsx`) and PDF | next slice | PLANNED |
+
+**ASSUMPTIONS (LD-034):** CSV dates are ISO `yyyy-MM-dd` and numbers plain digits (machine-readable in either
+language); the court column holds the court name in the export language; a case without proceedings has empty stage
+and court cells.
 
 ## Dependencies
 

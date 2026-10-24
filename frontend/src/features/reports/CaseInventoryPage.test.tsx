@@ -304,3 +304,24 @@ describe('case inventory report in Arabic', () => {
     expect(screen.getByRole('main').textContent).not.toMatch(/[0-9]/);
   });
 });
+
+describe('case inventory export (LD-034)', () => {
+  it('offers a CSV download of the filtered report, in the page language, to users with REPORT_EXPORT', async () => {
+    const court = COURTS[0]?.id ?? '';
+    backend([...VIEWER, 'REPORT_EXPORT'], { [REPORT]: () => report([NILE]) });
+    await renderAt(`/reports?lang=ar&q=nile&courtId=${court}&sort=title,desc&page=3`);
+    const link = await screen.findByRole('link', { name: 'تنزيل CSV' });
+    expect(link).toHaveAttribute(
+      'href',
+      `/api/v1/reports/cases/export?q=nile&courtId=${court}&sort=title%2Cdesc&format=csv&lang=ar`,
+    );
+    expect(link).toHaveAttribute('download');
+  });
+
+  it('offers no export without REPORT_EXPORT', async () => {
+    backend(VIEWER, { [REPORT]: () => report([NILE]) });
+    await renderAt('/reports');
+    await table();
+    expect(screen.queryByRole('link', { name: 'Download CSV' })).not.toBeInTheDocument();
+  });
+});

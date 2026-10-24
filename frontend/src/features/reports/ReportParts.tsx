@@ -4,6 +4,7 @@ import type { MessageKey } from '../../i18n/catalog';
 import { formatNumber } from '../../i18n/format';
 import { useI18n } from '../../i18n/I18nContext';
 import { withLang } from '../../i18n/locale';
+import { useAuth } from '../auth/AuthContext';
 import { JUDGMENTS_PATH, REPORTS_PATH } from './common';
 
 /** Shared parts of the report screens (docs/delivery/PHASE-6-ACCEPTANCE.md, common rule 8). */
@@ -81,6 +82,27 @@ export function Pager({ page, pages, onPage }: { page: number; pages: number; on
         </nav>
       ) : null}
     </>
+  );
+}
+
+/**
+ * LD-034: the CSV download of the report as filtered, for users holding REPORT_EXPORT (the backend checks it again).
+ * A plain link, so the browser downloads the attachment with the session cookie; paging is not part of an export.
+ */
+export function ExportLinks({ path, params }: { path: string; params: URLSearchParams }) {
+  const { locale, t } = useI18n();
+  const { state } = useAuth();
+  if (state.status !== 'signedIn' || !state.me.permissions.includes('REPORT_EXPORT')) return null;
+  const query = new URLSearchParams(params);
+  query.delete('page');
+  query.set('format', 'csv');
+  query.set('lang', locale);
+  return (
+    <p className="rpt-exports">
+      <a href={`${path}?${query.toString()}`} download>
+        {t('reports.export.csv')}
+      </a>
+    </p>
   );
 }
 
