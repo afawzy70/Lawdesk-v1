@@ -1,0 +1,124 @@
+FFFF.FF.EEFEE
+======================================================================
+ERROR: test_receive_stores_owner_only_files_and_prints_only_paths (test_qa_accounts.QaAccountsTest.test_receive_stores_owner_only_files_and_prints_only_paths)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/roles/deploy/tests/test_qa_accounts.py", line 334, in test_receive_stores_owner_only_files_and_prints_only_paths
+    passwords = [a["password"] for a in json.loads(bundle)["accounts"].values()]
+                                        ^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+======================================================================
+ERROR: test_rerunning_rotates_existing_qa_accounts_instead_of_duplicating_them (test_qa_accounts.QaAccountsTest.test_rerunning_rotates_existing_qa_accounts_instead_of_duplicating_them)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/roles/deploy/tests/test_qa_accounts.py", line 308, in test_rerunning_rotates_existing_qa_accounts_instead_of_duplicating_them
+    first = json.loads(self.provision().stdout)["accounts"]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+======================================================================
+ERROR: test_verify_fails_when_a_file_is_readable_by_others (test_qa_accounts.QaAccountsTest.test_verify_fails_when_a_file_is_readable_by_others)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/roles/deploy/tests/test_qa_accounts.py", line 383, in test_verify_fails_when_a_file_is_readable_by_others
+    (self.target / "staff.json").chmod(0o644)
+  File "/usr/lib/python3.12/pathlib.py", line 1329, in chmod
+    os.chmod(self, mode, follow_symlinks=follow_symlinks)
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmp8xwbn750/qa/lawdesk/staff.json'
+
+======================================================================
+ERROR: test_verify_signs_in_with_the_stored_files_and_reports_without_secrets (test_qa_accounts.QaAccountsTest.test_verify_signs_in_with_the_stored_files_and_reports_without_secrets)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/roles/deploy/tests/test_qa_accounts.py", line 372, in test_verify_signs_in_with_the_stored_files_and_reports_without_secrets
+    passwords = [a["password"] for a in json.loads(bundle)["accounts"].values()]
+                                        ^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+======================================================================
+FAIL: test_a_role_with_unexpected_permissions_fails_validation (test_qa_accounts.QaAccountsTest.test_a_role_with_unexpected_permissions_fails_validation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/roles/deploy/tests/test_qa_accounts.py", line 328, in test_a_role_with_unexpected_permissions_fails_validation
+    self.assertEqual(result.returncode, 4)
+AssertionError: 2 != 4
+
+======================================================================
+FAIL: test_a_wrong_administrator_password_fails_without_echoing_it (test_qa_accounts.QaAccountsTest.test_a_wrong_administrator_password_fails_without_echoing_it)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/roles/deploy/tests/test_qa_accounts.py", line 302, in test_a_wrong_administrator_password_fails_without_echoing_it
+    self.assertEqual(result.returncode, 3)
+AssertionError: 2 != 3
+
+======================================================================
+FAIL: test_an_administrator_still_on_the_bootstrap_password_is_left_to_the_owner (test_qa_accounts.QaAccountsTest.test_an_administrator_still_on_the_bootstrap_password_is_left_to_the_owner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/roles/deploy/tests/test_qa_accounts.py", line 290, in test_an_administrator_still_on_the_bootstrap_password_is_left_to_the_owner
+    self.assertEqual(result.returncode, 3)
+AssertionError: 2 != 3
+
+======================================================================
+FAIL: test_never_writes_credentials_to_a_terminal (test_qa_accounts.QaAccountsTest.test_never_writes_credentials_to_a_terminal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/roles/deploy/tests/test_qa_accounts.py", line 281, in test_never_writes_credentials_to_a_terminal
+    self.assertIn("pipe", result.stderr.decode())
+AssertionError: 'pipe' not found in "/usr/bin/python3: can't open file '/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/roles/deploy/host/qa_accounts.py': [Errno 2] No such file or directory\n"
+
+======================================================================
+FAIL: test_provisions_four_dedicated_accounts_with_completed_password_setup (test_qa_accounts.QaAccountsTest.test_provisions_four_dedicated_accounts_with_completed_password_setup)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/roles/deploy/tests/test_qa_accounts.py", line 225, in test_provisions_four_dedicated_accounts_with_completed_password_setup
+    self.assertEqual(result.returncode, 0, result.stderr.decode())
+AssertionError: 2 != 0 : /usr/bin/python3: can't open file '/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/roles/deploy/host/qa_accounts.py': [Errno 2] No such file or directory
+
+
+======================================================================
+FAIL: test_receive_refuses_a_directory_others_can_read (test_qa_accounts.QaAccountsTest.test_receive_refuses_a_directory_others_can_read)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/roles/deploy/tests/test_qa_accounts.py", line 360, in test_receive_refuses_a_directory_others_can_read
+    self.assertIn("0700", result.stderr.decode())
+AssertionError: '0700' not found in "/usr/bin/python3: can't open file '/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/roles/deploy/host/qa_accounts.py': [Errno 2] No such file or directory\n"
+
+======================================================================
+FAIL: test_validates_each_role_including_denials_and_reports_only_outcomes (test_qa_accounts.QaAccountsTest.test_validates_each_role_including_denials_and_reports_only_outcomes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/roles/deploy/tests/test_qa_accounts.py", line 255, in test_validates_each_role_including_denials_and_reports_only_outcomes
+    self.assertEqual(result.returncode, 0, report)
+AssertionError: 2 != 0 : /usr/bin/python3: can't open file '/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/roles/deploy/host/qa_accounts.py': [Errno 2] No such file or directory
+
+
+----------------------------------------------------------------------
+Ran 13 tests in 7.059s
+
+FAILED (failures=7, errors=4)

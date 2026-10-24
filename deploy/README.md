@@ -47,3 +47,28 @@ proxy route and every operator command are in [`docs/operations/STAGING-RUNBOOK.
 | `host/bootstrap.sh` | one-time, idempotent host preparation as `devops` |
 | `host/rollback-drill.sh` | proves on the real stack that a broken release is rolled back |
 | `proxy/attach.sh`, `proxy/detach.sh` | add/remove the LawDesk site on the shared Caddy in place (no restart) |
+| `host/qa_accounts.py` | dedicated UAT QA accounts through the user administration API (see below) |
+
+## Dedicated QA accounts on UAT
+
+Independent QA signs in with its own accounts, never the bootstrap administrator. `host/qa_accounts.py` uses only the
+public user administration API: it creates or rotates `qa.admin` (ADMIN), `qa.manager` (LEGAL_MANAGER), `qa.staff`
+(LEGAL_STAFF) and `qa.viewer` (`QA_READ_ONLY`: view cases, courts, proceedings and judgments), all with
+`@example.invalid` emails. It completes each forced first password change and checks every account's permissions and
+the administration boundary before it releases anything. The administrator's own account is never changed.
+
+Credentials pass only through a pipe from the operator who holds the administrator password to the QA identity. They
+never go into arguments, files outside the 0700 directory, logs or a terminal (`provision` refuses a terminal):
+
+```sh
+sudo -u devops python3 -I qa_accounts.py provision --base-url https://lawdesk.167-86-90-174.sslip.io \
+    --admin-password-file /srv/deployments/lawdesk/secrets/admin_bootstrap_password.txt \
+  | sudo -u aiagent python3 -I qa_accounts.py receive --dir /srv/ai-workspaces/secrets/lawdesk-qa
+```
+
+Leave out `--admin-password-file` once the administrator has changed the bootstrap password. The script then prompts
+on the terminal without echoing. `receive` writes `admin.json`, `manager.json`, `staff.json` and `viewer.json`
+(`{"username","password"}`, mode 0600) and prints only the variable names and paths
+(`LAWDESK_QA_CREDENTIAL_FILE`, `LAWDESK_QA_MANAGER_CREDENTIAL_FILE`, `LAWDESK_QA_STAFF_CREDENTIAL_FILE`,
+`LAWDESK_QA_VIEWER_CREDENTIAL_FILE`). `qa_accounts.py verify --base-url … --dir …` re-checks them as the QA identity.
+Rerunning `provision` rotates every QA password. To withdraw an account, disable it in Administration → Users.
