@@ -1,8 +1,12 @@
 import { BrowserRouter, Route, Routes } from 'react-router';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthProvider } from './features/auth/AuthProvider';
+import { ProfilePage } from './features/auth/ProfilePage';
 import { SessionGate } from './features/auth/SessionGate';
+import { AuditPage } from './features/admin/AuditPage';
 import { NewUserPage } from './features/admin/NewUserPage';
+import { RoleDetailsPage } from './features/admin/RoleDetailsPage';
+import { RolesPage } from './features/admin/RolesPage';
 import { UserDetailsPage } from './features/admin/UserDetailsPage';
 import { UsersPage } from './features/admin/UsersPage';
 import { CaseCreatePage } from './features/cases/CaseCreatePage';
@@ -39,6 +43,11 @@ export function AppRoutes({ locale }: LocaleProps) {
               <Route path="/admin" element={<UsersPage />} />
               <Route path="/admin/users/new" element={<NewUserPage />} />
               <Route path="/admin/users/:id" element={<UserDetailsPage />} />
+              <Route path="/admin/roles" element={<RolesPage />} />
+              <Route path="/admin/roles/new" element={<RoleDetailsPage />} />
+              <Route path="/admin/roles/:id" element={<RoleDetailsPage />} />
+              <Route path="/admin/audit" element={<AuditPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
               <Route path="/courts" element={<CourtsPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Route>

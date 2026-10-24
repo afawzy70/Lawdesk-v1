@@ -25,4 +25,10 @@ export const authAr: Record<keyof typeof authEn, string> = {
   'password.currentWrong': 'كلمة المرور الحالية غير صحيحة.',
   'password.policy': 'كلمة المرور الجديدة لا تستوفي القواعد: 12 حرفًا على الأقل، وبحد أقصى 72 حرفًا لاتينيًا أو 36 حرفًا عربيًا، وألا تكون اسم المستخدم أو البريد الإلكتروني.',
   'password.failed': 'تعذّر تغيير كلمة المرور. حاول مرة أخرى لاحقًا.',
+  'profile.title': 'ملفي الشخصي',
+  'profile.link': 'ملفي الشخصي',
+  'profile.account': 'الحساب',
+  'profile.permissions': 'ما يمكنك فعله',
+  'profile.changePassword': 'تغيير كلمة المرور',
+  'password.changed': 'تم تغيير كلمة المرور.',
 };

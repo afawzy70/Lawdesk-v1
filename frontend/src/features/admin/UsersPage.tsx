@@ -6,6 +6,7 @@ import { withLang } from '../../i18n/locale';
 import { usePageTitle } from '../../i18n/usePageTitle';
 import { AccessDeniedPage } from '../auth/AccessDeniedPage';
 import { useAuth } from '../auth/AuthContext';
+import { AdminTabs } from './AdminTabs';
 import { listUsers, type Page, type UserView } from './api';
 import { roleLabel, statusKey } from './messages';
 
@@ -49,6 +50,7 @@ export function UsersPage() {
 
   return (
     <section>
+      <AdminTabs />
       <h1>{t('admin.users.title')}</h1>
       {canManage && <Link to={withLang('/admin/users/new', locale)}>{t('admin.users.new')}</Link>}
       <form role="search" onSubmit={search}>

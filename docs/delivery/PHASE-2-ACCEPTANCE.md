@@ -57,8 +57,18 @@ names the tests that cover it. Developer runs are not independent QA.
 
 1. **Roles.** `ADMIN`, `LEGAL_MANAGER` and `LEGAL_STAFF` are seeded with the permissions of CONTRACTS.md §3.
    - Roles map to permission codes from `Permission`; an unknown code is a 400.
-   - `GET /api/v1/roles` needs `ROLE_VIEW`. Creating a role, renaming it and changing its permissions need
-     `ROLE_MANAGE`. Seeded roles can be edited but not deleted.
+   - `GET /api/v1/roles` and `GET /api/v1/roles/{id}` need `ROLE_VIEW` (or `USER_MANAGE`, to assign roles).
+   - `POST /api/v1/roles` `{code, name, permissions[]}` creates a role (201, code `[A-Z][A-Z0-9_]{1,63}`, unique: 409);
+     `PUT /api/v1/roles/{id}` `{name, permissions[], version}` renames it and replaces its permissions (stale version:
+     409). Both need `ROLE_MANAGE`.
+   - **ASSUMPTION**: roles are never deleted through the API (405), seeded or not; a role nobody should hold is simply
+     left unassigned.
+   - The `ADMIN` role keeps every permission: changing its set answers 422 `ADMIN_ROLE_FIXED`.
+   - A change reaches signed-in holders on their next request (`RolePermissionsTakeEffectTest`).
+   - Audited as `ROLE_CREATE`, `ROLE_UPDATE`, and `ROLE_PERMISSIONS_CHANGE` only when the set really changed
+     (`RoleAdministrationTest`).
+   - Screens: Administration › Roles (list, new role, role details with permission checkboxes; read-only without
+     `ROLE_MANAGE`).
 2. **Users.**
    - `GET /api/v1/users` (paged; search by name, username or email) and `GET /api/v1/users/{id}` need `USER_VIEW`.
    - Create, update, enable, disable, role assignment and password reset need `USER_MANAGE`.
@@ -98,5 +108,9 @@ names the tests that cover it. Developer runs are not independent QA.
 3. **The attempted login.** For an unknown user it is stored truncated to 64 characters and never echoed back. No
    password, hash, session id or CSRF token is ever stored.
 4. **Request id.** `request_id` is the correlation id of the request (`X-Request-Id`).
-5. **Reading the trail.** `GET /api/v1/audit` (paged, filter by action, actor, outcome and time range) needs
-   `AUDIT_VIEW`.
+5. **Reading the trail.** `GET /api/v1/audit` (paged, newest first; filters `action`, `actor`, `outcome`, `from`, `to`)
+   needs `AUDIT_VIEW`. `actor` matches the username ignoring case; the range is `from` inclusive, `to` exclusive (ISO
+   instants); an invalid outcome or instant is a 400 (`AuditViewTest`). Screen: Administration › Audit log, with user,
+   action and outcome filters; codes without a translation are shown as recorded.
+6. **My profile.** `/profile`, linked from the user menu, shows the account, roles and permissions of the signed-in
+   user and offers a voluntary password change (`Profile.test.tsx`).

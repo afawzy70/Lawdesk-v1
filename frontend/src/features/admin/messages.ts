@@ -1,5 +1,6 @@
 import { ApiError } from '../../api/http';
 import type { MessageKey } from '../../i18n/catalog';
+import { en } from '../../i18n/messages/en';
 
 /** Turns an API failure into readable messages; never shows server text (architecture/CONTRACTS.md §4). */
 function fieldLabel(field: string, t: (key: MessageKey) => string, labels: Record<string, MessageKey>): string {
@@ -49,3 +50,13 @@ export const FIELD_LABELS: Record<string, MessageKey> = {
   roles: 'admin.field.roles',
   temporaryPassword: 'admin.field.temporaryPassword',
 };
+
+/** The translated label of a code the server sends (permissions, audit actions, outcomes, reasons); unknown codes
+ * stay as sent. */
+export function codeLabel(
+  prefix: 'admin.permission' | 'admin.audit.action' | 'admin.audit.outcome' | 'admin.audit.reason',
+  code: string,
+  t: (key: MessageKey) => string): string {
+  const key = `${prefix}.${code}`;
+  return key in en ? t(key as MessageKey) : code;
+}
