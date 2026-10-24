@@ -13,10 +13,9 @@ export const ar: Messages = {
   'footer.version': 'LawDesk v{version}',
 
   'preview.banner':
-    'بيئة اختبار UAT — أدخل بيانات تجريبية فقط، ولا تُدخل بيانات موكلين حقيقية. لوحة المعلومات تعرض أرقامًا نموذجية، والأقسام المعلَّمة «لاحقًا» لم تُبنَ بعد.',
+    'بيئة اختبار UAT — أدخل بيانات تجريبية فقط، ولا تُدخل بيانات موكلين حقيقية. الأقسام المعلَّمة «لاحقًا» لم تُبنَ بعد.',
   'preview.bannerLabel': 'تنبيه المعاينة',
   'preview.titleSuffix': '(معاينة)',
-  'preview.sampleData': 'بيانات نموذجية',
 
   'shell.skipToContent': 'انتقل إلى المحتوى الرئيسي',
   'shell.primaryNav': 'التنقل الرئيسي',
@@ -44,26 +43,6 @@ export const ar: Messages = {
   'notFound.title': 'الصفحة غير موجودة',
   'notFound.body': 'تعذّر العثور على هذه الصفحة. تحقّق من العنوان، أو عُد إلى الصفحة الرئيسية.',
   'notFound.homeLink': 'الذهاب إلى الصفحة الرئيسية',
-
-  'dashboard.intro':
-    'تعرض هذه المعاينة تصورًا مبدئيًا للوحة المعلومات. جميع الأرقام والسجلات في هذه الصفحة بيانات نموذجية مُختلَقة.',
-  'dashboard.kpis': 'مؤشرات رئيسية',
-  'kpi.openCases': 'القضايا المفتوحة',
-  'kpi.hearingsThisWeek': 'جلسات هذا الأسبوع',
-  'kpi.pendingJudgments': 'أحكام قيد الانتظار',
-  'kpi.expertReportsDue': 'تقارير خبراء مستحقة',
-  'dashboard.hearings': 'الجلسات القادمة',
-  'hearings.case': 'القضية',
-  'hearings.court': 'المحكمة',
-  'hearings.stage': 'درجة التقاضي',
-  'hearings.when': 'التاريخ والوقت',
-  'dashboard.stages': 'القضايا حسب درجة التقاضي',
-  'stages.value': 'عدد القضايا: {count} ({percent})',
-  'stage.firstInstance': 'الدرجة الأولى',
-  'stage.appeal': 'الاستئناف',
-  'stage.cassation': 'النقض',
-
-  'sample.caseRef': 'قضية نموذجية {number}',
 
   // Area messages, one file per workstream (architecture/CONTRACTS.md §6).
   ...authAr,
