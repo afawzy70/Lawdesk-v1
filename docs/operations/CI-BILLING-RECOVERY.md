@@ -6,19 +6,78 @@ Status: investigation and proof preparation, 2026-10-24. No self-hosted job has 
 
 - CI run [#160](https://github.com/afawzy70/Lawdesk-v1/actions/runs/40118354959) on `develop` at `19ad5386fa586e2469ecad36a677632273712f44` executed all six quality jobs and the develop guard successfully. It deployed staging.
 - The next observed runs [#161](https://github.com/afawzy70/Lawdesk-v1/actions/runs/40119990135) through [#167](https://github.com/afawzy70/Lawdesk-v1/actions/runs/40122337834) failed before any quality job received a runner. In #167, the six quality jobs have `runner_name: ""`, `steps: []`, and completed within seven seconds. The same pattern appears on PRs [#43](https://github.com/afawzy70/Lawdesk-v1/pull/43), [#44](https://github.com/afawzy70/Lawdesk-v1/pull/44), [#47](https://github.com/afawzy70/Lawdesk-v1/pull/47), and [#48](https://github.com/afawzy70/Lawdesk-v1/pull/48).
-- GitHub does not provide a job log for these jobs. The connected GitHub app cannot read account billing or branch protection. The exact billing reason remains unconfirmed until the account owner supplies the run banner and Actions usage/budget state. Do not equate a pre-run failure with a failed application test.
+- Owner-provided Billing screenshots on 2026-10-24 show GitHub Free, **2,000 / 2,000 Actions minutes** and **0.5 / 0.5 GB Actions storage** used. Gross Actions usage is **$350.29**, the included-usage discount is **$350.29**, and current billable Actions usage is **$0**. The gross figure is not an outstanding payment. Of that gross figure, Matbakhy-v1 is $338.07 and Lawdesk-v1 is $12.00. The exhausted hosted-runner allowance is confirmed; the screenshots provided so far do not show the Actions budget, payment-method state, or exact run banner. An additional spending stop or account payment restriction is still possible. The connected GitHub app cannot read those account settings. Do not equate a pre-run failure with a failed application test.
 
 ## Decision gate
 
-GitHub documents that self-hosted runner execution is free of Actions minutes. This makes a runner a *possible* answer to a hosted-compute quota, but it does not prove that GitHub will schedule a self-hosted job while this account is blocked. A payment failure, spending stop, policy restriction, or account hold may have different effects. The only accepted GO evidence is the `Self-hosted scheduling probe` job executing on a temporary runner and appearing as a successful check on this PR. Until then, migration is NO-GO.
+GitHub documents that self-hosted runner execution is free of Actions minutes. This makes a runner a *possible* answer to the confirmed hosted-compute quota, but it does not prove that GitHub will execute a self-hosted job while this account is blocked. The [PR #49 probe](https://github.com/afawzy70/Lawdesk-v1/actions/runs/40125833039) is queued under label `lawdesk-ci-poc-49`, while its hosted CI jobs failed before a step ran. A queued job is admission evidence, not execution evidence. A payment failure, spending stop, policy restriction, or account hold may have different effects. The only accepted GO evidence is the `Self-hosted scheduling probe` job executing on a temporary runner and appearing as a successful check on this PR. Until then, migration is NO-GO.
 
 ## Proof procedure
 
 1. Confirm the exact account notice and whether self-hosted runners are allowed. The owner must give only the message and Actions usage/budget state, without payment details.
-2. Use a fresh, disposable VM outside the shared LawDesk/Matbakhy host. Create an unprivileged identity with no sudo, Docker socket, deployment network access, or secrets. Limit it to one job, two vCPU, 4 GiB RAM, and a bounded disk. These are proposed caps and require operator verification.
+2. Use a fresh, disposable VM outside the shared LawDesk/Matbakhy host. Create an unprivileged identity with no sudo, Docker socket, deployment network access, or secrets. One vCPU, 1 GiB RAM and 25 GiB disk suffice for this no-checkout probe only. Full Java, frontend and Docker CI need separate sizing after proof.
 3. On that VM only, the operator creates the `lawdesk-poc` user (without sudo or privileged groups) and a root-owned `/etc/lawdesk-ci-poc-vm` marker after verifying firewall and filesystem isolation. Obtain a repository runner registration token in GitHub Settings → Actions → Runners. Put it in a mode-0600 file owned by `lawdesk-poc`; do not paste it into a job, log, PR, or shell history. As `lawdesk-poc`, set `RUNNER_REGISTRATION_TOKEN_FILE` to that file and a unique `RUNNER_NAME=lawdesk-ci-poc-<id>`, then run `bash tools/ci-runner/bootstrap-poc.sh`. The script pins runner v2.338.1 by the release asset SHA-256, registers the one-job ephemeral runner with label `lawdesk-ci-poc-49`, removes the token file, and starts the runner. Older queued proof attempts have the retired `lawdesk-ci-poc` label and cannot take this runner. Its checks help catch accidental execution on the shared host, but the operator must verify VM isolation independently.
 4. Record the GitHub job ID, runner identity, `LAWDESK_CI_POC_EXECUTED` line, nonroot and absent-Docker-socket assertions, and the PR check conclusion. If the job is rejected or remains unscheduled, cancel the proof and destroy the VM/runner registration. A queued job is not proof.
 5. Remove any stale registration in GitHub Settings → Actions → Runners, then destroy the VM and its disk. Keep the workflow until the evidence is reviewed, then remove it in the migration PR or a follow-up. The proof must not use application secrets or the deployment environment.
+
+### Cost and exact one-time operator setup (proposal; do not purchase without approval)
+
+A [DigitalOcean Basic 1-vCPU / 1-GiB / 25-GiB Droplet](https://www.digitalocean.com/pricing/droplets) is a concrete disposable x64 example: **$0.00893/hour**, capped at **$6/month** before tax. A 24-hour proof is approximately **$0.22 before tax** if the Droplet is deleted. The [Cloud Firewall](https://docs.digitalocean.com/products/networking/firewalls/details/) has no extra charge. This is a POC estimate, not a permanent CI capacity quote. An already available isolated VM would avoid a new VM purchase if it meets the same boundaries.
+
+After owner approval, the one-time procedure is:
+
+1. In DigitalOcean, create **one** Ubuntu 24.04 x64 Basic Droplet, 1 vCPU / 1 GiB / 25 GiB, in a region the operator can access. Disable backups and paid add-ons. Do not connect it to Contabo, Tailscale, any production VPC, or shared storage. Attach a Cloud Firewall with SSH inbound only from the operator's current public IPv4 `/32` for bootstrap; allow no other inbound traffic. Do not add deployment credentials. [Droplet creation instructions](https://docs.digitalocean.com/products/droplets/how-to/create/).
+2. On the operator's trusted workstation, in a LawDesk clone, fetch `infra/actions-billing-runner` and copy **only** `tools/ci-runner/bootstrap-poc.sh` to the VM through that temporary SSH rule. The operator reviews the exact PR head SHA before using it; do not run application code on this VM. Replace `VM_IP` and `SSH_KEY` with the new VM's details:
+
+   ```bash
+   git fetch origin infra/actions-billing-runner
+   git show FETCH_HEAD:tools/ci-runner/bootstrap-poc.sh > /tmp/bootstrap-poc.sh
+   echo '42ce38da6baf067e35baef0f1051c35037011b718b44bd3673f95a1b3218131e  /tmp/bootstrap-poc.sh' | sha256sum --check
+   scp -i SSH_KEY /tmp/bootstrap-poc.sh root@VM_IP:/tmp/bootstrap-poc.sh
+   ssh -i SSH_KEY root@VM_IP
+   ```
+3. On the **new VM as root**, verify its provider identity and that it has no Contabo/private route or mounted host volumes. Then run:
+
+   ```bash
+   apt-get update && apt-get install -y ca-certificates curl ufw
+   useradd --create-home --shell /bin/bash lawdesk-poc
+   passwd -l lawdesk-poc
+   install -o root -g root -m 0444 /dev/null /etc/lawdesk-ci-poc-vm
+   install -o lawdesk-poc -g lawdesk-poc -m 0500 /tmp/bootstrap-poc.sh /home/lawdesk-poc/bootstrap-poc.sh
+   rm /tmp/bootstrap-poc.sh
+   ufw default deny incoming
+   ufw default allow outgoing
+   ufw deny out to 167.86.90.174
+   ufw allow from OPERATOR_PUBLIC_IP to any port 22 proto tcp
+   ufw --force enable
+   id lawdesk-poc
+   test ! -e /var/run/docker.sock
+   ufw status numbered
+   ```
+
+   Replace `OPERATOR_PUBLIC_IP` with the operator's actual address. The Contabo IP denial covers both LawDesk and Matbakhy on that shared host. The Cloud Firewall also prevents non-operator inbound access during setup.
+4. On GitHub, open Lawdesk-v1 → Settings → Actions → Runners → New self-hosted runner and copy the **short-lived registration token**. In the existing VM session run `su - lawdesk-poc`, then enter the token through a non-echoing prompt and start the runner:
+
+   ```bash
+   umask 077
+   read -rsp 'Registration token: ' POC_TOKEN; printf '\n'
+   printf '%s' "$POC_TOKEN" > "$HOME/registration-token"
+   unset POC_TOKEN
+   RUNNER_REGISTRATION_TOKEN_FILE="$HOME/registration-token" \
+     RUNNER_NAME=lawdesk-ci-poc-49-1 \
+     nohup bash "$HOME/bootstrap-poc.sh" > "$HOME/runner.log" 2>&1 < /dev/null &
+   ```
+
+   Do not paste the token into a command, PR, log, or chat. The script deletes the token file after registration. The runner receives at most one job and has no checkout, Docker socket, sudo or secrets.
+5. Once the runner is connected, remove the SSH allow rule from both the Cloud Firewall and UFW. Check the latest PR #49 probe job ID and exact head SHA. Record whether it executed and passed; `queued`, `cancelled`, and `skipped` are not PASS. Remove any stale runner registration in GitHub and **delete** the Droplet afterward; powering it off does not complete cleanup or stop all charges.
+
+The bootstrap alone cannot prove the VM's firewall, cloud isolation, or absence of other credentials. The operator must inspect those settings and record the result before marking the security proof complete.
+
+## Matbakhy gross usage investigation (read-only)
+
+- GitHub currently reports [Matbakhy-v1](https://github.com/afawzy70/Matbakhy-v1) as public, with 2,123 historical Actions runs. In the latest 100 runs (2026-10-22, about five hours), 12 were native Android/iOS PR builds. [One native run](https://github.com/afawzy70/Matbakhy-v1/actions/runs/39786216264) used about 38 minutes for Android and 40 minutes for iOS; its [workflow](https://github.com/afawzy70/Matbakhy-v1/blob/develop/.github/workflows/native-build.yml) runs both on every PR to `develop`, regardless of changed paths. The [Product CI workflow](https://github.com/afawzy70/Matbakhy-v1/blob/develop/.github/workflows/ci.yml) runs on every push and PR, often duplicating work for the same change.
+- These observations explain high gross metered activity, but do **not** prove that Matbakhy consumed the private-repository 2,000-minute allowance. GitHub says public standard hosted jobs have no billable minutes. The owner's screenshot reports the entire $350.29 gross amount discounted and $0 currently billable; inspect the Billing usage breakdown by runner SKU and repository before attributing quota depletion to Matbakhy.
+- Safe recommendations for Matbakhy's owner to review, without modifying that repository here: add paths filtering to native Android/iOS PR builds for mobile/toolchain changes while retaining required status behavior; avoid duplicate push and PR Product CI runs for the same head where branch policy permits; keep concurrency cancellation for superseded PR heads; limit artifact retention and delete expired artifacts through the normal UI after checking evidence retention. Do not disable required native or security checks just to reduce gross usage.
 
 ## Production design after a successful proof
 
