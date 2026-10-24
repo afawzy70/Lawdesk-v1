@@ -6,6 +6,7 @@ import { CaseCreatePage } from './features/cases/CaseCreatePage';
 import { CaseDetailsPage } from './features/cases/CaseDetailsPage';
 import { CaseEditPage } from './features/cases/CaseEditPage';
 import { CASE_ROUTE, EDIT_CASE_ROUTE, NEW_CASE_PATH } from './features/cases/paths';
+import { CourtsPage } from './features/courts/CourtsPage';
 import { LocaleProvider } from './i18n/LocaleProvider';
 import { AppLayout } from './layout/AppLayout';
 import { PLANNED_AREAS } from './layout/navigation';
@@ -32,6 +33,7 @@ export function AppRoutes({ locale }: LocaleProps) {
               {PLANNED_AREAS.map((area) => (
                 <Route key={area.path} path={area.path} element={<ComingSoonPage title={area.label} />} />
               ))}
+              <Route path="/courts" element={<CourtsPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Routes>
