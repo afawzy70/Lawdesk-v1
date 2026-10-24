@@ -49,7 +49,9 @@ class ReferralService {
         ActorRef actor = currentActor.require();
         LocalDate today = Rules.today();
         requireNotFuture("referralDate", request.referralDate(), today);
-        ProceedingSummary proceeding = proceedings.find(proceedingId)
+        // QAD-032: the proceeding row lock a filing-date correction takes, so the comparison below sees its committed
+        // filing date and a correction cannot slip in before this referral is stored.
+        ProceedingSummary proceeding = proceedings.lockForUpdate(proceedingId)
                 .orElseThrow(() -> new NotFoundException("proceeding"));
         writableCase(proceeding.caseId());
         ExpertRequests.Expert expert = experts.get(request.expertId());

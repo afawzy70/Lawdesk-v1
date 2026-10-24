@@ -14,4 +14,11 @@ describe('proceeding rules raised by Phase 5 records', () => {
     expect(translate('en', key)).toBe('The filing date cannot be after a hearing of this proceeding.');
     expect(translate('ar', key)).toBe('لا يجوز أن يكون تاريخ القيد بعد جلسة من جلسات هذه الدعوى.');
   });
+
+  it('explains a filing date that would follow an expert referral', () => {
+    const key = saveError(new ApiError(422, { rule: 'FILING_AFTER_DEPENDENT_REFERRAL' }), 'proceedings.error.save');
+    expect(key).toBe('proceedings.rule.FILING_AFTER_DEPENDENT_REFERRAL');
+    expect(translate('en', key)).toBe('The filing date cannot be after an expert referral of this proceeding.');
+    expect(translate('ar', key)).toBe('لا يجوز أن يكون تاريخ القيد بعد إحالة هذه الدعوى إلى خبير.');
+  });
 });

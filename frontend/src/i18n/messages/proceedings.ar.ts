@@ -91,6 +91,7 @@ export const proceedingsAr: Record<keyof typeof proceedingsEn, string> = {
   'proceedings.rule.DECISION_JUDGMENT_OTHER_CASE': 'الحكم المعني يخص قضية أخرى.',
   'proceedings.rule.DECISION_BEFORE_FILING': 'لا يجوز أن يسبق التاريخ تاريخ قيد الدعوى.',
   'proceedings.rule.FILING_AFTER_DEPENDENT_HEARING': 'لا يجوز أن يكون تاريخ القيد بعد جلسة من جلسات هذه الدعوى.',
+  'proceedings.rule.FILING_AFTER_DEPENDENT_REFERRAL': 'لا يجوز أن يكون تاريخ القيد بعد إحالة هذه الدعوى إلى خبير.',
   'proceedings.rule.unknown': 'قواعد التقاضي لا تسمح بهذا الإدخال.',
   'proceedings.alreadyJudged': 'صدر حكم بالفعل في هذه الدعوى.',
 };

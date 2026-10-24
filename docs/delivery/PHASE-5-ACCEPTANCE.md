@@ -274,7 +274,14 @@ Acceptance criteria:
 6. **Report port:** `com.lawdesk.experts.ExpertReportQueries`: `find(ReferralFilter, offset, limit)` (≤ 10 000 rows),
    `count`, `countByStatus` (zero-filled), `overdueReportCount()`, `workload()` (open and overdue referrals per expert
    of the registry) and `today()`; "overdue" is defined there.
-7. Screens: `/experts` (ready, `EXPERT_VIEW`) is the registry with status filter, search, create, edit and deactivate;
+7. QAD-032 applied here: correcting a proceeding's filing date to after one of its referrals (cancelled ones count,
+   **ASSUMPTION**) is `422 FILING_AFTER_DEPENDENT_REFERRAL` with nothing written (port `ProceedingDependentDates`), and
+   a referral takes the proceeding row lock (`ProceedingLookup#lockForUpdate`) before it compares its date with the
+   filing date, so the two writes are serialised. Sessions and reports are bound by the referral date, so they follow.
+   Tests: `ExpertFilingChronologyTest` (direct edit and two races, both orders). Evidence:
+   `LD-025-10-red-QAD-032-referrals.log`, `LD-025-11-green-QAD-032-referrals.log`. Checked and not affected: tasks
+   (due dates are bound by today only), documents and notes (no date bound to the proceeding or the case).
+8. Screens: `/experts` (ready, `EXPERT_VIEW`) is the registry with status filter, search, create, edit and deactivate;
    the case's expert referrals in `CaseOperations` refer a proceeding to an active expert, record sessions and the
    report, and cancel a referral after confirmation.
 

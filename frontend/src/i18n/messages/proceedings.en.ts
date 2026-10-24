@@ -93,6 +93,8 @@ export const proceedingsEn = {
   'proceedings.rule.DECISION_BEFORE_FILING': 'The date cannot be before the filing date of the proceeding.',
   // QAD-032: answered when a filing-date correction would follow a Phase 5 record of the proceeding.
   'proceedings.rule.FILING_AFTER_DEPENDENT_HEARING': 'The filing date cannot be after a hearing of this proceeding.',
+  'proceedings.rule.FILING_AFTER_DEPENDENT_REFERRAL':
+    'The filing date cannot be after an expert referral of this proceeding.',
   'proceedings.rule.unknown': 'The court rules do not allow this entry.',
   'proceedings.alreadyJudged': 'This proceeding already has a judgment.',
 } as const;
