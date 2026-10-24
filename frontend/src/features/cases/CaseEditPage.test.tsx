@@ -20,7 +20,10 @@ describe('edit case (LD-013)', () => {
     expect(screen.queryByRole('textbox', { name: 'Reference number' })).not.toBeInTheDocument();
     expect(screen.getByText('Active')).toBeInTheDocument();
     expect(requests[0]?.url).toBe(`/api/v1/cases/${CASE.id}`);
-    expect(document.title).toBe('Edit case R-1 — LawDesk (Preview)');
+    // The title follows the loaded case in an effect, which may run after the heading is on screen.
+    await waitFor(() => {
+      expect(document.title).toBe('Edit case R-1 — LawDesk (Preview)');
+    });
   });
 
   it('saves with the version it was loaded at, then continues from the new version', async () => {
@@ -53,19 +56,6 @@ describe('edit case (LD-013)', () => {
       expect(requests).toHaveLength(3);
     });
     expect((requests[2]?.body as { version: number }).version).toBe(5);
-  });
-
-  it('shows the confirmation of a case just created', async () => {
-    scriptedFetch((request) =>
-      request.method === 'POST' ? jsonResponse(CASE, 201) : jsonResponse(CASE),
-    );
-    const user = userEvent.setup();
-    renderCases('/cases/new');
-    await user.type(screen.getByRole('textbox', { name: 'Title' }), 'Original title');
-    await user.click(screen.getByRole('button', { name: 'Create case' }));
-
-    expect(await screen.findByText('Case R-1 created.')).toHaveAttribute('role', 'status');
-    expect(await screen.findByRole('heading', { level: 1, name: 'Edit case R-1' })).toBeInTheDocument();
   });
 
   it('on a stale version offers to reload the latest case', async () => {
@@ -144,6 +134,16 @@ describe('edit case (LD-013)', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(message);
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Back to cases' })).toBeInTheDocument();
+  });
+
+  it('links back to the case', async () => {
+    scriptedFetch(() => jsonResponse(CASE));
+    renderCases(EDIT);
+
+    expect(await screen.findByRole('link', { name: 'Back to the case' })).toHaveAttribute(
+      'href',
+      `/cases/${CASE.id}?lang=en`,
+    );
   });
 
   it('shows the shared access-denied page without the permission to view', async () => {

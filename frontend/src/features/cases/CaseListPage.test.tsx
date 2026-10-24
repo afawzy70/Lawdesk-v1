@@ -47,7 +47,7 @@ describe('case list (LD-015)', () => {
     expect(rows[2]).toHaveTextContent('Active');
     expect(within(rows[1] as HTMLElement).getByRole('link', { name: 'LD-2026-00001' })).toHaveAttribute(
       'href',
-      `/cases/${NILE.id}/edit?lang=en`,
+      `/cases/${NILE.id}?lang=en`,
     );
     expect(screen.getByText('Results: 2')).toBeInTheDocument();
     expect(requests[0]?.url).toBe('/api/v1/cases');
