@@ -1,0 +1,65 @@
+# QAD-024 RED: ./mvnw -B test -Dtest=JudicialChronologyTest -Djacoco.skip=true
+# Run before any production change, on 0ea8d99 plus the new test only. JDK 21.0.12, embedded PostgreSQL.
+# 8 of 11 fail for the defect: direct date moves answer 200 instead of 422, and both racing requests succeed.
+# The 3 passing tests pin behaviour that already held (valid corrections, child/parent filing-date edits).
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   JudicialChronologyTest.aJudgmentDateCannotMovePastAnAppealFiledAgainstIt:78 Status expected:<422> but was:<200>
+[ERROR]   JudicialChronologyTest.aJudgmentDateMovedWhileAnAppealIsFiledIsRefused:229 
+Expecting actual:
+  [201, 200]
+to contain exactly (and in same order):
+  [201, 422]
+but some elements were not found:
+  [422]
+and others were not expected:
+  [200]
+
+[ERROR]   JudicialChronologyTest.aJudgmentDateMovedWhileTheAppealMovesEarlierIsRefused:267 
+Expecting actual:
+  [200, 200]
+to contain exactly (and in same order):
+  [200, 422]
+but some elements were not found:
+  [422]
+and others were not expected:
+  [200]
+
+[ERROR]   JudicialChronologyTest.aJudgmentRecordedWhileTheFilingDateMovesLaterIsRefused:283 
+Expecting actual:
+  [200, 201]
+to contain exactly (and in same order):
+  [200, 422]
+but some elements were not found:
+  [422]
+and others were not expected:
+  [201]
+
+[ERROR]   JudicialChronologyTest.anAppealFiledWhileTheJudgmentDateMovesLaterIsRefused:211 
+Expecting actual:
+  [200, 201]
+to contain exactly (and in same order):
+  [200, 422]
+but some elements were not found:
+  [422]
+and others were not expected:
+  [201]
+
+[ERROR]   JudicialChronologyTest.anAppealJudgmentDateCannotMovePastACassationFiledAgainstIt:106 Status expected:<422> but was:<200>
+[ERROR]   JudicialChronologyTest.anAppealMovedEarlierWhileTheJudgmentDateMovesLaterIsRefused:249 
+Expecting actual:
+  [200, 200]
+to contain exactly (and in same order):
+  [200, 422]
+but some elements were not found:
+  [422]
+and others were not expected:
+  [200]
+
+[ERROR]   JudicialChronologyTest.theEarliestOfSeveralAppealsBoundsTheJudgmentDate:124 Status expected:<422> but was:<200>
+[INFO] 
+[ERROR] Tests run: 11, Failures: 8, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[ERROR] BUILD FAILURE

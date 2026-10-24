@@ -88,13 +88,13 @@ Acceptance criteria:
 
 | QA case | Scenario | Mapping | Status |
 |---------|----------|---------|--------|
-| QA-0145 | authorized happy path | `ProceedingApiTest`: create, list, read, update; timeline event recorded | PLANNED (PR C2) |
-| QA-0146 | required-field validation | Missing stage, court, number, year, filing date → 400 | PLANNED (PR C2) |
-| QA-0147 | invalid input boundary | Year 1899/2101, 33-character number, future filing date → 400 | PLANNED (PR C2) |
-| QA-0148 | unauthenticated access | Every endpoint without a session → 401 | PLANNED (PR C2) |
-| QA-0149 | insufficient permission | `PROCEEDING_VIEW` cannot write; no permission cannot read → 403. Audit BLOCKED (A) | PLANNED (PR C2) |
-| QA-0150 | record integrity and rollback | Unknown case/court → 404, nothing stored; failing timeline event rolls the proceeding back | PLANNED (PR C2) |
-| QA-0151 | concurrent or repeat request | Duplicate number/year → 409; stale version → 409 | PLANNED (PR C2) |
+| QA-0145 | authorized happy path | `ProceedingApiTest`: create, list, read, update; timeline event recorded | AUTOMATED |
+| QA-0146 | required-field validation | `ProceedingApiTest.requiredFieldsAreValidated` | AUTOMATED |
+| QA-0147 | invalid input boundary | `ProceedingApiTest.boundariesOfNumberYearAndFilingDate`, court level and active rules | AUTOMATED |
+| QA-0148 | unauthenticated access | `ProceedingApiTest.everyEndpointNeedsASession` | AUTOMATED |
+| QA-0149 | insufficient permission | `ProceedingApiTest.viewersCannotWriteAndOthersCannotRead`. Audit BLOCKED (A) | AUTOMATED (refusal); audit BLOCKED |
+| QA-0150 | record integrity and rollback | Unknown case/court → 404, nothing stored; a failing timeline event rolls the proceeding back; database stage/parent check | AUTOMATED |
+| QA-0151 | concurrent or repeat request | Duplicate number/year → 409; stale version → 409 | AUTOMATED |
 | QA-0152 | API-to-UI state and error handling | `CaseProceedings.test.tsx` | PLANNED (PR C3) |
 
 ## LD-020 Appeal proceedings
@@ -105,7 +105,8 @@ Acceptance criteria:
 2. Rules (422): `PARENT_PROCEEDING_REQUIRED` (no parent given); `PARENT_PROCEEDING_OTHER_CASE` (the parent belongs to
    another case); `APPEAL_PARENT_NOT_FIRST_INSTANCE` (the parent is not a first-instance proceeding);
    `APPEAL_REQUIRES_FIRST_INSTANCE_JUDGMENT` (the parent has no judgment yet); `COURT_LEVEL_MISMATCH` (court not of
-   level `APPEAL`). An unknown parent is 404.
+   level `APPEAL`); `FILED_BEFORE_PARENT_JUDGMENT` (filed before the judgment it attacks; the same day is allowed).
+   An unknown parent is 404.
 3. **ASSUMPTION:** the statutory appeal deadline (ميعاد الاستئناف, for example 40 days under the Code of Civil and
    Commercial Procedure) is **not enforced** in this phase: the filing date is recorded only, and a late appeal is
    accepted.
@@ -115,7 +116,7 @@ Acceptance criteria:
 
 | QA case | Scenario | Mapping | Status |
 |---------|----------|---------|--------|
-| QA-0153…QA-0160 | the eight standard scenarios | `AppealRulesTest`, `CaseProceedings.test.tsx` | PLANNED (PR C3) |
+| QA-0153…QA-0160 | the eight standard scenarios | Backend: `StageRulesTest` (appeal cases) and the shared `ProceedingApiTest` checks; UI: `CaseProceedings.test.tsx` | Backend AUTOMATED (PR C2); UI PLANNED (PR C3) |
 
 ## LD-021 Cassation proceedings
 
@@ -124,14 +125,14 @@ Acceptance criteria:
 1. A cassation (طعن بالنقض) is a proceeding with `stage: CASSATION` whose parent is an appeal proceeding of the same
    case that has a judgment; the court is of level `CASSATION`.
 2. Rules (422): `PARENT_PROCEEDING_REQUIRED`, `PARENT_PROCEEDING_OTHER_CASE`, `CASSATION_PARENT_NOT_APPEAL`,
-   `CASSATION_REQUIRES_APPEAL_JUDGMENT`, `COURT_LEVEL_MISMATCH`.
+   `CASSATION_REQUIRES_APPEAL_JUDGMENT`, `COURT_LEVEL_MISMATCH`, `FILED_BEFORE_PARENT_JUDGMENT`.
 3. **ASSUMPTION:** the cassation deadline (ميعاد الطعن بالنقض, 60 days) is not enforced; the filing date is recorded.
 4. **ASSUMPTION:** direct cassation of a first-instance judgment (where the law allows it) is not supported in this
    phase.
 
 | QA case | Scenario | Mapping | Status |
 |---------|----------|---------|--------|
-| QA-0161…QA-0168 | the eight standard scenarios | `CassationRulesTest`, `CaseProceedings.test.tsx` | PLANNED (PR C3) |
+| QA-0161…QA-0168 | the eight standard scenarios | Backend: `StageRulesTest` (cassation cases); UI: `CaseProceedings.test.tsx` | Backend AUTOMATED (PR C2); UI PLANNED (PR C3) |
 
 ## LD-022 Judgments and outcomes
 
@@ -145,12 +146,36 @@ Acceptance criteria:
    (`JUDGMENT_MANAGE`, with `version`).
 3. **ASSUMPTION:** one judgment ends a proceeding (the judgment that closes the instance, منهي للخصومة); a second
    judgment for the same proceeding is 409. Interim rulings are special decisions (LD-023).
-4. Rule (422) `JUDGMENT_BEFORE_FILING`: the judgment date cannot be before the proceeding's filing date.
-5. Recording a judgment adds a timeline entry `JUDGMENT_RECORDED` through `CaseLookup#recordEvent`.
+4. Rule (422) `JUDGMENT_BEFORE_FILING`: the judgment date cannot be before the proceeding's filing date, when the
+   judgment is recorded or corrected, and a proceeding's filing date cannot be moved after its judgment.
+   Rule (422) `JUDGMENT_AFTER_CHALLENGE_FILING` (QAD-024): a judgment date cannot be corrected to a day after the
+   filing date of any appeal or cassation that attacks it (the earliest one bounds it; the same day is allowed). The
+   correction is refused as a whole: date, outcome, summary, finality and `version` stay unchanged. Dates are never
+   rewritten and proceedings are never deleted to make the chronology fit. Together with `FILED_BEFORE_PARENT_JUDGMENT`
+   (on create and on correcting a child's filing date) and `JUDGMENT_BEFORE_FILING`, every write keeps the chronology
+   *filing ≤ judgment ≤ filing of each challenge*.
+   Concurrency: every write that compares these dates first locks the proceeding row(s) involved with
+   `select ... for update` (child before parent): recording or correcting a judgment locks its proceeding; recording
+   an appeal or cassation locks its parent; correcting a proceeding locks it and then its parent. Two racing writes are
+   therefore serialised and the second one sees the first one's committed dates. No migration is needed.
+   Tests: `JudicialChronologyTest` — direct updates `aJudgmentDateCannotMovePastAnAppealFiledAgainstIt`,
+   `anAppealJudgmentDateCannotMovePastACassationFiledAgainstIt`, `theEarliestOfSeveralAppealsBoundsTheJudgmentDate`
+   (rollback: the stored row is compared before and after); valid corrections with existing appeals and cassations
+   `aCorrectionThatKeepsTheChronologySucceeds` (200, version bumped); the other edit paths
+   `anAppealsFilingDateCannotMoveBeforeTheJudgmentItAttacks`, `aParentProceedingsFilingDateStaysBoundByItsOwnJudgment`;
+   races (one request paused inside its transaction by a test-only trigger, final database state checked)
+   `anAppealFiledWhileTheJudgmentDateMovesLaterIsRefused`, `aJudgmentDateMovedWhileAnAppealIsFiledIsRefused`,
+   `anAppealMovedEarlierWhileTheJudgmentDateMovesLaterIsRefused`, `aJudgmentDateMovedWhileTheAppealMovesEarlierIsRefused`,
+   `aJudgmentRecordedWhileTheFilingDateMovesLaterIsRefused`. Evidence: `docs/evidence/PHASE-4/17-red-QAD-024-backend.log`,
+   `18-green-QAD-024-backend.log` (numbers 11–16 are used by the stacked LD-023 branch).
+5. Recording a judgment adds a timeline entry `JUDGMENT_RECORDED` through `CaseLookup#recordEvent`, in the same
+   transaction. **ASSUMPTION:** corrections (updates) of proceedings and judgments add no timeline entry, and
+   proceedings and judgments cannot be deleted in this phase.
 
 | QA case | Scenario | Mapping | Status |
 |---------|----------|---------|--------|
-| QA-0169…QA-0176 | the eight standard scenarios | `JudgmentApiTest`, `CaseProceedings.test.tsx` | PLANNED (PR C2, UI in C3) |
+| QA-0169…QA-0175 | backend scenarios | `JudgmentApiTest` | AUTOMATED (audit part of QA-0173 BLOCKED, A) |
+| QA-0176 | API-to-UI state and error handling | `CaseProceedings.test.tsx` | PLANNED (PR C3) |
 
 ## LD-023 Special judicial decisions and enforcement suspension
 
