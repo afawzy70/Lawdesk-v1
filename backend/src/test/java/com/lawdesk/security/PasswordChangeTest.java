@@ -81,4 +81,43 @@ class PasswordChangeTest extends PostgresTestSupport {
                     .doesNotContain(weak);
         }
     }
+
+    // QAD-022: bcrypt reads at most 72 bytes, so the policy limit is 72 bytes of UTF-8, not 128 characters.
+    @Test
+    void passwordsLongerThanSeventyTwoBytesAreAPolicyErrorNotAServerError() {
+        var user = users.create("LEGAL_STAFF");
+        Browser browser = signedIn(user);
+
+        for (String tooLong : new String[] {"Q".repeat(73), "Q".repeat(128), "ق".repeat(37)}) {
+            HttpResponse<String> response = change(browser, TestUsers.PASSWORD, tooLong);
+
+            assertThat(response.statusCode()).as("%d characters", tooLong.length()).isEqualTo(400);
+            assertThat(response.body()).contains("\"field\":\"newPassword\"").contains("\"code\":\"PasswordPolicy\"")
+                    .doesNotContain("72").doesNotContainIgnoringCase("exception").doesNotContain(tooLong);
+        }
+        assertThat(new Browser(port).login(user.username(), TestUsers.PASSWORD).statusCode()).isEqualTo(200);
+    }
+
+    @Test
+    void exactlySeventyTwoBytesIsAccepted() {
+        var user = users.create("LEGAL_STAFF");
+        Browser browser = signedIn(user);
+        String longest = "ق".repeat(30) + "Q".repeat(12);
+
+        assertThat(change(browser, TestUsers.PASSWORD, longest).statusCode()).isEqualTo(204);
+        assertThat(new Browser(port).login(user.username(), longest).statusCode()).isEqualTo(200);
+    }
+
+    @Test
+    void anOverlongCurrentPasswordOrLoginIsAnOrdinaryRefusal() {
+        var user = users.create("LEGAL_STAFF");
+        Browser browser = signedIn(user);
+
+        HttpResponse<String> change = change(browser, "Q".repeat(200), NEW_PASSWORD);
+        assertThat(change.statusCode()).isEqualTo(400);
+        assertThat(change.body()).contains("\"code\":\"CurrentPassword\"");
+        HttpResponse<String> login = new Browser(port).login(user.username(), "Q".repeat(200));
+        assertThat(login.statusCode()).isEqualTo(401);
+        assertThat(login.body()).doesNotContainIgnoringCase("exception");
+    }
 }
