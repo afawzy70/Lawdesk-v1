@@ -38,6 +38,7 @@ import com.lawdesk.audit.AuditLog;
 import com.lawdesk.security.ActorPrincipal;
 import com.lawdesk.security.PasswordChangeRequiredFilter;
 import com.lawdesk.security.ReloadingSecurityContextRepository;
+import com.lawdesk.security.SessionRevocation;
 import com.lawdesk.users.UserAccounts;
 
 /**
@@ -118,8 +119,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    SecurityContextRepository securityContextRepository(UserAccounts accounts) {
-        return new ReloadingSecurityContextRepository(accounts);
+    SecurityContextRepository securityContextRepository(UserAccounts accounts, SessionRevocation revocation) {
+        return new ReloadingSecurityContextRepository(accounts, revocation);
     }
 
     /** LD-011.2: a signed-in user refused by a permission check. */

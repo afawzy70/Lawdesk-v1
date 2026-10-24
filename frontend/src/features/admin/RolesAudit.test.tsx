@@ -211,6 +211,30 @@ describe('audit log', () => {
     });
   });
 
+  it('names refused revoked sessions (LD-008.7) and offers them as a filter', async () => {
+    const revoked = { ...EVENTS[0], id: 8, action: 'SESSION_REVOKED', targetType: 'USER', targetId: 'u1' };
+    const fetchMock = fakeApi({
+      me: ROLE_ADMIN,
+      routes: {
+        'GET /api/v1/audit?page=0&size=20': () => page([revoked]),
+        'GET /api/v1/audit?action=SESSION_REVOKED&page=0&size=20': () => page([revoked]),
+      },
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
+    renderAt('/admin/audit');
+
+    const table = await screen.findByRole('table', { name: 'Audit log' });
+    expect(within(table).getAllByRole('row')[1]).toHaveTextContent('Revoked session refused');
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Action' }), 'SESSION_REVOKED');
+    await user.click(screen.getByRole('button', { name: 'Filter' }));
+
+    await vi.waitFor(() => {
+      expect(fetchMock.mock.calls.some(([input]) => input === '/api/v1/audit?action=SESSION_REVOKED&page=0&size=20'))
+        .toBe(true);
+    });
+  });
+
   it('pages through the trail', async () => {
     vi.stubGlobal('fetch', fakeApi({
       me: ROLE_ADMIN,

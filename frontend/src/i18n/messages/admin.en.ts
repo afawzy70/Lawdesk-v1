@@ -86,6 +86,7 @@ export const adminEn = {
   'admin.audit.action.ROLE_UPDATE': 'Role updated',
   'admin.audit.action.ROLE_PERMISSIONS_CHANGE': 'Role permissions changed',
   'admin.audit.action.ACCESS_DENIED': 'Access denied',
+  'admin.audit.action.SESSION_REVOKED': 'Revoked session refused',
   'admin.audit.outcome.SUCCESS': 'Succeeded',
   'admin.audit.outcome.FAILURE': 'Failed',
   'admin.audit.outcome.DENIED': 'Denied',

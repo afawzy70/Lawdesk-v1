@@ -88,6 +88,7 @@ export const adminAr: Record<keyof typeof adminEn, string> = {
   'admin.audit.action.ROLE_UPDATE': 'تعديل دور',
   'admin.audit.action.ROLE_PERMISSIONS_CHANGE': 'تغيير صلاحيات دور',
   'admin.audit.action.ACCESS_DENIED': 'رفض الوصول',
+  'admin.audit.action.SESSION_REVOKED': 'رفض جلسة ملغاة',
   'admin.audit.outcome.SUCCESS': 'نجح',
   'admin.audit.outcome.FAILURE': 'فشل',
   'admin.audit.outcome.DENIED': 'مرفوض',
