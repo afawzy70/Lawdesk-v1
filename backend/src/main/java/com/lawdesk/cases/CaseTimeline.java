@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 class CaseTimeline {
 
     static final String CASE_CREATED = "CASE_CREATED";
+    static final String CASE_UPDATED = "CASE_UPDATED";
 
     private static final Pattern TYPE = Pattern.compile("[A-Z][A-Z0-9_]{0,63}");
     private static final int SUMMARY_MAX = 500;
