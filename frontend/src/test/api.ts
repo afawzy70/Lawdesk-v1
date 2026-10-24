@@ -9,7 +9,7 @@ export const ADMIN: Me = {
   email: 'maha@example.invalid',
   locale: 'en',
   roles: ['ADMIN'],
-  permissions: ['USER_VIEW', 'USER_MANAGE', 'CASE_VIEW', 'CASE_CREATE'],
+  permissions: ['USER_VIEW', 'USER_MANAGE', 'CASE_VIEW', 'CASE_CREATE', 'COURT_VIEW'],
   mustChangePassword: false,
 };
 
