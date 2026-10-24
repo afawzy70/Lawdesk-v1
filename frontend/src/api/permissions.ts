@@ -20,6 +20,17 @@ export const PERMISSIONS = [
   'PROCEEDING_MANAGE',
   'JUDGMENT_VIEW',
   'JUDGMENT_MANAGE',
+  'HEARING_VIEW',
+  'HEARING_MANAGE',
+  'EXPERT_VIEW',
+  'EXPERT_MANAGE',
+  'DOCUMENT_VIEW',
+  'DOCUMENT_MANAGE',
+  'TASK_VIEW',
+  'TASK_MANAGE',
+  'NOTE_MANAGE',
+  'REPORT_VIEW',
+  'REPORT_EXPORT',
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

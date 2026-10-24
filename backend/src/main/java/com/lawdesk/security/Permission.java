@@ -22,7 +22,18 @@ public enum Permission {
     PROCEEDING_VIEW,
     PROCEEDING_MANAGE,
     JUDGMENT_VIEW,
-    JUDGMENT_MANAGE;
+    JUDGMENT_MANAGE,
+    HEARING_VIEW,
+    HEARING_MANAGE,
+    EXPERT_VIEW,
+    EXPERT_MANAGE,
+    DOCUMENT_VIEW,
+    DOCUMENT_MANAGE,
+    TASK_VIEW,
+    TASK_MANAGE,
+    NOTE_MANAGE,
+    REPORT_VIEW,
+    REPORT_EXPORT;
 
     /** {@code @PreAuthorize} expressions, one per permission: {@code @PreAuthorize(Permission.Codes.CASE_CREATE)}. */
     public static final class Codes {
@@ -43,6 +54,17 @@ public enum Permission {
         public static final String PROCEEDING_MANAGE = "hasAuthority('PROCEEDING_MANAGE')";
         public static final String JUDGMENT_VIEW = "hasAuthority('JUDGMENT_VIEW')";
         public static final String JUDGMENT_MANAGE = "hasAuthority('JUDGMENT_MANAGE')";
+        public static final String HEARING_VIEW = "hasAuthority('HEARING_VIEW')";
+        public static final String HEARING_MANAGE = "hasAuthority('HEARING_MANAGE')";
+        public static final String EXPERT_VIEW = "hasAuthority('EXPERT_VIEW')";
+        public static final String EXPERT_MANAGE = "hasAuthority('EXPERT_MANAGE')";
+        public static final String DOCUMENT_VIEW = "hasAuthority('DOCUMENT_VIEW')";
+        public static final String DOCUMENT_MANAGE = "hasAuthority('DOCUMENT_MANAGE')";
+        public static final String TASK_VIEW = "hasAuthority('TASK_VIEW')";
+        public static final String TASK_MANAGE = "hasAuthority('TASK_MANAGE')";
+        public static final String NOTE_MANAGE = "hasAuthority('NOTE_MANAGE')";
+        public static final String REPORT_VIEW = "hasAuthority('REPORT_VIEW')";
+        public static final String REPORT_EXPORT = "hasAuthority('REPORT_EXPORT')";
 
         private Codes() {
         }

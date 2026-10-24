@@ -1,4 +1,4 @@
-# Shared contracts for parallel delivery of Phases 2, 3 and 4
+# Shared contracts for parallel delivery (Phases 2–4, and 5–6 in §8)
 
 Owner decision 2026-10-24: Phases 2, 3 and 4 are built concurrently. This file holds the rules that let three
 workstreams change the code base at the same time without conflicting migrations, competing security models or a
@@ -125,3 +125,95 @@ manager/admin-only by default. The last active `ADMIN` can never be disabled, lo
   - B delivers `CaseLookup` with LD-012.
   - C starts with LD-018, the court reference data, which needs no case data.
   - A delivers login (LD-007) first, because the screens of B and C need a signed-in user on UAT.
+
+## 8. Phases 5 and 6 (owner decision 2026-10-24: built concurrently; Phase 7 deferred)
+
+Sections 2–7 apply unchanged. This section adds what the two new workstreams need. Phase 7 (LD-035…LD-038) is
+**not** started: no redesign of existing screens, only the usability, accessibility and responsiveness that a Phase 5
+or 6 screen needs to work.
+
+### 8.1 Ownership
+
+| Workstream | Stories | Backend packages | Frontend | Flyway versions |
+|------------|---------|------------------|----------|-----------------|
+| D, Phase 5: legal operations | LD-024…LD-029 | `com.lawdesk.hearings`, `com.lawdesk.experts`, `com.lawdesk.documents`, `com.lawdesk.tasks`, `com.lawdesk.notes` | `src/features/operations`, `operations.{en,ar}.ts` | `V400`–`V499` |
+| E, Phase 6: dashboard and reports | LD-030…LD-034 | `com.lawdesk.reports` | `src/features/reports`, `reports.{en,ar}.ts`, `src/pages/DashboardPage.tsx`, `src/preview/` | `V500`–`V599` |
+
+- **Packages of Phases 2–4** (`security`, `users`, `audit`, `cases`, `courts`, `proceedings`) are finished. D and E do
+  not edit them. When they need a change there, they ask for it in a small, separate PR that the integration owner
+  reviews, as in §1.
+- **Routes.** D mounts its routes only in `src/features/operations/routes.tsx` and E only in
+  `src/features/reports/routes.tsx`. App.tsx already calls both, so neither edits App.tsx.
+- **Navigation.** D owns the `/hearings`, `/experts`, `/documents` and `/tasks` items in `src/layout/navigation.ts`; E
+  owns `/reports`. Each workstream flips only its own items to `ready`.
+- **Case details.** D shows a case's operations through one component, `src/features/operations/CaseOperations.tsx`.
+  The single line that mounts it in `CaseDetailsPage.tsx` is added in D's first PR that has something to show. That
+  PR must come after the mobile fix QAD-027 is on `develop`, which changes the same page.
+- **Shared configuration.** D may add `spring.servlet.multipart.*` to `application.yaml`, and nothing else there.
+
+### 8.2 Permissions and default roles
+
+Seeded by `V190__LD-009_phase5_6_default_permissions.sql`. The new permissions are additive, and roles an
+administrator changed keep their other permissions.
+
+| Permission | Opens | ADMIN | LEGAL_MANAGER | LEGAL_STAFF |
+|------------|-------|:-----:|:-------------:|:-----------:|
+| `HEARING_VIEW`, `HEARING_MANAGE` | hearings, the hearing calendar | ✓ | ✓ | ✓ |
+| `EXPERT_VIEW` | the expert registry, referrals, sessions | ✓ | ✓ | ✓ |
+| `EXPERT_MANAGE` | changing the registry, referrals and sessions | ✓ | ✓ | — |
+| `DOCUMENT_VIEW`, `DOCUMENT_MANAGE` | case PDF attachments | ✓ | ✓ | ✓ |
+| `TASK_VIEW`, `TASK_MANAGE` | tasks, deadlines, reminders | ✓ | ✓ | ✓ |
+| `NOTE_MANAGE` | writing legal notes (reading them needs `CASE_VIEW`) | ✓ | ✓ | ✓ |
+| `REPORT_VIEW` | the dashboard statistics and reports | ✓ | ✓ | — |
+| `REPORT_EXPORT` | CSV / Excel / PDF exports | ✓ | ✓ | — |
+
+The staff and manager columns are ASSUMPTIONS for owner review. A user without `REPORT_VIEW` still sees the dashboard
+page, but without its statistics (LD-030).
+
+### 8.3 Read ports and data rules
+
+- **Cases.** Cases are read through `CaseLookup` (§5). Phase 5 writes its events to the case timeline with
+  `CaseLookup#recordEvent`, for example `HEARING_SCHEDULED`, `DOCUMENT_ATTACHED` or `TASK_COMPLETED`. The case timeline
+  is the activity history of LD-029.
+- **Proceedings.** Proceedings are read through `com.lawdesk.proceedings.ProceedingLookup`
+  (`find(id)`, `forCase(caseId)`). Phase 5 tables may reference `proceeding (id)` and `legal_case (id)` by foreign key,
+  because those are lower ranges and are already on `develop` (§2).
+- **Users.** People are named through `com.lawdesk.users.UserDirectory` and, for the browser, through
+  `GET /api/v1/users/directory`, which returns `[{id, username, displayName, enabled}]` for enabled users and needs
+  `TASK_VIEW`, `TASK_MANAGE` or `REPORT_VIEW`. An assignee is stored as `uuid not null` without a foreign key, like the
+  actor columns.
+- **Documents (LD-026)** are stored in PostgreSQL, one `bytea` row per file. This adds no volume, no proxy change and
+  no new backup path: the existing `pg_dump` covers the files. ASSUMPTIONS for owner review:
+  - at most 10 PDFs per case, enforced inside a transaction that locks the case's document count;
+  - at most 10 MiB per file;
+  - a file is accepted only when its declared type is `application/pdf` and its content starts with `%PDF-`.
+
+  Downloads answer `Content-Disposition: attachment` with `X-Content-Type-Options: nosniff`.
+- **Reminders (LD-028)** appear in the application only, as due-soon and overdue lists and counts. There is no e-mail
+  or SMS infrastructure (ASSUMPTION).
+- **Reporting (Phase 6)** reads data only through read-only query ports owned by the domain. Rules such as overdue,
+  final, open or upcoming are evaluated in the owning module, never redefined in `reports`.
+  - For Phases 3 and 4, E adds the ports as **new** files in those packages, for example
+    `com.lawdesk.cases.CaseReportQueries`. Existing files there are not changed.
+  - For Phase 5, D publishes `…ReportQueries` with each story: hearings in a date range, tasks by status, assignee and
+    overdue state, and expert referrals by expert and status.
+  - Until a Phase 5 port is on `develop`, the reports that depend on it stay unbuilt and the dashboard shows the
+    figure as unavailable. Sample or mock figures never stand in for real ones; the preview mock data is retired by E
+    as the real figures arrive.
+- **Exports (LD-034)**:
+  - Exports need `REPORT_EXPORT` and are audited (`REPORT_EXPORT`, without the exported data).
+  - CSV is UTF-8 with a BOM, so Arabic opens in Excel. Cells starting with `=`, `+`, `-`, `@`, a tab or a carriage
+    return are prefixed with `'` (formula injection).
+  - Excel exports are `.xlsx`. PDF exports render Arabic with correct shaping and RTL.
+  - Libraries must use permissive licences and be pinned. A row limit per export applies (ASSUMPTION: 10 000 rows).
+- **Migrations of E** (`V500`+) are for read support only, such as indexes or views, on tables already on `develop`.
+
+### 8.4 Delivery order
+
+1. **This contract PR.** Permissions, default roles, the read ports, the user directory, the route and message
+   modules, and the reserved navigation items.
+2. **D and E start in parallel.** E begins with what needs only Phases 3 and 4: the dashboard figures for cases and
+   the judicial lifecycle (LD-030 part), the case inventory report (LD-031) and the judgments part of LD-032, together
+   with filters, sorting, pagination and CSV (LD-034 part). D begins with hearings (LD-024), then tasks and reminders
+   (LD-027, LD-028), documents (LD-026), experts (LD-025), then notes (LD-029).
+3. **E integrates each Phase 5 report** (hearings, workload, experts) after D's matching port is merged.

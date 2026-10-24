@@ -4,6 +4,8 @@ import { adminAr } from './admin.ar';
 import { casesAr } from './cases.ar';
 import { courtsAr } from './courts.ar';
 import { proceedingsAr } from './proceedings.ar';
+import { operationsAr } from './operations.ar';
+import { reportsAr } from './reports.ar';
 
 /** Arabic (Modern Standard Arabic) message catalog. Keys must match `en.ts` exactly. */
 export const ar: Messages = {
@@ -28,6 +30,7 @@ export const ar: Messages = {
   'nav.judgments': 'الأحكام',
   'nav.experts': 'الخبراء',
   'nav.documents': 'المستندات',
+  'nav.tasks': 'المهام',
   'nav.reports': 'التقارير',
   'nav.admin': 'الإدارة',
 
@@ -68,4 +71,6 @@ export const ar: Messages = {
   ...casesAr,
   ...courtsAr,
   ...proceedingsAr,
+  ...operationsAr,
+  ...reportsAr,
 };

@@ -15,6 +15,8 @@ import { CaseEditPage } from './features/cases/CaseEditPage';
 import { CaseListPage } from './features/cases/CaseListPage';
 import { CASES_PATH, CASE_ROUTE, EDIT_CASE_ROUTE, NEW_CASE_PATH } from './features/cases/paths';
 import { CourtsPage } from './features/courts/CourtsPage';
+import { operationsRoutes } from './features/operations/routes';
+import { reportsRoutes } from './features/reports/routes';
 import { LocaleProvider } from './i18n/LocaleProvider';
 import { AppLayout } from './layout/AppLayout';
 import { PLANNED_AREAS } from './layout/navigation';
@@ -51,6 +53,8 @@ export function AppRoutes({ locale }: LocaleProps) {
               <Route path="/admin/audit" element={<AuditPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/courts" element={<CourtsPage />} />
+              {operationsRoutes()}
+              {reportsRoutes()}
               <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Routes>
