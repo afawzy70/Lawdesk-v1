@@ -46,3 +46,12 @@ undeployed UAT features and unexecuted desktop/cross-browser/performance checks 
 `phase56-remaining-specifications.json`. They do not become PASS because another test or CI job succeeded.
 Phase 7 remains deferred. The owner delivery strategy merged in PR46 was read; disruptive load/stress on the shared
 Contabo UAT is excluded. No Matbakhy, proxy, deployment, Docker-daemon or feature-worktree changes are authorized here.
+
+The priority follow-up avoids replaying already completed same-SHA suites. To add the missing after-update rollback
+and limited-SQL-writer COMMIT probes, use `phase56_priority.py` with the usual `--candidate`, `--sha`, `--output`
+arguments and `--mode delta`. `--mode performance` instead collects the deliberately paced local baseline described
+in `DELIVERY-STRATEGY-PLAN.md`; do not run it against shared UAT. The Java helper `ExpertReadPortProbe.java` is compiled
+by `phase56_expert_port.py` against the exact candidate jar's classes/libraries, then queries the same disposable DB.
+Its optional `--regression` runs the existing expert API suite first. If only the new helper fails, retain the completed
+regression evidence and retry the helper in a fresh output directory without `--regression`. The helper uses the
+candidate's Jackson3 API; the earlier compilation blocker remains in diagnostic evidence.
