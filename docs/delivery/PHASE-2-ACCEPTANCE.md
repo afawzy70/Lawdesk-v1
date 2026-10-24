@@ -34,8 +34,11 @@ names the tests that cover it. Developer runs are not independent QA.
 
 1. **Storage.** Passwords are stored as delegating `{bcrypt}` hashes, cost 12. Plain or reversible values never reach
    the database, logs, audit records or API answers.
-2. **Policy.** **ASSUMPTION**: a password has 12 to 128 characters and is not equal to the username or the email. A
-   violation answers 400 with `errors[].code` `PasswordPolicy`.
+2. **Policy.** **ASSUMPTION**: a password has at least 12 characters, at most 72 bytes of UTF-8 (72 Latin or 36
+   Arabic letters), and is not equal to the username or the email. A violation answers 400 with `errors[].code`
+   `PasswordPolicy`, never 500. The byte limit is bcrypt's: longer input would be truncated or refused by the hash, so
+   the policy refuses it first (QAD-022; `PasswordChangeTest`). An overlong current password or login is an ordinary
+   refusal (400 `CurrentPassword`, uniform 401).
 3. **Lockout.** **ASSUMPTION**: 5 consecutive failures lock the account for 15 minutes.
    - A successful login resets the counter.
    - A login during the lock is refused like any other refusal (LD-007.2), even with the right password.
@@ -74,6 +77,8 @@ names the tests that cover it. Developer runs are not independent QA.
 1. Every handler under `/api/**` either declares `@PreAuthorize`, or is one of the public auth endpoints (`csrf`,
    `login`). A test fails the build otherwise; it covers Phase 3 and Phase 4 endpoints too.
 2. **Status codes.** Anonymous access answers 401; a missing permission answers 403. Both are problems without detail.
+   The permission is checked before the body is read, validated or converted, so a caller without it gets 403 for an
+   invalid request too, and learns no field names (QAD-026; `AuthorizationBeforeValidationTest`).
 3. **Hidden identifiers.** Object identifiers that a user may not see answer 404, so resources cannot be enumerated
    (applied per module).
 4. **Navigation is not access control.** The frontend hides what the user cannot do, and the backend enforces it

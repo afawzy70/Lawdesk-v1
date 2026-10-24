@@ -21,6 +21,6 @@ export const authEn = {
   'password.tooShort': 'The new password must have at least 12 characters.',
   'password.mismatch': 'The two new passwords are not the same.',
   'password.currentWrong': 'The current password is not correct.',
-  'password.policy': 'The new password does not meet the rules: 12 to 128 characters, not your username or email.',
+  'password.policy': 'The new password does not meet the rules: at least 12 characters, at most 72 Latin or 36 Arabic letters, not your username or email.',
   'password.failed': 'The password could not be changed. Try again later.',
 } as const;
