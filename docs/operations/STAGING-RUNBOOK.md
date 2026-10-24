@@ -54,6 +54,10 @@ merge into develop ─► CI (6 gates) ─► deploy-staging job ─ssh─► la
   because Flyway ignores future migrations (tested in LD-004). Schema is never downgraded automatically; every
   deployment over a running release first writes a `pg_dump -Fc` to `backups/` (newest 10 kept) for manual recovery.
 
+**Which backend commit is running.** A signed-in user (QA included) calls `GET /api/v1/release`, which answers
+`{"release": "<commit sha>"}`: the running process's `LAWDESK_RELEASE`, and nothing else. `/actuator/info` stays
+internal; neither the web container nor the shared proxy forwards it.
+
 ## Exit codes
 
 | Gate | Meaning |
