@@ -10,7 +10,7 @@ Status: investigation and proof preparation, 2026-10-24. No self-hosted job has 
 
 ## Decision gate
 
-GitHub documents that self-hosted runner execution is free of Actions minutes. This makes a runner a *possible* answer to the confirmed hosted-compute quota, but it does not prove that GitHub will execute a self-hosted job while this account is blocked. The [PR #49 probe](https://github.com/afawzy70/Lawdesk-v1/actions/runs/40125833039) is queued under label `lawdesk-ci-poc-49`, while its hosted CI jobs failed before a step ran. A queued job is admission evidence, not execution evidence. A payment failure, spending stop, policy restriction, or account hold may have different effects. The only accepted GO evidence is the `Self-hosted scheduling probe` job executing on a temporary runner and appearing as a successful check on this PR. Until then, migration is NO-GO.
+GitHub documents that self-hosted runner execution is free of Actions minutes. This makes a runner a *possible* answer to the confirmed hosted-compute quota, but it does not prove that GitHub will execute a self-hosted job while this account is blocked. The [PR #49 probe checks](https://github.com/afawzy70/Lawdesk-v1/pull/49/checks) show the current-head job pending under label `lawdesk-ci-poc-49`, while its hosted CI jobs failed before a step ran. A queued job is admission evidence, not execution evidence. A payment failure, spending stop, policy restriction, or account hold may have different effects. The only accepted GO evidence is the `Self-hosted scheduling probe` job executing on a temporary runner and appearing as a successful check on this PR. Until then, migration is NO-GO.
 
 ## Proof procedure
 
