@@ -1,0 +1,146 @@
+# QAD-028 RED: ./mvnw -B test -Dtest=SessionRevocationTest on origin/develop 8b0928b plus the new test only (no fix). Application JSON log lines omitted.
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.lawdesk.security.SessionRevocationTest
+14:51:07.412 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.lawdesk.security.SessionRevocationTest]: SessionRevocationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+14:51:08.018 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.lawdesk.LawdeskBackendApplication for test class com.lawdesk.security.SessionRevocationTest
+14:51:08.277 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.lawdesk.security.SessionRevocationTest]: SessionRevocationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+14:51:08.279 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.lawdesk.platform.PostgresTestSupport]: PostgresTestSupport does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+14:51:08.296 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.lawdesk.LawdeskBackendApplication for test class com.lawdesk.security.SessionRevocationTest
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/home/aiagent/.m2/repository/net/bytebuddy/byte-buddy-agent/1.18.15/byte-buddy-agent-1.18.15.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+[ERROR] Tests run: 12, Failures: 10, Errors: 0, Skipped: 0, Time elapsed: 89.28 s <<< FAILURE! -- in com.lawdesk.security.SessionRevocationTest
+[ERROR] com.lawdesk.security.SessionRevocationTest.anAdministratorWhoResetsTheirOwnPasswordIsSignedOutToo -- Time elapsed: 3.153 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[GET case] 
+expected: 401
+ but was: 403
+	at com.lawdesk.security.SessionRevocationTest.assertRevoked(SessionRevocationTest.java:129)
+	at com.lawdesk.security.SessionRevocationTest.anAdministratorWhoResetsTheirOwnPasswordIsSignedOutToo(SessionRevocationTest.java:190)
+
+[ERROR] com.lawdesk.security.SessionRevocationTest.anOwnPasswordChangeRacingAResetDoesNotUndoTheReset -- Time elapsed: 5.163 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: 401
+ but was: 204
+	at com.lawdesk.security.SessionRevocationTest.anOwnPasswordChangeRacingAResetDoesNotUndoTheReset(SessionRevocationTest.java:338)
+
+[ERROR] com.lawdesk.security.SessionRevocationTest.aLoginThatReadTheAccountJustBeforeAResetDoesNotSurviveIt -- Time elapsed: 3.024 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[GET case] 
+expected: 401
+ but was: 403
+	at com.lawdesk.security.SessionRevocationTest.assertRevoked(SessionRevocationTest.java:129)
+	at com.lawdesk.security.SessionRevocationTest.aLoginThatReadTheAccountJustBeforeAResetDoesNotSurviveIt(SessionRevocationTest.java:321)
+
+[ERROR] com.lawdesk.security.SessionRevocationTest.aDisabledUsersSessionsStayRevokedWhenTheAccountIsEnabledAgain -- Time elapsed: 2.717 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[GET case] 
+expected: 401
+ but was: 200
+	at com.lawdesk.security.SessionRevocationTest.assertRevoked(SessionRevocationTest.java:129)
+	at com.lawdesk.security.SessionRevocationTest.aDisabledUsersSessionsStayRevokedWhenTheAccountIsEnabledAgain(SessionRevocationTest.java:221)
+
+[ERROR] com.lawdesk.security.SessionRevocationTest.aRefusedRevokedSessionIsAuditedWithoutSessionIdsOrTokens(CapturedOutput) -- Time elapsed: 2.912 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: 401
+ but was: 403
+	at com.lawdesk.security.SessionRevocationTest.aRefusedRevokedSessionIsAuditedWithoutSessionIdsOrTokens(SessionRevocationTest.java:354)
+
+[ERROR] com.lawdesk.security.SessionRevocationTest.anOwnPasswordChangeKeepsTheChangingSessionAndRevokesTheOthers -- Time elapsed: 3.281 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[GET case] 
+expected: 401
+ but was: 200
+	at com.lawdesk.security.SessionRevocationTest.assertRevoked(SessionRevocationTest.java:129)
+	at com.lawdesk.security.SessionRevocationTest.anOwnPasswordChangeKeepsTheChangingSessionAndRevokesTheOthers(SessionRevocationTest.java:203)
+
+[ERROR] com.lawdesk.security.SessionRevocationTest.theQaReproductionTheOriginalSessionCannotReadTheCaseAfterAnotherSessionChangedTheResetPassword -- Time elapsed: 4.986 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: 401
+ but was: 200
+	at com.lawdesk.security.SessionRevocationTest.theQaReproductionTheOriginalSessionCannotReadTheCaseAfterAnotherSessionChangedTheResetPassword(SessionRevocationTest.java:162)
+
+[ERROR] com.lawdesk.security.SessionRevocationTest.concurrentlyUsedSessionsAreAllRevoked -- Time elapsed: 2.895 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[GET case] 
+expected: 401
+ but was: 403
+	at com.lawdesk.security.SessionRevocationTest.assertRevoked(SessionRevocationTest.java:129)
+	at com.lawdesk.security.SessionRevocationTest.concurrentlyUsedSessionsAreAllRevoked(SessionRevocationTest.java:307)
+
+[ERROR] com.lawdesk.security.SessionRevocationTest.aRevokedSessionStaysDeadAfterLaterChangesOfAnyKind -- Time elapsed: 2.260 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: 401
+ but was: 403
+	at com.lawdesk.security.SessionRevocationTest.aRevokedSessionStaysDeadAfterLaterChangesOfAnyKind(SessionRevocationTest.java:230)
+
+[ERROR] com.lawdesk.security.SessionRevocationTest.aResetRevokesEverySessionThatSignedInBefore -- Time elapsed: 3.013 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[GET case] 
+expected: 401
+ but was: 403
+	at com.lawdesk.security.SessionRevocationTest.assertRevoked(SessionRevocationTest.java:129)
+	at com.lawdesk.security.SessionRevocationTest.aResetRevokesEverySessionThatSignedInBefore(SessionRevocationTest.java:175)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   SessionRevocationTest.aDisabledUsersSessionsStayRevokedWhenTheAccountIsEnabledAgain:221->assertRevoked:129 [GET case] 
+expected: 401
+ but was: 200
+[ERROR]   SessionRevocationTest.aLoginThatReadTheAccountJustBeforeAResetDoesNotSurviveIt:321->assertRevoked:129 [GET case] 
+expected: 401
+ but was: 403
+[ERROR]   SessionRevocationTest.aRefusedRevokedSessionIsAuditedWithoutSessionIdsOrTokens:354 
+expected: 401
+ but was: 403
+[ERROR]   SessionRevocationTest.aResetRevokesEverySessionThatSignedInBefore:175->assertRevoked:129 [GET case] 
+expected: 401
+ but was: 403
+[ERROR]   SessionRevocationTest.aRevokedSessionStaysDeadAfterLaterChangesOfAnyKind:230 
+expected: 401
+ but was: 403
+[ERROR]   SessionRevocationTest.anAdministratorWhoResetsTheirOwnPasswordIsSignedOutToo:190->assertRevoked:129 [GET case] 
+expected: 401
+ but was: 403
+[ERROR]   SessionRevocationTest.anOwnPasswordChangeKeepsTheChangingSessionAndRevokesTheOthers:203->assertRevoked:129 [GET case] 
+expected: 401
+ but was: 200
+[ERROR]   SessionRevocationTest.anOwnPasswordChangeRacingAResetDoesNotUndoTheReset:338 
+expected: 401
+ but was: 204
+[ERROR]   SessionRevocationTest.concurrentlyUsedSessionsAreAllRevoked:307->assertRevoked:129 [GET case] 
+expected: 401
+ but was: 403
+[ERROR]   SessionRevocationTest.theQaReproductionTheOriginalSessionCannotReadTheCaseAfterAnotherSessionChangedTheResetPassword:162 
+expected: 401
+ but was: 200
+[INFO] 
+[ERROR] Tests run: 12, Failures: 10, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[ERROR] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  02:02 min
+[INFO] Finished at: 2026-10-24T14:52:35+02:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project lawdesk-backend: There are test failures.
+[ERROR] 
+[ERROR] See /home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/agent-a6fb63eb96ef2f05e/backend/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
