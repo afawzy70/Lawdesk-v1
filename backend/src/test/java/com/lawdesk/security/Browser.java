@@ -35,6 +35,10 @@ public final class Browser {
         return send(withCsrf(request(path)).POST(HttpRequest.BodyPublishers.ofString(json)));
     }
 
+    public HttpResponse<String> put(String path, String json) {
+        return send(withCsrf(request(path)).PUT(HttpRequest.BodyPublishers.ofString(json)));
+    }
+
     public HttpResponse<String> postWithoutCsrf(String path, String json) {
         return send(request(path).POST(HttpRequest.BodyPublishers.ofString(json)));
     }
