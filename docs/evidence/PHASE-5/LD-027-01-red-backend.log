@@ -1,0 +1,23 @@
+# LD-027/LD-028 RED: TaskApiTest and TaskReminderApiTest before any task code (./mvnw -B test -Dtest='Task*Test')
+[ERROR] Tests run: 15, Failures: 14, Errors: 1, Skipped: 0, Time elapsed: 31.07 s <<< FAILURE! -- in com.lawdesk.tasks.TaskApiTest
+[ERROR] Tests run: 3, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 0.174 s <<< FAILURE! -- in com.lawdesk.tasks.TaskReminderApiTest
+[ERROR]   TaskApiTest.aFailingTimelineEventRollsTheWriteBack:318->TaskTestSupport.create:120 Status expected:<201> but was:<404>
+[ERROR]   TaskApiTest.aRefusalIsAuditedAsAccessDenied:306 Status expected:<403> but was:<404>
+[ERROR]   TaskApiTest.aStaleVersionIsAConflictAndChangesNothing:351->TaskTestSupport.create:120 Status expected:<201> but was:<404>
+[ERROR]   TaskApiTest.aTaskNeedsNoCaseAndDefaultsToNormalPriority:80 Status expected:<201> but was:<404>
+[ERROR]   TaskApiTest.anArchivedCaseTakesNoTaskChanges:253->TaskTestSupport.create:120 Status expected:<201> but was:<404>
+[ERROR]   TaskApiTest.anUnchangedPastDueDateAndADisabledAssigneeMayStay:234->TaskTestSupport.create:120 Status expected:<201> but was:<404>
+[ERROR]   TaskApiTest.boundariesOfTextDueDateAndAssignee:211 Status expected:<400> but was:<404>
+[ERROR]   TaskApiTest.createsACaseTaskAndATimelineEvent:49 Status expected:<201> but was:<404>
+[ERROR]   TaskApiTest.editsATaskAndRecordsANewAssignee:93->TaskTestSupport.create:120 Status expected:<201> but was:<404>
+[ERROR]   TaskApiTest.listsTasksByDueDateThenPriorityWithFilters:145->TaskTestSupport.create:120 Status expected:<201> but was:<404>
+[ERROR]   TaskApiTest.movesThroughTheStatusLifecycle:117->TaskTestSupport.create:120 Status expected:<201> but was:<404>
+[ERROR]   TaskApiTest.requiredFieldsAreValidated:184 Status expected:<400> but was:<404>
+[ERROR]   TaskApiTest.unknownTasksAreNotFoundAndTheDatabaseKeepsStatusesConsistent:332 Status expected:<400> but was:<404>
+[ERROR]   TaskApiTest.viewersCannotWriteAndOthersCannotRead:286 Status expected:<403> but was:<404>
+[ERROR]   TaskReminderApiTest.aUserWithoutTasksHasNoReminders:63 Status expected:<200> but was:<404>
+[ERROR]   TaskReminderApiTest.countsTheSignedInUsersOverdueAndDueSoonTasks:28->overdue:19->TaskTestSupport.create:120 Status expected:<201> but was:<404>
+[ERROR]   TaskReminderApiTest.remindersNeedTaskView:70 Status expected:<403> but was:<404>
+[ERROR]   TaskApiTest>TaskTestSupport.removeTasks:51 » BadSqlGrammar StatementCallback; bad SQL grammar [delete from task]
+[ERROR] Tests run: 18, Failures: 17, Errors: 1, Skipped: 0
+[ERROR] BUILD FAILURE

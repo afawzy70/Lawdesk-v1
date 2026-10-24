@@ -1,0 +1,26 @@
+# QAD-032 RED: filing-date edits ignore hearings, and racing writes both succeed (-Dtest=HearingFilingChronologyTest)
+[ERROR] Tests run: 6, Failures: 6, Errors: 0, Skipped: 0, Time elapsed: 47.10 s <<< FAILURE! -- in com.lawdesk.hearings.HearingFilingChronologyTest
+  [201, 200]
+  [201, 422]
+  [200, 200]
+  [200, 422]
+  [200, 201]
+  [200, 422]
+  [200, 200]
+  [200, 422]
+[ERROR]   HearingFilingChronologyTest.aCancelledHearingStillBoundsTheFilingDate:97 Status expected:<422> but was:<200>
+[ERROR]   HearingFilingChronologyTest.aFilingDateMovedWhileAHearingIsRescheduledEarlierIsRefused:134 
+  [200, 200]
+  [200, 422]
+[ERROR]   HearingFilingChronologyTest.aFilingDateMovedWhileAHearingIsScheduledIsRefused:120 
+  [201, 200]
+  [201, 422]
+[ERROR]   HearingFilingChronologyTest.aHearingScheduledWhileTheFilingDateMovesLaterIsRefused:108 
+  [200, 201]
+  [200, 422]
+[ERROR]   HearingFilingChronologyTest.aNextHearingAdjournedToWhileTheFilingDateMovesIsCheckedAgainstTheNewDate:147 
+  [200, 200]
+  [200, 422]
+[ERROR]   HearingFilingChronologyTest.theFilingDateCannotMoveAfterAnExistingHearing:78 Status expected:<422> but was:<200>
+[ERROR] Tests run: 6, Failures: 6, Errors: 0, Skipped: 0
+[ERROR] BUILD FAILURE

@@ -1,0 +1,101 @@
+import { render, screen, within } from '@testing-library/react';
+import { MemoryRouter } from 'react-router';
+import { describe, expect, it, vi } from 'vitest';
+import { AppRoutes } from '../../App';
+import { NAV_ITEMS } from '../../layout/navigation';
+import { ADMIN, fakeApi } from '../../test/api';
+import { jsonResponse } from '../../test/http';
+
+/** The Phase 5 screens in the application shell (architecture/CONTRACTS.md §8.1). */
+
+const EMPTY = { items: [], page: 0, size: 20, totalItems: 0, totalPages: 0 };
+
+function calendarApi(permissions = ADMIN.permissions) {
+  const base = fakeApi({ me: { ...ADMIN, permissions } });
+  vi.stubGlobal(
+    'fetch',
+    vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url, 'http://localhost');
+      if (['/api/v1/hearings', '/api/v1/documents', '/api/v1/experts'].includes(url.pathname)) {
+        return Promise.resolve(jsonResponse(EMPTY));
+      }
+      return base(input, init);
+    }),
+  );
+}
+
+describe('operations routes', () => {
+  it('marks the hearing calendar ready behind HEARING_VIEW', () => {
+    expect(NAV_ITEMS.find((item) => item.path === '/hearings')).toMatchObject({
+      status: 'ready',
+      requires: 'HEARING_VIEW',
+    });
+  });
+
+  it('marks the expert registry ready behind EXPERT_VIEW and opens it', async () => {
+    expect(NAV_ITEMS.find((item) => item.path === '/experts')).toMatchObject({ status: 'ready', requires: 'EXPERT_VIEW' });
+    calendarApi();
+    render(
+      <MemoryRouter initialEntries={['/experts?lang=en']}>
+        <AppRoutes />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole('heading', { level: 1, name: 'Experts' })).toBeInTheDocument();
+    const nav = screen.getByRole('navigation', { name: 'Primary' });
+    expect(within(nav).getByRole('link', { name: 'Experts' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('marks the documents screen ready behind DOCUMENT_VIEW and opens it', async () => {
+    expect(NAV_ITEMS.find((item) => item.path === '/documents')).toMatchObject({
+      status: 'ready',
+      requires: 'DOCUMENT_VIEW',
+    });
+    calendarApi();
+    render(
+      <MemoryRouter initialEntries={['/documents?lang=en']}>
+        <AppRoutes />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole('heading', { level: 1, name: 'Documents' })).toBeInTheDocument();
+    const nav = screen.getByRole('navigation', { name: 'Primary' });
+    expect(within(nav).getByRole('link', { name: 'Documents' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('marks the task list ready behind TASK_VIEW and opens it', async () => {
+    expect(NAV_ITEMS.find((item) => item.path === '/tasks')).toMatchObject({ status: 'ready', requires: 'TASK_VIEW' });
+    calendarApi();
+    render(
+      <MemoryRouter initialEntries={['/tasks?lang=en']}>
+        <AppRoutes />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole('heading', { level: 1, name: 'Tasks' })).toBeInTheDocument();
+    const nav = screen.getByRole('navigation', { name: 'Primary' });
+    expect(within(nav).getByRole('link', { name: 'Tasks' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('opens the hearing calendar from the primary navigation', async () => {
+    calendarApi();
+    render(
+      <MemoryRouter initialEntries={['/hearings?lang=en']}>
+        <AppRoutes />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole('heading', { level: 1, name: 'Hearing calendar' })).toBeInTheDocument();
+    const nav = screen.getByRole('navigation', { name: 'Primary' });
+    expect(within(nav).getByRole('link', { name: 'Hearings' })).toHaveAttribute('aria-current', 'page');
+    expect(await screen.findByText('No hearings in this period.')).toBeInTheDocument();
+  });
+
+  it('hides the hearing calendar link from users without HEARING_VIEW', async () => {
+    calendarApi(ADMIN.permissions.filter((p) => p !== 'HEARING_VIEW'));
+    render(
+      <MemoryRouter initialEntries={['/?lang=en']}>
+        <AppRoutes />
+      </MemoryRouter>,
+    );
+    const nav = await screen.findByRole('navigation', { name: 'Primary' });
+    expect(await within(nav).findByRole('link', { name: 'Cases' })).toBeInTheDocument();
+    expect(within(nav).queryByRole('link', { name: 'Hearings' })).not.toBeInTheDocument();
+  });
+});

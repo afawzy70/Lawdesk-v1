@@ -22,6 +22,14 @@ spring:
     # one; future versions stay ignored when an older release runs (rollback).
     out-of-order: true
     ignore-migration-patterns: "*:future"
+  # LD-026 (architecture/CONTRACTS.md §8.1, §8.3): PDF uploads of at most 10 MiB. Parts are read lazily, when the
+  # document endpoint asks for them, so the permission check runs before the body is parsed (QAD-026) and an
+  # oversized upload is answered by the document endpoint as a 400 problem.
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 11MB
+      resolve-lazily: true
   data:
     web:
       pageable:
