@@ -10,6 +10,7 @@ import type { Hearing } from './hearings/hearingsApi';
 import { operationsRoutes } from './routes';
 import type { CaseDocument } from './documents/documentsApi';
 import type { Expert, Referral } from './experts/expertsApi';
+import type { CaseNote } from './notes/notesApi';
 import type { Task } from './tasks/tasksApi';
 
 /** Test-only helpers for the legal operations screens: their routes, a case page hosting them, a scripted backend. */
@@ -204,6 +205,22 @@ export function referral(overrides: Partial<Referral> = {}): Referral {
     version: 0,
     createdAt: '2025-02-01T08:00:00Z',
     updatedAt: '2025-02-01T08:00:00Z',
+    ...overrides,
+  };
+}
+
+export function caseNote(overrides: Partial<CaseNote> = {}): CaseNote {
+  return {
+    id: 'n1',
+    caseId: CASE,
+    body: 'Client prefers settlement before the appeal.',
+    authorId: 'u1',
+    authorName: 'Mona Saleh',
+    editable: true,
+    edited: false,
+    version: 0,
+    createdAt: '2025-03-01T09:00:00Z',
+    updatedAt: '2025-03-01T09:00:00Z',
     ...overrides,
   };
 }

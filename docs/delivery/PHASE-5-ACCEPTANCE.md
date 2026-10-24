@@ -281,18 +281,33 @@ Acceptance criteria:
 
 ## LD-029 Legal notes and activity history
 
-1. A note belongs to a case: `body` (required, ≤ 4000). `POST /api/v1/cases/{caseId}/notes` (`NOTE_MANAGE`),
-   `PUT /api/v1/notes/{id}` (`NOTE_MANAGE`, with `version`), `DELETE /api/v1/notes/{id}?version=` (`NOTE_MANAGE`),
-   `GET /api/v1/cases/{caseId}/notes` (`CASE_VIEW`, newest first).
+1. A note belongs to a case: `body` (required, ≤ 4000, trimmed). `POST /api/v1/cases/{caseId}/notes` (`NOTE_MANAGE`,
+   201, `Location`), `PUT /api/v1/notes/{id}` (`NOTE_MANAGE`, with `version`, 409 when stale),
+   `DELETE /api/v1/notes/{id}?version=` (`NOTE_MANAGE`, 204; a missing version is 400),
+   `GET /api/v1/cases/{caseId}/notes` (`CASE_VIEW`, newest first, paged). Answers carry the author's id and display
+   name, `editable` (the signed-in user wrote it) and `edited`. `NOTE_MANAGE` alone does not open notes (§8.2).
 2. **ASSUMPTION:** only the author changes or deletes a note (`422 NOTE_AUTHOR_ONLY`); notes are internal to the office
-   and their text never enters the timeline.
-3. Timeline: `NOTE_ADDED`, `NOTE_REMOVED`. The activity history of a case is its timeline (LD-014,
-   `GET /api/v1/cases/{id}/timeline`), which Phase 5 feeds through `CaseLookup#recordEvent`; the case details page shows
-   it already.
+   and their text never enters the timeline; an `ARCHIVED` case takes no note changes (`422 CASE_ARCHIVED`). Removal
+   deletes the note.
+3. Timeline: `NOTE_ADDED`, `NOTE_REMOVED`, naming the author only. The activity history of a case is its timeline
+   (LD-014, `GET /api/v1/cases/{id}/timeline`), which every Phase 5 module feeds through `CaseLookup#recordEvent`
+   (`ActivityHistoryTest`: one case with a hearing, a task, a document, an expert referral and a note shows all seven
+   events newest first). The case details page shows that timeline already (Workstream B); its labels for the
+   Phase 5 event types are a requested follow-up in `features/cases` (see "Dependencies"), until then they show as
+   "other event" with their summary.
+4. Screen: the case's legal notes in `CaseOperations`: write, edit and remove own notes (removal after confirmation),
+   with a hint that notes stay internal.
 
 | QA case | Scenario | Mapping | Status |
 |---------|----------|---------|--------|
-| QA-0225…QA-0232 | the eight standard scenarios | `NoteApiTest`, `CaseNotes.test.tsx` | PLANNED |
+| QA-0225 | authorized happy path | `NoteApiTest.writesReadsEditsAndRemovesALegalNote`, `ActivityHistoryTest` | AUTOMATED |
+| QA-0226 | required-field validation | `NoteApiTest.theBodyIsRequiredAndBounded` | AUTOMATED |
+| QA-0227 | invalid input boundary | Body 4000/4001, blank body, unknown case or note (same test) | AUTOMATED |
+| QA-0228 | unauthenticated access | `NoteApiTest.notesNeedASessionAndTheirPermissions` | AUTOMATED |
+| QA-0229 | insufficient permission | Same test, with the `ACCESS_DENIED` audit row; `onlyTheAuthorChangesANoteAndArchivedCasesTakeNone` | AUTOMATED |
+| QA-0230 | record integrity and rollback | `aFailingTimelineEventRollsTheNoteBackAndStaleVersionsConflict`, database check on blank bodies | AUTOMATED |
+| QA-0231 | concurrent or repeat request | Stale edit and removal → 409 (same test) | AUTOMATED |
+| QA-0232 | API-to-UI state and error handling | `CaseNotes.test.tsx`; real-browser layout `LD-029-07-layout-375-1366.log` | AUTOMATED |
 
 ## Dependencies
 
@@ -303,5 +318,10 @@ Acceptance criteria:
 - Follow-up in `com.lawdesk.proceedings` (Workstream C package, integration owner): a proceeding's filing date should
   not move after the earliest hearing or expert referral of that proceeding; the check needs a read of Phase 5 tables
   or a small port, and a row lock shared with the Phase 5 writes.
+- Follow-up in `features/cases/CaseTimelineList.tsx` and `cases.{en,ar}.ts` (Workstream B files, integration owner):
+  labels for the Phase 5 timeline types `HEARING_SCHEDULED`, `HEARING_RESCHEDULED`, `HEARING_HELD`,
+  `HEARING_ADJOURNED`, `HEARING_CANCELLED`, `TASK_CREATED`, `TASK_ASSIGNED`, `TASK_COMPLETED`, `TASK_CANCELLED`,
+  `TASK_REOPENED`, `DOCUMENT_ATTACHED`, `DOCUMENT_REMOVED`, `EXPERT_REFERRED`, `EXPERT_SESSION_RECORDED`,
+  `EXPERT_REPORT_SUBMITTED`, `EXPERT_REFERRAL_CANCELLED`, `NOTE_ADDED`, `NOTE_REMOVED`.
 - Uploading files from the browser uses `src/api/http.ts` with `FormData` bodies, added by the integration owner
   (branch `feature/LD-026-http-multipart`, PR #38), which the LD-026 branch merges.
