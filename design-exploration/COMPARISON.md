@@ -15,7 +15,7 @@ The current `develop` build has a sample-data dashboard, ready case list and cas
 | C — Case Intelligence | [Open C](https://stitch.withgoogle.com/projects/2809941713949337888) | 6 desktop + 3 mobile | 1 | 6 desktop screens | [C DESIGN.md](concept-c/DESIGN.md) |
 | D — Modern Chambers | [Open D](https://stitch.withgoogle.com/projects/2890116183553293246) | 6 desktop + 3 mobile | 1 | Dashboard only | [D DESIGN.md](concept-d/DESIGN.md) |
 
-All 41 screen IDs above, including the extra A revision, were confirmed individually with Stitch `get_screen`; each has a screenshot resource. The Canvas count is a separate `list_screens` result. Some screens do not appear on the project Canvas even though `get_screen` works. The project URLs use Stitch's documented project-link pattern and MCP-confirmed private project IDs; an unauthenticated browser cannot validate access. [STITCH-EVIDENCE.json](STITCH-EVIDENCE.json) holds every ID, screenshot resource, device type, local export where present, and Canvas status.
+All 41 screen IDs in the evidence manifest, including the extra A revision, were confirmed individually with Stitch `get_screen`; each has a screenshot resource. The Canvas count is a separate `list_screens` result. Some screens do not appear on the project Canvas even though `get_screen` works. The project URLs use Stitch's documented project-link pattern and MCP-confirmed private project IDs; an unauthenticated browser cannot validate access. [STITCH-EVIDENCE.json](STITCH-EVIDENCE.json) holds every ID, screenshot resource, device type, local export, and Canvas status.
 
 The six desktop topics per direction are Dashboard, Cases List, Case Details, Clients Management, Hearings/Calendar, and Document Management. The three mobile topics are Dashboard, Cases List, and Case Details. The extra Arabic screen is a mobile Cases List. These are separate screen resources, not a single montage.
 
@@ -90,4 +90,4 @@ Scores are **1–5 visual review judgments**, not usability-test results. The ev
 
 Use **B — Modern Workspace** as the primary direction for daily LawDesk work, after redesigning its desktop Case Details masthead and clearly marking roadmap destinations. Borrow **C's** filter/inspector pattern for high-volume case lists, **A's** partner-level portfolio summary, and **D's** restrained document/file organization. Use one shared content model and permission matrix so the hybrid remains coherent; never copy the generated legal claims or invented integrations.
 
-This is a design recommendation, not a production readiness approval. Canvas linkage is incomplete for B/C/D despite confirmed screen resources; the local screenshots and evidence manifest preserve the reviewable result.
+This is a design recommendation, not a production readiness approval. Canvas linkage is incomplete for B/C/D despite confirmed screen resources; the full local screenshot gallery and evidence manifest preserve the reviewable result.

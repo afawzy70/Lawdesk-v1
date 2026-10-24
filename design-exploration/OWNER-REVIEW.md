@@ -15,11 +15,11 @@ The project IDs and titles were verified through Stitch MCP. The links follow St
 
 For each concept, review the six desktop topics (Dashboard, Cases List, Case Details, Clients, Hearings, Documents), the three mobile topics (Dashboard, Cases List, Case Details), and the Arabic RTL Cases List. Use fictional case `LD-2026-00421` as the common anchor. Compare: finding a case, reading its parties and first-instance proceeding, seeing the next hearing, and locating a deadline. The other IDs in the concepts are also fictional.
 
-Start with [COMPARISON.md](COMPARISON.md). Its twelve local exports show a dashboard, case details and RTL list for every direction. Full IDs and screenshot file resources are in [STITCH-EVIDENCE.json](STITCH-EVIDENCE.json).
+Start with [COMPARISON.md](COMPARISON.md). Its representative exports show a dashboard, case details and RTL list for every direction. All 41 images are in the [screenshot gallery](screenshots/README.md). Full IDs and screenshot file resources are in [STITCH-EVIDENCE.json](STITCH-EVIDENCE.json).
 
 ## Canvas and evidence limitation
 
-At the final MCP check, the project Canvas listed **A: 9 screens, B: 6, C: 6, D: 1**. Stitch `get_screen` independently confirmed **9 core screens plus one Arabic variant for each project**, and one additional A RTL revision. The remaining verified resources may not appear on the Canvas in the web app. Do not count a missing Canvas thumbnail as a failed generation, and do not assume that an API-confirmed screen is already placed on the Canvas. The twelve local screenshots make the four directions comparable while this Stitch linking issue remains.
+At the final MCP check, the project Canvas listed **A: 9 screens, B: 6, C: 6, D: 1**. Stitch `get_screen` independently confirmed **9 core screens plus one Arabic variant for each project**, and one additional A RTL revision. The remaining verified resources may not appear on the Canvas in the web app. Do not count a missing Canvas thumbnail as a failed generation, and do not assume that an API-confirmed screen is already placed on the Canvas. The full [screenshot gallery](screenshots/README.md) exports all 41 verified screens, so every core screen can be reviewed while this Stitch linking issue remains.
 
 ## Review prompts for the owner
 
