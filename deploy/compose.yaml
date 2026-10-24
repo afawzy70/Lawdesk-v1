@@ -55,9 +55,14 @@ services:
       LAWDESK_RELEASE: ${LAWDESK_TAG:?set LAWDESK_TAG to the release commit SHA}
       # The password is read from /run/secrets/spring.datasource.password.
       SPRING_CONFIG_IMPORT: configtree:/run/secrets/
+      # LD-008.4: the first administrator, created only while no user exists; it must change the password at sign-in.
+      LAWDESK_BOOTSTRAP_ADMIN_USERNAME: ${LAWDESK_ADMIN_USERNAME:-admin}
+      LAWDESK_BOOTSTRAP_ADMIN_EMAIL: ${LAWDESK_ADMIN_EMAIL:-admin@lawdesk.invalid}
+      LAWDESK_BOOTSTRAP_ADMIN_PASSWORD_FILE: /run/secrets/admin_bootstrap_password
     secrets:
       - source: db_app_password
         target: spring.datasource.password
+      - admin_bootstrap_password
     depends_on:
       db:
         condition: service_healthy
@@ -107,3 +112,5 @@ secrets:
     file: ${LAWDESK_SECRETS_DIR:-./secrets}/db_admin_password.txt
   db_app_password:
     file: ${LAWDESK_SECRETS_DIR:-./secrets}/db_app_password.txt
+  admin_bootstrap_password:
+    file: ${LAWDESK_SECRETS_DIR:-./secrets}/admin_bootstrap_password.txt

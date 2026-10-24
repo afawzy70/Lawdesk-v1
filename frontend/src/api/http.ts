@@ -32,6 +32,28 @@ export interface RequestOptions {
   signal?: AbortSignal;
 }
 
+type UnauthorizedListener = () => void;
+const unauthorizedListeners = new Set<UnauthorizedListener>();
+
+/** Called when an API request finds no session any more (expired or signed out elsewhere). */
+export function onUnauthorized(listener: UnauthorizedListener): () => void {
+  unauthorizedListeners.add(listener);
+  return () => {
+    unauthorizedListeners.delete(listener);
+  };
+}
+
+export function notifyUnauthorized(): void {
+  for (const listener of unauthorizedListeners) {
+    listener();
+  }
+}
+
+/** Sign-in endpoints answer 401 as part of their normal work; it does not mean a session ended. */
+function endsSession(path: string): boolean {
+  return !path.startsWith('/api/v1/auth/') && path !== '/api/v1/me';
+}
+
 const CSRF_COOKIE = 'XSRF-TOKEN';
 const CSRF_HEADER = 'X-XSRF-TOKEN';
 
@@ -75,6 +97,9 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
 
   if (!response.ok) {
     const problem = isJson(response) ? ((await response.json().catch(() => null)) as Problem | null) : null;
+    if (response.status === 401 && endsSession(path)) {
+      notifyUnauthorized();
+    }
     throw new ApiError(response.status, problem);
   }
   if (response.status === 204 || !isJson(response)) {

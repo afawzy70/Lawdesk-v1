@@ -30,6 +30,14 @@ spring:
 
 server:
   shutdown: graceful
+  servlet:
+    session:
+      # LD-007.3: idle timeout (ASSUMPTION) and the session cookie the SPA never reads.
+      timeout: 30m
+      cookie:
+        http-only: true
+        secure: true
+        same-site: lax
   # Runs behind the HTTPS reverse proxy; trust its X-Forwarded-* headers.
   forward-headers-strategy: framework
   error:
