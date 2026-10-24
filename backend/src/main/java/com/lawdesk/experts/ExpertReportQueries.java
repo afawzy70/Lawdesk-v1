@@ -3,7 +3,9 @@ package com.lawdesk.experts;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -66,6 +68,10 @@ public class ExpertReportQueries {
     public record ExpertWorkload(UUID expertId, long open, long overdue) {
     }
 
+    /** What reports and their exports show of an expert. */
+    public record ExpertRef(UUID id, String name, String specialty, boolean active) {
+    }
+
     private static final String OVERDUE = "status = 'OPEN' and report_due_date < :today";
 
     private final NamedParameterJdbcTemplate jdbc;
@@ -123,6 +129,27 @@ public class ExpertReportQueries {
                 group by e.id order by e.id""", new MapSqlParameterSource("today", today()),
                 (rs, n) -> new ExpertWorkload(rs.getObject("id", UUID.class), rs.getLong("open"),
                         rs.getLong("overdue")));
+    }
+
+    /**
+     * The registry entries of these experts, in one query, keyed by id: at most {@link #MAX_ROWS} ids, unknown ids are
+     * left out, and no ids give an empty map. Deactivated experts are included, since old referrals still name them.
+     */
+    public Map<UUID, ExpertRef> experts(Collection<UUID> ids) {
+        if (ids.size() > MAX_ROWS) {
+            throw new IllegalArgumentException("at most " + MAX_ROWS + " experts per call");
+        }
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        Map<UUID, ExpertRef> found = new HashMap<>();
+        jdbc.query("select id, name, specialty, active from expert where id in (:ids)",
+                new MapSqlParameterSource("ids", Set.copyOf(ids)), rs -> {
+                    UUID id = rs.getObject("id", UUID.class);
+                    found.put(id, new ExpertRef(id, rs.getString("name"), rs.getString("specialty"),
+                            rs.getBoolean("active")));
+                });
+        return found;
     }
 
     private static String where(ReferralFilter filter) {
