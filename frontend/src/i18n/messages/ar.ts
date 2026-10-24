@@ -10,7 +10,8 @@ export const ar: Messages = {
   'app.name': 'LawDesk',
   'footer.version': 'LawDesk v{version}',
 
-  'preview.banner': 'معاينة UAT — بيانات نموذجية فقط. هذا ليس نظامًا فعّالًا لإدارة القضايا.',
+  'preview.banner':
+    'بيئة اختبار UAT — أدخل بيانات تجريبية فقط، ولا تُدخل بيانات موكلين حقيقية. لوحة المعلومات تعرض أرقامًا نموذجية، والأقسام المعلَّمة «لاحقًا» لم تُبنَ بعد.',
   'preview.bannerLabel': 'تنبيه المعاينة',
   'preview.titleSuffix': '(معاينة)',
   'preview.sampleData': 'بيانات نموذجية',
@@ -22,6 +23,7 @@ export const ar: Messages = {
 
   'nav.dashboard': 'لوحة المعلومات',
   'nav.cases': 'القضايا',
+  'nav.courts': 'المحاكم',
   'nav.hearings': 'الجلسات',
   'nav.judgments': 'الأحكام',
   'nav.experts': 'الخبراء',

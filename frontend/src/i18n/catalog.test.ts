@@ -42,8 +42,12 @@ describe('message catalogs', () => {
   });
 
   it('carries the agreed preview notice in both languages', () => {
-    expect(en['preview.banner']).toBe('UAT preview — sample data only. This is not a working case management system.');
-    expect(ar['preview.banner']).toBe('معاينة UAT — بيانات نموذجية فقط. هذا ليس نظامًا فعّالًا لإدارة القضايا.');
+    expect(en['preview.banner']).toBe(
+      'UAT test environment — enter test data only, never real client data. The dashboard shows sample figures, and areas marked “coming later” are not built yet.',
+    );
+    expect(ar['preview.banner']).toBe(
+      'بيئة اختبار UAT — أدخل بيانات تجريبية فقط، ولا تُدخل بيانات موكلين حقيقية. لوحة المعلومات تعرض أرقامًا نموذجية، والأقسام المعلَّمة «لاحقًا» لم تُبنَ بعد.',
+    );
     expect(en['preview.titleSuffix']).toBe('(Preview)');
     expect(ar['preview.titleSuffix']).toBe('(معاينة)');
   });
