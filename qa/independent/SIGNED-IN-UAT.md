@@ -5,13 +5,21 @@ Target: `https://lawdesk.167-86-90-174.sslip.io`. First prepared against baselin
 `browser/phase234-uat.mjs` and local PostgreSQL/API suites; it does not replace their evidence.
 
 `browser/phase234-signedin.mjs` contains 35 executable specifications, each with story IDs,
-priority, preconditions, synthetic data, reproducible steps and expected results. It is a
-**draft until its authenticated path has actually run**. Syntax validation and exercising
-its missing-credential guard do not verify the product or validate its browser selectors.
+priority, preconditions, synthetic data, reproducible steps and expected results. Its
+authenticated path ran on 2026-10-24: 33 PASS and two mobile-layout failures against the
+deployment reported as `8b0928ba10eb9b02ac3822ac33eca5b8778195b6`. Initial harness assumptions
+about timeline pagination, court-number length and the section heading were corrected;
+the diagnostic runs remain preserved and excluded from final counts.
+
+Additional live suites now cover all four approved roles (`phase234-roles-integrity.mjs`),
+actual administration/judicial form submissions (`phase234-forms.mjs`), and the25 case status
+transitions plus audit/session/keyboard checks (`phase234-lifecycle.mjs`). See the current
+report `qa/reports/2026-10-24-signedin-uat-8b0928b.md` for counts and confirmed defects.
+The prior credential BLOCKED evidence remains historical; it is not the current access state.
 
 ## Secure handoff
 
-The owner must identify an existing approved dedicated QA account using a private local
+The owner has supplied approved qa.admin/qa.manager/qa.staff/qa.viewer accounts using private local
 file, owned by the QA OS user, mode `0600`, containing JSON fields `username` and `password`.
 Set **only the path** in `LAWDESK_QA_CREDENTIAL_FILE`. Do not place the file in the repository,
 paste its contents in chat, pass passwords on the command line, or add them to reports.
@@ -60,11 +68,11 @@ user at the end where the authenticated session permits; inspect DISABLE results
 ownership manifest if execution is interrupted. Records remain identifiable as QA evidence;
 there is no bulk deletion, direct database write, deployment or infrastructure mutation.
 
-The current draft exercises browser login/password change/case creation/edit/search/logout,
+The main suite exercises browser login/password change/case creation/edit/search/logout,
 live API administration and judicial lifecycle, UI display of judicial stages/roles/audit,
-and en/ar layouts at 375/1366px with axe. It does **not** claim all judicial forms or all
-administration forms have been submitted in the browser, all accessibility requirements
-passed, all permission combinations passed, or legal rules approved. The remaining focused
-specifications in the new report and the existing `phase234-next-specifications.json` stay
-NOT_RUN until actually executed. The real UAT blocker is an account handoff, not a request
-for Claude to reimplement already merged fixes.
+and en/ar layouts at 375/1366px with axe. Supplementary suites submit the judicial and
+administration forms in real Chromium and test the focused four-role authorization matrix.
+They do not claim all accessibility requirements, every permission combination, or legal
+rules are approved. The current report explicitly lists remaining NOT_RUN scope and the
+backend-identity BLOCKED check. QAD-022..026 are verified fixed in live UAT; do not ask Claude
+to repeat those fixes. QAD-027/028 require remediation and an independently observed retest.

@@ -1,0 +1,68 @@
+{
+  "id": "QAD-027",
+  "title": "Case details overflow the 375px viewport in Arabic and English",
+  "priority": "P2",
+  "severity": "S2",
+  "stories": [
+    "LD-012",
+    "LD-016",
+    "LD-036"
+  ],
+  "affected": [
+    "8b0928ba10eb9b02ac3822ac33eca5b8778195b6"
+  ],
+  "status": "CONFIRMED_OPEN",
+  "environment": "Live UAT, Chromium build1248, 375x900, real authenticated admin",
+  "preconditions": [
+    "QA-owned case and party only",
+    "Case reference and party name within accepted field limits"
+  ],
+  "steps": [
+    "Create a QA case with reference QA261024121816D9653B and a synthetic party with name QA261024121816D9653B طرف اختبار",
+    "Link party as CLIENT",
+    "Open the own case details at viewport375x900 with lang=en, then lang=ar",
+    "Compare document.documentElement.scrollWidth with innerWidth and inspect party table/action column"
+  ],
+  "expected": "Essential content and actions fit or use a contained table scroller; the page does not overflow horizontally",
+  "actual": "At innerWidth375, documentWidth475 in both locales; party table extends beyond viewport and Remove action is outside visible area",
+  "evidence": "qa/evidence/signedin-uat-8b0928b-20261024/journeys",
+  "test_ids": [
+    "SIGNED-LAYOUT-en-375",
+    "SIGNED-LAYOUT-ar-375"
+  ],
+  "uat_policy": "Nonblocking for ordinary private Dev/UAT iteration; must resolve for mobile acceptance",
+  "fix_guidance": "Contain/wrap the party table and long case references using responsive styles; preserve readable RTL/LTR action access. QA does not implement product fix.",
+  "provenance": "Deploy workflow40089176698 reports SHA; frontend/backend source identical to81d9d03; backend runtime SHA not directly exposed",
+  "fixture_ids": {
+    "roles": [
+      "4c7d5ceb-5142-4414-a924-b0f3ea835013"
+    ],
+    "users": [
+      "867353ee-0bdc-46d1-b16e-e761214029c3"
+    ],
+    "cases": [
+      "c28d71d6-4615-4dbb-ad5b-2aa6928dc8b3"
+    ],
+    "parties": [
+      "b7362f1e-d777-4150-8730-fdc96437f762"
+    ],
+    "courts": [
+      "5defe2b9-99dd-4a23-b836-ec13fc425e0e",
+      "0ad4e039-82b5-46a5-a415-7eb5d4eabc8e",
+      "f5e1889c-658e-4114-a19f-375a6e7860da"
+    ],
+    "proceedings": [
+      "cfe82a0d-029a-45f5-bfac-3c2a9fbec0df",
+      "1f8e2568-2309-4f43-ae2a-b403db759fc2",
+      "af380178-d40a-493e-8c20-c602c5266459"
+    ],
+    "judgments": [
+      "6bf718c0-d86e-4295-8ce2-3eb73f9f56df",
+      "9022e77b-703b-44f3-ab5e-752083bc7773"
+    ],
+    "decisions": [
+      "b01b9f63-61fd-4156-b22c-34d15c037c54"
+    ]
+  },
+  "latest_confirmed_utc": "2026-10-24T12:32:36.839504+00:00"
+}

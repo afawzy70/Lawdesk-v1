@@ -17,7 +17,7 @@
   "expected": "400 field validation or UnknownRole; no user or role assignment stored",
   "actual": "500 Internal Server Error (TreeSet null element)",
   "uat_policy": "Input-validation defect; not proof of privilege escalation",
-  "status": "CONFIRMED_OPEN",
+  "status": "FIX_VERIFIED_IN_UAT",
   "environment": "Ubuntu24.04 Java21 PostgreSQL18.6; QA-owned loopback services; React Vitest/jsdom for QAD023",
   "preconditions": [
     "Use synthetic data and exact indicated SHA",
@@ -25,6 +25,20 @@
   ],
   "evidence": "qa/evidence/phase234-20261024/",
   "first_confirmed_utc": "2026-10-24T05:17:19.380831+00:00",
-  "latest_retest_utc": "2026-10-24T05:27:30.953009+00:00",
-  "latest_retest": "Still reproduced at applicable current HEAD; old evidence retained"
+  "latest_retest_utc": "2026-10-24T12:29:58.148371+00:00",
+  "latest_retest": {
+    "status": "PASS",
+    "expected_deployed_sha": "8b0928ba10eb9b02ac3822ac33eca5b8778195b6",
+    "backend_runtime_sha_attested": false,
+    "evidence": "qa/evidence/signedin-uat-8b0928b-20261024/journeys/results.json",
+    "test_id": "SIGNED-USER-NULL-ROLE",
+    "note": "Real authenticated UAT; workflow-reported deployment identity, application source identical to81d9d03. Original failed evidence and affected SHAs retained."
+  },
+  "history": [
+    {
+      "status": "CONFIRMED_OPEN",
+      "latest_retest": "Still reproduced at applicable current HEAD; old evidence retained",
+      "latest_retest_utc": "2026-10-24T05:27:30.953009+00:00"
+    }
+  ]
 }

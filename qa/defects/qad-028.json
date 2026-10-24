@@ -1,0 +1,104 @@
+{
+  "id": "QAD-028",
+  "title": "Pre-reset session regains protected access after password recovery completes in another session",
+  "priority": "P2",
+  "severity": "S2",
+  "stories": [
+    "LD-007",
+    "LD-008",
+    "LD-009"
+  ],
+  "affected": [
+    "8b0928ba10eb9b02ac3822ac33eca5b8778195b6"
+  ],
+  "status": "CONFIRMED_OPEN",
+  "category": "SECURITY_WEAKNESS_AND_ACCEPTANCE_GAP",
+  "environment": "Live UAT; two independent Chromium sessions; disposable QA CASE_VIEW user",
+  "preconditions": [
+    "Create a new synthetic user and own case; complete initial password change",
+    "Preserve session A without exporting its cookie"
+  ],
+  "steps": [
+    "Sign in to disposable user in session A and read own QA case",
+    "As QA administrator reset that disposable user password to a new temporary password",
+    "Read case through A:403 PASSWORD_CHANGE_REQUIRED confirms reset took effect",
+    "Open independent session B; sign in using the new temporary password; complete forced password change",
+    "Use original A, without logging in again or supplying the new password, to GET the owned case and open its browser detail page"
+  ],
+  "expected": "Security recovery should invalidate pre-reset sessions; old session should not regain protected access after another session completes recovery",
+  "actual": "Original session A resumes protected case access with HTTP200 after B completes recovery; reproduced independently in API suite and browser form suite",
+  "contract_note": "Current Phase2 acceptance specifies forced change and audit, but does not explicitly require session revocation. The403 during forced change passes current contract. This finding is a demonstrated recovery-security weakness and missing acceptance criterion, not an asserted violation of an explicit existing401 requirement.",
+  "impact": "A holder of a previously compromised session can regain access after the legitimate user completes an administrative password recovery, without knowing the reset/new password.",
+  "evidence": [
+    "qa/evidence/signedin-uat-8b0928b-20261024/roles-integrity/pre-reset-session.json",
+    "qa/evidence/signedin-uat-8b0928b-20261024/forms/FAIL-pre-reset-session-replay.png"
+  ],
+  "test_ids": [
+    "SECURITY-PRE-RESET-SESSION",
+    "FORM-RESET-SESSION-REPLAY"
+  ],
+  "fix_guidance": "Claude should define and implement revocation of pre-reset sessions (e.g. session authentication epoch checked on every request); add RED/GREEN evidence for old-session denial both during and after recovery. Preserve approved QA account credentials.",
+  "uat_policy": "Security remediation requested before full acceptance; no public-release approval. No deployment or infrastructure modification by QA.",
+  "provenance": "Deploy workflow40089176698 reports SHA; frontend/backend source identical to81d9d03; backend runtime SHA not directly exposed",
+  "fixture_ids": {
+    "cases": [
+      "b36a5a5c-84ec-4929-8aaa-d1392dd06dc5",
+      "9049d564-5675-4ecd-ad02-6bedeff8503e",
+      "1205cbba-887e-4d1d-881a-293f05b4bc34",
+      "1285b58c-8212-487d-af59-6c445c7175bd",
+      "d8b0a85b-a70b-480c-9648-23fd54767d3e",
+      "5c805772-6df6-4750-94ee-2074cdaffd3e",
+      "b2ba2ce1-0f9c-4e19-87cd-3ffc3fef570d",
+      "f7f27af4-733e-4cd5-a355-9e399ce89df1",
+      "bf11c781-6ce1-4cb9-869c-d7ff9297e263",
+      "bcab4712-2761-4b83-b52d-8c714eed4beb",
+      "0096e8fe-74e3-40c5-a5ef-adfb53f4ce1f"
+    ],
+    "courts": [
+      "6633b1ae-4c2b-472c-b899-c3812303161d",
+      "65a67cd9-df6a-4321-a84b-8e235129bad3",
+      "001ea9d5-8259-4e33-80f1-587ae72e4d79",
+      "476648fc-901f-42a9-8a07-6b7340aa52f3",
+      "97b8f3cb-f58d-45af-9a1f-a16486042ad5"
+    ],
+    "proceedings": [
+      "77c57978-f88f-4826-a385-a30fa623e949",
+      "389ae746-f916-4dc1-a0ce-6b20245d5487",
+      "171304d5-523b-4422-b7f9-0d92d57b215d",
+      "507be237-b0db-428c-bd83-1061599b25ad",
+      "14e2d4be-50bd-4e2c-bc5e-a35cdb91779b",
+      "30df3f38-ecca-44f2-bb2e-569c99983b2c",
+      "e4e406a2-a00f-4243-8a09-e88f4522c1b6",
+      "30cfe3db-be34-43b7-9a36-cc263d073a85",
+      "4865a433-c2b3-470c-8cbd-dc57e9a0c529",
+      "7078680e-16a1-4aee-88e8-c28b73f7776f",
+      "ca4cdcbc-3369-4bdc-a97a-5340ddbafa5f",
+      "acd266ee-e4f6-40bd-a1d3-fb3f8a8ea99b",
+      "2cd89072-fb6c-4d03-bfcc-ed1cf4ba3cf6",
+      "1638120c-fbc5-43e6-93d3-efea87e231e8",
+      "dc817fed-5224-4fe2-8f02-6fe09a0d37b3",
+      "8ce61166-62ca-41d7-b1a1-93860e939ec3",
+      "ae09b2d9-7193-4ef3-ac4c-9ddf0d216bee",
+      "c8ff0023-e6ae-4b17-ae41-d894b4639ece"
+    ],
+    "judgments": [
+      "d8e07c04-9eb8-42ff-a4b3-c30dadee860f",
+      "aa511bf4-3faa-459b-bfca-0ea1b6fc8a9b",
+      "9a7009c8-3bdc-4f84-8ae2-4733bbfe5deb",
+      "dac7ad0c-a3a8-4bd5-9663-7a837db83c5a",
+      "f48e64bd-d867-4b12-a536-cafe3c423a0e",
+      "32559da1-bd49-479a-a3cd-00b6f565019b",
+      "b5b18b12-c3bf-45db-9831-65926f2e607a",
+      "e846f3b5-bee8-4089-9769-18f2a41fb9c1",
+      "ec8874dd-ff3c-463d-8984-49370faab8da",
+      "c8dddd27-fa8a-4b3a-ade1-49f9317963b6",
+      "29e1d7a6-9c06-4c54-a6d8-a1aa99a2cc86",
+      "c91090a9-6c85-4acb-8dae-bdc18ca185e4",
+      "11412bee-699d-400f-b2f4-bbdfa368a256"
+    ],
+    "users": [
+      "66f065c1-23ec-4b4d-9433-9376731edfb1"
+    ]
+  },
+  "latest_confirmed_utc": "2026-10-24T12:32:36.840612+00:00"
+}

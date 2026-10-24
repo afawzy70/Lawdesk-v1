@@ -23,7 +23,7 @@
   "expected": "Policy accepts12–128 characters; successful204 and usable new credential, or formally revised safe policy with400; never500",
   "actual": "500 Internal Server Error; IllegalArgumentException: password cannot be more than72 bytes",
   "uat_policy": "Does not by itself prohibit ordinary Dev/UAT deployment; documented functional/security-policy defect",
-  "status": "CONFIRMED_OPEN",
+  "status": "FIX_VERIFIED_IN_UAT",
   "environment": "Ubuntu24.04 Java21 PostgreSQL18.6; QA-owned loopback services; React Vitest/jsdom for QAD023",
   "preconditions": [
     "Use synthetic data and exact indicated SHA",
@@ -31,6 +31,20 @@
   ],
   "evidence": "qa/evidence/phase234-20261024/",
   "first_confirmed_utc": "2026-10-24T05:17:19.372690+00:00",
-  "latest_retest_utc": "2026-10-24T05:27:30.952459+00:00",
-  "latest_retest": "Still reproduced at applicable current HEAD; old evidence retained"
+  "latest_retest_utc": "2026-10-24T12:29:58.143187+00:00",
+  "latest_retest": {
+    "status": "PASS",
+    "expected_deployed_sha": "8b0928ba10eb9b02ac3822ac33eca5b8778195b6",
+    "backend_runtime_sha_attested": false,
+    "evidence": "qa/evidence/signedin-uat-8b0928b-20261024/journeys/results.json",
+    "test_id": "SIGNED-PASSWORD-BYTE-BOUNDARY",
+    "note": "Real authenticated UAT; workflow-reported deployment identity, application source identical to81d9d03. Original failed evidence and affected SHAs retained."
+  },
+  "history": [
+    {
+      "status": "CONFIRMED_OPEN",
+      "latest_retest": "Still reproduced at applicable current HEAD; old evidence retained",
+      "latest_retest_utc": "2026-10-24T05:27:30.952459+00:00"
+    }
+  ]
 }

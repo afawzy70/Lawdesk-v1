@@ -207,7 +207,7 @@ test('STATUS-HISTORY', 'LD-014,LD-017', 'Read own case -> OPEN to ACTIVE -> Reje
     const after = await api(admin, 'GET', casePath());
     assert(after.status === 'ACTIVE' && after.version === c.version, 'Invalid transition changed case');
     const events = await api(admin, 'GET', casePath() + '/timeline');
-    assert(events.some(e => e.type === 'CASE_STATUS_CHANGED'), 'Status history event missing');
+    assert(events.items.some(e => e.type === 'CASE_STATUS_CHANGED'), 'Status history event missing');
   });
 test('COURTS', 'LD-018', 'Create three unique QA courts at FIRST_INSTANCE/APPEAL/CASSATION levels -> Read each',
   '201 for each; active and correct level persisted', async () => {
@@ -220,7 +220,7 @@ test('COURTS', 'LD-018', 'Create three unique QA courts at FIRST_INSTANCE/APPEAL
 async function proceeding(stage, date, parent) {
   demand(courts[stage], 'Owned court missing');
   return own('proceedings', await api(admin, 'POST', casePath() + '/proceedings', { stage, courtId: courts[stage].id,
-    courtCaseNumber: prefix + '-' + stage, courtCaseYear: 2026, filingDate: date, parentProceedingId: parent?.id ?? null }, 201));
+    courtCaseNumber: prefix + '-' + {FIRST_INSTANCE:'FI',APPEAL:'AP',CASSATION:'CA'}[stage], courtCaseYear: 2026, filingDate: date, parentProceedingId: parent?.id ?? null }, 201));
 }
 async function judge(p, date) {
   return own('judgments', await api(admin, 'POST', '/api/v1/proceedings/' + ownId('proceedings', p) + '/judgment',
@@ -256,8 +256,8 @@ test('SPECIAL-DECISION', 'LD-023', 'POST enforcement suspension Jan7 on owned ap
 test('JUDICIAL-UI', 'LD-019,LD-020,LD-021,LD-022,LD-023', 'Open own case detail -> Inspect proceedings section and all three unique court case numbers',
   'Real React case page renders all three persisted stages', async () => {
     await page.goto(base + '/cases/' + ownId('cases', legalCase) + '?lang=en');
-    await page.getByRole('heading', { name: 'Judicial proceedings', exact: true }).waitFor();
-    for (const stage of ['FIRST_INSTANCE','APPEAL','CASSATION']) await page.getByText(prefix + '-' + stage, { exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'Judicial stages', exact: true }).waitFor();
+    for (const stage of ['FI','AP','CA']) await page.getByRole('heading', { name: new RegExp(prefix + '-' + stage) }).waitFor();
     await screenshot('case-judicial-en');
   });
 test('USER-UPDATE', 'LD-009', 'Read owned user -> Update display name using current version -> Repeat stale version',
@@ -325,12 +325,14 @@ for (const lang of ['en','ar']) for (const width of [375,1366]) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(base + '/cases/' + ownId('cases', legalCase) + '?lang=' + lang);
       await page.getByText(prefix + ' edited', { exact: true }).first().waitFor();
-      const dom = await page.evaluate(() => ({ lang: document.documentElement.lang, dir: document.documentElement.dir, overflow: document.documentElement.scrollWidth > innerWidth }));
+      const dom = await page.evaluate(() => ({ lang: document.documentElement.lang, dir: document.documentElement.dir, viewport: innerWidth, documentWidth: document.documentElement.scrollWidth, overflow: document.documentElement.scrollWidth > innerWidth,
+        overflowElements: [...document.querySelectorAll('main *')].filter(e => { const r=e.getBoundingClientRect(); return r.right>innerWidth+1 || r.left < -1; }).map(e=>({tag:e.tagName,className:e.className,width:e.getBoundingClientRect().width})) }));
       await screenshot('case-' + lang + '-' + width);
-      assert(dom.lang === lang && dom.dir === (lang === 'ar' ? 'rtl' : 'ltr') && !dom.overflow, 'Locale/direction/viewport assertion failed');
+      fs.writeFileSync(output + '/layout-' + lang + '-' + width + '.json', JSON.stringify(dom, null, 2));
       await page.evaluate(fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8'));
       const violations = await page.evaluate(async () => (await window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a','wcag2aa','wcag21aa'] } })).violations.map(v => ({ id: v.id, impact: v.impact, targets: v.nodes.map(n => n.target) })));
       fs.writeFileSync(output + '/axe-' + lang + '-' + width + '.json', JSON.stringify(violations, null, 2));
+      assert(dom.lang === lang && dom.dir === (lang === 'ar' ? 'rtl' : 'ltr') && !dom.overflow, 'Locale/direction/viewport assertion failed: ' + JSON.stringify(dom));
       assert(violations.length === 0, 'Automated accessibility violations; see axe evidence'); return dom;
     });
 }
