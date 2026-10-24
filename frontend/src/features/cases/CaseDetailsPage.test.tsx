@@ -36,6 +36,7 @@ interface Backend {
   legalCase: LegalCase;
   parties: CaseParty[];
   events: CaseEvent[];
+  proceedings?: unknown[];
   answer?: (request: Request) => Response | undefined;
 }
 
@@ -52,6 +53,10 @@ function backend(state: Backend) {
       const items = state.events.slice(page * 20, page * 20 + 20);
       const totalPages = Math.ceil(state.events.length / 20);
       return jsonResponse({ items, page, size: 20, totalItems: state.events.length, totalPages });
+    }
+    if (request.method === 'GET' && [`${API}/proceedings`, `${API}/judgments`, `${API}/special-decisions`].includes(url.pathname)) {
+      const items = url.pathname === `${API}/proceedings` ? (state.proceedings ?? []) : [];
+      return jsonResponse({ items, page: 0, size: 100, totalItems: items.length, totalPages: 1 });
     }
     if (request.method === 'GET' && url.pathname === '/api/v1/parties') {
       return jsonResponse({ items: [NILE], page: 0, size: 20, totalItems: 1, totalPages: 1 });
@@ -85,6 +90,22 @@ describe('case details (LD-014)', () => {
     expect(entries[0]).toHaveTextContent('Status changed');
     expect(entries[0]).toHaveTextContent('summary 2');
     expect(entries[1]).toHaveTextContent('Case created');
+  });
+
+  // Cross-phase integration: the case details carry the judicial stages of Workstream C (LD-019…LD-023).
+  it('shows the judicial stages of the case', async () => {
+    const first = {
+      id: 'p1', caseId: CASE.id, stage: 'FIRST_INSTANCE', courtId: 'court-fi', courtCode: 'FI-1',
+      courtNameAr: 'محكمة أول درجة نموذجية', courtNameEn: 'Sample First-Instance Court', courtCaseNumber: '100',
+      courtCaseYear: 2023, filingDate: '2023-01-10', parentProceedingId: null, hasJudgment: false, version: 0,
+      createdAt: '2023-01-10T08:00:00Z', updatedAt: '2023-01-10T08:00:00Z',
+    };
+    const { requests } = backend({ legalCase: CASE, parties: [], events: [], proceedings: [first] });
+    renderCases(PATH);
+
+    const stages = await screen.findByRole('region', { name: 'Judicial stages' });
+    expect(await within(stages).findByText(/Sample First-Instance Court/)).toBeInTheDocument();
+    expect(requests.some((r) => r.url.startsWith(`${API}/proceedings`))).toBe(true);
   });
 
   it('labels events of other modules generically', async () => {
