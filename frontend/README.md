@@ -28,14 +28,14 @@ anything else shows "API unavailable" without exposing response or error details
 
 ## Early visual preview
 
-The dashboard still shows the owner-requested sample data (see `docs/delivery/PREVIEW.md`); sign-in, cases and courts
-are working screens on UAT, and the other areas show a "coming later" page.
+The dashboard shows real figures from the database (LD-030); areas not built yet show a "coming later" page. The
+history of the early preview is in `docs/delivery/PREVIEW.md`.
 
 - English/Arabic toggle in the header; the language is kept only in the `?lang=en|ar` URL parameter (no browser
   storage). Messages live in typed catalogs `src/i18n/messages/{en,ar}.ts` and are read with `useI18n()`; add every
   key to both catalogs (type-checked and tested).
-- `/` is the dashboard preview; the other navigation entries show a "Coming in a later phase" page.
-- All mock data lives in `src/preview/mockData.ts` and must stay obviously synthetic. Regions that show it use
-  `SampleRegion`, which labels them "Sample data"; every page title ends with "(Preview)".
+- `/` is the dashboard; navigation entries that are still `planned` show a "Coming in a later phase" page.
+- There is no mock data any more: the sample dashboard and `SampleRegion` were retired with LD-030. Every page title
+  still ends with "(Preview)" on UAT.
 - Styles are plain CSS with logical properties (`margin-inline-start`, `border-inline-end`, …) so RTL mirrors
   automatically.

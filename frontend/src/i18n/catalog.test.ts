@@ -41,12 +41,21 @@ describe('message catalogs', () => {
     }
   });
 
+  // LD-030: the dashboard shows real figures, so the sample-data messages of the preview are gone.
+  it('keeps no sample-data messages of the retired dashboard preview', () => {
+    const retired = Object.keys(en).filter((key) =>
+      /^(dashboard|kpi|hearings|stage|stages|sample)\./.test(key) || key === 'preview.sampleData',
+    );
+
+    expect(retired).toEqual([]);
+  });
+
   it('carries the agreed preview notice in both languages', () => {
     expect(en['preview.banner']).toBe(
-      'UAT test environment — enter test data only, never real client data. The dashboard shows sample figures, and areas marked “coming later” are not built yet.',
+      'UAT test environment — enter test data only, never real client data. Areas marked “coming later” are not built yet.',
     );
     expect(ar['preview.banner']).toBe(
-      'بيئة اختبار UAT — أدخل بيانات تجريبية فقط، ولا تُدخل بيانات موكلين حقيقية. لوحة المعلومات تعرض أرقامًا نموذجية، والأقسام المعلَّمة «لاحقًا» لم تُبنَ بعد.',
+      'بيئة اختبار UAT — أدخل بيانات تجريبية فقط، ولا تُدخل بيانات موكلين حقيقية. الأقسام المعلَّمة «لاحقًا» لم تُبنَ بعد.',
     );
     expect(en['preview.titleSuffix']).toBe('(Preview)');
     expect(ar['preview.titleSuffix']).toBe('(معاينة)');
@@ -60,16 +69,16 @@ describe('translate', () => {
   });
 
   it('interpolates named placeholders', () => {
-    expect(translate('en', 'sample.caseRef', { number: '007' })).toBe('Sample Case 007');
-    expect(translate('ar', 'sample.caseRef', { number: '٠٠٧' })).toBe('قضية نموذجية ٠٠٧');
+    expect(translate('en', 'footer.version', { version: '1.2.3' })).toBe('LawDesk v1.2.3');
+    expect(translate('ar', 'footer.version', { version: '1.2.3' })).toBe(ar['footer.version'].replace('{version}', '1.2.3'));
   });
 
   it('leaves missing placeholders visible instead of failing silently', () => {
-    expect(translate('en', 'sample.caseRef')).toBe('Sample Case {number}');
-    expect(translate('en', 'sample.caseRef', { other: 'x' })).toBe('Sample Case {number}');
+    expect(translate('en', 'footer.version')).toBe('LawDesk v{version}');
+    expect(translate('en', 'footer.version', { other: 'x' })).toBe('LawDesk v{version}');
   });
 
   it('fills the placeholders it is given and leaves the others visible', () => {
-    expect(translate('en', 'stages.value', { count: '1' })).toBe('1 cases ({percent})');
+    expect(translate('en', 'courts.pageOf', { page: '1' })).toBe('Page 1 of {pages}');
   });
 });
