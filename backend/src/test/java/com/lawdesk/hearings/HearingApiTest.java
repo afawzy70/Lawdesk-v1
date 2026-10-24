@@ -554,6 +554,36 @@ class HearingApiTest extends HearingTestSupport {
                 .isZero();
     }
 
+    @Test
+    void reschedulingAndAdjourningKeepTheProceedingsCase() throws Exception {
+        UUID caseId = createCase("Kept case");
+        UUID other = createCase("Never this case");
+        UUID proceeding = createProceeding(caseId, "127");
+        UUID id = schedule(proceeding, "2025-02-01");
+
+        // Update path: a case named in the body is ignored, the hearing stays on its proceeding's case.
+        mvc.perform(put("/api/v1/hearings/" + id).with(as(Permission.HEARING_MANAGE)).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"hearingDate":"2025-02-03","purpose":"OTHER","caseId":"%s","proceedingId":"%s",
+                                 "version":0}""".formatted(other, UUID.randomUUID())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.caseId").value(caseId.toString()))
+                .andExpect(jsonPath("$.proceedingId").value(proceeding.toString()));
+
+        // Adjourn path: the next hearing is created on the same proceeding and so on the same case.
+        MvcResult adjourned = mvc.perform(postResult(id, """
+                        {"status":"ADJOURNED","nextHearingDate":"2025-03-01","caseId":"%s","version":1}"""
+                        .formatted(other)))
+                .andExpect(status().isOk()).andReturn();
+        UUID next = UUID.fromString(JsonPath.read(adjourned.getResponse().getContentAsString(), "$.nextHearingId"));
+        assertThat(jdbc.queryForList("""
+                select h.case_id = p.case_id from hearing h join proceeding p on p.id = h.proceeding_id
+                where h.id in (?, ?)""", Boolean.class, id, next)).containsExactly(true, true);
+        assertThat(jdbc.queryForObject("select count(*) from hearing where case_id = ?", Integer.class, other))
+                .isZero();
+    }
+
     // QA-0191 concurrent or repeat request
 
     @Test
