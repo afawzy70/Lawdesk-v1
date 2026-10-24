@@ -1,0 +1,70 @@
+
+> lawdesk-frontend@0.1.0 lint
+> eslint . --max-warnings 0
+
+
+> lawdesk-frontend@0.1.0 typecheck
+> tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json
+
+
+> lawdesk-frontend@0.1.0 test:coverage
+> vitest run --coverage
+
+
+ RUN  v5.0.5 /home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/agent-a5b3e6316c287674f/frontend
+      Coverage enabled with v8
+
+
+ Test Files  17 passed (17)
+      Tests  206 passed (206)
+   Start at  02:47:05
+   Duration  22.41s (environment 42%, tests 38%, transform 8%, setup 7%, import 3%, worker 2%)
+
+Environment  jsdom was created 17 times · 51.52s total, 42% of tracked time
+             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+             learn more: https://vitest.dev/guide/improving-performance#test-environments
+
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   98.86 |    91.23 |    97.7 |   99.38 |                   
+ src/api           |     100 |    97.87 |     100 |     100 |                   
+  http.ts          |     100 |    97.22 |     100 |     100 | 71                
+ src/features/auth |   97.27 |    83.33 |   94.87 |   98.03 |                   
+  AuthContext.ts   |      80 |       50 |     100 |      80 | 23                
+  AuthProvider.tsx |   96.87 |       70 |   93.33 |     100 | 23-42             
+  ...swordPage.tsx |   97.29 |    78.57 |    90.9 |   96.77 | 91                
+ ...features/cases |   98.66 |    91.06 |    98.5 |    99.5 |                   
+  CaseEditPage.tsx |     100 |    88.57 |     100 |     100 | 38,63-66,125      
+  CaseForm.tsx     |   94.11 |       96 |   92.85 |   96.77 | 166               
+  CaseListPage.tsx |   98.55 |    88.88 |     100 |     100 | 65,74,102-110     
+  problems.ts      |     100 |    95.45 |     100 |     100 | 28                
+  testSupport.tsx  |     100 |       60 |     100 |     100 | 46-47             
+ src/i18n          |     100 |    93.75 |   95.45 |     100 |                   
+  I18nContext.ts   |     100 |      100 |      75 |     100 |                   
+  locale.ts        |     100 |    85.71 |     100 |     100 | 25                
+ src/layout        |     100 |    85.71 |     100 |     100 |                   
+  AppLayout.tsx    |     100 |       80 |     100 |     100 | 17-18             
+-------------------|---------|----------|---------|---------|-------------------
+
+=============================== Coverage summary ===============================
+Statements   : 98.86% ( 524/530 )
+Branches     : 91.23% ( 281/308 )
+Functions    : 97.7% ( 170/174 )
+Lines        : 99.38% ( 488/491 )
+================================================================================
+
+> lawdesk-frontend@0.1.0 build
+> tsc --noEmit -p tsconfig.app.json && vite build
+
+vite v8.3.5 building client environment for production...
+transforming...
+✓ 138 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.47 kB │ gzip:  0.30 kB
+dist/assets/index-BQlsT6CF.css    6.95 kB │ gzip:  2.14 kB
+dist/assets/index-C-8XOp52.js   294.86 kB │ gzip: 92.92 kB
+
+✓ built in 1.02s
