@@ -129,8 +129,11 @@ public class UserAdministration {
         if (!enabled && user.enabled() && user.roles().contains(ADMIN)) {
             requireAnotherEnabledAdministrator(id);
         }
-        jdbc.update("update app_user set enabled = ?, updated_at = now(), updated_by = ?, version = version + 1 where id = ?",
-                enabled, actor.id(), id);
+        // LD-008.7: disabling revokes every session of the user; enabling again does not revive them.
+        jdbc.update("""
+                update app_user set enabled = ?, updated_at = now(), updated_by = ?, version = version + 1,
+                    credential_version = credential_version + case when ? then 0 else 1 end
+                where id = ?""", enabled, actor.id(), enabled, id);
         record(enabled ? "USER_ENABLE" : "USER_DISABLE", actor, id, null);
         return get(id);
     }
@@ -165,7 +168,7 @@ public class UserAdministration {
         jdbc.update("""
                 update app_user set password_hash = ?, must_change_password = true, failed_attempts = 0,
                     locked_until = null, password_changed_at = now(), updated_at = now(), updated_by = ?,
-                    version = version + 1
+                    version = version + 1, credential_version = credential_version + 1
                 where id = ?""", encoder.encode(temporaryPassword), actor.id(), id);
         record("PASSWORD_RESET", actor, id, null);
     }

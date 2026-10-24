@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -25,7 +26,8 @@ public class UserAccounts {
     static final String LOCK_DURATION = "15 minutes";
 
     private static final String COLUMNS = """
-            id, username, email, display_name, locale, password_hash, enabled, must_change_password, locked_until""";
+            id, username, email, display_name, locale, password_hash, enabled, must_change_password, locked_until,
+            credential_version""";
 
     private final JdbcTemplate jdbc;
 
@@ -66,11 +68,20 @@ public class UserAccounts {
         jdbc.update("update app_user set failed_attempts = 0, locked_until = null where id = ?", id);
     }
 
-    public void changePassword(UUID id, String passwordHash, boolean mustChange, UUID actor) {
-        jdbc.update("""
+    /**
+     * Changes the password only while the credential version is still the one the caller's session signed in with,
+     * and raises it (LD-008.7): a reset or another change committed in between wins and nothing is changed. Returns the
+     * new version, or empty when the session was revoked meanwhile.
+     */
+    public OptionalLong changePassword(UUID id, String passwordHash, boolean mustChange, UUID actor,
+            long expectedCredentialVersion) {
+        List<Long> changed = jdbc.queryForList("""
                 update app_user set password_hash = ?, must_change_password = ?, password_changed_at = now(),
-                    updated_at = now(), updated_by = ?, version = version + 1 where id = ?""",
-                passwordHash, mustChange, actor, id);
+                    updated_at = now(), updated_by = ?, version = version + 1,
+                    credential_version = credential_version + 1
+                where id = ? and credential_version = ? returning credential_version""", Long.class,
+                passwordHash, mustChange, actor, id, expectedCredentialVersion);
+        return changed.isEmpty() ? OptionalLong.empty() : OptionalLong.of(changed.get(0));
     }
 
     @Transactional
@@ -99,6 +110,7 @@ public class UserAccounts {
                 where ur.user_id = ?""", String.class, id));
         return new Account(id, rs.getString("username"), rs.getString("email"), rs.getString("display_name"),
                 rs.getString("locale"), rs.getString("password_hash"), rs.getBoolean("enabled"),
-                rs.getBoolean("must_change_password"), locked == null ? null : locked.toInstant(), roles, permissions);
+                rs.getBoolean("must_change_password"), locked == null ? null : locked.toInstant(), roles, permissions,
+                rs.getLong("credential_version"));
     }
 }
