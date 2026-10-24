@@ -1,35 +1,43 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppRoutes } from '../App';
 import { formatDateTime, formatNumber } from '../i18n/format';
 import { PREVIEW_CASES_BY_STAGE, PREVIEW_HEARINGS, PREVIEW_KPIS } from '../preview/mockData';
-import { jsonResponse } from '../test/http';
+import { fakeApi } from '../test/api';
 
-function renderDashboard(lang: 'en' | 'ar' = 'en') {
-  return render(
+/** Renders the dashboard and waits until the session has loaded. */
+async function renderDashboard(lang: 'en' | 'ar' = 'en') {
+  const result = render(
     <MemoryRouter initialEntries={[`/?lang=${lang}`]}>
       <AppRoutes />
     </MemoryRouter>,
   );
+  await screen.findByRole('banner');
+  // The page sets its title in an effect once the session has loaded.
+  await waitFor(() => {
+    expect(document.title).not.toBe('');
+  });
+  return result;
 }
 
 const kpi = (id: string) => PREVIEW_KPIS.find((k) => k.id === id)?.value ?? -1;
 
 beforeEach(() => {
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ status: 'UP' })));
+  // Signed in: the shell needs a session since LD-007 (src/test/api.ts).
+  vi.stubGlobal('fetch', fakeApi());
 });
 
 describe('dashboard preview (English)', () => {
-  it('states in its introduction that every figure is invented sample data', () => {
-    renderDashboard();
+  it('states in its introduction that every figure is invented sample data', async () => {
+    await renderDashboard();
     expect(screen.getByRole('main')).toHaveTextContent(
       'This preview shows a possible dashboard layout. Every figure and record on this page is invented sample data.',
     );
   });
 
-  it('labels each mock data region as sample data, visibly and in its accessible description', () => {
-    renderDashboard();
+  it('labels each mock data region as sample data, visibly and in its accessible description', async () => {
+    await renderDashboard();
     for (const name of ['Key figures', 'Upcoming hearings', 'Cases by stage']) {
       const region = screen.getByRole('region', { name });
       expect(region).toHaveAccessibleDescription('Sample data');
@@ -37,8 +45,8 @@ describe('dashboard preview (English)', () => {
     }
   });
 
-  it('shows the four KPI tiles from the mock data module', () => {
-    renderDashboard();
+  it('shows the four KPI tiles from the mock data module', async () => {
+    await renderDashboard();
     const tiles = within(screen.getByRole('region', { name: 'Key figures' })).getAllByRole('listitem');
     expect(tiles.map((t) => t.textContent)).toEqual([
       `${String(kpi('openCases'))}Open cases`,
@@ -48,8 +56,8 @@ describe('dashboard preview (English)', () => {
     ]);
   });
 
-  it('lists upcoming hearings in a captioned table marked as sample data', () => {
-    renderDashboard();
+  it('lists upcoming hearings in a captioned table marked as sample data', async () => {
+    await renderDashboard();
     const table = screen.getByRole('table', { name: /Upcoming hearings/ });
     expect(table).toHaveAccessibleName('Upcoming hearings (Sample data)');
     const headers = within(table).getAllByRole('columnheader').map((h) => h.textContent);
@@ -66,8 +74,8 @@ describe('dashboard preview (English)', () => {
     expect(within(rows[0] as HTMLElement).getByText(formatDateTime(first.startsAt, 'en')).tagName).toBe('TIME');
   });
 
-  it('breaks down cases by stage with text values and decorative bars', () => {
-    renderDashboard();
+  it('breaks down cases by stage with text values and decorative bars', async () => {
+    await renderDashboard();
     const region = screen.getByRole('region', { name: 'Cases by stage' });
     const items = within(region).getAllByRole('listitem');
     expect(items).toHaveLength(3);
@@ -86,16 +94,16 @@ describe('dashboard preview (English)', () => {
 });
 
 describe('dashboard preview (Arabic)', () => {
-  it('labels regions and the table in Arabic, as sample data', () => {
-    renderDashboard('ar');
+  it('labels regions and the table in Arabic, as sample data', async () => {
+    await renderDashboard('ar');
     for (const name of ['مؤشرات رئيسية', 'الجلسات القادمة', 'القضايا حسب درجة التقاضي']) {
       expect(screen.getByRole('region', { name })).toHaveAccessibleDescription('بيانات نموذجية');
     }
     expect(screen.getByRole('table')).toHaveAccessibleName('الجلسات القادمة (بيانات نموذجية)');
   });
 
-  it('formats figures, sample references and dates with Arabic-Indic digits', () => {
-    renderDashboard('ar');
+  it('formats figures, sample references and dates with Arabic-Indic digits', async () => {
+    await renderDashboard('ar');
     const tiles = within(screen.getByRole('region', { name: 'مؤشرات رئيسية' })).getAllByRole('listitem');
     expect(tiles[0]).toHaveTextContent(formatNumber(kpi('openCases'), 'ar'));
     expect(tiles[0]).toHaveTextContent('القضايا المفتوحة');
@@ -114,8 +122,8 @@ describe('hearings table scroll region (QAD-015)', () => {
   it.each([
     { lang: 'en' as const, name: 'Upcoming hearings (Sample data)' },
     { lang: 'ar' as const, name: 'الجلسات القادمة (بيانات نموذجية)' },
-  ])('is a keyboard-focusable, named region ($lang)', ({ lang, name }) => {
-    const { container } = renderDashboard(lang);
+  ])('is a keyboard-focusable, named region ($lang)', async ({ lang, name }) => {
+    const { container } = await renderDashboard(lang);
     const scroller = container.querySelector('.table-scroll');
     expect(scroller).not.toBeNull();
     expect(scroller).toHaveAttribute('tabindex', '0');

@@ -104,6 +104,18 @@ start_release() {
         LAWDESK_TAG=$1 LAWDESK_ENV_FILE=$env_file "$smoke"
 }
 
+# LD-008.4: the first administrator's password file, generated once in the secrets directory (0700) and never
+# printed; the operator reads it once and the administrator must change it at first sign-in.
+ensure_admin_secret() {
+    local dir=${LAWDESK_SECRETS_DIR:-$deploy_dir/secrets} file
+    file=$dir/admin_bootstrap_password.txt
+    if [[ -f $file || ! -d $dir ]]; then
+        return 0
+    fi
+    (umask 022 && openssl rand -hex 16 > "$file.partial" && mv -- "$file.partial" "$file")
+    log "generated the first administrator password file $file"
+}
+
 # Dumps the running database before a new release can migrate it. Migrations are forward-only, so this dump is the
 # way back from a bad schema change; it is restored by an operator, never automatically.
 backup_database() {
@@ -124,6 +136,7 @@ backup_database() {
 
 current=$(read_state current-release)
 log "deploying $release (current: ${current:-none})"
+ensure_admin_secret
 
 if [[ $image_source == local ]] && ! local_images_match "$release"; then
     log "refused $release: its images are not built on this host with revision $release"

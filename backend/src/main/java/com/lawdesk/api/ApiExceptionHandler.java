@@ -35,6 +35,13 @@ public class ApiExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(FieldErrorException.class)
+    ProblemDetail field(FieldErrorException e) {
+        ProblemDetail problem = problem(HttpStatus.BAD_REQUEST);
+        problem.setProperty("errors", List.of(Map.of("field", e.field(), "code", e.code())));
+        return problem;
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     ProblemDetail unreadable(HttpMessageNotReadableException e) {
         return problem(HttpStatus.BAD_REQUEST);
