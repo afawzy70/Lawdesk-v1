@@ -91,6 +91,19 @@ class ApiContractTest extends PostgresTestSupport {
     }
 
     @Test
+    void malformedParametersUnknownPathsAndWrongMethodsAreClientErrors() throws Exception {
+        // Asked for by workstreams B and C: these answered 500 through the catch-all.
+        mvc.perform(get(BASE + "/typed/not-a-uuid").with(as(Permission.CASE_VIEW))).andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(PROBLEM))
+                .andExpect(content().string(Matchers.not(Matchers.containsString("MethodArgumentTypeMismatch"))))
+                .andExpect(content().string(Matchers.not(Matchers.containsString("UUID"))));
+        mvc.perform(get("/api/v1/no-such-endpoint").with(as(Permission.CASE_VIEW))).andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(PROBLEM));
+        mvc.perform(post(BASE + "/missing").with(as(Permission.CASE_VIEW)).with(csrf()))
+                .andExpect(status().isMethodNotAllowed()).andExpect(content().contentTypeCompatibleWith(PROBLEM));
+    }
+
+    @Test
     void unexpectedErrorsRevealNothing() throws Exception {
         mvc.perform(get(BASE + "/boom").with(as(Permission.CASE_VIEW))).andExpect(status().isInternalServerError())
                 .andExpect(content().contentTypeCompatibleWith(PROBLEM))

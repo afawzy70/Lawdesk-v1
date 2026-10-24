@@ -34,8 +34,11 @@ names the tests that cover it. Developer runs are not independent QA.
 
 1. **Storage.** Passwords are stored as delegating `{bcrypt}` hashes, cost 12. Plain or reversible values never reach
    the database, logs, audit records or API answers.
-2. **Policy.** **ASSUMPTION**: a password has 12 to 128 characters and is not equal to the username or the email. A
-   violation answers 400 with `errors[].code` `PasswordPolicy`.
+2. **Policy.** **ASSUMPTION**: a password has at least 12 characters, at most 72 bytes of UTF-8 (72 Latin or 36
+   Arabic letters), and is not equal to the username or the email. A violation answers 400 with `errors[].code`
+   `PasswordPolicy`, never 500. The byte limit is bcrypt's: longer input would be truncated or refused by the hash, so
+   the policy refuses it first (QAD-022; `PasswordChangeTest`). An overlong current password or login is an ordinary
+   refusal (400 `CurrentPassword`, uniform 401).
 3. **Lockout.** **ASSUMPTION**: 5 consecutive failures lock the account for 15 minutes.
    - A successful login resets the counter.
    - A login during the lock is refused like any other refusal (LD-007.2), even with the right password.
@@ -54,8 +57,18 @@ names the tests that cover it. Developer runs are not independent QA.
 
 1. **Roles.** `ADMIN`, `LEGAL_MANAGER` and `LEGAL_STAFF` are seeded with the permissions of CONTRACTS.md §3.
    - Roles map to permission codes from `Permission`; an unknown code is a 400.
-   - `GET /api/v1/roles` needs `ROLE_VIEW`. Creating a role, renaming it and changing its permissions need
-     `ROLE_MANAGE`. Seeded roles can be edited but not deleted.
+   - `GET /api/v1/roles` and `GET /api/v1/roles/{id}` need `ROLE_VIEW` (or `USER_MANAGE`, to assign roles).
+   - `POST /api/v1/roles` `{code, name, permissions[]}` creates a role (201, code `[A-Z][A-Z0-9_]{1,63}`, unique: 409);
+     `PUT /api/v1/roles/{id}` `{name, permissions[], version}` renames it and replaces its permissions (stale version:
+     409). Both need `ROLE_MANAGE`.
+   - **ASSUMPTION**: roles are never deleted through the API (405), seeded or not; a role nobody should hold is simply
+     left unassigned.
+   - The `ADMIN` role keeps every permission: changing its set answers 422 `ADMIN_ROLE_FIXED`.
+   - A change reaches signed-in holders on their next request (`RolePermissionsTakeEffectTest`).
+   - Audited as `ROLE_CREATE`, `ROLE_UPDATE`, and `ROLE_PERMISSIONS_CHANGE` only when the set really changed
+     (`RoleAdministrationTest`).
+   - Screens: Administration › Roles (list, new role, role details with permission checkboxes; read-only without
+     `ROLE_MANAGE`).
 2. **Users.**
    - `GET /api/v1/users` (paged; search by name, username or email) and `GET /api/v1/users/{id}` need `USER_VIEW`.
    - Create, update, enable, disable, role assignment and password reset need `USER_MANAGE`.
@@ -74,6 +87,8 @@ names the tests that cover it. Developer runs are not independent QA.
 1. Every handler under `/api/**` either declares `@PreAuthorize`, or is one of the public auth endpoints (`csrf`,
    `login`). A test fails the build otherwise; it covers Phase 3 and Phase 4 endpoints too.
 2. **Status codes.** Anonymous access answers 401; a missing permission answers 403. Both are problems without detail.
+   The permission is checked before the body is read, validated or converted, so a caller without it gets 403 for an
+   invalid request too, and learns no field names (QAD-026; `AuthorizationBeforeValidationTest`).
 3. **Hidden identifiers.** Object identifiers that a user may not see answer 404, so resources cannot be enumerated
    (applied per module).
 4. **Navigation is not access control.** The frontend hides what the user cannot do, and the backend enforces it
@@ -93,5 +108,9 @@ names the tests that cover it. Developer runs are not independent QA.
 3. **The attempted login.** For an unknown user it is stored truncated to 64 characters and never echoed back. No
    password, hash, session id or CSRF token is ever stored.
 4. **Request id.** `request_id` is the correlation id of the request (`X-Request-Id`).
-5. **Reading the trail.** `GET /api/v1/audit` (paged, filter by action, actor, outcome and time range) needs
-   `AUDIT_VIEW`.
+5. **Reading the trail.** `GET /api/v1/audit` (paged, newest first; filters `action`, `actor`, `outcome`, `from`, `to`)
+   needs `AUDIT_VIEW`. `actor` matches the username ignoring case; the range is `from` inclusive, `to` exclusive (ISO
+   instants); an invalid outcome or instant is a 400 (`AuditViewTest`). Screen: Administration › Audit log, with user,
+   action and outcome filters; codes without a translation are shown as recorded.
+6. **My profile.** `/profile`, linked from the user menu, shows the account, roles and permissions of the signed-in
+   user and offers a voluntary password change (`Profile.test.tsx`).

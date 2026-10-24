@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { NavLink, Outlet } from 'react-router';
+import { Link, NavLink, Outlet } from 'react-router';
 import { ApiStatus } from '../components/ApiStatus';
 import { LocaleToggle } from '../components/LocaleToggle';
 import { PreviewBanner } from '../components/PreviewBanner';
@@ -70,6 +70,7 @@ export function AppLayout() {
               <span className="user-name" title={t('auth.signedInAs', { name: me.displayName })}>
                 {me.displayName}
               </span>
+              <Link to={withLang('/profile', locale)}>{t('profile.link')}</Link>
               <button type="button" className="link-button" onClick={() => void signOut()}>
                 {t('auth.signOut')}
               </button>

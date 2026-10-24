@@ -20,6 +20,7 @@ describe('edit case (LD-013)', () => {
     expect(screen.queryByRole('textbox', { name: 'Reference number' })).not.toBeInTheDocument();
     expect(screen.getByText('Active')).toBeInTheDocument();
     expect(requests[0]?.url).toBe(`/api/v1/cases/${CASE.id}`);
+    // The title follows the loaded case in an effect, which may run after the heading is on screen.
     await waitFor(() => {
       expect(document.title).toBe('Edit case R-1 — LawDesk (Preview)');
     });
