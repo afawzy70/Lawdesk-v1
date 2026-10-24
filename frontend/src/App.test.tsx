@@ -1,17 +1,24 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import pkg from '../package.json';
 import { App, AppRoutes } from './App';
-import { jsonResponse } from './test/http';
+import { fakeApi } from './test/api';
 
-function renderAt(path: string) {
-  return render(
+/** Renders the shell at `path` and waits until the session has loaded. */
+async function renderAt(path: string) {
+  const result = render(
     <MemoryRouter initialEntries={[path]}>
       <AppRoutes />
     </MemoryRouter>,
   );
+  await screen.findByRole('banner');
+  // The page sets its title in an effect once the session has loaded.
+  await waitFor(() => {
+    expect(document.title).not.toBe('');
+  });
+  return result;
 }
 
 const BANNER = {
@@ -37,14 +44,15 @@ function primaryNav(name: string | RegExp = 'Primary') {
 }
 
 beforeEach(() => {
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ status: 'UP' })));
+  // Signed in: the shell needs a session since LD-007 (src/test/api.ts).
+  vi.stubGlobal('fetch', fakeApi());
   window.history.replaceState(null, '', '/');
   document.title = '';
 });
 
 describe('application shell', () => {
   it('has banner, primary navigation, main and footer landmarks', async () => {
-    renderAt('/');
+    await renderAt('/');
 
     const banner = screen.getByRole('banner');
     expect(within(banner).getByText('LawDesk')).toBeInTheDocument();
@@ -54,27 +62,27 @@ describe('application shell', () => {
     expect(await screen.findByText('API online')).toBeInTheDocument();
   });
 
-  it('shows the application version from package.json in the footer', () => {
-    renderAt('/');
+  it('shows the application version from package.json in the footer', async () => {
+    await renderAt('/');
     expect(screen.getByRole('contentinfo')).toHaveTextContent(`LawDesk v${pkg.version}`);
   });
 
-  it('lists every planned area in the primary navigation, in order', () => {
-    renderAt('/');
+  it('lists every planned area in the primary navigation, in order', async () => {
+    await renderAt('/');
     const links = within(primaryNav()).getAllByRole('link');
     expect(links.map((l) => l.textContent)).toEqual(NAV.map((n) => n.en));
     expect(links.map((l) => l.getAttribute('href'))).toEqual(NAV.map((n) => `${n.path}?lang=en`));
   });
 
-  it('renders the dashboard at / and marks it as the current page', () => {
-    renderAt('/');
+  it('renders the dashboard at / and marks it as the current page', async () => {
+    await renderAt('/');
     expect(screen.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeInTheDocument();
     expect(within(primaryNav()).getByRole('link', { name: 'Dashboard' })).toHaveAttribute('aria-current', 'page');
   });
 
   it('renders an actionable not-found page for unknown routes', async () => {
     const user = userEvent.setup();
-    renderAt('/cases/does-not-exist');
+    await renderAt('/cases/does-not-exist');
 
     expect(screen.getByRole('heading', { level: 1, name: 'Page not found' })).toBeInTheDocument();
     expect(screen.getByRole('main')).toHaveTextContent('Check the address, or go back to the home page.');
@@ -85,8 +93,8 @@ describe('application shell', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeInTheDocument();
   });
 
-  it('keeps the shell visible when a page is not found', () => {
-    renderAt('/nope');
+  it('keeps the shell visible when a page is not found', async () => {
+    await renderAt('/nope');
     expect(screen.getByRole('banner')).toBeInTheDocument();
     expect(primaryNav()).toBeInTheDocument();
     expect(document.title).toBe('Page not found — LawDesk (Preview)');
@@ -124,7 +132,7 @@ describe('application shell', () => {
 
   it('offers a skip link as the first focusable element that targets <main>', async () => {
     const user = userEvent.setup();
-    renderAt('/');
+    await renderAt('/');
     await user.tab();
     const skip = screen.getByRole('link', { name: 'Skip to main content' });
     expect(skip).toHaveFocus();
@@ -137,7 +145,7 @@ describe('application shell', () => {
 describe('locale switching', () => {
   it('switches the whole shell to Arabic, right-to-left, from the header toggle', async () => {
     const user = userEvent.setup();
-    renderAt('/');
+    await renderAt('/');
 
     const toggle = within(screen.getByRole('banner')).getByRole('button', { name: 'العربية' });
     expect(toggle).toHaveAttribute('lang', 'ar');
@@ -160,7 +168,7 @@ describe('locale switching', () => {
 
   it('reads the language from ?lang= and keeps it while navigating', async () => {
     const user = userEvent.setup();
-    renderAt('/?lang=ar');
+    await renderAt('/?lang=ar');
     expect(document.documentElement).toHaveAttribute('dir', 'rtl');
 
     await user.click(within(primaryNav('التنقل الرئيسي')).getByRole('link', { name: 'القضايا' }));
@@ -169,8 +177,8 @@ describe('locale switching', () => {
     expect(document.documentElement).toHaveAttribute('dir', 'rtl');
   });
 
-  it('falls back to English for an unsupported ?lang= value', () => {
-    renderAt('/?lang=<script>');
+  it('falls back to English for an unsupported ?lang= value', async () => {
+    await renderAt('/?lang=<script>');
     expect(document.documentElement).toHaveAttribute('lang', 'en');
     expect(screen.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeInTheDocument();
   });
@@ -181,8 +189,8 @@ describe('preview labelling', () => {
 
   it.each(routes.flatMap((path) => (['en', 'ar'] as const).map((lang) => [path, lang] as const)))(
     'shows the non-dismissible preview notice on %s in %s',
-    (path, lang) => {
-      renderAt(`${path}?lang=${lang}`);
+    async (path, lang) => {
+      await renderAt(`${path}?lang=${lang}`);
       const notice = screen.getByRole('note', { name: lang === 'en' ? 'Preview notice' : 'تنبيه المعاينة' });
       expect(notice).toHaveTextContent(BANNER[lang]);
       expect(within(notice).queryByRole('button')).not.toBeInTheDocument();
@@ -190,8 +198,8 @@ describe('preview labelling', () => {
     },
   );
 
-  it.each(routes)('offers no forms, inputs or save/create/edit/login actions on %s', (path) => {
-    const { container } = renderAt(path);
+  it.each(routes)('offers no forms, inputs or save/create/edit/login actions on %s', async (path) => {
+    const { container } = await renderAt(path);
     expect(container.querySelector('form, input, textarea, select')).toBeNull();
     const buttons = screen.queryAllByRole('button').map((b) => b.textContent);
     for (const label of buttons) {
@@ -201,8 +209,8 @@ describe('preview labelling', () => {
 });
 
 describe('responsive navigation', () => {
-  it('has a menu button that controls the primary navigation and starts collapsed', () => {
-    renderAt('/');
+  it('has a menu button that controls the primary navigation and starts collapsed', async () => {
+    await renderAt('/');
     const menu = screen.getByRole('button', { name: 'Menu' });
     expect(menu).toHaveAttribute('aria-expanded', 'false');
     const controlled = document.getElementById(menu.getAttribute('aria-controls') ?? '');
@@ -212,7 +220,7 @@ describe('responsive navigation', () => {
 
   it('expands and collapses with the keyboard', async () => {
     const user = userEvent.setup();
-    renderAt('/');
+    await renderAt('/');
     const menu = screen.getByRole('button', { name: 'Menu' });
 
     menu.focus();
@@ -227,7 +235,7 @@ describe('responsive navigation', () => {
 
   it('closes with Escape and returns focus to the menu button', async () => {
     const user = userEvent.setup();
-    renderAt('/');
+    await renderAt('/');
     const menu = screen.getByRole('button', { name: 'Menu' });
     await user.click(menu);
     await user.click(within(primaryNav()).getByRole('link', { name: 'Hearings' }));
@@ -245,7 +253,7 @@ describe('responsive navigation', () => {
     { lang: 'ar', label: 'القائمة' },
   ])('closes with Escape pressed right after opening, focus still on the toggle ($lang, QAD-014)', async ({ lang, label }) => {
     const user = userEvent.setup();
-    renderAt(`/?lang=${lang}`);
+    await renderAt(`/?lang=${lang}`);
     const menu = screen.getByRole('button', { name: label });
     await user.click(menu);
     expect(menu).toHaveFocus();
@@ -259,7 +267,7 @@ describe('responsive navigation', () => {
 
   it('closes with Escape from elsewhere on the page and returns focus to the toggle (QAD-014)', async () => {
     const user = userEvent.setup();
-    renderAt('/');
+    await renderAt('/');
     const menu = screen.getByRole('button', { name: 'Menu' });
     await user.click(menu);
     screen.getByRole('main').focus();
@@ -271,7 +279,7 @@ describe('responsive navigation', () => {
 
   it('leaves focus alone on Escape when the menu is already collapsed (desktop side navigation)', async () => {
     const user = userEvent.setup();
-    renderAt('/');
+    await renderAt('/');
     const link = within(primaryNav()).getByRole('link', { name: 'Experts' });
     link.focus();
     await user.keyboard('{Escape}');
@@ -281,7 +289,7 @@ describe('responsive navigation', () => {
 
   it('collapses after choosing a destination', async () => {
     const user = userEvent.setup();
-    renderAt('/');
+    await renderAt('/');
     const menu = screen.getByRole('button', { name: 'Menu' });
     await user.click(menu);
     await user.click(within(primaryNav()).getByRole('link', { name: 'Reports' }));
@@ -289,15 +297,15 @@ describe('responsive navigation', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Reports' })).toBeInTheDocument();
   });
 
-  it('labels the menu button in Arabic', () => {
-    renderAt('/?lang=ar');
+  it('labels the menu button in Arabic', async () => {
+    await renderAt('/?lang=ar');
     expect(screen.getByRole('button', { name: 'القائمة' })).toHaveAttribute('aria-expanded', 'false');
   });
 });
 
 describe('coming-soon placeholders', () => {
-  it.each(PLACEHOLDERS)('$path says "$en" is not available yet (English)', ({ path, en }) => {
-    renderAt(path);
+  it.each(PLACEHOLDERS)('$path says "$en" is not available yet (English)', async ({ path, en }) => {
+    await renderAt(path);
     const main = screen.getByRole('main');
     expect(within(main).getByRole('heading', { level: 1, name: en })).toBeInTheDocument();
     expect(within(main).getByText('Coming in a later phase')).toBeInTheDocument();
@@ -306,8 +314,8 @@ describe('coming-soon placeholders', () => {
     expect(document.title).toBe(`${en} — LawDesk (Preview)`);
   });
 
-  it.each(PLACEHOLDERS)('$path says "$ar" is not available yet (Arabic)', ({ path, ar }) => {
-    renderAt(`${path}?lang=ar`);
+  it.each(PLACEHOLDERS)('$path says "$ar" is not available yet (Arabic)', async ({ path, ar }) => {
+    await renderAt(`${path}?lang=ar`);
     const main = screen.getByRole('main');
     expect(within(main).getByRole('heading', { level: 1, name: ar })).toBeInTheDocument();
     expect(within(main).getByText('قادمة في مرحلة لاحقة')).toBeInTheDocument();

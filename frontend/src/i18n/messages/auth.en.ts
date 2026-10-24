@@ -1,4 +1,26 @@
-/** Auth messages (architecture/CONTRACTS.md §6), owned by its workstream and spread into en.ts. */
+/** Auth messages (architecture/CONTRACTS.md §6), owned by workstream A and spread into en.ts. */
 export const authEn = {
-  'auth.title': 'Sign in',
+  'auth.title': 'Sign in to LawDesk',
+  'auth.login': 'Username or email',
+  'auth.password': 'Password',
+  'auth.signIn': 'Sign in',
+  'auth.signOut': 'Sign out',
+  'auth.loading': 'Loading…',
+  'auth.refused': 'The username, email or password is incorrect.',
+  'auth.unavailable': 'Signing in is not possible right now. Try again later.',
+  'auth.sessionExpired': 'Your session has ended. Sign in again to continue.',
+  'auth.signedInAs': 'Signed in as {name}',
+  'auth.deniedTitle': 'Access denied',
+  'auth.deniedBody': 'You do not have permission to open this page. Ask an administrator if you need access.',
+  'password.title': 'Choose a new password',
+  'password.intro': 'For your security, choose a new password before you continue. Use at least 12 characters.',
+  'password.current': 'Current password',
+  'password.new': 'New password',
+  'password.repeat': 'Repeat the new password',
+  'password.submit': 'Change password',
+  'password.tooShort': 'The new password must have at least 12 characters.',
+  'password.mismatch': 'The two new passwords are not the same.',
+  'password.currentWrong': 'The current password is not correct.',
+  'password.policy': 'The new password does not meet the rules: 12 to 128 characters, not your username or email.',
+  'password.failed': 'The password could not be changed. Try again later.',
 } as const;
