@@ -11,6 +11,8 @@ final class Rules {
     static final String HEARING_NOT_SCHEDULED = "HEARING_NOT_SCHEDULED";
     static final String HEARING_NOT_YET_HELD = "HEARING_NOT_YET_HELD";
     static final String ADJOURNMENT_NOT_LATER = "ADJOURNMENT_NOT_LATER";
+    /** QAD-032: answered by the proceeding update when its filing date would move after one of its hearings. */
+    static final String FILING_AFTER_DEPENDENT_HEARING = "FILING_AFTER_DEPENDENT_HEARING";
 
     private Rules() {
     }

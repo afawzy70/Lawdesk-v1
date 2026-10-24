@@ -99,9 +99,19 @@ Acceptance criteria:
    with `from ≤ hearingDate ≤ to`, optionally of one `status`, ordered by date, time (untimed first), order of
    recording. **ASSUMPTION:** `from` defaults to today and `to` to `from` + 30 days; `to` before `from`, or a range of
    more than 366 days, is `400` (field `to`, code `Range`).
-7. **ASSUMPTION:** the date of a hearing is not checked against the proceeding's judgment date (the read port gives no
-   judgments), and Phase 4 does not stop a filing date from being corrected to after an existing hearing. Both are
-   follow-ups that need a change in `com.lawdesk.proceedings` (see "Dependencies").
+7. QAD-032: the chronology *filing date ≤ every hearing* holds whichever side is edited. Correcting a proceeding's
+   filing date (`PUT /api/v1/proceedings/{id}`, LD-019) to after one of its hearings is `422
+   FILING_AFTER_DEPENDENT_HEARING` and writes nothing; the same day as the earliest hearing is allowed. **ASSUMPTION:**
+   cancelled hearings count too, so the record never shows a hearing before the filing. The proceedings package asks
+   the modules that depend on its filing date through the port `com.lawdesk.proceedings.ProceedingDependentDates`
+   (hearings implement it), while it holds the proceeding row lock it already takes (QAD-024). Scheduling,
+   rescheduling and adjourning a hearing take the same lock first (`ProceedingLookup#lockForUpdate`), so racing writes
+   are serialised and the second one sees the first one's committed date. Tests: `HearingFilingChronologyTest` (direct
+   edit, cancelled hearing, and four races with a test-only pause trigger: filing edit first vs scheduling, scheduling
+   first vs filing edit, reschedule first, adjournment first — each one success and one 422). Evidence:
+   `LD-024-18-red-QAD-032-backend.log`, `LD-024-19-green-QAD-032-backend.log`, `LD-024-20/21` (frontend message).
+   **ASSUMPTION:** the date of a hearing is still not checked against the proceeding's judgment date (hearings after
+   the judgment, such as on enforcement, stay possible).
 8. **Report port for Phase 6:** `com.lawdesk.hearings.HearingReportQueries` (read-only, no security of its own: the
    reports module checks `REPORT_VIEW`): hearings in a date range with optional status, case and proceeding filters,
    paged, with their total, and counts by status. The rules "upcoming" (`SCHEDULED` and dated today or later) and
@@ -264,7 +274,14 @@ Acceptance criteria:
 6. **Report port:** `com.lawdesk.experts.ExpertReportQueries`: `find(ReferralFilter, offset, limit)` (≤ 10 000 rows),
    `count`, `countByStatus` (zero-filled), `overdueReportCount()`, `workload()` (open and overdue referrals per expert
    of the registry) and `today()`; "overdue" is defined there.
-7. Screens: `/experts` (ready, `EXPERT_VIEW`) is the registry with status filter, search, create, edit and deactivate;
+7. QAD-032 applied here: correcting a proceeding's filing date to after one of its referrals (cancelled ones count,
+   **ASSUMPTION**) is `422 FILING_AFTER_DEPENDENT_REFERRAL` with nothing written (port `ProceedingDependentDates`), and
+   a referral takes the proceeding row lock (`ProceedingLookup#lockForUpdate`) before it compares its date with the
+   filing date, so the two writes are serialised. Sessions and reports are bound by the referral date, so they follow.
+   Tests: `ExpertFilingChronologyTest` (direct edit and two races, both orders). Evidence:
+   `LD-025-10-red-QAD-032-referrals.log`, `LD-025-11-green-QAD-032-referrals.log`. Checked and not affected: tasks
+   (due dates are bound by today only), documents and notes (no date bound to the proceeding or the case).
+8. Screens: `/experts` (ready, `EXPERT_VIEW`) is the registry with status filter, search, create, edit and deactivate;
    the case's expert referrals in `CaseOperations` refer a proceeding to an active expert, record sessions and the
    report, and cancel a referral after confirmation.
 
@@ -292,9 +309,9 @@ Acceptance criteria:
 3. Timeline: `NOTE_ADDED`, `NOTE_REMOVED`, naming the author only. The activity history of a case is its timeline
    (LD-014, `GET /api/v1/cases/{id}/timeline`), which every Phase 5 module feeds through `CaseLookup#recordEvent`
    (`ActivityHistoryTest`: one case with a hearing, a task, a document, an expert referral and a note shows all seven
-   events newest first). The case details page shows that timeline already (Workstream B); its labels for the
-   Phase 5 event types are a requested follow-up in `features/cases` (see "Dependencies"), until then they show as
-   "other event" with their summary.
+   events newest first). The case details page shows that timeline already (Workstream B); the labels of the Phase 5
+   event types come with the integration owner's PR #45 (see "Dependencies"); before it they read "other event", with
+   their summary.
 4. Screen: the case's legal notes in `CaseOperations`: write, edit and remove own notes (removal after confirmation),
    with a hint that notes stay internal.
 
@@ -315,11 +332,12 @@ Acceptance criteria:
   LD-024 pull request after the mobile fix QAD-027 (PR #29) reached `develop`.
 - The shell tests see every navigation area because the shared test administrator (`src/test/api.ts`) holds every
   permission (integration owner, contracts branch `c11bd48`); each Phase 5 item is flipped with its working screen.
-- Follow-up in `com.lawdesk.proceedings` (Workstream C package, integration owner): a proceeding's filing date should
-  not move after the earliest hearing or expert referral of that proceeding; the check needs a read of Phase 5 tables
-  or a small port, and a row lock shared with the Phase 5 writes.
-- Follow-up in `features/cases/CaseTimelineList.tsx` and `cases.{en,ar}.ts` (Workstream B files, integration owner):
-  labels for the Phase 5 timeline types `HEARING_SCHEDULED`, `HEARING_RESCHEDULED`, `HEARING_HELD`,
+- QAD-032 integration exception (authorized by the integration owner): `com.lawdesk.proceedings` gained the port
+  `ProceedingDependentDates`, its call in the filing-date correction and `ProceedingLookup#lockForUpdate`; the
+  proceedings messages gained the rule's text. Nothing else of Workstream C changed.
+- Timeline labels in `features/cases` (Workstream B files): added by the integration owner in PR #45
+  (`eventLabel(type)`, en/ar) for
+  the Phase 5 timeline types `HEARING_SCHEDULED`, `HEARING_RESCHEDULED`, `HEARING_HELD`,
   `HEARING_ADJOURNED`, `HEARING_CANCELLED`, `TASK_CREATED`, `TASK_ASSIGNED`, `TASK_COMPLETED`, `TASK_CANCELLED`,
   `TASK_REOPENED`, `DOCUMENT_ATTACHED`, `DOCUMENT_REMOVED`, `EXPERT_REFERRED`, `EXPERT_SESSION_RECORDED`,
   `EXPERT_REPORT_SUBMITTED`, `EXPERT_REFERRAL_CANCELLED`, `NOTE_ADDED`, `NOTE_REMOVED`.
