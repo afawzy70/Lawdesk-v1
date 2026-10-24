@@ -1,0 +1,30 @@
+# A scheduling probe only. This job has no checkout, secrets, or deployment access.
+# Remove it after the proof and keep its result in the CI recovery runbook.
+name: Self-hosted runner viability
+
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      - .github/workflows/runner-viability.yml
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  schedule-probe:
+    name: Self-hosted scheduling probe
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'infra/actions-billing-runner'
+    runs-on: [self-hosted, lawdesk-ci-poc]
+    timeout-minutes: 2
+    steps:
+      - name: Confirm execution on the isolated proof runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf 'LAWDESK_CI_POC_EXECUTED\n'
+          test "$(id -u)" -ne 0
+          test ! -e /var/run/docker.sock
