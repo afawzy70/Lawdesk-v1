@@ -10,3 +10,8 @@ export function formatDate(date: string, locale: Locale): string {
     timeZone: 'UTC',
   }).format(new Date(`${date}T00:00:00Z`));
 }
+
+/** "1234/2025", the number and year as Egyptian court records write them (kept in the digits recorded). */
+export function numberOf(p: { courtCaseNumber: string; courtCaseYear: number }): string {
+  return `${p.courtCaseNumber}/${String(p.courtCaseYear)}`;
+}

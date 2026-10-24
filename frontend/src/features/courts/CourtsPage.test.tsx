@@ -331,6 +331,31 @@ describe('creating and editing courts', () => {
   });
 });
 
+describe('less common validation answers', () => {
+  it('explains format and unknown constraints on other fields', async () => {
+    const user = userEvent.setup();
+    serve((_url, init) =>
+      init.method === 'POST'
+        ? problem(400, {
+            errors: [
+              { field: 'governorate', code: 'Pattern' },
+              { field: 'nameEn', code: 'Unexpected' },
+              { field: 'createdBy', code: 'NotNull' },
+            ],
+          })
+        : jsonResponse(page([])),
+    );
+    renderCourts();
+    await screen.findByText('No courts match these filters.');
+    await user.click(screen.getByRole('button', { name: 'New court' }));
+    const form = screen.getByRole('form', { name: 'New court' });
+    await user.click(within(form).getByRole('button', { name: 'Save' }));
+    expect(await within(form).findByRole('alert')).toHaveTextContent('Please correct the highlighted fields.');
+    expect(within(form).getByLabelText('Governorate')).toHaveAccessibleDescription('This value is not valid.');
+    expect(within(form).getByLabelText('English name')).toHaveAccessibleDescription('This value is not valid.');
+  });
+});
+
 describe('court administration in Arabic', () => {
   it('labels the screen, the levels and the form in Arabic', async () => {
     const user = userEvent.setup();

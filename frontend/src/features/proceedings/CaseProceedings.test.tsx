@@ -71,7 +71,7 @@ const SUSPENSION: SpecialDecision = {
   updatedAt: '2023-07-15T08:00:00Z',
 };
 
-const page = <T,>(items: T[]) => ({ items, page: 0, size: 100, totalItems: items.length, totalPages: 1 });
+const page = (items: readonly unknown[]) => ({ items, page: 0, size: 100, totalItems: items.length, totalPages: 1 });
 
 function problem(status: number, body: object = {}): Response {
   return new Response(JSON.stringify({ status, ...body }), {
@@ -88,7 +88,7 @@ interface Data {
   onPost?: (path: string, body: unknown) => Response;
 }
 
-const respond = <T,>(value: T[] | Response | undefined): Response =>
+const respond = (value: readonly unknown[] | Response | undefined): Response =>
   value instanceof Response ? value : jsonResponse(page(value ?? []));
 
 function serve(data: Data) {
@@ -460,6 +460,69 @@ describe('recording judgments and special decisions', () => {
     expect(await within(appeal).findByRole('alert')).toHaveTextContent(
       'An enforcement suspension must name the judgment whose enforcement it suspends.',
     );
+  });
+});
+
+describe('details and further refusals', () => {
+  it('shows decisions without a judgment, their summary, and judgments without a summary', async () => {
+    const measure: SpecialDecision = {
+      ...SUSPENSION,
+      id: 'd2',
+      decisionType: 'URGENT_MEASURE',
+      effect: 'PARTIALLY_GRANTED',
+      judgmentId: null,
+      summary: 'Seals placed on the premises.',
+    };
+    serve({ proceedings: [FIRST, APPEAL], judgments: [{ ...JUDGMENT, summary: null, final: true }], decisions: [measure] });
+    renderStages();
+    const first = await screen.findByRole('article', { name: 'First instance 100/2023' });
+    expect(first).toHaveTextContent('Final');
+    expect(first).not.toHaveTextContent('Claim rejected.');
+    const appeal = screen.getByRole('article', { name: 'Appeal 7/2023' });
+    expect(appeal).toHaveTextContent(`Urgent measure: partly granted, ${formatDate('2023-07-15', 'en')}`);
+    expect(appeal).not.toHaveTextContent('(judgment of');
+    expect(appeal).toHaveTextContent('Seals placed on the premises.');
+  });
+
+  it('explains field errors and a missing session when recording a decision', async () => {
+    const user = userEvent.setup();
+    let answer = problem(400, {
+      errors: [
+        { field: 'summary', code: 'Size' },
+        { field: 'decisionDate', code: 'Future' },
+        { field: 'effect', code: 'NotNull' },
+        { field: 'unknownField', code: 'NotNull' },
+      ],
+    });
+    serve({ proceedings: [APPEAL], onPost: () => answer });
+    renderStages();
+    const appeal = await screen.findByRole('article', { name: 'Appeal 7/2023' });
+    await user.click(within(appeal).getByRole('button', { name: 'Record special decision' }));
+    const form = within(appeal).getByRole('form', { name: 'Record special decision for 7/2023' });
+    await user.click(within(form).getByRole('button', { name: 'Save' }));
+    expect(await within(form).findByRole('alert')).toHaveTextContent('Please correct the highlighted fields.');
+    expect(within(form).getByLabelText('Summary')).toHaveAccessibleDescription('This value is too long.');
+    expect(within(form).getByLabelText('Decision date')).toHaveAccessibleDescription('This value is not valid.');
+    expect(within(form).getByLabelText('Effect')).toHaveAccessibleDescription('This field is required.');
+    expect(within(form).getByLabelText('Decision type')).not.toHaveAttribute('aria-invalid');
+
+    answer = problem(401);
+    await user.selectOptions(within(form).getByLabelText('Decision type'), 'OTHER');
+    await user.click(within(form).getByRole('button', { name: 'Save' }));
+    await waitFor(() => {
+      expect(within(form).getByRole('alert')).toHaveTextContent('Please sign in to continue.');
+    });
+    expect(within(form).getByLabelText('Summary')).not.toHaveAttribute('aria-invalid');
+  });
+
+  it('explains a second judgment for the same proceeding', async () => {
+    const user = userEvent.setup();
+    serve({ proceedings: [APPEAL], onPost: () => problem(409) });
+    renderStages();
+    const appeal = await screen.findByRole('article', { name: 'Appeal 7/2023' });
+    await user.click(within(appeal).getByRole('button', { name: 'Record judgment' }));
+    await user.click(within(appeal).getByRole('button', { name: 'Save' }));
+    expect(await within(appeal).findByRole('alert')).toHaveTextContent('This proceeding already has a judgment.');
   });
 });
 

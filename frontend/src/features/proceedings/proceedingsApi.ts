@@ -69,24 +69,22 @@ const ALL = 'size=100';
 const casePath = (caseId: string, what: string) => `/api/v1/cases/${encodeURIComponent(caseId)}/${what}?${ALL}`;
 const proceedingPath = (id: string, what: string) => `/api/v1/proceedings/${encodeURIComponent(id)}/${what}`;
 
-const withSignal = (signal?: AbortSignal) => (signal === undefined ? {} : { signal });
-
-export async function listProceedings(caseId: string, signal?: AbortSignal): Promise<Proceeding[]> {
-  return (await api<Page<Proceeding>>(casePath(caseId, 'proceedings'), withSignal(signal))).items;
+export async function listProceedings(caseId: string, signal: AbortSignal): Promise<Proceeding[]> {
+  return (await api<Page<Proceeding>>(casePath(caseId, 'proceedings'), { signal })).items;
 }
 
-export async function listJudgments(caseId: string, signal?: AbortSignal): Promise<Judgment[]> {
-  return (await api<Page<Judgment>>(casePath(caseId, 'judgments'), withSignal(signal))).items;
+export async function listJudgments(caseId: string, signal: AbortSignal): Promise<Judgment[]> {
+  return (await api<Page<Judgment>>(casePath(caseId, 'judgments'), { signal })).items;
 }
 
-export async function listSpecialDecisions(caseId: string, signal?: AbortSignal): Promise<SpecialDecision[]> {
-  return (await api<Page<SpecialDecision>>(casePath(caseId, 'special-decisions'), withSignal(signal))).items;
+export async function listSpecialDecisions(caseId: string, signal: AbortSignal): Promise<SpecialDecision[]> {
+  return (await api<Page<SpecialDecision>>(casePath(caseId, 'special-decisions'), { signal })).items;
 }
 
 /** Active courts of the level that hears `stage`. */
-export async function listCourtsFor(stage: Stage, signal?: AbortSignal): Promise<Court[]> {
+export async function listCourtsFor(stage: Stage, signal: AbortSignal): Promise<Court[]> {
   const query = new URLSearchParams({ active: 'true', level: stage, size: '100', sort: 'code,asc' });
-  return (await api<Page<Court>>(`/api/v1/courts?${query.toString()}`, withSignal(signal))).items;
+  return (await api<Page<Court>>(`/api/v1/courts?${query.toString()}`, { signal })).items;
 }
 
 export interface ProceedingInput {

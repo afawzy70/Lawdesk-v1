@@ -95,7 +95,7 @@ Acceptance criteria:
 | QA-0149 | insufficient permission | `ProceedingApiTest.viewersCannotWriteAndOthersCannotRead`. Audit BLOCKED (A) | AUTOMATED (refusal); audit BLOCKED |
 | QA-0150 | record integrity and rollback | Unknown case/court → 404, nothing stored; a failing timeline event rolls the proceeding back; database stage/parent check | AUTOMATED |
 | QA-0151 | concurrent or repeat request | Duplicate number/year → 409; stale version → 409 | AUTOMATED |
-| QA-0152 | API-to-UI state and error handling | `CaseProceedings.test.tsx` | PLANNED (PR C3) |
+| QA-0152 | API-to-UI state and error handling | `CaseProceedings.test.tsx`: ladder display, empty state, 401/403/404, retry, record first instance, field errors, 409, 422 | AUTOMATED |
 
 ## LD-020 Appeal proceedings
 
@@ -116,7 +116,7 @@ Acceptance criteria:
 
 | QA case | Scenario | Mapping | Status |
 |---------|----------|---------|--------|
-| QA-0153…QA-0160 | the eight standard scenarios | Backend: `StageRulesTest` (appeal cases) and the shared `ProceedingApiTest` checks; UI: `CaseProceedings.test.tsx` | Backend AUTOMATED (PR C2); UI PLANNED (PR C3) |
+| QA-0153…QA-0160 | the eight standard scenarios | Backend: `StageRulesTest` (appeal cases) and the shared `ProceedingApiTest` checks; UI: `CaseProceedings.test.tsx` | Backend and UI AUTOMATED |
 
 ## LD-021 Cassation proceedings
 
@@ -132,7 +132,7 @@ Acceptance criteria:
 
 | QA case | Scenario | Mapping | Status |
 |---------|----------|---------|--------|
-| QA-0161…QA-0168 | the eight standard scenarios | Backend: `StageRulesTest` (cassation cases); UI: `CaseProceedings.test.tsx` | Backend AUTOMATED (PR C2); UI PLANNED (PR C3) |
+| QA-0161…QA-0168 | the eight standard scenarios | Backend: `StageRulesTest` (cassation cases); UI: `CaseProceedings.test.tsx` | Backend and UI AUTOMATED |
 
 ## LD-022 Judgments and outcomes
 
@@ -157,7 +157,7 @@ Acceptance criteria:
 | QA case | Scenario | Mapping | Status |
 |---------|----------|---------|--------|
 | QA-0169…QA-0175 | backend scenarios | `JudgmentApiTest` | AUTOMATED (audit part of QA-0173 BLOCKED, A) |
-| QA-0176 | API-to-UI state and error handling | `CaseProceedings.test.tsx` | PLANNED (PR C3) |
+| QA-0176 | API-to-UI state and error handling | `CaseProceedings.test.tsx`: judgment display, hidden without JUDGMENT_VIEW, record, 409, 422 | AUTOMATED |
 
 ## LD-023 Special judicial decisions and enforcement suspension
 
@@ -170,14 +170,17 @@ Acceptance criteria:
 2. `POST /api/v1/proceedings/{id}/special-decisions` (`JUDGMENT_MANAGE`), `GET /api/v1/cases/{caseId}/special-decisions`
    (`JUDGMENT_VIEW`), `PUT /api/v1/special-decisions/{id}` (`JUDGMENT_MANAGE`, with `version`).
 3. Rules (422): `SUSPENSION_REQUIRES_JUDGMENT` (an enforcement suspension names the judgment whose enforcement it
-   suspends); `DECISION_JUDGMENT_OTHER_CASE` (that judgment belongs to the same case).
+   suspends); `DECISION_JUDGMENT_OTHER_CASE` (a named judgment belongs to the same case); `DECISION_BEFORE_FILING`
+   (the decision date is not before the proceeding's filing date). An unknown judgment is 404. **ASSUMPTION:** a
+   proceeding may hold several decisions, including repeated suspension requests.
 4. **ASSUMPTION:** an enforcement suspension is informational: it does not change the judgment record or block other
    entries. Its effect is shown next to the judgment it names.
 5. Recording a decision adds a timeline entry `SPECIAL_DECISION_RECORDED`.
 
 | QA case | Scenario | Mapping | Status |
 |---------|----------|---------|--------|
-| QA-0177…QA-0184 | the eight standard scenarios | `SpecialDecisionApiTest`, `CaseProceedings.test.tsx` | PLANNED (PR C3) |
+| QA-0177…QA-0183 | backend scenarios | `SpecialDecisionApiTest` | AUTOMATED (audit part of QA-0181 BLOCKED, A) |
+| QA-0184 | API-to-UI state and error handling | `CaseProceedings.test.tsx`: decision display, record suspension, 400, 401, 422 | AUTOMATED |
 
 ## Dependencies
 
@@ -186,3 +189,9 @@ Acceptance criteria:
   `develop`.
 - Signing in on UAT (A, LD-007) is needed before the screens can be used there; tests sign in with `TestActors`.
 - Audit entries for refused access (A, LD-011) — see common rule 5.
+
+## Frontend embedding (PR C3)
+
+`src/features/proceedings/CaseProceedings.tsx` exports `<CaseProceedings caseId="…" />`, the judicial stages of one
+case, for the case details page of Workstream B. It is not routed on its own and no navigation entry is flipped:
+`/hearings` and `/judgments` stay `planned` because their cross-case screens are not built in this phase.

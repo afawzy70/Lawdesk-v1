@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import type { MessageKey } from '../../i18n/catalog';
 import { useI18n } from '../../i18n/I18nContext';
 import type { Court } from '../courts/courtsApi';
-import { formatDate } from './dates';
+import { formatDate, numberOf } from './dates';
 import { useFormErrors } from './formErrors';
 import {
   createJudgment,
@@ -24,9 +24,6 @@ import {
 /** Forms of the judicial stages (LD-019…LD-023). The backend validates; the forms show its answer. */
 
 const blankToNull = (value: string) => (value.trim() === '' ? null : value.trim());
-
-export const numberOf = (p: Pick<Proceeding, 'courtCaseNumber' | 'courtCaseYear'>) =>
-  `${p.courtCaseNumber}/${String(p.courtCaseYear)}`;
 
 interface FieldProps {
   id: string;
