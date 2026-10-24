@@ -48,6 +48,18 @@ class CaseController {
         return service.get(Text.id(id, "case"));
     }
 
+    @PostMapping("/{id}/status")
+    @PreAuthorize(Permission.Codes.CASE_STATUS_CHANGE)
+    LegalCase changeStatus(@PathVariable String id, @Valid @RequestBody StatusChangeRequest request) {
+        return service.changeStatus(Text.id(id, "case"), request);
+    }
+
+    @GetMapping("/{id}/timeline")
+    @PreAuthorize(Permission.Codes.CASE_VIEW)
+    PageResponse<CaseEvent> timeline(@PathVariable String id, @Valid @ModelAttribute Paging paging) {
+        return service.timeline(Text.id(id, "case"), paging);
+    }
+
     @PutMapping("/{id}")
     @PreAuthorize(Permission.Codes.CASE_EDIT)
     LegalCase update(@PathVariable String id, @Valid @RequestBody UpdateCaseRequest request) {

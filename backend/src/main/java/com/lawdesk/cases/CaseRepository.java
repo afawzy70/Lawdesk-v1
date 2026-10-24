@@ -70,12 +70,26 @@ class CaseRepository {
                 .query(CaseRepository::row).optional();
     }
 
+    /** Moves the case from {@code from} to {@code to} if {@code expectedVersion} is still current; empty otherwise. */
+    Optional<LegalCase> changeStatus(UUID id, long expectedVersion, CaseStatus from, CaseStatus to, UUID actor) {
+        return jdbc.sql("""
+                        update legal_case
+                        set status = :to, version = version + 1, updated_at = now(), updated_by = :actor
+                        where id = :id and version = :version and status = :from
+                        returning\s""" + COLUMNS)
+                .param("id", id).param("version", expectedVersion).param("from", from.name())
+                .param("to", to.name()).param("actor", actor)
+                .query(CaseRepository::row).optional();
+    }
+
     PageResponse<CaseListItem> search(CaseSearch search) {
         StringBuilder where = new StringBuilder(" where true");
         Map<String, Object> params = new HashMap<>();
         if (search.q() != null) {
-            where.append(" and (reference_no ilike :q escape '\\' or title ilike :q escape '\\')");
-            params.put("q", "%" + escapeLike(search.q()) + "%");
+            where.append(" and (reference_no ilike :q escape '\\' or title ilike :q escape '\\'"
+                    + " or exists (select 1 from case_party cp join party p on p.id = cp.party_id"
+                    + " where cp.case_id = legal_case.id and p.name ilike :q escape '\\'))");
+            params.put("q", "%" + Text.escapeLike(search.q()) + "%");
         }
         if (!search.status().isEmpty()) {
             where.append(" and status in (:status)");
@@ -127,10 +141,6 @@ class CaseRepository {
         }
         String direction = parts.length > 1 && parts[1].equals("desc") ? "desc" : "asc";
         return " order by " + column + " " + direction + ", id";
-    }
-
-    private static String escapeLike(String text) {
-        return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
     Optional<LegalCase> find(UUID id) {

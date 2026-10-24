@@ -14,9 +14,18 @@ final class CaseTestData {
     }
 
     static void deleteAll(JdbcTemplate jdbc) {
+        jdbc.update("delete from case_party");
+        jdbc.update("delete from party");
         jdbc.update("delete from case_event");
         jdbc.update("delete from legal_case");
         jdbc.update("delete from case_reference_counter");
+    }
+
+    /** Inserts a party directly, bypassing the API, and returns its id. */
+    static UUID insertParty(JdbcTemplate jdbc, String kind, String name, String nationalId) {
+        return jdbc.queryForObject("""
+                insert into party (kind, name, national_id, created_by, updated_by)
+                values (?, ?, ?, ?, ?) returning id""", UUID.class, kind, name, nationalId, CREATOR, CREATOR);
     }
 
     /** Inserts a case directly, bypassing the API, and returns its id. */

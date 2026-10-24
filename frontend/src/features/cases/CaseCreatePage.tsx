@@ -6,10 +6,10 @@ import { usePageTitle } from '../../i18n/usePageTitle';
 import { createCase, type NewCase } from './api';
 import { CaseForm, type Failure } from './CaseForm';
 import { todayIso } from './format';
-import { CASES_PATH, editCasePath } from './paths';
+import { CASES_PATH, casePath } from './paths';
 import { fieldErrors, isStatus, problemMessage } from './problems';
 
-/** What the edit page shows after a creation (router state, so a reload does not repeat it). */
+/** What the details page shows after a creation (router state, so a reload does not repeat it). */
 export interface CreatedState {
   created: string;
 }
@@ -44,7 +44,7 @@ export function CaseCreatePage() {
   const submit = async (values: NewCase) => {
     const created = await createCase(values);
     const state: CreatedState = { created: created.referenceNo };
-    await navigate(withLang(editCasePath(created.id), locale), { state });
+    await navigate(withLang(casePath(created.id), locale), { state });
   };
 
   return (

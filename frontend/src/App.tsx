@@ -3,8 +3,9 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { SessionGate } from './features/auth/SessionGate';
 import { CaseCreatePage } from './features/cases/CaseCreatePage';
+import { CaseDetailsPage } from './features/cases/CaseDetailsPage';
 import { CaseEditPage } from './features/cases/CaseEditPage';
-import { EDIT_CASE_ROUTE, NEW_CASE_PATH } from './features/cases/paths';
+import { CASE_ROUTE, EDIT_CASE_ROUTE, NEW_CASE_PATH } from './features/cases/paths';
 import { LocaleProvider } from './i18n/LocaleProvider';
 import { AppLayout } from './layout/AppLayout';
 import { PLANNED_AREAS } from './layout/navigation';
@@ -26,6 +27,7 @@ export function AppRoutes({ locale }: LocaleProps) {
             <Route element={<AppLayout />}>
               <Route index element={<DashboardPage />} />
               <Route path={NEW_CASE_PATH} element={<CaseCreatePage />} />
+              <Route path={CASE_ROUTE} element={<CaseDetailsPage />} />
               <Route path={EDIT_CASE_ROUTE} element={<CaseEditPage />} />
               {PLANNED_AREAS.map((area) => (
                 <Route key={area.path} path={area.path} element={<ComingSoonPage title={area.label} />} />
