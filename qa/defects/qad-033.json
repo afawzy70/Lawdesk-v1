@@ -1,0 +1,46 @@
+{
+  "reported_utc": "2026-10-24T18:09:37.823607+00:00",
+  "owner": "Claude implementation; independent QA verification",
+  "environment": "Canonical candidate archive; real Java21 jar and disposable PostgreSQL18.6 on loopback. No customer records or deployment.",
+  "no_customer_data": true,
+  "id": "QAD-033",
+  "title": "Database permits hearing chronology and reverse parent/case inconsistency",
+  "status": "CONFIRMED_OPEN",
+  "priority": "P2",
+  "severity": "S2",
+  "story_ids": [
+    "LD-019",
+    "LD-024"
+  ],
+  "affected": [
+    "6e27f5c427380fddb1914872f53ea437eb642fc9",
+    "e4c8e470f2ad23b4a99714531c35dcf171585817"
+  ],
+  "preconditions": [
+    "Disposable migrated DB owner connection with normal constraints/triggers enabled",
+    "Synthetic cases A/B, proceeding P in A, hearing H in P"
+  ],
+  "test_data": {
+    "filing": "2026-01-02",
+    "hearing": "2026-01-03",
+    "invalid_filing": "2026-01-04",
+    "invalid_hearing": "2026-01-01"
+  },
+  "steps": [
+    "Create valid case/proceeding/hearing through APIs",
+    "In separate BEGIN/ROLLBACK transactions execute UPDATE proceeding SET filing_date='2026-01-04' WHERE id=P",
+    "Execute UPDATE hearing SET hearing_date='2026-01-01' WHERE id=H",
+    "Execute UPDATE proceeding SET case_id=B WHERE id=P",
+    "Compare hearing/proceeding pair inside each transaction before rollback"
+  ],
+  "expected": "Reject each invariant-breaking database statement; preserve dates, relation and history",
+  "actual": "All three SQL statements succeed. Reverse hearing.case_id change is correctly rejected by existing trigger. API guards pass.",
+  "risk_boundary": "Privileged direct SQL / trusted future writer integrity gap, not demonstrated remote API or authorization bypass. QA probes always roll back.",
+  "contract_note": "Separate from fixed QAD-032 API defect; owner explicitly requested database-level integrity. Existing service guard is credited.",
+  "evidence": [
+    "qa/evidence/continuous-phase56-20261024/current/pr33-hearing-chronology/results.json",
+    "qa/evidence/continuous-phase56-20261024/current/pr44-hearing-chronology/results.json"
+  ],
+  "handoff": "https://github.com/afawzy70/Lawdesk-v1/pull/33#issuecomment-6387613718",
+  "recommendation": "REQUEST_CHANGES for database-integrity acceptance; unrelated synthetic Dev/UAT development may continue"
+}

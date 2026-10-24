@@ -1,0 +1,3909 @@
+{
+  "tested_sha": "875d9381dc1b6ebabb3f69759631f11abc51a696",
+  "utc": "2026-10-24T18:04:23.365542+00:00",
+  "candidate": "/tmp/lawdesk-continuous2-pr36-875d9381",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 70,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-24T18:04:13.045858Z",
+          "updatedAt": "2026-10-24T18:04:13.045858Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DASHBOARD-ANON",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DASHBOARD-ANON"
+      },
+      "steps": [
+        "GET /api/v1/reports/dashboard",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 401,
+        "rule": null
+      },
+      "actual": {
+        "status": 401,
+        "body": {
+          "type": "about:blank",
+          "title": "Unauthorized",
+          "status": 401
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DASHBOARD-DENIED",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DASHBOARD-DENIED"
+      },
+      "steps": [
+        "GET /api/v1/reports/dashboard",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 403,
+        "rule": null
+      },
+      "actual": {
+        "status": 403,
+        "body": {
+          "type": "about:blank",
+          "title": "Forbidden",
+          "status": 403
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DASHBOARD-DENIED-BAD-FILTER",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DASHBOARD-DENIED-BAD-FILTER"
+      },
+      "steps": [
+        "GET /api/v1/reports/dashboard?from=bad",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 403,
+        "rule": null
+      },
+      "actual": {
+        "status": 403,
+        "body": {
+          "type": "about:blank",
+          "title": "Forbidden",
+          "status": 403
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DASHBOARD-EMPTY",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DASHBOARD-EMPTY"
+      },
+      "steps": [
+        "GET /api/v1/reports/dashboard?from=2026-01-01&to=2026-01-31",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "month": "2026-10",
+          "cases": {
+            "total": 0,
+            "open": 0,
+            "closed": 0,
+            "newThisMonth": 0,
+            "byStatus": {
+              "OPEN": 0,
+              "ACTIVE": 0,
+              "SUSPENDED": 0,
+              "CLOSED": 0,
+              "ARCHIVED": 0
+            },
+            "byType": {
+              "CIVIL": 0,
+              "CRIMINAL": 0,
+              "COMMERCIAL": 0,
+              "LABOR": 0,
+              "FAMILY": 0,
+              "ADMINISTRATIVE": 0
+            }
+          },
+          "proceedings": {
+            "awaitingJudgment": 0,
+            "byStage": [
+              {
+                "stage": "FIRST_INSTANCE",
+                "total": 0,
+                "awaitingJudgment": 0
+              },
+              {
+                "stage": "APPEAL",
+                "total": 0,
+                "awaitingJudgment": 0
+              },
+              {
+                "stage": "CASSATION",
+                "total": 0,
+                "awaitingJudgment": 0
+              }
+            ]
+          },
+          "judgments": {
+            "from": "2026-01-01",
+            "to": "2026-01-31",
+            "recorded": 0,
+            "final": 0,
+            "byOutcome": {
+              "IN_FAVOUR": 0,
+              "AGAINST": 0,
+              "PARTIAL": 0,
+              "DISMISSED": 0,
+              "OTHER": 0
+            }
+          },
+          "pending": [
+            "HEARINGS_THIS_WEEK",
+            "EXPERT_REPORTS_DUE",
+            "OVERDUE_TASKS"
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DASHBOARD-ZEROS",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DASHBOARD-ZEROS"
+      },
+      "steps": [
+        "Read empty DB dashboard"
+      ],
+      "expected_results": "Zero cases/judgments and explicit unavailable figures",
+      "actual": {
+        "month": "2026-10",
+        "cases": {
+          "total": 0,
+          "open": 0,
+          "closed": 0,
+          "newThisMonth": 0,
+          "byStatus": {
+            "OPEN": 0,
+            "ACTIVE": 0,
+            "SUSPENDED": 0,
+            "CLOSED": 0,
+            "ARCHIVED": 0
+          },
+          "byType": {
+            "CIVIL": 0,
+            "CRIMINAL": 0,
+            "COMMERCIAL": 0,
+            "LABOR": 0,
+            "FAMILY": 0,
+            "ADMINISTRATIVE": 0
+          }
+        },
+        "proceedings": {
+          "awaitingJudgment": 0,
+          "byStage": [
+            {
+              "stage": "FIRST_INSTANCE",
+              "total": 0,
+              "awaitingJudgment": 0
+            },
+            {
+              "stage": "APPEAL",
+              "total": 0,
+              "awaitingJudgment": 0
+            },
+            {
+              "stage": "CASSATION",
+              "total": 0,
+              "awaitingJudgment": 0
+            }
+          ]
+        },
+        "judgments": {
+          "from": "2026-01-01",
+          "to": "2026-01-31",
+          "recorded": 0,
+          "final": 0,
+          "byOutcome": {
+            "IN_FAVOUR": 0,
+            "AGAINST": 0,
+            "PARTIAL": 0,
+            "DISMISSED": 0,
+            "OTHER": 0
+          }
+        },
+        "pending": [
+          "HEARINGS_THIS_WEEK",
+          "EXPERT_REPORTS_DUE",
+          "OVERDUE_TASKS"
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DASHBOARD-REAL",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DASHBOARD-REAL"
+      },
+      "steps": [
+        "GET /api/v1/reports/dashboard?from=2026-01-03&to=2026-01-03",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "month": "2026-10",
+          "cases": {
+            "total": 6,
+            "open": 4,
+            "closed": 2,
+            "newThisMonth": 0,
+            "byStatus": {
+              "OPEN": 2,
+              "ACTIVE": 1,
+              "SUSPENDED": 1,
+              "CLOSED": 1,
+              "ARCHIVED": 1
+            },
+            "byType": {
+              "CIVIL": 6,
+              "CRIMINAL": 0,
+              "COMMERCIAL": 0,
+              "LABOR": 0,
+              "FAMILY": 0,
+              "ADMINISTRATIVE": 0
+            }
+          },
+          "proceedings": {
+            "awaitingJudgment": 1,
+            "byStage": [
+              {
+                "stage": "FIRST_INSTANCE",
+                "total": 2,
+                "awaitingJudgment": 1
+              },
+              {
+                "stage": "APPEAL",
+                "total": 0,
+                "awaitingJudgment": 0
+              },
+              {
+                "stage": "CASSATION",
+                "total": 0,
+                "awaitingJudgment": 0
+              }
+            ]
+          },
+          "judgments": {
+            "from": "2026-01-03",
+            "to": "2026-01-03",
+            "recorded": 1,
+            "final": 1,
+            "byOutcome": {
+              "IN_FAVOUR": 1,
+              "AGAINST": 0,
+              "PARTIAL": 0,
+              "DISMISSED": 0,
+              "OTHER": 0
+            }
+          },
+          "pending": [
+            "HEARINGS_THIS_WEEK",
+            "EXPERT_REPORTS_DUE",
+            "OVERDUE_TASKS"
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DASHBOARD-EXACT-COUNTS",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DASHBOARD-EXACT-COUNTS"
+      },
+      "steps": [
+        "Compare dashboard to six fixture cases/two proceedings/one judgment"
+      ],
+      "expected_results": "cases6 open4 closed2; proceedings awaiting1; final judgment1",
+      "actual": {
+        "month": "2026-10",
+        "cases": {
+          "total": 6,
+          "open": 4,
+          "closed": 2,
+          "newThisMonth": 0,
+          "byStatus": {
+            "OPEN": 2,
+            "ACTIVE": 1,
+            "SUSPENDED": 1,
+            "CLOSED": 1,
+            "ARCHIVED": 1
+          },
+          "byType": {
+            "CIVIL": 6,
+            "CRIMINAL": 0,
+            "COMMERCIAL": 0,
+            "LABOR": 0,
+            "FAMILY": 0,
+            "ADMINISTRATIVE": 0
+          }
+        },
+        "proceedings": {
+          "awaitingJudgment": 1,
+          "byStage": [
+            {
+              "stage": "FIRST_INSTANCE",
+              "total": 2,
+              "awaitingJudgment": 1
+            },
+            {
+              "stage": "APPEAL",
+              "total": 0,
+              "awaitingJudgment": 0
+            },
+            {
+              "stage": "CASSATION",
+              "total": 0,
+              "awaitingJudgment": 0
+            }
+          ]
+        },
+        "judgments": {
+          "from": "2026-01-03",
+          "to": "2026-01-03",
+          "recorded": 1,
+          "final": 1,
+          "byOutcome": {
+            "IN_FAVOUR": 1,
+            "AGAINST": 0,
+            "PARTIAL": 0,
+            "DISMISSED": 0,
+            "OTHER": 0
+          }
+        },
+        "pending": [
+          "HEARINGS_THIS_WEEK",
+          "EXPERT_REPORTS_DUE",
+          "OVERDUE_TASKS"
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DASHBOARD-PERIOD-from=bad",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DASHBOARD-PERIOD-from=bad"
+      },
+      "steps": [
+        "GET /api/v1/reports/dashboard?from=bad",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/reports/dashboard",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "code": "typeMismatch",
+              "field": "from"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DASHBOARD-PERIOD-from=2026-02-01&to=2026-01-01",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DASHBOARD-PERIOD-from=2026-02-01&to=2026-01-01"
+      },
+      "steps": [
+        "GET /api/v1/reports/dashboard?from=2026-02-01&to=2026-01-01",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": null
+      },
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/reports/dashboard",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "DATE_RANGE_INVALID"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DASHBOARD-PERIOD-from=2026-01-04&to=2026-01-04",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DASHBOARD-PERIOD-from=2026-01-04&to=2026-01-04"
+      },
+      "steps": [
+        "GET /api/v1/reports/dashboard?from=2026-01-04&to=2026-01-04",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "month": "2026-10",
+          "cases": {
+            "total": 6,
+            "open": 4,
+            "closed": 2,
+            "newThisMonth": 0,
+            "byStatus": {
+              "OPEN": 2,
+              "ACTIVE": 1,
+              "SUSPENDED": 1,
+              "CLOSED": 1,
+              "ARCHIVED": 1
+            },
+            "byType": {
+              "CIVIL": 6,
+              "CRIMINAL": 0,
+              "COMMERCIAL": 0,
+              "LABOR": 0,
+              "FAMILY": 0,
+              "ADMINISTRATIVE": 0
+            }
+          },
+          "proceedings": {
+            "awaitingJudgment": 1,
+            "byStage": [
+              {
+                "stage": "FIRST_INSTANCE",
+                "total": 2,
+                "awaitingJudgment": 1
+              },
+              {
+                "stage": "APPEAL",
+                "total": 0,
+                "awaitingJudgment": 0
+              },
+              {
+                "stage": "CASSATION",
+                "total": 0,
+                "awaitingJudgment": 0
+              }
+            ]
+          },
+          "judgments": {
+            "from": "2026-01-04",
+            "to": "2026-01-04",
+            "recorded": 0,
+            "final": 0,
+            "byOutcome": {
+              "IN_FAVOUR": 0,
+              "AGAINST": 0,
+              "PARTIAL": 0,
+              "DISMISSED": 0,
+              "OTHER": 0
+            }
+          },
+          "pending": [
+            "HEARINGS_THIS_WEEK",
+            "EXPERT_REPORTS_DUE",
+            "OVERDUE_TASKS"
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-ANON",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-ANON"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 401,
+        "rule": null
+      },
+      "actual": {
+        "status": 401,
+        "body": {
+          "type": "about:blank",
+          "title": "Unauthorized",
+          "status": 401
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-DENIED",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-DENIED"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments?from=bad",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 403,
+        "rule": null
+      },
+      "actual": {
+        "status": 403,
+        "body": {
+          "type": "about:blank",
+          "title": "Forbidden",
+          "status": 403
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENT-FIXTURE",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENT-FIXTURE"
+      },
+      "steps": [
+        "POST /api/v1/proceedings/80b78481-0ad4-4b5e-91b0-e4b700ec12e2/judgment",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "62f7042e-738b-41a7-aebb-a00fee5f9e26",
+          "proceedingId": "80b78481-0ad4-4b5e-91b0-e4b700ec12e2",
+          "caseId": "226e9d41-a859-487a-abb9-f52f174302c5",
+          "judgmentDate": "2026-01-04",
+          "outcome": "AGAINST",
+          "summary": null,
+          "final": false,
+          "version": 0,
+          "createdAt": "2026-10-24T18:04:18.218166Z",
+          "updatedAt": "2026-10-24T18:04:18.218166Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-PAGED",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-PAGED"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments?from=2026-01-01&to=2026-01-31&size=1",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "id": "62f7042e-738b-41a7-aebb-a00fee5f9e26",
+              "judgmentDate": "2026-01-04",
+              "outcome": "AGAINST",
+              "final": false,
+              "stage": "FIRST_INSTANCE",
+              "court": {
+                "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+                "code": "QA-PH56",
+                "nameAr": "محكمة اختبار",
+                "nameEn": "QA Court"
+              },
+              "courtCaseNumber": "QA8",
+              "courtCaseYear": 2026,
+              "caseId": "226e9d41-a859-487a-abb9-f52f174302c5",
+              "caseReferenceNo": "QA56-002",
+              "caseTitle": "QA report ACTIVE"
+            }
+          ],
+          "page": 0,
+          "size": 1,
+          "totalItems": 2,
+          "totalPages": 2,
+          "from": "2026-01-01",
+          "to": "2026-01-31",
+          "summary": {
+            "total": 2,
+            "final": 1,
+            "byOutcome": {
+              "IN_FAVOUR": 1,
+              "AGAINST": 1,
+              "PARTIAL": 0,
+              "DISMISSED": 0,
+              "OTHER": 0
+            },
+            "byStage": {
+              "FIRST_INSTANCE": 2,
+              "APPEAL": 0,
+              "CASSATION": 0
+            }
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-SUMMARY-ALL",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-SUMMARY-ALL"
+      },
+      "steps": [
+        "Compare fixture2 judgments to page size1"
+      ],
+      "expected_results": "One item; total2; final1; outcomes1+1; stage2",
+      "actual": {
+        "items": [
+          {
+            "id": "62f7042e-738b-41a7-aebb-a00fee5f9e26",
+            "judgmentDate": "2026-01-04",
+            "outcome": "AGAINST",
+            "final": false,
+            "stage": "FIRST_INSTANCE",
+            "court": {
+              "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+              "code": "QA-PH56",
+              "nameAr": "محكمة اختبار",
+              "nameEn": "QA Court"
+            },
+            "courtCaseNumber": "QA8",
+            "courtCaseYear": 2026,
+            "caseId": "226e9d41-a859-487a-abb9-f52f174302c5",
+            "caseReferenceNo": "QA56-002",
+            "caseTitle": "QA report ACTIVE"
+          }
+        ],
+        "page": 0,
+        "size": 1,
+        "totalItems": 2,
+        "totalPages": 2,
+        "from": "2026-01-01",
+        "to": "2026-01-31",
+        "summary": {
+          "total": 2,
+          "final": 1,
+          "byOutcome": {
+            "IN_FAVOUR": 1,
+            "AGAINST": 1,
+            "PARTIAL": 0,
+            "DISMISSED": 0,
+            "OTHER": 0
+          },
+          "byStage": {
+            "FIRST_INSTANCE": 2,
+            "APPEAL": 0,
+            "CASSATION": 0
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-PAGE-UNIQUE",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-PAGE-UNIQUE"
+      },
+      "steps": [
+        "Read both pages"
+      ],
+      "expected_results": "2 distinct judgments",
+      "actual": [
+        "62f7042e-738b-41a7-aebb-a00fee5f9e26",
+        "416898de-1cbd-4f3a-a864-bac85cb5f359"
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-FINAL",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-FINAL"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments?from=2026-01-01&to=2026-01-31&final=true",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "id": "416898de-1cbd-4f3a-a864-bac85cb5f359",
+              "judgmentDate": "2026-01-03",
+              "outcome": "IN_FAVOUR",
+              "final": true,
+              "stage": "FIRST_INSTANCE",
+              "court": {
+                "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+                "code": "QA-PH56",
+                "nameAr": "محكمة اختبار",
+                "nameEn": "QA Court"
+              },
+              "courtCaseNumber": "QA7",
+              "courtCaseYear": 2026,
+              "caseId": "a0faed6e-c2ab-4716-bc19-033c4c34a681",
+              "caseReferenceNo": "QA56-001",
+              "caseTitle": "QA report OPEN"
+            }
+          ],
+          "page": 0,
+          "size": 20,
+          "totalItems": 1,
+          "totalPages": 1,
+          "from": "2026-01-01",
+          "to": "2026-01-31",
+          "summary": {
+            "total": 1,
+            "final": 1,
+            "byOutcome": {
+              "IN_FAVOUR": 1,
+              "AGAINST": 0,
+              "PARTIAL": 0,
+              "DISMISSED": 0,
+              "OTHER": 0
+            },
+            "byStage": {
+              "FIRST_INSTANCE": 1,
+              "APPEAL": 0,
+              "CASSATION": 0
+            }
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-FILTER-FINAL",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-FILTER-FINAL"
+      },
+      "steps": [
+        "Apply final=true"
+      ],
+      "expected_results": "Total and summary 1",
+      "actual": {
+        "items": [
+          {
+            "id": "416898de-1cbd-4f3a-a864-bac85cb5f359",
+            "judgmentDate": "2026-01-03",
+            "outcome": "IN_FAVOUR",
+            "final": true,
+            "stage": "FIRST_INSTANCE",
+            "court": {
+              "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+              "code": "QA-PH56",
+              "nameAr": "محكمة اختبار",
+              "nameEn": "QA Court"
+            },
+            "courtCaseNumber": "QA7",
+            "courtCaseYear": 2026,
+            "caseId": "a0faed6e-c2ab-4716-bc19-033c4c34a681",
+            "caseReferenceNo": "QA56-001",
+            "caseTitle": "QA report OPEN"
+          }
+        ],
+        "page": 0,
+        "size": 20,
+        "totalItems": 1,
+        "totalPages": 1,
+        "from": "2026-01-01",
+        "to": "2026-01-31",
+        "summary": {
+          "total": 1,
+          "final": 1,
+          "byOutcome": {
+            "IN_FAVOUR": 1,
+            "AGAINST": 0,
+            "PARTIAL": 0,
+            "DISMISSED": 0,
+            "OTHER": 0
+          },
+          "byStage": {
+            "FIRST_INSTANCE": 1,
+            "APPEAL": 0,
+            "CASSATION": 0
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-NONFINAL",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-NONFINAL"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments?from=2026-01-01&to=2026-01-31&final=false",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "id": "62f7042e-738b-41a7-aebb-a00fee5f9e26",
+              "judgmentDate": "2026-01-04",
+              "outcome": "AGAINST",
+              "final": false,
+              "stage": "FIRST_INSTANCE",
+              "court": {
+                "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+                "code": "QA-PH56",
+                "nameAr": "محكمة اختبار",
+                "nameEn": "QA Court"
+              },
+              "courtCaseNumber": "QA8",
+              "courtCaseYear": 2026,
+              "caseId": "226e9d41-a859-487a-abb9-f52f174302c5",
+              "caseReferenceNo": "QA56-002",
+              "caseTitle": "QA report ACTIVE"
+            }
+          ],
+          "page": 0,
+          "size": 20,
+          "totalItems": 1,
+          "totalPages": 1,
+          "from": "2026-01-01",
+          "to": "2026-01-31",
+          "summary": {
+            "total": 1,
+            "final": 0,
+            "byOutcome": {
+              "IN_FAVOUR": 0,
+              "AGAINST": 1,
+              "PARTIAL": 0,
+              "DISMISSED": 0,
+              "OTHER": 0
+            },
+            "byStage": {
+              "FIRST_INSTANCE": 1,
+              "APPEAL": 0,
+              "CASSATION": 0
+            }
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-FILTER-NONFINAL",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-FILTER-NONFINAL"
+      },
+      "steps": [
+        "Apply final=false"
+      ],
+      "expected_results": "Total and summary 1",
+      "actual": {
+        "items": [
+          {
+            "id": "62f7042e-738b-41a7-aebb-a00fee5f9e26",
+            "judgmentDate": "2026-01-04",
+            "outcome": "AGAINST",
+            "final": false,
+            "stage": "FIRST_INSTANCE",
+            "court": {
+              "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+              "code": "QA-PH56",
+              "nameAr": "محكمة اختبار",
+              "nameEn": "QA Court"
+            },
+            "courtCaseNumber": "QA8",
+            "courtCaseYear": 2026,
+            "caseId": "226e9d41-a859-487a-abb9-f52f174302c5",
+            "caseReferenceNo": "QA56-002",
+            "caseTitle": "QA report ACTIVE"
+          }
+        ],
+        "page": 0,
+        "size": 20,
+        "totalItems": 1,
+        "totalPages": 1,
+        "from": "2026-01-01",
+        "to": "2026-01-31",
+        "summary": {
+          "total": 1,
+          "final": 0,
+          "byOutcome": {
+            "IN_FAVOUR": 0,
+            "AGAINST": 1,
+            "PARTIAL": 0,
+            "DISMISSED": 0,
+            "OTHER": 0
+          },
+          "byStage": {
+            "FIRST_INSTANCE": 1,
+            "APPEAL": 0,
+            "CASSATION": 0
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-OUTCOME",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-OUTCOME"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments?from=2026-01-01&to=2026-01-31&outcome=AGAINST",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "id": "62f7042e-738b-41a7-aebb-a00fee5f9e26",
+              "judgmentDate": "2026-01-04",
+              "outcome": "AGAINST",
+              "final": false,
+              "stage": "FIRST_INSTANCE",
+              "court": {
+                "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+                "code": "QA-PH56",
+                "nameAr": "محكمة اختبار",
+                "nameEn": "QA Court"
+              },
+              "courtCaseNumber": "QA8",
+              "courtCaseYear": 2026,
+              "caseId": "226e9d41-a859-487a-abb9-f52f174302c5",
+              "caseReferenceNo": "QA56-002",
+              "caseTitle": "QA report ACTIVE"
+            }
+          ],
+          "page": 0,
+          "size": 20,
+          "totalItems": 1,
+          "totalPages": 1,
+          "from": "2026-01-01",
+          "to": "2026-01-31",
+          "summary": {
+            "total": 1,
+            "final": 0,
+            "byOutcome": {
+              "IN_FAVOUR": 0,
+              "AGAINST": 1,
+              "PARTIAL": 0,
+              "DISMISSED": 0,
+              "OTHER": 0
+            },
+            "byStage": {
+              "FIRST_INSTANCE": 1,
+              "APPEAL": 0,
+              "CASSATION": 0
+            }
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-FILTER-OUTCOME",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-FILTER-OUTCOME"
+      },
+      "steps": [
+        "Apply outcome=AGAINST"
+      ],
+      "expected_results": "Total and summary 1",
+      "actual": {
+        "items": [
+          {
+            "id": "62f7042e-738b-41a7-aebb-a00fee5f9e26",
+            "judgmentDate": "2026-01-04",
+            "outcome": "AGAINST",
+            "final": false,
+            "stage": "FIRST_INSTANCE",
+            "court": {
+              "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+              "code": "QA-PH56",
+              "nameAr": "محكمة اختبار",
+              "nameEn": "QA Court"
+            },
+            "courtCaseNumber": "QA8",
+            "courtCaseYear": 2026,
+            "caseId": "226e9d41-a859-487a-abb9-f52f174302c5",
+            "caseReferenceNo": "QA56-002",
+            "caseTitle": "QA report ACTIVE"
+          }
+        ],
+        "page": 0,
+        "size": 20,
+        "totalItems": 1,
+        "totalPages": 1,
+        "from": "2026-01-01",
+        "to": "2026-01-31",
+        "summary": {
+          "total": 1,
+          "final": 0,
+          "byOutcome": {
+            "IN_FAVOUR": 0,
+            "AGAINST": 1,
+            "PARTIAL": 0,
+            "DISMISSED": 0,
+            "OTHER": 0
+          },
+          "byStage": {
+            "FIRST_INSTANCE": 1,
+            "APPEAL": 0,
+            "CASSATION": 0
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-MULTI",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-MULTI"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments?from=2026-01-01&to=2026-01-31&outcome=IN_FAVOUR&outcome=AGAINST",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "id": "62f7042e-738b-41a7-aebb-a00fee5f9e26",
+              "judgmentDate": "2026-01-04",
+              "outcome": "AGAINST",
+              "final": false,
+              "stage": "FIRST_INSTANCE",
+              "court": {
+                "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+                "code": "QA-PH56",
+                "nameAr": "محكمة اختبار",
+                "nameEn": "QA Court"
+              },
+              "courtCaseNumber": "QA8",
+              "courtCaseYear": 2026,
+              "caseId": "226e9d41-a859-487a-abb9-f52f174302c5",
+              "caseReferenceNo": "QA56-002",
+              "caseTitle": "QA report ACTIVE"
+            },
+            {
+              "id": "416898de-1cbd-4f3a-a864-bac85cb5f359",
+              "judgmentDate": "2026-01-03",
+              "outcome": "IN_FAVOUR",
+              "final": true,
+              "stage": "FIRST_INSTANCE",
+              "court": {
+                "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+                "code": "QA-PH56",
+                "nameAr": "محكمة اختبار",
+                "nameEn": "QA Court"
+              },
+              "courtCaseNumber": "QA7",
+              "courtCaseYear": 2026,
+              "caseId": "a0faed6e-c2ab-4716-bc19-033c4c34a681",
+              "caseReferenceNo": "QA56-001",
+              "caseTitle": "QA report OPEN"
+            }
+          ],
+          "page": 0,
+          "size": 20,
+          "totalItems": 2,
+          "totalPages": 1,
+          "from": "2026-01-01",
+          "to": "2026-01-31",
+          "summary": {
+            "total": 2,
+            "final": 1,
+            "byOutcome": {
+              "IN_FAVOUR": 1,
+              "AGAINST": 1,
+              "PARTIAL": 0,
+              "DISMISSED": 0,
+              "OTHER": 0
+            },
+            "byStage": {
+              "FIRST_INSTANCE": 2,
+              "APPEAL": 0,
+              "CASSATION": 0
+            }
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-FILTER-MULTI",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-FILTER-MULTI"
+      },
+      "steps": [
+        "Apply outcome=IN_FAVOUR&outcome=AGAINST"
+      ],
+      "expected_results": "Total and summary 2",
+      "actual": {
+        "items": [
+          {
+            "id": "62f7042e-738b-41a7-aebb-a00fee5f9e26",
+            "judgmentDate": "2026-01-04",
+            "outcome": "AGAINST",
+            "final": false,
+            "stage": "FIRST_INSTANCE",
+            "court": {
+              "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+              "code": "QA-PH56",
+              "nameAr": "محكمة اختبار",
+              "nameEn": "QA Court"
+            },
+            "courtCaseNumber": "QA8",
+            "courtCaseYear": 2026,
+            "caseId": "226e9d41-a859-487a-abb9-f52f174302c5",
+            "caseReferenceNo": "QA56-002",
+            "caseTitle": "QA report ACTIVE"
+          },
+          {
+            "id": "416898de-1cbd-4f3a-a864-bac85cb5f359",
+            "judgmentDate": "2026-01-03",
+            "outcome": "IN_FAVOUR",
+            "final": true,
+            "stage": "FIRST_INSTANCE",
+            "court": {
+              "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+              "code": "QA-PH56",
+              "nameAr": "محكمة اختبار",
+              "nameEn": "QA Court"
+            },
+            "courtCaseNumber": "QA7",
+            "courtCaseYear": 2026,
+            "caseId": "a0faed6e-c2ab-4716-bc19-033c4c34a681",
+            "caseReferenceNo": "QA56-001",
+            "caseTitle": "QA report OPEN"
+          }
+        ],
+        "page": 0,
+        "size": 20,
+        "totalItems": 2,
+        "totalPages": 1,
+        "from": "2026-01-01",
+        "to": "2026-01-31",
+        "summary": {
+          "total": 2,
+          "final": 1,
+          "byOutcome": {
+            "IN_FAVOUR": 1,
+            "AGAINST": 1,
+            "PARTIAL": 0,
+            "DISMISSED": 0,
+            "OTHER": 0
+          },
+          "byStage": {
+            "FIRST_INSTANCE": 2,
+            "APPEAL": 0,
+            "CASSATION": 0
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-STAGE",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-STAGE"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments?from=2026-01-01&to=2026-01-31&stage=APPEAL",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "items": [],
+          "page": 0,
+          "size": 20,
+          "totalItems": 0,
+          "totalPages": 0,
+          "from": "2026-01-01",
+          "to": "2026-01-31",
+          "summary": {
+            "total": 0,
+            "final": 0,
+            "byOutcome": {
+              "IN_FAVOUR": 0,
+              "AGAINST": 0,
+              "PARTIAL": 0,
+              "DISMISSED": 0,
+              "OTHER": 0
+            },
+            "byStage": {
+              "FIRST_INSTANCE": 0,
+              "APPEAL": 0,
+              "CASSATION": 0
+            }
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-FILTER-STAGE",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-FILTER-STAGE"
+      },
+      "steps": [
+        "Apply stage=APPEAL"
+      ],
+      "expected_results": "Total and summary 0",
+      "actual": {
+        "items": [],
+        "page": 0,
+        "size": 20,
+        "totalItems": 0,
+        "totalPages": 0,
+        "from": "2026-01-01",
+        "to": "2026-01-31",
+        "summary": {
+          "total": 0,
+          "final": 0,
+          "byOutcome": {
+            "IN_FAVOUR": 0,
+            "AGAINST": 0,
+            "PARTIAL": 0,
+            "DISMISSED": 0,
+            "OTHER": 0
+          },
+          "byStage": {
+            "FIRST_INSTANCE": 0,
+            "APPEAL": 0,
+            "CASSATION": 0
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-COURT",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-COURT"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments?from=2026-01-01&to=2026-01-31&courtId=432de97f-a59b-4f6d-92a1-9340c6c16013",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "id": "62f7042e-738b-41a7-aebb-a00fee5f9e26",
+              "judgmentDate": "2026-01-04",
+              "outcome": "AGAINST",
+              "final": false,
+              "stage": "FIRST_INSTANCE",
+              "court": {
+                "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+                "code": "QA-PH56",
+                "nameAr": "محكمة اختبار",
+                "nameEn": "QA Court"
+              },
+              "courtCaseNumber": "QA8",
+              "courtCaseYear": 2026,
+              "caseId": "226e9d41-a859-487a-abb9-f52f174302c5",
+              "caseReferenceNo": "QA56-002",
+              "caseTitle": "QA report ACTIVE"
+            },
+            {
+              "id": "416898de-1cbd-4f3a-a864-bac85cb5f359",
+              "judgmentDate": "2026-01-03",
+              "outcome": "IN_FAVOUR",
+              "final": true,
+              "stage": "FIRST_INSTANCE",
+              "court": {
+                "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+                "code": "QA-PH56",
+                "nameAr": "محكمة اختبار",
+                "nameEn": "QA Court"
+              },
+              "courtCaseNumber": "QA7",
+              "courtCaseYear": 2026,
+              "caseId": "a0faed6e-c2ab-4716-bc19-033c4c34a681",
+              "caseReferenceNo": "QA56-001",
+              "caseTitle": "QA report OPEN"
+            }
+          ],
+          "page": 0,
+          "size": 20,
+          "totalItems": 2,
+          "totalPages": 1,
+          "from": "2026-01-01",
+          "to": "2026-01-31",
+          "summary": {
+            "total": 2,
+            "final": 1,
+            "byOutcome": {
+              "IN_FAVOUR": 1,
+              "AGAINST": 1,
+              "PARTIAL": 0,
+              "DISMISSED": 0,
+              "OTHER": 0
+            },
+            "byStage": {
+              "FIRST_INSTANCE": 2,
+              "APPEAL": 0,
+              "CASSATION": 0
+            }
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-FILTER-COURT",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-FILTER-COURT"
+      },
+      "steps": [
+        "Apply courtId=432de97f-a59b-4f6d-92a1-9340c6c16013"
+      ],
+      "expected_results": "Total and summary 2",
+      "actual": {
+        "items": [
+          {
+            "id": "62f7042e-738b-41a7-aebb-a00fee5f9e26",
+            "judgmentDate": "2026-01-04",
+            "outcome": "AGAINST",
+            "final": false,
+            "stage": "FIRST_INSTANCE",
+            "court": {
+              "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+              "code": "QA-PH56",
+              "nameAr": "محكمة اختبار",
+              "nameEn": "QA Court"
+            },
+            "courtCaseNumber": "QA8",
+            "courtCaseYear": 2026,
+            "caseId": "226e9d41-a859-487a-abb9-f52f174302c5",
+            "caseReferenceNo": "QA56-002",
+            "caseTitle": "QA report ACTIVE"
+          },
+          {
+            "id": "416898de-1cbd-4f3a-a864-bac85cb5f359",
+            "judgmentDate": "2026-01-03",
+            "outcome": "IN_FAVOUR",
+            "final": true,
+            "stage": "FIRST_INSTANCE",
+            "court": {
+              "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+              "code": "QA-PH56",
+              "nameAr": "محكمة اختبار",
+              "nameEn": "QA Court"
+            },
+            "courtCaseNumber": "QA7",
+            "courtCaseYear": 2026,
+            "caseId": "a0faed6e-c2ab-4716-bc19-033c4c34a681",
+            "caseReferenceNo": "QA56-001",
+            "caseTitle": "QA report OPEN"
+          }
+        ],
+        "page": 0,
+        "size": 20,
+        "totalItems": 2,
+        "totalPages": 1,
+        "from": "2026-01-01",
+        "to": "2026-01-31",
+        "summary": {
+          "total": 2,
+          "final": 1,
+          "byOutcome": {
+            "IN_FAVOUR": 1,
+            "AGAINST": 1,
+            "PARTIAL": 0,
+            "DISMISSED": 0,
+            "OTHER": 0
+          },
+          "byStage": {
+            "FIRST_INSTANCE": 2,
+            "APPEAL": 0,
+            "CASSATION": 0
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-UNKNOWN-COURT",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-UNKNOWN-COURT"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments?from=2026-01-01&to=2026-01-31&courtId=00000000-0000-4000-8000-000000000099",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "items": [],
+          "page": 0,
+          "size": 20,
+          "totalItems": 0,
+          "totalPages": 0,
+          "from": "2026-01-01",
+          "to": "2026-01-31",
+          "summary": {
+            "total": 0,
+            "final": 0,
+            "byOutcome": {
+              "IN_FAVOUR": 0,
+              "AGAINST": 0,
+              "PARTIAL": 0,
+              "DISMISSED": 0,
+              "OTHER": 0
+            },
+            "byStage": {
+              "FIRST_INSTANCE": 0,
+              "APPEAL": 0,
+              "CASSATION": 0
+            }
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-FILTER-UNKNOWN-COURT",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-FILTER-UNKNOWN-COURT"
+      },
+      "steps": [
+        "Apply courtId=00000000-0000-4000-8000-000000000099"
+      ],
+      "expected_results": "Total and summary 0",
+      "actual": {
+        "items": [],
+        "page": 0,
+        "size": 20,
+        "totalItems": 0,
+        "totalPages": 0,
+        "from": "2026-01-01",
+        "to": "2026-01-31",
+        "summary": {
+          "total": 0,
+          "final": 0,
+          "byOutcome": {
+            "IN_FAVOUR": 0,
+            "AGAINST": 0,
+            "PARTIAL": 0,
+            "DISMISSED": 0,
+            "OTHER": 0
+          },
+          "byStage": {
+            "FIRST_INSTANCE": 0,
+            "APPEAL": 0,
+            "CASSATION": 0
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-CONTRADICTION",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-CONTRADICTION"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments?from=2026-01-01&to=2026-01-31&final=true&outcome=AGAINST",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "items": [],
+          "page": 0,
+          "size": 20,
+          "totalItems": 0,
+          "totalPages": 0,
+          "from": "2026-01-01",
+          "to": "2026-01-31",
+          "summary": {
+            "total": 0,
+            "final": 0,
+            "byOutcome": {
+              "IN_FAVOUR": 0,
+              "AGAINST": 0,
+              "PARTIAL": 0,
+              "DISMISSED": 0,
+              "OTHER": 0
+            },
+            "byStage": {
+              "FIRST_INSTANCE": 0,
+              "APPEAL": 0,
+              "CASSATION": 0
+            }
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-FILTER-CONTRADICTION",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-FILTER-CONTRADICTION"
+      },
+      "steps": [
+        "Apply final=true&outcome=AGAINST"
+      ],
+      "expected_results": "Total and summary 0",
+      "actual": {
+        "items": [],
+        "page": 0,
+        "size": 20,
+        "totalItems": 0,
+        "totalPages": 0,
+        "from": "2026-01-01",
+        "to": "2026-01-31",
+        "summary": {
+          "total": 0,
+          "final": 0,
+          "byOutcome": {
+            "IN_FAVOUR": 0,
+            "AGAINST": 0,
+            "PARTIAL": 0,
+            "DISMISSED": 0,
+            "OTHER": 0
+          },
+          "byStage": {
+            "FIRST_INSTANCE": 0,
+            "APPEAL": 0,
+            "CASSATION": 0
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-INCLUSIVE-DATE",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-INCLUSIVE-DATE"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments?from=2026-01-03&to=2026-01-03",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "id": "416898de-1cbd-4f3a-a864-bac85cb5f359",
+              "judgmentDate": "2026-01-03",
+              "outcome": "IN_FAVOUR",
+              "final": true,
+              "stage": "FIRST_INSTANCE",
+              "court": {
+                "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+                "code": "QA-PH56",
+                "nameAr": "محكمة اختبار",
+                "nameEn": "QA Court"
+              },
+              "courtCaseNumber": "QA7",
+              "courtCaseYear": 2026,
+              "caseId": "a0faed6e-c2ab-4716-bc19-033c4c34a681",
+              "caseReferenceNo": "QA56-001",
+              "caseTitle": "QA report OPEN"
+            }
+          ],
+          "page": 0,
+          "size": 20,
+          "totalItems": 1,
+          "totalPages": 1,
+          "from": "2026-01-03",
+          "to": "2026-01-03",
+          "summary": {
+            "total": 1,
+            "final": 1,
+            "byOutcome": {
+              "IN_FAVOUR": 1,
+              "AGAINST": 0,
+              "PARTIAL": 0,
+              "DISMISSED": 0,
+              "OTHER": 0
+            },
+            "byStage": {
+              "FIRST_INSTANCE": 1,
+              "APPEAL": 0,
+              "CASSATION": 0
+            }
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-INCLUSIVE-DATE-ROWS",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-INCLUSIVE-DATE-ROWS"
+      },
+      "steps": [
+        "Single-day exact boundary"
+      ],
+      "expected_results": "Only Jan3 judgment",
+      "actual": {
+        "items": [
+          {
+            "id": "416898de-1cbd-4f3a-a864-bac85cb5f359",
+            "judgmentDate": "2026-01-03",
+            "outcome": "IN_FAVOUR",
+            "final": true,
+            "stage": "FIRST_INSTANCE",
+            "court": {
+              "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+              "code": "QA-PH56",
+              "nameAr": "محكمة اختبار",
+              "nameEn": "QA Court"
+            },
+            "courtCaseNumber": "QA7",
+            "courtCaseYear": 2026,
+            "caseId": "a0faed6e-c2ab-4716-bc19-033c4c34a681",
+            "caseReferenceNo": "QA56-001",
+            "caseTitle": "QA report OPEN"
+          }
+        ],
+        "page": 0,
+        "size": 20,
+        "totalItems": 1,
+        "totalPages": 1,
+        "from": "2026-01-03",
+        "to": "2026-01-03",
+        "summary": {
+          "total": 1,
+          "final": 1,
+          "byOutcome": {
+            "IN_FAVOUR": 1,
+            "AGAINST": 0,
+            "PARTIAL": 0,
+            "DISMISSED": 0,
+            "OTHER": 0
+          },
+          "byStage": {
+            "FIRST_INSTANCE": 1,
+            "APPEAL": 0,
+            "CASSATION": 0
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-INVALID-page=-1",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-INVALID-page=-1"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments?page=-1",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/reports/judgments",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "code": "Min",
+              "field": "page"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-INVALID-page=bad",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-INVALID-page=bad"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments?page=bad",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/reports/judgments",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "code": "typeMismatch",
+              "field": "page"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-INVALID-size=0",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-INVALID-size=0"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments?size=0",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/reports/judgments",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "code": "Min",
+              "field": "size"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-INVALID-final=bad",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-INVALID-final=bad"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments?final=bad",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/reports/judgments",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "code": "typeMismatch",
+              "field": "final"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-INVALID-outcome=BAD",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-INVALID-outcome=BAD"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments?outcome=BAD",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/reports/judgments",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "code": "typeMismatch",
+              "field": "outcome"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-INVALID-stage=BAD",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-INVALID-stage=BAD"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments?stage=BAD",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/reports/judgments",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "code": "typeMismatch",
+              "field": "stage"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-INVALID-courtId=bad",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-INVALID-courtId=bad"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments?courtId=bad",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/reports/judgments",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "code": "typeMismatch",
+              "field": "courtId"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-INVALID-sort=judgmentDate;drop,asc",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-INVALID-sort=judgmentDate;drop,asc"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments?sort=judgmentDate;drop,asc",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/reports/judgments",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "code": "Pattern",
+              "field": "sort"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-INVALID-from=2026-02-01&to=2026-01-01",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-INVALID-from=2026-02-01&to=2026-01-01"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments?from=2026-02-01&to=2026-01-01",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": null
+      },
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/reports/judgments",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "DATE_RANGE_INVALID"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENTS-ORDER-CASE-PRIVACY",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENTS-ORDER-CASE-PRIVACY"
+      },
+      "steps": [
+        "Read ascending report and inspect fields"
+      ],
+      "expected_results": "Ordered dates; correct case references; no reasoning/free-text payloads",
+      "actual": [
+        {
+          "id": "416898de-1cbd-4f3a-a864-bac85cb5f359",
+          "judgmentDate": "2026-01-03",
+          "outcome": "IN_FAVOUR",
+          "final": true,
+          "stage": "FIRST_INSTANCE",
+          "court": {
+            "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+            "code": "QA-PH56",
+            "nameAr": "محكمة اختبار",
+            "nameEn": "QA Court"
+          },
+          "courtCaseNumber": "QA7",
+          "courtCaseYear": 2026,
+          "caseId": "a0faed6e-c2ab-4716-bc19-033c4c34a681",
+          "caseReferenceNo": "QA56-001",
+          "caseTitle": "QA report OPEN"
+        },
+        {
+          "id": "62f7042e-738b-41a7-aebb-a00fee5f9e26",
+          "judgmentDate": "2026-01-04",
+          "outcome": "AGAINST",
+          "final": false,
+          "stage": "FIRST_INSTANCE",
+          "court": {
+            "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+            "code": "QA-PH56",
+            "nameAr": "محكمة اختبار",
+            "nameEn": "QA Court"
+          },
+          "courtCaseNumber": "QA8",
+          "courtCaseYear": 2026,
+          "caseId": "226e9d41-a859-487a-abb9-f52f174302c5",
+          "caseReferenceNo": "QA56-002",
+          "caseTitle": "QA report ACTIVE"
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "INVENTORY-ANON",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "INVENTORY-ANON"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 401,
+        "rule": null
+      },
+      "actual": {
+        "status": 401,
+        "body": {
+          "type": "about:blank",
+          "title": "Unauthorized",
+          "status": 401
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "INVENTORY-DENIED-INVALID",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "INVENTORY-DENIED-INVALID"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases?sort=bad",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 403,
+        "rule": null
+      },
+      "actual": {
+        "status": 403,
+        "body": {
+          "type": "about:blank",
+          "title": "Forbidden",
+          "status": 403
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "INVENTORY-PAGED",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "INVENTORY-PAGED"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases?size=2&sort=referenceNo,asc",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "id": "a0faed6e-c2ab-4716-bc19-033c4c34a681",
+              "referenceNo": "QA56-001",
+              "title": "QA report OPEN",
+              "caseType": "CIVIL",
+              "status": "OPEN",
+              "statusGroup": "OPEN",
+              "openedOn": "2026-01-01",
+              "currentStage": "FIRST_INSTANCE",
+              "currentCourt": {
+                "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+                "code": "QA-PH56",
+                "nameAr": "محكمة اختبار",
+                "nameEn": "QA Court"
+              },
+              "proceedingCount": 1
+            },
+            {
+              "id": "226e9d41-a859-487a-abb9-f52f174302c5",
+              "referenceNo": "QA56-002",
+              "title": "QA report ACTIVE",
+              "caseType": "CIVIL",
+              "status": "ACTIVE",
+              "statusGroup": "OPEN",
+              "openedOn": "2026-01-01",
+              "currentStage": "FIRST_INSTANCE",
+              "currentCourt": {
+                "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+                "code": "QA-PH56",
+                "nameAr": "محكمة اختبار",
+                "nameEn": "QA Court"
+              },
+              "proceedingCount": 1
+            }
+          ],
+          "page": 0,
+          "size": 2,
+          "totalItems": 6,
+          "totalPages": 3,
+          "summary": {
+            "total": 6,
+            "open": 4,
+            "closed": 2,
+            "byStatus": {
+              "OPEN": 2,
+              "ACTIVE": 1,
+              "SUSPENDED": 1,
+              "CLOSED": 1,
+              "ARCHIVED": 1
+            },
+            "byType": {
+              "CIVIL": 6,
+              "CRIMINAL": 0,
+              "COMMERCIAL": 0,
+              "LABOR": 0,
+              "FAMILY": 0,
+              "ADMINISTRATIVE": 0
+            },
+            "byStage": {
+              "FIRST_INSTANCE": 2,
+              "APPEAL": 0,
+              "CASSATION": 0,
+              "NONE": 4
+            }
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "INVENTORY-SUMMARY-ALL-ROWS",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "INVENTORY-SUMMARY-ALL-ROWS"
+      },
+      "steps": [
+        "Read page0 size2"
+      ],
+      "expected_results": "2 items but total/summary6; open4 closed2",
+      "actual": {
+        "items": [
+          {
+            "id": "a0faed6e-c2ab-4716-bc19-033c4c34a681",
+            "referenceNo": "QA56-001",
+            "title": "QA report OPEN",
+            "caseType": "CIVIL",
+            "status": "OPEN",
+            "statusGroup": "OPEN",
+            "openedOn": "2026-01-01",
+            "currentStage": "FIRST_INSTANCE",
+            "currentCourt": {
+              "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+              "code": "QA-PH56",
+              "nameAr": "محكمة اختبار",
+              "nameEn": "QA Court"
+            },
+            "proceedingCount": 1
+          },
+          {
+            "id": "226e9d41-a859-487a-abb9-f52f174302c5",
+            "referenceNo": "QA56-002",
+            "title": "QA report ACTIVE",
+            "caseType": "CIVIL",
+            "status": "ACTIVE",
+            "statusGroup": "OPEN",
+            "openedOn": "2026-01-01",
+            "currentStage": "FIRST_INSTANCE",
+            "currentCourt": {
+              "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+              "code": "QA-PH56",
+              "nameAr": "محكمة اختبار",
+              "nameEn": "QA Court"
+            },
+            "proceedingCount": 1
+          }
+        ],
+        "page": 0,
+        "size": 2,
+        "totalItems": 6,
+        "totalPages": 3,
+        "summary": {
+          "total": 6,
+          "open": 4,
+          "closed": 2,
+          "byStatus": {
+            "OPEN": 2,
+            "ACTIVE": 1,
+            "SUSPENDED": 1,
+            "CLOSED": 1,
+            "ARCHIVED": 1
+          },
+          "byType": {
+            "CIVIL": 6,
+            "CRIMINAL": 0,
+            "COMMERCIAL": 0,
+            "LABOR": 0,
+            "FAMILY": 0,
+            "ADMINISTRATIVE": 0
+          },
+          "byStage": {
+            "FIRST_INSTANCE": 2,
+            "APPEAL": 0,
+            "CASSATION": 0,
+            "NONE": 4
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "INVENTORY-STABLE-PAGING",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "INVENTORY-STABLE-PAGING"
+      },
+      "steps": [
+        "Read3 pages with tied titles"
+      ],
+      "expected_results": "All6 unique case IDs once",
+      "actual": [
+        "1527ec58-e29f-4d17-a45b-c89e3c53fc10",
+        "226e9d41-a859-487a-abb9-f52f174302c5",
+        "1dd02a52-9177-4574-9f9f-01b51be3e94b",
+        "5b81a056-ae59-4ac8-947a-fa98ac344981",
+        "a0faed6e-c2ab-4716-bc19-033c4c34a681",
+        "6af262d1-af22-47ec-869d-6df5b59fb260"
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "INVENTORY-LITERAL-WILDCARDS",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "INVENTORY-LITERAL-WILDCARDS"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases?q=%25_",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "id": "1527ec58-e29f-4d17-a45b-c89e3c53fc10",
+              "referenceNo": "QA56-006",
+              "title": "QA literal %_ marker",
+              "caseType": "CIVIL",
+              "status": "OPEN",
+              "statusGroup": "OPEN",
+              "openedOn": "2026-01-01",
+              "currentStage": null,
+              "currentCourt": null,
+              "proceedingCount": 0
+            }
+          ],
+          "page": 0,
+          "size": 20,
+          "totalItems": 1,
+          "totalPages": 1,
+          "summary": {
+            "total": 1,
+            "open": 1,
+            "closed": 0,
+            "byStatus": {
+              "OPEN": 1,
+              "ACTIVE": 0,
+              "SUSPENDED": 0,
+              "CLOSED": 0,
+              "ARCHIVED": 0
+            },
+            "byType": {
+              "CIVIL": 1,
+              "CRIMINAL": 0,
+              "COMMERCIAL": 0,
+              "LABOR": 0,
+              "FAMILY": 0,
+              "ADMINISTRATIVE": 0
+            },
+            "byStage": {
+              "FIRST_INSTANCE": 0,
+              "APPEAL": 0,
+              "CASSATION": 0,
+              "NONE": 1
+            }
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "LITERAL-FILTER-CORRECT",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "LITERAL-FILTER-CORRECT"
+      },
+      "steps": [
+        "Search literal percent and underscore"
+      ],
+      "expected_results": "Only marker case",
+      "actual": 1,
+      "status": "PASS"
+    },
+    {
+      "id": "INVENTORY-CLOSED",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "INVENTORY-CLOSED"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases?statusGroup=CLOSED",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "id": "5b81a056-ae59-4ac8-947a-fa98ac344981",
+              "referenceNo": "QA56-004",
+              "title": "QA report CLOSED",
+              "caseType": "CIVIL",
+              "status": "CLOSED",
+              "statusGroup": "CLOSED",
+              "openedOn": "2026-01-01",
+              "currentStage": null,
+              "currentCourt": null,
+              "proceedingCount": 0
+            },
+            {
+              "id": "1dd02a52-9177-4574-9f9f-01b51be3e94b",
+              "referenceNo": "QA56-005",
+              "title": "QA report ARCHIVED",
+              "caseType": "CIVIL",
+              "status": "ARCHIVED",
+              "statusGroup": "CLOSED",
+              "openedOn": "2026-01-01",
+              "currentStage": null,
+              "currentCourt": null,
+              "proceedingCount": 0
+            }
+          ],
+          "page": 0,
+          "size": 20,
+          "totalItems": 2,
+          "totalPages": 1,
+          "summary": {
+            "total": 2,
+            "open": 0,
+            "closed": 2,
+            "byStatus": {
+              "OPEN": 0,
+              "ACTIVE": 0,
+              "SUSPENDED": 0,
+              "CLOSED": 1,
+              "ARCHIVED": 1
+            },
+            "byType": {
+              "CIVIL": 2,
+              "CRIMINAL": 0,
+              "COMMERCIAL": 0,
+              "LABOR": 0,
+              "FAMILY": 0,
+              "ADMINISTRATIVE": 0
+            },
+            "byStage": {
+              "FIRST_INSTANCE": 0,
+              "APPEAL": 0,
+              "CASSATION": 0,
+              "NONE": 2
+            }
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "FILTER-CLOSED",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FILTER-CLOSED"
+      },
+      "steps": [
+        "Apply statusGroup=CLOSED"
+      ],
+      "expected_results": "Exactly2 matches",
+      "actual": 2,
+      "status": "PASS"
+    },
+    {
+      "id": "INVENTORY-CONTRADICTION",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "INVENTORY-CONTRADICTION"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases?statusGroup=CLOSED&status=ACTIVE",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "items": [],
+          "page": 0,
+          "size": 20,
+          "totalItems": 0,
+          "totalPages": 0,
+          "summary": {
+            "total": 0,
+            "open": 0,
+            "closed": 0,
+            "byStatus": {
+              "OPEN": 0,
+              "ACTIVE": 0,
+              "SUSPENDED": 0,
+              "CLOSED": 0,
+              "ARCHIVED": 0
+            },
+            "byType": {
+              "CIVIL": 0,
+              "CRIMINAL": 0,
+              "COMMERCIAL": 0,
+              "LABOR": 0,
+              "FAMILY": 0,
+              "ADMINISTRATIVE": 0
+            },
+            "byStage": {
+              "FIRST_INSTANCE": 0,
+              "APPEAL": 0,
+              "CASSATION": 0,
+              "NONE": 0
+            }
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "FILTER-CONTRADICTION",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FILTER-CONTRADICTION"
+      },
+      "steps": [
+        "Apply statusGroup=CLOSED&status=ACTIVE"
+      ],
+      "expected_results": "Exactly0 matches",
+      "actual": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "INVENTORY-FIRST-STAGE",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "INVENTORY-FIRST-STAGE"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases?stage=FIRST_INSTANCE",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "id": "a0faed6e-c2ab-4716-bc19-033c4c34a681",
+              "referenceNo": "QA56-001",
+              "title": "QA report OPEN",
+              "caseType": "CIVIL",
+              "status": "OPEN",
+              "statusGroup": "OPEN",
+              "openedOn": "2026-01-01",
+              "currentStage": "FIRST_INSTANCE",
+              "currentCourt": {
+                "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+                "code": "QA-PH56",
+                "nameAr": "محكمة اختبار",
+                "nameEn": "QA Court"
+              },
+              "proceedingCount": 1
+            },
+            {
+              "id": "226e9d41-a859-487a-abb9-f52f174302c5",
+              "referenceNo": "QA56-002",
+              "title": "QA report ACTIVE",
+              "caseType": "CIVIL",
+              "status": "ACTIVE",
+              "statusGroup": "OPEN",
+              "openedOn": "2026-01-01",
+              "currentStage": "FIRST_INSTANCE",
+              "currentCourt": {
+                "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+                "code": "QA-PH56",
+                "nameAr": "محكمة اختبار",
+                "nameEn": "QA Court"
+              },
+              "proceedingCount": 1
+            }
+          ],
+          "page": 0,
+          "size": 20,
+          "totalItems": 2,
+          "totalPages": 1,
+          "summary": {
+            "total": 2,
+            "open": 2,
+            "closed": 0,
+            "byStatus": {
+              "OPEN": 1,
+              "ACTIVE": 1,
+              "SUSPENDED": 0,
+              "CLOSED": 0,
+              "ARCHIVED": 0
+            },
+            "byType": {
+              "CIVIL": 2,
+              "CRIMINAL": 0,
+              "COMMERCIAL": 0,
+              "LABOR": 0,
+              "FAMILY": 0,
+              "ADMINISTRATIVE": 0
+            },
+            "byStage": {
+              "FIRST_INSTANCE": 2,
+              "APPEAL": 0,
+              "CASSATION": 0,
+              "NONE": 0
+            }
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "FILTER-FIRST-STAGE",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FILTER-FIRST-STAGE"
+      },
+      "steps": [
+        "Apply stage=FIRST_INSTANCE"
+      ],
+      "expected_results": "Exactly2 matches",
+      "actual": 2,
+      "status": "PASS"
+    },
+    {
+      "id": "INVENTORY-UNKNOWN-COURT",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "INVENTORY-UNKNOWN-COURT"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases?courtId=00000000-0000-4000-8000-000000000099",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "items": [],
+          "page": 0,
+          "size": 20,
+          "totalItems": 0,
+          "totalPages": 0,
+          "summary": {
+            "total": 0,
+            "open": 0,
+            "closed": 0,
+            "byStatus": {
+              "OPEN": 0,
+              "ACTIVE": 0,
+              "SUSPENDED": 0,
+              "CLOSED": 0,
+              "ARCHIVED": 0
+            },
+            "byType": {
+              "CIVIL": 0,
+              "CRIMINAL": 0,
+              "COMMERCIAL": 0,
+              "LABOR": 0,
+              "FAMILY": 0,
+              "ADMINISTRATIVE": 0
+            },
+            "byStage": {
+              "FIRST_INSTANCE": 0,
+              "APPEAL": 0,
+              "CASSATION": 0,
+              "NONE": 0
+            }
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "FILTER-UNKNOWN-COURT",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FILTER-UNKNOWN-COURT"
+      },
+      "steps": [
+        "Apply courtId=00000000-0000-4000-8000-000000000099"
+      ],
+      "expected_results": "Exactly0 matches",
+      "actual": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "INVENTORY-ONE-DAY",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "INVENTORY-ONE-DAY"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases?openedFrom=2026-01-01&openedTo=2026-01-01",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "id": "a0faed6e-c2ab-4716-bc19-033c4c34a681",
+              "referenceNo": "QA56-001",
+              "title": "QA report OPEN",
+              "caseType": "CIVIL",
+              "status": "OPEN",
+              "statusGroup": "OPEN",
+              "openedOn": "2026-01-01",
+              "currentStage": "FIRST_INSTANCE",
+              "currentCourt": {
+                "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+                "code": "QA-PH56",
+                "nameAr": "محكمة اختبار",
+                "nameEn": "QA Court"
+              },
+              "proceedingCount": 1
+            },
+            {
+              "id": "226e9d41-a859-487a-abb9-f52f174302c5",
+              "referenceNo": "QA56-002",
+              "title": "QA report ACTIVE",
+              "caseType": "CIVIL",
+              "status": "ACTIVE",
+              "statusGroup": "OPEN",
+              "openedOn": "2026-01-01",
+              "currentStage": "FIRST_INSTANCE",
+              "currentCourt": {
+                "id": "432de97f-a59b-4f6d-92a1-9340c6c16013",
+                "code": "QA-PH56",
+                "nameAr": "محكمة اختبار",
+                "nameEn": "QA Court"
+              },
+              "proceedingCount": 1
+            },
+            {
+              "id": "6af262d1-af22-47ec-869d-6df5b59fb260",
+              "referenceNo": "QA56-003",
+              "title": "QA report SUSPENDED",
+              "caseType": "CIVIL",
+              "status": "SUSPENDED",
+              "statusGroup": "OPEN",
+              "openedOn": "2026-01-01",
+              "currentStage": null,
+              "currentCourt": null,
+              "proceedingCount": 0
+            },
+            {
+              "id": "5b81a056-ae59-4ac8-947a-fa98ac344981",
+              "referenceNo": "QA56-004",
+              "title": "QA report CLOSED",
+              "caseType": "CIVIL",
+              "status": "CLOSED",
+              "statusGroup": "CLOSED",
+              "openedOn": "2026-01-01",
+              "currentStage": null,
+              "currentCourt": null,
+              "proceedingCount": 0
+            },
+            {
+              "id": "1dd02a52-9177-4574-9f9f-01b51be3e94b",
+              "referenceNo": "QA56-005",
+              "title": "QA report ARCHIVED",
+              "caseType": "CIVIL",
+              "status": "ARCHIVED",
+              "statusGroup": "CLOSED",
+              "openedOn": "2026-01-01",
+              "currentStage": null,
+              "currentCourt": null,
+              "proceedingCount": 0
+            },
+            {
+              "id": "1527ec58-e29f-4d17-a45b-c89e3c53fc10",
+              "referenceNo": "QA56-006",
+              "title": "QA literal %_ marker",
+              "caseType": "CIVIL",
+              "status": "OPEN",
+              "statusGroup": "OPEN",
+              "openedOn": "2026-01-01",
+              "currentStage": null,
+              "currentCourt": null,
+              "proceedingCount": 0
+            }
+          ],
+          "page": 0,
+          "size": 20,
+          "totalItems": 6,
+          "totalPages": 1,
+          "summary": {
+            "total": 6,
+            "open": 4,
+            "closed": 2,
+            "byStatus": {
+              "OPEN": 2,
+              "ACTIVE": 1,
+              "SUSPENDED": 1,
+              "CLOSED": 1,
+              "ARCHIVED": 1
+            },
+            "byType": {
+              "CIVIL": 6,
+              "CRIMINAL": 0,
+              "COMMERCIAL": 0,
+              "LABOR": 0,
+              "FAMILY": 0,
+              "ADMINISTRATIVE": 0
+            },
+            "byStage": {
+              "FIRST_INSTANCE": 2,
+              "APPEAL": 0,
+              "CASSATION": 0,
+              "NONE": 4
+            }
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "FILTER-ONE-DAY",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FILTER-ONE-DAY"
+      },
+      "steps": [
+        "Apply openedFrom=2026-01-01&openedTo=2026-01-01"
+      ],
+      "expected_results": "Exactly6 matches",
+      "actual": 6,
+      "status": "PASS"
+    },
+    {
+      "id": "INVENTORY-INVALID-sort=title;drop,asc",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "INVENTORY-INVALID-sort=title;drop,asc"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases?sort=title;drop,asc",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/reports/cases",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "code": "Pattern",
+              "field": "sort"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "INVENTORY-INVALID-sort=title,sideways",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "INVENTORY-INVALID-sort=title,sideways"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases?sort=title,sideways",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/reports/cases",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "code": "Pattern",
+              "field": "sort"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "INVENTORY-INVALID-page=-1",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "INVENTORY-INVALID-page=-1"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases?page=-1",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/reports/cases",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "code": "Min",
+              "field": "page"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "INVENTORY-INVALID-size=0",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "INVENTORY-INVALID-size=0"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases?size=0",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/reports/cases",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "code": "Min",
+              "field": "size"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "INVENTORY-INVALID-stage=BAD",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "INVENTORY-INVALID-stage=BAD"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases?stage=BAD",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/reports/cases",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "code": "typeMismatch",
+              "field": "stage"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "INVENTORY-INVALID-courtId=bad",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "INVENTORY-INVALID-courtId=bad"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases?courtId=bad",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/reports/cases",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "code": "typeMismatch",
+              "field": "courtId"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "INVENTORY-INVALID-openedFrom=2026-02-01&openedTo=2026-01-01",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "INVENTORY-INVALID-openedFrom=2026-02-01&openedTo=2026-01-01"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases?openedFrom=2026-02-01&openedTo=2026-01-01",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": null
+      },
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/reports/cases",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "DATE_RANGE_INVALID"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "INVENTORY-READONLY-REPEAT",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "INVENTORY-READONLY-REPEAT"
+      },
+      "steps": [
+        "Repeated reads and DB counts"
+      ],
+      "expected_results": "Identical response; no changed rows",
+      "actual": {
+        "same_response": true,
+        "counts_before": "16\t6\t2",
+        "counts_after": "16\t6\t2"
+      },
+      "status": "PASS"
+    }
+  ]
+}

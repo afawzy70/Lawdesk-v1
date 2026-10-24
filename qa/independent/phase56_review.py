@@ -34,6 +34,7 @@ class PhaseReview(Review):
         if self.args.kind=='hearings':self.hearings()
         elif self.args.kind=='tasks':self.tasks()
         elif self.args.kind=='hearing-chronology':self.hearing_chronology()
+        elif self.args.kind in ['documents','experts','notes','formats']:getattr(self,self.args.kind)()
         else:self.reports()
         if self.args.browser:self.browser()
 
@@ -167,10 +168,56 @@ class PhaseReview(Review):
     def hearing_chronology(self):
         c=self.case();p=self.proceeding(c)
         h=self.req('CHRONOLOGY-HEARING','POST','/api/v1/proceedings/'+p['id']+'/hearings',dict(hearingDate='2026-01-03',purpose='PLEADING'),201)
-        self.req('CHRONOLOGY-PARENT-EDIT','PUT','/api/v1/proceedings/'+p['id'],dict(courtId=self.court['id'],courtCaseNumber=p['courtCaseNumber'],courtCaseYear=2026,filingDate='2026-01-04',version=p['version']),422)
+        def edit(proceeding,day):
+            return dict(courtId=self.court['id'],courtCaseNumber=proceeding['courtCaseNumber'],courtCaseYear=2026,filingDate=day,version=proceeding['version'])
+        def snapshot(pid):
+            return self.sql(f"select row_to_json(p)::text,(select json_agg(h order by h.id)::text from hearing h where h.proceeding_id=p.id),(select json_agg(e order by e.id)::text from case_event e where e.case_id=p.case_id) from proceeding p where p.id='{pid}'").stdout
+        before=snapshot(p['id'])
+        self.req('CHRONOLOGY-PARENT-EDIT','PUT','/api/v1/proceedings/'+p['id'],edit(p,'2026-01-04'),422)
         rows=self.sql(f"select p.filing_date,h.hearing_date from hearing h join proceeding p on p.id=h.proceeding_id where h.id='{h['id']}'").stdout.strip()
-        before,hearing=rows.split('\t')
-        self.oracle('CHRONOLOGY-PERSISTED','Read persisted proceeding/hearing pair after parent edit','No hearing before its proceeding filing date',dict(filingDate=before,hearingDate=hearing),before<=hearing)
+        filing,hearing=rows.split('\t')
+        self.oracle('CHRONOLOGY-PERSISTED','Read persisted proceeding/hearing pair after parent edit','No hearing before its proceeding filing date',dict(filingDate=filing,hearingDate=hearing),filing<=hearing)
+        self.oracle('CHRONOLOGY-REJECTION-HISTORY','Compare full proceeding/hearing/history snapshot before/after invalid parent edit','No data or timeline change',dict(unchanged=before==snapshot(p['id'])),before==snapshot(p['id']))
+        # Fresh fixture lets deeper regression continue even if the original defect survives.
+        cc=self.case('QA chronology constraints');pp=self.proceeding(cc)
+        hh=self.req('CHRONOLOGY-DB-FIXTURE','POST','/api/v1/proceedings/'+pp['id']+'/hearings',dict(hearingDate='2026-01-03',purpose='PLEADING'),201)
+        other=self.case('QA other chronology case')
+        for name,sql in [
+            ('PARENT-DATE',f"update proceeding set filing_date='2026-01-04' where id='{pp['id']}'"),
+            ('HEARING-DATE',f"update hearing set hearing_date='2026-01-01' where id='{hh['id']}'"),
+            ('PARENT-CASE',f"update proceeding set case_id='{other['id']}' where id='{pp['id']}'"),
+            ('CHILD-CASE',f"update hearing set case_id='{other['id']}' where id='{hh['id']}'")]:
+            r=self.sql('begin; '+sql+'; rollback;',fail=True)
+            self.oracle('CHRONOLOGY-SQL-'+name,'BEGIN; '+sql+'; ROLLBACK','Database rejects invariant violation; privileged SQL result separate from API',dict(rejected=r.returncode!=0,error=r.stderr[:350]),r.returncode!=0)
+        self.req('CHRONOLOGY-SAME-DAY-EDIT','PUT','/api/v1/proceedings/'+pp['id'],edit(pp,'2026-01-03'),200)
+        before=snapshot(pp['id'])
+        self.req('CHRONOLOGY-CHILD-BEFORE-FILING','PUT','/api/v1/hearings/'+hh['id'],dict(hearingDate='2026-01-02',purpose='PLEADING',version=hh['version']),422)
+        self.oracle('CHRONOLOGY-CHILD-ROLLBACK','Compare complete state after refused hearing reschedule','History and rows unchanged',dict(unchanged=before==snapshot(pp['id'])),before==snapshot(pp['id']))
+        for round in range(6):
+            racecase=self.case('QA chronology race '+str(round));racep=self.proceeding(racecase)
+            def send(which):
+                cl=Client(self.appport);cl.cookies=dict(self.admin.cookies)
+                if which=='parent':return cl.call('PUT','/api/v1/proceedings/'+racep['id'],edit(racep,'2026-01-04'))[0]
+                return cl.call('POST','/api/v1/proceedings/'+racep['id']+'/hearings',dict(hearingDate='2026-01-03',purpose='PLEADING'))[0]
+            with futures.ThreadPoolExecutor(max_workers=2) as pool:statuses=list(pool.map(send,['parent','hearing']))
+            invalid=int(self.sql(f"select count(*) from hearing h join proceeding p on h.proceeding_id=p.id where p.id='{racep['id']}' and h.hearing_date<p.filing_date").stdout)
+            self.oracle('CHRONOLOGY-RACE-'+str(round),'Race filing-date edit with earlier hearing scheduling; inspect committed pair','One succeeds, incompatible other422; no invalid persisted chronology',dict(parent_status=statuses[0],hearing_status=statuses[1],invalid_rows=invalid),statuses in [[200,422],[422,201]] and invalid==0)
+
+        cancelled_case=self.case('QA cancelled history');cp=self.proceeding(cancelled_case)
+        ch=self.req('CHRONOLOGY-CANCELLED-FIXTURE','POST','/api/v1/proceedings/'+cp['id']+'/hearings',dict(hearingDate='2026-01-03',purpose='PLEADING'),201)
+        self.req('CHRONOLOGY-CANCELLED-RESULT','POST','/api/v1/hearings/'+ch['id']+'/result',dict(status='CANCELLED',version=0))
+        before=snapshot(cp['id']);self.req('CHRONOLOGY-CANCELLED-PARENT','PUT','/api/v1/proceedings/'+cp['id'],edit(cp,'2026-01-04'),422)
+        self.oracle('CHRONOLOGY-CANCELLED-HISTORY','Try moving filing date after cancelled hearing','Cancelled row and history preserved',dict(unchanged=before==snapshot(cp['id'])),before==snapshot(cp['id']))
+        for round in range(3):
+            cc=self.case('QA reschedule race '+str(round));pp=self.proceeding(cc)
+            hh=self.req('RESCHEDULE-RACE-FIXTURE-'+str(round),'POST','/api/v1/proceedings/'+pp['id']+'/hearings',dict(hearingDate='2026-01-05',purpose='PLEADING'),201)
+            def change(which):
+                cl=Client(self.appport);cl.cookies=dict(self.admin.cookies)
+                if which=='parent':return cl.call('PUT','/api/v1/proceedings/'+pp['id'],edit(pp,'2026-01-04'))[0]
+                return cl.call('PUT','/api/v1/hearings/'+hh['id'],dict(hearingDate='2026-01-03',purpose='PLEADING',version=0))[0]
+            with futures.ThreadPoolExecutor(max_workers=2) as pool:statuses=list(pool.map(change,['parent','child']))
+            invalid=int(self.sql(f"select count(*) from hearing h join proceeding p on p.id=h.proceeding_id where h.id='{hh['id']}' and h.hearing_date<p.filing_date").stdout)
+            self.oracle('CHRONOLOGY-RACE-RESCHEDULE-'+str(round),'Race parent date correction and incompatible hearing reschedule','200/422 in either order; chronology intact',dict(statuses=statuses,invalid_rows=invalid),statuses in [[200,422],[422,200]] and invalid==0)
 
     def judgments(self,p2):
         base='/api/v1/reports/judgments';period='from=2026-01-01&to=2026-01-31'
@@ -243,7 +290,7 @@ class PhaseReview(Review):
         self.req('EXPORT-VIEWER-READ','GET','/api/v1/reports/cases',client=self.none)
         self.req('EXPORT-VIEWER-DENIED','GET',base+'?format=csv',status=403,client=self.none)
         self.req('EXPORT-JUDGMENTS-VIEWER-DENIED','GET','/api/v1/reports/judgments/export?format=csv',status=403,client=self.none)
-        for q,status in [('',400),('format=pdf',400),('format=csv&lang=bad',400),('format=csv&sort=bad',400)]:self.req('EXPORT-INVALID-'+q,'GET',base+'?'+q,status=status)
+        for q,status in [('',400),('format=unsupported',400),('format=csv&lang=bad',400),('format=csv&sort=bad',400)]:self.req('EXPORT-INVALID-'+q,'GET',base+'?'+q,status=status)
         formula=self.case('=1+1');quoted=self.case('QA comma, "quoted" عربي')
         def raw(path):
             conn=http.client.HTTPConnection('127.0.0.1',self.appport,timeout=30)
@@ -268,6 +315,19 @@ class PhaseReview(Review):
         self.req('EXPORT-CAP-10001','GET',base+'?format=csv',status=422,rule='EXPORT_TOO_LARGE')
         after=self.sql("select count(*) from audit_event where action='REPORT_EXPORT'").stdout
         self.oracle('EXPORT-REFUSAL-NOT-AUDITED-SUCCESS','Inspect audit after oversized refusal','No success export audit added',dict(before=before,after=after),before==after)
+        # All documented CSV formula prefixes, including legacy values with leading controls.
+        # Mutations are confined to this disposable QA DB; never load 10k rows into UAT.
+        markers=['=1+1','+SUM(1,1)','-1+1','@SUM(1,1)','\t=1+1','\r=1+1']
+        ids=self.sql("select id from legal_case where reference_no like 'QA56-%' order by reference_no limit 6").stdout.splitlines()
+        for cid,marker in zip(ids,markers):self.sql(f"update legal_case set title=$qa${marker}$qa$ where id='{cid}'")
+        s,b,h=raw(base+'?format=csv&lang=en&q=QA56');parsed=list(csv.reader(io.StringIO(b.decode('utf-8-sig'))))
+        titles=[r[1] for r in parsed[1:]]
+        self.oracle('EXPORT-FORMULA-ALL-PREFIXES','Export six real DB fixtures beginning =,+,-,@,TAB,CR','Every marker preserved with leading apostrophe; no unescaped cell',dict(status=s,protected=[("'"+m) in titles for m in markers]),s==200 and all(("'"+m) in titles for m in markers))
+        self.sql("create function qa_csv_audit_fail() returns trigger language plpgsql as $$ begin if new.action='REPORT_EXPORT' then raise exception 'QA injected audit failure'; end if; return new; end $$; create trigger qa_csv_audit_fail before insert on audit_event for each row execute function qa_csv_audit_fail()")
+        before=self.sql("select count(*) from audit_event where action='REPORT_EXPORT'").stdout
+        s,b,h=raw(base+'?format=csv&q=QA56');after=self.sql("select count(*) from audit_event where action='REPORT_EXPORT'").stdout
+        self.sql('drop trigger qa_csv_audit_fail on audit_event; drop function qa_csv_audit_fail()')
+        self.oracle('CSV-AUDIT-FAIL-CLOSED','Inject local audit failure then request valid filtered CSV','500; no attachment and no success audit',dict(status=s,attachment=h.get('content-disposition'),audit_unchanged=before==after),s==500 and 'attachment' not in h.get('content-disposition','') and before==after)
 
     def browser(self):
         frontend=Path(self.args.candidate)/'frontend';uiport=port();log=(self.output/'vite.log').open('w')

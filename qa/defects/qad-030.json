@@ -1,7 +1,7 @@
 {
   "environment": "Independent canonical candidate archive; real Spring Boot jar and disposable PostgreSQL18.6 on loopback; Chromium1248",
   "reported_utc": "2026-10-24T15:25:11.872218+00:00",
-  "status": "FIX_VERIFIED_ON_PR35_NOT_YET_IN_ALL_HEADS",
+  "status": "FIX_VERIFIED_UAT_OPEN_ON_PR32_HEAD",
   "owner": "Claude implementation; independent QA verification",
   "no_customer_data": true,
   "id": "QAD-030",
@@ -41,5 +41,14 @@
     "qa/evidence/followup-bdd9d424-20261024/pr39/manual-review.json"
   ],
   "fix_guidance": "Use the already implemented PR35 fix through normal integration; do not duplicate implementation. Re-attest and inspect integrated head.",
-  "uat_policy": "P3 nonblocking private Dev/UAT; no PASS transferred to affected unmodified heads"
+  "uat_policy": "P3 nonblocking private Dev/UAT; no PASS transferred to affected unmodified heads",
+  "retests": [
+    {
+      "utc": "2026-10-24T18:09:37.823607+00:00",
+      "evidence_root": "qa/evidence/continuous-phase56-20261024",
+      "fixed_deployed_sha": "19ad5386fa586e2469ecad36a677632273712f44",
+      "still_affected_pr32": "31044e7b674a3f7c836a8ce5491c97d359fa524a",
+      "scope": "Updated integrated report heads and live UAT use existing fix; standalone PR32 still fails en/ar banner oracle."
+    }
+  ]
 }

@@ -215,7 +215,7 @@ class Review:
         self.request('LOGOUT-SESSION-INVALID','LD-007',email,'GET','/api/v1/me',None,401)
         audit=self.sql("select count(*) from audit_event where action='ACCESS_DENIED' and request_id='qa-phase234'").stdout.strip()
         self.check('AUDIT-DENIAL','LD-011','Deny protected operation → query correlated audit','At least one ACCESS_DENIED',audit,int(audit)>0)
-        self.request('PASSWORD-73-CHAR-BOUNDARY','LD-008',admin,'POST','/api/v1/me/password',dict(currentPassword=CHANGED,newPassword='Q'*73),204)
+        self.request('PASSWORD-73-CHAR-BOUNDARY','LD-008',admin,'POST','/api/v1/me/password',dict(currentPassword=CHANGED,newPassword='Q'*73),400)
 
     def parties(self,admin,staff,cid):
         base='/api/v1/cases/'+cid
