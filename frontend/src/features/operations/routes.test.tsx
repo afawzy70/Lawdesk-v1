@@ -30,6 +30,19 @@ describe('operations routes', () => {
     });
   });
 
+  it('marks the task list ready behind TASK_VIEW and opens it', async () => {
+    expect(NAV_ITEMS.find((item) => item.path === '/tasks')).toMatchObject({ status: 'ready', requires: 'TASK_VIEW' });
+    calendarApi();
+    render(
+      <MemoryRouter initialEntries={['/tasks?lang=en']}>
+        <AppRoutes />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole('heading', { level: 1, name: 'Tasks' })).toBeInTheDocument();
+    const nav = screen.getByRole('navigation', { name: 'Primary' });
+    expect(within(nav).getByRole('link', { name: 'Tasks' })).toHaveAttribute('aria-current', 'page');
+  });
+
   it('opens the hearing calendar from the primary navigation', async () => {
     calendarApi();
     render(

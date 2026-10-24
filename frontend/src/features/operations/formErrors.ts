@@ -17,6 +17,8 @@ export function fieldMessage(code: string): MessageKey {
       return 'operations.fieldError.tooLong';
     case 'Range':
       return 'operations.fieldError.range';
+    case 'FutureOrPresent':
+      return 'operations.fieldError.past';
     case 'Null':
       return 'operations.fieldError.notAllowed';
     default:

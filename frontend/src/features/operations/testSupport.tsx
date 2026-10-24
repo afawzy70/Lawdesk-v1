@@ -8,6 +8,7 @@ import type { Proceeding } from '../proceedings/proceedingsApi';
 import { CaseOperations } from './CaseOperations';
 import type { Hearing } from './hearings/hearingsApi';
 import { operationsRoutes } from './routes';
+import type { Task } from './tasks/tasksApi';
 
 /** Test-only helpers for the legal operations screens: their routes, a case page hosting them, a scripted backend. */
 
@@ -117,6 +118,30 @@ export function proceeding(overrides: Partial<Proceeding> = {}): Proceeding {
     version: 0,
     createdAt: '2025-01-10T08:00:00Z',
     updatedAt: '2025-01-10T08:00:00Z',
+    ...overrides,
+  };
+}
+
+export function task(overrides: Partial<Task> = {}): Task {
+  return {
+    id: 't1',
+    caseId: CASE,
+    caseReferenceNo: 'LD-2025-00042',
+    caseTitle: 'Rent dispute',
+    title: 'File the appeal memorandum',
+    description: 'Attach the judgment copy',
+    assigneeId: 'u1',
+    assigneeName: 'Mona Saleh',
+    dueDate: '2025-03-04',
+    priority: 'NORMAL',
+    status: 'OPEN',
+    completedAt: null,
+    overdue: false,
+    dueSoon: false,
+    version: 0,
+    createdAt: '2025-02-01T08:00:00Z',
+    createdBy: 'u9',
+    updatedAt: '2025-02-01T08:00:00Z',
     ...overrides,
   };
 }

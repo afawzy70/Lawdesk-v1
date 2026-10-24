@@ -1,9 +1,11 @@
 import type { ReactElement } from 'react';
 import { Route } from 'react-router';
 import { HearingsPage } from './hearings/HearingsPage';
+import { TasksPage } from './tasks/TasksPage';
 
 /** The paths of the Phase 5 screens. */
 export const HEARINGS_PATH = '/hearings';
+export const TASKS_PATH = '/tasks';
 
 /**
  * The routes of the Phase 5 legal operations screens (architecture/CONTRACTS.md §8), mounted inside the application
@@ -13,5 +15,8 @@ export const HEARINGS_PATH = '/hearings';
  * becomes reachable when its navigation item is flipped to `ready`.
  */
 export function operationsRoutes(): ReactElement[] {
-  return [<Route key={HEARINGS_PATH} path={HEARINGS_PATH} element={<HearingsPage />} />];
+  return [
+    <Route key={HEARINGS_PATH} path={HEARINGS_PATH} element={<HearingsPage />} />,
+    <Route key={TASKS_PATH} path={TASKS_PATH} element={<TasksPage />} />,
+  ];
 }

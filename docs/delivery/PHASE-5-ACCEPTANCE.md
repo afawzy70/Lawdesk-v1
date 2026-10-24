@@ -146,19 +146,32 @@ Acceptance criteria:
    becomes `DONE` and cleared when it is reopened.
 2. `GET /api/v1/tasks?assignee=<id|me>&status=&caseId=&due=<overdue|soon>&page=&size=` (`TASK_VIEW`) lists tasks by due
    date (undated last), then priority (urgent first), then creation. Answers carry the assignee's display name and, for
-   case tasks, the case reference.
+   case tasks, the case reference and title, plus `overdue` and `dueSoon` flags. `status` may repeat; an unknown status,
+   `due` value or an `assignee` that is neither `me` nor a user id is `400`. `due` keeps open tasks only.
+   **ASSUMPTION:** `TASK_VIEW` shows every task of the office, and the case reference and title of case tasks.
 3. Timeline (case tasks only): `TASK_CREATED`, `TASK_ASSIGNED` (assignee changed), `TASK_COMPLETED`, `TASK_CANCELLED`,
    `TASK_REOPENED`. Other edits add no entry.
 4. **ASSUMPTION:** any `TASK_MANAGE` holder may change any task (a small office shares the work); tasks are never
-   deleted (cancel instead).
-5. **Report port:** `com.lawdesk.tasks.TaskReportQueries`: tasks by status, assignee and overdue state; workload per
-   assignee. "Open" (`OPEN`, `IN_PROGRESS`) and "overdue" (open and due before today) are defined there.
+   deleted (cancel instead); edits are allowed in every status. A disabled assignee may stay on a task until it is
+   reassigned. Changes to a task of an `ARCHIVED` case are `422 CASE_ARCHIVED`. Writes lock the task row and check
+   `version` (409).
+5. **Report port:** `com.lawdesk.tasks.TaskReportQueries`: `find(TaskFilter, offset, limit)` (≤ 10 000 rows),
+   `count`, `countByStatus` (every status, zero-filled), `overdueCount`, `dueSoonCount`, `workload()` (open, in
+   progress and overdue per assignee) and `today()`. "Open" (`TaskStatus.OPEN_STATES`), "overdue" (open and due before
+   today) and "due soon" (open and due today…today + `DUE_SOON_DAYS`) are defined there.
 6. Screen `/tasks`: "My tasks" and "All tasks", filters by status and due state, create, edit, change status; the
    case's tasks in `CaseOperations`.
 
 | QA case | Scenario | Mapping | Status |
 |---------|----------|---------|--------|
-| QA-0209…QA-0216 | the eight standard scenarios | `TaskApiTest`, `TasksPage.test.tsx` | PLANNED |
+| QA-0209 | authorized happy path | `TaskApiTest`: create (case and office tasks), read, edit with reassignment, status lifecycle, list order and filters | AUTOMATED |
+| QA-0210 | required-field validation | `TaskApiTest.requiredFieldsAreValidated` | AUTOMATED |
+| QA-0211 | invalid input boundary | `TaskApiTest.boundariesOfTextDueDateAndAssignee`, `anUnchangedPastDueDateAndADisabledAssigneeMayStay`, `anArchivedCaseTakesNoTaskChanges` | AUTOMATED |
+| QA-0212 | unauthenticated access | `TaskApiTest.everyEndpointNeedsASession` | AUTOMATED |
+| QA-0213 | insufficient permission | `TaskApiTest.viewersCannotWriteAndOthersCannotRead`, `aRefusalIsAuditedAsAccessDenied` | AUTOMATED |
+| QA-0214 | record integrity and rollback | `TaskApiTest.aFailingTimelineEventRollsTheWriteBack`, `unknownTasksAreNotFoundAndTheDatabaseKeepsStatusesConsistent` | AUTOMATED |
+| QA-0215 | concurrent or repeat request | `TaskApiTest.aStaleVersionIsAConflictAndChangesNothing`; illegal repeated moves (`OPEN` → `OPEN`) → 422 | AUTOMATED |
+| QA-0216 | API-to-UI state and error handling | `TasksPage.test.tsx`, `CaseTasks.test.tsx`, `routes.test.tsx`; real-browser layout `LD-027-07-layout-375-1366.log` | AUTOMATED |
 
 ## LD-028 Calendar and deadline reminders
 
@@ -171,7 +184,14 @@ Acceptance criteria:
 
 | QA case | Scenario | Mapping | Status |
 |---------|----------|---------|--------|
-| QA-0217…QA-0224 | the eight standard scenarios | `TaskReminderApiTest`, `TasksPage.test.tsx` | PLANNED |
+| QA-0217 | authorized happy path | `TaskReminderApiTest.countsTheSignedInUsersOverdueAndDueSoonTasks` (counts and the `due` lists) | AUTOMATED |
+| QA-0218 | required-field validation | Reminders take no input; the `due` filter refuses unknown values (`TaskApiTest.listsTasksByDueDateThenPriorityWithFilters`) | AUTOMATED |
+| QA-0219 | invalid input boundary | Boundaries of "due soon" (today and today + 3 counted, + 4 not) and "overdue" (yesterday counted, done tasks not) | AUTOMATED |
+| QA-0220 | unauthenticated access | `TaskReminderApiTest.remindersNeedTaskView` | AUTOMATED |
+| QA-0221 | insufficient permission | `TaskReminderApiTest.remindersNeedTaskView`; ACCESS_DENIED audited by the platform (LD-027 test) | AUTOMATED |
+| QA-0222 | record integrity and rollback | Reminders only read; other users' tasks never counted (`countsTheSignedInUsersOverdueAndDueSoonTasks`) | AUTOMATED |
+| QA-0223 | concurrent or repeat request | Repeated reads are idempotent; `aUserWithoutTasksHasNoReminders` | AUTOMATED |
+| QA-0224 | API-to-UI state and error handling | `TasksPage.test.tsx`: banner counts, links to the filtered lists, "none" texts, unavailable reminders, Arabic | AUTOMATED |
 
 ## LD-026 Legal PDF attachments, up to ten per case
 
