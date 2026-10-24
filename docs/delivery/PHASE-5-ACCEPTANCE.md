@@ -68,7 +68,9 @@ Acceptance criteria:
    /api/v1/hearings/{id}`, the stored hearing. An unknown proceeding is 404. The answer names the case (`caseId`,
    `caseReferenceNo`, `caseTitle`), the proceeding (`stage`, `courtCaseNumber`, `courtCaseYear`) and the court
    (`courtCode`, `courtNameAr`, `courtNameEn`), so lists need no further lookups. Timeline: `HEARING_SCHEDULED` with the
-   date and the proceeding's number and year.
+   date and the proceeding's number and year. The hearing's case is always its proceeding's case: it is taken from the
+   proceeding, never from the request, and the database refuses a mismatch on insert and update (trigger
+   `hearing_case_matches_proceeding`, V401; integration review of PR #33).
 2. **ASSUMPTION:** one hearing per proceeding and day: a second hearing (not cancelled) on the same proceeding and date
    is 409 and stores nothing. The database enforces it with a partial unique index, so a repeated or concurrent request
    also gets 409.
@@ -122,7 +124,7 @@ Acceptance criteria:
 | QA-0187 | invalid input boundary | `HearingApiTest`: notes and decision 2000/2001 characters, date two years ahead, filing-date rule, calendar range | AUTOMATED |
 | QA-0188 | unauthenticated access | `HearingApiTest.everyEndpointNeedsASession` | AUTOMATED |
 | QA-0189 | insufficient permission | `HearingApiTest.viewersCannotWriteAndOthersCannotRead`, `aRefusalIsAuditedAsAccessDenied` | AUTOMATED |
-| QA-0190 | record integrity and rollback | Unknown proceeding/case → 404, nothing stored; a failing timeline event rolls the hearing (and an adjournment's next hearing) back; database checks | AUTOMATED |
+| QA-0190 | record integrity and rollback | Unknown proceeding/case → 404, nothing stored; a failing timeline event rolls the hearing (and an adjournment's next hearing) back; database checks, including `aHearingAlwaysBelongsToItsProceedingsCase` | AUTOMATED |
 | QA-0191 | concurrent or repeat request | Same proceeding and day → 409; second result → 422; stale version → 409; two racing results → one wins | AUTOMATED |
 | QA-0192 | API-to-UI state and error handling | `HearingsPage.test.tsx`, `CaseHearings.test.tsx`, `OperationsLayout.test.tsx` (case page mount, narrow-screen CSS); real-browser check at 375 px and 1366 px in both languages (`docs/evidence/PHASE-5/LD-024-09-layout-375-1366.log`) | AUTOMATED |
 

@@ -522,6 +522,38 @@ class HearingApiTest extends HearingTestSupport {
         assertThat(rows("hearing")).isEqualTo(1);
     }
 
+    @Test
+    void aHearingAlwaysBelongsToItsProceedingsCase() throws Exception {
+        UUID caseId = createCase("Own case");
+        UUID other = createCase("Other case");
+        UUID proceeding = createProceeding(caseId, "125");
+        UUID foreign = createProceeding(other, "126");
+
+        // The case comes from the proceeding; a case named in the body is ignored.
+        MvcResult result = mvc.perform(postHearing(proceeding, """
+                        {"hearingDate":"2025-02-01","purpose":"OTHER","caseId":"%s"}""".formatted(other)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.caseId").value(caseId.toString()))
+                .andReturn();
+        UUID id = UUID.fromString(JsonPath.read(result.getResponse().getContentAsString(), "$.id"));
+        assertThat(jdbc.queryForObject("select case_id from hearing where id = ?", UUID.class, id)).isEqualTo(caseId);
+        mvc.perform(get("/api/v1/cases/" + other + "/hearings").with(as(Permission.HEARING_VIEW)))
+                .andExpect(jsonPath("$.totalItems").value(0));
+
+        // The database refuses a hearing whose case is not its proceeding's case, on insert and on update.
+        UUID actor = UUID.randomUUID();
+        assertThatThrownBy(() -> jdbc.update("""
+                insert into hearing (case_id, proceeding_id, hearing_date, purpose, created_by, updated_by)
+                values (?, ?, date '2025-02-02', 'OTHER', ?, ?)""", other, proceeding, actor, actor))
+                .isInstanceOf(DataIntegrityViolationException.class);
+        assertThatThrownBy(() -> jdbc.update("update hearing set case_id = ? where id = ?", other, id))
+                .isInstanceOf(DataIntegrityViolationException.class);
+        assertThatThrownBy(() -> jdbc.update("update hearing set proceeding_id = ? where id = ?", foreign, id))
+                .isInstanceOf(DataIntegrityViolationException.class);
+        assertThat(jdbc.queryForObject("select count(*) from hearing where case_id = ?", Integer.class, other))
+                .isZero();
+    }
+
     // QA-0191 concurrent or repeat request
 
     @Test
