@@ -9,6 +9,7 @@ import { CaseOperations } from './CaseOperations';
 import type { Hearing } from './hearings/hearingsApi';
 import { operationsRoutes } from './routes';
 import type { CaseDocument } from './documents/documentsApi';
+import type { Expert, Referral } from './experts/expertsApi';
 import type { Task } from './tasks/tasksApi';
 
 /** Test-only helpers for the legal operations screens: their routes, a case page hosting them, a scripted backend. */
@@ -161,6 +162,48 @@ export function caseDocument(overrides: Partial<CaseDocument> = {}): CaseDocumen
     version: 0,
     createdAt: '2025-03-01T09:00:00Z',
     createdBy: 'u9',
+    ...overrides,
+  };
+}
+
+export function expertRecord(overrides: Partial<Expert> = {}): Expert {
+  return {
+    id: 'e1',
+    name: 'Eng. Samir Fathy',
+    specialty: 'Civil engineering',
+    office: 'Giza experts office',
+    phone: '+20 2 1234 5678',
+    active: true,
+    version: 0,
+    createdAt: '2025-01-01T08:00:00Z',
+    updatedAt: '2025-01-01T08:00:00Z',
+    ...overrides,
+  };
+}
+
+export function referral(overrides: Partial<Referral> = {}): Referral {
+  return {
+    id: 'r1',
+    caseId: CASE,
+    caseReferenceNo: 'LD-2025-00042',
+    caseTitle: 'Rent dispute',
+    proceedingId: 'p1',
+    stage: 'FIRST_INSTANCE',
+    courtCaseNumber: '1234',
+    courtCaseYear: 2025,
+    expertId: 'e1',
+    expertName: 'Eng. Samir Fathy',
+    expertSpecialty: 'Civil engineering',
+    referralDate: '2025-02-01',
+    mission: 'Inspect the boundary wall',
+    reportDueDate: '2025-04-01',
+    status: 'OPEN',
+    reportSubmittedDate: null,
+    reportOverdue: false,
+    sessions: [],
+    version: 0,
+    createdAt: '2025-02-01T08:00:00Z',
+    updatedAt: '2025-02-01T08:00:00Z',
     ...overrides,
   };
 }

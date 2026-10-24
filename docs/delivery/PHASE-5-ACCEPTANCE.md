@@ -240,23 +240,44 @@ Acceptance criteria:
 
 1. Expert registry (reference data, like courts): `name` (required, ≤ 200), `specialty` (required, ≤ 100, for example
    engineering, accounting, agriculture), `office` (optional, ≤ 200, for example the Ministry of Justice experts office
-   of a governorate — مكتب خبراء وزارة العدل), `phone` (optional), `active`. `GET /api/v1/experts` (`EXPERT_VIEW`),
-   `POST` / `PUT` (`EXPERT_MANAGE`, with `version`). No deletion; deactivate. **ASSUMPTION:** no experts are seeded.
-2. A referral (ندب خبير) belongs to a proceeding: `expertId` (active, `422 EXPERT_INACTIVE`), `referralDate` (not before
-   the filing date, `422 REFERRAL_BEFORE_FILING`; not in the future), `mission` (optional, ≤ 4000), `reportDueDate`
-   (optional, not before the referral date, `422 REPORT_DUE_BEFORE_REFERRAL`), `status` `OPEN` →
-   `REPORT_SUBMITTED` (with `reportSubmittedDate`, between the referral date and today) or `CANCELLED`.
-3. Expert sessions (محاضر أعمال الخبير) of an open referral: `sessionDate` (not before the referral date), optional
-   `sessionTime`, `location` (≤ 200) and `notes` (≤ 2000). A referral that is no longer open accepts no sessions
-   (`422 REFERRAL_CLOSED`).
-4. Timeline: `EXPERT_REFERRED`, `EXPERT_SESSION_RECORDED`, `EXPERT_REPORT_SUBMITTED`, `EXPERT_REFERRAL_CANCELLED`.
-5. **Report port:** `com.lawdesk.experts.ExpertReportQueries`: referrals by expert and status; overdue reports (open and
-   report due before today).
-6. Screen `/experts`: the registry; the case's referrals and sessions in `CaseOperations`.
+   of a governorate — مكتب خبراء وزارة العدل), `phone` (optional, ≤ 32 digits, spaces and `+ ( ) -`), `active`.
+   `GET /api/v1/experts?active=&q=` (`EXPERT_VIEW`, by name; `q` searches name and specialty), `GET
+   /api/v1/experts/{id}`, `POST` / `PUT` (`EXPERT_MANAGE`, `PUT` with `version`, 409 when stale). **ASSUMPTION:** no
+   deletion (deactivate instead), no experts are seeded, and names need not be unique.
+2. A referral (ندب خبير) belongs to a proceeding: `POST /api/v1/proceedings/{id}/expert-referrals` (`EXPERT_MANAGE`)
+   with `expertId` (an active expert, `422 EXPERT_INACTIVE`; unknown 404), `referralDate` (required; not in the future,
+   `400 PastOrPresent`; not before the filing date, `422 REFERRAL_BEFORE_FILING`), `mission` (optional, ≤ 4000) and
+   `reportDueDate` (optional, not before the referral date, `422 REPORT_DUE_BEFORE_REFERRAL`). The case is taken from
+   the proceeding and the database refuses a mismatch (trigger, as for hearings). `status` is `OPEN` →
+   `REPORT_SUBMITTED` (`POST …/report` with `reportSubmittedDate`: not in the future, not before the referral,
+   `422 REPORT_BEFORE_REFERRAL`) or `CANCELLED` (`POST …/cancel`). `PUT /api/v1/expert-referrals/{id}` changes the
+   mission and the due date of an open referral. Every change takes `version` (409 when stale) and locks the row.
+3. Expert sessions (محاضر أعمال الخبير): `POST /api/v1/expert-referrals/{id}/sessions` with `sessionDate` (required, not
+   before the referral date, `422 SESSION_BEFORE_REFERRAL`), optional `sessionTime` (`HH:mm`), `location` (≤ 200) and
+   `notes` (≤ 2000); 201 with the referral, whose version it bumps. A referral that is no longer open accepts no
+   sessions, report, cancellation or edit (`422 REFERRAL_CLOSED`); an `ARCHIVED` case none (`422 CASE_ARCHIVED`).
+4. `GET /api/v1/cases/{caseId}/expert-referrals` (`EXPERT_VIEW`) lists the case's referrals by referral date, each with
+   its sessions (oldest first), the expert's name and specialty, the proceeding's number and `reportOverdue` (open and
+   due before today). `GET /api/v1/expert-referrals/{id}` reads one.
+5. Timeline: `EXPERT_REFERRED`, `EXPERT_SESSION_RECORDED`, `EXPERT_REPORT_SUBMITTED`, `EXPERT_REFERRAL_CANCELLED`
+   (names, dates and numbers only, never the mission or notes).
+6. **Report port:** `com.lawdesk.experts.ExpertReportQueries`: `find(ReferralFilter, offset, limit)` (≤ 10 000 rows),
+   `count`, `countByStatus` (zero-filled), `overdueReportCount()`, `workload()` (open and overdue referrals per expert
+   of the registry) and `today()`; "overdue" is defined there.
+7. Screens: `/experts` (ready, `EXPERT_VIEW`) is the registry with status filter, search, create, edit and deactivate;
+   the case's expert referrals in `CaseOperations` refer a proceeding to an active expert, record sessions and the
+   report, and cancel a referral after confirmation.
 
 | QA case | Scenario | Mapping | Status |
 |---------|----------|---------|--------|
-| QA-0193…QA-0200 | the eight standard scenarios | `ExpertApiTest`, `ExpertReferralApiTest`, `ExpertsPage.test.tsx` | PLANNED |
+| QA-0193 | authorized happy path | `ExpertApiTest.registersListsAndEditsExperts`, `ExpertReferralApiTest.refersAProceedingToAnExpertWithSessionsAndAReport`, `aReferralCanBeCancelledAndThenTakesNoMoreWork` | AUTOMATED |
+| QA-0194 | required-field validation | `ExpertApiTest.validatesTheRegistryFields`, `ExpertReferralApiTest.validatesReferralsSessionsAndReports` | AUTOMATED |
+| QA-0195 | invalid input boundary | Name 200/201, specialty 100/101, phone pattern, mission 4001, future dates, chronology rules (same tests) | AUTOMATED |
+| QA-0196 | unauthenticated access | `ExpertApiTest.theRegistryNeedsItsPermissions`, `ExpertReferralApiTest.referralEndpointsNeedASessionAndThePermission` | AUTOMATED |
+| QA-0197 | insufficient permission | Same tests, with the `ACCESS_DENIED` audit row | AUTOMATED |
+| QA-0198 | record integrity and rollback | `aFailingTimelineEventRollsTheWriteBackAndTheDatabaseKeepsReferralsConsistent`, `anInactiveExpertUnknownRecordsAndArchivedCasesAreRefused` | AUTOMATED |
+| QA-0199 | concurrent or repeat request | `ExpertReferralApiTest.aStaleVersionIsAConflictAndChangesNothing`, stale expert edit 409; closed referrals refuse repeats | AUTOMATED |
+| QA-0200 | API-to-UI state and error handling | `ExpertsPage.test.tsx`, `CaseExperts.test.tsx`, `routes.test.tsx`; real-browser layout `LD-025-07-layout-375-1366.log` | AUTOMATED |
 
 ## LD-029 Legal notes and activity history
 

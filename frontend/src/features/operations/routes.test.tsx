@@ -16,7 +16,9 @@ function calendarApi(permissions = ADMIN.permissions) {
     'fetch',
     vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url, 'http://localhost');
-      if (['/api/v1/hearings', '/api/v1/documents'].includes(url.pathname)) return Promise.resolve(jsonResponse(EMPTY));
+      if (['/api/v1/hearings', '/api/v1/documents', '/api/v1/experts'].includes(url.pathname)) {
+        return Promise.resolve(jsonResponse(EMPTY));
+      }
       return base(input, init);
     }),
   );
@@ -28,6 +30,19 @@ describe('operations routes', () => {
       status: 'ready',
       requires: 'HEARING_VIEW',
     });
+  });
+
+  it('marks the expert registry ready behind EXPERT_VIEW and opens it', async () => {
+    expect(NAV_ITEMS.find((item) => item.path === '/experts')).toMatchObject({ status: 'ready', requires: 'EXPERT_VIEW' });
+    calendarApi();
+    render(
+      <MemoryRouter initialEntries={['/experts?lang=en']}>
+        <AppRoutes />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole('heading', { level: 1, name: 'Experts' })).toBeInTheDocument();
+    const nav = screen.getByRole('navigation', { name: 'Primary' });
+    expect(within(nav).getByRole('link', { name: 'Experts' })).toHaveAttribute('aria-current', 'page');
   });
 
   it('marks the documents screen ready behind DOCUMENT_VIEW and opens it', async () => {
