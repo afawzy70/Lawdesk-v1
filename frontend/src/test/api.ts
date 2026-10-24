@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import { PERMISSIONS } from '../api/permissions';
 import type { Me } from '../features/auth/me';
 import { jsonResponse } from './http';
 
@@ -9,7 +10,8 @@ export const ADMIN: Me = {
   email: 'maha@example.invalid',
   locale: 'en',
   roles: ['ADMIN'],
-  permissions: ['USER_VIEW', 'USER_MANAGE', 'CASE_VIEW', 'CASE_CREATE', 'COURT_VIEW'],
+  // Like the seeded ADMIN role: every permission (architecture/CONTRACTS.md §3, §8).
+  permissions: [...PERMISSIONS],
   mustChangePassword: false,
 };
 
