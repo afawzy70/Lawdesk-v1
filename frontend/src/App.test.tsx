@@ -37,7 +37,9 @@ const NAV = [
   { path: '/admin', en: 'Administration', ar: 'الإدارة' },
 ] as const;
 
-const PLACEHOLDERS = NAV.filter((item) => item.path !== '/');
+/** Areas still shown as preview placeholders; Administration became a working screen in LD-009. */
+const PLACEHOLDERS = NAV.filter((item) => item.path !== '/' && item.path !== '/admin');
+const PREVIEW_ROUTES = [...NAV.map((n) => n.path).filter((path) => path !== '/admin'), '/no-such-page'];
 
 function primaryNav(name: string | RegExp = 'Primary') {
   return screen.getByRole('navigation', { name });
@@ -198,7 +200,7 @@ describe('preview labelling', () => {
     },
   );
 
-  it.each(routes)('offers no forms, inputs or save/create/edit/login actions on %s', async (path) => {
+  it.each(PREVIEW_ROUTES)('offers no forms, inputs or save/create/edit/login actions on %s', async (path) => {
     const { container } = await renderAt(path);
     expect(container.querySelector('form, input, textarea, select')).toBeNull();
     const buttons = screen.queryAllByRole('button').map((b) => b.textContent);
