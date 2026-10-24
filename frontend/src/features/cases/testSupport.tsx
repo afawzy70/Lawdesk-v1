@@ -5,6 +5,7 @@ import { LocaleProvider } from '../../i18n/LocaleProvider';
 import { jsonResponse } from '../../test/http';
 import type { LegalCase } from './api';
 import { CaseCreatePage } from './CaseCreatePage';
+import { CaseDetailsPage } from './CaseDetailsPage';
 import { CaseEditPage } from './CaseEditPage';
 import { CaseListPage } from './CaseListPage';
 
@@ -22,6 +23,7 @@ export function renderCases(path: string) {
         children: [
           { path: '/cases', element: <CaseListPage /> },
           { path: '/cases/new', element: <CaseCreatePage /> },
+          { path: '/cases/:id', element: <CaseDetailsPage /> },
           { path: '/cases/:id/edit', element: <CaseEditPage /> },
         ],
       },
