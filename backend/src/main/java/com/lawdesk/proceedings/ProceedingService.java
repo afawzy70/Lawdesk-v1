@@ -35,13 +35,15 @@ class ProceedingService {
     private final JudicialRecords records;
     private final ProceedingRepository proceedings;
     private final JudgmentRepository judgments;
+    private final SpecialDecisionRepository decisions;
     private final CurrentActor currentActor;
 
     ProceedingService(JudicialRecords records, ProceedingRepository proceedings, JudgmentRepository judgments,
-            CurrentActor currentActor) {
+            SpecialDecisionRepository decisions, CurrentActor currentActor) {
         this.records = records;
         this.proceedings = proceedings;
         this.judgments = judgments;
+        this.decisions = decisions;
         this.currentActor = currentActor;
     }
 
@@ -99,6 +101,9 @@ class ProceedingService {
         Optional<Judgment> own = judgments.findByProceedingId(id);
         if (own.isPresent() && own.get().getJudgmentDate().isBefore(request.filingDate())) {
             throw new BusinessRuleException(Rules.JUDGMENT_BEFORE_FILING, "the judgment would precede the filing");
+        }
+        if (decisions.earliestDecisionDate(id).filter(d -> d.isBefore(request.filingDate())).isPresent()) {
+            throw new BusinessRuleException(Rules.DECISION_BEFORE_FILING, "a special decision would precede the filing");
         }
         if (proceeding.getParentProceedingId() != null) {
             records.lockedProceeding(proceeding.getParentProceedingId());

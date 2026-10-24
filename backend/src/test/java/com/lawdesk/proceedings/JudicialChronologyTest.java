@@ -8,21 +8,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import com.lawdesk.security.Permission;
@@ -30,8 +21,7 @@ import com.lawdesk.security.Permission;
 /**
  * QAD-024 (LD-020…LD-022): the judicial chronology — filing ≤ own judgment ≤ filing of every appeal or cassation that
  * attacks it — holds across every edit path, and under concurrent edits (docs/delivery/PHASE-4-ACCEPTANCE.md, LD-022
- * rule 4). Concurrent races are made deterministic with a test-only trigger that pauses one statement inside its
- * transaction, while the other request runs.
+ * rule 4). Concurrent races use {@link JudicialApiTestSupport#race}.
  */
 class JudicialChronologyTest extends JudicialApiTestSupport {
 
@@ -53,13 +43,6 @@ class JudicialChronologyTest extends JudicialApiTestSupport {
     private Ladder ladder(String suffix) throws Exception {
         return new Ladder(createCase("Chronology " + suffix), createCourt("FI-K" + suffix, "FIRST_INSTANCE"),
                 createCourt("AP-K" + suffix, "APPEAL"), createCourt("CS-K" + suffix, "CASSATION"));
-    }
-
-    @AfterEach
-    void dropPause() {
-        jdbc.execute("drop trigger if exists qad024_pause on judgment");
-        jdbc.execute("drop trigger if exists qad024_pause on proceeding");
-        jdbc.execute("drop function if exists qad024_pause()");
     }
 
     // Direct API updates
@@ -286,42 +269,6 @@ class JudicialChronologyTest extends JudicialApiTestSupport {
     }
 
     // Helpers
-
-    /**
-     * Runs {@code paused} until its {@code event} on {@code table} stops in a test-only trigger, then runs
-     * {@code other} to completion while {@code paused} still holds its transaction open. Returns both statuses.
-     */
-    private List<Integer> race(String event, String table, Callable<MvcResult> paused, Callable<MvcResult> other)
-            throws Exception {
-        jdbc.execute("""
-                create function qad024_pause() returns trigger language plpgsql as $$
-                begin perform pg_sleep(1.5); return new; end $$""");
-        jdbc.execute("create trigger qad024_pause before " + event + " on " + table
-                + " for each row execute function qad024_pause()");
-        try (ExecutorService pool = Executors.newVirtualThreadPerTaskExecutor()) {
-            Future<MvcResult> first = pool.submit(paused);
-            awaitPause();
-            Future<MvcResult> second = pool.submit(other);
-            return List.of(first.get(30, TimeUnit.SECONDS).getResponse().getStatus(),
-                    second.get(30, TimeUnit.SECONDS).getResponse().getStatus());
-        } finally {
-            dropPause();
-        }
-    }
-
-    private void awaitPause() throws InterruptedException {
-        Instant deadline = Instant.now().plus(Duration.ofSeconds(10));
-        while (Instant.now().isBefore(deadline)) {
-            Integer sleeping = jdbc.queryForObject(
-                    "select count(*) from pg_stat_activity where wait_event = 'PgSleep' and pid <> pg_backend_pid()",
-                    Integer.class);
-            if (sleeping != null && sleeping > 0) {
-                return;
-            }
-            Thread.sleep(10);
-        }
-        throw new AssertionError("the paused request never reached its trigger");
-    }
 
     private void assertConsistent() {
         assertThat(jdbc.queryForObject(BROKEN_CHALLENGES, Integer.class)).isZero();

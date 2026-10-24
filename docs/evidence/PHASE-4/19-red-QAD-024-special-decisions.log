@@ -1,0 +1,46 @@
+# QAD-024 on LD-023, RED: ./mvnw -B test -Dtest='SpecialDecisionChronologyTest,JudicialChronologyTest' -Djacoco.skip=true
+# Run on 0d96761 (#19 with the #17 fix merged) plus the new tests only, before any production change.
+# A proceeding's filing date can move after its special decision (200 instead of 422 DECISION_BEFORE_FILING), and
+# racing decision/filing edits both succeed. JudicialChronologyTest (moved race helper) stays green.
+[ERROR] Tests run: 4, Failures: 4, Errors: 0, Skipped: 0, Time elapsed: 41.41 s <<< FAILURE! -- in com.lawdesk.proceedings.SpecialDecisionChronologyTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 14.34 s -- in com.lawdesk.proceedings.JudicialChronologyTest
+[ERROR] Tests run: 15, Failures: 4, Errors: 0, Skipped: 0
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   SpecialDecisionChronologyTest.aDecisionMovedEarlierWhileTheFilingDateMovesLaterIsRefused:96 
+Expecting actual:
+  [200, 200]
+to contain exactly (and in same order):
+  [200, 422]
+but some elements were not found:
+  [422]
+and others were not expected:
+  [200]
+
+[ERROR]   SpecialDecisionChronologyTest.aDecisionRecordedWhileTheFilingDateMovesLaterIsRefused:68 
+Expecting actual:
+  [200, 201]
+to contain exactly (and in same order):
+  [200, 422]
+but some elements were not found:
+  [422]
+and others were not expected:
+  [201]
+
+[ERROR]   SpecialDecisionChronologyTest.theFilingDateCannotMoveAfterASpecialDecision:50 Status expected:<422> but was:<200>
+[ERROR]   SpecialDecisionChronologyTest.theFilingDateMovedWhileADecisionIsRecordedIsRefused:81 
+Expecting actual:
+  [201, 200]
+to contain exactly (and in same order):
+  [201, 422]
+but some elements were not found:
+  [422]
+and others were not expected:
+  [200]
+
+[INFO] 
+[ERROR] Tests run: 15, Failures: 4, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[ERROR] BUILD FAILURE

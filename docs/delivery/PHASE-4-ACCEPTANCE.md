@@ -191,6 +191,13 @@ Acceptance criteria:
    suspends); `DECISION_JUDGMENT_OTHER_CASE` (a named judgment belongs to the same case); `DECISION_BEFORE_FILING`
    (the decision date is not before the proceeding's filing date). An unknown judgment is 404. **ASSUMPTION:** a
    proceeding may hold several decisions, including repeated suspension requests.
+   QAD-024 applied here: `DECISION_BEFORE_FILING` is also answered when a proceeding's filing date is corrected to a
+   day after one of its decisions (the earliest one bounds it; nothing is written). Recording or correcting a decision
+   locks its proceeding row (`select ... for update`) like judgments do, so a racing filing-date correction is
+   serialised with it. Tests: `SpecialDecisionChronologyTest` (`theFilingDateCannotMoveAfterASpecialDecision` and three
+   races). Evidence: `docs/evidence/PHASE-4/19-red-QAD-024-special-decisions.log`,
+   `20-green-QAD-024-special-decisions.log`. **ASSUMPTION:** no date rule ties a decision to the judgment it names
+   (a suspension may be dated before or after that judgment), so correcting a judgment date never touches decisions.
 4. **ASSUMPTION:** an enforcement suspension is informational: it does not change the judgment record or block other
    entries. Its effect is shown next to the judgment it names.
 5. Recording a decision adds a timeline entry `SPECIAL_DECISION_RECORDED`.

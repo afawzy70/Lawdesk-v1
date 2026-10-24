@@ -85,6 +85,8 @@ export const proceedingsAr: Record<keyof typeof proceedingsEn, string> = {
   'proceedings.rule.CASSATION_REQUIRES_APPEAL_JUDGMENT': 'لا يُسجل الطعن بالنقض إلا بعد صدور حكم الاستئناف.',
   'proceedings.rule.FILED_BEFORE_PARENT_JUDGMENT': 'لا يجوز أن يسبق تاريخ القيد تاريخ الحكم المطعون عليه.',
   'proceedings.rule.JUDGMENT_BEFORE_FILING': 'لا يجوز أن يسبق التاريخ تاريخ قيد الدعوى.',
+  'proceedings.rule.JUDGMENT_AFTER_CHALLENGE_FILING':
+    'لا يجوز أن يكون تاريخ الحكم بعد تاريخ قيد الطعن المرفوع عليه.',
   'proceedings.rule.SUSPENSION_REQUIRES_JUDGMENT': 'يجب أن يحدد قرار وقف التنفيذ الحكم الموقوف تنفيذه.',
   'proceedings.rule.DECISION_JUDGMENT_OTHER_CASE': 'الحكم المعني يخص قضية أخرى.',
   'proceedings.rule.DECISION_BEFORE_FILING': 'لا يجوز أن يسبق التاريخ تاريخ قيد الدعوى.',

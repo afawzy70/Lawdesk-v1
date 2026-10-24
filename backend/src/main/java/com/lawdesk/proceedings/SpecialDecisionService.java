@@ -58,7 +58,8 @@ class SpecialDecisionService {
     @Transactional
     SpecialDecisionRequests.Response create(UUID proceedingId, SpecialDecisionRequests.Create request) {
         ActorRef actor = currentActor.require();
-        Proceeding proceeding = records.proceeding(proceedingId);
+        // Locked so the filing date cannot move while the decision date is checked against it (QAD-024).
+        Proceeding proceeding = records.lockedProceeding(proceedingId);
         SpecialDecision decision = new SpecialDecision(proceedingId, actor, JudicialRecords.now());
         decide(decision, proceeding, request);
         SpecialDecision stored = decisions.saveAndFlush(decision);
@@ -72,10 +73,10 @@ class SpecialDecisionService {
     SpecialDecisionRequests.Response update(UUID id, SpecialDecisionRequests.Update request) {
         ActorRef actor = currentActor.require();
         SpecialDecision decision = decision(id);
+        Proceeding proceeding = records.lockedProceeding(decision.getProceedingId());
         if (decision.getVersion() != request.version()) {
             throw new ConflictException("special decision was changed by someone else");
         }
-        Proceeding proceeding = records.proceeding(decision.getProceedingId());
         decide(decision, proceeding, request.decision());
         decision.touch(actor, JudicialRecords.now());
         return SpecialDecisionRequests.Response.of(decisions.saveAndFlush(decision), proceeding.getCaseId());

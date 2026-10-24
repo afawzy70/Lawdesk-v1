@@ -85,6 +85,8 @@ export const proceedingsEn = {
   'proceedings.rule.CASSATION_REQUIRES_APPEAL_JUDGMENT': 'A cassation can be recorded only after the appeal judgment.',
   'proceedings.rule.FILED_BEFORE_PARENT_JUDGMENT': 'The filing date cannot be before the judgment attacked.',
   'proceedings.rule.JUDGMENT_BEFORE_FILING': 'The date cannot be before the filing date of the proceeding.',
+  'proceedings.rule.JUDGMENT_AFTER_CHALLENGE_FILING':
+    'The judgment date cannot be after the filing of an appeal or cassation against it.',
   'proceedings.rule.SUSPENSION_REQUIRES_JUDGMENT':
     'An enforcement suspension must name the judgment whose enforcement it suspends.',
   'proceedings.rule.DECISION_JUDGMENT_OTHER_CASE': 'The judgment concerned belongs to another case.',
