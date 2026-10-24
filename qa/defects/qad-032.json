@@ -1,0 +1,42 @@
+{
+  "environment": "Independent canonical candidate archive; real Spring Boot jar and disposable PostgreSQL18.6 on loopback; Chromium1248",
+  "reported_utc": "2026-10-24T15:25:11.872218+00:00",
+  "status": "CONFIRMED_OPEN",
+  "owner": "Claude implementation; independent QA verification",
+  "no_customer_data": true,
+  "id": "QAD-032",
+  "title": "Editing proceeding filing date persists an existing hearing before filing",
+  "priority": "P2",
+  "severity": "S2",
+  "story_ids": [
+    "LD-019",
+    "LD-024"
+  ],
+  "affected": [
+    "fb60c26884fc6ca25143526bc6edcf857716bf22"
+  ],
+  "preconditions": [
+    "CASE/PROCEEDING/HEARING management permissions",
+    "Synthetic case and FIRST_INSTANCE proceeding; no judgment"
+  ],
+  "test_data": {
+    "initial_filing_date": "2026-01-02",
+    "hearing_date": "2026-01-03",
+    "new_filing_date": "2026-01-04"
+  },
+  "steps": [
+    "Create FIRST_INSTANCE proceeding with initial filing date",
+    "POST /api/v1/proceedings/{id}/hearings with hearingDate2026-01-03,purposePLEADING; observe201",
+    "PUT /api/v1/proceedings/{id} with original courtId,courtCaseNumber,courtCaseYear2026,filingDate2026-01-04,version0",
+    "Read joined proceeding and hearing dates in disposable DB"
+  ],
+  "expected": "Reject422 and preserve dates; judicial chronology remains valid across edits of either side",
+  "actual": "PUT200/version1; stored filingDate2026-01-04 while hearingDate2026-01-03",
+  "contract_note": "LD-024.7 explicitly documents deferred parent-edit guard. QA independently confirms that known integration limitation; not a claim that the narrow hearing-create acceptance criterion failed.",
+  "evidence": [
+    "qa/evidence/followup-bdd9d424-20261024/pr33-chronology/results.json"
+  ],
+  "fix_guidance": "Claude to enforce cross-module date invariant on proceeding edits, with concurrency control shared with hearing scheduling/rescheduling; add RED/GREEN and race coverage. QA owns retest.",
+  "recommendation": "REQUEST_CHANGES for PR33 data-integrity acceptance",
+  "uat_policy": "Private synthetic verification of a remediation remains allowed; no real legal-data use or full judicial lifecycle acceptance while this persists"
+}

@@ -1,0 +1,36 @@
+{
+  "environment": "Independent canonical candidate archive; real Spring Boot jar and disposable PostgreSQL18.6 on loopback; Chromium1248",
+  "reported_utc": "2026-10-24T15:25:11.872218+00:00",
+  "status": "CONFIRMED_OPEN",
+  "owner": "Claude implementation; independent QA verification",
+  "no_customer_data": true,
+  "id": "QAD-031",
+  "title": "Task OPEN to DONE transition differs from proposed lifecycle",
+  "priority": "P3",
+  "severity": "S3",
+  "story_ids": [
+    "LD-027"
+  ],
+  "affected": [
+    "e40dfcb7596f4526ec7c59d3e61d04f3c3e46340"
+  ],
+  "preconditions": [
+    "TASK_MANAGE; newly created synthetic task OPEN/version0"
+  ],
+  "test_data": {
+    "status": "DONE",
+    "version": 0
+  },
+  "steps": [
+    "POST /api/v1/tasks with valid title and enabled assignee",
+    "POST /api/v1/tasks/{id}/status with test_data",
+    "Read persisted status and completedAt"
+  ],
+  "expected": "422 according to docs/delivery/PHASE-5-ACCEPTANCE.md sequence OPEN→IN_PROGRESS→DONE and other moves denied",
+  "actual": "200; persisted DONE with completedAt; TaskStatus.next() explicitly allows direct completion",
+  "evidence": [
+    "qa/evidence/followup-bdd9d424-20261024/pr37/results.json"
+  ],
+  "fix_guidance": "Resolve business intent: align implementation or obtain explicit approved criterion permitting direct completion, then independent retest.",
+  "uat_policy": "Not a security/data-loss blocker to ordinary Dev/UAT; unresolved acceptance inconsistency"
+}

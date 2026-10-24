@@ -8,14 +8,14 @@ const [base,sha,out]=process.argv.slice(2);
 if(base!=='https://lawdesk.167-86-90-174.sslip.io'||!/^[a-f0-9]{40}$/.test(sha||'')||!out)throw Error('Approved target/SHA/output required');
 fs.mkdirSync(out,{recursive:true});if(fs.existsSync(out+'/results.json'))throw Error('Refusing evidence overwrite');
 const prefix='QAUI'+crypto.randomBytes(5).toString('hex').toUpperCase(),results=[],owned={},secrets=[];
-let browser,ctx,page,role,user,c,oldSession,resetSession,resetPassword;const courts={},proceedings={},judgments={};
+let browser,ctx,page,role,user,c,oldSession,resetSession,resetPassword,runtimeRelease;const courts={},proceedings={},judgments={};
 const randomPassword=()=>{const x=crypto.randomBytes(25).toString('base64url')+'!9';secrets.push(x);return x;};
 const temporary=randomPassword();
 const assert=(v,m)=>{if(!v)throw Error(m);};
 class Blocked extends Error{}
 const need=(v,m)=>{if(!v)throw new Blocked(m);return v;};
 const safe=value=>{let s=JSON.stringify(value);for(const secret of secrets)s=s.split(secret).join('[REDACTED]');return JSON.parse(s);};
-const save=()=>fs.writeFileSync(out+'/results.json',JSON.stringify(safe({expected_deployed_sha:sha,backend_runtime_sha_attested:false,utc:new Date().toISOString(),prefix,scope:'Independent live browser form submissions; real API persistence checks',owned,counts:Object.fromEntries(['PASS','FAIL','BLOCKED','NOT_RUN'].map(s=>[s,results.filter(r=>r.status===s).length])),results}),null,2));
+const save=()=>fs.writeFileSync(out+'/results.json',JSON.stringify(safe({expected_deployed_sha:sha,backend_runtime_sha_attested:runtimeRelease===sha,observed_backend_runtime_sha:runtimeRelease,utc:new Date().toISOString(),prefix,scope:'Independent live browser form submissions; real API persistence checks',owned,counts:Object.fromEntries(['PASS','FAIL','BLOCKED','NOT_RUN'].map(s=>[s,results.filter(r=>r.status===s).length])),results}),null,2));
 const own=(kind,data)=>{need(data?.id,'Missing new '+kind+' ID');(owned[kind]??=[]).push(data.id);save();return data;};
 const id=(kind,data)=>{need(data?.id&&owned[kind]?.includes(data.id),'Missing owned '+kind+' fixture');return data.id;};
 async function check(key,stories,steps,expected,fn){
@@ -35,7 +35,7 @@ async function login(p,cred){await p.goto(base+'/cases/new?lang=en');await field
 try{
  const path=process.env.LAWDESK_QA_CREDENTIAL_FILE;need(path,'Approved credential path missing');const st=fs.statSync(path);need(st.uid===process.getuid()&&!(st.mode&0o077),'Credential permission check failed');const cred=JSON.parse(fs.readFileSync(path,'utf8'));secrets.push(cred.password);
  browser=await chromium.launch({headless:true,executablePath:process.env.LAWDESK_QA_CHROMIUM});ctx=await browser.newContext();page=await ctx.newPage();page.setDefaultTimeout(15000);
- await check('LOGIN','LD-007','Browser login with approved admin','200; administrator session',async()=>{await login(page,cred);assert((await api('GET','/api/v1/me')).roles.includes('ADMIN'),'Administrator role missing');});
+ await check('LOGIN','LD-007','Browser login with approved admin','200; administrator session',async()=>{await login(page,cred);runtimeRelease=(await api('GET','/api/v1/release')).release;assert(runtimeRelease===sha,'Runtime release mismatch');assert((await api('GET','/api/v1/me')).roles.includes('ADMIN'),'Administrator role missing');});
  await check('ROLE-CREATE-EDIT','LD-009,LD-010','Open new role -> Enter unique code/name -> Check View cases -> Create -> Edit name and save','Role201 and edit200; exact persisted permission set',async()=>{
   await page.goto(base+'/admin/roles/new?lang=en');await field(page,'Code').fill(prefix);await field(page,'Name').fill(prefix+' role');await page.getByRole('checkbox',{name:'View cases',exact:true}).check();
   role=own('roles',await submit('/api/v1/roles','POST',page.getByRole('button',{name:'Create role',exact:true})));
@@ -86,13 +86,13 @@ try{
   await field(f,'Decision type').selectOption('ENFORCEMENT_SUSPENSION');await field(f,'Decision date').fill('2026-01-07');await field(f,'Effect').selectOption('GRANTED');await field(f,'Judgment concerned').selectOption(judgments.APPEAL.id);await field(f,'Summary').fill(prefix+' قرار اختبار');
   own('decisions',await submit('/api/v1/proceedings/'+p.id+'/special-decisions','POST',f.getByRole('button',{name:'Save',exact:true})));await snap('judicial-full-chain');
  });
- await check('PASSWORD-RESET-UI','LD-008,LD-009','Login disposable user in session A -> Complete forced change -> Admin resets through user form','UI reset204; old session restricted by PASSWORD_CHANGE_REQUIRED',async()=>{
+ await check('PASSWORD-RESET-UI','LD-008,LD-009','Login disposable user in session A -> Complete forced change -> Admin resets through user form','UI reset204; old session revoked with401',async()=>{
   id('users',user);oldSession=await browser.newContext();const p=await oldSession.newPage();await login(p,{username:user.username,password:temporary});const newPassword=randomPassword();
   await field(p,'Current password').fill(temporary);await field(p,'New password').fill(newPassword);await field(p,'Repeat the new password').fill(newPassword);const response=p.waitForResponse(r=>r.url().endsWith('/api/v1/me/password'));await p.getByRole('button',{name:'Change password',exact:true}).click();assert((await response).status()===204,'Forced change failed');
   await page.goto(base+'/admin/users/'+user.id+'?lang=en');resetPassword=randomPassword();await field(page,'New temporary password').fill(resetPassword);await submit('/api/v1/users/'+user.id+'/password-reset','POST',page.getByRole('button',{name:'Reset password',exact:true}),204);
-  const denied=await api('GET','/api/v1/cases/'+id('cases',c),undefined,403,oldSession);assert(denied.rule==='PASSWORD_CHANGE_REQUIRED','Reset flag not enforced');
+  await api('GET','/api/v1/cases/'+id('cases',c),undefined,401,oldSession);
  });
- await check('RESET-SESSION-REPLAY','LD-007,LD-008,LD-009','Fresh session B logs in using reset password -> Completes forced change -> Old session A opens owned case without reauthentication','Security expectation: old session remains invalid; explicit session-revocation acceptance criterion currently missing',async()=>{
+ await check('RESET-SESSION-REPLAY','LD-007,LD-008,LD-009','Fresh session B logs in using reset password -> Completes forced change -> Old session A opens owned case without reauthentication','Old session remains invalid after recovery, according to revised session-revocation contract',async()=>{
   need(resetPassword&&oldSession,'Reset fixture missing');resetSession=await browser.newContext();const p=await resetSession.newPage();await login(p,{username:user.username,password:resetPassword});await field(p,'Current password').fill(resetPassword);await field(p,'New password').fill(randomPassword());const next=await field(p,'New password').inputValue();await field(p,'Repeat the new password').fill(next);const response=p.waitForResponse(r=>r.url().endsWith('/api/v1/me/password'));await p.getByRole('button',{name:'Change password',exact:true}).click();assert((await response).status()===204,'Recovery change failed');
   const oldPage=await oldSession.newPage();await oldPage.goto(base+'/cases/'+c.id+'?lang=en');const r=await oldSession.request.get(base+'/api/v1/cases/'+c.id);if(r.status()===200){await oldPage.getByRole('heading',{name:new RegExp(prefix)}).first().waitFor();await snap('FAIL-pre-reset-session-replay',oldPage);}
   assert(r.status()===401,'Pre-reset browser session still reads own case after recovery: '+r.status());

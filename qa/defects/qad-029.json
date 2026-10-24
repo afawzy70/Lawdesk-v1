@@ -1,0 +1,41 @@
+{
+  "environment": "Independent canonical candidate archive; real Spring Boot jar and disposable PostgreSQL18.6 on loopback; Chromium1248",
+  "reported_utc": "2026-10-24T15:25:11.872218+00:00",
+  "status": "CONFIRMED_OPEN",
+  "owner": "Claude implementation; independent QA verification",
+  "no_customer_data": true,
+  "id": "QAD-029",
+  "title": "Invalid hearing/task paging silently normalizes to default rather than returning a validation error",
+  "priority": "P3",
+  "severity": "S3",
+  "story_ids": [
+    "LD-024",
+    "LD-027"
+  ],
+  "affected": {
+    "33": "fb60c26884fc6ca25143526bc6edcf857716bf22",
+    "37": "e40dfcb7596f4526ec7c59d3e61d04f3c3e46340"
+  },
+  "preconditions": [
+    "Authenticated HEARING_VIEW or TASK_VIEW account"
+  ],
+  "test_data": [
+    "page=-1",
+    "page=bad",
+    "size=-1",
+    "size=bad"
+  ],
+  "steps": [
+    "GET /api/v1/hearings with each invalid query separately",
+    "GET /api/v1/tasks?page=-1 and /api/v1/tasks?size=bad",
+    "Inspect response status/page/size"
+  ],
+  "expected": "QA consistency oracle:400 invalid query; proposed Phase5 criteria do not explicitly resolve malformed paging",
+  "actual": "All six independently executed requests returned200, page0,size20",
+  "contract_note": "Acceptance ambiguity plus inconsistency with case/report APIs; not a permission bypass. An owner-approved explicit normalization policy could resolve the gap; do not rewrite existing FAIL evidence.",
+  "evidence": [
+    "qa/evidence/followup-bdd9d424-20261024/pr33/results.json",
+    "qa/evidence/followup-bdd9d424-20261024/pr37/results.json"
+  ],
+  "uat_policy": "Nonblocking for ordinary private Dev/UAT iteration; resolve oracle/policy and retest before acceptance"
+}

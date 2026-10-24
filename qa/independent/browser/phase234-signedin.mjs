@@ -18,7 +18,7 @@ const tests = [], owned = {}, secrets = [];
 const password = () => { const p = crypto.randomBytes(24).toString('base64url') + '!9a'; secrets.push(p); return p; };
 const temporary = password(), changed = password();
 let admin, viewer, page, browser, primary, role, user, legalCase, first, appeal, judgment, appealJudgment;
-let authenticated = false;
+let authenticated = false, runtimeRelease = null;
 const courts = {};
 class Blocked extends Error {}
 function demand(value, why) { if (!value) throw new Blocked(why); return value; }
@@ -30,8 +30,8 @@ function safe(value) {
 }
 function save() {
   fs.writeFileSync(output + '/results.json', JSON.stringify(safe({ started, updated: new Date().toISOString(),
-    target: base, baseline_sha: sha, backend_runtime_sha_attested: false,
-    deployment_identity: 'Compare separate frontend digest and deployment-job evidence; baseline is not backend runtime attestation',
+    target: base, baseline_sha: sha, backend_runtime_sha_attested: runtimeRelease === sha, observed_runtime_release: runtimeRelease,
+    deployment_identity: 'Authenticated /api/v1/release compared with candidate SHA; deployment-job evidence stored separately',
     prefix, scope: 'Independent signed-in Chromium and live HTTP; no developer tests counted',
     counts: Object.fromEntries(['PASS','FAIL','BLOCKED','NOT_RUN'].map(s => [s, tests.filter(t => t.status === s).length])),
     owned_fixture_ids: owned, tests: tests.map(({ run, ...t }) => t) }), null, 2) + '\n');
@@ -84,6 +84,8 @@ test('LOGIN', 'LD-007', 'Open /cases/new?lang=en -> Enter approved credentials -
     demand(!me.mustChangePassword, 'Primary QA account requires owner-managed password change');
     const required = ['USER_VIEW','USER_MANAGE','ROLE_VIEW','ROLE_MANAGE','AUDIT_VIEW','CASE_VIEW','CASE_CREATE','CASE_EDIT','CASE_STATUS_CHANGE','PARTY_MANAGE','COURT_VIEW','COURT_MANAGE','PROCEEDING_MANAGE','PROCEEDING_VIEW','JUDGMENT_VIEW','JUDGMENT_MANAGE'];
     demand(required.every(p => me.permissions.includes(p)), 'Approved account lacks required test permissions');
+    runtimeRelease = (await api(admin, 'GET', '/api/v1/release')).release;
+    assert(runtimeRelease === sha, 'Runtime release differs from tested candidate');
     authenticated = true;
     return { login_status: 200, required_permissions_present: true };
   });

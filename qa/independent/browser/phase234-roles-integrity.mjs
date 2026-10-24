@@ -10,7 +10,7 @@ fs.mkdirSync(output, { recursive: true });
 if (fs.existsSync(output + '/results.json')) throw Error('Never overwrite evidence');
 const prefix = 'QA' + Date.now().toString(36).toUpperCase() + crypto.randomBytes(3).toString('hex').toUpperCase();
 const started = new Date().toISOString(), results = [], fixtures = {}, secrets = [], contexts = {}, credentials = {};
-let serial = 0, browser, c, first, firstJudgment, appeal, appealJudgment, disposable, resetTemporary;
+let serial = 0, browser, c, first, firstJudgment, appeal, appealJudgment, disposable, resetTemporary, recoveredPassword, runtimeRelease=null;
 const courts = {};
 const assert = (ok, message) => { if (!ok) throw Error(message); };
 class Blocked extends Error {}
@@ -18,7 +18,7 @@ const need = (value, message) => { if (!value) throw new Blocked(message); retur
 const redact = value => { let s = JSON.stringify(value); for (const secret of secrets) s = s.split(secret).join('[REDACTED]'); return JSON.parse(s); };
 const pw = () => { const value = crypto.randomBytes(24).toString('base64url') + '!9a'; secrets.push(value); return value; };
 const save = () => fs.writeFileSync(output + '/results.json', JSON.stringify(redact({ started, updated: new Date().toISOString(), base,
-  expected_deployed_sha: sha, backend_runtime_sha_attested: false, prefix,
+  expected_deployed_sha: sha, backend_runtime_sha_attested: runtimeRelease===sha, observed_runtime_release:runtimeRelease, prefix,
   scope: 'Independent live browser/API; no developer tests; persistent API reads assess integrity, no direct PostgreSQL access',
   counts: Object.fromEntries(['PASS','FAIL','BLOCKED','NOT_RUN'].map(s => [s, results.filter(r => r.status === s).length])), fixtures, results }), null, 2));
 const own = (kind, value) => { need(value?.id, 'Owned fixture creation failed'); (fixtures[kind] ??= []).push(value.id); save(); return value; };
@@ -150,7 +150,7 @@ try {
       return {edit_status:edit.status,challenge_status:challenge.status,parent_judgment_date:after.judgmentDate,challenge_dates:children.map(p=>p.filingDate)};
     });
   }
-  await check('PASSWORD-POSITIVE-BOUNDARIES','LD-007,LD-008,LD-009','Create disposable QA user -> Force change -> Set 72 ASCII bytes -> Set36 Arabic chars -> Login after each -> Reset password','Accepted exact boundaries authenticate; reset forces password change and blocks protected resources per current contract',async()=>{
+  await check('PASSWORD-POSITIVE-BOUNDARIES','LD-007,LD-008,LD-009','Create disposable QA user -> Force change -> Set 72 ASCII bytes -> Set36 Arabic chars -> Login after each -> Reset password','Accepted exact boundaries authenticate; reset revokes old sessions with401 under QAD-028 revised contract',async()=>{
     const initial=pw(), normal=pw(), ascii=crypto.randomBytes(36).toString('hex'), arabic=Array.from(crypto.randomBytes(36),b=>String.fromCharCode(0x0621+(b%26))).join('');secrets.push(ascii,arabic);
     disposable=own('users',await api(admin,'POST','/api/v1/users',{username:prefix.toLowerCase()+'pw',email:prefix.toLowerCase()+'pw@example.invalid',displayName:prefix+' password fixture',locale:'en',roles:['QA_READ_ONLY'],temporaryPassword:initial},201));
     const ctx=contexts.disposable=await browser.newContext();await api(ctx,'POST','/api/v1/auth/login',{login:disposable.username,password:initial});
@@ -161,26 +161,45 @@ try {
     }
     resetTemporary=pw();
     await api(admin,'POST','/api/v1/users/'+disposable.id+'/password-reset',{temporaryPassword:resetTemporary},204);
-    const me=await api(ctx,'GET','/api/v1/me');assert(me.mustChangePassword,'Existing session did not observe forced-change flag');
-    const denial=await api(ctx,'GET',casePath(c),undefined,403);assert(denial.rule==='PASSWORD_CHANGE_REQUIRED','Forced-change restriction differs');
+    await api(ctx,'GET','/api/v1/me',undefined,401);
+    await api(ctx,'GET',casePath(c),undefined,401);
     const u=await api(admin,'GET','/api/v1/users/'+disposable.id);assert(u.mustChangePassword,'Reset did not force password change');
-    return {ascii_bytes:72,arabic_chars:36,arabic_bytes:Buffer.byteLength(arabic),old_session_protected_resource_status:403};
+    return {ascii_bytes:72,arabic_chars:36,arabic_bytes:Buffer.byteLength(arabic),old_session_protected_resource_status:401};
   });
   await check('SECURITY-PRE-RESET-SESSION','LD-007,LD-008,LD-009','Preserve pre-reset session A -> Admin resets password -> Login fresh session B with new temporary password -> Complete forced change in B -> Read own QA case through old session A',
-    'Security expectation: pre-reset session cannot resume access after recovery; current acceptance criteria do not explicitly specify session revocation',async()=>{
+    'QAD-028 revised contract: pre-reset session cannot resume access after recovery',async()=>{
       need(resetTemporary,'Password reset fixture missing');id('users',disposable);
       const recovered=contexts.recovered=await browser.newContext();
       await api(recovered,'POST','/api/v1/auth/login',{login:disposable.username,password:resetTemporary});
-      await api(recovered,'POST','/api/v1/me/password',{currentPassword:resetTemporary,newPassword:pw()},204);
+      recoveredPassword=pw();
+      await api(recovered,'POST','/api/v1/me/password',{currentPassword:resetTemporary,newPassword:recoveredPassword},204);
       const old=await call(contexts.disposable,'GET',casePath(c),undefined,null);
       fs.writeFileSync(output+'/pre-reset-session.json',JSON.stringify({user_id:disposable.id,case_id:c.id,recovery_completed:true,pre_reset_session_status:old.status,credential_material_recorded:false},null,2));
       assert(old.status===401,'Pre-reset session resumed protected case access after recovery: HTTP '+old.status);
     });
-  await check('BACKEND-IDENTITY-DIAGNOSTIC','LD-002,LD-006','GET /actuator/info with approved admin session -> Inspect only non-sensitive git/build fields','Exact running backend git SHA exposed by documented safe mechanism, otherwise BLOCKED',async()=>{
-    const r=await call(admin,'GET','/actuator/info',undefined,null);
-    const commit=r.data?.git?.commit?.id?.full ?? r.data?.git?.commit?.id;
-    if(r.status!==200||typeof commit!=='string')throw new Blocked('Approved /actuator/info exposes no commit identity; HTTP '+r.status+'; deployment workflow provenance is separate');
-    assert(commit===sha,'Runtime SHA differs from candidate');return {status:r.status,git_commit:commit};
+  await check('CONCURRENT-SESSIONS-CHANGE','LD-007,LD-008','Create sessions B/C for own disposable user -> Session A changes its password -> Read through A/B/C','A remains authenticated; B/C401 including unsafe password change',async()=>{
+    need(recoveredPassword,'Recovery fixture missing');
+    const others=[];for(let i=0;i<2;i++){const x=contexts['parallel'+i]=await browser.newContext();await api(x,'POST','/api/v1/auth/login',{login:disposable.username,password:recoveredPassword});others.push(x);}
+    const next=pw();await api(contexts.recovered,'POST','/api/v1/me/password',{currentPassword:recoveredPassword,newPassword:next},204);
+    await api(contexts.recovered,'GET','/api/v1/me');
+    for(const x of others){await api(x,'GET','/api/v1/me',undefined,401);await api(x,'POST','/api/v1/me/password',{currentPassword:recoveredPassword,newPassword:pw()},401);}
+    recoveredPassword=next;
+  });
+  await check('DISABLE-REENABLE-SESSION','LD-007,LD-009','Disable owned user -> Re-enable -> Replay earlier session -> Fresh login','Old session401 after both events; fresh login200',async()=>{
+    need(recoveredPassword,'Recovery fixture missing');await api(admin,'PUT','/api/v1/users/'+id('users',disposable)+'/enabled',{enabled:false});
+    await api(contexts.recovered,'GET','/api/v1/me',undefined,401);await api(admin,'PUT','/api/v1/users/'+disposable.id+'/enabled',{enabled:true});await api(contexts.recovered,'GET','/api/v1/me',undefined,401);
+    const fresh=contexts.reenabled=await browser.newContext();await api(fresh,'POST','/api/v1/auth/login',{login:disposable.username,password:recoveredPassword});
+  });
+  for(let round=0;round<3;round++)await check('RACE-RESET-CHANGE-'+round,'LD-007,LD-008,LD-009','Reset owned user to temporary -> Login session A -> Race admin reset with A password change -> Authenticate with reset credential','Reset204; change204 or401; reset credential remains valid; A401 and forced-change flag true',async()=>{
+    id('users',disposable);const initial=pw(),final=pw(),changed=pw();await api(admin,'POST','/api/v1/users/'+disposable.id+'/password-reset',{temporaryPassword:initial},204);
+    const old=contexts['raceold'+round]=await browser.newContext();await api(old,'POST','/api/v1/auth/login',{login:disposable.username,password:initial});
+    const [reset,change]=await Promise.all([call(admin,'POST','/api/v1/users/'+disposable.id+'/password-reset',{temporaryPassword:final},null),call(old,'POST','/api/v1/me/password',{currentPassword:initial,newPassword:changed},null)]);
+    assert(reset.status===204&&[204,401].includes(change.status),'Unexpected reset/change statuses '+reset.status+'/'+change.status);
+    await api(old,'GET','/api/v1/me',undefined,401);const fresh=contexts['racefresh'+round]=await browser.newContext();const me=await api(fresh,'POST','/api/v1/auth/login',{login:disposable.username,password:final});assert(me.mustChangePassword,'Reset overwritten by concurrent change');return {reset_status:reset.status,change_status:change.status,old_session_status:401,reset_credential_valid:true};
+  });
+  await check('BACKEND-IDENTITY-DIAGNOSTIC','LD-002,LD-006','GET /api/v1/release with approved admin session -> Compare safe release field','Exact running backend SHA matches deployed candidate; no configuration fields',async()=>{
+    const r=await call(admin,'GET','/api/v1/release');runtimeRelease=r.data.release;
+    assert(runtimeRelease===sha&&Object.keys(r.data).length===1,'Runtime release/fields differ from candidate');return {status:r.status,git_commit:runtimeRelease};
   });
 } finally {
   if(disposable?.id&&contexts.admin){try{await api(contexts.admin,'PUT','/api/v1/users/'+id('users',disposable)+'/enabled',{enabled:false});}catch{results.push({id:'CLEANUP-DISPOSABLE',status:'BLOCKED',actual:'Could not disable newly created disposable user; inspect owned fixture manifest'});}}
