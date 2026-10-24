@@ -1,0 +1,250 @@
+# 2026-10-24, develop 19ad538 (backend identical to 1e5f340). Throwaway local PostgreSQL 18.6 (zonky embedded
+# binaries 18.6.0 from ~/.m2, the ones the backend tests use) on 127.0.0.1:55432, shared_buffers=128MB,
+# max_connections=10, no parallel workers, jit=off. Host load average 7-15 on 8 cores during the run (shared
+# Contabo host): timings are indicative, buffer counts and plan shapes are the stable signal.
+# java -cp postgresql-42.7.14.jar tools/performance/db/QueryPlans.java jdbc:postgresql://127.0.0.1:55432/postgres?user=lawdesk \
+#   apply:tools/performance/db/whatif-indexes.sql plans:tools/performance/db/plans-whatif.sql
+# WHAT-IF measurement only; none of these indexes or rewrites is implemented.
+
+-- applied tools/performance/db/whatif-indexes.sql in 3089 ms
+== P-01 case list, default page, with (created_at desc, id) index
+-- select id, reference_no, title, case_type, status, opened_on, updated_at from legal_case where true order by created_at desc, id limit 20 offset 0;
+Limit  (cost=0.29..3.00 rows=20 width=82) (actual time=0.035..0.097 rows=20.00 loops=1)
+  Buffers: shared hit=22
+  ->  Index Scan using whatif_legal_case_created on legal_case  (cost=0.29..1358.27 rows=10000 width=82) (actual time=0.033..0.091 rows=20.00 loops=1)
+        Index Searches: 1
+        Buffers: shared hit=22
+Planning Time: 0.147 ms
+Execution Time: 0.124 ms
+
+== P-01 case list, page 500 of 20, with the index (offset still walks 10 000 rows)
+-- select id, reference_no, title, case_type, status, opened_on, updated_at from legal_case where true order by created_at desc, id limit 20 offset 9980;
+Limit  (cost=1039.34..1039.39 rows=20 width=82) (actual time=291.102..291.112 rows=20.00 loops=1)
+  Buffers: shared hit=250
+  ->  Sort  (cost=1014.39..1039.39 rows=10000 width=82) (actual time=220.302..290.495 rows=10000.00 loops=1)
+        Sort Key: created_at DESC, id
+        Sort Method: quicksort  Memory: 1713kB
+        Buffers: shared hit=250
+        ->  Seq Scan on legal_case  (cost=0.00..350.00 rows=10000 width=82) (actual time=0.018..11.939 rows=10000.00 loops=1)
+              Buffers: shared hit=250
+Planning Time: 0.152 ms
+Execution Time: 291.161 ms
+
+== P-02 case search q=SYN 51 with trigram indexes (count)
+-- select count(*) from legal_case where true and (reference_no ilike '%SYN 51%' escape '\' or title ilike '%SYN 51%' escape '\' or exists (select 1 from case_party cp join party p on p.id = cp.party_id where cp.case_id = legal_case.id and p.name ilike '%SYN 51%' escape '\'));
+Aggregate  (cost=293737.50..293737.51 rows=1 width=8) (actual time=105.005..105.012 rows=1.00 loops=1)
+  Buffers: shared hit=521
+  ->  Seq Scan on legal_case  (cost=0.00..293725.00 rows=5001 width=0) (actual time=1.216..104.910 rows=126.00 loops=1)
+        Filter: (((reference_no)::text ~~* '%SYN 51%'::text) OR ((title)::text ~~* '%SYN 51%'::text) OR (ANY (id = (hashed SubPlan 2).col1)))
+        Rows Removed by Filter: 9874
+        Buffers: shared hit=521
+        SubPlan 2
+          ->  Nested Loop  (cost=43.17..70.33 rows=3 width=16) (actual time=0.196..0.987 rows=126.00 loops=1)
+                Buffers: shared hit=271
+                ->  Bitmap Heap Scan on party p  (cost=38.87..46.47 rows=2 width=16) (actual time=0.178..0.354 rows=84.00 loops=1)
+                      Recheck Cond: ((name)::text ~~* '%SYN 51%'::text)
+                      Rows Removed by Index Recheck: 27
+                      Heap Blocks: exact=5
+                      Buffers: shared hit=18
+                      ->  Bitmap Index Scan on whatif_party_name_trgm  (cost=0.00..38.86 rows=2 width=0) (actual time=0.165..0.165 rows=111.00 loops=1)
+                            Index Cond: ((name)::text ~~* '%SYN 51%'::text)
+                            Index Searches: 1
+                            Buffers: shared hit=13
+                ->  Bitmap Heap Scan on case_party cp  (cost=4.30..11.91 rows=2 width=32) (actual time=0.006..0.006 rows=1.50 loops=84)
+                      Recheck Cond: (party_id = p.id)
+                      Heap Blocks: exact=85
+                      Buffers: shared hit=253
+                      ->  Bitmap Index Scan on case_party_party_idx  (cost=0.00..4.30 rows=2 width=0) (actual time=0.004..0.004 rows=1.50 loops=84)
+                            Index Cond: (party_id = p.id)
+                            Index Searches: 84
+                            Buffers: shared hit=168
+Planning:
+  Buffers: shared hit=28
+Planning Time: 1.221 ms
+Execution Time: 105.123 ms
+
+== P-02 case search rewritten as a union of index-friendly branches (count)
+-- select count(*) from ( select id from legal_case where reference_no ilike '%SYN 51%' escape '\' union select id from legal_case where title ilike '%SYN 51%' escape '\' union select cp.case_id from case_party cp join party p on p.id = cp.party_id where p.name ilike '%SYN 51%' escape '\' ) s;
+Aggregate  (cost=156.25..156.26 rows=1 width=8) (actual time=1.361..1.366 rows=1.00 loops=1)
+  Buffers: shared hit=293
+  ->  Unique  (cost=156.16..156.19 rows=5 width=16) (actual time=1.294..1.349 rows=126.00 loops=1)
+        Buffers: shared hit=293
+        ->  Sort  (cost=156.16..156.17 rows=5 width=16) (actual time=1.292..1.307 rows=126.00 loops=1)
+              Sort Key: legal_case.id
+              Sort Method: quicksort  Memory: 25kB
+              Buffers: shared hit=293
+              ->  Append  (cost=38.86..156.10 rows=5 width=16) (actual time=0.398..1.242 rows=126.00 loops=1)
+                    Buffers: shared hit=293
+                    ->  Bitmap Heap Scan on legal_case  (cost=38.86..42.87 rows=1 width=16) (actual time=0.131..0.131 rows=0.00 loops=1)
+                          Recheck Cond: ((reference_no)::text ~~* '%SYN 51%'::text)
+                          Buffers: shared hit=13
+                          ->  Bitmap Index Scan on whatif_legal_case_reference_trgm  (cost=0.00..38.86 rows=1 width=0) (actual time=0.111..0.111 rows=0.00 loops=1)
+                                Index Cond: ((reference_no)::text ~~* '%SYN 51%'::text)
+                                Index Searches: 1
+                                Buffers: shared hit=13
+                    ->  Bitmap Heap Scan on legal_case legal_case_1  (cost=38.86..42.87 rows=1 width=16) (actual time=0.039..0.039 rows=0.00 loops=1)
+                          Recheck Cond: ((title)::text ~~* '%SYN 51%'::text)
+                          Buffers: shared hit=9
+                          ->  Bitmap Index Scan on whatif_legal_case_title_trgm  (cost=0.00..38.86 rows=1 width=0) (actual time=0.036..0.036 rows=0.00 loops=1)
+                                Index Cond: ((title)::text ~~* '%SYN 51%'::text)
+                                Index Searches: 1
+                                Buffers: shared hit=9
+                    ->  Nested Loop  (cost=43.17..70.33 rows=3 width=16) (actual time=0.227..1.050 rows=126.00 loops=1)
+                          Buffers: shared hit=271
+                          ->  Bitmap Heap Scan on party p  (cost=38.87..46.47 rows=2 width=16) (actual time=0.199..0.382 rows=84.00 loops=1)
+                                Recheck Cond: ((name)::text ~~* '%SYN 51%'::text)
+                                Rows Removed by Index Recheck: 27
+                                Heap Blocks: exact=5
+                                Buffers: shared hit=18
+                                ->  Bitmap Index Scan on whatif_party_name_trgm  (cost=0.00..38.86 rows=2 width=0) (actual time=0.172..0.172 rows=111.00 loops=1)
+                                      Index Cond: ((name)::text ~~* '%SYN 51%'::text)
+                                      Index Searches: 1
+                                      Buffers: shared hit=13
+                          ->  Bitmap Heap Scan on case_party cp  (cost=4.30..11.91 rows=2 width=32) (actual time=0.006..0.006 rows=1.50 loops=84)
+                                Recheck Cond: (party_id = p.id)
+                                Heap Blocks: exact=85
+                                Buffers: shared hit=253
+                                ->  Bitmap Index Scan on case_party_party_idx  (cost=0.00..4.30 rows=2 width=0) (actual time=0.004..0.004 rows=1.50 loops=84)
+                                      Index Cond: (party_id = p.id)
+                                      Index Searches: 84
+                                      Buffers: shared hit=168
+Planning:
+  Buffers: shared hit=15
+Planning Time: 27.785 ms
+Execution Time: 1.504 ms
+
+== P-02 party search q=SYN 12 with trigram index on name (count)
+-- select count(*) from party where name ilike '%SYN 12%' escape '\' or national_id ilike '%SYN 12%' escape '\' or registration_no ilike '%SYN 12%' escape '\';
+Aggregate  (cost=765.53..765.54 rows=1 width=8) (actual time=49.898..49.900 rows=1.00 loops=1)
+  Buffers: shared hit=413
+  ->  Seq Scan on party  (cost=0.00..763.00 rows=1012 width=0) (actual time=0.257..49.763 rows=832.00 loops=1)
+        Filter: (((name)::text ~~* '%SYN 12%'::text) OR ((national_id)::text ~~* '%SYN 12%'::text) OR ((registration_no)::text ~~* '%SYN 12%'::text))
+        Rows Removed by Filter: 19168
+        Buffers: shared hit=413
+Planning:
+  Buffers: shared hit=1
+Planning Time: 0.523 ms
+Execution Time: 49.939 ms
+
+== P-03 case inventory current-stage counts computed in SQL, without sending 10 000 ids back
+-- select stage_rank, count(*) from ( select p.case_id, max(case p.stage when 'FIRST_INSTANCE' then 0 when 'APPEAL' then 1 when 'CASSATION' then 2 end) as stage_rank from proceeding p join legal_case c on c.id = p.case_id where true group by p.case_id) s group by stage_rank;
+HashAggregate  (cost=3086.42..3088.42 rows=200 width=12) (actual time=67.624..67.630 rows=2.00 loops=1)
+  Group Key: max(CASE p.stage WHEN 'FIRST_INSTANCE'::text THEN 0 WHEN 'APPEAL'::text THEN 1 WHEN 'CASSATION'::text THEN 2 ELSE NULL::integer END)
+  Batches: 1  Memory Usage: 32kB
+  Buffers: shared hit=1158
+  ->  HashAggregate  (cost=2836.59..2936.52 rows=9993 width=20) (actual time=62.785..65.313 rows=10000.00 loops=1)
+        Group Key: p.case_id
+        Batches: 1  Memory Usage: 793kB
+        Buffers: shared hit=1158
+        ->  Hash Join  (cost=471.29..2211.59 rows=50000 width=28) (actual time=4.818..37.868 rows=50000.00 loops=1)
+              Hash Cond: (p.case_id = c.id)
+              Buffers: shared hit=1158
+              ->  Seq Scan on proceeding p  (cost=0.00..1609.00 rows=50000 width=28) (actual time=0.013..7.509 rows=50000.00 loops=1)
+                    Buffers: shared hit=1109
+              ->  Hash  (cost=346.29..346.29 rows=10000 width=16) (actual time=4.780..4.782 rows=10000.00 loops=1)
+                    Buckets: 16384  Batches: 1  Memory Usage: 597kB
+                    Buffers: shared hit=49
+                    ->  Index Only Scan using legal_case_pkey on legal_case c  (cost=0.29..346.29 rows=10000 width=16) (actual time=0.019..2.319 rows=10000.00 loops=1)
+                          Heap Fetches: 0
+                          Index Searches: 1
+                          Buffers: shared hit=49
+Planning:
+  Buffers: shared hit=12
+Planning Time: 0.406 ms
+Execution Time: 67.748 ms
+
+== P-04 audit log total capped at 10 001 rows ("10 000+") instead of an exact count
+-- select count(*) from (select 1 from audit_event limit 10001) s;
+Aggregate  (cost=307.13..307.14 rows=1 width=8) (actual time=5.210..5.213 rows=1.00 loops=1)
+  Buffers: shared hit=10
+  ->  Limit  (cost=0.29..182.11 rows=10001 width=4) (actual time=0.044..4.004 rows=10001.00 loops=1)
+        Buffers: shared hit=10
+        ->  Index Only Scan using audit_event_actor on audit_event  (cost=0.29..3636.30 rows=200000 width=4) (actual time=0.042..2.258 rows=10001.00 loops=1)
+              Heap Fetches: 0
+              Index Searches: 1
+              Buffers: shared hit=10
+Planning Time: 0.465 ms
+Execution Time: 5.260 ms
+
+== P-05 judgment report summary 2024-2026 with judgment_date index
+-- select j.outcome, p.stage, count(*) as n, count(*) filter (where j.final) as final_n from judgment j join proceeding p on p.id = j.proceeding_id join court c on c.id = p.court_id where j.judgment_date between date '2024-01-01' and date '2026-12-31' group by j.outcome, p.stage;
+HashAggregate  (cost=2722.10..2722.25 rows=15 width=36) (actual time=47.497..47.508 rows=15.00 loops=1)
+  Group Key: j.outcome, p.stage
+  Batches: 1  Memory Usage: 32kB
+  Buffers: shared hit=1669
+  ->  Hash Join  (cost=883.48..2645.32 rows=7678 width=21) (actual time=14.082..43.173 rows=7679.00 loops=1)
+        Hash Cond: (p.court_id = c.id)
+        Buffers: shared hit=1669
+        ->  Hash Join  (cost=880.13..2620.39 rows=7678 width=37) (actual time=14.032..39.986 rows=7679.00 loops=1)
+              Hash Cond: (p.id = j.proceeding_id)
+              Buffers: shared hit=1667
+              ->  Seq Scan on proceeding p  (cost=0.00..1609.00 rows=50000 width=44) (actual time=0.034..8.674 rows=50000.00 loops=1)
+                    Buffers: shared hit=1109
+              ->  Hash  (cost=784.16..784.16 rows=7678 width=25) (actual time=13.946..13.949 rows=7679.00 loops=1)
+                    Buckets: 8192  Batches: 1  Memory Usage: 496kB
+                    Buffers: shared hit=558
+                    ->  Bitmap Heap Scan on judgment j  (cost=122.99..784.16 rows=7678 width=25) (actual time=2.360..10.493 rows=7679.00 loops=1)
+                          Recheck Cond: ((judgment_date >= '2024-01-01'::date) AND (judgment_date <= '2026-12-31'::date))
+                          Heap Blocks: exact=546
+                          Buffers: shared hit=558
+                          ->  Bitmap Index Scan on whatif_judgment_date  (cost=0.00..121.07 rows=7678 width=0) (actual time=2.254..2.255 rows=7679.00 loops=1)
+                                Index Cond: ((judgment_date >= '2024-01-01'::date) AND (judgment_date <= '2026-12-31'::date))
+                                Index Searches: 1
+                                Buffers: shared hit=12
+        ->  Hash  (cost=2.60..2.60 rows=60 width=16) (actual time=0.042..0.043 rows=60.00 loops=1)
+              Buckets: 1024  Batches: 1  Memory Usage: 11kB
+              Buffers: shared hit=2
+              ->  Seq Scan on court c  (cost=0.00..2.60 rows=60 width=16) (actual time=0.015..0.025 rows=60.00 loops=1)
+                    Buffers: shared hit=2
+Planning:
+  Buffers: shared hit=16
+Planning Time: 0.527 ms
+Execution Time: 47.715 ms
+
+== P-05 judgment report page with judgment_date index
+-- select j.id, j.judgment_date, j.outcome, j.final, p.stage, p.court_case_number, p.court_case_year, p.case_id, c.id as court_id, c.code, c.name_ar, c.name_en from judgment j join proceeding p on p.id = j.proceeding_id join court c on c.id = p.court_id where j.judgment_date between date '2024-01-01' and date '2026-12-31' order by j.judgment_date desc, j.judgment_date desc, j.id limit 20 offset 0;
+Limit  (cost=3.32..30.99 rows=20 width=133) (actual time=0.458..0.464 rows=20.00 loops=1)
+  Buffers: shared hit=172
+  ->  Incremental Sort  (cost=3.32..10628.68 rows=7678 width=133) (actual time=0.456..0.459 rows=20.00 loops=1)
+        Sort Key: j.judgment_date DESC, j.id
+        Presorted Key: j.judgment_date
+        Full-sort Groups: 1  Sort Method: quicksort  Average Memory: 32kB  Peak Memory: 32kB
+        Buffers: shared hit=172
+        ->  Nested Loop  (cost=0.73..10410.60 rows=7678 width=133) (actual time=0.041..0.420 rows=32.00 loops=1)
+              Buffers: shared hit=172
+              ->  Nested Loop  (cost=0.58..10212.48 rows=7678 width=87) (actual time=0.032..0.327 rows=32.00 loops=1)
+                    Buffers: shared hit=130
+                    ->  Index Scan Backward using whatif_judgment_date on judgment j  (cost=0.29..2355.50 rows=7678 width=45) (actual time=0.020..0.087 rows=32.00 loops=1)
+                          Index Cond: ((judgment_date >= '2024-01-01'::date) AND (judgment_date <= '2026-12-31'::date))
+                          Index Searches: 1
+                          Buffers: shared hit=34
+                    ->  Index Scan using proceeding_pkey on proceeding p  (cost=0.29..1.02 rows=1 width=74) (actual time=0.007..0.007 rows=1.00 loops=32)
+                          Index Cond: (id = j.proceeding_id)
+                          Index Searches: 32
+                          Buffers: shared hit=96
+              ->  Memoize  (cost=0.15..0.17 rows=1 width=62) (actual time=0.002..0.002 rows=1.00 loops=32)
+                    Cache Key: p.court_id
+                    Cache Mode: logical
+                    Hits: 11  Misses: 21  Evictions: 0  Overflows: 0  Memory Usage: 4kB
+                    Buffers: shared hit=42
+                    ->  Index Scan using court_pkey on court c  (cost=0.14..0.16 rows=1 width=62) (actual time=0.002..0.002 rows=1.00 loops=21)
+                          Index Cond: (id = p.court_id)
+                          Index Searches: 21
+                          Buffers: shared hit=42
+Planning:
+  Buffers: shared hit=16
+Planning Time: 0.598 ms
+Execution Time: 0.515 ms
+
+== P-06 hearings awaiting a result with the partial index
+-- select count(*) from hearing where status = 'SCHEDULED' and hearing_date < current_date;
+Aggregate  (cost=330.91..330.92 rows=1 width=8) (actual time=1.307..1.308 rows=1.00 loops=1)
+  Buffers: shared hit=13
+  ->  Index Only Scan using whatif_hearing_awaiting on hearing  (cost=0.29..299.58 rows=12531 width=0) (actual time=0.046..0.900 rows=4545.00 loops=1)
+        Index Cond: (hearing_date < CURRENT_DATE)
+        Heap Fetches: 0
+        Index Searches: 1
+        Buffers: shared hit=13
+Planning Time: 0.192 ms
+Execution Time: 1.336 ms
+
