@@ -32,9 +32,8 @@ public abstract class PostgresTestSupport {
         registry.add("spring.datasource.url", () -> url);
         registry.add("spring.datasource.username", () -> server.user);
         registry.add("spring.datasource.password", () -> server.password);
-        // Cached Spring contexts each retain a pool on the same PostgreSQL server. Keep the complete suite below
-        // its connection limit, while allowing the chronology and last-administrator races to use several writers.
-        registry.add("spring.datasource.hikari.maximum-pool-size", () -> 4);
+        // Cached Spring contexts share one PostgreSQL server. Do not eagerly reserve a full idle pool per context;
+        // retain the normal maximum so concurrent login requests and their independent audit transactions fit.
         registry.add("spring.datasource.hikari.minimum-idle", () -> 0);
     }
 
