@@ -146,6 +146,18 @@ class SecretsTest(unittest.TestCase):
         self.assertIn("NOCREATEROLE", role)
         self.assertIn("NOCREATEDB", role)
 
+    def test_the_first_administrator_password_is_a_secret_file_never_an_environment_value(self):
+        # LD-008.4: the backend bootstraps the first administrator from this file only while no user exists.
+        backend = self.stack["services"]["backend"]
+        self.assertIn("admin_bootstrap_password", [s if isinstance(s, str) else s["source"] for s in backend["secrets"]])
+        env = backend["environment"]
+        self.assertEqual("/run/secrets/admin_bootstrap_password", env["LAWDESK_BOOTSTRAP_ADMIN_PASSWORD_FILE"])
+        self.assertIn("LAWDESK_BOOTSTRAP_ADMIN_USERNAME", env)
+        self.assertIn("LAWDESK_BOOTSTRAP_ADMIN_EMAIL", env)
+        self.assertFalse(any("PASSWORD" in k and not k.endswith("_FILE") for k in env), env)
+        self.assertEqual("${LAWDESK_SECRETS_DIR:-./secrets}/admin_bootstrap_password.txt",
+                         self.stack["secrets"]["admin_bootstrap_password"]["file"])
+
     def test_database_does_not_depend_on_host_file_permissions_for_initialisation(self):
         # Contabo first install: a bind-mounted init directory unpacked under umask 027 was unreadable for the postgres
         # user, so the role was never created. deploy.sh ensures the role through `docker compose exec` instead.

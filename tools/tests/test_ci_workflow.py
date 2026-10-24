@@ -132,6 +132,13 @@ class RequiredGatesTest(unittest.TestCase):
         commands = run_commands(self.jobs["stack"])
         self.assertIn('[ "$took" -lt 5000 ]', commands)
 
+    def test_stack_gate_signs_the_bootstrap_administrator_in_through_nginx(self):
+        # LD-007/LD-008.4 on real containers: the generated administrator can sign in via the web container.
+        commands = run_commands(self.jobs["stack"])
+        self.assertIn("deploy/secrets/admin_bootstrap_password.txt", commands)
+        self.assertIn("/api/v1/auth/login", commands)
+        self.assertRegex(commands, r'mustChangePassword\\?":true')
+
     def test_downloaded_tools_are_checksum_verified(self):
         for name in ["policy", "secrets"]:
             with self.subTest(job=name):
