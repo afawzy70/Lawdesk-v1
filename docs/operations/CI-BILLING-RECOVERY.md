@@ -32,14 +32,14 @@ After owner approval, the one-time procedure is:
    ```bash
    git fetch origin infra/actions-billing-runner
    git show FETCH_HEAD:tools/ci-runner/bootstrap-poc.sh > /tmp/bootstrap-poc.sh
-   echo '42ce38da6baf067e35baef0f1051c35037011b718b44bd3673f95a1b3218131e  /tmp/bootstrap-poc.sh' | sha256sum --check
+   echo '5c4a6ce19e121e7cd6f7594e0db16be68781a7fe1c8888b73d8308878aebb45a  /tmp/bootstrap-poc.sh' | sha256sum --check
    scp -i SSH_KEY /tmp/bootstrap-poc.sh root@VM_IP:/tmp/bootstrap-poc.sh
    ssh -i SSH_KEY root@VM_IP
    ```
 3. On the **new VM as root**, verify its provider identity and that it has no Contabo/private route or mounted host volumes. Then run:
 
    ```bash
-   apt-get update && apt-get install -y ca-certificates curl ufw
+   apt-get update && apt-get install -y ca-certificates curl ufw liblttng-ust1t64 libkrb5-3 zlib1g libssl3t64 libicu74
    useradd --create-home --shell /bin/bash lawdesk-poc
    passwd -l lawdesk-poc
    install -o root -g root -m 0444 /dev/null /etc/lawdesk-ci-poc-vm
