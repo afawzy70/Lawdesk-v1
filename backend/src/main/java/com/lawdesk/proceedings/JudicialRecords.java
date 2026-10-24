@@ -1,9 +1,11 @@
 package com.lawdesk.proceedings;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -46,6 +48,19 @@ class JudicialRecords {
 
     Proceeding proceeding(UUID id) {
         return proceedings.findById(id).orElseThrow(() -> new NotFoundException("proceeding"));
+    }
+
+    /**
+     * The proceeding, row-locked until the transaction ends. Locks are always taken child before parent (a proceeding,
+     * then the one it attacks), so two writers cannot deadlock.
+     */
+    Proceeding lockedProceeding(UUID id) {
+        return proceedings.lockById(id).orElseThrow(() -> new NotFoundException("proceeding"));
+    }
+
+    /** The earliest filing among the proceedings attacking {@code parentId}; call it with the parent locked. */
+    Optional<LocalDate> earliestChallengeFiling(UUID parentId) {
+        return proceedings.earliestChallengeFiling(parentId);
     }
 
     /** The case's proceedings in ladder order. */
