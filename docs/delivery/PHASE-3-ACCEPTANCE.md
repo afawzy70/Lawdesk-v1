@@ -157,9 +157,9 @@ in as each slice is delivered.
 | Story | QA cases | Status |
 |-------|----------|--------|
 | LD-012 | QA-0089…QA-0096 | see LD-012 mapping below |
-| LD-013 | QA-0097…QA-0104 | PLANNED (PR B2) |
+| LD-013 | QA-0097…QA-0104 | see LD-013 mapping below |
 | LD-014 | QA-0105…QA-0112 | PLANNED (PR B3) |
-| LD-015 | QA-0113…QA-0120 | PLANNED (PR B2) |
+| LD-015 | QA-0113…QA-0120 | see LD-015 mapping below |
 | LD-016 | QA-0121…QA-0128 | PLANNED (PR B3) |
 | LD-017 | QA-0129…QA-0136 | PLANNED (PR B3) |
 
@@ -174,4 +174,35 @@ in as each slice is delivered.
 | QA-0093 | insufficient permission | `CaseApiTest.withoutThePermission…`, `…creatingNeedsTheCsrfToken`; security event part BLOCKED on LD-011 | AUTOMATED (partial) |
 | QA-0094 | record integrity and rollback | `LegalCaseSchemaTest` (database rules), `CaseApiTest` (rejected requests store nothing) | AUTOMATED |
 | QA-0095 | concurrent or repeat request | `CaseApiTest.concurrentCreationsWithTheSameReferenceNumberStoreOneCase`, `…GetDistinctConsecutiveReferenceNumbers`, `…aDuplicateReferenceNumberIsAConflictIgnoringCase` | AUTOMATED |
-| QA-0096 | API-to-UI state and error handling | API side automated; the create screen lands with PR B2 | PLANNED (UI) |
+| QA-0096 | API-to-UI state and error handling | `CaseCreatePage.test.tsx` (field errors per code, 409/422 on the reference field, 401/403/500/unreachable, double submit, Arabic) | AUTOMATED (component level) |
+
+### LD-013 mapping
+
+| QA case | Scenario | Mapping | Status |
+|---------|----------|---------|--------|
+| QA-0097 | authorized happy path | `CaseEditApiTest.updatesTheEditableFieldsAndIncrementsTheVersion`, `…changesTypeAndOpenedDateAndClearsTheSubject` | AUTOMATED |
+| QA-0098 | required-field validation | `CaseEditApiTest.missingFieldsAreListedAndNothingChanges` | AUTOMATED |
+| QA-0099 | invalid input boundary | `CaseEditApiTest.theCreationRulesApplyToEveryField`, `…referenceNumberAndStatusAreNotEditableHere`, `…closedAndArchivedCasesAreReadOnly` | AUTOMATED |
+| QA-0100 | unauthenticated access | `CaseEditApiTest.withoutASessionThePermissionOrTheCsrfTokenNothingChanges` | AUTOMATED |
+| QA-0101 | insufficient permission | same test (403 without `CASE_EDIT`, 403 without CSRF); security event part BLOCKED on LD-011 | AUTOMATED (partial) |
+| QA-0102 | record integrity and rollback | `CaseEditApiTest.aStaleVersionIsAConflictAndChangesNothing`, `…anUnchangedRequestKeepsTheVersionAndRecordsNothing` | AUTOMATED |
+| QA-0103 | concurrent or repeat request | `CaseEditApiTest.concurrentEditsOfTheSameVersionLetExactlyOneWin` | AUTOMATED |
+| QA-0104 | API-to-UI state and error handling | `CaseEditPage.test.tsx` (409 offers reload, 422 read-only, field errors, load failures, Arabic) | AUTOMATED (component level) |
+
+### LD-015 mapping
+
+| QA case | Scenario | Mapping | Status |
+|---------|----------|---------|--------|
+| QA-0113 | authorized happy path | `CaseSearchApiTest.listsAllCasesNewestFirstInTheSharedPageShape`, `…searchesReferenceAndTitle…`, `…filtersBy…`, `…sortsByTheAllowedFields`, `…pagesThroughTheResultsAndCapsThePageSize` | AUTOMATED |
+| QA-0114 | required-field validation | No required parameters; a blank `q` filters nothing (`…anUnderscoreIsNotAWildcardAndABlankSearchFiltersNothing`) | AUTOMATED |
+| QA-0115 | invalid input boundary | `CaseSearchApiTest.invalidParametersAreFieldErrors` (9 cases), `…aSearchLongerThanOneHundredCharactersIsAFieldError`, `…anInvertedDateRangeBreaksARule`, literal `%`/`_` | AUTOMATED |
+| QA-0116 | unauthenticated access | `CaseSearchApiTest.withoutASessionOrThePermissionTheListIsRefused` | AUTOMATED |
+| QA-0117 | insufficient permission | same test; security event part BLOCKED on LD-011 | AUTOMATED (partial) |
+| QA-0118 | record integrity and rollback | Read-only endpoint; nothing is written | N/A (reviewer to confirm) |
+| QA-0119 | concurrent or repeat request | Repeating a query gives the same page (stable order with `id` tie-break); no dedicated concurrency test | N/A (reviewer to confirm) |
+| QA-0120 | API-to-UI state and error handling | `CaseListPage.test.tsx` (filters in the address, paging, empty/loading/error/401/403 states, Arabic digits) | AUTOMATED (component level); the `/cases` route stays `planned`, see note |
+
+**Note on `/cases` navigation.** The list screen is built and tested, but `/cases` still shows the "coming later" page
+because the shared `src/App.test.tsx` asserts that every navigation path, `/cases` included, renders no form or input
+(the preview rule of Phase 1). Flipping the item to `ready` needs the integration owner to change that test; the create
+and edit screens are mounted at `/cases/new` and `/cases/:id/edit`.
