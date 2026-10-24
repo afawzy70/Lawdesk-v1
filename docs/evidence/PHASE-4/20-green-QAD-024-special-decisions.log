@@ -1,0 +1,21 @@
+# QAD-024 on LD-023, GREEN: ./mvnw -B test -Dtest='SpecialDecisionChronologyTest,JudicialChronologyTest,SpecialDecisionApiTest,ProceedingApiTest,JudgmentApiTest,StageRulesTest' -Djacoco.skip=true
+# After the fix: proceeding update refuses a filing date after its earliest decision (DECISION_BEFORE_FILING);
+# decision create/update lock the proceeding row (select ... for update).
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 42.83 s -- in com.lawdesk.proceedings.JudgmentApiTest
+[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.311 s -- in com.lawdesk.proceedings.ProceedingApiTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.733 s -- in com.lawdesk.proceedings.StageRulesTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.859 s -- in com.lawdesk.proceedings.SpecialDecisionChronologyTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.533 s -- in com.lawdesk.proceedings.SpecialDecisionApiTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 10.57 s -- in com.lawdesk.proceedings.JudicialChronologyTest
+[INFO] Tests run: 64, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+
+# Full backend regression: ./mvnw -B verify
+[INFO] Tests run: 299, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+
+# Frontend: npm ci && npm run lint && npx tsc -b && npx vitest run --coverage (exit 0)
+ Test Files  19 passed (19)
+      Tests  249 passed (249)
+All files          |   98.87 |     92.1 |    98.4 |   99.38 |                   
+# Policy tests: python3 -m unittest discover -s tools/tests -> Ran 97 tests in 18.904s  OK 

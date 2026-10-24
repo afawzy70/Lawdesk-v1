@@ -15,7 +15,8 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
  * answers it with 500 today; this advice covers the Phase 4 proceeding controllers only, until the shared handler does
  * (requested from the integration owner).
  */
-@RestControllerAdvice(assignableTypes = {ProceedingController.class, JudgmentController.class})
+@RestControllerAdvice(assignableTypes = {ProceedingController.class, JudgmentController.class,
+        SpecialDecisionController.class})
 @Order(Ordered.HIGHEST_PRECEDENCE)
 class ProceedingRequestErrors {
 

@@ -19,6 +19,9 @@ final class Rules {
     static final String JUDGMENT_BEFORE_FILING = "JUDGMENT_BEFORE_FILING";
     /** QAD-024: a judgment date cannot move after the filing of an appeal or cassation that attacks it. */
     static final String JUDGMENT_AFTER_CHALLENGE_FILING = "JUDGMENT_AFTER_CHALLENGE_FILING";
+    static final String SUSPENSION_REQUIRES_JUDGMENT = "SUSPENSION_REQUIRES_JUDGMENT";
+    static final String DECISION_JUDGMENT_OTHER_CASE = "DECISION_JUDGMENT_OTHER_CASE";
+    static final String DECISION_BEFORE_FILING = "DECISION_BEFORE_FILING";
 
     private Rules() {
     }

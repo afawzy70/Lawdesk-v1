@@ -42,11 +42,11 @@ export interface CourtInput {
 export const COURTS_PATH = '/api/v1/courts';
 export const COURT_PAGE_SIZE = 20;
 
-export function listCourts(filter: CourtFilter, signal?: AbortSignal): Promise<CourtPage> {
+export function listCourts(filter: CourtFilter, signal: AbortSignal): Promise<CourtPage> {
   const query = new URLSearchParams({ page: String(filter.page), size: String(COURT_PAGE_SIZE), sort: 'code,asc' });
   if (filter.level !== undefined) query.set('level', filter.level);
   if (filter.active !== undefined) query.set('active', String(filter.active));
-  return api<CourtPage>(`${COURTS_PATH}?${query.toString()}`, signal === undefined ? {} : { signal });
+  return api<CourtPage>(`${COURTS_PATH}?${query.toString()}`, { signal });
 }
 
 /** An empty level is sent as `null`, so the backend reports it as a missing field. */

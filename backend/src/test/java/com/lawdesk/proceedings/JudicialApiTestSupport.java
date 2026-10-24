@@ -6,7 +6,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +55,8 @@ abstract class JudicialApiTestSupport extends PostgresTestSupport {
 
     @AfterEach
     void removeJudicialRecords() {
+        dropPause();
+        jdbc.update("delete from special_decision");
         jdbc.update("delete from judgment");
         // Children before parents: cassations attack appeals, appeals attack first-instance proceedings.
         jdbc.update("delete from proceeding where stage = 'CASSATION'");
@@ -126,5 +136,50 @@ abstract class JudicialApiTestSupport extends PostgresTestSupport {
     int rows(String table) {
         Integer count = jdbc.queryForObject("select count(*) from " + table, Integer.class);
         return count == null ? 0 : count;
+    }
+
+    /**
+     * Runs {@code paused} until its {@code event} on {@code table} stops in a test-only trigger (QAD-024), then runs
+     * {@code other} to completion while {@code paused} still holds its transaction open. Returns both statuses, so a
+     * race between two writes is deterministic: without a row lock both succeed, with one the second waits and then
+     * sees the first one's committed data.
+     */
+    List<Integer> race(String event, String table, Callable<MvcResult> paused, Callable<MvcResult> other)
+            throws Exception {
+        jdbc.execute("""
+                create function qad024_pause() returns trigger language plpgsql as $$
+                begin perform pg_sleep(1.5); return new; end $$""");
+        jdbc.execute("create trigger qad024_pause before " + event + " on " + table
+                + " for each row execute function qad024_pause()");
+        try (ExecutorService pool = Executors.newVirtualThreadPerTaskExecutor()) {
+            Future<MvcResult> first = pool.submit(paused);
+            awaitPause();
+            Future<MvcResult> second = pool.submit(other);
+            return List.of(first.get(30, TimeUnit.SECONDS).getResponse().getStatus(),
+                    second.get(30, TimeUnit.SECONDS).getResponse().getStatus());
+        } finally {
+            dropPause();
+        }
+    }
+
+    private void awaitPause() throws InterruptedException {
+        Instant deadline = Instant.now().plus(Duration.ofSeconds(10));
+        while (Instant.now().isBefore(deadline)) {
+            Integer sleeping = jdbc.queryForObject(
+                    "select count(*) from pg_stat_activity where wait_event = 'PgSleep' and pid <> pg_backend_pid()",
+                    Integer.class);
+            if (sleeping != null && sleeping > 0) {
+                return;
+            }
+            Thread.sleep(10);
+        }
+        throw new AssertionError("the paused request never reached its trigger");
+    }
+
+    private void dropPause() {
+        for (String table : List.of("judgment", "proceeding", "special_decision")) {
+            jdbc.execute("drop trigger if exists qad024_pause on " + table);
+        }
+        jdbc.execute("drop function if exists qad024_pause()");
     }
 }
