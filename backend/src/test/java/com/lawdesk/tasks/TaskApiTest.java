@@ -137,6 +137,16 @@ class TaskApiTest extends TaskTestSupport {
         mvc.perform(moveTask(id, "OPEN", 5)).andExpect(status().isUnprocessableContent());
     }
 
+    /** QAD-031: ASSUMPTION for owner review, a task may be completed straight from OPEN (docs LD-027). */
+    @Test
+    void aTaskCanBeCompletedDirectlyFromOpen() throws Exception {
+        UUID id = create("Short task", null, user("Finisher", true), null);
+        mvc.perform(moveTask(id, "DONE", 0)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("DONE"))
+                .andExpect(jsonPath("$.completedAt").isString());
+        assertThat(statusOf(id)).isEqualTo("DONE");
+    }
+
     @Test
     void listsTasksByDueDateThenPriorityWithFilters() throws Exception {
         UUID caseId = createCase("List");

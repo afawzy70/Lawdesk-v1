@@ -112,6 +112,27 @@ Acceptance criteria:
    `LD-024-18-red-QAD-032-backend.log`, `LD-024-19-green-QAD-032-backend.log`, `LD-024-20/21` (frontend message).
    **ASSUMPTION:** the date of a hearing is still not checked against the proceeding's judgment date (hearings after
    the judgment, such as on enforcement, stay possible).
+   QAD-033: the database enforces the same chronology, so no other writer (direct SQL, a future module) can break it.
+   Migration `V406__LD-024_hearing_dates_database_integrity.sql` adds triggers that refuse, with a check violation
+   (SQLSTATE 23514) naming the invariant and nothing changed:
+   - `hearing_not_before_filing`: a hearing inserted or moved to before its proceeding's filing date (cancelled
+     hearings count, as in the API);
+   - `proceeding_filing_not_after_hearing`: a filing date moved to after any hearing of the proceeding (the same day is
+     valid);
+   - `proceeding_case_immutable`: a proceeding's `case_id` changes (Phase 4 never changes it, so this is simply
+     immutable; the hearing-side mismatch was already refused by V401);
+   - `hearing_follows_adjourned`: an adjourned hearing's next hearing not strictly after the hearing it continues,
+     whichever of the two is edited.
+   The hearing trigger reads the proceeding row `FOR SHARE`, the filing-date correction holds it exclusively, so even two
+   writers that do not use the API lock are serialised. The API pre-check under the proceeding row lock still runs first
+   and answers the 422 rules above, never a 500. The migration validates and rewrites no existing row (only new
+   statements are checked), so it cannot fail on data the API accepted; `MigrationPhase5IntegrityTest` proves it with
+   rows written through V405. **Authorized exception:** the trigger on the Phase 4 table `proceeding` is created from a
+   Phase 5 migration (listed in architecture/CONTRACTS.md §8). Tests: `HearingDatabaseIntegrityTest` (the three QA
+   probes as direct SQL, cancelled hearings, the adjournment chain, same-day edits, two SQL writers racing in both
+   orders, the API still answering 422), and the six race tests of `HearingFilingChronologyTest` unchanged. Evidence:
+   `LD-024-25-red-QAD-033-hearing-database.log`, `LD-024-26-red-QAD-033-share-lock-mutation.log` (the race test fails
+   without `FOR SHARE`), `LD-024-27-green-QAD-033-hearing-database.log`.
 8. **Report port for Phase 6:** `com.lawdesk.hearings.HearingReportQueries` (read-only, no security of its own: the
    reports module checks `REPORT_VIEW`): hearings in a date range with optional status, case and proceeding filters,
    paged, with their total, and counts by status. The rules "upcoming" (`SCHEDULED` and dated today or later) and
@@ -148,7 +169,7 @@ Acceptance criteria:
 | `assigneeId` | Required: an enabled user of `UserDirectory` (`GET /api/v1/users/directory`); an unknown or disabled user is `422 ASSIGNEE_NOT_ASSIGNABLE`. Stored without a foreign key (§8.3). |
 | `dueDate` | Optional date. A new or changed due date cannot be before today (`400`, code `FutureOrPresent`); an unchanged past due date may stay. **ASSUMPTION**: tasks have dates, not times. |
 | `priority` | `LOW`, `NORMAL` (default), `HIGH`, `URGENT`. **ASSUMPTION**. |
-| `status` | `OPEN` → `IN_PROGRESS` → `DONE`; `OPEN` / `IN_PROGRESS` → `CANCELLED`; `DONE` / `CANCELLED` → `OPEN` (reopen); `IN_PROGRESS` → `OPEN`. Other moves are `422 TASK_STATUS_TRANSITION`. **ASSUMPTION**. |
+| `status` | `OPEN` → `IN_PROGRESS` → `DONE`; `OPEN` → `DONE` directly (QAD-031); `OPEN` / `IN_PROGRESS` → `CANCELLED`; `DONE` / `CANCELLED` → `OPEN` (reopen); `IN_PROGRESS` → `OPEN`. Other moves are `422 TASK_STATUS_TRANSITION`. **ASSUMPTION** for owner review (QAD-031): a task may be completed directly from `OPEN`, without first being marked `IN_PROGRESS`, because a small office often finishes a short task in one step; the owner may require the `IN_PROGRESS` step instead. Pinned by `TaskApiTest.aTaskCanBeCompletedDirectlyFromOpen`. |
 
 1. `POST /api/v1/tasks` (`TASK_MANAGE`): 201, `Location`. `GET /api/v1/tasks/{id}` (`TASK_VIEW`). `PUT
    /api/v1/tasks/{id}` (`TASK_MANAGE`, with `version`) changes title, description, assignee, due date and priority.
@@ -281,6 +302,17 @@ Acceptance criteria:
    Tests: `ExpertFilingChronologyTest` (direct edit and two races, both orders). Evidence:
    `LD-025-10-red-QAD-032-referrals.log`, `LD-025-11-green-QAD-032-referrals.log`. Checked and not affected: tasks
    (due dates are bound by today only), documents and notes (no date bound to the proceeding or the case).
+   QAD-033: the database enforces the same dates for any writer (migration
+   `V407__LD-025_expert_dates_database_integrity.sql`, with `V406` for hearings and the case): a referral before the
+   proceeding's filing date (`expert_referral_not_before_filing`), a filing date after a referral
+   (`proceeding_filing_not_after_referral`, cancelled referrals count) and a session before its referral or a referral
+   moved after its first session (`expert_session_not_before_referral`) are refused with a check violation (23514)
+   and nothing changed. The referral and session triggers read the proceeding and referral rows `FOR SHARE`, so two
+   SQL writers are serialised like the API. Tests: `ExpertDatabaseIntegrityTest` (including both race orders) and
+   `MigrationPhase5IntegrityTest`, which migrates a database holding hearings, referrals and sessions written through
+   V405 to the latest version and checks that no row is rewritten (same `xmin`) or rejected and that protection starts
+   at once. Evidence: `LD-025-16-red-QAD-033-expert-database.log`, `LD-025-17-red-QAD-033-migration-on-existing-data.log`,
+   `LD-025-18-green-QAD-033-expert-database.log`.
 8. Screens: `/experts` (ready, `EXPERT_VIEW`) is the registry with status filter, search, create, edit and deactivate;
    the case's expert referrals in `CaseOperations` refer a proceeding to an active expert, record sessions and the
    report, and cancel a referral after confirmation.
