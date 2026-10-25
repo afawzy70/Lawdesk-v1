@@ -63,6 +63,35 @@ def scripts(workflow):
     return [step["run"] for step in steps(workflow) if "run" in step]
 
 
+class SelfHostedDeployTest(unittest.TestCase):
+    """The deploy job runs on the persistent Contabo runner, which also runs untrusted pull request code, so it must
+    leave nothing a later job could read (docs/operations/CI-RUNNER.md)."""
+
+    def setUp(self):
+        self.cd = load(CD)
+        self.job = self.cd["jobs"]["deploy"]
+
+    def test_runs_on_the_self_hosted_runner(self):
+        self.assertEqual(["self-hosted", "Linux", "X64"], self.job["runs-on"])
+
+    def test_the_gate_credentials_live_in_the_job_temp_directory_only(self):
+        text = CD.read_text(encoding="utf-8")
+        self.assertNotIn("$HOME/.ssh", text, "a persistent home directory would keep the key after the job")
+        self.assertIn("$RUNNER_TEMP/gate-credentials", text)
+        self.assertIn("umask 077", text)
+
+    def test_the_credentials_are_removed_when_the_job_ends_whatever_the_result(self):
+        last = self.job["steps"][-1]
+        self.assertEqual("always()", last.get("if"))
+        self.assertTrue(last["name"].startswith("Remove the gate credentials"), last["name"])
+        self.assertIn('rm -rf "$RUNNER_TEMP/gate-credentials"', last["run"])
+        self.assertIn('"$RUNNER_TEMP/gate"', last["run"])
+
+    def test_only_deploy_steps_see_the_ssh_secrets(self):
+        holders = [s.get("name") for s in self.job["steps"] if "secrets." in str(s.get("env", ""))]
+        self.assertEqual(["Configure the gate connection"], holders)
+
+
 class CallFromCiTest(unittest.TestCase):
     def setUp(self):
         self.ci = load(CI)

@@ -1,5 +1,9 @@
 # LawDesk quality gates (LD-005). Every job must pass before a pull request into develop or main is merged.
 # tools/tests/test_ci_workflow.py pins down what this file must enforce; change both together.
+# Every job runs on the self-hosted Contabo runner (owner decision 2026-10-25; docs/operations/CI-RUNNER.md). That runner
+# is persistent and shared with pull request code, so no job may use the host Docker socket, escalate to root or read
+# a secret: Docker steps talk to the runner's own rootless daemon (DOCKER_HOST is set in the runner's .env) and clean
+# up after themselves.
 name: CI
 
 on:
@@ -20,7 +24,7 @@ concurrency:
 jobs:
   policy:
     name: Repository policy
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -74,7 +78,7 @@ jobs:
 
   backend:
     name: Backend (Java 21, embedded PostgreSQL 18.6)
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 20
     defaults:
       run:
@@ -100,26 +104,13 @@ jobs:
 
   backend-postgres-image:
     name: Backend against postgres:18.6 image
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 20
     defaults:
       run:
         working-directory: backend
-    services:
-      postgres:
-        image: postgres:18.6-alpine
-        env:
-          # Throwaway credentials for an ephemeral CI container; not used anywhere else.
-          POSTGRES_PASSWORD: ci-only-password
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
     env:
-      LAWDESK_TEST_DB_URL: jdbc:postgresql://localhost:5432/postgres
+      # Throwaway credentials for an ephemeral CI container bound to the loopback interface; not used anywhere else.
       LAWDESK_TEST_DB_USER: postgres
       LAWDESK_TEST_DB_PASSWORD: ci-only-password
     steps:
@@ -129,12 +120,32 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: maven
+      - name: Start the official PostgreSQL 18.6 image (loopback only)
+        # Not a `services:` block: a service port is published on every interface of the shared host.
+        run: |
+          name="lawdesk-ci-pg-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          docker rm -f "$name" > /dev/null 2>&1 || true
+          docker run -d --name "$name" -e POSTGRES_PASSWORD="$LAWDESK_TEST_DB_PASSWORD" -p 127.0.0.1::5432 \
+            --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10 \
+            postgres:18.6-alpine
+          echo "PG_CONTAINER=$name" >> "$GITHUB_ENV"
+          port=$(docker port "$name" 5432/tcp | head -n 1 | sed 's/.*://')
+          echo "LAWDESK_TEST_DB_URL=jdbc:postgresql://127.0.0.1:$port/postgres" >> "$GITHUB_ENV"
+          for _ in $(seq 1 30); do
+            [ "$(docker inspect -f '{{.State.Health.Status}}' "$name")" = healthy ] && exit 0
+            sleep 2
+          done
+          docker logs --tail 50 "$name"
+          exit 1
       - name: Test against the official image
         run: ./mvnw -B -ntp test
+      - name: Remove the database container
+        if: always()
+        run: docker rm -f "${PG_CONTAINER:-lawdesk-ci-pg-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}}" > /dev/null 2>&1 || true
 
   frontend:
     name: Frontend (Node 22)
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 15
     defaults:
       run:
@@ -156,7 +167,7 @@ jobs:
 
   stack:
     name: Staging stack (images + compose smoke)
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 30
     env:
       # The registry name the host gate and the rollback drill use for images built on the host.
@@ -164,6 +175,11 @@ jobs:
       LAWDESK_TAG: ${{ github.sha }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Remove leftovers of an earlier run
+        # The runner and its Docker daemon persist between jobs; an interrupted run may have left the stack behind.
+        run: |
+          docker compose -p lawdesk-staging -f deploy/compose.yaml down -v --remove-orphans > /dev/null 2>&1 || true
+          docker network rm lawdesk-edge > /dev/null 2>&1 || true
       - name: Build images
         run: |
           docker build -f backend/Dockerfile --label "org.opencontainers.image.revision=$LAWDESK_TAG" \
@@ -176,7 +192,7 @@ jobs:
           openssl rand -hex 24 > deploy/secrets/db_admin_password.txt
           openssl rand -hex 24 > deploy/secrets/db_app_password.txt
           openssl rand -hex 16 > deploy/secrets/admin_bootstrap_password.txt
-          docker network create lawdesk-edge
+          docker network inspect lawdesk-edge > /dev/null 2>&1 || docker network create lawdesk-edge
       - name: Start the stack and wait for health checks
         run: |
           # Same order as deploy/scripts/deploy.sh: database, its least-privilege role, then everything.
@@ -256,10 +272,16 @@ jobs:
       - name: Tear down
         if: always()
         run: docker compose -p lawdesk-staging -f deploy/compose.yaml down -v
+      - name: Remove this run's network and images
+        if: always()
+        run: |
+          docker network rm lawdesk-edge > /dev/null 2>&1 || true
+          docker image rm -f "$LAWDESK_REGISTRY/backend:$LAWDESK_TAG" "$LAWDESK_REGISTRY/web:$LAWDESK_TAG" > /dev/null 2>&1 || true
+          docker image prune -f > /dev/null 2>&1 || true
 
   secrets:
     name: Secret scan (gitleaks 8.30.1)
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -278,7 +300,7 @@ jobs:
     # Branch protection is unavailable on this plan (B4): every push to develop must be exactly one merge of a pull
     # request whose head QA cleared with "QA-VERDICT: PASS <sha>". A failure flags the push and blocks deployment.
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 5
     permissions:
       contents: read

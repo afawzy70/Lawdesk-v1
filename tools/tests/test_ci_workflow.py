@@ -80,10 +80,22 @@ class RequiredGatesTest(unittest.TestCase):
         self.assertEqual("21", str(java["with"]["java-version"]))
 
     def test_backend_suite_also_runs_against_the_official_postgres_image(self):
+        # The container is started by a step, not a `services:` block: a service port is published on every interface of
+        # the shared host, and this database has a known throwaway password (see docs/operations/CI-RUNNER.md).
         job = self.jobs["backend-postgres-image"]
-        self.assertRegex(job["services"]["postgres"]["image"], r"^postgres:18\.6(-[a-z0-9.]+)?$")
-        self.assertIn("LAWDESK_TEST_DB_URL", job["env"])
-        self.assertIn("./mvnw -B -ntp test", run_commands(job))
+        self.assertNotIn("services", job)
+        self.assertIn("LAWDESK_TEST_DB_URL", run_commands(job) + str(job.get("env", {})))
+        start = next(s for s in job["steps"] if s.get("name", "").startswith("Start the official PostgreSQL"))
+        self.assertRegex(start["run"], r"postgres:18\.6(-[a-z0-9.]+)?\b")
+        self.assertIn("-p 127.0.0.1::5432", start["run"], "the database must listen on the loopback interface only")
+        self.assertIn("LAWDESK_TEST_DB_URL=", start["run"])
+        names = [step.get("name", "") for step in job["steps"]]
+        test = next(i for i, n in enumerate(names) if n.startswith("Test against the official image"))
+        self.assertLess(names.index(start["name"]), test)
+        self.assertIn("./mvnw -B -ntp test", job["steps"][test]["run"])
+        stop = job["steps"][-1]
+        self.assertEqual("always()", stop.get("if"), "the container is removed whatever the test result")
+        self.assertIn("docker rm -f", stop["run"])
 
     def test_frontend_gate_runs_lint_typecheck_tests_with_coverage_and_build(self):
         commands = run_commands(self.jobs["frontend"])
@@ -147,3 +159,46 @@ class RequiredGatesTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+RUNNER = ["self-hosted", "Linux", "X64"]
+
+
+class SelfHostedRunnerTest(unittest.TestCase):
+    """Owner decision 2026-10-25: every job runs on the Contabo runner (docs/operations/CI-RUNNER.md)."""
+
+    def test_every_job_runs_on_the_self_hosted_runner(self):
+        for name, job in load_workflow()["jobs"].items():
+            if "uses" in job:
+                continue  # the reusable deployment workflow is checked in test_cd_workflow.py
+            with self.subTest(job=name):
+                self.assertEqual(RUNNER, job["runs-on"])
+
+    def test_no_job_reaches_the_host_docker_daemon_or_root(self):
+        text = WORKFLOW.read_text(encoding="utf-8")
+        for forbidden in ["/var/run/docker.sock", "/run/docker.sock", "sudo ", "--privileged", "docker.sock"]:
+            with self.subTest(forbidden=forbidden):
+                self.assertNotIn(forbidden, text)
+
+    def test_the_stack_gate_starts_clean_and_leaves_nothing_behind_on_the_persistent_runner(self):
+        job = load_workflow()["jobs"]["stack"]
+        names = [step.get("name", "") for step in job["steps"]]
+        clean = next(i for i, n in enumerate(names) if n.startswith("Remove leftovers"))
+        build = next(i for i, n in enumerate(names) if n == "Build images")
+        self.assertLess(clean, build)
+        self.assertIn("down -v --remove-orphans", job["steps"][clean]["run"])
+        self.assertIn("docker network rm lawdesk-edge", job["steps"][clean]["run"])
+        # The network may survive an earlier failed run, so it is created only when missing.
+        self.assertIn("docker network create lawdesk-edge", run_commands(job))
+        self.assertIn("docker network inspect lawdesk-edge", run_commands(job))
+        last = job["steps"][-1]
+        self.assertEqual("always()", last.get("if"))
+        self.assertIn("docker network rm lawdesk-edge", last["run"])
+        self.assertIn('"$LAWDESK_REGISTRY/backend:$LAWDESK_TAG"', last["run"], "this run's images are removed")
+
+    def test_gate_jobs_do_not_receive_secrets(self):
+        text = WORKFLOW.read_text(encoding="utf-8")
+        # Only the call of the deployment workflow inherits secrets, and only on pushes to develop.
+        self.assertEqual(1, text.count("secrets: inherit"))
+        self.assertEqual(0, text.count("${{ secrets."))
+

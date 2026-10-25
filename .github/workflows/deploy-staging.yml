@@ -31,7 +31,7 @@ jobs:
   deploy:
     name: Deploy to staging
     if: vars.LAWDESK_STAGING_DEPLOY == 'enabled'
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 30
     environment:
       name: staging
@@ -97,14 +97,17 @@ jobs:
             echo "::error::staging SSH secrets or the LAWDESK_STAGING_SSH_TARGET variable are not configured"
             exit 1
           fi
-          install -d -m 700 "$HOME/.ssh"
-          printf '%s\n' "$SSH_KEY" > "$HOME/.ssh/lawdesk_staging"
-          chmod 600 "$HOME/.ssh/lawdesk_staging"
-          printf '%s\n' "$KNOWN_HOSTS" > "$HOME/.ssh/lawdesk_known_hosts"
+          # The runner is persistent and also runs pull request code: the key lives in the job's temp directory only
+          # and is removed by the last step, never in a home directory.
+          umask 077
+          credentials="$RUNNER_TEMP/gate-credentials"
+          install -d -m 700 "$credentials"
+          printf '%s\n' "$SSH_KEY" > "$credentials/key"
+          printf '%s\n' "$KNOWN_HOSTS" > "$credentials/known_hosts"
           cat > "$RUNNER_TEMP/gate" <<'EOF'
           #!/usr/bin/env bash
           # Sends one request to the host's forced command; the host ignores anything it does not accept.
-          exec ssh -i "$HOME/.ssh/lawdesk_staging" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/lawdesk_known_hosts" -o ConnectTimeout=20 -o ServerAliveInterval=30 "$LAWDESK_SSH_TARGET" "$1"
+          exec ssh -i "$RUNNER_TEMP/gate-credentials/key" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/gate-credentials/known_hosts" -o ConnectTimeout=20 -o ServerAliveInterval=30 "$LAWDESK_SSH_TARGET" "$1"
           EOF
           chmod 700 "$RUNNER_TEMP/gate"
 
@@ -172,3 +175,9 @@ jobs:
         run: |
           "$RUNNER_TEMP/gate" "rollback" || true
           "$RUNNER_TEMP/gate" "status" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove the gate credentials
+        if: always()
+        run: |
+          shred -u "$RUNNER_TEMP/gate-credentials/key" 2> /dev/null || true
+          rm -rf "$RUNNER_TEMP/gate-credentials" "$RUNNER_TEMP/gate"
