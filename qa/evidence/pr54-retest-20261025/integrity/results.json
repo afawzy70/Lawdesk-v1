@@ -1,0 +1,394 @@
+{
+  "tested_sha": "2d07a222189f82ddeacf74fdcd28165980cea85d",
+  "utc": "2026-10-25T13:42:22.311326+00:00",
+  "candidate": "/tmp/lawdesk-r54-candidate",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 14,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "6d46f449-fb3e-4175-9f83-39e43e032ab0",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-25T13:42:09.564985Z",
+          "updatedAt": "2026-10-25T13:42:09.564985Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "V407-COMMIT-REFERRAL-BEFORE-FILING",
+      "story_ids": [
+        "LD-025",
+        "LD-019"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "V407-COMMIT-REFERRAL-BEFORE-FILING"
+      },
+      "steps": [
+        "update expert_referral set referral_date='2026-01-01' where id='19e0a321-6210-4866-a41c-4909a8f377b0' -> COMMIT -> Compare all relevant rows and timeline"
+      ],
+      "expected_results": "SQLSTATE23514 and unchanged rows/history",
+      "actual": {
+        "rejected": true,
+        "sqlstate": "23514",
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "V407-COMMIT-FILING-AFTER-REFERRAL",
+      "story_ids": [
+        "LD-025",
+        "LD-019"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "V407-COMMIT-FILING-AFTER-REFERRAL"
+      },
+      "steps": [
+        "update proceeding set filing_date='2026-01-04' where id='5fb5a395-f3f9-4ed3-841b-6e959f8b511c' -> COMMIT -> Compare all relevant rows and timeline"
+      ],
+      "expected_results": "SQLSTATE23514 and unchanged rows/history",
+      "actual": {
+        "rejected": true,
+        "sqlstate": "23514",
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "V407-COMMIT-SESSION-BEFORE-REFERRAL",
+      "story_ids": [
+        "LD-025",
+        "LD-019"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "V407-COMMIT-SESSION-BEFORE-REFERRAL"
+      },
+      "steps": [
+        "update expert_session set session_date='2026-01-02' where id='7d98c384-1e33-4da0-a8cd-fe145269f695' -> COMMIT -> Compare all relevant rows and timeline"
+      ],
+      "expected_results": "SQLSTATE23514 and unchanged rows/history",
+      "actual": {
+        "rejected": true,
+        "sqlstate": "23514",
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "V407-COMMIT-REFERRAL-AFTER-SESSION",
+      "story_ids": [
+        "LD-025",
+        "LD-019"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "V407-COMMIT-REFERRAL-AFTER-SESSION"
+      },
+      "steps": [
+        "update expert_referral set referral_date='2026-01-06' where id='19e0a321-6210-4866-a41c-4909a8f377b0' -> COMMIT -> Compare all relevant rows and timeline"
+      ],
+      "expected_results": "SQLSTATE23514 and unchanged rows/history",
+      "actual": {
+        "rejected": true,
+        "sqlstate": "23514",
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "V406-ADJOURNMENT-SEQUENTIAL",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "V406-ADJOURNMENT-SEQUENTIAL"
+      },
+      "steps": [
+        "ParentJan3 childJan6 -> set parentJan7"
+      ],
+      "expected_results": "Database rejects reversed chain",
+      "actual": {
+        "rejected": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "V406-ADJOURNMENT-CONCURRENT-COMMIT",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "V406-ADJOURNMENT-CONCURRENT-COMMIT"
+      },
+      "steps": [
+        "T1 BEGIN; parentJan3->Jan5 (do not commit) -> T2 BEGIN; childJan6->Jan4; COMMIT -> T1 COMMIT -> fresh joined SELECT"
+      ],
+      "expected_results": "No committed child on/before parent; refuse or serialize competing changes",
+      "actual": {
+        "transactions": {
+          "child": "57014",
+          "parent": "committed"
+        },
+        "dates": "2026-01-05\t2026-01-06",
+        "invalid_pairs": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "V400-V407-MIGRATION-HISTORY",
+      "story_ids": [
+        "LD-006",
+        "LD-024",
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "V400-V407-MIGRATION-HISTORY"
+      },
+      "steps": [
+        "Start real candidate with clean PostgreSQL -> inspect Flyway history"
+      ],
+      "expected_results": "Eight successful Phase5 migrations",
+      "actual": "400\tt\n401\tt\n402\tt\n403\tt\n404\tt\n405\tt\n406\tt\n407\tt",
+      "status": "PASS"
+    },
+    {
+      "id": "V408-HEARING-PARENT-FIRST",
+      "story_ids": [
+        "LD-019",
+        "LD-024",
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "V408-HEARING-PARENT-FIRST"
+      },
+      "steps": [
+        "update hearing set hearing_date='2026-01-06' where id='e8683e27-5fe7-4fe5-8b2d-66a7785edba7'; do not commit -> concurrent update hearing set hearing_date='2026-01-05' where id='c4c8fbfe-8a27-4a6d-b818-3954f53cf172' -> observe pg_stat_activity Lock -> first COMMIT -> second completes -> inspect rows/history"
+      ],
+      "expected_results": "Second waits then23514; first committed; zero invalid pairs; history unchanged",
+      "actual": {
+        "observed_lock_wait": true,
+        "second_result": "23514",
+        "invalid_rows": 0,
+        "history_unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "V408-HEARING-SUCCESSOR-FIRST",
+      "story_ids": [
+        "LD-019",
+        "LD-024",
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "V408-HEARING-SUCCESSOR-FIRST"
+      },
+      "steps": [
+        "update hearing set hearing_date='2026-01-05' where id='2e95eae3-e309-4856-989e-598fe6e21f04'; do not commit -> concurrent update hearing set hearing_date='2026-01-06' where id='f4b8605e-a80c-4ba6-aa3b-00488d6aaa90' -> observe pg_stat_activity Lock -> first COMMIT -> second completes -> inspect rows/history"
+      ],
+      "expected_results": "Second waits then23514; first committed; zero invalid pairs; history unchanged",
+      "actual": {
+        "observed_lock_wait": true,
+        "second_result": "23514",
+        "invalid_rows": 0,
+        "history_unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "V408-EXPERT-REFERRAL-FIRST",
+      "story_ids": [
+        "LD-019",
+        "LD-024",
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "V408-EXPERT-REFERRAL-FIRST"
+      },
+      "steps": [
+        "update expert_referral set referral_date='2026-01-06' where id='f32f3503-0737-499f-a59a-34a8a27a190c'; do not commit -> concurrent update expert_session set session_date='2026-01-05' where id='0978ce03-e537-4650-8b39-04c3d9c7ca9e' -> observe pg_stat_activity Lock -> first COMMIT -> second completes -> inspect rows/history"
+      ],
+      "expected_results": "Second waits then23514; first committed; zero invalid pairs; history unchanged",
+      "actual": {
+        "observed_lock_wait": true,
+        "second_result": "23514",
+        "invalid_rows": 0,
+        "history_unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "V408-EXPERT-SESSION-FIRST",
+      "story_ids": [
+        "LD-019",
+        "LD-024",
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "V408-EXPERT-SESSION-FIRST"
+      },
+      "steps": [
+        "update expert_session set session_date='2026-01-05' where id='a2588d66-6663-44da-ba12-6e854fef0a70'; do not commit -> concurrent update expert_referral set referral_date='2026-01-06' where id='b7f73c86-589c-4e70-9d83-2067d64d7031' -> observe pg_stat_activity Lock -> first COMMIT -> second completes -> inspect rows/history"
+      ],
+      "expected_results": "Second waits then23514; first committed; zero invalid pairs; history unchanged",
+      "actual": {
+        "observed_lock_wait": true,
+        "second_result": "23514",
+        "invalid_rows": 0,
+        "history_unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "V408-DEADLOCK-ATOMICITY",
+      "story_ids": [
+        "LD-019",
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "V408-DEADLOCK-ATOMICITY"
+      },
+      "steps": [
+        "A locks child and changes note -> B locks proceeding and changes number -> A waits for proceeding while B waits for child -> inspect deadlock victim and all writes"
+      ],
+      "expected_results": "One40P01, oneCOMMITTED; victim earlier write rolled back; no invalid chronology",
+      "actual": {
+        "outcomes": [
+          "40P01",
+          "COMMITTED"
+        ],
+        "victim_prior_write_rolled_back": true,
+        "invalid_pairs": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "V408-INSTALLED",
+      "story_ids": [
+        "LD-006",
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "V408-INSTALLED"
+      },
+      "steps": [
+        "Inspect actual migrated PostgreSQL history"
+      ],
+      "expected_results": "V408 success",
+      "actual": "t",
+      "status": "PASS"
+    }
+  ]
+}

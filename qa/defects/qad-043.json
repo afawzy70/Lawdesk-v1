@@ -1,0 +1,52 @@
+{
+  "reported_utc": "2026-10-25T13:54:17.408746+00:00",
+  "status": "CONFIRMED_OPEN",
+  "affected": [
+    "2d07a222189f82ddeacf74fdcd28165980cea85d"
+  ],
+  "owner": "Claude remediation; Codex independent verification",
+  "no_real_records_modified": true,
+  "recommendation": "REQUEST_CHANGES",
+  "id": "QAD-043",
+  "severity": "S2",
+  "priority": "P1",
+  "story_ids": [
+    "LD-008",
+    "LD-011"
+  ],
+  "title": "Own password mutation commits without audit while endpoint reports500",
+  "environment": "Disposable local PostgreSQL18.6 only; no UATfaultinjection",
+  "preconditions": [
+    "Own synthetic authenticated account; valid current/new passwords retainedinmemory only"
+  ],
+  "test_data": {
+    "fault_action": "PASSWORD_CHANGE",
+    "fault_outcome": "SUCCESS"
+  },
+  "steps": [
+    "Install disposable BEFORE INSERT audit_event trigger WHEN (NEW.action='PASSWORD_CHANGE' AND NEW.outcome='SUCCESS') raising QA exception.",
+    "POST /api/v1/me/password with correct currentPassword andvalidnewPassword.",
+    "Observe500; compare internal business snapshot; countSUCCESS events; authenticate a freshclientwithnewpassword.",
+    "Remove test-only trigger/function."
+  ],
+  "expected": "Audited credential change commits atomically or isdurably guaranteed. Failedaudit mustnot leave anunaudited committed password mutation reported failed.",
+  "actual": {
+    "http_status": 500,
+    "business_snapshot_unchanged": false,
+    "success_audit_delta": 0,
+    "new_password_authenticates": true
+  },
+  "cause": "MeController calls UserAccounts.changePassword (autocommitting JDBCupdate) then saves session andcalls independent audit.record.",
+  "scope_distinction": "A password database-COMMIT failure correctly leaves noSUCCESS. Wrongcurrentpassword400 deliberately retainsPASSWORD_CHANGE/FAILURE; that is correct and mustnotbe removed.",
+  "evidence": [
+    "qa/evidence/pr54-retest-20261025/audit/results.json"
+  ],
+  "assertion_id": "AUDIT-PASSWORD-AUDIT-FAILURE-ATOMICITY",
+  "retest": [
+    "Auditinsert failure preserves priorpassword andcredentialversion",
+    "Successfulchange exactlyoneSUCCESS",
+    "Databasecommitfailure noSUCCESS",
+    "Wrongcurrentpassword retainsFAILURE",
+    "Concurrentchange/reset andsessionrevocation regression"
+  ]
+}

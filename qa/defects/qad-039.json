@@ -40,7 +40,7 @@
   "evidence": [
     "qa/evidence/phase56-acceptance-20261025/current-export-limits/results.json"
   ],
-  "recommendation": "REQUEST_CHANGES for affected export acceptance; S3 is not an automatic block on ordinary owner-approved Dev/UAT deployment",
+  "recommendation": "FIX_VERIFIED_ORIGINAL_SCOPE",
   "fix_guidance": "Check export size before the bounded lookup; retain explicit limit error and test10000/10001 for all formats.",
   "retests": [
     {
@@ -52,6 +52,17 @@
       "evidence": [
         "qa/evidence/final-phase2-6-20261025/qad039/results.json"
       ]
+    },
+    {
+      "utc": "2026-10-25T13:54:17.408746+00:00",
+      "previous_status": "FIX_VERIFIED_INDEPENDENT_LOCAL",
+      "status": "FIX_VERIFIED_INDEPENDENT_LOCAL",
+      "tested_sha": "2d07a222189f82ddeacf74fdcd28165980cea85d",
+      "note": "All9999/10000/10001CSV/XLSX/PDF exact row/content checks20PASS; localbulk only.",
+      "evidence": [
+        "qa/evidence/pr54-retest-20261025/expert-limits/results.json"
+      ]
     }
-  ]
+  ],
+  "original_recommendation": "REQUEST_CHANGES for affected export acceptance; S3 is not an automatic block on ordinary owner-approved Dev/UAT deployment"
 }

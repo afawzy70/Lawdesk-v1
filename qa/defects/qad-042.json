@@ -1,0 +1,58 @@
+{
+  "reported_utc": "2026-10-25T13:54:17.408746+00:00",
+  "status": "CONFIRMED_OPEN",
+  "affected": [
+    "2d07a222189f82ddeacf74fdcd28165980cea85d"
+  ],
+  "owner": "Claude remediation; Codex independent verification",
+  "no_real_records_modified": true,
+  "recommendation": "REQUEST_CHANGES",
+  "id": "QAD-042",
+  "severity": "S2",
+  "priority": "P1",
+  "story_ids": [
+    "LD-008",
+    "LD-009",
+    "LD-010",
+    "LD-011"
+  ],
+  "title": "Administration SUCCESS audit survives rollback of user/role changes",
+  "environment": "Disposable local PostgreSQL18.6 only; no UATfaultinjection",
+  "preconditions": [
+    "Canonical exactSHA jar; own synthetic user/role; administrator",
+    "Snapshot full business rows/role memberships internally, publish equality only"
+  ],
+  "test_data": {
+    "actions": [
+      "USER_CREATE",
+      "USER_UPDATE",
+      "USER_ENABLE",
+      "USER_DISABLE",
+      "USER_ROLES_CHANGE",
+      "PASSWORD_RESET",
+      "ROLE_CREATE",
+      "ROLE_UPDATE",
+      "ROLE_PERMISSIONS_CHANGE"
+    ]
+  },
+  "steps": [
+    "Create an owned synthetic user; snapshot app_user/user_role; count USER_UPDATE SUCCESS events.",
+    "Install only in disposableDB: create function qa_audit_tx_fault() returns trigger language plpgsql as $$ begin raise exception 'QA transaction audit fault'; end $$; create constraint trigger qa_audit_tx_fault after update on app_user deferrable initially deferred for each row when (NEW.id='<ownedUserId>'::uuid) execute function qa_audit_tx_fault();",
+    "PUT /api/v1/users/{id} valid email/displayName/locale/currentversion.",
+    "After500,compare business snapshot and SUCCESS audit delta; remove trigger/function.",
+    "Equivalent restricted INSERT/UPDATE fault reproduces other actions; role_permission BEFOREINSERT failure duringroleedit proves earlier ROLE_UPDATE success also survives immediate dependent-write rollback."
+  ],
+  "expected": "Rolled-back changes add no SUCCESS event. Legitimate security FAILURE/DENIED events remain independently durable.",
+  "actual": "10independent failing checks; business snapshots unchanged, corresponding SUCCESS delta+1 (rolepermission edit+1 forboth ROLE_UPDATE andROLE_PERMISSIONS_CHANGE). Immediate dependentwritefailure leavesROLE_UPDATE+1 andROLE_PERMISSIONS_CHANGE0.",
+  "cause": "UserAdministration.record andRoleAdministration.record call REQUIRES_NEW AuditLog.record inside outer business transaction.",
+  "evidence": [
+    "qa/evidence/pr54-retest-20261025/audit/results.json"
+  ],
+  "retest": [
+    "Alllistedactions deferredCOMMITfailure andnormalcommit",
+    "Rolepermission dependentwritefailure",
+    "Auditwritefailure causes businessrollback",
+    "No-op/stale/refused actions",
+    "LOGIN/PASSWORD_CHANGEfailure/ACCESS_DENIED/SESSION_REVOKED retained as security events"
+  ]
+}

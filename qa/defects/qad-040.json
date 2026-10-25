@@ -1,7 +1,7 @@
 {
   "id": "QAD-040",
   "reported_utc": "2026-10-25T12:38:18.543317+00:00",
-  "status": "CONFIRMED_OPEN",
+  "status": "FIX_VERIFIED_INDEPENDENT_LOCAL_AND_UAT",
   "severity": "S2",
   "priority": "P1",
   "story_ids": [
@@ -38,7 +38,7 @@
   },
   "cause": "TaskService.java174 calls AuditLog.record before outer commit; AuditLog uses REQUIRES_NEW and commits success separately.",
   "impact": "Security/business audit falsely claims a status transition succeeded when task transaction rolled back. The fault injection demonstrates transaction ordering, not an anonymous exploit.",
-  "recommendation": "REQUEST_CHANGES for LD027 and cross-phase LD011 audit integrity; unrelated work can continue.",
+  "recommendation": "FIX_VERIFIED_ORIGINAL_SCOPE",
   "remediation_owner": "Claude; preserve separate authentication/denial auditing while making successful task-state audit atomic with business commit",
   "retest_required": [
     "Exact reproduced deferred-COMMIT failure produces no success audit",
@@ -54,5 +54,18 @@
   "handoff_comments": [
     "https://github.com/afawzy70/Lawdesk-v1/pull/53#issuecomment-6397554788",
     "https://github.com/afawzy70/Lawdesk-v1/pull/6#issuecomment-6397555571"
-  ]
+  ],
+  "retests": [
+    {
+      "utc": "2026-10-25T13:54:17.408746+00:00",
+      "previous_status": "CONFIRMED_OPEN",
+      "status": "FIX_VERIFIED_INDEPENDENT_LOCAL_AND_UAT",
+      "tested_sha": "2d07a222189f82ddeacf74fdcd28165980cea85d",
+      "note": "DeferredCOMMIT leaves noSUCCESS;retry exactlyone;auditinsertfailure rollsback;concurrentloser noevent. Normal UAT directDONE/auditUIpass. QAD042/043 are distinct administration/password paths.",
+      "evidence": [
+        "qa/evidence/pr54-retest-20261025/policy/results.json"
+      ]
+    }
+  ],
+  "original_recommendation": "REQUEST_CHANGES for LD027 and cross-phase LD011 audit integrity; unrelated work can continue."
 }

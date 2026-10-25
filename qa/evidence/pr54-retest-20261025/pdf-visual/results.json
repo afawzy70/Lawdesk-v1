@@ -1,0 +1,228 @@
+{
+  "tested_sha": "2d07a222189f82ddeacf74fdcd28165980cea85d",
+  "scope": "Independent manual visual verification of rendered actual UAT PDFs, not developer tests or a text-extraction-only assertion",
+  "counts": {
+    "PASS": 8,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "PDF-VISUAL-MIXED-ar-0",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Actual authenticated UAT PDF generated at attested SHA",
+        "Owned synthetic case text verified through API",
+        "PDF rendered with PyMuPDF and independently inspected visually"
+      ],
+      "test_data": {
+        "id": "8f86147b-8d11-4017-b91e-7ac7c61a46e2",
+        "referenceNo": "QA5MVNSR8F29C1810-MIX0-71a1",
+        "title": "قضية Alpha رقم 123 لسنة 2026"
+      },
+      "steps": [
+        "Export own-prefix cases in ar",
+        "Render both pages at2x",
+        "Visually compare mixed title with input including Arabic shaping,Latin runs,digits,punctuation and line continuation"
+      ],
+      "expected_results": "Connected Arabic, preserved Latin Alpha/Beta/AB-123 and digit sequence; correct reading order with wrapping; no mirrored Latin characters",
+      "actual": "Both rendered pages inspected. MIX0 Arabic-first Alpha/123/2026 order preserved; MIX1 AB-123/Beta/(2025) preserved; MIX2 English-first Alpha123 and Arabic continuation456 legible and correctly ordered.",
+      "status": "PASS",
+      "render_evidence": [
+        "uat-artifacts/mixed-ar-1.png",
+        "uat-artifacts/mixed-ar-2.png"
+      ]
+    },
+    {
+      "id": "PDF-VISUAL-MIXED-ar-1",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Actual authenticated UAT PDF generated at attested SHA",
+        "Owned synthetic case text verified through API",
+        "PDF rendered with PyMuPDF and independently inspected visually"
+      ],
+      "test_data": {
+        "id": "4e798ba8-4083-4a9a-b51b-be6bcdbed8d5",
+        "referenceNo": "QA5MVNSR8F29C1810-MIX1-9c3f",
+        "title": "ملف AB-123 ضد شركة Beta (2025)"
+      },
+      "steps": [
+        "Export own-prefix cases in ar",
+        "Render both pages at2x",
+        "Visually compare mixed title with input including Arabic shaping,Latin runs,digits,punctuation and line continuation"
+      ],
+      "expected_results": "Connected Arabic, preserved Latin Alpha/Beta/AB-123 and digit sequence; correct reading order with wrapping; no mirrored Latin characters",
+      "actual": "Both rendered pages inspected. MIX0 Arabic-first Alpha/123/2026 order preserved; MIX1 AB-123/Beta/(2025) preserved; MIX2 English-first Alpha123 and Arabic continuation456 legible and correctly ordered.",
+      "status": "PASS",
+      "render_evidence": [
+        "uat-artifacts/mixed-ar-1.png",
+        "uat-artifacts/mixed-ar-2.png"
+      ]
+    },
+    {
+      "id": "PDF-VISUAL-MIXED-ar-2",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Actual authenticated UAT PDF generated at attested SHA",
+        "Owned synthetic case text verified through API",
+        "PDF rendered with PyMuPDF and independently inspected visually"
+      ],
+      "test_data": {
+        "id": "2fc29ab8-a1f6-40e3-9f4c-b1c5ed492470",
+        "referenceNo": "QA5MVNSR8F29C1810-MIX2-74f7",
+        "title": "Alpha 123 - قضية تجريبية 456"
+      },
+      "steps": [
+        "Export own-prefix cases in ar",
+        "Render both pages at2x",
+        "Visually compare mixed title with input including Arabic shaping,Latin runs,digits,punctuation and line continuation"
+      ],
+      "expected_results": "Connected Arabic, preserved Latin Alpha/Beta/AB-123 and digit sequence; correct reading order with wrapping; no mirrored Latin characters",
+      "actual": "Both rendered pages inspected. MIX0 Arabic-first Alpha/123/2026 order preserved; MIX1 AB-123/Beta/(2025) preserved; MIX2 English-first Alpha123 and Arabic continuation456 legible and correctly ordered.",
+      "status": "PASS",
+      "render_evidence": [
+        "uat-artifacts/mixed-ar-1.png",
+        "uat-artifacts/mixed-ar-2.png"
+      ]
+    },
+    {
+      "id": "PDF-VISUAL-LAYOUT-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Same actual generated PDF and visual review"
+      ],
+      "test_data": {
+        "language": "ar",
+        "pages": 2
+      },
+      "steps": [
+        "Inspect first-column position,localized headers,landscape table and second-page continuation",
+        "Compare neutral=1+1 glyph ordering against input"
+      ],
+      "expected_results": "Arabic RTL column order; English LTR; no missing/clipped rows; neutral expression unchanged",
+      "actual": "Reference column on right inArabic/onleft inEnglish; connected Arabic headers; repeated page2headers;=1+1 unchanged; long synthetic identifiers wrap within cells.",
+      "status": "PASS"
+    },
+    {
+      "id": "PDF-VISUAL-MIXED-en-0",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Actual authenticated UAT PDF generated at attested SHA",
+        "Owned synthetic case text verified through API",
+        "PDF rendered with PyMuPDF and independently inspected visually"
+      ],
+      "test_data": {
+        "id": "8f86147b-8d11-4017-b91e-7ac7c61a46e2",
+        "referenceNo": "QA5MVNSR8F29C1810-MIX0-71a1",
+        "title": "قضية Alpha رقم 123 لسنة 2026"
+      },
+      "steps": [
+        "Export own-prefix cases in en",
+        "Render both pages at2x",
+        "Visually compare mixed title with input including Arabic shaping,Latin runs,digits,punctuation and line continuation"
+      ],
+      "expected_results": "Connected Arabic, preserved Latin Alpha/Beta/AB-123 and digit sequence; correct reading order with wrapping; no mirrored Latin characters",
+      "actual": "Both rendered pages inspected. MIX0 Arabic-first Alpha/123/2026 order preserved; MIX1 AB-123/Beta/(2025) preserved; MIX2 English-first Alpha123 and Arabic continuation456 legible and correctly ordered.",
+      "status": "PASS",
+      "render_evidence": [
+        "uat-artifacts/mixed-en-1.png",
+        "uat-artifacts/mixed-en-2.png"
+      ]
+    },
+    {
+      "id": "PDF-VISUAL-MIXED-en-1",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Actual authenticated UAT PDF generated at attested SHA",
+        "Owned synthetic case text verified through API",
+        "PDF rendered with PyMuPDF and independently inspected visually"
+      ],
+      "test_data": {
+        "id": "4e798ba8-4083-4a9a-b51b-be6bcdbed8d5",
+        "referenceNo": "QA5MVNSR8F29C1810-MIX1-9c3f",
+        "title": "ملف AB-123 ضد شركة Beta (2025)"
+      },
+      "steps": [
+        "Export own-prefix cases in en",
+        "Render both pages at2x",
+        "Visually compare mixed title with input including Arabic shaping,Latin runs,digits,punctuation and line continuation"
+      ],
+      "expected_results": "Connected Arabic, preserved Latin Alpha/Beta/AB-123 and digit sequence; correct reading order with wrapping; no mirrored Latin characters",
+      "actual": "Both rendered pages inspected. MIX0 Arabic-first Alpha/123/2026 order preserved; MIX1 AB-123/Beta/(2025) preserved; MIX2 English-first Alpha123 and Arabic continuation456 legible and correctly ordered.",
+      "status": "PASS",
+      "render_evidence": [
+        "uat-artifacts/mixed-en-1.png",
+        "uat-artifacts/mixed-en-2.png"
+      ]
+    },
+    {
+      "id": "PDF-VISUAL-MIXED-en-2",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Actual authenticated UAT PDF generated at attested SHA",
+        "Owned synthetic case text verified through API",
+        "PDF rendered with PyMuPDF and independently inspected visually"
+      ],
+      "test_data": {
+        "id": "2fc29ab8-a1f6-40e3-9f4c-b1c5ed492470",
+        "referenceNo": "QA5MVNSR8F29C1810-MIX2-74f7",
+        "title": "Alpha 123 - قضية تجريبية 456"
+      },
+      "steps": [
+        "Export own-prefix cases in en",
+        "Render both pages at2x",
+        "Visually compare mixed title with input including Arabic shaping,Latin runs,digits,punctuation and line continuation"
+      ],
+      "expected_results": "Connected Arabic, preserved Latin Alpha/Beta/AB-123 and digit sequence; correct reading order with wrapping; no mirrored Latin characters",
+      "actual": "Both rendered pages inspected. MIX0 Arabic-first Alpha/123/2026 order preserved; MIX1 AB-123/Beta/(2025) preserved; MIX2 English-first Alpha123 and Arabic continuation456 legible and correctly ordered.",
+      "status": "PASS",
+      "render_evidence": [
+        "uat-artifacts/mixed-en-1.png",
+        "uat-artifacts/mixed-en-2.png"
+      ]
+    },
+    {
+      "id": "PDF-VISUAL-LAYOUT-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Same actual generated PDF and visual review"
+      ],
+      "test_data": {
+        "language": "en",
+        "pages": 2
+      },
+      "steps": [
+        "Inspect first-column position,localized headers,landscape table and second-page continuation",
+        "Compare neutral=1+1 glyph ordering against input"
+      ],
+      "expected_results": "Arabic RTL column order; English LTR; no missing/clipped rows; neutral expression unchanged",
+      "actual": "Reference column on right inArabic/onleft inEnglish; connected Arabic headers; repeated page2headers;=1+1 unchanged; long synthetic identifiers wrap within cells.",
+      "status": "PASS"
+    }
+  ]
+}
