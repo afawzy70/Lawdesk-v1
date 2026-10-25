@@ -4,7 +4,7 @@ import { useI18n } from '../../../i18n/I18nContext';
 import { loadError, saveError } from '../formErrors';
 import { TaskForm } from './TaskForm';
 import { TaskActions, TaskDue } from './TaskParts';
-import { changeTaskStatus, listTasks, type Task, type TaskStatus } from './tasksApi';
+import { changeTaskStatus, listCaseTasks, type Task, type TaskStatus } from './tasksApi';
 
 type Result = { key: number; tasks: Task[] } | { key: number; error: MessageKey };
 type Editing = null | 'new' | Task;
@@ -25,9 +25,9 @@ export function CaseTasks({ caseId }: Props) {
 
   useEffect(() => {
     const controller = new AbortController();
-    listTasks({ caseId, page: 0, size: 100 }, controller.signal).then(
-      (page) => {
-        setResult({ key: reload, tasks: page.items });
+    listCaseTasks(caseId, controller.signal).then(
+      (tasks) => {
+        setResult({ key: reload, tasks });
       },
       (error: unknown) => {
         if (!controller.signal.aborted) setResult({ key: reload, error: loadError(error) });

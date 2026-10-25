@@ -1,6 +1,7 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { MessageKey } from '../../i18n/catalog';
 import { useI18n } from '../../i18n/I18nContext';
+import { PagedSelect } from '../../components/PagedSelect';
 import type { Court } from '../courts/courtsApi';
 import { formatDate, numberOf } from './dates';
 import { useFormErrors } from './formErrors';
@@ -10,7 +11,7 @@ import {
   createSpecialDecision,
   DECISION_EFFECTS,
   DECISION_TYPES,
-  listCourtsFor,
+  listCourtsPage,
   OUTCOMES,
   STAGES,
   type DecisionEffect,
@@ -104,8 +105,6 @@ function useSave(onSaved: () => void, fail: (error: unknown) => void, reset: () 
   return { saving, run };
 }
 
-type CourtList = { stage: Stage; courts: Court[] } | { stage: Stage; failed: true };
-
 const PROCEEDING_FIELDS = ['courtId', 'courtCaseNumber', 'courtCaseYear', 'filingDate', 'parentProceedingId'] as const;
 
 interface ProceedingFormProps {
@@ -132,25 +131,6 @@ export function ProceedingForm({ caseId, proceedings, onSaved, onCancel }: Proce
   const [year, setYear] = useState('');
   const [filingDate, setFilingDate] = useState('');
   const [parentId, setParentId] = useState('');
-  const [courtList, setCourtList] = useState<CourtList | null>(null);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    listCourtsFor(stage, controller.signal).then(
-      (courts) => {
-        setCourtList({ stage, courts });
-      },
-      () => {
-        if (!controller.signal.aborted) setCourtList({ stage, failed: true });
-      },
-    );
-    return () => {
-      controller.abort();
-    };
-  }, [stage]);
-
-  const courts = courtList?.stage === stage && 'courts' in courtList ? courtList.courts : [];
-  const courtsFailed = courtList?.stage === stage && 'failed' in courtList;
   const parentStage: Stage | null = stage === 'APPEAL' ? 'FIRST_INSTANCE' : stage === 'CASSATION' ? 'APPEAL' : null;
   const parents = proceedings.filter((p) => p.stage === parentStage && p.hasJudgment);
 
@@ -218,22 +198,19 @@ export function ProceedingForm({ caseId, proceedings, onSaved, onCancel }: Proce
       {field(
         'courtId',
         'proceedings.field.court',
-        <select
-          {...form.control('courtId')}
+        <PagedSelect<Court>
+          key={stage}
+          selectProps={form.control('courtId')}
           value={courtId}
-          onChange={(event) => {
-            setCourtId(event.target.value);
-          }}
-        >
-          <option value="">{t('proceedings.choose')}</option>
-          {courts.map((court) => (
-            <option key={court.id} value={court.id}>
-              {locale === 'ar' ? court.nameAr : court.nameEn}
-            </option>
-          ))}
-        </select>,
+          onChange={setCourtId}
+          load={(courtPage, _query, signal) => listCourtsPage(stage, courtPage, signal)}
+          optionLabel={(court) => (locale === 'ar' ? court.nameAr : court.nameEn)}
+          searchText={(court) => `${court.code} ${court.nameAr} ${court.nameEn}`}
+          serverSearch={false}
+          searchLabel={t('proceedings.searchCourts')}
+          chooseLabel={t('proceedings.choose')}
+        />,
       )}
-      {courtsFailed ? <p className="judicial-hint">{t('proceedings.courtsUnavailable')}</p> : null}
       {field(
         'courtCaseNumber',
         'proceedings.field.number',

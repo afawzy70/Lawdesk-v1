@@ -53,7 +53,7 @@ export const proceedingsEn = {
   'proceedings.judgmentOption': 'Judgment of {date} in {number}',
   'proceedings.needsParent.APPEAL': 'An appeal needs a first-instance proceeding of this case with a judgment.',
   'proceedings.needsParent.CASSATION': 'A cassation needs an appeal of this case with a judgment.',
-  'proceedings.courtsUnavailable': 'The courts could not be listed.',
+  'proceedings.searchCourts': 'Search the courts',
   'proceedings.save': 'Save',
   'proceedings.saving': 'Saving…',
   'proceedings.cancel': 'Cancel',

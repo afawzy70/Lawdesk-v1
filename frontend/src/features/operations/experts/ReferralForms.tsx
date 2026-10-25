@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { PagedSelect } from '../../../components/PagedSelect';
 import { useI18n } from '../../../i18n/I18nContext';
 import { numberOf } from '../../proceedings/dates';
 import type { Proceeding } from '../../proceedings/proceedingsApi';
 import { useFormErrors } from '../formErrors';
 import { Field, FormShell } from '../FormParts';
 import {
-  listExperts,
+  listExpertsPage,
   recordSession,
   referToExpert,
   submitReport,
@@ -32,23 +33,7 @@ export function ReferralForm({ proceedings, onSaved, onCancel }: ReferProps) {
   const form = useFormErrors<ReferralField>();
   const [proceedingId, setProceedingId] = useState(proceedings[0]?.id ?? '');
   const [values, setValues] = useState<ReferralInput>({ expertId: '', referralDate: '', reportDueDate: '', mission: '' });
-  const [experts, setExperts] = useState<Expert[]>([]);
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    listExperts({ active: true, page: 0, size: 100 }, controller.signal).then(
-      (page) => {
-        setExperts(page.items);
-      },
-      () => {
-        // Without the registry the form still opens; the backend then names the missing expert.
-      },
-    );
-    return () => {
-      controller.abort();
-    };
-  }, []);
 
   const set = (field: keyof ReferralInput) => (value: string) => {
     setValues((previous) => ({ ...previous, [field]: value }));
@@ -109,20 +94,16 @@ export function ReferralForm({ proceedings, onSaved, onCancel }: ReferProps) {
       </Field>
       <Field id={form.control('expertId').id} label={t('operations.referral.expert')} error={form.errors.expertId}
         errorId={form.errorId('expertId')}>
-        <select
-          {...form.control('expertId')}
+        <PagedSelect<Expert>
+          selectProps={form.control('expertId')}
           value={values.expertId}
-          onChange={(event) => {
-            set('expertId')(event.target.value);
-          }}
-        >
-          <option value="">{t('operations.choose')}</option>
-          {experts.map((e) => (
-            <option key={e.id} value={e.id}>
-              {t('operations.referral.expertOption', { name: e.name, specialty: e.specialty })}
-            </option>
-          ))}
-        </select>
+          onChange={set('expertId')}
+          load={(expertPage, query, signal) => listExpertsPage(expertPage, query, signal)}
+          optionLabel={(e) => t('operations.referral.expertOption', { name: e.name, specialty: e.specialty })}
+          serverSearch
+          searchLabel={t('operations.referral.searchExperts')}
+          chooseLabel={t('operations.choose')}
+        />
       </Field>
       {date('referralDate', t('operations.referral.date'))}
       {date('reportDueDate', t('operations.referral.dueOptional'))}

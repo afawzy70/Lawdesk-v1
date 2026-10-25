@@ -1,4 +1,5 @@
 import { api } from '../../../api/http';
+import { listAll } from '../../../api/pagedList';
 import { blankToNull } from '../formErrors';
 
 /** Tasks, assignments and deadline reminders (LD-027, LD-028, docs/delivery/PHASE-5-ACCEPTANCE.md). */
@@ -91,6 +92,11 @@ export function listTasks(filter: TaskFilter, signal: AbortSignal): Promise<Task
   if (filter.status !== undefined) query.set('status', filter.status);
   if (filter.due !== undefined) query.set('due', filter.due);
   return api<TaskPage>(`/api/v1/tasks?${query.toString()}`, { signal });
+}
+
+/** Every task of the case, read page by page (QAD-044). */
+export function listCaseTasks(caseId: string, signal: AbortSignal): Promise<Task[]> {
+  return listAll<Task>('/api/v1/tasks', { caseId }, signal);
 }
 
 export function getReminders(signal: AbortSignal): Promise<Reminders> {

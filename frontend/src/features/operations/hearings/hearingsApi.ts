@@ -1,4 +1,5 @@
 import { api } from '../../../api/http';
+import { listAll } from '../../../api/pagedList';
 import type { Stage } from '../../proceedings/proceedingsApi';
 import { blankToNull } from '../formErrors';
 
@@ -87,9 +88,9 @@ export function listCalendar(filter: CalendarFilter, signal: AbortSignal): Promi
   return api<HearingPage>(`/api/v1/hearings?${query.toString()}`, { signal });
 }
 
-/** A case holds a handful of hearings per proceeding; one page of the maximum size holds them all. */
+/** Every hearing of the case, read page by page (QAD-044). */
 export async function listCaseHearings(caseId: string, signal: AbortSignal): Promise<Hearing[]> {
-  return (await api<HearingPage>(`/api/v1/cases/${encodeURIComponent(caseId)}/hearings?size=100`, { signal })).items;
+  return listAll<Hearing>(`/api/v1/cases/${encodeURIComponent(caseId)}/hearings`, {}, signal);
 }
 
 function body(input: HearingInput) {

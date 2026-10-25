@@ -174,9 +174,9 @@ describe('the judicial ladder of a case', () => {
 
     expect(calls(fetchMock).map((c) => c.url)).toEqual(
       expect.arrayContaining([
-        `/api/v1/cases/${CASE}/proceedings?size=100`,
-        `/api/v1/cases/${CASE}/judgments?size=100`,
-        `/api/v1/cases/${CASE}/special-decisions?size=100`,
+        `/api/v1/cases/${CASE}/proceedings?page=0&size=100`,
+        `/api/v1/cases/${CASE}/judgments?page=0&size=100`,
+        `/api/v1/cases/${CASE}/special-decisions?page=0&size=100`,
       ]),
     );
   });
@@ -254,7 +254,7 @@ describe('recording proceedings', () => {
       filingDate: '2023-01-10',
       parentProceedingId: null,
     });
-    expect(calls(fetchMock).some((c) => c.url === '/api/v1/courts?active=true&level=FIRST_INSTANCE&size=100&sort=code%2Casc')).toBe(true);
+    expect(calls(fetchMock).some((c) => c.url === '/api/v1/courts?active=true&level=FIRST_INSTANCE&page=0&size=100&sort=code%2Casc')).toBe(true);
   });
 
   it('records an appeal against a judged first-instance proceeding', async () => {
@@ -362,7 +362,7 @@ describe('recording proceedings', () => {
     renderStages();
     await screen.findByText('No proceedings recorded yet.');
     await user.click(screen.getByRole('button', { name: 'Record proceeding' }));
-    expect(await screen.findByText('The courts could not be listed.')).toBeInTheDocument();
+    expect(await screen.findByText('The list could not be read. Try again.')).toBeInTheDocument();
   });
 
   it('cancelling closes the form', async () => {

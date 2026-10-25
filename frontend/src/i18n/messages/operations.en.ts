@@ -221,6 +221,7 @@ export const operationsEn = {
   'operations.referral.refer': 'Refer',
   'operations.referral.expert': 'Expert',
   'operations.referral.expertOption': '{name} ({specialty})',
+  'operations.referral.searchExperts': 'Search experts by name or specialty',
   'operations.referral.proceeding': '{stage} no. {number}',
   'operations.referral.label': 'Referral to {name}',
   'operations.referral.date': 'Referral date',

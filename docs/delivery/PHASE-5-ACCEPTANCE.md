@@ -423,3 +423,5 @@ Acceptance criteria:
   `EXPERT_REPORT_SUBMITTED`, `EXPERT_REFERRAL_CANCELLED`, `NOTE_ADDED`, `NOTE_REMOVED`.
 - Uploading files from the browser uses `src/api/http.ts` with `FormData` bodies, added by the integration owner
   (branch `feature/LD-026-http-multipart`, PR #38), which the LD-026 branch merges.
+
+- QAD-044 (S3): the case lists (hearings, referrals, tasks, notes) are read in full page by page, the proceeding selectors of the hearing and referral forms offer every proceeding, and the expert selector is the paged, server-searched `PagedSelect` (name/specialty `q`). Tests: `LongLists.test.tsx`, `PagedSelect.test.tsx`, `pagedList.test.ts`.

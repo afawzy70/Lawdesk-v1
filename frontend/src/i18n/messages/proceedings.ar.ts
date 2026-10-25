@@ -55,7 +55,7 @@ export const proceedingsAr: Record<keyof typeof proceedingsEn, string> = {
   'proceedings.judgmentOption': 'الحكم الصادر في {date} في {number}',
   'proceedings.needsParent.APPEAL': 'يتطلب الاستئناف دعوى أول درجة في هذه القضية صدر فيها حكم.',
   'proceedings.needsParent.CASSATION': 'يتطلب الطعن بالنقض استئنافًا في هذه القضية صدر فيه حكم.',
-  'proceedings.courtsUnavailable': 'تعذر عرض قائمة المحاكم.',
+  'proceedings.searchCourts': 'ابحث في المحاكم',
   'proceedings.save': 'حفظ',
   'proceedings.saving': 'جارٍ الحفظ…',
   'proceedings.cancel': 'إلغاء',
