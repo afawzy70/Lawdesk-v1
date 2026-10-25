@@ -53,13 +53,17 @@ def container_limits(container):
 def mount_guard(container, service, secrets_dir, evidence_dir=None):
     mounts = json.loads(subprocess.check_output(["docker", "inspect", "--format", "{{json .Mounts}}",
                                                  container], text=True))
-    allowed_files = {str((secrets_dir / name).resolve()) for name in
-                     ("db_admin_password.txt", "db_app_password.txt", "admin_bootstrap_password.txt",
-                      "perf_accounts.json")}
-    allowed_files.add(str((ROOT / "deploy/postgres/app-role.sql").resolve()))
-    if service == "k6":
-        allowed_files.add(str((ROOT / "tools/performance/k6").resolve()))
-        allowed_files.add(str(evidence_dir.resolve()))
+    allowed_files = {
+        "db": {str((secrets_dir / name).resolve()) for name in
+               ("db_admin_password.txt", "db_app_password.txt")} |
+              {str((ROOT / "deploy/postgres/app-role.sql").resolve())},
+        "backend": {str((secrets_dir / name).resolve()) for name in
+                    ("db_app_password.txt", "admin_bootstrap_password.txt")},
+        "web": set(),
+        "k6": {str((secrets_dir / "perf_accounts.json").resolve()),
+               str((ROOT / "tools/performance/k6").resolve()), str(evidence_dir.resolve())}
+               if evidence_dir else set(),
+    }[service]
     for mount in mounts:
         kind, target = mount["Type"], mount["Destination"]
         if kind == "tmpfs" and target == "/tmp":
