@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import './styles.css';
 import './modern-chambers.css';
+import './modern-chambers-cases.css';
 
 const container = document.getElementById('root');
 if (!container) {

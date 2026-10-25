@@ -1,0 +1,28 @@
+/* Legal registry cards retain one semantic table and allow full mixed-direction titles on phones. */
+.case-table td:nth-child(4), .case-table td:nth-child(5), .case-table td:nth-child(6) { white-space: nowrap; }
+.case-title { display: block; max-inline-size: 100%; white-space: normal; overflow-wrap: anywhere; }
+.case-status { display: inline-block; padding: .18rem .55rem; border: 1px solid #c3b7a3; border-radius: 2px; background: #eee9df; color: #4a453b; font-size: .77rem; font-weight: 700; line-height: 1.45; white-space: nowrap; }
+.case-status[data-status='ACTIVE'] { background: #eaf2eb; border-color: #a8c1ab; color: #275740; }
+.case-status[data-status='SUSPENDED'] { background: #f8eee0; border-color: #cfb184; color: #6d4b22; }
+.case-status[data-status='CLOSED'], .case-status[data-status='ARCHIVED'] { background: #eeece7; border-color: #c9c4ba; color: #545750; }
+
+/* The dossier follows the 5:7 index/proceedings proportion in the approved Stitch reference. */
+.case-workspace { display: grid; grid-template-columns: minmax(18rem, 5fr) minmax(0, 7fr); gap: 1.5rem; align-items: start; }
+.case-workspace-index, .case-workspace-content { display: grid; gap: 1rem; align-content: start; min-inline-size: 0; }
+.case-workspace .case-section, .case-workspace .case-proceedings, .case-workspace .case-operations { margin-block: 0; }
+.case-workspace .case-form { margin-block: 0; max-inline-size: none; }
+.case-workspace .case-party-forms { display: grid; gap: .75rem; }
+@media (max-width: 1040px) { .case-workspace { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 767px) {
+  .app-main table.case-table { inline-size: 100%; min-inline-size: 0; table-layout: fixed; }
+  .case-table thead { display: none; }
+  .case-table tbody { display: block; padding: .75rem; }
+  .case-table tbody tr { display: block; margin-block-end: .75rem; background: #fffdfa; border: 1px solid var(--ld-border); border-block-start: 3px solid var(--mc-brass); border-radius: var(--mc-radius); padding: .45rem .7rem; }
+  .case-table tbody tr:last-child { margin-block-end: 0; }
+  .case-table tbody tr:hover { background: #fbf6ec; }
+  .app-main .case-table td { display: block; overflow-wrap: anywhere; white-space: normal; border-block-end: 1px solid #e5dfd4; padding: .45rem .1rem; font-weight: 400; }
+  .app-main .case-table td:first-child { font-weight: 700; }
+  .app-main .case-table td:last-child { border-block-end: 0; }
+  .case-table td::before { content: attr(data-label); display: block; margin-block-end: .1rem; color: var(--ld-muted); font-size: .76rem; font-weight: 700; }
+  .case-table td a, .case-table td bdi { overflow-wrap: anywhere; }
+}
