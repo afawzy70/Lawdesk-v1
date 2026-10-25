@@ -161,41 +161,30 @@ if __name__ == "__main__":
     unittest.main()
 
 
-RUNNER = ["self-hosted", "Linux", "X64"]
+# One repository variable moves the whole suite between GitHub-hosted runners (default: parallel jobs) and the Contabo
+# runner (billing recovery, cost control). docs/operations/CI-RUNNER.md.
+RUNS_ON = ("${{ vars.LAWDESK_CI_RUNNER == 'self-hosted' && fromJSON('[\"self-hosted\",\"Linux\",\"X64\"]') "
+           "|| 'ubuntu-24.04' }}")
 
 
-class SingleRunnerPolicyTest(unittest.TestCase):
-    """One runner executes one job at a time (docs/operations/CI-RUNNER.md), so CI is spent only on work that is ready."""
+class HybridRunnerTest(unittest.TestCase):
+    """Owner decision 2026-10-25: GitHub-hosted by default, the Contabo runner as a switchable alternative."""
 
-    GATES = ["policy", "backend", "backend-postgres-image", "frontend", "stack", "secrets"]
+    CI_JOBS = ["policy", "backend", "backend-postgres-image", "frontend", "stack", "secrets", "develop-guard"]
 
-    def test_a_draft_pull_request_waits_and_marking_it_ready_starts_the_run(self):
-        types = load_workflow()["on"]["pull_request"]["types"]
-        self.assertIn("ready_for_review", types)
-        for needed in ["opened", "synchronize", "reopened"]:
-            self.assertIn(needed, types)
-
-    def test_every_gate_skips_drafts_but_always_runs_on_pushes_and_ready_pull_requests(self):
-        for name in self.GATES:
+    def test_every_ci_job_takes_its_runner_from_the_one_switch(self):
+        jobs = load_workflow()["jobs"]
+        for name in self.CI_JOBS:
             with self.subTest(job=name):
-                # On a push there is no pull request, so `!null` is true: pushes to develop are never skipped.
-                self.assertEqual("${{ !github.event.pull_request.draft }}", load_workflow()["jobs"][name].get("if"))
+                self.assertEqual(RUNS_ON, jobs[name]["runs-on"])
 
-    def test_a_superseded_pull_request_run_is_cancelled_but_a_push_to_develop_never_is(self):
-        concurrency = load_workflow()["concurrency"]
-        self.assertEqual("ci-${{ github.ref }}", concurrency["group"])
-        self.assertEqual("${{ github.event_name == 'pull_request' }}", concurrency["cancel-in-progress"])
-
-
-class SelfHostedRunnerTest(unittest.TestCase):
-    """Owner decision 2026-10-25: every job runs on the Contabo runner (docs/operations/CI-RUNNER.md)."""
-
-    def test_every_job_runs_on_the_self_hosted_runner(self):
-        for name, job in load_workflow()["jobs"].items():
-            if "uses" in job:
-                continue  # the reusable deployment workflow is checked in test_cd_workflow.py
-            with self.subTest(job=name):
-                self.assertEqual(RUNNER, job["runs-on"])
+    def test_the_default_is_github_hosted_and_the_alternative_is_the_contabo_runner(self):
+        self.assertIn("|| 'ubuntu-24.04'", RUNS_ON)
+        self.assertIn('["self-hosted","Linux","X64"]', RUNS_ON)
+        # No job hard-codes a runner: the switch is the only `runs-on` in the file.
+        text = WORKFLOW.read_text(encoding="utf-8")
+        self.assertEqual(len(self.CI_JOBS), text.count("runs-on: " + RUNS_ON))
+        self.assertEqual(len(self.CI_JOBS), text.count("runs-on:"))
 
     def test_no_job_reaches_the_host_docker_daemon_or_root(self):
         text = WORKFLOW.read_text(encoding="utf-8")

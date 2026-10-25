@@ -1,0 +1,77 @@
+..................F...........FFFFFFF..F................
+======================================================================
+FAIL: test_deploys_from_a_github_hosted_runner_only (test_cd_workflow.SelfHostedDeployTest.test_deploys_from_a_github_hosted_runner_only)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/runnerci/tools/tests/test_cd_workflow.py", line 77, in test_deploys_from_a_github_hosted_runner_only
+    self.assertEqual("ubuntu-24.04", self.job["runs-on"])
+AssertionError: 'ubuntu-24.04' != ['self-hosted', 'Linux', 'X64']
+
+======================================================================
+FAIL: test_every_ci_job_takes_its_runner_from_the_one_switch (test_ci_workflow.HybridRunnerTest.test_every_ci_job_takes_its_runner_from_the_one_switch) (job='policy')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/runnerci/tools/tests/test_ci_workflow.py", line 179, in test_every_ci_job_takes_its_runner_from_the_one_switch
+    self.assertEqual(RUNS_ON, jobs[name]["runs-on"])
+AssertionError: '${{ vars.LAWDESK_CI_RUNNER == \'self-hos[71 chars]' }}' != ['self-hosted', 'Linux', 'X64']
+
+======================================================================
+FAIL: test_every_ci_job_takes_its_runner_from_the_one_switch (test_ci_workflow.HybridRunnerTest.test_every_ci_job_takes_its_runner_from_the_one_switch) (job='backend')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/runnerci/tools/tests/test_ci_workflow.py", line 179, in test_every_ci_job_takes_its_runner_from_the_one_switch
+    self.assertEqual(RUNS_ON, jobs[name]["runs-on"])
+AssertionError: '${{ vars.LAWDESK_CI_RUNNER == \'self-hos[71 chars]' }}' != ['self-hosted', 'Linux', 'X64']
+
+======================================================================
+FAIL: test_every_ci_job_takes_its_runner_from_the_one_switch (test_ci_workflow.HybridRunnerTest.test_every_ci_job_takes_its_runner_from_the_one_switch) (job='backend-postgres-image')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/runnerci/tools/tests/test_ci_workflow.py", line 179, in test_every_ci_job_takes_its_runner_from_the_one_switch
+    self.assertEqual(RUNS_ON, jobs[name]["runs-on"])
+AssertionError: '${{ vars.LAWDESK_CI_RUNNER == \'self-hos[71 chars]' }}' != ['self-hosted', 'Linux', 'X64']
+
+======================================================================
+FAIL: test_every_ci_job_takes_its_runner_from_the_one_switch (test_ci_workflow.HybridRunnerTest.test_every_ci_job_takes_its_runner_from_the_one_switch) (job='frontend')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/runnerci/tools/tests/test_ci_workflow.py", line 179, in test_every_ci_job_takes_its_runner_from_the_one_switch
+    self.assertEqual(RUNS_ON, jobs[name]["runs-on"])
+AssertionError: '${{ vars.LAWDESK_CI_RUNNER == \'self-hos[71 chars]' }}' != ['self-hosted', 'Linux', 'X64']
+
+======================================================================
+FAIL: test_every_ci_job_takes_its_runner_from_the_one_switch (test_ci_workflow.HybridRunnerTest.test_every_ci_job_takes_its_runner_from_the_one_switch) (job='stack')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/runnerci/tools/tests/test_ci_workflow.py", line 179, in test_every_ci_job_takes_its_runner_from_the_one_switch
+    self.assertEqual(RUNS_ON, jobs[name]["runs-on"])
+AssertionError: '${{ vars.LAWDESK_CI_RUNNER == \'self-hos[71 chars]' }}' != ['self-hosted', 'Linux', 'X64']
+
+======================================================================
+FAIL: test_every_ci_job_takes_its_runner_from_the_one_switch (test_ci_workflow.HybridRunnerTest.test_every_ci_job_takes_its_runner_from_the_one_switch) (job='secrets')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/runnerci/tools/tests/test_ci_workflow.py", line 179, in test_every_ci_job_takes_its_runner_from_the_one_switch
+    self.assertEqual(RUNS_ON, jobs[name]["runs-on"])
+AssertionError: '${{ vars.LAWDESK_CI_RUNNER == \'self-hos[71 chars]' }}' != ['self-hosted', 'Linux', 'X64']
+
+======================================================================
+FAIL: test_every_ci_job_takes_its_runner_from_the_one_switch (test_ci_workflow.HybridRunnerTest.test_every_ci_job_takes_its_runner_from_the_one_switch) (job='develop-guard')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/runnerci/tools/tests/test_ci_workflow.py", line 179, in test_every_ci_job_takes_its_runner_from_the_one_switch
+    self.assertEqual(RUNS_ON, jobs[name]["runs-on"])
+AssertionError: '${{ vars.LAWDESK_CI_RUNNER == \'self-hos[71 chars]' }}' != ['self-hosted', 'Linux', 'X64']
+
+======================================================================
+FAIL: test_the_default_is_github_hosted_and_the_alternative_is_the_contabo_runner (test_ci_workflow.HybridRunnerTest.test_the_default_is_github_hosted_and_the_alternative_is_the_contabo_runner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/runnerci/tools/tests/test_ci_workflow.py", line 184, in test_the_default_is_github_hosted_and_the_alternative_is_the_contabo_runner
+    self.assertEqual(1, WORKFLOW.read_text(encoding="utf-8").count("vars.LAWDESK_CI_RUNNER =="), "set in one place")
+AssertionError: 1 != 0 : set in one place
+
+----------------------------------------------------------------------
+Ran 50 tests in 3.488s
+
+FAILED (failures=9)

@@ -71,8 +71,10 @@ class SelfHostedDeployTest(unittest.TestCase):
         self.cd = load(CD)
         self.job = self.cd["jobs"]["deploy"]
 
-    def test_runs_on_the_self_hosted_runner(self):
-        self.assertEqual(["self-hosted", "Linux", "X64"], self.job["runs-on"])
+    def test_deploys_from_a_github_hosted_runner_only(self):
+        # A secure self-hosted deployment path has not been verified independently (docs/operations/CI-RUNNER.md), so
+        # the deployment privileges stay off the shared Contabo runner and no repository variable can move them there.
+        self.assertEqual("ubuntu-24.04", self.job["runs-on"])
 
     def test_the_gate_credentials_live_in_the_job_temp_directory_only(self):
         text = CD.read_text(encoding="utf-8")

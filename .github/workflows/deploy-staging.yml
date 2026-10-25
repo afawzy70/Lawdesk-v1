@@ -31,7 +31,9 @@ jobs:
   deploy:
     name: Deploy to staging
     if: vars.LAWDESK_STAGING_DEPLOY == 'enabled'
-    runs-on: [self-hosted, Linux, X64]
+    # GitHub-hosted only: a secure self-hosted deployment path is not independently verified, so deployment privileges
+    # never move to the shared Contabo runner (docs/operations/CI-RUNNER.md).
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     environment:
       name: staging

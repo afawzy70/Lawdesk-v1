@@ -138,9 +138,9 @@ gh variable set LAWDESK_STAGING_SSH_TARGET --repo afawzy70/Lawdesk-v1 --body "de
 ```
 
 Host key fingerprint to compare: `SHA256:QDwnaK3VTY1Tk4ZX7/voXqImadGw2r7TeUqPmWR8PYc` (`ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub`).
-SSH must be reachable from the CI runner on port 22 (key-only auth is already enforced by `sshd`). Since 2026-10-25 the
-deploy job runs on the self-hosted runner on this same host (see [CI-RUNNER.md](CI-RUNNER.md)), so it connects to the
-host's own address; the key and the known-hosts entry are unchanged.
+SSH must be reachable from GitHub-hosted runners on port 22 (key-only auth is already enforced by `sshd`). The deploy
+job always runs on a GitHub-hosted runner (see [CI-RUNNER.md](CI-RUNNER.md)); the Contabo self-hosted runner never
+holds deployment privileges.
 
 ### 5. Install the gate (**root**, once per gate change)
 

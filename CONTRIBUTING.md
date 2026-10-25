@@ -52,7 +52,8 @@ Each log starts with the command and UTC timestamp. Never mark a skipped or unex
 - Follow the owner-approved [delivery strategy](docs/governance/LAWDESK-DELIVERY-STRATEGY.md): priorities, delivery
   states (IMPLEMENTED, INTEGRATED, DEPLOYED, QA ACCEPTED, PRODUCTION READY) and the testing rules for the shared host.
 - Target `develop`; fill in `.github/pull_request_template.md` (story IDs, QA case IDs, commands and results).
-- **One CI runner** executes one job at a time (about 22 minutes per run), so CI is spent on ready work only:
+- **CI is a shared, metered resource** (a hosted run bills about 16 minutes; on the single Contabo runner, if the
+  switch is on, a run takes about 20 minutes), so it is spent on ready work only:
   - Prefer fewer, cohesive pull requests: group closely related stories and fixes in one reviewable workstream pull
     request, but not one too large to review and test.
   - Open it as a **draft** while you work (a draft's CI jobs are skipped); mark it **ready for review** when it is
