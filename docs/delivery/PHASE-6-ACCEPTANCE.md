@@ -238,6 +238,34 @@ as before (a `'` prefix in CSV, text cells in Excel). Tests: `PdfTextTest` (11 n
 cells), `ExportFormatsApiTest` (extracted text order of `=1+1`, `-1+1`, `+7`, `@a` in Arabic and English PDFs);
 rendered sample `docs/evidence/PHASE-6/47-pdf-neutral-cells-arabic.png`.
 
+**QAD-039 (export row limit above 10 000 experts), fixed, and the export audit that followed.**
+1. Every export is refused with 422 `EXPORT_TOO_LARGE` at 10 001 rows **before anything is looked up or serialised**:
+   no name lookup, no attachment, no `REPORT_EXPORT` success audit, in CSV, Excel and PDF. Exactly 10 000 rows are
+   exported. The experts and workload exports used to read their whole report first: with 10 001 experts the name lookup
+   exceeded the expert port's own limit (10 000 ids per call) and answered 500; the workload export looked every
+   assignee up before checking the size. Both now read the registry or the assignee list as ids and counts, check the
+   size, and only then look names up.
+2. The on-screen experts and workload reports have no row limit and work above 10 000 rows: names are looked up in
+   chunks of 1 000 ids (experts, through `ExpertReportQueries.experts(ids)`) or from one `UserDirectory.active()` read
+   plus a single lookup for each assignee it does not hold (disabled or unknown accounts).
+3. The case inventory counts the current stage of every matching case through the proceedings port in chunks of at
+   most `ProceedingReportQueries.MAX_IDS` (10 000) case ids per call; the chunk counts add up.
+4. **Performance (found by the audit).** Lists of case, proceeding and expert ids reach the database as one array
+   parameter. A filter written `id = any(cast(? as uuid[]))` re-evaluates the cast for every row of a sequential scan:
+   10 000 ids took about 105 s per query, so a judgments or hearings export over 10 000 different cases, or the case
+   inventory with a stage or court filter over 10 000 cases, needed minutes. The ids are now read once, as an
+   uncorrelated subquery (`id in (select unnest(cast(? as uuid[])))`). Test: `ExportLimitApiTest` answers each of those
+   requests within 30 s (they now take seconds).
+5. Tests (`ExportLimitApiTest`, rows inserted by SQL): experts, workload, hearings, judgments and case-inventory
+   exports at 10 000 (CSV counted row by row; Excel and PDF too for experts) and at 10 001 (422 in every format); every
+   on-screen report at 10 001; chunk sizes of the name and stage lookups captured on the ports.
+6. **Audit, what was checked** (every class in `com.lawdesk.reports` and the ports it calls): dashboard (aggregates
+   only, no id lists); case inventory page and export (count before list, ids chunked, filter ids as a subquery);
+   judgments page and export (count before list; case references of at most one page or 10 000 rows); hearings page and
+   export (count before list; "awaiting result" is counted by reading the matching hearings 10 000 at a time, which is
+   correct but proportional to the matching rows); workload and experts (see 1 and 2). Accepted as is: the stage and
+   court filters pass the ids of every matching case to the cases port, bounded by the size of the registry.
+
 ## Dependencies
 
 - Phase 5 read ports of Workstream D (architecture/CONTRACTS.md §8.3): `HearingReportQueries`, `TaskReportQueries`

@@ -115,6 +115,8 @@ describe('case documents', () => {
       problem(400, { errors: [{ field: 'file', code: 'PdfOnly' }] }),
       problem(400, { errors: [{ field: 'file', code: 'MaxSize' }] }),
       problem(422, { rule: 'DOCUMENT_LIMIT_REACHED' }),
+      // QAD-037: above the web server's transport limit nginx answers 413 with no problem document.
+      problem(413),
       problem(403),
     ];
     serve({ onWrite: () => answers.shift() ?? problem(500) });
@@ -130,6 +132,8 @@ describe('case documents', () => {
     expect(
       await within(form).findByText('This case already holds 10 documents. Remove one to attach another.'),
     ).toBeVisible();
+    await user.click(attach);
+    expect(await within(form).findByText('The file is larger than 10 MB.')).toBeVisible();
     await user.click(attach);
     expect(await within(form).findByText('You are not permitted to make this change.')).toBeVisible();
   });

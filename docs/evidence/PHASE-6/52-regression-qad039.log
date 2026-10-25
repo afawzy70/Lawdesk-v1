@@ -1,0 +1,18 @@
+# fix/QAD-039-expert-export-limit on develop b849b1c (Phase 5 and 6 merged). Local run; nothing pushed.
+# Backend, default order: ./mvnw -B clean verify
+[INFO] Tests run: 680, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+# Backend, reverse-alphabetical class order: ./mvnw -B clean verify -Dsurefire.runOrder=reversealphabetical
+[INFO] Tests run: 680, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+# Frontend (unchanged by this fix)
+> npm run lint: 0 problems
+> npx tsc -b: exit 0
+ Test Files  46 passed (46)
+      Tests  454 passed (454)
+All files          |   98.43 |     92.9 |   98.07 |   99.06 |
+# Policy
+tools: Ran 142 tests, OK
+deploy: Ran 155 tests, OK
+python3 -I tools/security/endpoint_matrix.py --check: exit 0
+# gitleaks dir: docs/evidence, backend/src, frontend/src, tools: no leaks found

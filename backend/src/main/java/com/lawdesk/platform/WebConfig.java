@@ -11,5 +11,7 @@ class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new AuthorizeBeforeBindingInterceptor());
+        // After authorization, so a caller without the permission gets 403 and not a parameter error (QAD-026).
+        registry.addInterceptor(new PagingValidationInterceptor());
     }
 }

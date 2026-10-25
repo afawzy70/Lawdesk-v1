@@ -1,0 +1,9 @@
+# QAD-038 RED: with V406 the second connection never waits (pg_stat_activity shows no lock wait) and both writers commit (-Dtest=HearingChainSerializationTest)
+[ERROR] Tests run: 5, Failures: 5, Errors: 0, Skipped: 0, Time elapsed: 86.50 s <<< FAILURE! -- in com.lawdesk.hearings.HearingChainSerializationTest
+[ERROR]   HearingChainSerializationTest.aParentEditAndASuccessorEditCannotBothCommit:141->race:123->awaitLockWait:90 the second writer never waited for the first one: the writes are not serialised
+[ERROR]   HearingChainSerializationTest.aParentEditedWhileItsSuccessorIsInsertedCannotBothCommit:176->race:123->awaitLockWait:90 the second writer never waited for the first one: the writes are not serialised
+[ERROR]   HearingChainSerializationTest.aSuccessorEditAndAParentEditCannotBothCommit:150->race:123->awaitLockWait:90 the second writer never waited for the first one: the writes are not serialised
+[ERROR]   HearingChainSerializationTest.aSuccessorInsertedWhileTheParentIsEditedCannotBothCommit:161->race:123->awaitLockWait:90 the second writer never waited for the first one: the writes are not serialised
+[ERROR]   HearingChainSerializationTest.writersThatDoNotConflictAreNotHeldUpOnceTheFirstCommits:205->awaitLockWait:90 the second writer never waited for the first one: the writes are not serialised
+[ERROR] Tests run: 5, Failures: 5, Errors: 0, Skipped: 0
+[ERROR] BUILD FAILURE

@@ -90,7 +90,7 @@ Maven and npm caches persist in the runner's home between jobs.
    deploy job never runs on the Contabo runner, a foothold there cannot reach the deployment key. Running PR code
    there is a billing-recovery measure, not the normal path. A stronger form (ephemeral just-in-time runner) needs the
    owner's decision.
-2. **The deploy key is a repository secret, not an environment secret.** Any workflow on any branch of this repository
+2. **The deploy key is a repository secret, not an environment secret (migration prepared).** Any workflow on any branch of this repository
    can read repository secrets, hosted or self-hosted. The `staging` environment has no secrets and no branch
    restriction. The documented fix (STAGING-RUNBOOK §8) is to recreate both secrets in the `staging` environment,
    restrict its deployment branches to `develop`, then delete the repository-level secrets; it needs the key's value,
@@ -122,20 +122,26 @@ sudo tools/ci-runner/setup-rootless-docker.sh --apply --restart-runner
 `sudo systemctl restart actions.runner.afawzy70-Lawdesk-v1.contabo.service` when it is idle. The script ends by
 verifying its own result (daemon rootless, isolation from `/srv/deployments`, Matbakhy and the host socket).
 
-Move the deploy secrets into the `staging` environment (needs the key; owner):
+Move the deploy secrets into the `staging` environment, restricted to `develop` (owner action; needs the CI deployment key,
+which no agent can read; credentials are never rotated or exposed by this). Run on a workstation that holds the key
+file and the host's known-hosts line, both mode 600:
 
 ```bash
-gh secret set LAWDESK_STAGING_SSH_KEY --env staging --repo afawzy70/Lawdesk-v1 < /path/to/the/ci/private/key
-gh secret set LAWDESK_STAGING_KNOWN_HOSTS --env staging --repo afawzy70/Lawdesk-v1 < /path/to/known_hosts
-gh api -X PUT repos/afawzy70/Lawdesk-v1/environments/staging \
-  -F 'deployment_branch_policy[protected_branches]=false' -F 'deployment_branch_policy[custom_branch_policies]=true'
-gh api -X POST repos/afawzy70/Lawdesk-v1/environments/staging/deployment-branch-policies -f name=develop
-gh secret delete LAWDESK_STAGING_SSH_KEY --repo afawzy70/Lawdesk-v1        # only after one deploy worked
-gh secret delete LAWDESK_STAGING_KNOWN_HOSTS --repo afawzy70/Lawdesk-v1
+tools/github/migrate-staging-secrets.sh --ssh-key-file KEY --known-hosts-file HOSTS             # the plan, changes nothing
+tools/github/migrate-staging-secrets.sh --ssh-key-file KEY --known-hosts-file HOSTS --apply     # restrict, then store
+tools/github/migrate-staging-secrets.sh --ssh-key-file KEY --known-hosts-file HOSTS --verify    # redeploy the develop head
+tools/github/migrate-staging-secrets.sh --ssh-key-file KEY --known-hosts-file HOSTS --remove-repo-secrets
+tools/github/migrate-staging-secrets.sh --ssh-key-file KEY --known-hosts-file HOSTS --verify    # once more, now proof
 ```
 
-(Environment branch restrictions may not be offered on this plan for private repositories; if the second command is
-refused, keep the secrets at repository level and rely on the residual-risk notes above.)
+What it guarantees (pinned by `tools/tests/test_migrate_staging_secrets.py`, mutation-checked): nothing changes without
+`--apply`; the environment is restricted to `develop` before a secret is stored in it; a secret travels on stdin from its
+file and is never an argument or printed; files others can read, a key ssh cannot use, or a known-hosts file without the
+deployment host are refused; the repository-level copies are deleted only after a deployment that ran **after** the
+environment secrets were stored succeeded, so the key keeps working at every step. A redeploy of the current develop head
+is the normal manual redeploy (a short restart, no data change). Rollback at any step:
+`gh secret set LAWDESK_STAGING_SSH_KEY --repo afawzy70/Lawdesk-v1 < KEY` (and the same for `..._KNOWN_HOSTS`).
+Environment branch restrictions need a plan that offers them; if `--apply` is refused for that reason nothing was stored.
 
 ## Monitoring and maintenance
 

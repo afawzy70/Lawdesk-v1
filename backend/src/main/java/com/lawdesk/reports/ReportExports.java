@@ -77,8 +77,7 @@ class ReportExports {
     }
 
     public ExportFile workload(ExportQuery export) {
-        WorkloadReport.Report report = workload.read();
-        requireWithinLimit(report.items().size());
+        WorkloadReport.Report report = workload.read(ReportExports::requireWithinLimit);
         ReportLabels labels = ReportLabels.of(export.lang());
         List<List<Object>> rows = new ArrayList<>();
         for (WorkloadReport.Row row : report.items()) {
@@ -91,8 +90,7 @@ class ReportExports {
     }
 
     public ExportFile experts(ExportQuery export) {
-        ExpertReport.Report report = experts.read();
-        requireWithinLimit(report.items().size());
+        ExpertReport.Report report = experts.read(ReportExports::requireWithinLimit);
         ReportLabels labels = ReportLabels.of(export.lang());
         List<List<Object>> rows = new ArrayList<>();
         for (ExpertReport.Row row : report.items()) {
@@ -147,7 +145,8 @@ class ReportExports {
                         rows));
     }
 
-    private static void requireWithinLimit(long rows) {
+    /** Refuses an export of more than {@link #MAX_ROWS} rows; called before anything is looked up or serialised. */
+    static void requireWithinLimit(long rows) {
         if (rows > MAX_ROWS) {
             throw new BusinessRuleException("EXPORT_TOO_LARGE", rows + " rows match; the export limit is " + MAX_ROWS);
         }
