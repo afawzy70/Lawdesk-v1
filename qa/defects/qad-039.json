@@ -2,7 +2,7 @@
   "id": "QAD-039",
   "reported_utc": "2026-10-25T09:49:02.314829+00:00",
   "owner": "Claude implementation; independent QA verification",
-  "status": "CONFIRMED_OPEN",
+  "status": "FIX_VERIFIED_INDEPENDENT_LOCAL",
   "priority": "P2",
   "severity": "S3",
   "story_ids": [
@@ -41,5 +41,17 @@
     "qa/evidence/phase56-acceptance-20261025/current-export-limits/results.json"
   ],
   "recommendation": "REQUEST_CHANGES for affected export acceptance; S3 is not an automatic block on ordinary owner-approved Dev/UAT deployment",
-  "fix_guidance": "Check export size before the bounded lookup; retain explicit limit error and test10000/10001 for all formats."
+  "fix_guidance": "Check export size before the bounded lookup; retain explicit limit error and test10000/10001 for all formats.",
+  "retests": [
+    {
+      "utc": "2026-10-25T12:38:18.543317+00:00",
+      "previous_status": "CONFIRMED_OPEN",
+      "status": "FIX_VERIFIED_INDEPENDENT_LOCAL",
+      "tested_sha": "0338cac0fca07eb0ce06eb8f2b45a54dd0386f7e",
+      "note": "9999/10000 exact rows/content inCSV/XLSX/PDF;10001 all422 with no exception leakage/audit. Bulk boundary tested locally, not shared UAT.",
+      "evidence": [
+        "qa/evidence/final-phase2-6-20261025/qad039/results.json"
+      ]
+    }
+  ]
 }

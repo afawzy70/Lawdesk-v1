@@ -1,7 +1,7 @@
 {
   "reported_utc": "2026-10-25T09:41:46.243707+00:00",
   "owner": "Claude implementation; independent QA verification",
-  "status": "CONFIRMED_OPEN",
+  "status": "FIX_VERIFIED_UAT",
   "priority": "P1",
   "severity": "S2",
   "affected": [
@@ -44,5 +44,17 @@
     "qa/evidence/phase56-acceptance-20261025/current-document-viewer/results.json",
     "qa/evidence/phase56-acceptance-20261025/documents/results.json"
   ],
-  "fix_guidance": "Align the isolated LawDesk web/proxy request allowance with a10MiB file plus multipart overhead. Keep backend file validation. Do not modify Matbakhy/shared proxy. Retest valid PDF boundary, oversized rejection and UI error display."
+  "fix_guidance": "Align the isolated LawDesk web/proxy request allowance with a10MiB file plus multipart overhead. Keep backend file validation. Do not modify Matbakhy/shared proxy. Retest valid PDF boundary, oversized rejection and UI error display.",
+  "retests": [
+    {
+      "utc": "2026-10-25T12:38:18.543317+00:00",
+      "previous_status": "CONFIRMED_OPEN",
+      "status": "FIX_VERIFIED_UAT",
+      "tested_sha": "0338cac0fca07eb0ce06eb8f2b45a54dd0386f7e",
+      "note": "Valid PDF below/above1MiB and exact10MiB accepted; overlimit400; bytes/hash/case checks, quota race and role checks. Additional two-size persistence in document-persistence.",
+      "evidence": [
+        "qa/evidence/final-phase2-6-20261025/qad037-uat/results.json"
+      ]
+    }
+  ]
 }

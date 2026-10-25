@@ -1,7 +1,7 @@
 {
   "reported_utc": "2026-10-25T09:41:46.243707+00:00",
   "owner": "Claude implementation; independent QA verification",
-  "status": "CONFIRMED_OPEN",
+  "status": "FIX_VERIFIED_INDEPENDENT_POSTGRESQL_AND_API",
   "priority": "P1",
   "severity": "S2",
   "affected": [
@@ -45,5 +45,17 @@
     "qa/evidence/phase56-acceptance-20261025/dbextended/results.json",
     "qa/evidence/phase56-acceptance-20261025/current-db/results.json"
   ],
-  "fix_guidance": "Coordinate date checks and writes across both linked hearings with a consistent locking/serialization strategy. Retest both transaction orders, rollback and cancelled/history preservation; avoid deadlocks."
+  "fix_guidance": "Coordinate date checks and writes across both linked hearings with a consistent locking/serialization strategy. Retest both transaction orders, rollback and cancelled/history preservation; avoid deadlocks.",
+  "retests": [
+    {
+      "utc": "2026-10-25T12:38:18.543317+00:00",
+      "previous_status": "CONFIRMED_OPEN",
+      "status": "FIX_VERIFIED_INDEPENDENT_POSTGRESQL_AND_API",
+      "tested_sha": "0338cac0fca07eb0ce06eb8f2b45a54dd0386f7e",
+      "note": "Original reproduction and both lock orders prevent invalid commits; expert race,40P01victim rollback,API chronology29 and real V408 upgrade5 pass. No direct UAT SQL fault injection.",
+      "evidence": [
+        "qa/evidence/final-phase2-6-20261025/qad038-db/results.json"
+      ]
+    }
+  ]
 }

@@ -1,0 +1,58 @@
+{
+  "id": "QAD-040",
+  "reported_utc": "2026-10-25T12:38:18.543317+00:00",
+  "status": "CONFIRMED_OPEN",
+  "severity": "S2",
+  "priority": "P1",
+  "story_ids": [
+    "LD-027",
+    "LD-011"
+  ],
+  "title": "Successful task status audit survives failed business COMMIT",
+  "affected": [
+    "0338cac0fca07eb0ce06eb8f2b45a54dd0386f7e"
+  ],
+  "environment": "Canonical exact-SHA Spring Boot jar; disposable PostgreSQL18.6; no UAT fault injection",
+  "preconditions": [
+    "Approved synthetic local task and authenticated TASK_MANAGE actor",
+    "Own disposable DB capable of installing a test-only deferred constraint trigger"
+  ],
+  "test_data": {
+    "initial_task_status": "OPEN",
+    "version": 0,
+    "requested_status": "DONE"
+  },
+  "steps": [
+    "Create synthetic OPEN task; snapshot task and case_event rows; count TASK_STATUS_CHANGED events for targetId (zero).",
+    "In disposable DB ONLY: create function qa_task_commit_failure() returns trigger language plpgsql as $$ begin raise exception 'QA deferred commit failure'; end $$; create constraint trigger qa_task_commit_failure after update on task deferrable initially deferred for each row execute function qa_task_commit_failure();",
+    "Authenticated POST /api/v1/tasks/{ownedTaskId}/status with {status:DONE,version:0}.",
+    "Read task/history and audit_event after response; drop the test-only trigger/function."
+  ],
+  "expected": "500 rollback restores task/history AND no successful TASK_STATUS_CHANGED event is committed (LD027 criterion3a).",
+  "actual": {
+    "http_status": 500,
+    "task_history_unchanged": true,
+    "success_audit_before": 0,
+    "success_audit_after": 1,
+    "incorrect_reason": "OPEN->DONE"
+  },
+  "cause": "TaskService.java174 calls AuditLog.record before outer commit; AuditLog uses REQUIRES_NEW and commits success separately.",
+  "impact": "Security/business audit falsely claims a status transition succeeded when task transaction rolled back. The fault injection demonstrates transaction ordering, not an anonymous exploit.",
+  "recommendation": "REQUEST_CHANGES for LD027 and cross-phase LD011 audit integrity; unrelated work can continue.",
+  "remediation_owner": "Claude; preserve separate authentication/denial auditing while making successful task-state audit atomic with business commit",
+  "retest_required": [
+    "Exact reproduced deferred-COMMIT failure produces no success audit",
+    "Successful transition persists exactly one event",
+    "Audit-write failure rolls business state back where required",
+    "Refused/stale transitions add no SUCCESS event",
+    "Existing login/denial audit regression"
+  ],
+  "evidence": [
+    "qa/evidence/final-phase2-6-20261025/owner-policy/results.json"
+  ],
+  "assertion_id": "TASK-COMMIT-ROLLBACK-AUDIT-ATOMICITY",
+  "handoff_comments": [
+    "https://github.com/afawzy70/Lawdesk-v1/pull/53#issuecomment-6397554788",
+    "https://github.com/afawzy70/Lawdesk-v1/pull/6#issuecomment-6397555571"
+  ]
+}

@@ -1,0 +1,203 @@
+{
+  "tested_sha": "0338cac0fca07eb0ce06eb8f2b45a54dd0386f7e",
+  "utc": "2026-10-25T12:31:26.732297+00:00",
+  "candidate": "/tmp/lawdesk-final-20261025-candidate",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 4,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "fd18703d-98ff-4b5b-875a-396bbc59ff00",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-25T12:31:16.207842Z",
+          "updatedAt": "2026-10-25T12:31:16.207842Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-CHUNKS-ALL",
+      "story_ids": [
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-CHUNKS-ALL"
+      },
+      "steps": [
+        "Create10001 owned local cases;5001 with proceedings -> request summary ALL"
+      ],
+      "expected_results": "200; exact total/stage/NONE across port chunk boundary",
+      "actual": {
+        "status": 200,
+        "summary": {
+          "total": 10001,
+          "open": 10001,
+          "closed": 0,
+          "byStatus": {
+            "OPEN": 10001,
+            "ACTIVE": 0,
+            "SUSPENDED": 0,
+            "CLOSED": 0,
+            "ARCHIVED": 0
+          },
+          "byType": {
+            "CIVIL": 10001,
+            "CRIMINAL": 0,
+            "COMMERCIAL": 0,
+            "LABOR": 0,
+            "FAMILY": 0,
+            "ADMINISTRATIVE": 0
+          },
+          "byStage": {
+            "FIRST_INSTANCE": 5001,
+            "APPEAL": 0,
+            "CASSATION": 0,
+            "NONE": 5000
+          }
+        },
+        "totalItems": 10001
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-CHUNKS-STAGE",
+      "story_ids": [
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-CHUNKS-STAGE"
+      },
+      "steps": [
+        "Create10001 owned local cases;5001 with proceedings -> request summary STAGE"
+      ],
+      "expected_results": "200; exact total/stage/NONE across port chunk boundary",
+      "actual": {
+        "status": 200,
+        "summary": {
+          "total": 5001,
+          "open": 5001,
+          "closed": 0,
+          "byStatus": {
+            "OPEN": 5001,
+            "ACTIVE": 0,
+            "SUSPENDED": 0,
+            "CLOSED": 0,
+            "ARCHIVED": 0
+          },
+          "byType": {
+            "CIVIL": 5001,
+            "CRIMINAL": 0,
+            "COMMERCIAL": 0,
+            "LABOR": 0,
+            "FAMILY": 0,
+            "ADMINISTRATIVE": 0
+          },
+          "byStage": {
+            "FIRST_INSTANCE": 5001,
+            "APPEAL": 0,
+            "CASSATION": 0,
+            "NONE": 0
+          }
+        },
+        "totalItems": 5001
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-CHUNKS-COURT",
+      "story_ids": [
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-CHUNKS-COURT"
+      },
+      "steps": [
+        "Create10001 owned local cases;5001 with proceedings -> request summary COURT"
+      ],
+      "expected_results": "200; exact total/stage/NONE across port chunk boundary",
+      "actual": {
+        "status": 200,
+        "summary": {
+          "total": 5001,
+          "open": 5001,
+          "closed": 0,
+          "byStatus": {
+            "OPEN": 5001,
+            "ACTIVE": 0,
+            "SUSPENDED": 0,
+            "CLOSED": 0,
+            "ARCHIVED": 0
+          },
+          "byType": {
+            "CIVIL": 5001,
+            "CRIMINAL": 0,
+            "COMMERCIAL": 0,
+            "LABOR": 0,
+            "FAMILY": 0,
+            "ADMINISTRATIVE": 0
+          },
+          "byStage": {
+            "FIRST_INSTANCE": 5001,
+            "APPEAL": 0,
+            "CASSATION": 0,
+            "NONE": 0
+          }
+        },
+        "totalItems": 5001
+      },
+      "status": "PASS"
+    }
+  ]
+}

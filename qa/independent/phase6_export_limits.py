@@ -10,6 +10,7 @@ class ExportLimits(OperationReview):
             'workload':f"insert into task(title,assignee_id,created_by,updated_by) select 'QA export cap',gen_random_uuid(),'{actor}','{actor}' from generate_series(1,{{count}})",
             'experts':f"insert into expert(name,specialty,created_by,updated_by) select 'QA export cap '||g,'QA','{actor}','{actor}' from generate_series(1,{{count}}) g"}
         for report,statement in inserts.items():
+            if report not in self.args.reports.split(','):continue
             self.sql(statement.format(count=10000))
             base='/api/v1/reports/'+report+'/export?from=2026-01-01&to=2026-01-31&format='
             started=time.monotonic();status,body,headers=self.raw(self.admin,'GET',base+'csv');elapsed=time.monotonic()-started
@@ -27,5 +28,6 @@ class ExportLimits(OperationReview):
 if __name__=='__main__':
     p=argparse.ArgumentParser()
     for n in ['candidate','sha','output']:p.add_argument('--'+n,required=True)
+    p.add_argument('--reports',default='hearings,workload,experts',help='Select changed report guards; avoid repeating unchanged boundaries')
     p.set_defaults(kind='notes',browser=False)
     raise SystemExit(ExportLimits(p.parse_args()).execute())
