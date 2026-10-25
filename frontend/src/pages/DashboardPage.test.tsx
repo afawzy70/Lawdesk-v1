@@ -227,3 +227,40 @@ describe('dashboard without the figures', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('The figures could not be loaded.');
   });
 });
+
+describe('permission-scoped active dossier preview', () => {
+  const caseId = '3f2c8a8e-6b1d-4c3e-9a51-0d4b7e2f1a90';
+
+  it('shows actual client and opponent names from the case parties API', async () => {
+    const fetchMock = fakeApi({
+      me: REPORTER,
+      routes: {
+        [DASHBOARD]: () => jsonResponse(FIGURES),
+        'GET /api/v1/cases?status=ACTIVE': () => jsonResponse({
+          items: [{ id: caseId, referenceNo: 'LD-2026-00421', title: 'Supply contract dispute', caseType: 'COMMERCIAL', status: 'ACTIVE', openedOn: '2026-05-12', updatedAt: '2026-10-24T09:30:00Z' }],
+          page: 0, size: 20, totalItems: 1, totalPages: 1,
+        }),
+        [`GET /api/v1/cases/${caseId}/parties`]: () => jsonResponse([
+          { partyId: 'client-1', kind: 'ORGANIZATION', name: 'Horizon Supply Co.', role: 'CLIENT', addedAt: '2026-05-12T09:00:00Z' },
+          { partyId: 'opponent-1', kind: 'ORGANIZATION', name: 'Al Madar Trading', role: 'OPPONENT', addedAt: '2026-05-12T09:00:00Z' },
+        ]),
+      },
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    await renderDashboard();
+    const dossier = await screen.findByRole('region', { name: 'Active matters' });
+    expect(await within(dossier).findByText('Horizon Supply Co.')).toBeInTheDocument();
+    expect(within(dossier).getByText('Al Madar Trading')).toBeInTheDocument();
+    expect(within(dossier).getByRole('link', { name: 'Open case dossier' })).toHaveAttribute('href', `/cases/${caseId}?lang=en`);
+    expect(requested(fetchMock, `/api/v1/cases/${caseId}/parties`)).toBe(1);
+  });
+
+  it('does not request case or party data without CASE_VIEW', async () => {
+    const reporterOnly: Me = { ...REPORTER, permissions: ['REPORT_VIEW'] };
+    const fetchMock = stub(reporterOnly);
+    await renderDashboard();
+    await screen.findByRole('region', { name: 'Cases' });
+    expect(screen.queryByRole('region', { name: 'Active matters' })).not.toBeInTheDocument();
+    expect(requested(fetchMock, '/api/v1/cases')).toBe(0);
+  });
+});
