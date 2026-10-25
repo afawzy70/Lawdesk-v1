@@ -83,7 +83,10 @@ manager/admin-only by default. The last active `ADMIN` can never be disabled, lo
 
   Unexpected errors return a 500 without details.
 - **Lists:** `?page=0&size=20&sort=<field>,<asc|desc>`, where `size` defaults to 20 and is capped at 100. The answer is
-  `PageResponse { items[], page, size, totalItems, totalPages }`.
+  `PageResponse { items[], page, size, totalItems, totalPages }`. **ASSUMPTION for owner review (QAD-029):** an invalid
+  `page` or `size` (negative, zero, not a number) falls back to the defaults (page 0, size 20) on the lists built on
+  Spring Data paging (courts, audit, hearings, tasks, experts, documents, notes), whereas the Phase 3 case list and
+  case timeline answer 400; the owner decides whether one policy should apply to every list.
 - **Writes** return the stored representation. Creations answer 201 with `Location`. Updates send `version` and get 409
   when it is stale.
 
@@ -150,6 +153,15 @@ or 6 screen needs to work.
   The single line that mounts it in `CaseDetailsPage.tsx` is added in D's first PR that has something to show. That
   PR must come after the mobile fix QAD-027 is on `develop`, which changes the same page.
 - **Shared configuration.** D may add `spring.servlet.multipart.*` to `application.yaml`, and nothing else there.
+- **Database integrity exception (QAD-032, QAD-033).** The integration owner authorized three narrow exceptions in
+  Phase 4 code so that dates dependent on a proceeding stay valid whichever side is edited:
+  - the port `com.lawdesk.proceedings.ProceedingDependentDates`, its call in the filing-date correction and
+    `ProceedingLookup#lockForUpdate` (the shared proceeding row lock);
+  - the trigger `proceeding_keeps_dependent_dates` on the Phase 4 table `proceeding`, created by the Phase 5 migration
+    `V406__LD-024_hearing_dates_database_integrity.sql` (and extended by `V407` for expert referrals): a proceeding's
+    `case_id` never changes, and its filing date never moves after a hearing or an expert referral;
+  - the rule texts in `proceedings.{en,ar}.ts`.
+  The triggers add no column and rewrite no row; they only refuse invalid new statements.
 
 ### 8.2 Permissions and default roles
 
