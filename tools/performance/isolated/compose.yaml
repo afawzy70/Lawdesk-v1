@@ -1,0 +1,112 @@
+name: lawdesk-perf
+
+x-hardening: &hardening
+  restart: "no"
+  security_opt: ["no-new-privileges:true"]
+  cap_drop: [ALL]
+  pids_limit: 256
+  logging:
+    driver: json-file
+    options: {max-size: "10m", max-file: "2"}
+
+services:
+  db:
+    <<: *hardening
+    image: postgres:18.6-alpine3.24@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID]
+    cpus: 1.0
+    mem_limit: 512m
+    pids_limit: 128
+    environment:
+      POSTGRES_DB: lawdesk
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_admin_password
+    command: ["postgres", "-c", "shared_preload_libraries=pg_stat_statements", "-c", "max_connections=40", "-c", "log_min_duration_statement=250"]
+    secrets: [db_admin_password, db_app_password]
+    volumes:
+      - perf-db:/var/lib/postgresql
+      - ../../../deploy/postgres/app-role.sql:/docker-entrypoint-initdb.d/010-app-role.sql:ro
+    networks: [perf-internal]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "lawdesk"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    <<: *hardening
+    build: ../../../backend
+    image: lawdesk-perf-backend:${LAWDESK_PERF_SHA:?set exact tested SHA}
+    cpus: 1.0
+    mem_limit: 768m
+    read_only: true
+    tmpfs: [/tmp]
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/lawdesk
+      SPRING_DATASOURCE_USERNAME: lawdesk_app
+      SPRING_CONFIG_IMPORT: configtree:/run/secrets/
+      LAWDESK_RELEASE: ${LAWDESK_PERF_SHA:?set exact tested SHA}
+      LAWDESK_BOOTSTRAP_ADMIN_USERNAME: perf.admin
+      LAWDESK_BOOTSTRAP_ADMIN_EMAIL: perf.admin@example.invalid
+      LAWDESK_BOOTSTRAP_ADMIN_PASSWORD_FILE: /run/secrets/admin_bootstrap_password
+      SERVER_SERVLET_SESSION_COOKIE_SECURE: "false"
+    secrets:
+      - source: db_app_password
+        target: spring.datasource.password
+      - admin_bootstrap_password
+    depends_on:
+      db: {condition: service_healthy}
+    networks: [perf-internal]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/actuator/health/readiness"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 90s
+
+  web:
+    <<: *hardening
+    build: ../../../frontend
+    image: lawdesk-perf-web:${LAWDESK_PERF_SHA:?set exact tested SHA}
+    cpus: 0.5
+    mem_limit: 96m
+    pids_limit: 64
+    read_only: true
+    tmpfs: [/tmp]
+    ports: ["127.0.0.1:18080:8080"]
+    depends_on:
+      backend: {condition: service_healthy}
+    networks: [perf-internal]
+
+  k6:
+    <<: *hardening
+    profiles: [load]
+    image: grafana/k6:2.3.0@sha256:2dd4756ec6e14e62778916e1eb850108e4b499304c02df56760fa0bdb0fba0b8
+    user: ${LAWDESK_PERF_UID:?set host UID for private credentials}
+    cpus: 1.0
+    mem_limit: 512m
+    pids_limit: 128
+    read_only: true
+    volumes:
+      - ../k6:/scripts:ro
+      - ${LAWDESK_PERF_SECRETS_DIR:?set private perf secrets directory}/perf_accounts.json:/run/secrets/perf_accounts.json:ro
+      - ${LAWDESK_PERF_EVIDENCE_DIR:?set dedicated evidence directory}:/evidence
+    command: ["run", "-e", "LAWDESK_K6_ISOLATED=yes", "-e", "BASE_URL=http://web:8080", "-e", "CREDENTIALS_FILE=/run/secrets/perf_accounts.json", "-e", "PROFILE=${LAWDESK_PERF_PROFILE:-smoke}", "-e", "FEATURES=hearings,tasks,documents,reports,exports", "--out", "json=/evidence/${LAWDESK_PERF_PROFILE:-smoke}-metrics.jsonl", "--summary-export=/evidence/${LAWDESK_PERF_PROFILE:-smoke}-summary.json", "/scripts/${LAWDESK_PERF_SCRIPT:-lawdesk-mix.js}"]
+    depends_on:
+      web: {condition: service_started}
+    networks: [perf-internal]
+
+networks:
+  perf-internal:
+    internal: true
+
+volumes:
+  perf-db: {}
+
+secrets:
+  db_admin_password:
+    file: ${LAWDESK_PERF_SECRETS_DIR:?set private perf secrets directory}/db_admin_password.txt
+  db_app_password:
+    file: ${LAWDESK_PERF_SECRETS_DIR:?set private perf secrets directory}/db_app_password.txt
+  admin_bootstrap_password:
+    file: ${LAWDESK_PERF_SECRETS_DIR:?set private perf secrets directory}/admin_bootstrap_password.txt
