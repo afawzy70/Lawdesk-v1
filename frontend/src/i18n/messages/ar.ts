@@ -21,6 +21,9 @@ export const ar: Messages = {
   'shell.primaryNav': 'التنقل الرئيسي',
   'shell.menu': 'القائمة',
   'shell.switchLanguage': 'English',
+  'shell.caseSearch': 'البحث في القضايا بالرقم أو العنوان',
+  'shell.caseSearchPlaceholder': 'رقم القضية أو عنوانها',
+  'shell.search': 'بحث',
 
   'nav.dashboard': 'لوحة المعلومات',
   'nav.cases': 'القضايا',

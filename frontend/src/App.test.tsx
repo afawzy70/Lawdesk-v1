@@ -209,8 +209,9 @@ describe('preview labelling', () => {
 
   it.each(PREVIEW_ROUTES)('offers no forms, inputs or save/create/edit/login actions on %s', async (path) => {
     const { container } = await renderAt(path);
-    expect(container.querySelector('form, input, textarea, select')).toBeNull();
-    const buttons = screen.queryAllByRole('button').map((b) => b.textContent);
+    const main = container.querySelector('main');
+    expect(main?.querySelector('form, input, textarea, select')).toBeNull();
+    const buttons = within(main as HTMLElement).queryAllByRole('button').map((b) => b.textContent);
     for (const label of buttons) {
       expect(label).not.toMatch(/save|create|new|add|edit|delete|log ?in|sign ?in|submit/i);
     }
