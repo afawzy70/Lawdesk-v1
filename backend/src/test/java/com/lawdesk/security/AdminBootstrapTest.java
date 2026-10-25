@@ -73,7 +73,7 @@ class AdminBootstrapTest extends PostgresTestSupport {
 
     @Test
     void aBootstrapPasswordMustFollowThePolicy() {
-        AdminBootstrap weak = new AdminBootstrap(null, null, null, "owner2", "owner2@example.invalid",
+        AdminBootstrap weak = new AdminBootstrap(null, null, null, null, "owner2", "owner2@example.invalid",
                 passwordFile("too short").toString());
 
         assertThatThrownBy(() -> weak.validatedPassword()).isInstanceOf(IllegalStateException.class)

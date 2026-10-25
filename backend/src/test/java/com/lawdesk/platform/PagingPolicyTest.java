@@ -102,11 +102,37 @@ class PagingPolicyTest extends PostgresTestSupport {
         }
     }
 
+    /** QAD-041: offsets are page * size and must fit the 32-bit offset of the data layer: beyond that, 400, never 500. */
+    @Test
+    void offsetsBeyondTheDataLayerAreRefusedAndTheLastValidOnesAreAnswered() throws Exception {
+        UUID caseId = createCase();
+        String[][] refused = {{"2147483647", ""}, {"2147483647", "2"}, {"107374183", "20"}, {"21474837", "100"}};
+        String[][] answered = {{"2147483647", "1"}, {"107374182", "20"}, {"21474836", "100"}, {"1000000", "100"}};
+        for (Endpoint endpoint : lists(caseId)) {
+            for (String[] p : refused) {
+                var request = get(endpoint.path()).param("page", p[0]).with(as(endpoint.permission()));
+                if (!p[1].isEmpty()) {
+                    request = request.param("size", p[1]);
+                }
+                mvc.perform(request).andExpect(status().isBadRequest())
+                        .andExpect(jsonPath("$.errors[0].field").value("page"))
+                        .andExpect(jsonPath("$.errors[0].code").value("Max"));
+            }
+            for (String[] p : answered) {
+                mvc.perform(get(endpoint.path()).param("page", p[0]).param("size", p[1])
+                                .with(as(endpoint.permission())))
+                        .andExpect(status().isOk()).andExpect(jsonPath("$.items.length()").value(0));
+            }
+        }
+    }
+
     @Test
     void aCallerWithoutThePermissionStillGets403BeforeAnyParameterRule() throws Exception {
         UUID caseId = createCase();
         for (Endpoint endpoint : lists(caseId)) {
             mvc.perform(get(endpoint.path()).param("page", "-1").with(as())).andExpect(status().isForbidden());
+            mvc.perform(get(endpoint.path()).param("page", "2147483647").with(as())).andExpect(status().isForbidden());
+            mvc.perform(get(endpoint.path()).param("page", "2147483647")).andExpect(status().isUnauthorized());
         }
     }
 
