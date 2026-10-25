@@ -32,6 +32,8 @@ English stack: DM Sans, Noto Sans, Segoe UI, sans-serif. Arabic stack: IBM Plex 
 
 Desktop has a persistent charcoal rail for permission-filtered top-level destinations. The application toolbar holds session state, language, profile and sign-out. On phones the existing keyboard accessible menu toggle reveals the same links. Escape closes it and returns focus. Report and administration subnavigation remain labelled tab strips. The case dossier groups identity, key facts, edit action, parties, judicial stages, operations and timeline in legal reading order. No unsupported Stitch navigation items are added.
 
+The corrected Dashboard uses the approved screen's 104 px charcoal rail, compact horizontal metric strip and 5:7 Court Diary / active dossier split at desktop width. The dossier uses the existing case list, parties and hearing APIs only; absent details are omitted. Report routes retain the standard app rail, while their paper report body, pale heading band, brass top rule on summaries, filtered table registers, export buttons and pagination echo the same visual language. This route-scoped distinction preserves the presentation of all other Modern Chambers screens.
+
 ## Components
 
 - **Buttons:** one brass primary action per local form; paper secondary controls; 44 px minimum height; clear hover, disabled, active and focus states. Destructive confirmation retains its actual wording and action.

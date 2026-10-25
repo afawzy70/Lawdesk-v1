@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, NavLink, Outlet, useNavigate } from 'react-router';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { ApiStatus } from '../components/ApiStatus';
 import { LocaleToggle } from '../components/LocaleToggle';
 import { PreviewBanner } from '../components/PreviewBanner';
@@ -15,6 +15,7 @@ export function AppLayout() {
   const { locale, t } = useI18n();
   const { state, signOut } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const me = state.status === 'signedIn' ? state.me : null;
   const navItems = visibleNav(new Set(me?.permissions ?? []));
   const [menuOpen, setMenuOpen] = useState(false);
@@ -43,7 +44,7 @@ export function AppLayout() {
   }, [menuOpen]);
 
   return (
-    <div className="app">
+    <div className={`app${pathname === '/' ? ' app-dashboard' : pathname === '/reports' || pathname.startsWith('/reports/') ? ' app-reports' : ''}`}>
       <a className="skip-link" href={`#${MAIN_ID}`}>
         {t('shell.skipToContent')}
       </a>

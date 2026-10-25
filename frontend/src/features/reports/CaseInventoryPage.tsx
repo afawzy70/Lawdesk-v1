@@ -230,7 +230,7 @@ export function CaseInventoryPage() {
               ]}
             />
             {load.report.items.length === 0 ? (
-              <p>{t('reports.list.emptyCases')}</p>
+              <p className="rpt-empty">{t('reports.list.emptyCases')}</p>
             ) : (
               <>
                 {/* Focusable so keyboard users can scroll the table on narrow screens. */}
@@ -258,7 +258,7 @@ export function CaseInventoryPage() {
                             <Link to={withLang(casePath(row.id), locale)}><bdi dir="ltr">{row.referenceNo}</bdi></Link>
                           </td>
                           <td>{row.title}</td>
-                          <td>{t(`cases.type.${row.caseType}`)}</td>
+                          <td className="rpt-type">{t(`cases.type.${row.caseType}`)}</td>
                           <td className="rpt-status">{t(`cases.status.${row.status}`)}</td>
                           <td>{formatDay(row.openedOn, locale)}</td>
                           <td>

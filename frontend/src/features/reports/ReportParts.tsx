@@ -57,7 +57,7 @@ export function Summary({ items }: { items: readonly (readonly [string, number])
 export function Pager({ page, pages, onPage }: { page: number; pages: number; onPage: (page: number) => void }) {
   const { locale, t } = useI18n();
   return (
-    <>
+    <div className="rpt-pager">
       <p>{t('reports.list.page', { page: formatNumber(page + 1, locale), pages: formatNumber(pages, locale) })}</p>
       {pages > 1 ? (
         <nav aria-label={t('reports.list.pagination')} className="rpt-actions">
@@ -81,7 +81,7 @@ export function Pager({ page, pages, onPage }: { page: number; pages: number; on
           </button>
         </nav>
       ) : null}
-    </>
+    </div>
   );
 }
 

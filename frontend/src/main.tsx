@@ -4,6 +4,7 @@ import { App } from './App';
 import './styles.css';
 import './modern-chambers.css';
 import './modern-chambers-cases.css';
+import './modern-chambers-reports.css';
 
 const container = document.getElementById('root');
 if (!container) {

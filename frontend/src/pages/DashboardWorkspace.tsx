@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { searchCases, type CaseListItem } from '../features/cases/api';
+import { getCaseParties, searchCases, type CaseListItem, type CaseParty } from '../features/cases/api';
 import { casePath } from '../features/cases/paths';
 import { addDays, formatDay, formatTime, legalToday } from '../features/operations/days';
 import { listCalendar, type Hearing } from '../features/operations/hearings/hearingsApi';
@@ -18,6 +18,9 @@ export function DashboardWorkspace({ canCases, canHearings }: { canCases: boolea
   const { locale, t } = useI18n();
   const [cases, setCases] = useState<Preview<CaseListItem>>({ kind: 'loading' });
   const [hearings, setHearings] = useState<Preview<Hearing>>({ kind: 'loading' });
+  const [parties, setParties] = useState<Preview<CaseParty>>({ kind: 'loading' });
+  const leadCaseId = cases.kind === 'loaded' ? cases.items[0]?.id : undefined;
+  const leadHearing = hearings.kind === 'loaded' ? hearings.items.find((hearing) => hearing.caseId === leadCaseId) : undefined;
 
   useEffect(() => {
     if (!canCases) return undefined;
@@ -52,6 +55,22 @@ export function DashboardWorkspace({ canCases, canHearings }: { canCases: boolea
     };
   }, [canHearings]);
 
+  useEffect(() => {
+    if (!canCases || leadCaseId === undefined) return undefined;
+    const controller = new AbortController();
+    getCaseParties(leadCaseId, controller.signal).then(
+      (items) => {
+        if (!controller.signal.aborted) setParties(Array.isArray(items) ? { kind: 'loaded', items } : { kind: 'failed' });
+      },
+      () => {
+        if (!controller.signal.aborted) setParties({ kind: 'failed' });
+      },
+    );
+    return () => {
+      controller.abort();
+    };
+  }, [canCases, leadCaseId]);
+
   if (!canCases && !canHearings) return null;
 
   return (
@@ -72,7 +91,7 @@ export function DashboardWorkspace({ canCases, canHearings }: { canCases: boolea
           {hearings.kind === 'loaded' && hearings.items.length > 0 && (
             <ol className="mc-hearing-list">
               {hearings.items.slice(0, 3).map((hearing) => (
-                <li key={hearing.id}>
+                <li key={hearing.id} className={hearing === hearings.items[0] ? 'mc-hearing-lead' : undefined}>
                   <p className="mc-hearing-time">
                     <time dateTime={`${hearing.hearingDate}${hearing.hearingTime === null ? '' : `T${hearing.hearingTime}`}`}>
                       {formatDay(hearing.hearingDate, locale)}
@@ -114,7 +133,19 @@ export function DashboardWorkspace({ canCases, canHearings }: { canCases: boolea
                 <li key={legalCase.id} className={index === 0 ? 'mc-matter-lead' : undefined}>
                   <span className="mc-case-reference"><bdi dir="ltr">{legalCase.referenceNo}</bdi></span>
                   <h3><Link to={withLang(casePath(legalCase.id), locale)}><bdi dir="auto">{legalCase.title}</bdi></Link></h3>
-                  <p>{t(`cases.type.${legalCase.caseType}`)} <span aria-hidden="true">·</span> {t(`cases.status.${legalCase.status}`)}</p>
+                  <p className="mc-matter-classification">{t(`cases.type.${legalCase.caseType}`)} <span aria-hidden="true">·</span> {t(`cases.status.${legalCase.status}`)}</p>
+                  {index === 0 && parties.kind === 'loaded' && parties.items.some((party) => party.role === 'CLIENT' || party.role === 'OPPONENT') && (
+                    <dl className="mc-matter-parties">
+                      {(['CLIENT', 'OPPONENT'] as const).map((role) => {
+                        const party = parties.items.find((item) => item.role === role);
+                        return party === undefined ? null : <div key={role}><dt>{t(`cases.role.${role}`)}</dt><dd><bdi dir="auto">{party.name}</bdi></dd></div>;
+                      })}
+                    </dl>
+                  )}
+                  {index === 0 && <p className="mc-matter-opened">{t('reports.column.openedOn')}: <time dateTime={legalCase.openedOn}>{formatDay(legalCase.openedOn, locale)}</time></p>}
+                  {index === 0 && leadHearing !== undefined && (
+                    <p className="mc-matter-next-hearing">{t('reports.dashboard.diary')}: <time dateTime={leadHearing.hearingDate}>{formatDay(leadHearing.hearingDate, locale)}</time></p>
+                  )}
                   {index === 0 && <Link className="mc-open-dossier" to={withLang(casePath(legalCase.id), locale)}>{t('reports.dashboard.openDossier')}</Link>}
                 </li>
               ))}

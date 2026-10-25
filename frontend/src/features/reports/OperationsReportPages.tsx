@@ -168,7 +168,7 @@ export function HearingReportPage() {
             ]}
           />
           {report.items.length === 0 ? (
-            <p>{t('reports.list.emptyHearings')}</p>
+            <p className="rpt-empty">{t('reports.list.emptyHearings')}</p>
           ) : (
             <>
               <ReportTable
@@ -256,7 +256,7 @@ export function WorkloadReportPage() {
             ]}
           />
           {report.items.length === 0 ? (
-            <p>{t('reports.list.emptyWorkload')}</p>
+            <p className="rpt-empty">{t('reports.list.emptyWorkload')}</p>
           ) : (
             <ReportTable
               caption={t('reports.section.workload')}
@@ -309,7 +309,7 @@ export function ExpertReportPage() {
             ]}
           />
           {report.items.length === 0 ? (
-            <p>{t('reports.list.emptyExperts')}</p>
+            <p className="rpt-empty">{t('reports.list.emptyExperts')}</p>
           ) : (
             <ReportTable
               caption={t('reports.section.experts')}

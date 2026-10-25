@@ -214,7 +214,7 @@ export function JudgmentReportPage() {
               ]}
             />
             {load.report.items.length === 0 ? (
-              <p>{t('reports.list.emptyJudgments')}</p>
+              <p className="rpt-empty">{t('reports.list.emptyJudgments')}</p>
             ) : (
               <>
                 <div className="table-scroll" role="region" tabIndex={0} aria-labelledby={captionId}>

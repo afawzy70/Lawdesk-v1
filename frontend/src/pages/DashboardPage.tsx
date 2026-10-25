@@ -189,10 +189,13 @@ export function DashboardPage() {
   }
 
   return (
-    <>
-      <h1>{t('nav.dashboard')}</h1>
-      <p className="dashboard-intro">{t('reports.dashboard.intro')}</p>
+    <div className="mc-dashboard-page">
+      <div className="mc-dashboard-intro">
+        <p className="mc-dashboard-eyebrow">{t('app.name')}</p>
+        <h1>{t('nav.dashboard')}</h1>
+        <p className="dashboard-intro">{t('reports.dashboard.intro')}</p>
+      </div>
       {body}
-    </>
+    </div>
   );
 }
