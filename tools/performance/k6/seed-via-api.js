@@ -10,16 +10,17 @@
 //
 // Per case: 2 parties, 3 first-instance proceedings, an appeal of every second one, a judgment on 60 %, and (with
 // FEATURES=hearings) two hearings per proceeding. The admin account creates the 60 synthetic courts once (setup()).
-import { check, fail } from 'k6';
+import { check, fail, sleep } from 'k6';
 import { credentials, enabled, get, send, signIn, target } from './lib/lawdesk.js';
 
 const BASE = target();
 const ACCOUNTS = credentials();
 const CASES = parseInt(__ENV.CASES || '100', 10);
+const SEED_VUS = Math.min(4, Math.max(1, parseInt(__ENV.SEED_VUS || '4', 10)));
 
 export const options = {
   scenarios: {
-    seed: { executor: 'shared-iterations', vus: Math.min(4, CASES), iterations: CASES, maxDuration: '6h' },
+    seed: { executor: 'shared-iterations', vus: Math.min(SEED_VUS, CASES), iterations: CASES, maxDuration: '6h' },
   },
   noCookiesReset: true,
   thresholds: { checks: ['rate>0.99'] },
@@ -110,4 +111,5 @@ export default function (courts) {
       }
     }
   }
+  sleep(1);
 }
