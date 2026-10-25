@@ -138,6 +138,22 @@ Acceptance criteria:
    orders, the API still answering 422), and the six race tests of `HearingFilingChronologyTest` unchanged. Evidence:
    `LD-024-25-red-QAD-033-hearing-database.log`, `LD-024-26-red-QAD-033-share-lock-mutation.log` (the race test fails
    without `FOR SHARE`), `LD-024-27-green-QAD-033-hearing-database.log`.
+   QAD-038 (P1/S2): V406 took the proceeding row only `FOR SHARE`, which two hearing writers hold together, so a writer
+   of the parent hearing and a writer of its successor each read the other's old, uncommitted date and both committed a
+   successor dated on or before its parent. Migration `V408__LD-024_serialise_dependent_date_writers.sql` replaces the
+   hearing trigger function (V406 is not edited) so that its **first statement** locks the proceeding row `FOR NO KEY
+   UPDATE`: every hearing write of one proceeding, and any filing-date correction, runs one after the other, and the
+   later writer's next statement (a fresh READ COMMITTED snapshot) sees the earlier commit and is refused with a check
+   violation (23514) after waiting. Lock order: the written row first (PostgreSQL locks it before a BEFORE ROW trigger),
+   then the proceeding row; no trigger waits for another row while it holds the proceeding, so two hearing triggers
+   cannot deadlock each other. The API also edits a hearing row-first, proceeding-second. The one cycle left is a raw
+   writer holding a hearing against an API request holding the proceeding and wanting that same hearing: PostgreSQL
+   aborts one of them (40P01), nothing is half written. Tests: `HearingChainSerializationTest`, two plain READ COMMITTED
+   JDBC connections with explicit transactions and no MockMvc, proving the wait in `pg_stat_activity` (parent edit vs
+   successor edit in both orders, successor insert vs parent edit in both orders, compatible edits, a cancelled
+   successor still bounding its parent); the earlier race tests and `MigrationPhase5IntegrityTest` stay green.
+   Evidence: `LD-024-28-red-QAD-038-hearing-chain-race.log` (RED: the second writer never waits and both commit),
+   `LD-024-29-green-QAD-038-V408.log`.
 8. **Report port for Phase 6:** `com.lawdesk.hearings.HearingReportQueries` (read-only, no security of its own: the
    reports module checks `REPORT_VIEW`): hearings in a date range with optional status, case and proceeding filters,
    paged, with their total, and counts by status. The rules "upcoming" (`SCHEDULED` and dated today or later) and
@@ -318,6 +334,12 @@ Acceptance criteria:
    V405 to the latest version and checks that no row is rewritten (same `xmin`) or rejected and that protection starts
    at once. Evidence: `LD-025-16-red-QAD-033-expert-database.log`, `LD-025-17-red-QAD-033-migration-on-existing-data.log`,
    `LD-025-18-green-QAD-033-expert-database.log`.
+   QAD-038 (same class of race) for experts: `ExpertSerializationTest` runs a referral edit against a session edit or
+   insert in both orders and a filing-date correction against a referral edit, on plain READ COMMITTED connections;
+   each ends with one winner, a check violation for the later writer after it waited, and no session before its
+   referral. These already held with V407 (the session trigger locks the referral row, the referral trigger the
+   proceeding row; `LD-025-19-QAD-038-expert-races-hold-on-V407.log`); V408 only makes the lock the uniform first
+   statement of the referral and session triggers (proceeding row `FOR NO KEY UPDATE`).
 8. Screens: `/experts` (ready, `EXPERT_VIEW`) is the registry with status filter, search, create, edit and deactivate;
    the case's expert referrals in `CaseOperations` refer a proceeding to an active expert, record sessions and the
    report, and cancel a referral after confirmation.
