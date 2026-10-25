@@ -225,6 +225,35 @@ class ExportFormatsApiTest extends PostgresTestSupport {
         assertThat(audited()).isEmpty();
     }
 
+    /** QAD-035: a streaming reader sizes the sheet from its declared dimension, so it must match the cells. */
+    @Test
+    void declaresTheRealDimensionInEnglishAndArabicWorkbooks() throws Exception {
+        for (String lang : List.of("en", "ar")) {
+            byte[] cases = mvc.perform(export(CASES, "xlsx", lang).param("q", m)).andExpect(status().isOk())
+                    .andReturn().getResponse().getContentAsByteArray();
+            XlsxTest.Sheet sheet = XlsxTest.read(cases);
+            assertThat(sheet.rows()).as(lang).isEqualTo(3);
+            assertThat(sheet.dimension()).as(lang).isEqualTo("A1:I3");
+
+            byte[] judgments = mvc.perform(export(JUDGMENTS, "xlsx", lang).param("from", "2031-03-10")
+                    .param("to", "2031-03-10")).andExpect(status().isOk()).andReturn().getResponse()
+                    .getContentAsByteArray();
+            assertThat(XlsxTest.read(judgments).dimension()).as(lang).isEqualTo("A1:H2");
+        }
+    }
+
+    @Test
+    void declaresTheRealDimensionAtTheTenThousandRowLimit() throws Exception {
+        data.insertBulkCases(9_998);
+        for (String lang : List.of("en", "ar")) {
+            byte[] xlsx = mvc.perform(export(CASES, "xlsx", lang).param("q", m)).andExpect(status().isOk())
+                    .andReturn().getResponse().getContentAsByteArray();
+            XlsxTest.Sheet sheet = XlsxTest.read(xlsx);
+            assertThat(sheet.rows()).as(lang).isEqualTo(10_001);
+            assertThat(sheet.dimension()).as(lang).isEqualTo("A1:I10001");
+        }
+    }
+
     @Test
     void anUnknownFormatIsAFieldError() throws Exception {
         mvc.perform(export(CASES, "docx", "en")).andExpect(status().isBadRequest())
