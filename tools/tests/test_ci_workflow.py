@@ -164,6 +164,29 @@ if __name__ == "__main__":
 RUNNER = ["self-hosted", "Linux", "X64"]
 
 
+class SingleRunnerPolicyTest(unittest.TestCase):
+    """One runner executes one job at a time (docs/operations/CI-RUNNER.md), so CI is spent only on work that is ready."""
+
+    GATES = ["policy", "backend", "backend-postgres-image", "frontend", "stack", "secrets"]
+
+    def test_a_draft_pull_request_waits_and_marking_it_ready_starts_the_run(self):
+        types = load_workflow()["on"]["pull_request"]["types"]
+        self.assertIn("ready_for_review", types)
+        for needed in ["opened", "synchronize", "reopened"]:
+            self.assertIn(needed, types)
+
+    def test_every_gate_skips_drafts_but_always_runs_on_pushes_and_ready_pull_requests(self):
+        for name in self.GATES:
+            with self.subTest(job=name):
+                # On a push there is no pull request, so `!null` is true: pushes to develop are never skipped.
+                self.assertEqual("${{ !github.event.pull_request.draft }}", load_workflow()["jobs"][name].get("if"))
+
+    def test_a_superseded_pull_request_run_is_cancelled_but_a_push_to_develop_never_is(self):
+        concurrency = load_workflow()["concurrency"]
+        self.assertEqual("ci-${{ github.ref }}", concurrency["group"])
+        self.assertEqual("${{ github.event_name == 'pull_request' }}", concurrency["cancel-in-progress"])
+
+
 class SelfHostedRunnerTest(unittest.TestCase):
     """Owner decision 2026-10-25: every job runs on the Contabo runner (docs/operations/CI-RUNNER.md)."""
 

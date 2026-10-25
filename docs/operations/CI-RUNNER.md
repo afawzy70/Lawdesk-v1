@@ -27,7 +27,7 @@ compute.
 | Identity | the unprivileged user `lawdesk-ci` (no sudo, not in the `docker` group, mode-0750 home) |
 | Jobs | all seven jobs of `ci.yml` and the `deploy` job of `deploy-staging.yml`; job IDs, names, commands and checks are unchanged |
 | Docker | the runner's **own rootless daemon**, the user unit `lawdesk-ci-docker.service` of `lawdesk-ci` (root-owned file in `/etc/systemd/user`), socket `/run/user/<uid>/docker.sock`, reached through `DOCKER_HOST` in the runner's `.env` |
-| One job at a time | one runner process, so jobs queue. `concurrency` in `ci.yml` cancels superseded pull request runs; pushes to `develop` are never cancelled |
+| One job at a time | one runner process, so jobs queue (about 22 minutes per run). `concurrency` in `ci.yml` cancels superseded pull request runs; pushes to `develop` are never cancelled, and the deployment has its own non-cancelling group. Draft pull requests skip their jobs until marked ready (CONTRIBUTING.md) |
 
 Tools: Java 21 and Node 22 come from `actions/setup-java` and `actions/setup-node`, Python 3.12 from
 `actions/setup-python`; ShellCheck, actionlint and gitleaks are downloaded with pinned checksums, as before. Maven and

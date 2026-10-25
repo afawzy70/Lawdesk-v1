@@ -52,6 +52,14 @@ Each log starts with the command and UTC timestamp. Never mark a skipped or unex
 - Follow the owner-approved [delivery strategy](docs/governance/LAWDESK-DELIVERY-STRATEGY.md): priorities, delivery
   states (IMPLEMENTED, INTEGRATED, DEPLOYED, QA ACCEPTED, PRODUCTION READY) and the testing rules for the shared host.
 - Target `develop`; fill in `.github/pull_request_template.md` (story IDs, QA case IDs, commands and results).
+- **One CI runner** executes one job at a time (about 22 minutes per run), so CI is spent on ready work only:
+  - Prefer fewer, cohesive pull requests: group closely related stories and fixes in one reviewable workstream pull
+    request, but not one too large to review and test.
+  - Open it as a **draft** while you work (a draft's CI jobs are skipped); mark it **ready for review** when it is
+    stable, which starts one run. Batch commits and local tests, then push once; a new push cancels the superseded run
+    of the same pull request, never a deployment.
+  - Documentation and administrative changes ride with the next functional pull request instead of costing their own
+    merge, CI run and deployment.
 - The author never approves or merges their own pull request; independent QA review is required.
 - Do not bypass failing checks. If a check is wrong, fix it in a separate reviewed change.
 
