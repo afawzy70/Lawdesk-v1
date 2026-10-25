@@ -37,12 +37,12 @@ the office, and its internal legal notes.
 5. Text input is trimmed; an optional text that is empty after trimming is stored as `null`, a required one counts as
    missing (`NotBlank`). Length limits count characters after trimming.
 6. Lists are `PageResponse` (`page`, `size` default 20, capped at 100). **ASSUMPTION:** list order is fixed per
-   endpoint (given below); `sort` is ignored. **ASSUMPTION for owner review (QAD-029):** an invalid `page` or `size`
-   (negative, zero, not a number) falls back to the defaults (page 0, size 20) instead of answering 400, on every list
-   built on Spring Data paging: hearings, tasks, experts, documents, notes, courts and the audit log. The Phase 3 case
-   list and case timeline answer 400 for the same input (PHASE-3-ACCEPTANCE LD-015), so the platform has two policies;
-   the owner decides whether to keep both or to make one rule for every list. `PagingPolicyTest` records today's
-   behaviour on both sides (one sentence in architecture/CONTRACTS.md §4).
+   endpoint (given below); `sort` is ignored. **OWNER DECISION 2026-10-25 (QAD-029):** an invalid `page` or `size` (not an integer, `page` below 0, `size` below 1) is
+   refused with 400 and names the parameter (`errors[].field`, code `Min` or `Digits`); a missing or blank one takes the
+   default (page 0, size 20); a `size` above 100 is capped. One rule for every list, including the case list and case
+   timeline (PHASE-3-ACCEPTANCE LD-015): a shared interceptor applies it to every handler that takes a `Pageable`, after
+   the authorization check, so a caller without the permission still gets 403. `PagingPolicyTest` pins it, including a
+   test that discovers every paged handler (architecture/CONTRACTS.md §4).
 7. Each recording write adds one case timeline entry through `CaseLookup#recordEvent(caseId, type, summary)` in the same
    transaction: if the event fails, the write is rolled back. Summaries name dates, numbers and statuses only, never
    the free text of notes, decisions or task descriptions (the timeline is shown to every `CASE_VIEW` holder).
