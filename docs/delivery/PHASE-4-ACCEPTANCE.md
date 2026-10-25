@@ -78,6 +78,10 @@ Acceptance criteria:
      court, which the owner may want to model as a `FIRST_INSTANCE` court hearing appeals — confirm).
    - `COURT_INACTIVE`: a deactivated court cannot receive a new proceeding.
    - `FIRST_INSTANCE_HAS_NO_PARENT`: a first-instance proceeding has no parent.
+   - `FILING_AFTER_DEPENDENT_HEARING` (QAD-032, Phase 5): a filing date cannot be corrected to after a hearing of the
+     proceeding (LD-024); records of other modules that depend on the filing date are asked through the port
+     `ProceedingDependentDates` while the proceeding row is locked (docs/delivery/PHASE-5-ACCEPTANCE.md, LD-024.7).
+   - `FILING_AFTER_DEPENDENT_REFERRAL` (QAD-032, Phase 5): likewise for the expert referrals of the proceeding (LD-025).
 4. **ASSUMPTION:** the court number and year are unique per court and stage (`courtId`, `courtCaseYear`,
    `courtCaseNumber`, `stage`); a second record is 409.
 5. **ASSUMPTION:** a case may hold more than one first-instance proceeding (for example a counterclaim filed as its
