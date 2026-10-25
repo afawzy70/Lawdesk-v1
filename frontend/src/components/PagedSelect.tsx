@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type SelectHTMLAttributes } from 'react';
+import { formatNumber } from '../i18n/format';
 import { useI18n } from '../i18n/I18nContext';
 import './pagedSelect.css';
 
@@ -23,6 +24,8 @@ interface Props<T extends { id: string }> {
   /** Text matched by the local filter; defaults to the option label. */
   searchText?: (item: T) => string;
   serverSearch: boolean;
+  /** Fetches the record for a `value` that the loaded pages do not hold (a selection restored from an address). */
+  resolve?: (id: string, signal: AbortSignal) => Promise<T>;
   searchLabel: string;
   chooseLabel: string;
 }
@@ -37,10 +40,11 @@ export function PagedSelect<T extends { id: string }>({
   optionLabel,
   searchText,
   serverSearch,
+  resolve,
   searchLabel,
   chooseLabel,
 }: Props<T>) {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const [items, setItems] = useState<T[]>([]);
   const [page, setPage] = useState(-1);
   const [totalItems, setTotalItems] = useState(0);
@@ -99,6 +103,20 @@ export function PagedSelect<T extends { id: string }>({
     };
   }, [query, serverSearch]);
 
+  useEffect(() => {
+    if (resolve === undefined || value === '' || page < 0 || chosen?.id === value || items.some((i) => i.id === value)) return;
+    const mine = new AbortController();
+    resolve(value, mine.signal).then(
+      (item) => {
+        if (!mine.signal.aborted) setChosen(item);
+      },
+      () => undefined,
+    );
+    return () => {
+      mine.abort();
+    };
+  }, [value, page, items, chosen, resolve]);
+
   const term = typed.trim().toLowerCase();
   const visible =
     serverSearch || term === ''
@@ -110,8 +128,8 @@ export function PagedSelect<T extends { id: string }>({
   let status: string | null = null;
   if (failed) status = null;
   else if (!serverSearch && term !== '' && visible.length === 0 && items.length > 0)
-    status = t('selector.noMatchLoaded', { loaded: String(items.length) });
-  else if (page >= 0) status = t('selector.showing', { shown: String(serverSearch || term === '' ? items.length : visible.length), total: String(totalItems) });
+    status = t('selector.noMatchLoaded', { loaded: formatNumber(items.length, locale) });
+  else if (page >= 0) status = t('selector.showing', { shown: formatNumber(serverSearch || term === '' ? items.length : visible.length, locale), total: formatNumber(totalItems, locale) });
 
   return (
     <div className="paged-select">

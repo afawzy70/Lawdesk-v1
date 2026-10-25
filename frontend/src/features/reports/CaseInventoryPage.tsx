@@ -20,7 +20,7 @@ import {
   type InventoryReport,
 } from './inventoryApi';
 import { failureMessage, isForbidden } from './common';
-import { useReportCourts } from './courts';
+import { CourtFilter } from './courts';
 import { ExportLinks, Field, Pager, ReportSections, Summary } from './ReportParts';
 import './reports.css';
 
@@ -50,7 +50,6 @@ export function CaseInventoryPage() {
   const key = JSON.stringify(filter);
   const [result, setResult] = useState<{ key: string; load: Load } | null>(null);
   const load: Load = result?.key === key ? result.load : { kind: 'loading' };
-  const courts = useReportCourts();
   const captionId = useId();
 
   useEffect(() => {
@@ -168,19 +167,7 @@ export function CaseInventoryPage() {
               ))}
             </select>
           </Field>
-          {courts === null ? null : (
-            <Field label={t('reports.filter.court')}>
-              {/* Keyed by the list, so the chosen court is selected once the courts have arrived. */}
-              <select key={courts.length} name="courtId" defaultValue={filter.courtId ?? ''}>
-                {anyOption}
-                {courts.map((court) => (
-                  <option key={court.id} value={court.id}>
-                    {courtName(court)}
-                  </option>
-                ))}
-              </select>
-            </Field>
-          )}
+          <CourtFilter initial={filter.courtId ?? ''} anyLabel={t('reports.filter.any')} />
           <Field label={t('reports.filter.sort')}>
             <select name="sortField" defaultValue={filter.sort ?? DEFAULT_SORT}>
               {INVENTORY_SORTS.map((sort) => (

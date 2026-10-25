@@ -9,7 +9,7 @@ import { AccessDeniedPage } from '../auth/AccessDeniedPage';
 import { casePath } from '../cases/paths';
 import { OUTCOMES, STAGES } from '../proceedings/proceedingsApi';
 import { failureMessage, isForbidden } from './common';
-import { useReportCourts } from './courts';
+import { CourtFilter } from './courts';
 import { formatDay } from './format';
 import {
   JUDGMENT_SORTS,
@@ -46,7 +46,6 @@ export function JudgmentReportPage() {
   const key = JSON.stringify(filter);
   const [result, setResult] = useState<{ key: string; load: Load } | null>(null);
   const load: Load = result?.key === key ? result.load : { kind: 'loading' };
-  const courts = useReportCourts();
   const captionId = useId();
 
   useEffect(() => {
@@ -139,18 +138,7 @@ export function JudgmentReportPage() {
               ))}
             </select>
           </Field>
-          {courts === null ? null : (
-            <Field label={t('reports.filter.court')}>
-              <select key={courts.length} name="courtId" defaultValue={filter.courtId ?? ''}>
-                {anyOption}
-                {courts.map((court) => (
-                  <option key={court.id} value={court.id}>
-                    {courtName(court)}
-                  </option>
-                ))}
-              </select>
-            </Field>
-          )}
+          <CourtFilter initial={filter.courtId ?? ''} anyLabel={t('reports.filter.any')} />
           <Field label={t('reports.filter.final')}>
             <select name="final" defaultValue={filter.final ?? ''}>
               {anyOption}

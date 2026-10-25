@@ -128,7 +128,8 @@ manager/admin-only by default. The last active `ADMIN` can never be disabled, lo
   the native `<select>`, "Showing n of N" and "Load more". It searches on the server where the API has `q` (experts) and
   filters the loaded rows where it has not (courts). The size cap stays 100 (§4). A redesign keeps this component
   contract: the search box, the select, the status line and the button are separate focusable controls with the labels
-  above; restyle them with CSS, never replace them with a fixed-size list.
+  above; restyle them with CSS, never replace them with a fixed-size list. The report court filters (`features/reports/courts.tsx`, `CourtFilter`) use it too, named `courtId` so the
+  filter form and the export links are unchanged; `resolve` restores a court from the address that is not on page one.
 
 ## 7. Delivery
 
