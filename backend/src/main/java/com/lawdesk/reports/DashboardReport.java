@@ -12,7 +12,7 @@ import com.lawdesk.proceedings.ProceedingReportQueries.StageCount;
 
 /** {@code GET /api/v1/reports/dashboard} (docs/delivery/PHASE-6-ACCEPTANCE.md, LD-030 criterion 1). */
 record DashboardReport(String month, Cases cases, Proceedings proceedings, Judgments judgments,
-        List<PendingFigure> pending) {
+        Operations operations, List<PendingFigure> pending) {
 
     record Cases(long total, long open, long closed, long newThisMonth, Map<CaseStatus, Long> byStatus,
             Map<CaseType, Long> byType) {
@@ -24,6 +24,15 @@ record DashboardReport(String month, Cases cases, Proceedings proceedings, Judgm
     /** {@code final} in JSON counts the judgments recorded as final; Java reserves the word. */
     record Judgments(LocalDate from, LocalDate to, long recorded, @JsonProperty("final") long finalJudgments,
             Map<Outcome, Long> byOutcome) {
+    }
+
+    /**
+     * Legal operations (Phase 5), each rule evaluated by its owning module's report port: scheduled hearings from today
+     * to today + 6 days, hearings still scheduled after their day, open expert referrals whose report is overdue, open
+     * tasks due before today, and open tasks due today or within {@code TaskReportQueries.DUE_SOON_DAYS} days.
+     */
+    record Operations(long hearingsThisWeek, long hearingsAwaitingResult, long expertReportsOverdue, long overdueTasks,
+            long tasksDueSoon) {
     }
 
     /**

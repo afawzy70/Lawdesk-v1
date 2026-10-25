@@ -1,0 +1,17 @@
+# LD-033 branch (feature/LD-033-workload-experts-hearings) on #41 + feature/LD-029-notes 9879743.
+# CI: NOT_RUN (GitHub Actions billing-blocked for the account); all checks run locally.
+# Backend: ./mvnw -B clean verify
+[INFO] Tests run: 635, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+# Frontend
+> npm run lint: 0 problems
+> npx tsc -b: exit 0
+ Test Files  46 passed (46)
+      Tests  454 passed (454)
+All files          |   98.43 |     92.9 |   98.07 |   99.06 |
+# Policy
+python3 -I -m unittest discover -s tools/tests: Ran 97 tests, OK
+python3 -I -m unittest discover -s deploy/tests: Ran 155 tests, OK
+# Chromium overflow check of the built app (synthetic API answers), widths 320/375/1366, en and ar:
+# dashboard, inventory, judgments, hearings, workload, experts: 36 of 36 PASS
+RESULT: PASS (no horizontal overflow)

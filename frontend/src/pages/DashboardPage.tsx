@@ -101,7 +101,7 @@ export function DashboardPage() {
       </div>
     );
   } else {
-    const { cases, proceedings, judgments, pending } = load.report;
+    const { cases, proceedings, judgments, operations } = load.report;
     body = (
       <div className="rpt-dashboard">
         <Panel title={t('reports.dashboard.cases')}>
@@ -165,14 +165,12 @@ export function DashboardPage() {
 
         <Panel title={t('reports.dashboard.operations')}>
           <ul className="kpi-grid">
-            {pending.map((figure) => (
-              <li key={figure} className="kpi rpt-pending">
-                <span className="kpi-label">{t(`reports.pending.${figure}`)}</span>
-                <span className="rpt-pending-value">{t('reports.dashboard.notAvailable')}</span>
-              </li>
-            ))}
+            <Tile value={n(operations.hearingsThisWeek)} label={t('reports.operations.hearingsThisWeek')} />
+            <Tile value={n(operations.hearingsAwaitingResult)} label={t('reports.operations.hearingsAwaitingResult')} />
+            <Tile value={n(operations.expertReportsOverdue)} label={t('reports.operations.expertReportsOverdue')} />
+            <Tile value={n(operations.overdueTasks)} label={t('reports.operations.overdueTasks')} />
+            <Tile value={n(operations.tasksDueSoon)} label={t('reports.operations.tasksDueSoon')} />
           </ul>
-          <p className="rpt-note">{t('reports.dashboard.notAvailableHint')}</p>
         </Panel>
       </div>
     );

@@ -1,0 +1,334 @@
+# 2026-10-24, develop 19ad538 (backend identical to 1e5f340). Throwaway local PostgreSQL 18.6 (zonky embedded
+# binaries 18.6.0 from ~/.m2, the ones the backend tests use) on 127.0.0.1:55432, shared_buffers=128MB,
+# max_connections=10, no parallel workers, jit=off. Host load average 7-15 on 8 cores during the run (shared
+# Contabo host): timings are indicative, buffer counts and plan shapes are the stable signal.
+# java -cp postgresql-42.7.14.jar tools/performance/db/QueryPlans.java jdbc:postgresql://127.0.0.1:55432/postgres?user=lawdesk \
+#   plans:tools/performance/db/plans-phase5-6-prs.sql
+# Schema V400-V403 from PR #40 head ded7e3c (stacked on #33/#37); queries from PR #34 b8aa9b5,
+# #36 875d938, #33 6e27f5c, #37 42fb564, #40 ded7e3c. NOT on develop.
+
+== synthetic Phase 5 volumes
+hearings=99997 | hearings_next_30_days=705 | tasks=30000 | documents=1000 | document_content_size=65 MB
+
+== case inventory: summary counts, no filter (CaseReportQueries.counts)
+-- select status, case_type, count(*) as n from legal_case where true group by status, case_type;
+HashAggregate  (cost=425.00..425.30 rows=30 width=22) (actual time=11.213..11.222 rows=30.00 loops=1)
+  Group Key: status, case_type
+  Batches: 1  Memory Usage: 32kB
+  Buffers: shared hit=250
+  ->  Seq Scan on legal_case  (cost=0.00..350.00 rows=10000 width=14) (actual time=0.017..3.646 rows=10000.00 loops=1)
+        Buffers: shared hit=250
+Planning Time: 0.118 ms
+Execution Time: 11.274 ms
+
+== case inventory: page sorted by openedOn desc (CaseReportQueries.list)
+-- select id, reference_no, title, case_type, status, opened_on from legal_case where true order by opened_on desc, lower(reference_no), id limit 20 offset 0;
+Limit  (cost=641.10..641.15 rows=20 width=98) (actual time=16.647..16.654 rows=20.00 loops=1)
+  Buffers: shared hit=250
+  ->  Sort  (cost=641.10..666.10 rows=10000 width=98) (actual time=16.644..16.647 rows=20.00 loops=1)
+        Sort Key: opened_on DESC, (lower((reference_no)::text)), id
+        Sort Method: top-N heapsort  Memory: 29kB
+        Buffers: shared hit=250
+        ->  Seq Scan on legal_case  (cost=0.00..375.00 rows=10000 width=98) (actual time=0.030..9.844 rows=10000.00 loops=1)
+              Buffers: shared hit=250
+Planning Time: 0.153 ms
+Execution Time: 16.692 ms
+
+== case inventory: every matching case id (CaseReportQueries.ids, read into the JVM for each page)
+-- select id from legal_case where true;
+Index Only Scan using legal_case_pkey on legal_case  (cost=0.29..346.29 rows=10000 width=16) (actual time=0.037..3.402 rows=10000.00 loops=1)
+  Heap Fetches: 0
+  Index Searches: 1
+  Buffers: shared hit=49
+Planning Time: 0.099 ms
+Execution Time: 4.030 ms
+
+== case inventory: current stage counts for all 10 000 ids sent back as uuid[] (ProceedingReportQueries.currentStageCounts)
+-- select cur.stage, count(*) as n from ( select distinct on (p.case_id) p.case_id, p.stage, p.court_id, c.code, c.name_ar, c.name_en from proceeding p join court c on c.id = p.court_id where p.case_id = any(cast(:ALL_IDS as uuid[])) order by p.case_id, case p.stage when 'FIRST_INSTANCE' then 0 when 'APPEAL' then 1 when 'CASSATION' then 2 end desc, p.filing_date desc, p.created_at desc, p.id desc) cu ...
+HashAggregate  (cost=7353.13..7355.13 rows=200 width=20) (actual time=358.912..358.916 rows=2.00 loops=1)
+  Group Key: p.stage
+  Batches: 1  Memory Usage: 32kB
+  Buffers: shared hit=45215
+  ->  Unique  (cost=1.10..7204.50 rows=9909 width=994) (actual time=1.960..353.820 rows=10000.00 loops=1)
+        Buffers: shared hit=45215
+        ->  Incremental Sort  (cost=1.10..7125.37 rows=31653 width=994) (actual time=1.959..342.016 rows=50000.00 loops=1)
+              Sort Key: p.case_id, (CASE p.stage WHEN 'FIRST_INSTANCE'::text THEN 0 WHEN 'APPEAL'::text THEN 1 WHEN 'CASSATION'::text THEN 2 ELSE NULL::integer END) DESC, p.filing_date DESC, p.created_at DESC, p.id DESC
+              Presorted Key: p.case_id
+              Full-sort Groups: 1489  Sort Method: quicksort  Average Memory: 27kB  Peak Memory: 27kB
+              Buffers: shared hit=45215
+              ->  Nested Loop  (cost=0.44..6266.35 rows=31653 width=994) (actual time=1.176..207.359 rows=50000.00 loops=1)
+                    Buffers: shared hit=45215
+                    ->  Index Scan using proceeding_case on proceeding p  (cost=0.29..5237.25 rows=31653 width=72) (actual time=0.943..84.566 rows=50000.00 loops=1)
+                          Index Cond: (case_id = ANY ('{000a1188-b4fd-47b0-a7ea-1812e812d35d,000c2c04-4e94-4f7a-b1e5-8ddd945034a6,001114a3-a777-4b15-a50a-49ea0be06bb7,0016b045-bd10-4fce-b9a4-731adc0954c8,00199aec-5b98-4e9b-bf22-04f3e7bdbe14,0019d1fd-b13b-4463-b07a-2854208d1138,00278a4c-f3b7-4d05-bf5a-1834fa169c6f,002d5982-1f3e-4de6-a915-8bda37010061,00314c1b-e65b-4c74-8440-88f4f7f527a1,00318873-48ba-4b4f-8c88-c14f07d51838,003c1b18-be25-4028-b7bb-8b1414859f36,0042a707-35ed-442e-8be9-3317a2b5e963,0043e1d9-6779-4581-8478-b8112fb3ff27,00486744-1989-4be0-8ac9-a0256d5cd079,004f6a67-5441-4b44-ac56-91 ...(truncated)
+                          Index Searches: 1
+                          Buffers: shared hit=45115
+                    ->  Memoize  (cost=0.15..0.17 rows=1 width=16) (actual time=0.001..0.001 rows=1.00 loops=50000)
+                          Cache Key: p.court_id
+                          Cache Mode: logical
+                          Hits: 49950  Misses: 50  Evictions: 0  Overflows: 0  Memory Usage: 7kB
+                          Buffers: shared hit=100
+                          ->  Index Only Scan using court_pkey on court c  (cost=0.14..0.16 rows=1 width=16) (actual time=0.015..0.015 rows=1.00 loops=50)
+                                Index Cond: (id = p.court_id)
+                                Heap Fetches: 50
+                                Index Searches: 50
+                                Buffers: shared hit=100
+Planning:
+  Buffers: shared hit=4
+Planning Time: 9.982 ms
+Execution Time: 359.893 ms
+
+== case inventory: positions of the 20 cases on the page (ProceedingReportQueries.positions)
+-- select cur.*, (select count(*) from proceeding x where x.case_id = cur.case_id) as proceedings from ( select distinct on (p.case_id) p.case_id, p.stage, p.court_id, c.code, c.name_ar, c.name_en from proceeding p join court c on c.id = p.court_id where p.case_id = any(cast(:PAGE_IDS as uuid[])) order by p.case_id, case p.stage when 'FIRST_INSTANCE' then 0 when 'APPEAL' then 1 when 'CASSATION' then  ...
+Subquery Scan on cur  (cost=391.10..832.60 rows=100 width=98) (actual time=6.104..6.276 rows=20.00 loops=1)
+  Buffers: shared hit=166
+  ->  Unique  (cost=391.10..391.60 rows=100 width=122) (actual time=6.051..6.085 rows=20.00 loops=1)
+        Buffers: shared hit=125
+        ->  Sort  (cost=391.10..391.35 rows=100 width=122) (actual time=6.047..6.062 rows=100.00 loops=1)
+              Sort Key: p.case_id, (CASE p.stage WHEN 'FIRST_INSTANCE'::text THEN 0 WHEN 'APPEAL'::text THEN 1 WHEN 'CASSATION'::text THEN 2 ELSE NULL::integer END) DESC, p.filing_date DESC, p.created_at DESC, p.id DESC
+              Sort Method: quicksort  Memory: 38kB
+              Buffers: shared hit=125
+              ->  Hash Join  (cost=85.97..387.77 rows=100 width=122) (actual time=0.201..0.553 rows=100.00 loops=1)
+                    Hash Cond: (p.court_id = c.id)
+                    Buffers: shared hit=125
+                    ->  Bitmap Heap Scan on proceeding p  (cost=82.62..383.39 rows=100 width=72) (actual time=0.118..0.348 rows=100.00 loops=1)
+                          Recheck Cond: (case_id = ANY ('{4b7262e3-ba28-4225-9627-fcc2fb33dea5,1786cf37-89b7-4813-9962-62e3835284bb,9b55b97d-c73d-4c6e-be5c-af9f93ddd7d6,f9640fb2-d13f-4aa0-9875-81b638cfd558,6cb7eb8e-6709-4f71-b1f4-2c4dddd9b27a,eebb77be-e704-4153-bdc8-9d0edfb9bc0d,90fb4b0e-6bf4-4998-8ba2-75bb87df78fb,e58d68a7-c636-49b9-943c-5b3108367148,d3c6e01c-0e78-4f71-b87c-52e991f6789b,99a73937-1975-4577-9661-667ade939d2f,90df417e-6ad8-4b54-b480-6597444a56dc,9670ffcf-e6e6-4df6-9860-e32f4fbc23e8,974be84c-69c3-433d-bc25-274311808916,52758e50-ed7f-455f-9224-35d632b48a12,56667a0b-b2b3-46ff-acef- ...(truncated)
+                          Heap Blocks: exact=89
+                          Buffers: shared hit=123
+                          ->  Bitmap Index Scan on proceeding_case  (cost=0.00..82.55 rows=100 width=0) (actual time=0.100..0.101 rows=100.00 loops=1)
+                                Index Cond: (case_id = ANY ('{4b7262e3-ba28-4225-9627-fcc2fb33dea5,1786cf37-89b7-4813-9962-62e3835284bb,9b55b97d-c73d-4c6e-be5c-af9f93ddd7d6,f9640fb2-d13f-4aa0-9875-81b638cfd558,6cb7eb8e-6709-4f71-b1f4-2c4dddd9b27a,eebb77be-e704-4153-bdc8-9d0edfb9bc0d,90fb4b0e-6bf4-4998-8ba2-75bb87df78fb,e58d68a7-c636-49b9-943c-5b3108367148,d3c6e01c-0e78-4f71-b87c-52e991f6789b,99a73937-1975-4577-9661-667ade939d2f,90df417e-6ad8-4b54-b480-6597444a56dc,9670ffcf-e6e6-4df6-9860-e32f4fbc23e8,974be84c-69c3-433d-bc25-274311808916,52758e50-ed7f-455f-9224-35d632b48a12,56667a0b-b2b3-46ff-a ...(truncated)
+                                Index Searches: 17
+                                Buffers: shared hit=34
+                    ->  Hash  (cost=2.60..2.60 rows=60 width=62) (actual time=0.057..0.059 rows=60.00 loops=1)
+                          Buckets: 1024  Batches: 1  Memory Usage: 14kB
+                          Buffers: shared hit=2
+                          ->  Seq Scan on court c  (cost=0.00..2.60 rows=60 width=62) (actual time=0.016..0.031 rows=60.00 loops=1)
+                                Buffers: shared hit=2
+  SubPlan 1
+    ->  Aggregate  (cost=4.39..4.40 rows=1 width=8) (actual time=0.008..0.008 rows=1.00 loops=20)
+          Buffers: shared hit=41
+          ->  Index Only Scan using proceeding_case on proceeding x  (cost=0.29..4.38 rows=5 width=0) (actual time=0.005..0.006 rows=5.00 loops=20)
+                Index Cond: (case_id = cur.case_id)
+                Heap Fetches: 0
+                Index Searches: 20
+                Buffers: shared hit=41
+Planning:
+  Buffers: shared hit=4
+Planning Time: 0.439 ms
+Execution Time: 6.357 ms
+
+== case inventory: stage filter APPEAL (ProceedingReportQueries.casesMatching)
+-- select cur.case_id from ( select distinct on (p.case_id) p.case_id, p.stage, p.court_id, c.code, c.name_ar, c.name_en from proceeding p join court c on c.id = p.court_id order by p.case_id, case p.stage when 'FIRST_INSTANCE' then 0 when 'APPEAL' then 1 when 'CASSATION' then 2 end desc, p.filing_date desc, p.created_at desc, p.id desc) cur where true and cur.stage in ('APPEAL');
+Subquery Scan on cur  (cost=1.23..8930.71 rows=50 width=16) (actual time=0.392..196.554 rows=5000.00 loops=1)
+  Filter: ((cur.stage)::text = 'APPEAL'::text)
+  Rows Removed by Filter: 5000
+  Buffers: shared hit=45215
+  ->  Unique  (cost=1.23..8806.03 rows=9975 width=994) (actual time=0.390..193.908 rows=10000.00 loops=1)
+        Buffers: shared hit=45215
+        ->  Incremental Sort  (cost=1.23..8681.03 rows=50000 width=994) (actual time=0.389..184.217 rows=50000.00 loops=1)
+              Sort Key: p.case_id, (CASE p.stage WHEN 'FIRST_INSTANCE'::text THEN 0 WHEN 'APPEAL'::text THEN 1 WHEN 'CASSATION'::text THEN 2 ELSE NULL::integer END) DESC, p.filing_date DESC, p.created_at DESC, p.id DESC
+              Presorted Key: p.case_id
+              Full-sort Groups: 1489  Sort Method: quicksort  Average Memory: 27kB  Peak Memory: 27kB
+              Buffers: shared hit=45215
+              ->  Nested Loop  (cost=0.44..7275.14 rows=50000 width=994) (actual time=0.039..134.267 rows=50000.00 loops=1)
+                    Buffers: shared hit=45215
+                    ->  Index Scan using proceeding_case on proceeding p  (cost=0.29..5654.20 rows=50000 width=72) (actual time=0.020..72.550 rows=50000.00 loops=1)
+                          Index Searches: 1
+                          Buffers: shared hit=45115
+                    ->  Memoize  (cost=0.15..0.17 rows=1 width=16) (actual time=0.000..0.000 rows=1.00 loops=50000)
+                          Cache Key: p.court_id
+                          Cache Mode: logical
+                          Hits: 49950  Misses: 50  Evictions: 0  Overflows: 0  Memory Usage: 7kB
+                          Buffers: shared hit=100
+                          ->  Index Only Scan using court_pkey on court c  (cost=0.14..0.16 rows=1 width=16) (actual time=0.013..0.013 rows=1.00 loops=50)
+                                Index Cond: (id = p.court_id)
+                                Heap Fetches: 50
+                                Index Searches: 50
+                                Buffers: shared hit=100
+Planning:
+  Buffers: shared hit=4
+Planning Time: 0.823 ms
+Execution Time: 197.078 ms
+
+== judgment report: summary of 2024-2026 (JudgmentReportQueries.summarize)
+-- select j.outcome, p.stage, count(*) as n, count(*) filter (where j.final) as final_n from judgment j join proceeding p on p.id = j.proceeding_id join court c on c.id = p.court_id where j.judgment_date between date '2024-01-01' and date '2026-12-31' group by j.outcome, p.stage;
+HashAggregate  (cost=2933.91..2934.06 rows=15 width=36) (actual time=48.123..48.132 rows=15.00 loops=1)
+  Group Key: j.outcome, p.stage
+  Batches: 1  Memory Usage: 32kB
+  Buffers: shared hit=1657
+  ->  Hash Join  (cost=1095.29..2857.13 rows=7678 width=21) (actual time=16.424..44.175 rows=7679.00 loops=1)
+        Hash Cond: (p.court_id = c.id)
+        Buffers: shared hit=1657
+        ->  Hash Join  (cost=1091.94..2832.21 rows=7678 width=37) (actual time=16.368..40.983 rows=7679.00 loops=1)
+              Hash Cond: (p.id = j.proceeding_id)
+              Buffers: shared hit=1655
+              ->  Seq Scan on proceeding p  (cost=0.00..1609.00 rows=50000 width=44) (actual time=0.009..8.013 rows=50000.00 loops=1)
+                    Buffers: shared hit=1109
+              ->  Hash  (cost=995.97..995.97 rows=7678 width=25) (actual time=16.332..16.333 rows=7679.00 loops=1)
+                    Buckets: 8192  Batches: 1  Memory Usage: 496kB
+                    Buffers: shared hit=546
+                    ->  Seq Scan on judgment j  (cost=0.00..995.97 rows=7678 width=25) (actual time=0.012..12.415 rows=7679.00 loops=1)
+                          Filter: ((judgment_date >= '2024-01-01'::date) AND (judgment_date <= '2026-12-31'::date))
+                          Rows Removed by Filter: 22319
+                          Buffers: shared hit=546
+        ->  Hash  (cost=2.60..2.60 rows=60 width=16) (actual time=0.047..0.048 rows=60.00 loops=1)
+              Buckets: 1024  Batches: 1  Memory Usage: 11kB
+              Buffers: shared hit=2
+              ->  Seq Scan on court c  (cost=0.00..2.60 rows=60 width=16) (actual time=0.017..0.029 rows=60.00 loops=1)
+                    Buffers: shared hit=2
+Planning:
+  Buffers: shared hit=16
+Planning Time: 2.606 ms
+Execution Time: 48.219 ms
+
+== judgment report: page sorted by date desc (JudgmentReportQueries.list)
+-- select j.id, j.judgment_date, j.outcome, j.final, p.stage, p.court_case_number, p.court_case_year, p.case_id, c.id as court_id, c.code, c.name_ar, c.name_en from judgment j join proceeding p on p.id = j.proceeding_id join court c on c.id = p.court_id where j.judgment_date between date '2024-01-01' and date '2026-12-31' order by j.judgment_date desc, j.judgment_date desc, j.id limit 20 offset 0;
+Limit  (cost=3061.44..3061.49 rows=20 width=133) (actual time=179.688..179.697 rows=20.00 loops=1)
+  Buffers: shared hit=1657
+  ->  Sort  (cost=3061.44..3080.64 rows=7678 width=133) (actual time=179.686..179.691 rows=20.00 loops=1)
+        Sort Key: j.judgment_date DESC, j.id
+        Sort Method: top-N heapsort  Memory: 33kB
+        Buffers: shared hit=1657
+        ->  Hash Join  (cost=1095.29..2857.13 rows=7678 width=133) (actual time=56.713..174.875 rows=7679.00 loops=1)
+              Hash Cond: (p.court_id = c.id)
+              Buffers: shared hit=1657
+              ->  Hash Join  (cost=1091.94..2832.21 rows=7678 width=87) (actual time=56.595..164.489 rows=7679.00 loops=1)
+                    Hash Cond: (p.id = j.proceeding_id)
+                    Buffers: shared hit=1655
+                    ->  Seq Scan on proceeding p  (cost=0.00..1609.00 rows=50000 width=74) (actual time=0.007..16.499 rows=50000.00 loops=1)
+                          Buffers: shared hit=1109
+                    ->  Hash  (cost=995.97..995.97 rows=7678 width=45) (actual time=56.563..56.564 rows=7679.00 loops=1)
+                          Buckets: 8192  Batches: 1  Memory Usage: 646kB
+                          Buffers: shared hit=546
+                          ->  Seq Scan on judgment j  (cost=0.00..995.97 rows=7678 width=45) (actual time=0.008..43.731 rows=7679.00 loops=1)
+                                Filter: ((judgment_date >= '2024-01-01'::date) AND (judgment_date <= '2026-12-31'::date))
+                                Rows Removed by Filter: 22319
+                                Buffers: shared hit=546
+              ->  Hash  (cost=2.60..2.60 rows=60 width=62) (actual time=0.063..0.064 rows=60.00 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 14kB
+                    Buffers: shared hit=2
+                    ->  Seq Scan on court c  (cost=0.00..2.60 rows=60 width=62) (actual time=0.016..0.033 rows=60.00 loops=1)
+                          Buffers: shared hit=2
+Planning:
+  Buffers: shared hit=16
+Planning Time: 1.487 ms
+Execution Time: 179.769 ms
+
+== hearing calendar: 30 days from today (HearingRepository.findBetween: page)
+-- select h.* from hearing h where h.hearing_date between current_date and current_date + 30 and (null::varchar is null or h.status = null) order by h.hearing_date, h.hearing_time nulls first, h.created_at, h.id limit 20 offset 0;
+Limit  (cost=4.12..76.03 rows=20 width=702) (actual time=0.175..0.182 rows=20.00 loops=1)
+  Buffers: shared hit=45
+  ->  Incremental Sort  (cost=4.12..2434.70 rows=676 width=702) (actual time=0.174..0.177 rows=20.00 loops=1)
+        Sort Key: hearing_date, hearing_time NULLS FIRST, created_at, id
+        Presorted Key: hearing_date
+        Full-sort Groups: 1  Sort Method: top-N heapsort  Average Memory: 31kB  Peak Memory: 31kB
+        Buffers: shared hit=45
+        ->  Index Scan using hearing_calendar on hearing h  (cost=0.30..2405.82 rows=676 width=702) (actual time=0.029..0.121 rows=43.00 loops=1)
+              Index Cond: ((hearing_date >= CURRENT_DATE) AND (hearing_date <= (CURRENT_DATE + 30)))
+              Index Searches: 1
+              Buffers: shared hit=45
+Planning Time: 0.168 ms
+Execution Time: 0.213 ms
+
+== hearing calendar: 30 days from today (count)
+-- select count(h.id) from hearing h where h.hearing_date between current_date and current_date + 30 and (null::varchar is null or h.status = null);
+Aggregate  (cost=1540.31..1540.32 rows=1 width=8) (actual time=1.515..1.516 rows=1.00 loops=1)
+  Buffers: shared hit=623
+  ->  Bitmap Heap Scan on hearing h  (cost=15.23..1538.62 rows=676 width=16) (actual time=0.295..1.402 rows=705.00 loops=1)
+        Recheck Cond: ((hearing_date >= CURRENT_DATE) AND (hearing_date <= (CURRENT_DATE + 30)))
+        Heap Blocks: exact=620
+        Buffers: shared hit=623
+        ->  Bitmap Index Scan on hearing_calendar  (cost=0.00..15.06 rows=676 width=0) (actual time=0.172..0.172 rows=705.00 loops=1)
+              Index Cond: ((hearing_date >= CURRENT_DATE) AND (hearing_date <= (CURRENT_DATE + 30)))
+              Index Searches: 1
+              Buffers: shared hit=3
+Planning Time: 0.173 ms
+Execution Time: 1.554 ms
+
+== hearing calendar row lookups, once per distinct case on the page (HearingService.Lookups: CaseLookup.find)
+-- select id, reference_no, title, case_type, subject, opened_on, status, version, created_at, created_by, updated_at, updated_by from legal_case where id = :CASE_ID;
+Index Scan using legal_case_pkey on legal_case  (cost=0.29..8.30 rows=1 width=167) (actual time=0.031..0.033 rows=1.00 loops=1)
+  Index Cond: (id = '5edc5529-d700-4d5b-b9e2-a949207c5169'::uuid)
+  Index Searches: 1
+  Buffers: shared hit=3
+Planning Time: 0.111 ms
+Execution Time: 0.059 ms
+
+== hearings of a case (HearingRepository.findForCase)
+-- select h.* from hearing h where h.case_id = :CASE_ID order by h.hearing_date, h.hearing_time nulls first, h.created_at, h.id limit 20 offset 0;
+Limit  (cost=42.88..42.91 rows=10 width=702) (actual time=0.088..0.092 rows=12.00 loops=1)
+  Buffers: shared hit=9
+  ->  Sort  (cost=42.88..42.91 rows=10 width=702) (actual time=0.086..0.088 rows=12.00 loops=1)
+        Sort Key: hearing_date, hearing_time NULLS FIRST, created_at, id
+        Sort Method: quicksort  Memory: 28kB
+        Buffers: shared hit=9
+        ->  Bitmap Heap Scan on hearing h  (cost=4.50..42.72 rows=10 width=702) (actual time=0.054..0.068 rows=12.00 loops=1)
+              Recheck Cond: (case_id = '5edc5529-d700-4d5b-b9e2-a949207c5169'::uuid)
+              Heap Blocks: exact=6
+              Buffers: shared hit=9
+              ->  Bitmap Index Scan on hearing_case  (cost=0.00..4.49 rows=10 width=0) (actual time=0.032..0.032 rows=12.00 loops=1)
+                    Index Cond: (case_id = '5edc5529-d700-4d5b-b9e2-a949207c5169'::uuid)
+                    Index Searches: 1
+                    Buffers: shared hit=3
+Planning Time: 2.812 ms
+Execution Time: 0.152 ms
+
+== hearings awaiting a result (HearingReportQueries: overdue count)
+-- select count(*) from hearing where status = 'SCHEDULED' and hearing_date < current_date;
+Aggregate  (cost=4265.54..4265.55 rows=1 width=8) (actual time=45.433..45.450 rows=1.00 loops=1)
+  Buffers: shared hit=2484
+  ->  Seq Scan on hearing  (cost=0.00..4233.95 rows=12636 width=0) (actual time=0.050..43.873 rows=4545.00 loops=1)
+        Filter: (((status)::text = 'SCHEDULED'::text) AND (hearing_date < CURRENT_DATE))
+        Rows Removed by Filter: 95452
+        Buffers: shared hit=2484
+Planning Time: 0.179 ms
+Execution Time: 45.485 ms
+
+== tasks of an assignee, open (TaskRepository.search)
+-- select t.* from task t where (cast(:USER_ID as uuid) is null or t.assignee_id = cast(:USER_ID as uuid)) and (null::uuid is null or t.case_id = null) and t.status in ('OPEN', 'IN_PROGRESS') and (true = true or t.due_date between current_date and current_date) order by t.due_date asc nulls last, case t.priority when 'URGENT' then 0 when 'HIGH' then 1 when 'NORMAL' then 2 else 3 end, t.created_at, t. ...
+Limit  (cost=5.15..71.59 rows=20 width=663) (actual time=0.247..0.252 rows=20.00 loops=1)
+  Buffers: shared hit=37
+  ->  Incremental Sort  (cost=5.15..1001.70 rows=300 width=663) (actual time=0.245..0.247 rows=20.00 loops=1)
+        Sort Key: due_date, (CASE priority WHEN 'URGENT'::text THEN 0 WHEN 'HIGH'::text THEN 1 WHEN 'NORMAL'::text THEN 2 ELSE 3 END), created_at, id
+        Presorted Key: due_date
+        Full-sort Groups: 1  Sort Method: quicksort  Average Memory: 33kB  Peak Memory: 33kB
+        Buffers: shared hit=37
+        ->  Index Scan using task_assignee_open on task t  (cost=0.29..991.56 rows=300 width=663) (actual time=0.037..0.157 rows=35.00 loops=1)
+              Index Cond: (assignee_id = '4ad1adea-2f44-485a-b55a-c781fea44edd'::uuid)
+              Index Searches: 1
+              Buffers: shared hit=37
+Planning Time: 0.204 ms
+Execution Time: 0.289 ms
+
+== task reminders: overdue count of an assignee (TaskRepository.countBy...DueDateBefore)
+-- select count(*) from task where assignee_id = cast(:USER_ID as uuid) and status in ('OPEN', 'IN_PROGRESS') and due_date < current_date;
+Aggregate  (cost=367.00..367.01 rows=1 width=8) (actual time=0.178..0.179 rows=1.00 loops=1)
+  Buffers: shared hit=97
+  ->  Bitmap Heap Scan on task  (cost=5.83..366.62 rows=150 width=0) (actual time=0.040..0.162 rows=151.00 loops=1)
+        Recheck Cond: ((assignee_id = '4ad1adea-2f44-485a-b55a-c781fea44edd'::uuid) AND (due_date < CURRENT_DATE) AND ((status)::text = ANY ('{OPEN,IN_PROGRESS}'::text[])))
+        Heap Blocks: exact=95
+        Buffers: shared hit=97
+        ->  Bitmap Index Scan on task_assignee_open  (cost=0.00..5.79 rows=150 width=0) (actual time=0.021..0.021 rows=151.00 loops=1)
+              Index Cond: ((assignee_id = '4ad1adea-2f44-485a-b55a-c781fea44edd'::uuid) AND (due_date < CURRENT_DATE))
+              Index Searches: 1
+              Buffers: shared hit=2
+Planning Time: 0.128 ms
+Execution Time: 0.202 ms
+
+== documents of a case (case_document_case index)
+-- select id, case_id, title, file_name, media_type, size_bytes, sha256, version, created_at, created_by from case_document where case_id = :DOC_CASE_ID order by created_at desc;
+Index Scan using case_document_case on case_document  (cost=0.28..8.29 rows=1 width=176) (actual time=0.011..0.012 rows=1.00 loops=1)
+  Index Cond: (case_id = '0093a6a3-7488-4d2a-8001-2d39c0fcecfd'::uuid)
+  Index Searches: 1
+  Buffers: shared hit=3
+Planning Time: 0.066 ms
+Execution Time: 0.026 ms
+
+== document download (content row)
+-- select content from case_document_content where document_id = :DOC_ID;
+Index Scan using case_document_content_pkey on case_document_content  (cost=0.28..8.29 rows=1 width=18) (actual time=0.016..0.017 rows=1.00 loops=1)
+  Index Cond: (document_id = '3188a5fc-a8eb-4af4-a03b-ae6c25435cc3'::uuid)
+  Index Searches: 1
+  Buffers: shared hit=3
+Planning Time: 0.048 ms
+Execution Time: 0.030 ms
+

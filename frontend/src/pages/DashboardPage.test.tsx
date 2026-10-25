@@ -9,6 +9,9 @@ import { formatNumber } from '../i18n/format';
 import { ADMIN, fakeApi } from '../test/api';
 import { jsonResponse } from '../test/http';
 
+/** Each test renders the whole application; the first one of a file can pass the 5 s default on a busy machine. */
+vi.setConfig({ testTimeout: 20_000 });
+
 const DASHBOARD = 'GET /api/v1/reports/dashboard';
 
 const REPORTER: Me = { ...ADMIN, permissions: ['CASE_VIEW', 'REPORT_VIEW'] };
@@ -39,7 +42,14 @@ const FIGURES: DashboardReport = {
     final: 5,
     byOutcome: { IN_FAVOUR: 6, AGAINST: 3, PARTIAL: 2, DISMISSED: 1, OTHER: 0 },
   },
-  pending: ['HEARINGS_THIS_WEEK', 'EXPERT_REPORTS_DUE', 'OVERDUE_TASKS'],
+  operations: {
+    hearingsThisWeek: 5,
+    hearingsAwaitingResult: 2,
+    expertReportsOverdue: 3,
+    overdueTasks: 4,
+    tasksDueSoon: 6,
+  },
+  pending: [],
 };
 
 function problem(status: number): Response {
@@ -133,15 +143,17 @@ describe('dashboard with real figures (LD-030)', () => {
     ]);
   });
 
-  it('shows the Phase 5 figures as not available yet, never as numbers', async () => {
+  it('shows the legal-operations figures from the hearing, expert and task records', async () => {
     await renderDashboard();
     await screen.findByRole('region', { name: 'Legal operations' });
     expect(items('Legal operations')).toEqual([
-      'Hearings this weekNot available yet',
-      'Expert reports dueNot available yet',
-      'Overdue tasksNot available yet',
+      '5Hearings in the next seven days',
+      '2Hearings awaiting a result',
+      '3Expert reports overdue',
+      '4Overdue tasks',
+      '6Tasks due soon',
     ]);
-    expect(region('Legal operations').textContent).not.toMatch(/[0-9]/);
+    expect(screen.queryByText('Not available yet')).not.toBeInTheDocument();
   });
 });
 
@@ -152,7 +164,7 @@ describe('dashboard in Arabic', () => {
     await screen.findByRole('region', { name: 'القضايا' });
     expect(items('القضايا')[0]).toBe(`${formatNumber(1200, 'ar')}القضايا المفتوحة`);
     expect(items('القضايا حسب الحالة')[0]).toBe(`مفتوحة${formatNumber(700, 'ar')}`);
-    expect(region('العمليات القانونية')).toHaveTextContent('غير متاح بعد');
+    expect(items('العمليات القانونية')[0]).toBe(`${formatNumber(5, 'ar')}الجلسات خلال الأيام السبعة القادمة`);
     expect(screen.getByRole('region', { name: /^الأحكام من/ }).textContent).not.toMatch(/[0-9]/);
     expect(screen.getByRole('main').textContent).not.toMatch(/[0-9]/);
   });

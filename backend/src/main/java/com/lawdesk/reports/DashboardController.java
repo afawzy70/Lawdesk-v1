@@ -2,7 +2,6 @@ package com.lawdesk.reports;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.Arrays;
 import java.util.List;
 
 import jakarta.validation.Valid;
@@ -16,6 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.lawdesk.cases.CaseReportQueries;
+import com.lawdesk.experts.ExpertReportQueries;
+import com.lawdesk.hearings.HearingReportQueries;
+import com.lawdesk.tasks.TaskReportQueries;
 import com.lawdesk.cases.CaseReportQueries.CaseCounts;
 import com.lawdesk.cases.CaseReportQueries.StatusGroup;
 import com.lawdesk.proceedings.JudgmentReportQueries;
@@ -36,13 +38,23 @@ class DashboardController {
     private final ProceedingReportQueries proceedings;
     private final JudgmentReportQueries judgments;
     private final ReportCalendar calendar;
+    private final HearingReportQueries hearings;
+    private final ExpertReportQueries experts;
+    private final TaskReportQueries tasks;
+
+    /** "This week" on the dashboard: today and the six days after it (ASSUMPTION). */
+    static final int WEEK_AHEAD_DAYS = 6;
 
     DashboardController(CaseReportQueries cases, ProceedingReportQueries proceedings, JudgmentReportQueries judgments,
-            ReportCalendar calendar) {
+            ReportCalendar calendar, HearingReportQueries hearings, ExpertReportQueries experts,
+            TaskReportQueries tasks) {
         this.cases = cases;
         this.proceedings = proceedings;
         this.judgments = judgments;
         this.calendar = calendar;
+        this.hearings = hearings;
+        this.experts = experts;
+        this.tasks = tasks;
     }
 
     @GetMapping
@@ -65,6 +77,8 @@ class DashboardController {
                 new DashboardReport.Proceedings(stages.stream().mapToLong(StageCount::awaitingJudgment).sum(), stages),
                 new DashboardReport.Judgments(period.from(), period.to(), judged.recorded(), judged.finalJudgments(),
                         judged.byOutcome()),
-                Arrays.asList(DashboardReport.PendingFigure.values()));
+                new DashboardReport.Operations(hearings.upcomingCount(WEEK_AHEAD_DAYS), hearings.awaitingResultCount(),
+                        experts.overdueReportCount(), tasks.overdueCount(), tasks.dueSoonCount()),
+                List.of());
     }
 }

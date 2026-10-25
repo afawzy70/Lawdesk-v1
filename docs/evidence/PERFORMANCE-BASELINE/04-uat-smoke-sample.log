@@ -1,0 +1,31 @@
+# LD-040 UAT latency SMOKE SAMPLE, 2026-10-24 (UTC 18:23-18:25). NOT a load test.
+# Target https://lawdesk.167-86-90-174.sslip.io, read-only QA account qa.viewer (role QA_READ_ONLY: CASE_VIEW,
+# COURT_VIEW, JUDGMENT_VIEW, PROCEEDING_VIEW), credential file read in-process by deploy/qa/qa_accounts.py Session,
+# never printed. Sequential, at most 1 request per second. Requests sent to UAT in total: 60 (limit 60):
+#   1  curl GET /actuator/health (reachability check)                            -> 200 in 206 ms
+#   54 run 1 (csrf, sign-in, 51 GETs, sign-out)
+#   5  run 2 (csrf, sign-in, 2 GETs, sign-out; csrf did not need a refresh before sign-out)
+# No body, cookie or token is recorded here.
+
+## Run 1: INVALID latency figures (instrumentation defect, kept for transparency)
+# The timer wrapped the pacing wait as well as the HTTP exchange, so every figure is ~1 s (the pacing interval).
+# Statuses are valid: 50/50 reads answered 200.
+$ python3 -I tools/performance/uat_smoke_sample.py https://lawdesk.167-86-90-174.sslip.io <viewer.json>
+UAT smoke sample (sequential, <= 1 req/s): 54 requests in total, base https://lawdesk.167-86-90-174.sslip.io
+| Endpoint | n | statuses | p50 ms | p95 ms | max ms | mean ms |
+|---|---|---|---|---|---|---|
+| `GET /api/v1/me` | 10 | 200 x10 | 984 | 1035 | 1035 | 971 |
+| `GET /api/v1/cases?size=20` | 10 | 200 x10 | 1026 | 1285 | 1285 | 1061 |
+| `GET /api/v1/courts` | 10 | 200 x10 | 1017 | 1276 | 1276 | 1010 |
+| `GET /api/v1/cases/{id}` | 10 | 200 x10 | 972 | 1078 | 1078 | 962 |
+| `GET /api/v1/cases/{id}/proceedings` | 10 | 200 x10 | 1007 | 1081 | 1081 | 1004 |
+
+## Run 2: corrected timer (HTTP exchange only), within the remaining budget of 6 requests
+$ python3 -I tools/performance/uat_smoke_sample.py https://lawdesk.167-86-90-174.sslip.io <viewer.json> 6
+UAT smoke sample (sequential, <= 1 req/s): 5 requests in total, base https://lawdesk.167-86-90-174.sslip.io
+| Endpoint | n | statuses | p50 ms | p95 ms | max ms | mean ms |
+|---|---|---|---|---|---|---|
+| `GET /api/v1/cases?size=20` | 1 | 200 x1 | 66 | 66 | 66 | 66 |
+| `GET /api/v1/me` | 1 | 200 x1 | 169 | 169 | 169 | 169 |
+
+# Two data points are anecdotes, not percentiles. A proper UAT smoke sample needs a new, separately approved budget.

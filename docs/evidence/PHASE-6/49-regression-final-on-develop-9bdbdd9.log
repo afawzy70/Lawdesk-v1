@@ -1,0 +1,20 @@
+# feature/LD-033-workload-experts-hearings after a normal merge of develop 9bdbdd9 (Phase 5 PR #44 merged; V400-V407,
+# QAD-033 triggers) with no conflicts. This branch adds no V5xx migration.
+# Report and export code uses the final ports: HearingReportQueries, TaskReportQueries, ExpertReportQueries (incl. experts(ids)).
+# Backend, default order: ./mvnw -B clean verify
+[INFO] Tests run: 672, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+# Backend, reverse-alphabetical class order: ./mvnw -B clean verify -Dsurefire.runOrder=reversealphabetical
+[INFO] Tests run: 672, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+# Frontend
+> npm run lint: 0 problems
+> npx tsc -b: exit 0
+ Test Files  46 passed (46)
+      Tests  454 passed (454)
+All files          |   98.43 |     92.9 |   98.07 |   99.06 |
+# Policy
+tools: Ran 142 tests, OK (includes tools/tests/test_endpoint_matrix.py)
+deploy: Ran 155 tests, OK
+python3 -I tools/security/endpoint_matrix.py --check: exit 0, 96 endpoint rows, 11 /api/v1/reports endpoints, NO_RULE 0
+# gitleaks dir: docs/evidence, backend/src, frontend/src, tools: no leaks found

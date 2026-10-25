@@ -1,0 +1,20 @@
+# Local regression, feature/LD-033-workload-experts-hearings after: QAD-035 and QAD-036 fixes (merged up from
+# feature/LD-034-xlsx-pdf), origin/docs/LD-040-security-performance-baseline (PR #47), develop 19ad538 (contains #35 and
+# #45, i.e. QAD-030), feature/LD-029-notes 9879743. CI: NOT_RUN (nothing pushed; one self-hosted runner).
+# Backend: ./mvnw -B clean verify
+[INFO] Tests run: 657, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+# Frontend (after the per-file timeout hardening of the four rendering-heavy report test files)
+> npm run lint: 0 problems
+> npx tsc -b: exit 0
+ Test Files  46 passed (46)
+      Tests  454 passed (454)
+All files          |   98.43 |     92.9 |   98.07 |   99.06 |
+# Policy
+tools: Ran 112 tests (includes tools/tests/test_endpoint_matrix.py, 15 tests): OK
+deploy: Ran 155 tests: OK
+python3 -I tools/security/endpoint_matrix.py --check: exit 0 (all 11 /api/v1/reports endpoints listed with REPORT_VIEW / REPORT_EXPORT)
+# gitleaks dir: docs/evidence, backend/src, frontend/src, tools: no leaks found
+# Note: one earlier frontend run timed out at 5.1 s (default 5 s limit) on the first test of CaseInventoryPage.test.tsx
+# while the machine was loaded; it passed on rerun, and the four rendering-heavy test files now set a 20 s limit.
+# Chromium layout check: not repeated, no screen changed in this round (PDF/XLSX writers and tooling only).
