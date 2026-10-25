@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,9 +41,11 @@ class MeController {
     private final AuditLog audit;
     private final SecurityContextRepository contexts;
     private final SessionRevocation revocation;
+    private final TransactionTemplate transaction;
 
     MeController(UserAccounts accounts, PasswordEncoder encoder, AuditLog audit, SecurityContextRepository contexts,
-            SessionRevocation revocation) {
+            SessionRevocation revocation, TransactionTemplate transaction) {
+        this.transaction = transaction;
         this.accounts = accounts;
         this.encoder = encoder;
         this.audit = audit;
@@ -73,9 +76,17 @@ class MeController {
             throw new FieldErrorException("newPassword", PasswordPolicy.CODE);
         }
         // Only if no reset, disablement or other change committed since this session's request was authenticated.
-        OptionalLong version = accounts.changePassword(user.id(), encoder.encode(next), false, user.id(),
-                user.credentialVersion());
-        if (version.isEmpty()) {
+        // QAD-043: the change and its SUCCESS event commit together; the session is renewed only after that commit.
+        String hash = encoder.encode(next);
+        OptionalLong version = transaction.execute(status -> {
+            OptionalLong changed = accounts.changePassword(user.id(), hash, false, user.id(), user.credentialVersion());
+            if (changed.isPresent()) {
+                audit.recordWithChange("PASSWORD_CHANGE", user.id(), user.username(), "USER", user.id().toString(),
+                        null);
+            }
+            return changed;
+        });
+        if (version == null || version.isEmpty()) {
             revocation.refuse(request, user);
             throw new SessionRevocation.SessionRevokedException();
         }
@@ -84,8 +95,6 @@ class MeController {
         context.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(kept, null, kept.getAuthorities()));
         SecurityContextHolder.setContext(context);
         contexts.saveContext(context, request, response);
-        audit.record("PASSWORD_CHANGE", AuditLog.Outcome.SUCCESS, user.id(), user.username(), "USER",
-                user.id().toString(), null);
         return ResponseEntity.noContent().build();
     }
 }

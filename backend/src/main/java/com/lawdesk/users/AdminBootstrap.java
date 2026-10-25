@@ -12,6 +12,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import com.lawdesk.audit.AuditLog;
 
@@ -28,17 +29,19 @@ public class AdminBootstrap implements ApplicationRunner {
     private final UserAccounts accounts;
     private final PasswordEncoder encoder;
     private final AuditLog audit;
+    private final TransactionTemplate transaction;
     private final String username;
     private final String email;
     private final String passwordFile;
 
-    public AdminBootstrap(UserAccounts accounts, PasswordEncoder encoder, AuditLog audit,
+    public AdminBootstrap(UserAccounts accounts, PasswordEncoder encoder, AuditLog audit, TransactionTemplate transaction,
             @Value("${lawdesk.bootstrap.admin.username:}") String username,
             @Value("${lawdesk.bootstrap.admin.email:}") String email,
             @Value("${lawdesk.bootstrap.admin.password-file:}") String passwordFile) {
         this.accounts = accounts;
         this.encoder = encoder;
         this.audit = audit;
+        this.transaction = transaction;
         this.username = username.strip().toLowerCase(Locale.ROOT);
         this.email = email.strip();
         this.passwordFile = passwordFile.strip();
@@ -53,9 +56,13 @@ public class AdminBootstrap implements ApplicationRunner {
             log.warn("no users exist and no bootstrap administrator is configured (lawdesk.bootstrap.admin.*)");
             return;
         }
-        var id = accounts.createAdministrator(username, email, encoder.encode(validatedPassword()));
-        audit.record("USER_CREATE", AuditLog.Outcome.SUCCESS, UserAccounts.SYSTEM, "system", "USER", id.toString(),
-                "BOOTSTRAP_ADMIN");
+        String hash = encoder.encode(validatedPassword());
+        // QAD-042: the administrator and the event that records it exist together or not at all.
+        transaction.executeWithoutResult(status -> {
+            var id = accounts.createAdministrator(username, email, hash);
+            audit.recordWithChange("USER_CREATE", UserAccounts.SYSTEM, "system", "USER", id.toString(),
+                    "BOOTSTRAP_ADMIN");
+        });
         log.info("created the bootstrap administrator {}", username);
     }
 

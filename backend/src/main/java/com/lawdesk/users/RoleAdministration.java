@@ -113,7 +113,7 @@ public class RoleAdministration {
     }
 
     private void record(String action, ActorRef actor, UUID target) {
-        audit.record(action, AuditLog.Outcome.SUCCESS, actor.id(), actor.username(), "ROLE", target.toString(), null);
+        audit.recordWithChange(action, actor.id(), actor.username(), "ROLE", target.toString(), null);
     }
 
     private static RoleView view(ResultSet rs) throws SQLException {
