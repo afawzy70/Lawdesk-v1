@@ -302,6 +302,17 @@ Acceptance criteria:
    Tests: `ExpertFilingChronologyTest` (direct edit and two races, both orders). Evidence:
    `LD-025-10-red-QAD-032-referrals.log`, `LD-025-11-green-QAD-032-referrals.log`. Checked and not affected: tasks
    (due dates are bound by today only), documents and notes (no date bound to the proceeding or the case).
+   QAD-033: the database enforces the same dates for any writer (migration
+   `V407__LD-025_expert_dates_database_integrity.sql`, with `V406` for hearings and the case): a referral before the
+   proceeding's filing date (`expert_referral_not_before_filing`), a filing date after a referral
+   (`proceeding_filing_not_after_referral`, cancelled referrals count) and a session before its referral or a referral
+   moved after its first session (`expert_session_not_before_referral`) are refused with a check violation (23514)
+   and nothing changed. The referral and session triggers read the proceeding and referral rows `FOR SHARE`, so two
+   SQL writers are serialised like the API. Tests: `ExpertDatabaseIntegrityTest` (including both race orders) and
+   `MigrationPhase5IntegrityTest`, which migrates a database holding hearings, referrals and sessions written through
+   V405 to the latest version and checks that no row is rewritten (same `xmin`) or rejected and that protection starts
+   at once. Evidence: `LD-025-16-red-QAD-033-expert-database.log`, `LD-025-17-red-QAD-033-migration-on-existing-data.log`,
+   `LD-025-18-green-QAD-033-expert-database.log`.
 8. Screens: `/experts` (ready, `EXPERT_VIEW`) is the registry with status filter, search, create, edit and deactivate;
    the case's expert referrals in `CaseOperations` refer a proceeding to an active expert, record sessions and the
    report, and cancel a referral after confirmation.
