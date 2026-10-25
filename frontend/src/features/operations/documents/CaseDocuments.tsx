@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import type { MessageKey } from '../../../i18n/catalog';
 import { formatDateTime, formatNumber } from '../../../i18n/format';
 import { useI18n } from '../../../i18n/I18nContext';
+import { ApiError } from '../../../api/http';
 import { loadError, saveError, useFormErrors } from '../formErrors';
 import { Field } from '../FormParts';
 import {
@@ -53,7 +54,13 @@ function AttachForm({ caseId, onAttached }: FormProps) {
       if (fileInput.current !== null) fileInput.current.value = '';
       onAttached();
     } catch (error) {
-      form.fail(error, 'operations.error.stale', ['file', 'title']);
+      // Above its transport limit the web server answers a bare 413 (no problem document): the same condition as the
+      // backend's MaxSize, one layer earlier, so it is explained the same way (QAD-037).
+      const refused =
+        error instanceof ApiError && error.status === 413
+          ? new ApiError(400, { errors: [{ field: 'file', code: 'MaxSize' }] })
+          : error;
+      form.fail(refused, 'operations.error.stale', ['file', 'title']);
     }
     setSaving(false);
   };

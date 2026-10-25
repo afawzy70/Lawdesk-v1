@@ -1,0 +1,19 @@
+[ERROR] Tests run: 6, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 85.21 s <<< FAILURE! -- in com.lawdesk.reports.ExportLimitApiTest
+[ERROR]   ExportLimitApiTest.theExpertsExportRefusesMoreThanTheLimitBeforeAnyLookupAndExportsExactlyTheLimit:131 Status expected:<422> but was:<500>
+[ERROR]   ExportLimitApiTest.theExpertsReportOnScreenWorksAboveTheLimitAndLooksNamesUpInBoundedChunks:145->body:111 Status expected:<200> but was:<500>
+[ERROR]   ExportLimitApiTest.theWorkloadExportRefusesMoreThanTheLimitBeforeAnyUserLookup:173 
+[ERROR] Tests run: 6, Failures: 3, Errors: 0, Skipped: 0
+[ERROR] BUILD FAILURE
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 48.53 s <<< FAILURE! -- in com.lawdesk.reports.ExportLimitApiTest
+[ERROR]   ExportLimitApiTest.theCaseInventoryCountsStagesOfMoreThanTenThousandCasesInBoundedChunks:247 
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] BUILD FAILURE
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 374.9 s <<< FAILURE! -- in com.lawdesk.reports.ExportLimitApiTest
+[ERROR]   ExportLimitApiTest.reportsOverTenThousandDifferentCasesAnswerQuicklyInEveryPath:291 [case inventory with a stage filter] 
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] BUILD FAILURE
+# Measured on the unfixed SQL with 10 000 ids (throwaway probe, not committed):
+# PROBE CaseReportQueries counts/list/ids with a 10 001-id filter: 107261 / 105533 / 127773 ms
+# PROBE CaseReportQueries.summaries(10000 ids): 108695 ms
+# PROBE ProceedingReportQueries.proceedings(10000 ids): 104716 ms
+# PROBE ProceedingReportQueries.positions(10000) 257 ms, currentStageCounts(10000) 137 ms, casesMatching(court) 56 ms (index plans)

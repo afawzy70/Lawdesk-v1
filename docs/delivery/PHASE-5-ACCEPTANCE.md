@@ -37,12 +37,12 @@ the office, and its internal legal notes.
 5. Text input is trimmed; an optional text that is empty after trimming is stored as `null`, a required one counts as
    missing (`NotBlank`). Length limits count characters after trimming.
 6. Lists are `PageResponse` (`page`, `size` default 20, capped at 100). **ASSUMPTION:** list order is fixed per
-   endpoint (given below); `sort` is ignored. **ASSUMPTION for owner review (QAD-029):** an invalid `page` or `size`
-   (negative, zero, not a number) falls back to the defaults (page 0, size 20) instead of answering 400, on every list
-   built on Spring Data paging: hearings, tasks, experts, documents, notes, courts and the audit log. The Phase 3 case
-   list and case timeline answer 400 for the same input (PHASE-3-ACCEPTANCE LD-015), so the platform has two policies;
-   the owner decides whether to keep both or to make one rule for every list. `PagingPolicyTest` records today's
-   behaviour on both sides (one sentence in architecture/CONTRACTS.md §4).
+   endpoint (given below); `sort` is ignored. **OWNER DECISION 2026-10-25 (QAD-029):** an invalid `page` or `size` (not an integer, `page` below 0, `size` below 1) is
+   refused with 400 and names the parameter (`errors[].field`, code `Min` or `Digits`); a missing or blank one takes the
+   default (page 0, size 20); a `size` above 100 is capped. One rule for every list, including the case list and case
+   timeline (PHASE-3-ACCEPTANCE LD-015): a shared interceptor applies it to every handler that takes a `Pageable`, after
+   the authorization check, so a caller without the permission still gets 403. `PagingPolicyTest` pins it, including a
+   test that discovers every paged handler (architecture/CONTRACTS.md §4).
 7. Each recording write adds one case timeline entry through `CaseLookup#recordEvent(caseId, type, summary)` in the same
    transaction: if the event fails, the write is rolled back. Summaries name dates, numbers and statuses only, never
    the free text of notes, decisions or task descriptions (the timeline is shown to every `CASE_VIEW` holder).
@@ -138,6 +138,22 @@ Acceptance criteria:
    orders, the API still answering 422), and the six race tests of `HearingFilingChronologyTest` unchanged. Evidence:
    `LD-024-25-red-QAD-033-hearing-database.log`, `LD-024-26-red-QAD-033-share-lock-mutation.log` (the race test fails
    without `FOR SHARE`), `LD-024-27-green-QAD-033-hearing-database.log`.
+   QAD-038 (P1/S2): V406 took the proceeding row only `FOR SHARE`, which two hearing writers hold together, so a writer
+   of the parent hearing and a writer of its successor each read the other's old, uncommitted date and both committed a
+   successor dated on or before its parent. Migration `V408__LD-024_serialise_dependent_date_writers.sql` replaces the
+   hearing trigger function (V406 is not edited) so that its **first statement** locks the proceeding row `FOR NO KEY
+   UPDATE`: every hearing write of one proceeding, and any filing-date correction, runs one after the other, and the
+   later writer's next statement (a fresh READ COMMITTED snapshot) sees the earlier commit and is refused with a check
+   violation (23514) after waiting. Lock order: the written row first (PostgreSQL locks it before a BEFORE ROW trigger),
+   then the proceeding row; no trigger waits for another row while it holds the proceeding, so two hearing triggers
+   cannot deadlock each other. The API also edits a hearing row-first, proceeding-second. The one cycle left is a raw
+   writer holding a hearing against an API request holding the proceeding and wanting that same hearing: PostgreSQL
+   aborts one of them (40P01), nothing is half written. Tests: `HearingChainSerializationTest`, two plain READ COMMITTED
+   JDBC connections with explicit transactions and no MockMvc, proving the wait in `pg_stat_activity` (parent edit vs
+   successor edit in both orders, successor insert vs parent edit in both orders, compatible edits, a cancelled
+   successor still bounding its parent); the earlier race tests and `MigrationPhase5IntegrityTest` stay green.
+   Evidence: `LD-024-28-red-QAD-038-hearing-chain-race.log` (RED: the second writer never waits and both commit),
+   `LD-024-29-green-QAD-038-V408.log`.
 8. **Report port for Phase 6:** `com.lawdesk.hearings.HearingReportQueries` (read-only, no security of its own: the
    reports module checks `REPORT_VIEW`): hearings in a date range with optional status, case and proceeding filters,
    paged, with their total, and counts by status. The rules "upcoming" (`SCHEDULED` and dated today or later) and
@@ -174,7 +190,7 @@ Acceptance criteria:
 | `assigneeId` | Required: an enabled user of `UserDirectory` (`GET /api/v1/users/directory`); an unknown or disabled user is `422 ASSIGNEE_NOT_ASSIGNABLE`. Stored without a foreign key (§8.3). |
 | `dueDate` | Optional date. A new or changed due date cannot be before today (`400`, code `FutureOrPresent`); an unchanged past due date may stay. **ASSUMPTION**: tasks have dates, not times. |
 | `priority` | `LOW`, `NORMAL` (default), `HIGH`, `URGENT`. **ASSUMPTION**. |
-| `status` | `OPEN` → `IN_PROGRESS` → `DONE`; `OPEN` → `DONE` directly (QAD-031); `OPEN` / `IN_PROGRESS` → `CANCELLED`; `DONE` / `CANCELLED` → `OPEN` (reopen); `IN_PROGRESS` → `OPEN`. Other moves are `422 TASK_STATUS_TRANSITION`. **ASSUMPTION** for owner review (QAD-031): a task may be completed directly from `OPEN`, without first being marked `IN_PROGRESS`, because a small office often finishes a short task in one step; the owner may require the `IN_PROGRESS` step instead. Pinned by `TaskApiTest.aTaskCanBeCompletedDirectlyFromOpen`. |
+| `status` | `OPEN` → `IN_PROGRESS` → `DONE`; `OPEN` → `DONE` directly (QAD-031); `OPEN` / `IN_PROGRESS` → `CANCELLED`; `DONE` / `CANCELLED` → `OPEN` (reopen); `IN_PROGRESS` → `OPEN`. Other moves are `422 TASK_STATUS_TRANSITION`. **OWNER DECISION 2026-10-25** (QAD-031, no longer an assumption): a task may be completed directly from `OPEN`, without first being marked `IN_PROGRESS`, and every status change is audited (criterion 3a). Pinned by `TaskApiTest.aTaskCanBeCompletedDirectlyFromOpen`. |
 
 1. `POST /api/v1/tasks` (`TASK_MANAGE`): 201, `Location`. `GET /api/v1/tasks/{id}` (`TASK_VIEW`). `PUT
    /api/v1/tasks/{id}` (`TASK_MANAGE`, with `version`) changes title, description, assignee, due date and priority.
@@ -187,6 +203,14 @@ Acceptance criteria:
    **ASSUMPTION:** `TASK_VIEW` shows every task of the office, and the case reference and title of case tasks.
 3. Timeline (case tasks only): `TASK_CREATED`, `TASK_ASSIGNED` (assignee changed), `TASK_COMPLETED`, `TASK_CANCELLED`,
    `TASK_REOPENED`. Other edits add no entry.
+3a. **OWNER DECISION 2026-10-25 (QAD-031): audit of every status change.** Each successful status change writes one
+   security audit event through `com.lawdesk.audit.AuditLog`: action `TASK_STATUS_CHANGED`, outcome `SUCCESS`, the acting
+   user, target type `TASK`, the task id as target, and as detail the transition only (for example `OPEN->DONE`,
+   `DONE->OPEN`). It is recorded last, so a refused change (422, 409, 404, 403, 400, an archived case) and a change
+   that rolls back (a failing timeline event) record nothing; creating or editing a task is not a status change. No free
+   text ever enters the event: not the title, the description nor a name. The admin audit page offers the action as a
+   filter and names it in both languages ("Task status changed", "تغيير حالة مهمة"). Tests: `TaskStatusAuditTest` and
+   the admin audit page test. Evidence: `LD-027-11-red-task-status-audit.log`, `LD-027-12-green-task-status-audit.log`.
 4. **ASSUMPTION:** any `TASK_MANAGE` holder may change any task (a small office shares the work); tasks are never
    deleted (cancel instead); edits are allowed in every status. A disabled assignee may stay on a task until it is
    reassigned. Changes to a task of an `ARCHIVED` case are `422 CASE_ARCHIVED`. Writes lock the task row and check
@@ -318,6 +342,12 @@ Acceptance criteria:
    V405 to the latest version and checks that no row is rewritten (same `xmin`) or rejected and that protection starts
    at once. Evidence: `LD-025-16-red-QAD-033-expert-database.log`, `LD-025-17-red-QAD-033-migration-on-existing-data.log`,
    `LD-025-18-green-QAD-033-expert-database.log`.
+   QAD-038 (same class of race) for experts: `ExpertSerializationTest` runs a referral edit against a session edit or
+   insert in both orders and a filing-date correction against a referral edit, on plain READ COMMITTED connections;
+   each ends with one winner, a check violation for the later writer after it waited, and no session before its
+   referral. These already held with V407 (the session trigger locks the referral row, the referral trigger the
+   proceeding row; `LD-025-19-QAD-038-expert-races-hold-on-V407.log`); V408 only makes the lock the uniform first
+   statement of the referral and session triggers (proceeding row `FOR NO KEY UPDATE`).
 8. Screens: `/experts` (ready, `EXPERT_VIEW`) is the registry with status filter, search, create, edit and deactivate;
    the case's expert referrals in `CaseOperations` refer a proceeding to an active expert, record sessions and the
    report, and cancel a referral after confirmation.

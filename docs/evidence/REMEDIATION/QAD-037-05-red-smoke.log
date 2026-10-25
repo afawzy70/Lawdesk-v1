@@ -1,0 +1,83 @@
+F..FFFFF
+======================================================================
+FAIL: test_an_unreachable_upload_route_fails_instead_of_passing_silently (test_smoke.SmokeTest.test_an_unreachable_upload_route_fails_instead_of_passing_silently)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/remed/deploy/tests/test_smoke.py", line 128, in test_an_unreachable_upload_route_fails_instead_of_passing_silently
+    self.assertNotEqual(0, result.returncode, result.stdout)
+AssertionError: 0 == 0 : ok   /healthz
+ok   /
+ok   readiness UP
+ok   /api/v1/cases -> 401
+ok   /actuator/env -> 404
+
+
+======================================================================
+FAIL: test_healthy_stack_passes_every_check (test_smoke.SmokeTest.test_healthy_stack_passes_every_check)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/remed/deploy/tests/test_smoke.py", line 89, in test_healthy_stack_passes_every_check
+    self.assertEqual(7, result.stdout.count("ok   "), result.stdout)
+AssertionError: 7 != 5 : ok   /healthz
+ok   /
+ok   readiness UP
+ok   /api/v1/cases -> 401
+ok   /actuator/env -> 404
+
+
+======================================================================
+FAIL: test_the_upload_route_must_still_refuse_bodies_above_its_allowance (test_smoke.SmokeTest.test_the_upload_route_must_still_refuse_bodies_above_its_allowance) (status=403)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/remed/deploy/tests/test_smoke.py", line 122, in test_the_upload_route_must_still_refuse_bodies_above_its_allowance
+    self.assertNotEqual(0, result.returncode, result.stdout)
+AssertionError: 0 == 0 : ok   /healthz
+ok   /
+ok   readiness UP
+ok   /api/v1/cases -> 401
+ok   /actuator/env -> 404
+
+
+======================================================================
+FAIL: test_the_upload_route_must_still_refuse_bodies_above_its_allowance (test_smoke.SmokeTest.test_the_upload_route_must_still_refuse_bodies_above_its_allowance) (status=200)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/remed/deploy/tests/test_smoke.py", line 122, in test_the_upload_route_must_still_refuse_bodies_above_its_allowance
+    self.assertNotEqual(0, result.returncode, result.stdout)
+AssertionError: 0 == 0 : ok   /healthz
+ok   /
+ok   readiness UP
+ok   /api/v1/cases -> 401
+ok   /actuator/env -> 404
+
+
+======================================================================
+FAIL: test_the_upload_route_must_still_refuse_bodies_above_its_allowance (test_smoke.SmokeTest.test_the_upload_route_must_still_refuse_bodies_above_its_allowance) (status=502)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/remed/deploy/tests/test_smoke.py", line 122, in test_the_upload_route_must_still_refuse_bodies_above_its_allowance
+    self.assertNotEqual(0, result.returncode, result.stdout)
+AssertionError: 0 == 0 : ok   /healthz
+ok   /
+ok   readiness UP
+ok   /api/v1/cases -> 401
+ok   /actuator/env -> 404
+
+
+======================================================================
+FAIL: test_the_upload_route_must_take_bodies_above_one_mib (test_smoke.SmokeTest.test_the_upload_route_must_take_bodies_above_one_mib)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/remed/deploy/tests/test_smoke.py", line 114, in test_the_upload_route_must_take_bodies_above_one_mib
+    self.assertNotEqual(0, result.returncode, result.stdout)
+AssertionError: 0 == 0 : ok   /healthz
+ok   /
+ok   readiness UP
+ok   /api/v1/cases -> 401
+ok   /actuator/env -> 404
+
+
+----------------------------------------------------------------------
+Ran 6 tests in 7.735s
+
+FAILED (failures=6)

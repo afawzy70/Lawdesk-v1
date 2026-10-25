@@ -1,0 +1,19 @@
+# QAD-038 and task audit: local regression on fix/QAD-038-hearing-chain-serialization (develop b849b1c)
+# backend ./mvnw -B clean verify
+[INFO] Tests run: 689, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+# backend reverse-alphabetical class order (-Dsurefire.runOrder=reversealphabetical ./mvnw -B test)
+[INFO] Tests run: 689, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+# frontend: npm run lint, npx tsc -b, npx vitest run --coverage
+eslint exit=0
+tsc exit=0
+ Test Files  46 passed (46)
+      Tests  456 passed (456)
+All files          |   98.43 |     92.9 |   98.07 |   99.06 |                   
+vitest exit=0
+Ran 142 tests in 17.985s (tools)
+OK
+Ran 155 tests in 100.689s (deploy)
+OK
+# python3 -I tools/contracts.py: exit 0; gitleaks dir: no leaks
