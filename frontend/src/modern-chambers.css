@@ -56,12 +56,13 @@ button:disabled, input:disabled, select:disabled { opacity: .58; cursor: not-all
 bdi, [dir='ltr'] { unicode-bidi: isolate; }
 
 /* The charcoal chambers rail is persistent on desktop and becomes an accessible menu on phones. */
-.app { display: grid; grid-template-columns: 12.25rem minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; min-block-size: 100dvh; }
+.app { display: grid; grid-template-columns: 10rem minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; min-block-size: 100dvh; }
 .app-header { grid-column: 2; grid-row: 1; background: var(--mc-paper); border-block-end: 1px solid var(--ld-border); min-inline-size: 0; }
 .app-body { display: contents; }
 .app-nav { grid-column: 1; grid-row: 1 / 4; background: var(--mc-charcoal); border: 0; padding: 1.75rem .75rem; min-inline-size: 0; }
 .app-nav .nav-brand { display: flex; flex-direction: column; align-items: flex-start; gap: .85rem; padding: .25rem .65rem 2rem; color: #f3e9d6; text-decoration: none; font-size: 1.27rem; font-weight: 700; letter-spacing: -.035em; }
 .nav-brand-mark { display: grid; place-items: center; inline-size: 2.5rem; block-size: 2.5rem; border: 1px solid #aa9061; border-radius: 5px; color: #dbbf82; font-size: 1.25rem; line-height: 1; }
+.nav-brand-mark svg { inline-size: 1.5rem; block-size: 1.5rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .app-nav ul { gap: .32rem; }
 .app-nav a:not(.nav-brand) { display: block; color: #e1ded3; padding: .77rem .84rem; border-radius: 3px; border-inline-start: 3px solid transparent; text-decoration: none; font-size: .9rem; line-height: 1.35; overflow-wrap: anywhere; }
 .app-nav a:not(.nav-brand):hover { background: #3a3e3b; color: #fff8eb; }
@@ -106,6 +107,9 @@ bdi, [dir='ltr'] { unicode-bidi: isolate; }
 .app-main label > input, .app-main label > select, .app-main label > textarea { font-weight: 400; }
 .app-main fieldset { border: 1px solid var(--ld-border); border-radius: var(--mc-radius); }
 .app-main legend { color: var(--ld-muted); font-size: .84rem; font-weight: 700; padding-inline: .35rem; }
+.role-permissions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; padding: .45rem .8rem .8rem; }
+.role-permissions .checkbox { display: flex; align-items: start; gap: .65rem; padding: .55rem .35rem; border-block-end: 1px solid var(--ld-border); line-height: 1.45; overflow-wrap: anywhere; }
+.role-permissions .checkbox input { flex: 0 0 auto; margin-block-start: .2rem; }
 .app-main textarea { min-block-size: 6rem; }
 .app-main form { min-inline-size: 0; }
 .app-main form:not(.case-filters):not(.rpt-filters):not(.ops-filters):not(.courts-filters):not(.admin-filters) { max-inline-size: 48rem; }
@@ -121,6 +125,8 @@ bdi, [dir='ltr'] { unicode-bidi: isolate; }
 .app-main table tbody tr:hover { background: #f6f1e7; }
 .app-main table tbody tr:last-child td { border-block-end: 0; }
 .app-main table td, .app-main table th { overflow-wrap: anywhere; }
+.app-main .ops-table th { overflow-wrap: normal; white-space: nowrap; }
+.app-main .ops-table td:last-child a { white-space: nowrap; }
 .app-main table td:first-child { font-weight: 600; }
 .app-main table td bdi { font-variant-numeric: tabular-nums; }
 .case-table button, .ops-actions button { min-inline-size: 2.75rem; }
@@ -143,7 +149,12 @@ bdi, [dir='ltr'] { unicode-bidi: isolate; }
 .rpt-sections a, .admin-tabs a { display: inline-flex; align-items: center; min-block-size: 2.75rem; padding: .4rem .8rem; color: var(--ld-muted); text-decoration: none; border-block-end: 2px solid transparent; }
 .rpt-sections a[aria-current='page'], .admin-tabs a[aria-current='page'] { color: var(--ld-accent); border-block-end-color: var(--mc-brass); }
 .rpt-filters, .case-filters, .admin-filters { background: #ebe7de; border: 1px solid var(--ld-border); border-radius: var(--mc-radius); padding: 1rem 1.15rem; max-inline-size: none; }
+.admin-filters { display: grid; grid-template-columns: minmax(7rem, 10rem) minmax(0, 1fr); align-items: center; gap: .65rem 1rem; max-inline-size: 44rem; }
+.admin-filters button { grid-column: 2; justify-self: start; }
 .rpt-table { min-inline-size: 53rem; }
+.rpt-table th { overflow-wrap: normal; }
+.rpt-table .rpt-status { white-space: nowrap; }
+.rpt-table .rpt-proceedings { min-inline-size: 7.5rem; }
 .rpt-exports { gap: .4rem .75rem; }
 .rpt-exports a { border: 1px solid #aa997f; padding: .4rem .75rem; text-decoration: none; background: var(--mc-paper); font-weight: 600; }
 .rpt-exports a:hover { background: var(--ld-accent-soft); }
@@ -167,7 +178,7 @@ bdi, [dir='ltr'] { unicode-bidi: isolate; }
 .case-notice, .ops-saved { border: 1px solid #a9c4b4; border-inline-start: 4px solid var(--ld-ok); background: #eff5ef; color: #225344; border-radius: var(--mc-radius); padding: .8rem 1rem; }
 .case-form, .court-form, .judicial-form, .ops-form, .admin-form { background: var(--mc-paper); border: 1px solid var(--ld-border); border-radius: var(--mc-radius); padding: 1rem 1.2rem; max-inline-size: 48rem; }
 .case-filters { max-inline-size: none; }
-.ops-filters { background: #ebe7de; padding: .6rem .8rem; }
+.ops-filters { background: #ebe7de; padding: .6rem .8rem; min-inline-size: 0; max-inline-size: 100%; }
 .ops-reminder { background: #f6e8cc; border-color: #bda06d; }
 .ops-reminder-danger { background: #f8e5e1; border-color: #c18580; }
 .ops-toolbar [aria-pressed='true'] { outline: 2px solid var(--mc-brass); background: var(--ld-accent-soft); }
@@ -185,7 +196,7 @@ bdi, [dir='ltr'] { unicode-bidi: isolate; }
 .app-main [role='alert']:not(.case-alert):not(.rpt-alert):not(.ops-confirm):not(.form-error) { border-inline-start-color: var(--ld-bad); }
 
 @media (max-width: 1120px) {
-  .app { grid-template-columns: 10.25rem minmax(0, 1fr); }
+  .app { grid-template-columns: 9rem minmax(0, 1fr); }
   .rpt-dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kpi:nth-child(2) { border-inline-end: 0; }
@@ -209,6 +220,15 @@ bdi, [dir='ltr'] { unicode-bidi: isolate; }
   .rpt-dashboard { grid-template-columns: minmax(0, 1fr); }
   .rpt-panel:first-child, .rpt-panel:last-child { grid-column: auto; }
   .rpt-filters, .case-filters { grid-template-columns: minmax(0, 1fr); }
+  .admin-filters { grid-template-columns: minmax(0, 1fr); }
+  .admin-filters button { grid-column: 1; }
+  .role-permissions { grid-template-columns: minmax(0, 1fr); }
+  .ops-toolbar { min-inline-size: 0; }
+  .ops-filters { display: grid; grid-template-columns: minmax(0, 1fr); inline-size: 100%; box-sizing: border-box; }
+  .ops-filters input, .ops-filters select { inline-size: 100%; min-inline-size: 0; }
+  .courts-toolbar { min-inline-size: 0; }
+  .courts-filters { display: grid; grid-template-columns: minmax(0, 1fr); inline-size: 100%; min-inline-size: 0; box-sizing: border-box; }
+  .courts-filters select { inline-size: 100%; min-inline-size: 0; }
   .case-filters .case-actions, .rpt-actions { grid-column: auto; }
   .app-main table:not(.rpt-table) { min-inline-size: 40rem; }
   .case-facts { grid-template-columns: minmax(0, 1fr); gap: .15rem; }
@@ -229,3 +249,12 @@ bdi, [dir='ltr'] { unicode-bidi: isolate; }
 
 .admin-tabs ul { display: flex; flex-wrap: wrap; gap: .25rem; margin: 0 0 1rem; padding: 0 0 .3rem; list-style: none; }
 :root[lang='ar'] .app-main h1, :root[lang='ar'] .app-main h2, :root[lang='ar'] .auth-card h1 { font-family: Cairo, 'IBM Plex Sans Arabic', Tahoma, sans-serif; }
+
+/* Global case lookup maps only to the implemented reference/title search. */
+.app-case-search { display: flex; flex: 1 1 16rem; max-inline-size: 21rem; min-inline-size: 11rem; margin: 0; border: 1px solid var(--ld-border); border-radius: var(--mc-radius); background: #fffefa; }
+.app-case-search input { flex: 1; min-inline-size: 0; border: 0; background: transparent; padding: .55rem .7rem; color: var(--ld-fg); }
+.app-case-search button { flex: 0 0 auto; min-block-size: 2.75rem; padding: .35rem .8rem; border: 0; border-inline-start: 1px solid var(--ld-border); border-radius: 0; background: #efe9dc; color: var(--ld-accent); font-weight: 700; }
+.app-case-search button:hover { background: #e4d8c2; }
+.app-case-search:focus-within { outline: 2px solid var(--ld-focus); outline-offset: 2px; }
+.app-case-search input:focus-visible, .app-case-search button:focus-visible { outline-offset: 0; }
+@media (max-width: 767px) { .app-case-search { order: 4; flex-basis: 100%; max-inline-size: none; } }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, NavLink, Outlet } from 'react-router';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { ApiStatus } from '../components/ApiStatus';
 import { LocaleToggle } from '../components/LocaleToggle';
 import { PreviewBanner } from '../components/PreviewBanner';
@@ -14,6 +14,8 @@ const MAIN_ID = 'main-content';
 export function AppLayout() {
   const { locale, t } = useI18n();
   const { state, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   const me = state.status === 'signedIn' ? state.me : null;
   const navItems = visibleNav(new Set(me?.permissions ?? []));
   const [menuOpen, setMenuOpen] = useState(false);
@@ -42,7 +44,7 @@ export function AppLayout() {
   }, [menuOpen]);
 
   return (
-    <div className="app">
+    <div className={`app${pathname === '/' ? ' app-dashboard' : pathname === '/reports' || pathname.startsWith('/reports/') ? ' app-reports' : ''}`}>
       <a className="skip-link" href={`#${MAIN_ID}`}>
         {t('shell.skipToContent')}
       </a>
@@ -63,6 +65,26 @@ export function AppLayout() {
             {t('shell.menu')}
           </button>
           <p className="app-name">{t('app.name')}</p>
+          {me?.permissions.includes('CASE_VIEW') && (
+            <form
+              className="app-case-search"
+              role="search"
+              aria-label={t('shell.caseSearch')}
+              onSubmit={(event) => {
+                event.preventDefault();
+                const data = new FormData(event.currentTarget);
+                const value = data.get('q');
+                const q = typeof value === 'string' ? value.trim() : '';
+                const params = new URLSearchParams({ lang: locale });
+                if (q !== '') params.set('q', q);
+                void navigate(`/cases?${params.toString()}`);
+              }}
+            >
+              <label className="visually-hidden" htmlFor="app-case-search">{t('shell.caseSearch')}</label>
+              <input id="app-case-search" name="q" type="search" dir="auto" maxLength={100} placeholder={t('shell.caseSearchPlaceholder')} />
+              <button type="submit">{t('shell.search')}</button>
+            </form>
+          )}
           <ApiStatus />
           <LocaleToggle />
           {me !== null && (
@@ -86,7 +108,11 @@ export function AppLayout() {
           data-open={menuOpen}
         >
           <div className="nav-brand">
-            <span className="nav-brand-mark" aria-hidden="true">L</span>
+            <span className="nav-brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 32 32" focusable="false">
+                <path d="M16 4v23M8 9h16M4 9l-3 7h6L4 9Zm24 0-3 7h6l-3-7ZM11 27h10M16 4l-2 3h4l-2-3Z" />
+              </svg>
+            </span>
             <span>{t('app.name')}</span>
           </div>
           <ul>

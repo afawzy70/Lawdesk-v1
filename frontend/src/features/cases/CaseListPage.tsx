@@ -200,14 +200,20 @@ export function CaseListPage() {
               <tbody>
                 {load.result.items.map((item) => (
                   <tr key={item.id}>
-                    <td>
-                      <Link to={withLang(casePath(item.id), locale)}>{item.referenceNo}</Link>
+                    <td data-label={t('cases.field.referenceNo')}>
+                      <Link to={withLang(casePath(item.id), locale)}>
+                        <bdi dir="ltr">{item.referenceNo}</bdi>
+                      </Link>
                     </td>
-                    <td>{item.title}</td>
-                    <td>{t(`cases.type.${item.caseType}`)}</td>
-                    <td>{t(`cases.status.${item.status}`)}</td>
-                    <td>{formatDate(item.openedOn, locale)}</td>
-                    <td>{formatDateTime(item.updatedAt, locale)}</td>
+                    <td data-label={t('cases.field.title')}>
+                      <bdi dir="auto" className="case-title">{item.title}</bdi>
+                    </td>
+                    <td data-label={t('cases.field.caseType')}>{t(`cases.type.${item.caseType}`)}</td>
+                    <td data-label={t('cases.field.status')}>
+                      <span className="case-status" data-status={item.status}>{t(`cases.status.${item.status}`)}</span>
+                    </td>
+                    <td data-label={t('cases.field.openedOn')}>{formatDate(item.openedOn, locale)}</td>
+                    <td data-label={t('cases.field.updatedAt')}>{formatDateTime(item.updatedAt, locale)}</td>
                   </tr>
                 ))}
               </tbody>

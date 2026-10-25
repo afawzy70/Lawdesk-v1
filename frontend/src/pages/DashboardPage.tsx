@@ -9,6 +9,7 @@ import '../features/reports/reports.css';
 import { formatNumber } from '../i18n/format';
 import { useI18n } from '../i18n/I18nContext';
 import { usePageTitle } from '../i18n/usePageTitle';
+import { DashboardWorkspace } from './DashboardWorkspace';
 
 type Load =
   | { kind: 'loading' }
@@ -56,6 +57,8 @@ export function DashboardPage() {
   usePageTitle(t('nav.dashboard'));
   const { state } = useAuth();
   const canView = state.status === 'signedIn' && state.me.permissions.includes('REPORT_VIEW');
+  const canCases = state.status === 'signedIn' && state.me.permissions.includes('CASE_VIEW');
+  const canHearings = state.status === 'signedIn' && state.me.permissions.includes('HEARING_VIEW');
   const [attempt, setAttempt] = useState(0);
   const [result, setResult] = useState<{ attempt: number; load: Load } | null>(null);
   const load: Load = result?.attempt === attempt ? result.load : { kind: 'loading' };
@@ -103,7 +106,15 @@ export function DashboardPage() {
   } else {
     const { cases, proceedings, judgments, operations } = load.report;
     body = (
-      <div className="rpt-dashboard">
+      <>
+        <ul className="mc-signal-strip" aria-label={t('reports.dashboard.snapshot')}>
+          <li><span>{t('reports.dashboard.cases.open')}</span><strong>{n(cases.open)}</strong></li>
+          <li><span>{t('reports.operations.hearingsThisWeek')}</span><strong>{n(operations.hearingsThisWeek)}</strong></li>
+          <li><span>{t('reports.operations.overdueTasks')}</span><strong>{n(operations.overdueTasks)}</strong></li>
+          <li><span>{t('reports.operations.expertReportsOverdue')}</span><strong>{n(operations.expertReportsOverdue)}</strong></li>
+        </ul>
+        <DashboardWorkspace canCases={canCases} canHearings={canHearings} />
+        <div className="rpt-dashboard">
         <Panel title={t('reports.dashboard.cases')}>
           <ul className="kpi-grid">
             <Tile value={n(cases.open)} label={t('reports.dashboard.cases.open')} />
@@ -172,15 +183,19 @@ export function DashboardPage() {
             <Tile value={n(operations.tasksDueSoon)} label={t('reports.operations.tasksDueSoon')} />
           </ul>
         </Panel>
-      </div>
+        </div>
+      </>
     );
   }
 
   return (
-    <>
-      <h1>{t('nav.dashboard')}</h1>
-      <p className="dashboard-intro">{t('reports.dashboard.intro')}</p>
+    <div className="mc-dashboard-page">
+      <div className="mc-dashboard-intro">
+        <p className="mc-dashboard-eyebrow">{t('app.name')}</p>
+        <h1>{t('nav.dashboard')}</h1>
+        <p className="dashboard-intro">{t('reports.dashboard.intro')}</p>
+      </div>
       {body}
-    </>
+    </div>
   );
 }

@@ -109,58 +109,68 @@ function CaseDetails({ id }: { id: string }) {
     notice !== null ? t(notice) : created === undefined ? null : t('cases.create.done', { referenceNo: created });
   return (
     <>
-      <h1>{t('cases.details.title', { referenceNo: legalCase.referenceNo })}</h1>
-      {back}
-      {confirmation === null ? null : (
-        <p className="case-notice" role="status">
-          {confirmation}
-        </p>
-      )}
-      <dl className="case-facts">
-        <dt>{t('cases.field.title')}</dt>
-        <dd>{legalCase.title}</dd>
-        <dt>{t('cases.field.caseType')}</dt>
-        <dd>{t(`cases.type.${legalCase.caseType}`)}</dd>
-        <dt>{t('cases.field.status')}</dt>
-        <dd>{t(`cases.status.${legalCase.status}`)}</dd>
-        <dt>{t('cases.field.subject')}</dt>
-        <dd>{legalCase.subject ?? '—'}</dd>
-        <dt>{t('cases.field.openedOn')}</dt>
-        <dd>{formatDate(legalCase.openedOn, locale)}</dd>
-        <dt>{t('cases.field.updatedAt')}</dt>
-        <dd>{formatDateTime(legalCase.updatedAt, locale)}</dd>
-      </dl>
-      {legalCase.status === 'CLOSED' || archived ? null : (
-        <p>
-          <Link to={withLang(editCasePath(legalCase.id), locale)}>{t('cases.details.edit')}</Link>
-        </p>
-      )}
-      {archived ? (
-        <p className="case-notice">{t('cases.details.archived')}</p>
-      ) : (
-        <CaseStatusForm
-          key={`${String(legalCase.version)}-${String(generation)}`}
-          legalCase={legalCase}
-          onChanged={() => {
-            refresh('cases.status.done');
-          }}
-          onReload={() => {
-            refresh(null);
-          }}
-        />
-      )}
-      <CasePartiesSection
-        caseId={legalCase.id}
-        generation={generation}
-        editable={!archived}
-        onChanged={() => {
-          refresh(null);
-        }}
-      />
-      {/* Judicial stages belong to Workstream C; the case only hosts them (architecture/CONTRACTS.md §5). */}
-      <CaseProceedings caseId={legalCase.id} />
-      <CaseOperations caseId={legalCase.id} />
-      <CaseTimelineList caseId={legalCase.id} generation={generation} />
+      <div className="case-dossier-head">
+        <h1>{t('cases.details.title', { referenceNo: legalCase.referenceNo })}</h1>
+        {back}
+        {confirmation === null ? null : (
+          <p className="case-notice" role="status">
+            {confirmation}
+          </p>
+        )}
+        <dl className="case-facts">
+          <dt>{t('cases.field.title')}</dt>
+          <dd>{legalCase.title}</dd>
+          <dt>{t('cases.field.caseType')}</dt>
+          <dd>{t(`cases.type.${legalCase.caseType}`)}</dd>
+          <dt>{t('cases.field.status')}</dt>
+          <dd>
+            <span className="case-status" data-status={legalCase.status}>{t(`cases.status.${legalCase.status}`)}</span>
+          </dd>
+          <dt>{t('cases.field.subject')}</dt>
+          <dd>{legalCase.subject ?? '—'}</dd>
+          <dt>{t('cases.field.openedOn')}</dt>
+          <dd>{formatDate(legalCase.openedOn, locale)}</dd>
+          <dt>{t('cases.field.updatedAt')}</dt>
+          <dd>{formatDateTime(legalCase.updatedAt, locale)}</dd>
+        </dl>
+        {legalCase.status === 'CLOSED' || archived ? null : (
+          <p>
+            <Link to={withLang(editCasePath(legalCase.id), locale)}>{t('cases.details.edit')}</Link>
+          </p>
+        )}
+      </div>
+      <div className="case-workspace">
+        <div className="case-workspace-index">
+          {archived ? (
+            <p className="case-notice">{t('cases.details.archived')}</p>
+          ) : (
+            <CaseStatusForm
+              key={`${String(legalCase.version)}-${String(generation)}`}
+              legalCase={legalCase}
+              onChanged={() => {
+                refresh('cases.status.done');
+              }}
+              onReload={() => {
+                refresh(null);
+              }}
+            />
+          )}
+          <CasePartiesSection
+            caseId={legalCase.id}
+            generation={generation}
+            editable={!archived}
+            onChanged={() => {
+              refresh(null);
+            }}
+          />
+          <CaseTimelineList caseId={legalCase.id} generation={generation} />
+        </div>
+        <div className="case-workspace-content">
+          {/* Judicial stages belong to Workstream C; the case only hosts them (architecture/CONTRACTS.md §5). */}
+          <CaseProceedings caseId={legalCase.id} />
+          <CaseOperations caseId={legalCase.id} />
+        </div>
+      </div>
     </>
   );
 }
