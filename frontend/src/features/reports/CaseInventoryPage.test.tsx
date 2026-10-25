@@ -254,7 +254,8 @@ describe('case inventory report (LD-031)', () => {
     backend(VIEWER, { [REPORT]: () => report([NILE]), '/api/v1/courts': () => problem(500) });
     await renderAt('/reports');
     await table();
-    expect(screen.queryByRole('combobox', { name: 'Court' })).not.toBeInTheDocument();
+    expect(await screen.findByText('The list could not be read. Try again.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Apply' })).toBeEnabled();
   });
 
   it.each([
