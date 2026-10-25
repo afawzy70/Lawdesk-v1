@@ -33,13 +33,25 @@ Create `pg_stat_statements` on this private database, then seed only this privat
 
 ```bash
 docker compose -f tools/performance/isolated/compose.yaml exec -T db psql -U postgres -d lawdesk -v ON_ERROR_STOP=1 -c 'create extension if not exists pg_stat_statements'
-docker compose -f tools/performance/isolated/compose.yaml exec -T db psql -U postgres -d lawdesk -v ON_ERROR_STOP=1 < tools/performance/db/seed-develop.sql
-docker compose -f tools/performance/isolated/compose.yaml exec -T db psql -U postgres -d lawdesk -v ON_ERROR_STOP=1 < tools/performance/db/seed-phase5.sql
-docker compose -f tools/performance/isolated/compose.yaml exec -T db psql -U postgres -d lawdesk -v ON_ERROR_STOP=1 < tools/performance/db/seed-phase8.sql
-docker compose -f tools/performance/isolated/compose.yaml exec -T db psql -U postgres -d lawdesk -Atc 'select count(*) from legal_case; select count(*) from proceeding; select count(*) from hearing; select count(*) from task; select count(*) from case_document; select count(*) from expert; select count(*) from expert_referral;' > "$LAWDESK_PERF_EVIDENCE_DIR/dataset-counts.txt"
+docker compose -f tools/performance/isolated/compose.yaml exec -T -e PGOPTIONS='-c search_path=lawdesk,public' db psql -U postgres -d lawdesk -v ON_ERROR_STOP=1 < tools/performance/db/seed-develop.sql
+docker compose -f tools/performance/isolated/compose.yaml exec -T -e PGOPTIONS='-c search_path=lawdesk,public' db psql -U postgres -d lawdesk -v ON_ERROR_STOP=1 < tools/performance/db/seed-phase5.sql
+docker compose -f tools/performance/isolated/compose.yaml exec -T -e PGOPTIONS='-c search_path=lawdesk,public' db psql -U postgres -d lawdesk -v ON_ERROR_STOP=1 < tools/performance/db/seed-phase8.sql
+docker compose -f tools/performance/isolated/compose.yaml exec -T -e PGOPTIONS='-c search_path=lawdesk,public' db psql -U postgres -d lawdesk -Atc 'select count(*) from legal_case; select count(*) from proceeding; select count(*) from hearing; select count(*) from task; select count(*) from case_document; select count(*) from expert; select count(*) from expert_referral;' > "$LAWDESK_PERF_EVIDENCE_DIR/dataset-counts.txt"
 ```
 
 Check that counts match the planned scale (10,000 cases, about 50,000 proceedings, up to 100,000 hearings, 30,000 tasks, 1,000 stored document payloads, 60 experts, 5,000 referrals), that all three personas sign in, and that authenticated `GET /api/v1/release` returns the SHA. Record image digests, Docker/Compose versions, host CPU/RAM, PostgreSQL version and dataset counts. If any check fails, stop; do not treat a partial dataset as a comparable baseline.
+
+Take a private snapshot after provisioning and seeding. The scenarios create cases, tasks, hearings and documents, so **restore this same snapshot before each profile** to keep comparisons reproducible. The sole exception is `recovery`: run it immediately after `spike` on the same database to measure recovery from that burst. Stop backend/web before each restore, require `pg_restore` exit code 0, restart and verify `/healthz`, dataset counts and the authenticated release SHA before running k6. Keep the dump owner-only with the evidence; it contains synthetic account hashes.
+
+```bash
+umask 077
+docker compose -f tools/performance/isolated/compose.yaml exec -T db pg_dump -U postgres -d lawdesk -Fc > "$LAWDESK_PERF_EVIDENCE_DIR/seed.dump"
+# Repeat before matrix, smoke, baseline, load, stress, spike and soak; skip before recovery.
+docker compose -f tools/performance/isolated/compose.yaml stop web backend
+docker compose -f tools/performance/isolated/compose.yaml exec -T db pg_restore -U postgres -d lawdesk --clean --if-exists < "$LAWDESK_PERF_EVIDENCE_DIR/seed.dump"
+docker compose -f tools/performance/isolated/compose.yaml exec -T db psql -U postgres -d lawdesk -v ON_ERROR_STOP=1 -c 'select pg_stat_statements_reset()'
+docker compose -f tools/performance/isolated/compose.yaml up -d backend web
+```
 
 ## Run profiles in order
 

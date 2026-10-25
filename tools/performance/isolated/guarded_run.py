@@ -95,6 +95,27 @@ def service_observations():
     return {"docker_stats": stats, "db_connections_by_state": connections}
 
 
+def dataset_guard(profile, evidence):
+    release = compose("exec", "-T", "db", "psql", "-U", "postgres", "-d", "lawdesk", "-Atc",
+                      "select version from lawdesk.app_release order by id desc limit 1",
+                      capture_output=True, text=True).stdout.strip()
+    if release != os.environ["LAWDESK_PERF_SHA"]:
+        raise RuntimeError("backend release SHA differs from LAWDESK_PERF_SHA")
+    if profile == "recovery":
+        if not (evidence / "spike-guard.jsonl").is_file():
+            raise RuntimeError("recovery must follow spike on the same dataset")
+        return
+    sql = ("select (select count(*) from lawdesk.legal_case),"
+           "(select count(*) from lawdesk.task),"
+           "(select count(*) from lawdesk.case_document),"
+           "(select count(*) from lawdesk.expert),"
+           "(select count(*) from lawdesk.expert_referral)")
+    raw = compose("exec", "-T", "db", "psql", "-U", "postgres", "-d", "lawdesk", "-Atc", sql,
+                  capture_output=True, text=True).stdout.strip()
+    if raw != "10000|30000|1000|60|5000":
+        raise RuntimeError("dataset differs from seeded snapshot; restore it before this profile (counts " + raw + ")")
+
+
 def main(profile):
     if profile not in PROFILES:
         raise RuntimeError("unknown profile")
@@ -103,6 +124,7 @@ def main(profile):
     preflight()
     evidence = Path(os.environ["LAWDESK_PERF_EVIDENCE_DIR"])
     evidence.mkdir(mode=0o700, parents=True, exist_ok=True)
+    dataset_guard(profile, evidence)
     points = evidence / f"{profile}-metrics.jsonl"
     observations = evidence / f"{profile}-guard.jsonl"
     if points.exists() or observations.exists():
@@ -161,6 +183,6 @@ if __name__ == "__main__":
         raise SystemExit("usage: guarded_run.py matrix|smoke|baseline|load|stress|spike|recovery|soak")
     try:
         raise SystemExit(main(sys.argv[1]))
-    except (RuntimeError, KeyError, FileNotFoundError) as error:
+    except (RuntimeError, KeyError, FileNotFoundError, subprocess.CalledProcessError) as error:
         print("refused: " + str(error), file=sys.stderr)
         raise SystemExit(2) from None
