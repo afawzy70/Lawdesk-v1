@@ -48,7 +48,7 @@
 
 ## العائق الحالي
 
-Docker socket المحلي رد `permission denied` حتى في فحص `docker info` read-only مع تحديد `/var/run/docker.sock`. مستخدم التنفيذ UID 1002 ومفيش صلاحية socket. مفيش k6 أو Java/PostgreSQL runtime قابل للتشغيل في البيئة الحالية، وبيانات اعتماد QA UAT مش متاحة في متغيرات الجلسة المجهزة. لذلك ما قدرتش أثبت عزل سيرفر Contabo ولا أنفذ حمل آمن. `gh auth status` كمان أبلغ إن token الحالي غير صالح؛ branch الأدلة جاهز محلياً لكن PR لسه ما اتفتحش.
+Docker socket المحلي رد `permission denied` حتى في فحص `docker info` read-only مع تحديد `/var/run/docker.sock`. مستخدم التنفيذ UID 1002 ومفيش صلاحية socket. k6 اتوفر لفحص `inspect` فقط؛ Java/PostgreSQL runtime والتشغيل المعزول مش متاحين هنا، وبيانات اعتماد QA UAT مش موجودة في متغيرات الجلسة المجهزة. لذلك ما قدرتش أثبت عزل سيرفر Contabo ولا أنفذ حمل آمن. [Draft PR #60](https://github.com/afawzy70/Lawdesk-v1/pull/60) مفتوحة على `develop`؛ فحوص GitHub Actions الحالية ظهرت `SKIPPED`، ومش دليل نجاح.
 
 ## Backlog الأداء للتحقق، مش عيوب مؤكدة حالياً
 
