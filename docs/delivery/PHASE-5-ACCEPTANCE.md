@@ -169,7 +169,7 @@ Acceptance criteria:
 | `assigneeId` | Required: an enabled user of `UserDirectory` (`GET /api/v1/users/directory`); an unknown or disabled user is `422 ASSIGNEE_NOT_ASSIGNABLE`. Stored without a foreign key (§8.3). |
 | `dueDate` | Optional date. A new or changed due date cannot be before today (`400`, code `FutureOrPresent`); an unchanged past due date may stay. **ASSUMPTION**: tasks have dates, not times. |
 | `priority` | `LOW`, `NORMAL` (default), `HIGH`, `URGENT`. **ASSUMPTION**. |
-| `status` | `OPEN` → `IN_PROGRESS` → `DONE`; `OPEN` / `IN_PROGRESS` → `CANCELLED`; `DONE` / `CANCELLED` → `OPEN` (reopen); `IN_PROGRESS` → `OPEN`. Other moves are `422 TASK_STATUS_TRANSITION`. **ASSUMPTION**. |
+| `status` | `OPEN` → `IN_PROGRESS` → `DONE`; `OPEN` → `DONE` directly (QAD-031); `OPEN` / `IN_PROGRESS` → `CANCELLED`; `DONE` / `CANCELLED` → `OPEN` (reopen); `IN_PROGRESS` → `OPEN`. Other moves are `422 TASK_STATUS_TRANSITION`. **ASSUMPTION** for owner review (QAD-031): a task may be completed directly from `OPEN`, without first being marked `IN_PROGRESS`, because a small office often finishes a short task in one step; the owner may require the `IN_PROGRESS` step instead. Pinned by `TaskApiTest.aTaskCanBeCompletedDirectlyFromOpen`. |
 
 1. `POST /api/v1/tasks` (`TASK_MANAGE`): 201, `Location`. `GET /api/v1/tasks/{id}` (`TASK_VIEW`). `PUT
    /api/v1/tasks/{id}` (`TASK_MANAGE`, with `version`) changes title, description, assignee, due date and priority.
