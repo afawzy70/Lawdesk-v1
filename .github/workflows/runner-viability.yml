@@ -41,6 +41,9 @@ jobs:
           grep -Eq "^NoNewPrivs:[[:space:]]+1" /proc/self/status
           grep -Eq "^Seccomp:[[:space:]]+2" /proc/self/status
           grep -Eq "^CapEff:[[:space:]]+0{16}" /proc/self/status
-          test "$(cat /sys/fs/cgroup/memory.max)" -le 1073741824
-          test "$(cat /sys/fs/cgroup/pids.max)" -le 128
-          awk 'NR == 1 { exit !($1 != "max" && $1 <= $2) }' /sys/fs/cgroup/cpu.max
+          cg=$(cut -d: -f3 /proc/self/cgroup)
+          test "$cg" = /system.slice/lawdesk-runner-poc.service
+          limits="/sys/fs/cgroup$cg"
+          test "$(cat "$limits/memory.max")" -le 1073741824
+          test "$(cat "$limits/pids.max")" -le 128
+          awk 'NR == 1 { exit !($1 != "max" && $1 <= $2) }' "$limits/cpu.max"
