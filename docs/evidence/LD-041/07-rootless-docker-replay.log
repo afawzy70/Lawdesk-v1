@@ -1,0 +1,44 @@
+# Replay of the two Docker jobs of ci.yml (2863ed0) against a rootless daemon started from tools/ci-runner/lawdesk-ci-docker.service
+# (run by aiagent under its own user manager; the runner will use the same unit as lawdesk-ci). Scripts are the run: blocks of ci.yml,
+# executed with bash -e like GitHub's default shell. This is NOT a GitHub Actions result; the real runs are linked in the PR.
+
+## backend-postgres-image
+=== STEP RESULT: Start the official PostgreSQL 18.6 image (loopback only): exit 0
+[INFO] Tests run: 415, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+=== STEP RESULT: Test against the official image: exit 0
+=== STEP RESULT: Remove the database container: exit 0
+real	6m20.828s
+
+## stack (second run; the first stopped at a harness difference: pipefail is not GitHub's default shell)
+=== STEP RESULT: Remove leftovers of an earlier run: exit 0
+=== STEP RESULT: Build images: exit 0
+=== STEP RESULT: Prepare throwaway secrets and the edge network: exit 0
+=== STEP RESULT: Start the stack and wait for health checks: exit 0
+=== STEP RESULT: Smoke test: exit 0
+ok   admin signed in; password change required
+=== STEP RESULT: The bootstrap administrator signs in through nginx: exit 0
+=== STEP RESULT: Backend runs as the least-privilege role: exit 0
+outage probe 1: readiness 503 in 4205 ms
+outage probe 2: readiness 503 in 4108 ms
+outage probe 3: readiness 503 in 3640 ms
+readiness 503 while the database is down
+liveness still 200
+=== STEP RESULT: Readiness follows a database outage and recovery: exit 0
+DRILL PASSED: broken release deaddeaddeaddeaddeaddeaddeaddeaddeaddead was rolled back to 2863ed0e589299fd7c2d3f40926c63c8f365d31a
+=== STEP RESULT: Host-mode deploy, repeat deploy and rollback drill on real images: exit 0
+=== STEP RESULT: Stack logs: exit 0
+=== STEP RESULT: Tear down: exit 0
+=== STEP RESULT: Remove this run's network and images: exit 0
+real	3m22.457s
+
+## daemon
+Type=notify
+Delegate=yes
+CPUQuotaPerSecUSec=3s
+MemoryHigh=4718592000
+MemoryMax=5368709120
+TasksMax=8192
+ActiveState=active
+security=["name=seccomp,profile=builtin","name=rootless","name=cgroupns"] cgroup=2/systemd
+container limits enforced (docker run --memory 64m --pids-limit 50): memory.max=67108864 pids.max=50
