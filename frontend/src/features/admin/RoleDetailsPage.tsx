@@ -147,7 +147,7 @@ export function RoleDetailsPage() {
             setName(event.target.value);
           }}
         />
-        <fieldset>
+        <fieldset className="role-permissions">
           <legend>{t('admin.field.permissions')}</legend>
           {PERMISSIONS.map((permission) => (
             <label key={permission} className="checkbox">
