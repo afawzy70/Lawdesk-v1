@@ -217,9 +217,13 @@ Acceptance criteria:
    an exception after the audit write, a failure of the commit itself (a deferred constraint), and the loser of a race
    (409) leave no event; a retry records one. No asynchronous mechanism is involved, so no committed change can lose its
    event; if the event cannot be written the change is refused. Tests: `TaskAuditAtomicityTest` on real PostgreSQL.
-   Evidence: `docs/evidence/REMEDIATION-2/QAD-040-01-red.log`, `QAD-040-02-green.log`. **Open observation:** the other
-   audited administrative writes (user and role administration, password change) still use the independent
-   transaction; not part of QAD-040, recorded for QA triage.
+   Evidence: `docs/evidence/REMEDIATION-2/QAD-040-01-red.log`, `QAD-040-02-green.log`. **QAD-042/043 (same rule for
+   every success event of a change):** user and role administration (`USER_*`, `PASSWORD_RESET`, `ROLE_*`), the
+   password change (`PASSWORD_CHANGE`, in a `TransactionTemplate` around the change; the session is renewed only after
+   the commit) and the bootstrap administrator use `AuditLog.recordWithChange`. Intentionally independent, unchanged:
+   LOGIN/LOGOUT, every FAILURE and DENIED event (`ACCESS_DENIED`, bad current password, `SESSION_REVOKED`), and the
+   read-only `DOCUMENT_DOWNLOAD` and `REPORT_EXPORT` events (no business change to be atomic with). Tests:
+   `AdminAuditAtomicityTest`, `PasswordChangeAtomicityTest`; evidence `docs/evidence/REMEDIATION-3/`.
 4. **ASSUMPTION:** any `TASK_MANAGE` holder may change any task (a small office shares the work); tasks are never
    deleted (cancel instead); edits are allowed in every status. A disabled assignee may stay on a task until it is
    reassigned. Changes to a task of an `ARCHIVED` case are `422 CASE_ARCHIVED`. Writes lock the task row and check
