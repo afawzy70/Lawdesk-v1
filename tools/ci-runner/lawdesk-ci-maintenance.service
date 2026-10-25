@@ -1,0 +1,14 @@
+# Cleanup and health report for the CI runner's Docker daemon and work directory (docs/operations/CI-RUNNER.md).
+[Unit]
+Description=LawDesk CI runner maintenance (cleanup and health report)
+
+[Service]
+Type=oneshot
+User=lawdesk-ci
+Group=lawdesk-ci
+Environment=HOME=/home/lawdesk-ci
+ExecStart=/usr/local/libexec/lawdesk-ci-maintenance.sh
+Nice=15
+IOWeight=20
+MemoryMax=512M
+TasksMax=256

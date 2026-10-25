@@ -1,0 +1,87 @@
+..FF..F.EF.......E
+======================================================================
+ERROR: test_runner_and_daemon_together_leave_room_for_matbakhy (test_ci_runner.RunnerLimitsTest.test_runner_and_daemon_together_leave_room_for_matbakhy)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/runnerci/tools/tests/test_ci_runner.py", line 108, in test_runner_and_daemon_together_leave_room_for_matbakhy
+    slice_ = unit("user-slice-limits.conf")["Slice"]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/runnerci/tools/tests/test_ci_runner.py", line 24, in unit
+    for raw in (DIR / name).read_text(encoding="utf-8").splitlines():
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1029, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/runnerci/tools/ci-runner/user-slice-limits.conf'
+
+======================================================================
+ERROR: test_the_slice_caps_the_daemon_and_everything_in_it (test_ci_runner.UserSliceLimitsTest.test_the_slice_caps_the_daemon_and_everything_in_it)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/runnerci/tools/tests/test_ci_runner.py", line 83, in test_the_slice_caps_the_daemon_and_everything_in_it
+    slice_ = unit("user-slice-limits.conf")["Slice"]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/runnerci/tools/tests/test_ci_runner.py", line 24, in unit
+    for raw in (DIR / name).read_text(encoding="utf-8").splitlines():
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1029, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/runnerci/tools/ci-runner/user-slice-limits.conf'
+
+======================================================================
+FAIL: test_is_a_rootless_daemon_on_a_socket_private_to_the_user (test_ci_runner.DockerDaemonUnitTest.test_is_a_rootless_daemon_on_a_socket_private_to_the_user)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/runnerci/tools/tests/test_ci_runner.py", line 58, in test_is_a_rootless_daemon_on_a_socket_private_to_the_user
+    self.assertIn("--host=unix://%t/docker.sock", exec_start, "%t is the user's private runtime directory")
+AssertionError: '--host=unix://%t/docker.sock' not found in '/usr/bin/dockerd-rootless.sh --host=unix:///run/lawdesk-ci-docker/docker.sock' : %t is the user's private runtime directory
+
+======================================================================
+FAIL: test_is_a_user_unit_started_with_the_user_manager (test_ci_runner.DockerDaemonUnitTest.test_is_a_user_unit_started_with_the_user_manager)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/runnerci/tools/tests/test_ci_runner.py", line 51, in test_is_a_user_unit_started_with_the_user_manager
+    self.assertEqual(["default.target"], self.sections["Install"]["WantedBy"])
+AssertionError: Lists differ: ['default.target'] != ['multi-user.target']
+
+First differing element 0:
+'default.target'
+'multi-user.target'
+
+- ['default.target']
++ ['multi-user.target']
+
+======================================================================
+FAIL: test_script_cleans_only_the_ci_users_own_daemon_and_flags_a_full_disk (test_ci_runner.MaintenanceTest.test_script_cleans_only_the_ci_users_own_daemon_and_flags_a_full_disk)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/runnerci/tools/tests/test_ci_runner.py", line 124, in test_script_cleans_only_the_ci_users_own_daemon_and_flags_a_full_disk
+    self.assertIn('DOCKER_HOST=${DOCKER_HOST:-unix://$XDG_RUNTIME_DIR/docker.sock}', text)
+AssertionError: 'DOCKER_HOST=${DOCKER_HOST:-unix://$XDG_RUNTIME_DIR/docker.sock}' not found in '#!/usr/bin/env bash\n# Daily cleanup and health report for the LawDesk CI runner (LD-041, docs/operations/CI-RUNNER.md).\n# Runs as the unprivileged user lawdesk-ci from lawdesk-ci-maintenance.timer; everything goes to the journal.\n# Exit status 1 means "look at this" (disk nearly full, daemon down, runner down), never "something was deleted wrongly".\nset -euo pipefail\n\nexport DOCKER_HOST=${DOCKER_HOST:-unix:///run/lawdesk-ci-docker/docker.sock}\nwork=${LAWDESK_CI_WORK:-/home/lawdesk-ci/actions-runner/_work}\nlimit=${LAWDESK_CI_DISK_LIMIT_PERCENT:-80}\nstatus=0\n\nsay() { printf \'%s\\n\' "$*"; }\n\nif docker info > /dev/null 2>&1; then\n    say "docker: rootless daemon answers"\n    # Everything below touches only this user\'s own daemon, never the host\'s.\n    docker container prune -f --filter until=24h > /dev/null\n    docker image prune -a -f --filter until=72h > /dev/null\n    docker builder prune -f --filter until=168h > /dev/null\n    docker volume prune -f > /dev/null\n    docker system df\nelse\n    say "docker: the rootless daemon does not answer" >&2\n    status=1\nfi\n\n# Leftovers of finished jobs; the checkout of the next job cleans its own workspace.\nif [ -d "$work/_temp" ]; then\n    find "$work/_temp" -mindepth 1 -mtime +2 -delete 2> /dev/null || true\nfi\n\nused=$(df -P "$work" 2> /dev/null | awk \'NR == 2 { gsub("%", "", $5); print $5 }\')\nsay "disk: ${used:-unknown}% used where the work directory lives (limit ${limit}%)"\nif [ -n "${used:-}" ] && [ "$used" -ge "$limit" ]; then\n    say "disk usage is at or above ${limit}%" >&2\n    status=1\nfi\n\nfor unit in actions.runner.afawzy70-Lawdesk-v1.contabo.service lawdesk-ci-docker.service; do\n    if systemctl is-active --quiet "$unit"; then\n        say "service: $unit is active"\n    else\n        say "service: $unit is NOT active" >&2\n        status=1\n    fi\ndone\n\nexit "$status"\n'
+
+======================================================================
+FAIL: test_starts_after_the_users_manager_that_runs_its_docker_daemon (test_ci_runner.RunnerLimitsTest.test_starts_after_the_users_manager_that_runs_its_docker_daemon)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/runnerci/tools/tests/test_ci_runner.py", line 97, in test_starts_after_the_users_manager_that_runs_its_docker_daemon
+    self.assertEqual(["user@@UID@.service"], self.unit["Wants"])
+AssertionError: Lists differ: ['user@@UID@.service'] != ['lawdesk-ci-docker.service']
+
+First differing element 0:
+'user@@UID@.service'
+'lawdesk-ci-docker.service'
+
+- ['user@@UID@.service']
++ ['lawdesk-ci-docker.service']
+
+----------------------------------------------------------------------
+Ran 18 tests in 0.310s
+
+FAILED (failures=4, errors=2)

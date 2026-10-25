@@ -34,6 +34,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import com.jayway.jsonpath.JsonPath;
+import com.lawdesk.platform.OperationsTestData;
 import com.lawdesk.cases.CaseLookup;
 import com.lawdesk.platform.PostgresTestSupport;
 import com.lawdesk.security.Permission;
@@ -54,7 +55,7 @@ class NoteApiTest extends PostgresTestSupport {
 
     @AfterEach
     void removeNotes() {
-        jdbc.update("delete from case_note");
+        OperationsTestData.deleteAll(jdbc);
     }
 
     private UUID author;

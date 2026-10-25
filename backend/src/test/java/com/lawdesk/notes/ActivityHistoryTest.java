@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import com.jayway.jsonpath.JsonPath;
+import com.lawdesk.platform.OperationsTestData;
 import com.lawdesk.platform.PostgresTestSupport;
 import com.lawdesk.security.Permission;
 
@@ -43,14 +44,7 @@ class ActivityHistoryTest extends PostgresTestSupport {
 
     @AfterEach
     void removeOperationsRecords() {
-        for (String table : List.of("case_note", "case_document", "case_document_quota", "task", "expert_session",
-                "expert_referral", "expert")) {
-            jdbc.update("delete from " + table);
-        }
-        jdbc.update("delete from hearing where adjourned_from_id is not null");
-        jdbc.update("delete from hearing");
-        jdbc.update("delete from proceeding");
-        jdbc.update("delete from court");
+        OperationsTestData.deleteAll(jdbc);
     }
 
     private String id(MvcResult result) throws Exception {
