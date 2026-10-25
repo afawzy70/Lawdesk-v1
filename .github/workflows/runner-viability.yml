@@ -8,7 +8,7 @@ on:
     paths:
       - .github/workflows/runner-viability.yml
       - docs/operations/CI-BILLING-RECOVERY.md
-      - tools/ci-runner/contabo-rootless-preflight.sh
+      - tools/ci-runner/install-systemd-poc.sh
 
 permissions: {}
 
@@ -31,17 +31,16 @@ jobs:
           set -euo pipefail
           printf 'LAWDESK_CI_POC_EXECUTED\n'
           test "$(id -u)" -ne 0
-          test ! -e /var/run/docker.sock
-          test ! -e /srv/deployments/lawdesk
-          test ! -e /srv/ai-workspaces/secrets
-          test ! -e /srv/deployments/matbakhy
-          test ! -e /home/aiagent
-          test ! -e /home/devops
-          # Fail closed if Docker isolation or cgroup limits were not applied.
+          test ! -r /var/run/docker.sock
+          test ! -r /srv/deployments/lawdesk/secrets
+          test ! -r /srv/ai-workspaces/secrets
+          test ! -r /srv/deployments/matbakhy
+          test ! -r /home/aiagent
+          test ! -r /home/devops
+          # Fail closed if the systemd service limits were not applied.
           grep -Eq '^NoNewPrivs:[[:space:]]+1 /proc/self/status
           grep -Eq '^Seccomp:[[:space:]]+2 /proc/self/status
           grep -Eq '^CapEff:[[:space:]]+0{16} /proc/self/status
-          awk 'NR == 1 { exit !($2 != 0 && $3 < 4294967295) }' /proc/self/uid_map
           test "$(cat /sys/fs/cgroup/memory.max)" -le 1073741824
           test "$(cat /sys/fs/cgroup/pids.max)" -le 128
           awk 'NR == 1 { exit !($1 != "max" && $1 <= $2) }' /sys/fs/cgroup/cpu.max
