@@ -235,6 +235,42 @@ describe('audit log', () => {
     });
   });
 
+  it.each([
+    { lang: 'en', label: 'Task status changed', action: 'Action' },
+    { lang: 'ar', label: 'تغيير حالة مهمة', action: 'الإجراء' },
+  ])('names task status changes (owner decision 2026-10-25) and offers them as a filter ($lang)', async (c) => {
+    const changed = {
+      ...EVENTS[0],
+      id: 9,
+      action: 'TASK_STATUS_CHANGED',
+      targetType: 'TASK',
+      targetId: 't1',
+      reason: 'OPEN->DONE',
+    };
+    const fetchMock = fakeApi({
+      me: ROLE_ADMIN,
+      routes: {
+        'GET /api/v1/audit?page=0&size=20': () => page([changed]),
+        'GET /api/v1/audit?action=TASK_STATUS_CHANGED&page=0&size=20': () => page([changed]),
+      },
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
+    renderAt(`/admin/audit?lang=${c.lang}`);
+
+    const row = (await screen.findAllByRole('row'))[1];
+    expect(row).toHaveTextContent(c.label);
+    expect(row).toHaveTextContent('OPEN->DONE');
+    await user.selectOptions(screen.getByRole('combobox', { name: c.action }), 'TASK_STATUS_CHANGED');
+    await user.click(screen.getAllByRole('button').find((b) => b.getAttribute('type') === 'submit') as HTMLElement);
+
+    await vi.waitFor(() => {
+      expect(
+        fetchMock.mock.calls.some(([input]) => input === '/api/v1/audit?action=TASK_STATUS_CHANGED&page=0&size=20'),
+      ).toBe(true);
+    });
+  });
+
   it('pages through the trail', async () => {
     vi.stubGlobal('fetch', fakeApi({
       me: ROLE_ADMIN,

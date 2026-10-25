@@ -2,7 +2,9 @@ package com.lawdesk.reports;
 
 import java.time.LocalDate;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -134,8 +136,100 @@ final class ReportTestData {
                 from generate_series(1, ?) as n""", marker, CREATOR, CREATOR, count);
     }
 
+    /** Statements that remove bulk rows (they reference single rows, so they run before those are deleted). */
+    private final List<String> bulkCleanup = new ArrayList<>();
+
+    /** Experts in the registry named {@code <marker> expert <n>}, with no referrals. */
+    void insertBulkExperts(int count) {
+        jdbc.update("""
+                insert into expert (name, specialty, created_by, updated_by)
+                select cast(? as text) || ' expert ' || n, 'Bulk', ?, ? from generate_series(1, ?) as n""", marker,
+                CREATOR, CREATOR, count);
+        bulkCleanup.addFirst("delete from expert where name like '" + marker + " expert %'");
+    }
+
+    /** Open tasks of {@code count} different assignees (ids no account has), titled {@code <marker>-task-<n>}. */
+    void insertBulkAssignees(int count) {
+        jdbc.update("""
+                insert into task (title, assignee_id, status, created_by, updated_by)
+                select cast(? as text) || '-task-' || n, gen_random_uuid(), 'OPEN', ?, ? from generate_series(1, ?) as n""",
+                marker, CREATOR, CREATOR, count);
+        bulkCleanup.addFirst("delete from task where title like '" + marker + "-task-%'");
+    }
+
+    /** Cancelled hearings of one proceeding on one day (the unique day index leaves cancelled hearings out). */
+    void insertBulkHearings(UUID caseId, UUID proceedingId, LocalDate date, int count) {
+        jdbc.update("""
+                insert into hearing (case_id, proceeding_id, hearing_date, purpose, status, result_recorded_at,
+                                     result_recorded_by, created_by, updated_by)
+                select ?, ?, ?, 'PLEADING', 'CANCELLED', now(), ?, ?, ? from generate_series(1, ?)""", caseId,
+                proceedingId, date, CREATOR, CREATOR, CREATOR, count);
+        bulkCleanup.addFirst("delete from hearing where proceeding_id = '" + proceedingId + "'");
+    }
+
+    /** One first-instance proceeding for every case made by {@link #insertBulkCases}. */
+    void insertBulkProceedings(UUID courtId, LocalDate filingDate) {
+        jdbc.update("""
+                insert into proceeding (case_id, stage, court_id, court_case_number, court_case_year, filing_date,
+                                        created_by, updated_by)
+                select id, 'FIRST_INSTANCE', ?, cast(? as text) || 'P' || row_number() over (order by id), ?, ?, ?, ?
+                from legal_case where reference_no like ?""", courtId, marker, filingDate.getYear(), filingDate,
+                CREATOR, CREATOR, marker + "-BULK-%");
+        bulkCleanup.addFirst("delete from proceeding where court_case_number like '" + marker + "P%'");
+    }
+
+    /** A judgment for every proceeding made by {@link #insertBulkProceedings}, all dated {@code judgmentDate}. */
+    void insertJudgmentsOfBulkProceedings(LocalDate judgmentDate) {
+        jdbc.update("""
+                insert into judgment (proceeding_id, judgment_date, outcome, final, created_by, updated_by)
+                select id, ?, 'OTHER', false, ?, ? from proceeding where court_case_number like ?""", judgmentDate,
+                CREATOR, CREATOR, marker + "P%");
+        bulkCleanup.addFirst("delete from judgment where proceeding_id in (select id from proceeding "
+                + "where court_case_number like '" + marker + "P%')");
+    }
+
+    /** A cancelled hearing for every proceeding made by {@link #insertBulkProceedings}, all on {@code date}. */
+    void insertHearingsOfBulkProceedings(LocalDate date) {
+        jdbc.update("""
+                insert into hearing (case_id, proceeding_id, hearing_date, purpose, status, result_recorded_at,
+                                     result_recorded_by, created_by, updated_by)
+                select case_id, id, ?, 'PLEADING', 'CANCELLED', now(), ?, ?, ? from proceeding
+                where court_case_number like ?""", date, CREATOR, CREATOR, CREATOR, marker + "P%");
+        bulkCleanup.addFirst("delete from hearing where proceeding_id in (select id from proceeding "
+                + "where court_case_number like '" + marker + "P%')");
+    }
+
+    private int bulkProceedings;
+
+    /** {@code count} first-instance proceedings of the case, each with a judgment dated {@code judgmentDate}. */
+    void insertBulkJudgments(UUID caseId, UUID courtId, LocalDate filingDate, LocalDate judgmentDate, int count) {
+        jdbc.update("""
+                insert into proceeding (case_id, stage, court_id, court_case_number, court_case_year, filing_date,
+                                        created_by, updated_by)
+                select ?, 'FIRST_INSTANCE', ?, cast(? as text) || 'J' || n, ?, ?, ?, ?
+                from generate_series(?, ?) as n""", caseId, courtId, marker, filingDate.getYear(), filingDate, CREATOR,
+                CREATOR, bulkProceedings + 1, bulkProceedings + count);
+        bulkProceedings += count;
+        jdbc.update("""
+                insert into judgment (proceeding_id, judgment_date, outcome, final, created_by, updated_by)
+                select id, ?, 'OTHER', false, ?, ? from proceeding where case_id = ? and court_case_number like ?
+                and not exists (select 1 from judgment j where j.proceeding_id = proceeding.id)""",
+                judgmentDate, CREATOR, CREATOR, caseId, marker + "J%");
+        String statement = "delete from judgment where proceeding_id in (select id from proceeding where case_id = '"
+                + caseId + "' and court_case_number like '" + marker + "J%')";
+        if (!bulkCleanup.contains(statement)) {
+            bulkCleanup.addFirst("delete from proceeding where case_id = '" + caseId + "' and court_case_number like '"
+                    + marker + "J%'");
+            bulkCleanup.addFirst(statement);
+        }
+    }
+
     /** Deletes what this instance inserted, in reverse order of creation, so references are removed first. */
     void deleteCreated() {
+        for (String statement : bulkCleanup) {
+            jdbc.update(statement);
+        }
+        bulkCleanup.clear();
         while (!created.isEmpty()) {
             String[] row = created.pop();
             jdbc.update("delete from " + row[0] + " where id = ?::uuid", row[1]);

@@ -83,10 +83,11 @@ manager/admin-only by default. The last active `ADMIN` can never be disabled, lo
 
   Unexpected errors return a 500 without details.
 - **Lists:** `?page=0&size=20&sort=<field>,<asc|desc>`, where `size` defaults to 20 and is capped at 100. The answer is
-  `PageResponse { items[], page, size, totalItems, totalPages }`. **ASSUMPTION for owner review (QAD-029):** an invalid
-  `page` or `size` (negative, zero, not a number) falls back to the defaults (page 0, size 20) on the lists built on
-  Spring Data paging (courts, audit, hearings, tasks, experts, documents, notes), whereas the Phase 3 case list and
-  case timeline answer 400; the owner decides whether one policy should apply to every list.
+  `PageResponse { items[], page, size, totalItems, totalPages }`. **Owner decision 2026-10-25 (QAD-029):** an
+  invalid `page` or `size` (not an integer, `page` below 0, `size` below 1) is refused with 400 on every list, naming the
+  parameter in `errors[]`; a missing or blank value takes the default and a `size` above 100 is capped.
+  `com.lawdesk.platform.PagingValidationInterceptor` enforces it for every handler that takes a `Pageable` (after the
+  authorization check, so 403 comes first).
 - **Writes** return the stored representation. Creations answer 201 with `Location`. Updates send `version` and get 409
   when it is stale.
 

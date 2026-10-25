@@ -1,0 +1,58 @@
+.EEEEEF
+======================================================================
+ERROR: test_it_allows_a_ten_mib_file_plus_multipart_overhead_exactly_as_the_backend_does (test_web_proxy.UploadRouteTest.test_it_allows_a_ten_mib_file_plus_multipart_overhead_exactly_as_the_backend_does)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/remed/tools/tests/test_web_proxy.py", line 48, in test_it_allows_a_ten_mib_file_plus_multipart_overhead_exactly_as_the_backend_does
+    _, _, body = upload_location()
+    ^^^^^^^^^^
+TypeError: cannot unpack non-iterable NoneType object
+
+======================================================================
+ERROR: test_it_defines_no_add_header_so_the_server_level_security_headers_still_apply (test_web_proxy.UploadRouteTest.test_it_defines_no_add_header_so_the_server_level_security_headers_still_apply)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/remed/tools/tests/test_web_proxy.py", line 67, in test_it_defines_no_add_header_so_the_server_level_security_headers_still_apply
+    self.assertNotIn("add_header", upload_location()[2])
+                                   ~~~~~~~~~~~~~~~~~^^^
+TypeError: 'NoneType' object is not subscriptable
+
+======================================================================
+ERROR: test_it_forwards_exactly_what_the_generic_api_location_forwards (test_web_proxy.UploadRouteTest.test_it_forwards_exactly_what_the_generic_api_location_forwards)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/remed/tools/tests/test_web_proxy.py", line 59, in test_it_forwards_exactly_what_the_generic_api_location_forwards
+    upload = upload_location()[2]
+             ~~~~~~~~~~~~~~~~~^^^
+TypeError: 'NoneType' object is not subscriptable
+
+======================================================================
+ERROR: test_the_body_is_streamed_not_buffered_because_tmp_is_ram_in_a_64_mib_container (test_web_proxy.UploadRouteTest.test_the_body_is_streamed_not_buffered_because_tmp_is_ram_in_a_64_mib_container)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/remed/tools/tests/test_web_proxy.py", line 55, in test_the_body_is_streamed_not_buffered_because_tmp_is_ram_in_a_64_mib_container
+    _, _, body = upload_location()
+    ^^^^^^^^^^
+TypeError: cannot unpack non-iterable NoneType object
+
+======================================================================
+ERROR: test_the_route_matches_the_upload_and_nothing_else (test_web_proxy.UploadRouteTest.test_the_route_matches_the_upload_and_nothing_else)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/remed/tools/tests/test_web_proxy.py", line 39, in test_the_route_matches_the_upload_and_nothing_else
+    _, pattern, _ = upload_location()
+    ^^^^^^^^^^^^^
+TypeError: cannot unpack non-iterable NoneType object
+
+======================================================================
+FAIL: test_there_is_a_dedicated_location_for_the_document_upload (test_web_proxy.UploadRouteTest.test_there_is_a_dedicated_location_for_the_document_upload)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/aiagent/workspaces/lawdesk-claude/.claude/worktrees/remed/tools/tests/test_web_proxy.py", line 36, in test_there_is_a_dedicated_location_for_the_document_upload
+    self.assertIsNotNone(upload_location(), "nginx.conf has no regex location for /api/v1/cases/{id}/documents")
+AssertionError: unexpectedly None : nginx.conf has no regex location for /api/v1/cases/{id}/documents
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.002s
+
+FAILED (failures=1, errors=5)
