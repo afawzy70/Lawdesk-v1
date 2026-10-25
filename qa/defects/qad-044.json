@@ -1,0 +1,57 @@
+{
+  "id": "QAD-044",
+  "reported_utc": "2026-10-25T15:44:23.101302+00:00",
+  "status": "CONFIRMED_OPEN",
+  "severity": "S3",
+  "priority": "P1",
+  "affected": [
+    "1e74945961a77fcf5a67fc26f3a51d0715660628"
+  ],
+  "story_ids": [
+    "LD-018",
+    "LD-019",
+    "LD-024",
+    "LD-025"
+  ],
+  "title": "Judicial screens and hearing/expert selectors silently omit records after first100",
+  "owner": "Claude remediation; Codex verification",
+  "recommendation": "REQUEST_CHANGES_PHASES_4_5",
+  "environment": "Exact archived frontend and Spring Boot with disposable PostgreSQL 18.6 and Chromium; no bulk writes on UAT.",
+  "preconditions": [
+    "Authorized synthetic ADMIN account",
+    "102 active FIRST_INSTANCE courts; 101 valid first-instance proceedings in an owned case",
+    "Exact candidate SHA; all records are QA fixtures"
+  ],
+  "test_data": {
+    "court_codes": "QA-EDGE-001..101 plus QA-PH56",
+    "proceeding_numbers": "QA-P-001..101",
+    "filing_dates": "2026-01-02..2026-04-12",
+    "locales": [
+      "ar",
+      "en"
+    ]
+  },
+  "steps": [
+    "Seed synthetic courts and proceedings using qa/independent/final_acceptance_edges.py in a disposable local database only.",
+    "GET /api/v1/courts?active=true&level=FIRST_INSTANCE&size=100&page=1&sort=code,asc confirms QA-EDGE-101 exists.",
+    "Open owned case -> Record proceeding -> inspect Court select: 100 choices, no QA-EDGE-101, no additional page/search control.",
+    "GET /api/v1/cases/{id}/proceedings?page=1&size=100 confirms QA-P-101 exists.",
+    "Reload case: ladder shows 100 of 101; open Schedule hearing or Refer to an expert: proceeding select contains 100 of 101.",
+    "Repeat in Arabic and English; compare DOM options against API response and retain screenshots."
+  ],
+  "expected": "Every allowed record remains reachable through bounded paging or searchable selection. Never silently truncate.",
+  "actual": "8 FAIL: 2 court selectors, 2 judicial ladders, 2 hearing selectors and 2 expert selectors (Arabic/English). API pages are correct; the 101st record is missing from every tested UI. No database loss or corruption claimed.",
+  "cause": "proceedingsApi.ts sets size=100. listCourtsFor/listProceedings discard page metadata and return only first-page items. CaseProceedings, CaseHearings and CaseExperts consume these lists.",
+  "scope_limit": "Judgment/special-decision helpers share the source pattern, but their separate >100-record UI datasets were not executed in this probe and remain NOT_RUN. UAT SHA attested; defect reproduced locally with identical frontend source.",
+  "evidence": [
+    "qa/evidence/pr57-final-retest-20261025/edges-verified/results.json",
+    "qa/evidence/pr57-final-retest-20261025/edges-verified/browser/results.json"
+  ],
+  "claude_handoff": "https://github.com/afawzy70/Lawdesk-v1/pull/57#issuecomment-6399633381",
+  "retest": [
+    "102 active courts with second-page court selectable",
+    "101 proceedings reachable in ladder and selectable for hearings/expert referrals",
+    "Judgments and special decisions above 100",
+    "Arabic/English; unchanged strict size cap 100 and authorization regression"
+  ]
+}

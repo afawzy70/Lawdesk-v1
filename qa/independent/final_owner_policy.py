@@ -15,9 +15,16 @@ class OwnerPolicy(OperationReview):
             omitted=self.admin.call('GET',base);large=self.admin.call('GET',base+'?size='+('100'if self.args.strict_paging else '101'))
             self.check('PAGING-DEFAULT-CAP-'+str(index),'LD-009,LD-015,LD-031','GET '+base+' without page/size then maximum size','Default page0/size20; explicit100 accepted'if self.args.strict_paging else 'Default0/20;101capped100',{'path':base,'omitted_status':omitted[0],'page':omitted[1].get('page'),'size':omitted[1].get('size'),'large_status':large[0],'large_size':large[1].get('size')},omitted[0]==200 and omitted[1].get('page')==0 and omitted[1].get('size')==20 and large[0]==200 and large[1].get('size')==100)
             if self.args.strict_paging:
-                edge=self.admin.call('GET',base+'?page=2147483647&size=100')
-                self.check('PAGING-OFFSET-BOUNDARY-'+str(index),'LD-015,LD-031','GET '+base+' at maximum32bit page and size100','200 empty page; no integer-overflow500',{'status':edge[0],'item_count':len(edge[1].get('items',[]))},edge[0]==200 and edge[1].get('items')==[])
-            denied=self.none.call('GET',base+'?page=bad')[0];anon=Client(self.appport).call('GET',base+'?page=bad')[0]
+                boundary_queries=[('page=2147483647&size=100',400)] if self.args.bounded_offset else [('page=2147483647&size=100',200)]
+                if self.args.bounded_offset:boundary_queries += [('page=2147483647&size=1',200),('page=2147483648&size=1',400),('page=2147483646&size=1',200),('page=21474836&size=100',200),('page=21474837&size=100',400),('page=1073741823&size=2',200),('page=1073741824&size=2',400),('page=107374182',200),('page=107374183',400),('page=0&page=2147483647&size=100',400),('page=2147483647&size=1&size=100',400)]
+                observed=[]
+                for query,expected in boundary_queries:
+                    status,b,_=self.admin.call('GET',base+'?'+query)
+                    fields=b.get('errors',[]) if isinstance(b,dict)else []
+                    ok=status==expected and (b.get('items')==[] if expected==200 else any(e.get('field')=='page'and e.get('code')==('Digits'if query.startswith('page=2147483648&')else 'Max')for e in fields))
+                    observed.append({'query':query,'expected':expected,'status':status,'fields':fields,'ok':ok})
+                self.check('PAGING-OFFSET-BOUNDARY-'+str(index),'LD-009,LD-010,LD-011,LD-015,LD-016,LD-018,LD-024,LD-025,LD-027,LD-029,LD-031,LD-032','GET '+base+' at below/exact/above32bit combined offsets, default size and repeated values','Within offset bound200empty; beyond400page Max; no500'if self.args.bounded_offset else '200empty under previous declaredrange',{'path':base,'responses':observed},all(x['ok']for x in observed))
+            denied=self.none.call('GET',base+('?page=2147483647&size=100'if self.args.bounded_offset else '?page=bad'))[0];anon=Client(self.appport).call('GET',base+('?page=2147483647&size=100'if self.args.bounded_offset else '?page=bad'))[0]
             self.check('PAGING-AUTH-FIRST-'+str(index),'LD-010','Malformed '+base+' query as no-permission and anonymous clients','403/401 before binding',{'path':base,'denied':denied,'anonymous':anon},denied==403 and anon==401)
         if not self.args.strict_paging:
             blank={q:self.admin.call('GET','/api/v1/tasks?'+q)[0]for q in ['page=','size=','page=%20%20']}
@@ -60,5 +67,6 @@ if __name__=='__main__':
     p=argparse.ArgumentParser()
     for n in ['candidate','sha','output']:p.add_argument('--'+n,required=True)
     p.add_argument('--strict-paging',action='store_true')
+    p.add_argument('--bounded-offset',action='store_true',help='PR57 documented combined32bit offset validation')
     p.set_defaults(kind='notes',browser=False)
     raise SystemExit(OwnerPolicy(p.parse_args()).execute())

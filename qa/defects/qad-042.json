@@ -1,12 +1,12 @@
 {
   "reported_utc": "2026-10-25T13:54:17.408746+00:00",
-  "status": "CONFIRMED_OPEN",
+  "status": "FIX_VERIFIED_INDEPENDENT_LOCAL_AND_UAT",
   "affected": [
     "2d07a222189f82ddeacf74fdcd28165980cea85d"
   ],
   "owner": "Claude remediation; Codex independent verification",
   "no_real_records_modified": true,
-  "recommendation": "REQUEST_CHANGES",
+  "recommendation": "APPROVE_FIX_SCOPE",
   "id": "QAD-042",
   "severity": "S2",
   "priority": "P1",
@@ -54,5 +54,19 @@
     "Auditwritefailure causes businessrollback",
     "No-op/stale/refused actions",
     "LOGIN/PASSWORD_CHANGEfailure/ACCESS_DENIED/SESSION_REVOKED retained as security events"
+  ],
+  "independent_retests": [
+    {
+      "utc": "2026-10-25T15:44:23.101302+00:00",
+      "previous_status": "CONFIRMED_OPEN",
+      "tested_sha": "1e74945961a77fcf5a67fc26f3a51d0715660628",
+      "status": "FIX_VERIFIED_INDEPENDENT_LOCAL_AND_UAT",
+      "note": "Alladministrative SUCCESS events roll back with businessCOMMIT/dependent-write/audit-insert failures; retries produce one event; concurrentversion loser noevent; last-admin races safe. Normalwrites/auditbrowser onUAT. Faultinjection local only.",
+      "evidence": [
+        "qa/evidence/pr57-final-retest-20261025/audit/results.json",
+        "qa/evidence/pr57-final-retest-20261025/edges-verified/results.json",
+        "qa/evidence/pr57-final-retest-20261025/signed234/results.json"
+      ]
+    }
   ]
 }
