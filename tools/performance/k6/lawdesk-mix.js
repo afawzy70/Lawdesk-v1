@@ -33,6 +33,10 @@ const PROFILE = PROFILES[__ENV.PROFILE || 'smoke'];
 if (!PROFILE) {
   throw new Error(`unknown PROFILE ${__ENV.PROFILE}`);
 }
+const RATE_SCALE = Number(__ENV.RATE_SCALE || '1');
+if (!Number.isFinite(RATE_SCALE) || RATE_SCALE <= 0 || RATE_SCALE > 1) {
+  throw new Error('RATE_SCALE must be in (0, 1]');
+}
 
 function scenario(exec, rate) {
   // ramping-arrival-rate keeps the offered load independent of response times (open model).
@@ -41,11 +45,11 @@ function scenario(exec, rate) {
     exec,
     startRate: 0,
     timeUnit: '10s',
-    preAllocatedVUs: Math.ceil(PROFILE.vus / 3),
-    maxVUs: PROFILE.vus,
+    preAllocatedVUs: Math.max(1, Math.ceil(PROFILE.vus * RATE_SCALE / 3)),
+    maxVUs: Math.max(2, Math.ceil(PROFILE.vus * RATE_SCALE)),
     stages: [
-      { target: Math.round(rate * 10), duration: PROFILE.ramp },
-      { target: Math.round(rate * 10), duration: PROFILE.hold },
+      { target: Math.max(1, Math.round(rate * 10 * RATE_SCALE)), duration: PROFILE.ramp },
+      { target: Math.max(1, Math.round(rate * 10 * RATE_SCALE)), duration: PROFILE.hold },
       { target: 0, duration: '30s' },
     ],
   };

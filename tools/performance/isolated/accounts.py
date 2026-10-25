@@ -42,11 +42,13 @@ def provision(directory, base):
     me = admin.login("perf.admin", admin_password)
     if me is None:
         raise RuntimeError("isolated bootstrap administrator sign-in failed")
+    final_admin_password = admin_password
     if me.get("mustChangePassword"):
         new_password = qa_accounts.new_password()
         admin.expect("POST", "/api/v1/me/password", {"currentPassword": admin_password,
                                                    "newPassword": new_password}, 204)
         write_private(operational, new_password + "\n")
+        final_admin_password = new_password
     bundle = {}
     try:
         for persona, (username, role) in PERSONAS.items():
@@ -62,6 +64,7 @@ def provision(directory, base):
         if me is None or me.get("mustChangePassword"):
             raise RuntimeError("persona verification failed: " + persona)
         session.logout()
+    bundle["admin"] = {"username": "perf.admin", "password": final_admin_password}
     write_private(output, json.dumps({"accounts": bundle}) + "\n")
     print("synthetic personas verified; private credentials saved: " + str(output))
 
