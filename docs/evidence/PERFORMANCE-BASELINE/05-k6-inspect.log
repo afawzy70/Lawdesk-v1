@@ -1,0 +1,34 @@
+# 2026-10-24 k6 v2.3.0 (sha256 of k6-v2.3.0-linux-amd64.tar.gz 39c3117b6af817592dcd0ce4242105c0a7af10948c2a425306f0be8f7a8a8ab1, verified against k6-v2.3.0-checksums.txt).
+# `k6 inspect` parses each script and runs only its init code: no request is sent to any host.
+# CREDENTIALS_FILE is a dummy file of placeholder accounts.
+
+$ k6 inspect --execution-requirements -e LAWDESK_K6_ISOLATED=yes -e BASE_URL=http://127.0.0.1:9 -e PROFILE=smoke tools/performance/k6/lawdesk-mix.js
+exit 0: maxVUs=2 totalDuration=2m10s thresholds=10 scenarios={'lawyer': [('10s', 10), ('1m0s', 10), ('30s', 0)]}
+
+$ k6 inspect --execution-requirements -e LAWDESK_K6_ISOLATED=yes -e BASE_URL=http://127.0.0.1:9 -e PROFILE=baseline tools/performance/k6/lawdesk-mix.js
+exit 0: maxVUs=60 totalDuration=13m0s thresholds=10 scenarios={'lawyer': [('2m0s', 30), ('10m0s', 30), ('30s', 0)], 'manager': [('2m0s', 5), ('10m0s', 5), ('30s', 0)], 'staff': [('2m0s', 10), ('10m0s', 10), ('30s', 0)]}
+
+$ k6 inspect --execution-requirements -e LAWDESK_K6_ISOLATED=yes -e BASE_URL=http://127.0.0.1:9 -e PROFILE=load tools/performance/k6/lawdesk-mix.js
+exit 0: maxVUs=120 totalDuration=36m0s thresholds=10 scenarios={'lawyer': [('5m0s', 60), ('30m0s', 60), ('30s', 0)], 'manager': [('5m0s', 10), ('30m0s', 10), ('30s', 0)], 'staff': [('5m0s', 20), ('30m0s', 20), ('30s', 0)]}
+
+$ k6 inspect --execution-requirements -e LAWDESK_K6_ISOLATED=yes -e BASE_URL=http://127.0.0.1:9 -e PROFILE=stress tools/performance/k6/lawdesk-mix.js
+exit 0: maxVUs=360 totalDuration=21m0s thresholds=10 scenarios={'lawyer': [('10m0s', 180), ('10m0s', 180), ('30s', 0)], 'manager': [('10m0s', 30), ('10m0s', 30), ('30s', 0)], 'staff': [('10m0s', 60), ('10m0s', 60), ('30s', 0)]}
+
+$ k6 inspect --execution-requirements -e LAWDESK_K6_ISOLATED=yes -e BASE_URL=http://127.0.0.1:9 -e PROFILE=spike tools/performance/k6/lawdesk-mix.js
+exit 0: maxVUs=600 totalDuration=3m30s thresholds=10 scenarios={'lawyer': [('30s', 300), ('2m0s', 300), ('30s', 0)], 'manager': [('30s', 50), ('2m0s', 50), ('30s', 0)], 'staff': [('30s', 100), ('2m0s', 100), ('30s', 0)]}
+
+$ k6 inspect --execution-requirements -e LAWDESK_K6_ISOLATED=yes -e BASE_URL=http://127.0.0.1:9 -e PROFILE=soak tools/performance/k6/lawdesk-mix.js
+exit 0: maxVUs=60 totalDuration=4h6m0s thresholds=10 scenarios={'lawyer': [('5m0s', 30), ('4h0m0s', 30), ('30s', 0)], 'manager': [('5m0s', 5), ('4h0m0s', 5), ('30s', 0)], 'staff': [('5m0s', 10), ('4h0m0s', 10), ('30s', 0)]}
+
+$ k6 inspect --execution-requirements -e LAWDESK_K6_ISOLATED=yes -e BASE_URL=http://127.0.0.1:9 -e PROFILE=- tools/performance/k6/seed-via-api.js
+exit 0: maxVUs=4 totalDuration=6h0m30s thresholds=1 scenarios={'seed': 500}
+
+$ k6 inspect --execution-requirements -e LAWDESK_K6_ISOLATED=yes -e BASE_URL=https://lawdesk.167-86-90-174.sslip.io -e PROFILE=baseline tools/performance/k6/lawdesk-mix.js
+exit 107 (refused): refusing https://lawdesk.167-86-90-174.sslip.io: shared UAT and Matbakhy hosts never receive load tests (PERFORMANCE-BASELINE §6)
+
+$ k6 inspect --execution-requirements -e LAWDESK_K6_ISOLATED=yes -e BASE_URL=https://matbakhy.example -e PROFILE=baseline tools/performance/k6/lawdesk-mix.js
+exit 107 (refused): refusing https://matbakhy.example: shared UAT and Matbakhy hosts never receive load tests (PERFORMANCE-BASELINE §6)
+
+$ k6 inspect --execution-requirements -e LAWDESK_K6_ISOLATED=no -e BASE_URL=http://127.0.0.1:9 -e PROFILE=baseline tools/performance/k6/lawdesk-mix.js
+exit 107 (refused): set LAWDESK_K6_ISOLATED=yes only for an isolated, resource-bounded target with synthetic data
+

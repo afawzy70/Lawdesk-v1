@@ -1,0 +1,346 @@
+# 2026-10-24, develop 19ad538 (backend identical to 1e5f340). Throwaway local PostgreSQL 18.6 (zonky embedded
+# binaries 18.6.0 from ~/.m2, the ones the backend tests use) on 127.0.0.1:55432, shared_buffers=128MB,
+# max_connections=10, no parallel workers, jit=off. Host load average 7-15 on 8 cores during the run (shared
+# Contabo host): timings are indicative, buffer counts and plan shapes are the stable signal.
+# java -cp postgresql-42.7.14.jar tools/performance/db/QueryPlans.java jdbc:postgresql://127.0.0.1:55432/postgres?user=lawdesk \
+#   plans:tools/performance/db/plans-develop.sql
+
+== synthetic volumes
+cases=10000 | parties=20000 | case_parties=30000 | proceedings=50000 | judgments=29998 | special_decisions=4776 | case_events=150000 | audit_events=200000 | users=50 | courts=60 | database_size=220 MB
+
+== case list, default page (CaseRepository.search: count)
+-- select count(*) from legal_case where true;
+Aggregate  (cost=339.29..339.30 rows=1 width=8) (actual time=3.408..3.410 rows=1.00 loops=1)
+  Buffers: shared hit=41
+  ->  Index Only Scan using legal_case_reference_no_key on legal_case  (cost=0.29..314.29 rows=10000 width=0) (actual time=0.035..2.480 rows=10000.00 loops=1)
+        Heap Fetches: 0
+        Index Searches: 1
+        Buffers: shared hit=41
+Planning Time: 0.109 ms
+Execution Time: 3.444 ms
+
+== case list, default page (CaseRepository.search: page)
+-- select id, reference_no, title, case_type, status, opened_on, updated_at from legal_case where true order by created_at desc, id limit 20 offset 0;
+Limit  (cost=616.10..616.15 rows=20 width=82) (actual time=17.375..17.382 rows=20.00 loops=1)
+  Buffers: shared hit=250
+  ->  Sort  (cost=616.10..641.10 rows=10000 width=82) (actual time=17.372..17.375 rows=20.00 loops=1)
+        Sort Key: created_at DESC, id
+        Sort Method: top-N heapsort  Memory: 29kB
+        Buffers: shared hit=250
+        ->  Seq Scan on legal_case  (cost=0.00..350.00 rows=10000 width=82) (actual time=0.543..8.011 rows=10000.00 loops=1)
+              Buffers: shared hit=250
+Planning Time: 0.116 ms
+Execution Time: 17.440 ms
+
+== case list, page 500 of 20 (deep offset)
+-- select id, reference_no, title, case_type, status, opened_on, updated_at from legal_case where true order by created_at desc, id limit 20 offset 9980;
+Limit  (cost=1039.34..1039.39 rows=20 width=82) (actual time=25.369..25.379 rows=20.00 loops=1)
+  Buffers: shared hit=250
+  ->  Sort  (cost=1014.39..1039.39 rows=10000 width=82) (actual time=22.920..24.857 rows=10000.00 loops=1)
+        Sort Key: created_at DESC, id
+        Sort Method: quicksort  Memory: 1713kB
+        Buffers: shared hit=250
+        ->  Seq Scan on legal_case  (cost=0.00..350.00 rows=10000 width=82) (actual time=0.036..15.165 rows=10000.00 loops=1)
+              Buffers: shared hit=250
+Planning Time: 0.122 ms
+Execution Time: 25.812 ms
+
+== case search q=SYN 51 (count: reference, title or party name)
+-- select count(*) from legal_case where true and (reference_no ilike '%SYN 51%' escape '\' or title ilike '%SYN 51%' escape '\' or exists (select 1 from case_party cp join party p on p.id = cp.party_id where cp.case_id = legal_case.id and p.name ilike '%SYN 51%' escape '\'));
+Aggregate  (cost=293737.50..293737.51 rows=1 width=8) (actual time=58.967..58.973 rows=1.00 loops=1)
+  Buffers: shared hit=916
+  ->  Seq Scan on legal_case  (cost=0.00..293725.00 rows=5001 width=0) (actual time=29.974..58.903 rows=126.00 loops=1)
+        Filter: (((reference_no)::text ~~* '%SYN 51%'::text) OR ((title)::text ~~* '%SYN 51%'::text) OR (ANY (id = (hashed SubPlan 2).col1)))
+        Rows Removed by Filter: 9874
+        Buffers: shared hit=916
+        SubPlan 2
+          ->  Nested Loop  (cost=4.30..686.86 rows=3 width=16) (actual time=0.090..29.709 rows=126.00 loops=1)
+                Buffers: shared hit=666
+                ->  Seq Scan on party p  (cost=0.00..663.00 rows=2 width=16) (actual time=0.070..29.006 rows=84.00 loops=1)
+                      Filter: ((name)::text ~~* '%SYN 51%'::text)
+                      Rows Removed by Filter: 19916
+                      Buffers: shared hit=413
+                ->  Bitmap Heap Scan on case_party cp  (cost=4.30..11.91 rows=2 width=32) (actual time=0.007..0.007 rows=1.50 loops=84)
+                      Recheck Cond: (party_id = p.id)
+                      Heap Blocks: exact=85
+                      Buffers: shared hit=253
+                      ->  Bitmap Index Scan on case_party_party_idx  (cost=0.00..4.30 rows=2 width=0) (actual time=0.005..0.005 rows=1.50 loops=84)
+                            Index Cond: (party_id = p.id)
+                            Index Searches: 84
+                            Buffers: shared hit=168
+Planning:
+  Buffers: shared hit=24
+Planning Time: 1.825 ms
+Execution Time: 59.041 ms
+
+== case search q=SYN 51 (page)
+-- select id, reference_no, title, case_type, status, opened_on, updated_at from legal_case where true and (reference_no ilike '%SYN 51%' escape '\' or title ilike '%SYN 51%' escape '\' or exists (select 1 from case_party cp join party p on p.id = cp.party_id where cp.case_id = legal_case.id and p.name ilike '%SYN 51%' escape '\')) order by created_at desc, id limit 20 offset 0;
+Limit  (cost=293858.07..293858.12 rows=20 width=82) (actual time=59.578..59.590 rows=20.00 loops=1)
+  Buffers: shared hit=916
+  ->  Sort  (cost=293858.07..293870.58 rows=5001 width=82) (actual time=59.575..59.582 rows=20.00 loops=1)
+        Sort Key: legal_case.created_at DESC, legal_case.id
+        Sort Method: top-N heapsort  Memory: 29kB
+        Buffers: shared hit=916
+        ->  Seq Scan on legal_case  (cost=0.00..293725.00 rows=5001 width=82) (actual time=30.935..59.440 rows=126.00 loops=1)
+              Filter: (((reference_no)::text ~~* '%SYN 51%'::text) OR ((title)::text ~~* '%SYN 51%'::text) OR (ANY (id = (hashed SubPlan 2).col1)))
+              Rows Removed by Filter: 9874
+              Buffers: shared hit=916
+              SubPlan 2
+                ->  Nested Loop  (cost=4.30..686.86 rows=3 width=16) (actual time=0.088..30.661 rows=126.00 loops=1)
+                      Buffers: shared hit=666
+                      ->  Seq Scan on party p  (cost=0.00..663.00 rows=2 width=16) (actual time=0.064..29.737 rows=84.00 loops=1)
+                            Filter: ((name)::text ~~* '%SYN 51%'::text)
+                            Rows Removed by Filter: 19916
+                            Buffers: shared hit=413
+                      ->  Bitmap Heap Scan on case_party cp  (cost=4.30..11.91 rows=2 width=32) (actual time=0.008..0.009 rows=1.50 loops=84)
+                            Recheck Cond: (party_id = p.id)
+                            Heap Blocks: exact=85
+                            Buffers: shared hit=253
+                            ->  Bitmap Index Scan on case_party_party_idx  (cost=0.00..4.30 rows=2 width=0) (actual time=0.006..0.006 rows=1.50 loops=84)
+                                  Index Cond: (party_id = p.id)
+                                  Index Searches: 84
+                                  Buffers: shared hit=168
+Planning:
+  Buffers: shared hit=24
+Planning Time: 1.064 ms
+Execution Time: 59.665 ms
+
+== case search, status ACTIVE + opened since 2024, sorted by title
+-- select id, reference_no, title, case_type, status, opened_on, updated_at from legal_case where true and status in ('ACTIVE') and opened_on >= date '2024-01-01' order by title asc, id limit 20 offset 0;
+Limit  (cost=428.74..428.79 rows=20 width=74) (actual time=4.655..4.663 rows=20.00 loops=1)
+  Buffers: shared hit=250
+  ->  Sort  (cost=428.74..431.44 rows=1080 width=74) (actual time=4.652..4.656 rows=20.00 loops=1)
+        Sort Key: title, id
+        Sort Method: top-N heapsort  Memory: 29kB
+        Buffers: shared hit=250
+        ->  Seq Scan on legal_case  (cost=0.00..400.00 rows=1080 width=74) (actual time=0.032..3.450 rows=1075.00 loops=1)
+              Filter: ((opened_on >= '2024-01-01'::date) AND ((status)::text = 'ACTIVE'::text))
+              Rows Removed by Filter: 8925
+              Buffers: shared hit=250
+Planning Time: 0.139 ms
+Execution Time: 4.696 ms
+
+== case details (CaseRepository.find)
+-- select id, reference_no, title, case_type, subject, opened_on, status, version, created_at, created_by, updated_at, updated_by from legal_case where id = :CASE_ID;
+Index Scan using legal_case_pkey on legal_case  (cost=0.29..8.30 rows=1 width=167) (actual time=0.040..0.042 rows=1.00 loops=1)
+  Index Cond: (id = '5edc5529-d700-4d5b-b9e2-a949207c5169'::uuid)
+  Index Searches: 1
+  Buffers: shared hit=3
+Planning Time: 0.077 ms
+Execution Time: 0.068 ms
+
+== case timeline page (CaseTimeline.page: count)
+-- select count(*) from case_event where case_id = :CASE_ID;
+Aggregate  (cost=4.72..4.73 rows=1 width=8) (actual time=0.023..0.024 rows=1.00 loops=1)
+  Buffers: shared hit=4
+  ->  Index Only Scan using case_event_case_seq_idx on case_event  (cost=0.42..4.68 rows=15 width=0) (actual time=0.015..0.018 rows=15.00 loops=1)
+        Index Cond: (case_id = '5edc5529-d700-4d5b-b9e2-a949207c5169'::uuid)
+        Heap Fetches: 0
+        Index Searches: 1
+        Buffers: shared hit=4
+Planning Time: 0.068 ms
+Execution Time: 0.068 ms
+
+== case timeline page (CaseTimeline.page: page)
+-- select id, type, summary, occurred_at, created_by from case_event where case_id = :CASE_ID order by seq desc limit 20 offset 0;
+Limit  (cost=61.39..61.43 rows=15 width=76) (actual time=0.056..0.060 rows=15.00 loops=1)
+  Buffers: shared hit=18
+  ->  Sort  (cost=61.39..61.43 rows=15 width=76) (actual time=0.055..0.057 rows=15.00 loops=1)
+        Sort Key: seq DESC
+        Sort Method: quicksort  Memory: 26kB
+        Buffers: shared hit=18
+        ->  Bitmap Heap Scan on case_event  (cost=4.54..61.10 rows=15 width=76) (actual time=0.024..0.044 rows=15.00 loops=1)
+              Recheck Cond: (case_id = '5edc5529-d700-4d5b-b9e2-a949207c5169'::uuid)
+              Heap Blocks: exact=15
+              Buffers: shared hit=18
+              ->  Bitmap Index Scan on case_event_case_seq_idx  (cost=0.00..4.53 rows=15 width=0) (actual time=0.013..0.013 rows=15.00 loops=1)
+                    Index Cond: (case_id = '5edc5529-d700-4d5b-b9e2-a949207c5169'::uuid)
+                    Index Searches: 1
+                    Buffers: shared hit=3
+Planning Time: 0.079 ms
+Execution Time: 0.089 ms
+
+== case parties (PartyRepository.ofCase)
+-- select p.id, p.kind, p.name, cp.role, cp.created_at from case_party cp join party p on p.id = cp.party_id where cp.case_id = :CASE_ID order by cp.created_at, p.name;
+Sort  (cost=40.52..40.53 rows=3 width=55) (actual time=0.083..0.085 rows=3.00 loops=1)
+  Sort Key: cp.created_at, p.name
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=14
+  ->  Nested Loop  (cost=4.60..40.50 rows=3 width=55) (actual time=0.047..0.067 rows=3.00 loops=1)
+        Buffers: shared hit=14
+        ->  Bitmap Heap Scan on case_party cp  (cost=4.31..15.58 rows=3 width=31) (actual time=0.030..0.034 rows=3.00 loops=1)
+              Recheck Cond: (case_id = '5edc5529-d700-4d5b-b9e2-a949207c5169'::uuid)
+              Heap Blocks: exact=3
+              Buffers: shared hit=5
+              ->  Bitmap Index Scan on case_party_once  (cost=0.00..4.31 rows=3 width=0) (actual time=0.015..0.015 rows=3.00 loops=1)
+                    Index Cond: (case_id = '5edc5529-d700-4d5b-b9e2-a949207c5169'::uuid)
+                    Index Searches: 1
+                    Buffers: shared hit=2
+        ->  Index Scan using party_pkey on party p  (cost=0.29..8.30 rows=1 width=40) (actual time=0.008..0.008 rows=1.00 loops=3)
+              Index Cond: (id = cp.party_id)
+              Index Searches: 3
+              Buffers: shared hit=9
+Planning:
+  Buffers: shared hit=12
+Planning Time: 0.405 ms
+Execution Time: 0.154 ms
+
+== proceedings of a case (ProceedingRepository.findByCaseId, JPA)
+-- select * from proceeding where case_id = :CASE_ID;
+Bitmap Heap Scan on proceeding  (cost=4.33..23.38 rows=5 width=150) (actual time=0.041..0.050 rows=6.00 loops=1)
+  Recheck Cond: (case_id = '5edc5529-d700-4d5b-b9e2-a949207c5169'::uuid)
+  Heap Blocks: exact=5
+  Buffers: shared hit=7
+  ->  Bitmap Index Scan on proceeding_case  (cost=0.00..4.33 rows=5 width=0) (actual time=0.026..0.026 rows=6.00 loops=1)
+        Index Cond: (case_id = '5edc5529-d700-4d5b-b9e2-a949207c5169'::uuid)
+        Index Searches: 1
+        Buffers: shared hit=2
+Planning Time: 0.134 ms
+Execution Time: 0.077 ms
+
+== judgments of a case's proceedings (JudgmentRepository.findByProceedingIdIn, JPA)
+-- select * from judgment where proceeding_id in (select id from proceeding where case_id = :CASE_ID);
+Nested Loop  (cost=4.62..64.91 rows=3 width=114) (actual time=0.041..0.078 rows=3.00 loops=1)
+  Buffers: shared hit=22
+  ->  Bitmap Heap Scan on proceeding  (cost=4.33..23.38 rows=5 width=16) (actual time=0.027..0.035 rows=6.00 loops=1)
+        Recheck Cond: (case_id = '5edc5529-d700-4d5b-b9e2-a949207c5169'::uuid)
+        Heap Blocks: exact=5
+        Buffers: shared hit=7
+        ->  Bitmap Index Scan on proceeding_case  (cost=0.00..4.33 rows=5 width=0) (actual time=0.013..0.013 rows=6.00 loops=1)
+              Index Cond: (case_id = '5edc5529-d700-4d5b-b9e2-a949207c5169'::uuid)
+              Index Searches: 1
+              Buffers: shared hit=2
+  ->  Index Scan using judgment_one_per_proceeding on judgment  (cost=0.29..8.30 rows=1 width=114) (actual time=0.006..0.006 rows=0.50 loops=6)
+        Index Cond: (proceeding_id = proceeding.id)
+        Index Searches: 6
+        Buffers: shared hit=15
+Planning:
+  Buffers: shared hit=12
+Planning Time: 0.336 ms
+Execution Time: 0.109 ms
+
+== party search q=SYN 12 (PartyRepository.search: count)
+-- select count(*) from party where name ilike '%SYN 12%' escape '\' or national_id ilike '%SYN 12%' escape '\' or registration_no ilike '%SYN 12%' escape '\';
+Aggregate  (cost=765.53..765.54 rows=1 width=8) (actual time=52.351..52.353 rows=1.00 loops=1)
+  Buffers: shared hit=413
+  ->  Seq Scan on party  (cost=0.00..763.00 rows=1012 width=0) (actual time=1.149..52.217 rows=832.00 loops=1)
+        Filter: (((name)::text ~~* '%SYN 12%'::text) OR ((national_id)::text ~~* '%SYN 12%'::text) OR ((registration_no)::text ~~* '%SYN 12%'::text))
+        Rows Removed by Filter: 19168
+        Buffers: shared hit=413
+Planning Time: 1.027 ms
+Execution Time: 52.478 ms
+
+== dashboard: cases by status and type (CaseReportQueries.counts)
+-- select status, case_type, count(*) as n from legal_case group by status, case_type;
+HashAggregate  (cost=425.00..425.30 rows=30 width=22) (actual time=8.430..8.441 rows=30.00 loops=1)
+  Group Key: status, case_type
+  Batches: 1  Memory Usage: 32kB
+  Buffers: shared hit=250
+  ->  Seq Scan on legal_case  (cost=0.00..350.00 rows=10000 width=14) (actual time=0.020..1.664 rows=10000.00 loops=1)
+        Buffers: shared hit=250
+Planning Time: 0.123 ms
+Execution Time: 8.522 ms
+
+== dashboard: cases opened this month (CaseReportQueries.openedBetween)
+-- select count(*) from legal_case where opened_on between date '2026-10-01' and date '2026-10-31';
+Aggregate  (cost=400.07..400.08 rows=1 width=8) (actual time=2.894..2.896 rows=1.00 loops=1)
+  Buffers: shared hit=250
+  ->  Seq Scan on legal_case  (cost=0.00..400.00 rows=30 width=0) (actual time=0.033..2.882 rows=34.00 loops=1)
+        Filter: ((opened_on >= '2026-10-01'::date) AND (opened_on <= '2026-10-31'::date))
+        Rows Removed by Filter: 9966
+        Buffers: shared hit=250
+Planning Time: 0.201 ms
+Execution Time: 2.930 ms
+
+== dashboard: proceedings by stage awaiting judgment (ProceedingReportQueries.byStage)
+-- select p.stage, count(*) as total, count(*) filter (where j.id is null) as awaiting from proceeding p left join judgment j on j.proceeding_id = p.id group by p.stage;
+HashAggregate  (cost=3336.22..3336.25 rows=3 width=28) (actual time=88.619..88.624 rows=3.00 loops=1)
+  Group Key: p.stage
+  Batches: 1  Memory Usage: 32kB
+  Buffers: shared hit=1655
+  ->  Hash Left Join  (cost=1220.95..2961.22 rows=50000 width=28) (actual time=25.478..67.905 rows=50000.00 loops=1)
+        Hash Cond: (p.id = j.proceeding_id)
+        Buffers: shared hit=1655
+        ->  Seq Scan on proceeding p  (cost=0.00..1609.00 rows=50000 width=28) (actual time=0.016..10.276 rows=50000.00 loops=1)
+              Buffers: shared hit=1109
+        ->  Hash  (cost=845.98..845.98 rows=29998 width=32) (actual time=25.413..25.415 rows=29998.00 loops=1)
+              Buckets: 32768  Batches: 1  Memory Usage: 2131kB
+              Buffers: shared hit=546
+              ->  Seq Scan on judgment j  (cost=0.00..845.98 rows=29998 width=32) (actual time=0.014..8.059 rows=29998.00 loops=1)
+                    Buffers: shared hit=546
+Planning:
+  Buffers: shared hit=12
+Planning Time: 0.386 ms
+Execution Time: 89.199 ms
+
+== dashboard: judgments of the period (JudgmentReportQueries.between)
+-- select outcome, count(*) as n, count(*) filter (where final) as final_n from judgment where judgment_date between date '2026-01-01' and date '2026-12-31' group by outcome;
+HashAggregate  (cost=1015.50..1015.55 rows=5 width=24) (actual time=7.563..7.567 rows=5.00 loops=1)
+  Group Key: outcome
+  Batches: 1  Memory Usage: 32kB
+  Buffers: shared hit=546
+  ->  Seq Scan on judgment  (cost=0.00..995.97 rows=2604 width=9) (actual time=0.019..6.360 rows=2602.00 loops=1)
+        Filter: ((judgment_date >= '2026-01-01'::date) AND (judgment_date <= '2026-12-31'::date))
+        Rows Removed by Filter: 27396
+        Buffers: shared hit=546
+Planning Time: 0.164 ms
+Execution Time: 7.618 ms
+
+== sign-in: account by login (UserAccounts.findByLogin)
+-- select id, username, email, display_name, locale, password_hash, enabled, must_change_password, locked_until, credential_version from app_user where lower(username) = lower('syn.user20') or lower(email) = lower('syn.user20');
+Seq Scan on app_user  (cost=0.00..3.00 rows=2 width=104) (actual time=0.051..0.120 rows=1.00 loops=1)
+  Filter: ((lower((username)::text) = 'syn.user20'::text) OR (lower((email)::text) = 'syn.user20'::text))
+  Rows Removed by Filter: 49
+  Buffers: shared hit=2
+Planning Time: 0.140 ms
+Execution Time: 0.141 ms
+
+== every request: permissions of the signed-in user (UserAccounts, ReloadingSecurityContextRepository)
+-- select distinct rp.permission from user_role ur join role_permission rp on rp.role_id = ur.role_id where ur.user_id = :USER_ID;
+HashAggregate  (cost=3.75..3.93 rows=18 width=13) (actual time=0.062..0.066 rows=16.00 loops=1)
+  Group Key: rp.permission
+  Batches: 1  Memory Usage: 32kB
+  Buffers: shared hit=2
+  ->  Hash Join  (cost=1.64..3.71 rows=18 width=13) (actual time=0.040..0.053 rows=16.00 loops=1)
+        Hash Cond: (rp.role_id = ur.role_id)
+        Buffers: shared hit=2
+        ->  Seq Scan on role_permission rp  (cost=0.00..1.69 rows=69 width=29) (actual time=0.014..0.020 rows=69.00 loops=1)
+              Buffers: shared hit=1
+        ->  Hash  (cost=1.62..1.62 rows=1 width=16) (actual time=0.015..0.015 rows=1.00 loops=1)
+              Buckets: 1024  Batches: 1  Memory Usage: 9kB
+              Buffers: shared hit=1
+              ->  Seq Scan on user_role ur  (cost=0.00..1.62 rows=1 width=16) (actual time=0.009..0.012 rows=1.00 loops=1)
+                    Filter: (user_id = '4ad1adea-2f44-485a-b55a-c781fea44edd'::uuid)
+                    Rows Removed by Filter: 49
+                    Buffers: shared hit=1
+Planning Time: 0.183 ms
+Execution Time: 0.108 ms
+
+== audit log, default page (AuditController: count)
+-- select count(*) from audit_event;
+Aggregate  (cost=4136.30..4136.31 rows=1 width=8) (actual time=52.344..52.346 rows=1.00 loops=1)
+  Buffers: shared hit=159
+  ->  Index Only Scan using audit_event_actor on audit_event  (cost=0.29..3636.30 rows=200000 width=0) (actual time=0.070..33.270 rows=200000.00 loops=1)
+        Heap Fetches: 0
+        Index Searches: 1
+        Buffers: shared hit=159
+Planning Time: 0.121 ms
+Execution Time: 52.387 ms
+
+== audit log, filtered by actor (AuditController: page)
+-- select id, occurred_at, actor_id, actor_username, action, target_type, target_id, outcome, reason, request_id from audit_event where lower(actor_username) = 'syn.user7' order by occurred_at desc, id desc limit 20 offset 0;
+Limit  (cost=9.02..181.51 rows=20 width=363) (actual time=1.019..1.024 rows=20.00 loops=1)
+  Buffers: shared hit=17
+  ->  Incremental Sort  (cost=9.02..8633.42 rows=1000 width=363) (actual time=1.017..1.019 rows=20.00 loops=1)
+        Sort Key: occurred_at DESC, id DESC
+        Presorted Key: occurred_at
+        Full-sort Groups: 1  Sort Method: quicksort  Average Memory: 27kB  Peak Memory: 27kB
+        Buffers: shared hit=17
+        ->  Index Scan using audit_event_occurred on audit_event  (cost=0.42..8588.42 rows=1000 width=363) (actual time=0.109..0.995 rows=21.00 loops=1)
+              Filter: (lower((actor_username)::text) = 'syn.user7'::text)
+              Rows Removed by Filter: 985
+              Index Searches: 1
+              Buffers: shared hit=17
+Planning Time: 0.358 ms
+Execution Time: 1.118 ms
+

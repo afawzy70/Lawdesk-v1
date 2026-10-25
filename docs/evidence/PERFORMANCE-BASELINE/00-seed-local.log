@@ -1,0 +1,27 @@
+# 2026-10-24, develop 19ad538 (backend identical to 1e5f340). Throwaway local PostgreSQL 18.6 (zonky embedded
+# binaries 18.6.0 from ~/.m2, the ones the backend tests use) on 127.0.0.1:55432, shared_buffers=128MB,
+# max_connections=10, no parallel workers, jit=off. Host load average 7-15 on 8 cores during the run (shared
+# Contabo host): timings are indicative, buffer counts and plan shapes are the stable signal.
+# java -cp postgresql-42.7.14.jar tools/performance/db/QueryPlans.java jdbc:postgresql://127.0.0.1:55432/postgres?user=lawdesk \
+#   apply:backend/src/main/resources/db/migration apply:tools/performance/db/seed-develop.sql \
+#   apply:<scratch>/phase5-migrations apply:tools/performance/db/seed-phase5.sql
+
+-- applied backend/src/main/resources/db/migration/V1__app_release.sql in 67 ms
+-- applied backend/src/main/resources/db/migration/V2__app_release_version_visible.sql in 9 ms
+-- applied backend/src/main/resources/db/migration/V100__LD-007_app_user.sql in 75 ms
+-- applied backend/src/main/resources/db/migration/V101__LD-011_audit_event.sql in 20 ms
+-- applied backend/src/main/resources/db/migration/V102__LD-008_credential_version.sql in 9 ms
+-- applied backend/src/main/resources/db/migration/V190__LD-009_phase5_6_default_permissions.sql in 5 ms
+-- applied backend/src/main/resources/db/migration/V200__LD-012_legal_case.sql in 16 ms
+-- applied backend/src/main/resources/db/migration/V201__LD-016_party.sql in 19 ms
+-- applied backend/src/main/resources/db/migration/V300__LD-018_court.sql in 10 ms
+-- applied backend/src/main/resources/db/migration/V301__LD-019_proceeding.sql in 18 ms
+-- applied backend/src/main/resources/db/migration/V302__LD-022_judgment.sql in 15 ms
+-- applied backend/src/main/resources/db/migration/V303__LD-023_special_decision.sql in 11 ms
+-- applied backend/src/main/resources/db/migration/V304__LD-019_proceeding_case_fk.sql in 4 ms
+-- applied tools/performance/db/seed-develop.sql in 28967 ms
+-- applied <scratch>/phase5-migrations/ (from origin/feature/LD-026-documents ded7e3c) V400__LD-024_hearing.sql in 66 ms
+-- applied <scratch>/phase5-migrations/ (from origin/feature/LD-026-documents ded7e3c) V401__LD-024_hearing_case_matches_proceeding.sql in 13 ms
+-- applied <scratch>/phase5-migrations/ (from origin/feature/LD-026-documents ded7e3c) V402__LD-027_task.sql in 36 ms
+-- applied <scratch>/phase5-migrations/ (from origin/feature/LD-026-documents ded7e3c) V403__LD-026_case_document.sql in 80 ms
+-- applied tools/performance/db/seed-phase5.sql in 27459 ms

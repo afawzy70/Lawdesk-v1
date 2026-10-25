@@ -1,0 +1,162 @@
+// LD-040 realistic LawDesk user mix (docs/performance/PERFORMANCE-BASELINE.md §3). k6 v2.3.0.
+//
+// NOT FOR UAT. Isolated, resource-bounded target with synthetic data only (lib/lawdesk.js refuses UAT and Matbakhy).
+//
+//   k6 run -e LAWDESK_K6_ISOLATED=yes -e BASE_URL=http://127.0.0.1:18080 \
+//     -e CREDENTIALS_FILE=/path/synthetic-accounts.json -e PROFILE=baseline \
+//     -e FEATURES=hearings,documents,reports,exports tools/performance/k6/lawdesk-mix.js
+//
+// (k6 v2 reads script variables from -e; the shell environment is not passed to __ENV.)
+//
+// PROFILE: smoke (1 iteration/s, 1 min), baseline (Phase 5/6 controlled load), load, stress, spike, soak (Phase 7+).
+// Personas: lawyer (LEGAL_STAFF: reads cases, proceedings, hearings, documents), staff (LEGAL_STAFF: writes cases,
+// parties, proceedings, hearings, uploads), manager (LEGAL_MANAGER: dashboard, reports, exports).
+import { sleep } from 'k6';
+import { credentials, enabled, get, pick, send, signIn, target, thresholds, upload } from './lib/lawdesk.js';
+
+const BASE = target();
+const ACCOUNTS = credentials();
+// A ~200 KiB synthetic PDF for uploads; the content is generated, never a real document.
+const PDF = '%PDF-1.7\n% SYN LawDesk load-test document\n' + 'x'.repeat(200 * 1024) + '\n%%EOF\n';
+
+// Iterations per second per persona at the profile's plateau; one iteration is one user "visit" of 4-8 requests.
+const PROFILES = {
+  smoke: { lawyer: 1, staff: 0, manager: 0, ramp: '10s', hold: '1m', vus: 2 },
+  baseline: { lawyer: 3, staff: 1, manager: 0.5, ramp: '2m', hold: '10m', vus: 20 },
+  load: { lawyer: 6, staff: 2, manager: 1, ramp: '5m', hold: '30m', vus: 40 },
+  stress: { lawyer: 18, staff: 6, manager: 3, ramp: '10m', hold: '10m', vus: 120 },
+  spike: { lawyer: 30, staff: 10, manager: 5, ramp: '30s', hold: '2m', vus: 200 },
+  soak: { lawyer: 3, staff: 1, manager: 0.5, ramp: '5m', hold: '4h', vus: 20 },
+};
+const PROFILE = PROFILES[__ENV.PROFILE || 'smoke'];
+if (!PROFILE) {
+  throw new Error(`unknown PROFILE ${__ENV.PROFILE}`);
+}
+
+function scenario(exec, rate) {
+  // ramping-arrival-rate keeps the offered load independent of response times (open model).
+  return {
+    executor: 'ramping-arrival-rate',
+    exec,
+    startRate: 0,
+    timeUnit: '10s',
+    preAllocatedVUs: Math.ceil(PROFILE.vus / 3),
+    maxVUs: PROFILE.vus,
+    stages: [
+      { target: Math.round(rate * 10), duration: PROFILE.ramp },
+      { target: Math.round(rate * 10), duration: PROFILE.hold },
+      { target: 0, duration: '30s' },
+    ],
+  };
+}
+
+const scenarios = {};
+for (const [persona, rate] of Object.entries({ lawyer: PROFILE.lawyer, staff: PROFILE.staff, manager: PROFILE.manager })) {
+  if (rate > 0) {
+    scenarios[persona] = scenario(persona, rate);
+  }
+}
+
+export const options = {
+  scenarios,
+  thresholds: thresholds(__ENV.PROFILE !== 'stress' && __ENV.PROFILE !== 'spike'),
+  // Never follow redirects off the target, never reuse a session across VUs.
+  maxRedirects: 0,
+  // Keep each VU's session cookies across iterations: a persona signs in once per VU, as a browser would.
+  noCookiesReset: true,
+  summaryTrendStats: ['min', 'med', 'p(90)', 'p(95)', 'p(99)', 'max'],
+};
+
+const signedIn = {};
+function session(persona) {
+  if (!signedIn[persona]) {
+    signIn(BASE, ACCOUNTS[persona]);
+    signedIn[persona] = true;
+  }
+}
+
+function someCase() {
+  const page = Math.floor(Math.random() * 50);
+  const list = get(BASE, `/api/v1/cases?page=${page}&size=20`, 'cases list', 'case_list');
+  const items = list.status === 200 ? list.json('items') : [];
+  return items && items.length ? pick(items).id : null;
+}
+
+export function lawyer() {
+  session('lawyer');
+  get(BASE, '/api/v1/me', 'me', 'auth');
+  if (Math.random() < 0.4) {
+    get(BASE, `/api/v1/cases?q=${encodeURIComponent(pick(['SYN 1', 'SYN 42', 'Contract', 'دعوى']))}&size=20`,
+      'cases search', 'case_list');
+  }
+  const caseId = someCase();
+  if (!caseId) {
+    return;
+  }
+  sleep(1 + Math.random() * 2); // think time
+  get(BASE, `/api/v1/cases/${caseId}`, 'case details', 'case_details');
+  get(BASE, `/api/v1/cases/${caseId}/parties`, 'case parties', 'case_details');
+  get(BASE, `/api/v1/cases/${caseId}/timeline?size=20`, 'case timeline', 'case_details');
+  get(BASE, `/api/v1/cases/${caseId}/proceedings`, 'case proceedings', 'proceedings');
+  get(BASE, `/api/v1/cases/${caseId}/judgments`, 'case judgments', 'proceedings');
+  if (enabled('hearings')) {
+    get(BASE, `/api/v1/cases/${caseId}/hearings`, 'case hearings', 'hearings');
+    get(BASE, '/api/v1/hearings?size=20', 'hearing calendar', 'hearings');
+  }
+  if (enabled('documents')) {
+    const docs = get(BASE, `/api/v1/cases/${caseId}/documents`, 'case documents', 'documents');
+    const items = docs.status === 200 ? docs.json('items') || docs.json() : [];
+    if (Array.isArray(items) && items.length && Math.random() < 0.3) {
+      get(BASE, `/api/v1/documents/${pick(items).id}/content`, 'document download', 'documents');
+    }
+  }
+}
+
+export function staff() {
+  session('staff');
+  const stamp = `${__VU}-${__ITER}-${Date.now()}`;
+  const created = send(BASE, 'POST', '/api/v1/cases', {
+    title: `SYN load case ${stamp}`, caseType: pick(['CIVIL', 'COMMERCIAL', 'LABOR']), subject: 'SYN', openedOn: '2026-01-15',
+  }, 'case create', 'case_details');
+  if (created.status !== 201) {
+    return;
+  }
+  const caseId = created.json('id');
+  const party = send(BASE, 'POST', '/api/v1/parties', { kind: 'ORGANIZATION', name: `SYN party ${stamp}` },
+    'party create', 'case_details');
+  if (party.status === 201) {
+    send(BASE, 'POST', `/api/v1/cases/${caseId}/parties`, { partyId: party.json('id'), role: 'CLIENT' },
+      'case party link', 'case_details');
+  }
+  const courts = get(BASE, '/api/v1/courts?size=100', 'courts list', 'proceedings');
+  const firstInstance = (courts.status === 200 ? courts.json('items') || [] : []).filter((c) => c.level === 'FIRST_INSTANCE');
+  if (!firstInstance.length) {
+    return;
+  }
+  const proceeding = send(BASE, 'POST', `/api/v1/cases/${caseId}/proceedings`, {
+    stage: 'FIRST_INSTANCE', courtId: pick(firstInstance).id, courtCaseNumber: `SYN${stamp}`.slice(0, 32),
+    courtCaseYear: 2026, filingDate: '2026-02-01',
+  }, 'proceeding create', 'proceedings');
+  if (enabled('hearings') && proceeding.status === 201) {
+    send(BASE, 'POST', `/api/v1/proceedings/${proceeding.json('id')}/hearings`, {
+      hearingDate: '2026-12-01', purpose: 'FIRST_SESSION',
+    }, 'hearing schedule', 'hearings');
+  }
+  if (enabled('documents') && Math.random() < 0.2) {
+    upload(BASE, `/api/v1/cases/${caseId}/documents`, `syn-${stamp}.pdf`, PDF, 'document upload');
+  }
+  sleep(2 + Math.random() * 3);
+}
+
+export function manager() {
+  session('manager');
+  get(BASE, '/api/v1/reports/dashboard', 'dashboard', 'reports');
+  if (enabled('reports')) {
+    get(BASE, '/api/v1/reports/cases?size=20', 'case report', 'reports');
+    get(BASE, '/api/v1/reports/judgments?size=20', 'judgment report', 'reports');
+  }
+  if (enabled('exports') && Math.random() < 0.1) {
+    get(BASE, `/api/v1/reports/cases/export?format=${pick(['csv', 'xlsx', 'pdf'])}`, 'case export', 'exports');
+  }
+  sleep(5 + Math.random() * 5);
+}
