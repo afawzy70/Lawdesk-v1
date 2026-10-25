@@ -19,7 +19,7 @@ The current `aiagent` session cannot perform installation: `sudo -n` requires a 
 As `devops` on Contabo, review PR #49's installer, then execute this single command. It copies the staged file to a root-owned path, verifies the exact reviewed bytes, and runs it. The installer prompts locally and without echo for the short-lived repository runner registration token from Lawdesk-v1 → Settings → Actions → Runners. Never paste the token into a command, chat, issue or log.
 
 ```bash
-sudo install -o root -g root -m 0500 /tmp/lawdesk-ci-infra-20261024/tools/ci-runner/install-systemd-poc.sh /root/install-systemd-poc.sh && echo 'cd785fb53b1be5ab25046fecbaa612611805714c87147772e38fb755b1ccb0cd  /root/install-systemd-poc.sh' | sudo sha256sum --check && sudo bash /root/install-systemd-poc.sh
+sudo install -o root -g root -m 0500 /tmp/lawdesk-ci-infra-20261024/tools/ci-runner/install-systemd-poc.sh /root/install-systemd-poc.sh && echo '7ecdbe5d742bb33051198219fd85197d96aa8e5aee7ef38ac32d5fe15558947e  /root/install-systemd-poc.sh' | sudo sha256sum --check && sudo bash /root/install-systemd-poc.sh
 ```
 
 The installer adds only the native libraries needed for the official runner; it does not yet provision Java, Node or Docker for general CI. If registration or service startup fails, leave PR #49 Draft, record `sudo systemctl status lawdesk-runner-poc.service` and `sudo journalctl -u lawdesk-runner-poc.service -n 100 --no-pager`, and remove any stale runner in the GitHub Runners page. The service is deliberately **not enabled on reboot**; the POC is one job only.
