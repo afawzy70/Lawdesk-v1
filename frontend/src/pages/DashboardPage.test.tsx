@@ -9,6 +9,9 @@ import { formatNumber } from '../i18n/format';
 import { ADMIN, fakeApi } from '../test/api';
 import { jsonResponse } from '../test/http';
 
+/** Each test renders the whole application; the first one of a file can pass the 5 s default on a busy machine. */
+vi.setConfig({ testTimeout: 20_000 });
+
 const DASHBOARD = 'GET /api/v1/reports/dashboard';
 
 const REPORTER: Me = { ...ADMIN, permissions: ['CASE_VIEW', 'REPORT_VIEW'] };

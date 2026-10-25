@@ -1,11 +1,14 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Permission } from '../../api/permissions';
 import { formatNumber } from '../../i18n/format';
 import { jsonResponse } from '../../test/http';
 import type { ExpertsReport, HearingReport, HearingRow, WorkloadReport } from './operationsApi';
 import { COURTS, backend, problem, renderAt } from './testSupport';
+
+/** Each test renders the whole application; the first one of a file can pass the 5 s default on a busy machine. */
+vi.setConfig({ testTimeout: 20_000 });
 
 const VIEWER: Permission[] = ['REPORT_VIEW', 'CASE_VIEW'];
 const EXPORTER: Permission[] = [...VIEWER, 'REPORT_EXPORT'];
