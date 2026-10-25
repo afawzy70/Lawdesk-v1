@@ -3,6 +3,8 @@ package com.lawdesk.reports;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ibm.icu.lang.UCharacter;
+import com.ibm.icu.lang.UCharacterDirection;
 import com.ibm.icu.text.ArabicShaping;
 import com.ibm.icu.text.ArabicShapingException;
 import com.ibm.icu.text.Bidi;
@@ -28,7 +30,12 @@ final class PdfText {
      * as for {@code dir="auto"}: an Arabic title reads right to left in an English export and an English one left to
      * right in an Arabic export.
      *
-     * @param rightToLeft the direction of a line without letters (numbers, dates): right to left in Arabic exports
+     * <p>QAD-036 (ASSUMPTION in docs/delivery/PHASE-6-ACCEPTANCE.md): a line without any strong right-to-left
+     * character keeps its logical order, left to right, in either export language. The Unicode algorithm would
+     * otherwise lay a neutral expression out right to left and turn {@code =1+1} into {@code 1+1=}. The table
+     * mirroring and the alignment of Arabic exports do not depend on this.
+     *
+     * @param rightToLeft the language of the export; it no longer decides the direction of a line by itself
      */
     static String visual(String logical, boolean rightToLeft) {
         if (logical == null || logical.isEmpty()) {
@@ -41,8 +48,19 @@ final class PdfText {
         } catch (ArabicShapingException e) {
             throw new IllegalStateException("Arabic shaping failed", e);
         }
-        Bidi bidi = new Bidi(shaped, rightToLeft ? Bidi.LEVEL_DEFAULT_RTL : Bidi.LEVEL_DEFAULT_LTR);
+        int baseLevel = !hasStrongRightToLeft(logical) ? Bidi.LTR
+                : rightToLeft ? Bidi.LEVEL_DEFAULT_RTL : Bidi.LEVEL_DEFAULT_LTR;
+        Bidi bidi = new Bidi(shaped, (byte) baseLevel);
         return bidi.writeReordered(Bidi.DO_MIRRORING | Bidi.REMOVE_BIDI_CONTROLS);
+    }
+
+    /** Whether the text holds a letter that is strongly right to left (Arabic, Hebrew, …); digits and signs do not. */
+    static boolean hasStrongRightToLeft(String text) {
+        return text.codePoints().anyMatch(codePoint -> {
+            int direction = UCharacter.getDirection(codePoint);
+            return direction == UCharacterDirection.RIGHT_TO_LEFT
+                    || direction == UCharacterDirection.RIGHT_TO_LEFT_ARABIC;
+        });
     }
 
     /** Text kept together left to right inside a line of either direction, such as a date after Arabic words. */

@@ -190,6 +190,38 @@ class ExportFormatsApiTest extends PostgresTestSupport {
         assertThat(audited()).containsExactly("CASE_INVENTORY:PDF");
     }
 
+    /** QAD-036: the glyphs drawn, in drawing order, in a PDF of the given language with these extra case titles. */
+    private String drawnPdf(String lang, String... titles) throws Exception {
+        for (String title : titles) {
+            data.insertCase(title, "CIVIL", "OPEN", LocalDate.of(2025, 4, 1));
+        }
+        byte[] bytes = mvc.perform(export(CASES, "pdf", lang).param("q", m)).andExpect(status().isOk()).andReturn()
+                .getResponse().getContentAsByteArray();
+        try (PDDocument pdf = Loader.loadPDF(bytes)) {
+            return drawn(pdf);
+        }
+    }
+
+    @Test
+    void neutralExpressionsKeepTheirLogicalOrderInArabicAndEnglishPdfs() throws Exception {
+        List<String> titles = List.of("=1+1", "-1+1", "+7", "@a");
+        String arabic = drawnPdf("ar", titles.toArray(String[]::new));
+        String english = drawnPdf("en");
+        for (String title : titles) {
+            assertThat(arabic).as("ar " + title).contains(title);
+            assertThat(english).as("en " + title).contains(title);
+        }
+        for (String drawn : List.of(arabic, english)) {
+            assertThat(drawn).doesNotContain("1+1=").doesNotContain("1+1-").doesNotContain("7+");
+        }
+    }
+
+    @Test
+    void anArabicTitleStillReadsRightToLeftNextToANeutralOne() throws Exception {
+        String drawn = drawnPdf("ar", "=1+1 تركة");
+        assertThat(drawn).contains("\uFE94\uFEDB\uFEAE\uFE97 1+1=").doesNotContain("تركة");
+    }
+
     @Test
     void exportsAnEnglishPdfOfTheJudgments() throws Exception {
         byte[] bytes = mvc.perform(export(JUDGMENTS, "pdf", "en").param("from", "2031-03-10").param("to", "2031-03-10")
@@ -210,7 +242,8 @@ class ExportFormatsApiTest extends PostgresTestSupport {
                 .getResponse().getContentAsByteArray();
         try (PDDocument pdf = Loader.loadPDF(bytes)) {
             assertThat(pdf.getNumberOfPages()).isGreaterThan(1);
-            String text = new PDFTextStripper().getText(pdf);
+            // A long reference may wrap inside its cell, so the line breaks are left out of the comparison.
+            String text = new PDFTextStripper().getText(pdf).replaceAll("\\s+", "");
             assertThat(text).contains(m + "-BULK-120", m + "-BULK-99", m + "-A");
         }
     }
@@ -223,6 +256,35 @@ class ExportFormatsApiTest extends PostgresTestSupport {
                     .andExpect(jsonPath("$.rule").value("EXPORT_TOO_LARGE"));
         }
         assertThat(audited()).isEmpty();
+    }
+
+    /** QAD-035: a streaming reader sizes the sheet from its declared dimension, so it must match the cells. */
+    @Test
+    void declaresTheRealDimensionInEnglishAndArabicWorkbooks() throws Exception {
+        for (String lang : List.of("en", "ar")) {
+            byte[] cases = mvc.perform(export(CASES, "xlsx", lang).param("q", m)).andExpect(status().isOk())
+                    .andReturn().getResponse().getContentAsByteArray();
+            XlsxTest.Sheet sheet = XlsxTest.read(cases);
+            assertThat(sheet.rows()).as(lang).isEqualTo(3);
+            assertThat(sheet.dimension()).as(lang).isEqualTo("A1:I3");
+
+            byte[] judgments = mvc.perform(export(JUDGMENTS, "xlsx", lang).param("from", "2031-03-10")
+                    .param("to", "2031-03-10")).andExpect(status().isOk()).andReturn().getResponse()
+                    .getContentAsByteArray();
+            assertThat(XlsxTest.read(judgments).dimension()).as(lang).isEqualTo("A1:H2");
+        }
+    }
+
+    @Test
+    void declaresTheRealDimensionAtTheTenThousandRowLimit() throws Exception {
+        data.insertBulkCases(9_998);
+        for (String lang : List.of("en", "ar")) {
+            byte[] xlsx = mvc.perform(export(CASES, "xlsx", lang).param("q", m)).andExpect(status().isOk())
+                    .andReturn().getResponse().getContentAsByteArray();
+            XlsxTest.Sheet sheet = XlsxTest.read(xlsx);
+            assertThat(sheet.rows()).as(lang).isEqualTo(10_001);
+            assertThat(sheet.dimension()).as(lang).isEqualTo("A1:I10001");
+        }
     }
 
     @Test
