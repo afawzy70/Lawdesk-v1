@@ -1,0 +1,683 @@
+{
+  "tested_sha": "31044e7b674a3f7c836a8ce5491c97d359fa524a",
+  "utc": "2026-10-24T18:06:38.118263+00:00",
+  "candidate": "/tmp/lawdesk-continuous-pr32-31044e7b",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 11,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "d0127eae-58a4-48c4-beb3-245eecf020b3",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-24T18:06:32.937524Z",
+          "updatedAt": "2026-10-24T18:06:32.937524Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DASHBOARD-ANON",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DASHBOARD-ANON"
+      },
+      "steps": [
+        "GET /api/v1/reports/dashboard",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 401,
+        "rule": null
+      },
+      "actual": {
+        "status": 401,
+        "body": {
+          "type": "about:blank",
+          "title": "Unauthorized",
+          "status": 401
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DASHBOARD-DENIED",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DASHBOARD-DENIED"
+      },
+      "steps": [
+        "GET /api/v1/reports/dashboard",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 403,
+        "rule": null
+      },
+      "actual": {
+        "status": 403,
+        "body": {
+          "type": "about:blank",
+          "title": "Forbidden",
+          "status": 403
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DASHBOARD-DENIED-BAD-FILTER",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DASHBOARD-DENIED-BAD-FILTER"
+      },
+      "steps": [
+        "GET /api/v1/reports/dashboard?from=bad",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 403,
+        "rule": null
+      },
+      "actual": {
+        "status": 403,
+        "body": {
+          "type": "about:blank",
+          "title": "Forbidden",
+          "status": 403
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DASHBOARD-EMPTY",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DASHBOARD-EMPTY"
+      },
+      "steps": [
+        "GET /api/v1/reports/dashboard?from=2026-01-01&to=2026-01-31",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "month": "2026-10",
+          "cases": {
+            "total": 0,
+            "open": 0,
+            "closed": 0,
+            "newThisMonth": 0,
+            "byStatus": {
+              "OPEN": 0,
+              "ACTIVE": 0,
+              "SUSPENDED": 0,
+              "CLOSED": 0,
+              "ARCHIVED": 0
+            },
+            "byType": {
+              "CIVIL": 0,
+              "CRIMINAL": 0,
+              "COMMERCIAL": 0,
+              "LABOR": 0,
+              "FAMILY": 0,
+              "ADMINISTRATIVE": 0
+            }
+          },
+          "proceedings": {
+            "awaitingJudgment": 0,
+            "byStage": [
+              {
+                "stage": "FIRST_INSTANCE",
+                "total": 0,
+                "awaitingJudgment": 0
+              },
+              {
+                "stage": "APPEAL",
+                "total": 0,
+                "awaitingJudgment": 0
+              },
+              {
+                "stage": "CASSATION",
+                "total": 0,
+                "awaitingJudgment": 0
+              }
+            ]
+          },
+          "judgments": {
+            "from": "2026-01-01",
+            "to": "2026-01-31",
+            "recorded": 0,
+            "final": 0,
+            "byOutcome": {
+              "IN_FAVOUR": 0,
+              "AGAINST": 0,
+              "PARTIAL": 0,
+              "DISMISSED": 0,
+              "OTHER": 0
+            }
+          },
+          "pending": [
+            "HEARINGS_THIS_WEEK",
+            "EXPERT_REPORTS_DUE",
+            "OVERDUE_TASKS"
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DASHBOARD-ZEROS",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DASHBOARD-ZEROS"
+      },
+      "steps": [
+        "Read empty DB dashboard"
+      ],
+      "expected_results": "Zero cases/judgments and explicit unavailable figures",
+      "actual": {
+        "month": "2026-10",
+        "cases": {
+          "total": 0,
+          "open": 0,
+          "closed": 0,
+          "newThisMonth": 0,
+          "byStatus": {
+            "OPEN": 0,
+            "ACTIVE": 0,
+            "SUSPENDED": 0,
+            "CLOSED": 0,
+            "ARCHIVED": 0
+          },
+          "byType": {
+            "CIVIL": 0,
+            "CRIMINAL": 0,
+            "COMMERCIAL": 0,
+            "LABOR": 0,
+            "FAMILY": 0,
+            "ADMINISTRATIVE": 0
+          }
+        },
+        "proceedings": {
+          "awaitingJudgment": 0,
+          "byStage": [
+            {
+              "stage": "FIRST_INSTANCE",
+              "total": 0,
+              "awaitingJudgment": 0
+            },
+            {
+              "stage": "APPEAL",
+              "total": 0,
+              "awaitingJudgment": 0
+            },
+            {
+              "stage": "CASSATION",
+              "total": 0,
+              "awaitingJudgment": 0
+            }
+          ]
+        },
+        "judgments": {
+          "from": "2026-01-01",
+          "to": "2026-01-31",
+          "recorded": 0,
+          "final": 0,
+          "byOutcome": {
+            "IN_FAVOUR": 0,
+            "AGAINST": 0,
+            "PARTIAL": 0,
+            "DISMISSED": 0,
+            "OTHER": 0
+          }
+        },
+        "pending": [
+          "HEARINGS_THIS_WEEK",
+          "EXPERT_REPORTS_DUE",
+          "OVERDUE_TASKS"
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DASHBOARD-REAL",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DASHBOARD-REAL"
+      },
+      "steps": [
+        "GET /api/v1/reports/dashboard?from=2026-01-03&to=2026-01-03",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "month": "2026-10",
+          "cases": {
+            "total": 6,
+            "open": 4,
+            "closed": 2,
+            "newThisMonth": 0,
+            "byStatus": {
+              "OPEN": 2,
+              "ACTIVE": 1,
+              "SUSPENDED": 1,
+              "CLOSED": 1,
+              "ARCHIVED": 1
+            },
+            "byType": {
+              "CIVIL": 6,
+              "CRIMINAL": 0,
+              "COMMERCIAL": 0,
+              "LABOR": 0,
+              "FAMILY": 0,
+              "ADMINISTRATIVE": 0
+            }
+          },
+          "proceedings": {
+            "awaitingJudgment": 1,
+            "byStage": [
+              {
+                "stage": "FIRST_INSTANCE",
+                "total": 2,
+                "awaitingJudgment": 1
+              },
+              {
+                "stage": "APPEAL",
+                "total": 0,
+                "awaitingJudgment": 0
+              },
+              {
+                "stage": "CASSATION",
+                "total": 0,
+                "awaitingJudgment": 0
+              }
+            ]
+          },
+          "judgments": {
+            "from": "2026-01-03",
+            "to": "2026-01-03",
+            "recorded": 1,
+            "final": 1,
+            "byOutcome": {
+              "IN_FAVOUR": 1,
+              "AGAINST": 0,
+              "PARTIAL": 0,
+              "DISMISSED": 0,
+              "OTHER": 0
+            }
+          },
+          "pending": [
+            "HEARINGS_THIS_WEEK",
+            "EXPERT_REPORTS_DUE",
+            "OVERDUE_TASKS"
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DASHBOARD-EXACT-COUNTS",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DASHBOARD-EXACT-COUNTS"
+      },
+      "steps": [
+        "Compare dashboard to six fixture cases/two proceedings/one judgment"
+      ],
+      "expected_results": "cases6 open4 closed2; proceedings awaiting1; final judgment1",
+      "actual": {
+        "month": "2026-10",
+        "cases": {
+          "total": 6,
+          "open": 4,
+          "closed": 2,
+          "newThisMonth": 0,
+          "byStatus": {
+            "OPEN": 2,
+            "ACTIVE": 1,
+            "SUSPENDED": 1,
+            "CLOSED": 1,
+            "ARCHIVED": 1
+          },
+          "byType": {
+            "CIVIL": 6,
+            "CRIMINAL": 0,
+            "COMMERCIAL": 0,
+            "LABOR": 0,
+            "FAMILY": 0,
+            "ADMINISTRATIVE": 0
+          }
+        },
+        "proceedings": {
+          "awaitingJudgment": 1,
+          "byStage": [
+            {
+              "stage": "FIRST_INSTANCE",
+              "total": 2,
+              "awaitingJudgment": 1
+            },
+            {
+              "stage": "APPEAL",
+              "total": 0,
+              "awaitingJudgment": 0
+            },
+            {
+              "stage": "CASSATION",
+              "total": 0,
+              "awaitingJudgment": 0
+            }
+          ]
+        },
+        "judgments": {
+          "from": "2026-01-03",
+          "to": "2026-01-03",
+          "recorded": 1,
+          "final": 1,
+          "byOutcome": {
+            "IN_FAVOUR": 1,
+            "AGAINST": 0,
+            "PARTIAL": 0,
+            "DISMISSED": 0,
+            "OTHER": 0
+          }
+        },
+        "pending": [
+          "HEARINGS_THIS_WEEK",
+          "EXPERT_REPORTS_DUE",
+          "OVERDUE_TASKS"
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DASHBOARD-PERIOD-from=bad",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DASHBOARD-PERIOD-from=bad"
+      },
+      "steps": [
+        "GET /api/v1/reports/dashboard?from=bad",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/reports/dashboard",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "field": "from",
+              "code": "typeMismatch"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DASHBOARD-PERIOD-from=2026-02-01&to=2026-01-01",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DASHBOARD-PERIOD-from=2026-02-01&to=2026-01-01"
+      },
+      "steps": [
+        "GET /api/v1/reports/dashboard?from=2026-02-01&to=2026-01-01",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": null
+      },
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/reports/dashboard",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "DATE_RANGE_INVALID"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DASHBOARD-PERIOD-from=2026-01-04&to=2026-01-04",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DASHBOARD-PERIOD-from=2026-01-04&to=2026-01-04"
+      },
+      "steps": [
+        "GET /api/v1/reports/dashboard?from=2026-01-04&to=2026-01-04",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "month": "2026-10",
+          "cases": {
+            "total": 6,
+            "open": 4,
+            "closed": 2,
+            "newThisMonth": 0,
+            "byStatus": {
+              "OPEN": 2,
+              "ACTIVE": 1,
+              "SUSPENDED": 1,
+              "CLOSED": 1,
+              "ARCHIVED": 1
+            },
+            "byType": {
+              "CIVIL": 6,
+              "CRIMINAL": 0,
+              "COMMERCIAL": 0,
+              "LABOR": 0,
+              "FAMILY": 0,
+              "ADMINISTRATIVE": 0
+            }
+          },
+          "proceedings": {
+            "awaitingJudgment": 1,
+            "byStage": [
+              {
+                "stage": "FIRST_INSTANCE",
+                "total": 2,
+                "awaitingJudgment": 1
+              },
+              {
+                "stage": "APPEAL",
+                "total": 0,
+                "awaitingJudgment": 0
+              },
+              {
+                "stage": "CASSATION",
+                "total": 0,
+                "awaitingJudgment": 0
+              }
+            ]
+          },
+          "judgments": {
+            "from": "2026-01-04",
+            "to": "2026-01-04",
+            "recorded": 0,
+            "final": 0,
+            "byOutcome": {
+              "IN_FAVOUR": 0,
+              "AGAINST": 0,
+              "PARTIAL": 0,
+              "DISMISSED": 0,
+              "OTHER": 0
+            }
+          },
+          "pending": [
+            "HEARINGS_THIS_WEEK",
+            "EXPERT_REPORTS_DUE",
+            "OVERDUE_TASKS"
+          ]
+        }
+      },
+      "status": "PASS"
+    }
+  ]
+}

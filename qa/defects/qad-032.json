@@ -1,0 +1,102 @@
+{
+  "environment": "Independent canonical candidate archive; real Spring Boot jar and disposable PostgreSQL18.6 on loopback; Chromium1248",
+  "reported_utc": "2026-10-24T15:25:11.872218+00:00",
+  "status": "FIX_VERIFIED_UAT_AND_LOCAL_API",
+  "owner": "Claude implementation; independent QA verification",
+  "no_customer_data": true,
+  "id": "QAD-032",
+  "title": "Editing proceeding filing date persists an existing hearing before filing",
+  "priority": "P2",
+  "severity": "S2",
+  "story_ids": [
+    "LD-019",
+    "LD-024"
+  ],
+  "affected": [
+    "fb60c26884fc6ca25143526bc6edcf857716bf22"
+  ],
+  "preconditions": [
+    "CASE/PROCEEDING/HEARING management permissions",
+    "Synthetic case and FIRST_INSTANCE proceeding; no judgment"
+  ],
+  "test_data": {
+    "initial_filing_date": "2026-01-02",
+    "hearing_date": "2026-01-03",
+    "new_filing_date": "2026-01-04"
+  },
+  "steps": [
+    "Create FIRST_INSTANCE proceeding with initial filing date",
+    "POST /api/v1/proceedings/{id}/hearings with hearingDate2026-01-03,purposePLEADING; observe201",
+    "PUT /api/v1/proceedings/{id} with original courtId,courtCaseNumber,courtCaseYear2026,filingDate2026-01-04,version0",
+    "Read joined proceeding and hearing dates in disposable DB"
+  ],
+  "expected": "Reject422 and preserve dates; judicial chronology remains valid across edits of either side",
+  "actual": "PUT200/version1; stored filingDate2026-01-04 while hearingDate2026-01-03",
+  "contract_note": "LD-024.7 explicitly documents deferred parent-edit guard. QA independently confirms that known integration limitation; not a claim that the narrow hearing-create acceptance criterion failed.",
+  "evidence": [
+    "qa/evidence/followup-bdd9d424-20261024/pr33-chronology/results.json"
+  ],
+  "fix_guidance": "Claude to enforce cross-module date invariant on proceeding edits, with concurrency control shared with hearing scheduling/rescheduling; add RED/GREEN and race coverage. QA owns retest.",
+  "recommendation": "REQUEST_CHANGES for PR33 data-integrity acceptance",
+  "uat_policy": "Private synthetic verification of a remediation remains allowed; no real legal-data use or full judicial lifecycle acceptance while this persists",
+  "retests": [
+    {
+      "utc": "2026-10-24T18:09:37.823607+00:00",
+      "evidence_root": "qa/evidence/continuous-phase56-20261024",
+      "tested_sha": "6e27f5c427380fddb1914872f53ea437eb642fc9",
+      "stack_sha": "e4c8e470f2ad23b4a99714531c35dcf171585817",
+      "api_status": "PASS",
+      "scope": "Parent edit, cancelled history, six scheduling races and three reschedule races verified. Separate direct-SQL gap QAD-033 remains.",
+      "evidence": "qa/evidence/continuous-phase56-20261024/current/pr33-hearing-chronology/results.json"
+    },
+    {
+      "utc": "2026-10-24T18:34:11.989922+00:00",
+      "evidence_root": "qa/evidence/priority-qad032-20261024",
+      "status": "FIX_VERIFIED_LOCAL_API_NOT_DEPLOYED",
+      "tested_sha": "6e27f5c427380fddb1914872f53ea437eb642fc9",
+      "note": "Same-SHA26PASS API/race/history evidence reused. New otherwise-valid parent update with injected after-update DB failure rolls back completely. Expert module absent on33: BLOCKED, verified separately on43. No repeat API implementation requested."
+    },
+    {
+      "utc": "2026-10-25T09:41:46.243707+00:00",
+      "previous_status": "FIX_VERIFIED_LOCAL_API_NOT_DEPLOYED",
+      "status": "FIX_VERIFIED_UAT_AND_LOCAL_API",
+      "tested_sha": "9bdbdd9533f17007c70dbfae2c0d61c45932df00",
+      "note": "Deployed9bdb parent filing correction is rejected and exact owned rows/history unchanged; current cumulative source contains same API guard. QAD038 is a separate SQL concurrency defect.",
+      "evidence": [
+        "qa/evidence/phase56-acceptance-20261025/phase5-uat-reconciled.json",
+        "qa/evidence/phase56-acceptance-20261025/chronology/results.json"
+      ]
+    },
+    {
+      "utc": "2026-10-25T09:49:41.054867+00:00",
+      "previous_status": "FIX_VERIFIED_LOCAL_API_NOT_DEPLOYED",
+      "status": "FIX_VERIFIED_UAT_AND_LOCAL_API",
+      "tested_sha": "b849b1cabcbebd4df058e4ab989d1e8c1a562899",
+      "note": "Fresh isolated child-only UAT fixture guards, with no masking by another module; exact parent/history snapshots preserved",
+      "evidence": [
+        "qa/evidence/phase56-acceptance-20261025/current-parent-guards/results.json"
+      ]
+    },
+    {
+      "utc": "2026-10-25T12:38:18.543317+00:00",
+      "previous_status": "FIX_VERIFIED_UAT_AND_LOCAL_API",
+      "status": "FIX_VERIFIED_UAT_AND_LOCAL_API",
+      "tested_sha": "0338cac0fca07eb0ce06eb8f2b45a54dd0386f7e",
+      "note": "Isolated hearing-only filing guard422; parent/history unchanged; local chronology/race regression",
+      "evidence": [
+        "qa/evidence/final-phase2-6-20261025/phase6-uat/results.json"
+      ]
+    }
+  ],
+  "current_disposition": "API fix independently verified; separate QAD-033 prevents database-integrity acceptance.",
+  "latest_verification": {
+    "utc": "2026-10-25T09:49:41.054867+00:00",
+    "previous_status": "FIX_VERIFIED_LOCAL_API_NOT_DEPLOYED",
+    "status": "FIX_VERIFIED_UAT_AND_LOCAL_API",
+    "tested_sha": "b849b1cabcbebd4df058e4ab989d1e8c1a562899",
+    "note": "Fresh isolated child-only UAT fixture guards, with no masking by another module; exact parent/history snapshots preserved",
+    "evidence": [
+      "qa/evidence/phase56-acceptance-20261025/current-parent-guards/results.json"
+    ]
+  }
+}

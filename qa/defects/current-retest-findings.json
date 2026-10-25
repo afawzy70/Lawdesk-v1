@@ -1,0 +1,168 @@
+{
+  "utc": "2026-10-23T16:39:19.560048+00:00",
+  "baseline_findings": "QAD-001..006 remain OPEN in original register",
+  "findings": [
+    {
+      "id": "QAD-007",
+      "status": "OPEN",
+      "severity": "Medium",
+      "tested_sha": "c0da6910884a7e85ee17e80a78416aac51de216c",
+      "evidence": "qa/evidence/pr-2-c0da6910884a",
+      "note": "Current HEAD still reproduces; no closure from developer CI."
+    },
+    {
+      "id": "QAD-008",
+      "status": "OPEN",
+      "severity": "Medium",
+      "tested_sha": "c0da6910884a7e85ee17e80a78416aac51de216c",
+      "evidence": "qa/evidence/pr-2-c0da6910884a",
+      "note": "Current HEAD still reproduces; no closure from developer CI."
+    },
+    {
+      "id": "QAD-009",
+      "status": "OPEN",
+      "severity": "Medium",
+      "tested_sha": "c0da6910884a7e85ee17e80a78416aac51de216c",
+      "evidence": "qa/evidence/pr-2-c0da6910884a",
+      "note": "Current HEAD still reproduces; no closure from developer CI."
+    },
+    {
+      "id": "QAD-010",
+      "status": "OPEN",
+      "severity": "Low",
+      "tested_sha": "c0da6910884a7e85ee17e80a78416aac51de216c",
+      "evidence": "qa/evidence/pr-2-c0da6910884a",
+      "note": "Current HEAD still reproduces; no closure from developer CI."
+    },
+    {
+      "id": "QAD-011",
+      "status": "OPEN",
+      "severity": "Medium",
+      "tested_sha": "c0da6910884a7e85ee17e80a78416aac51de216c",
+      "evidence": "qa/evidence/pr-2-c0da6910884a",
+      "note": "Current HEAD still reproduces; no closure from developer CI."
+    },
+    {
+      "id": "QAD-012",
+      "status": "OPEN",
+      "severity": "High",
+      "tested_sha": "c0da6910884a7e85ee17e80a78416aac51de216c",
+      "story_ids": [
+        "LD-006"
+      ],
+      "baseline_case_ids": [
+        "QA-0048",
+        "QA-0046"
+      ],
+      "type": "CONFIRMED_VERIFICATION_GATE_DEFECT",
+      "title": "Smoke succeeds when readiness DOWN or unauthenticated API returns200",
+      "preconditions": [
+        "Real candidate smoke shell; Docker/wget transport replaced by QA-only recorded fixture."
+      ],
+      "test_data": {
+        "readiness": "DOWN",
+        "api_status": 200,
+        "last_env_status": 404
+      },
+      "reproduction_steps": [
+        "Run qa/independent/deployment_edges.py at the exact SHA.",
+        "Inspect SMOKE-READINESS-DOWN and SMOKE-UNAUTHORIZED-API-200."
+      ],
+      "expected": "Every failed smoke assertion returns nonzero and blocks release.",
+      "actual": "Both negative scenarios exit0; valid control also exits0.",
+      "cause": "Intermediate && echo lists are exempt from errexit; only final condition determines status.",
+      "risk": "Can certify an unhealthy or authorization-regressed deployment. No actual current API bypass claimed."
+    },
+    {
+      "id": "QAD-013",
+      "status": "OPEN",
+      "severity": "Medium",
+      "tested_sha": "c0da6910884a7e85ee17e80a78416aac51de216c",
+      "story_ids": [
+        "LD-006"
+      ],
+      "baseline_case_ids": [
+        "QA-0046"
+      ],
+      "type": "CONFIRMED_ROLLBACK_BEHAVIOR_DEFECT",
+      "title": "Failed same-release redeploy ignores previous-release",
+      "preconditions": [
+        "QA-owned state and recorded Docker transport; no real deployment."
+      ],
+      "test_data": {
+        "current": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "previous": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "requested": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "forced_up_failure": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "reproduction_steps": [
+        "Run deployment_edges.py REDEPLOY-CURRENT-FAILS."
+      ],
+      "expected": "Use recorded previous healthy release after failed redeploy, or explicitly change/approve rollback contract.",
+      "actual": "Exit1 with no previous release message; previous A never started."
+    },
+    {
+      "id": "QAD-014",
+      "status": "OPEN",
+      "severity": "Medium",
+      "tested_sha": "ad0def0aeba514619f060fe1f150d1833a9f3fd9",
+      "story_ids": [
+        "LD-003"
+      ],
+      "type": "CONFIRMED_PREVIEW_KEYBOARD_DEFECT",
+      "title": "Escape does not close mobile menu while trigger focused",
+      "preconditions": [
+        "Real Chromium; built PR5; width320/375/767; language en/ar."
+      ],
+      "test_data": {
+        "widths": [
+          320,
+          375,
+          767
+        ],
+        "languages": [
+          "en",
+          "ar"
+        ]
+      },
+      "reproduction_steps": [
+        "Click Menu/القائمة.",
+        "Without moving focus press Escape.",
+        "Inspect aria-expanded and menu visibility."
+      ],
+      "expected": "Menu closes and trigger retains focus, matching preview description.",
+      "actual": "aria-expanded=true in six combinations; Escape from inside nav works.",
+      "evidence": "qa/evidence/pr-5-ad0def0aeba5/browser/independent-browser-results.json"
+    },
+    {
+      "id": "QAD-015",
+      "status": "OPEN",
+      "severity": "Medium",
+      "tested_sha": "ad0def0aeba514619f060fe1f150d1833a9f3fd9",
+      "story_ids": [
+        "LD-003"
+      ],
+      "type": "AUTOMATED_ACCESSIBILITY_FINDING",
+      "title": "Scrollable mobile hearings region lacks explicit keyboard focus target",
+      "preconditions": [
+        "Real Chromium with axe4.14; width375; actual scrollable table."
+      ],
+      "test_data": {
+        "selector": ".table-scroll",
+        "width": 375,
+        "languages": [
+          "en",
+          "ar"
+        ]
+      },
+      "reproduction_steps": [
+        "Run preview-review.mjs axe scan.",
+        "Inspect AXE-en-375 and AXE-ar-375 and the wrapper focusability."
+      ],
+      "expected": "Overflowed table content accessible to keyboard across supported browsers.",
+      "actual": "axe scrollable-region-focusable serious finding; wrapper has no tabIndex or focusable descendants.",
+      "limits": "Safari/WebKit and manual screen reader NOT_RUN; do not claim actual Safari failure or full WCAG conformance.",
+      "evidence": "qa/evidence/pr-5-ad0def0aeba5/browser/independent-browser-results.json"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "environment": "Independent canonical candidate archive; real Spring Boot jar and disposable PostgreSQL18.6 on loopback; Chromium1248",
+  "reported_utc": "2026-10-24T15:25:11.872218+00:00",
+  "status": "FIX_VERIFIED_STRICT_POLICY",
+  "owner": "Claude implementation; independent QA verification",
+  "no_customer_data": true,
+  "id": "QAD-029",
+  "title": "Invalid hearing/task paging silently normalizes to default rather than returning a validation error",
+  "priority": "P3",
+  "severity": "S3",
+  "story_ids": [
+    "LD-024",
+    "LD-027"
+  ],
+  "affected": {
+    "33": "fb60c26884fc6ca25143526bc6edcf857716bf22",
+    "37": "e40dfcb7596f4526ec7c59d3e61d04f3c3e46340"
+  },
+  "preconditions": [
+    "Authenticated HEARING_VIEW or TASK_VIEW account"
+  ],
+  "test_data": [
+    "page=-1",
+    "page=bad",
+    "size=-1",
+    "size=bad"
+  ],
+  "steps": [
+    "GET /api/v1/hearings with each invalid query separately",
+    "GET /api/v1/tasks?page=-1 and /api/v1/tasks?size=bad",
+    "Inspect response status/page/size"
+  ],
+  "expected": "QA consistency oracle:400 invalid query; proposed Phase5 criteria do not explicitly resolve malformed paging",
+  "actual": "All six independently executed requests returned200, page0,size20",
+  "contract_note": "Acceptance ambiguity plus inconsistency with case/report APIs; not a permission bypass. An owner-approved explicit normalization policy could resolve the gap; do not rewrite existing FAIL evidence.",
+  "evidence": [
+    "qa/evidence/followup-bdd9d424-20261024/pr33/results.json",
+    "qa/evidence/followup-bdd9d424-20261024/pr37/results.json"
+  ],
+  "uat_policy": "Nonblocking for ordinary private Dev/UAT iteration; resolve oracle/policy and retest before acceptance",
+  "retests": [
+    {
+      "utc": "2026-10-24T18:09:37.823607+00:00",
+      "evidence_root": "qa/evidence/continuous-phase56-20261024",
+      "status": "CONFIRMED_OPEN",
+      "tested_sha": "42fb56433d421a3d2040d78858d47bb81ff6d3b6",
+      "scope": "P3 acceptance inconsistency; nonblocking ordinary synthetic Dev/UAT. No automatic baseline approval."
+    },
+    {
+      "utc": "2026-10-25T12:38:18.543317+00:00",
+      "previous_status": "CONFIRMED_OPEN",
+      "status": "FIX_VERIFIED_ORIGINAL_SCOPE",
+      "tested_sha": "0338cac0fca07eb0ce06eb8f2b45a54dd0386f7e",
+      "note": "Original invalid nonempty pagination returns400 on17 paths; omitted defaults verified. Empty/whitespace behavior200 remains an explicitly unresolved acceptance clarification, NOT_RUN.",
+      "evidence": [
+        "qa/evidence/final-phase2-6-20261025/owner-policy/results.json"
+      ]
+    },
+    {
+      "utc": "2026-10-25T13:54:17.408746+00:00",
+      "previous_status": "FIX_VERIFIED_ORIGINAL_SCOPE",
+      "status": "FIX_VERIFIED_STRICT_POLICY",
+      "tested_sha": "2d07a222189f82ddeacf74fdcd28165980cea85d",
+      "note": "Strict empty/whitespace/size>100400 verified on18local/UAT paged endpoints. Separate QAD041 tracks highoffset500; no remaining owner ambiguity.",
+      "evidence": [
+        "qa/evidence/pr54-retest-20261025/policy/results.json"
+      ]
+    }
+  ]
+}

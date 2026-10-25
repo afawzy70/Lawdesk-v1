@@ -1,0 +1,51 @@
+{
+  "id": "QAD-026",
+  "title": "Invalid court write by unauthorized staff returns validation400 before authorization403",
+  "priority": "P3",
+  "severity": "S3",
+  "stories": [
+    "LD-010",
+    "LD-018"
+  ],
+  "affected": [
+    "71007a02f8b79d0dccc0592af7d3e49b5bf4530d",
+    "0ea8d99742a747ed42e1ad1714d288569cbbed07",
+    "9daaf2bd679ef6ceddd65e839bd25ff92acda484",
+    "175881a2fe6054eea8f9ab5ec135abe65d397c6e",
+    "4a9263ce2a76fce9a620c185f461b52bc7a01970",
+    "45590ab0669c0b030bd22cfa5947fcfc96a799c5",
+    "f6bc3e37ee8dd46debd5b9ff5b946b1b731b3a23"
+  ],
+  "steps": [
+    "Login LEGAL_STAFF without COURT_MANAGE",
+    "POST /api/v1/courts {} with valid CSRF",
+    "Repeat with valid complete court payload as positive authorization control"
+  ],
+  "expected": "403 independent of invalid fields under current common acceptance wording; no write",
+  "actual": "Empty body returns400 with field names; complete body is tested separately for403",
+  "uat_policy": "Low-risk contract discrepancy; no demonstrated authorization bypass; nonblocking Dev/UAT",
+  "status": "FIX_VERIFIED_IN_UAT",
+  "environment": "Ubuntu24.04 Java21 PostgreSQL18.6; QA-owned loopback services; React Vitest/jsdom for QAD023",
+  "preconditions": [
+    "Use synthetic data and exact indicated SHA",
+    "Use QA independent scripts, not developer MockMvc tests"
+  ],
+  "evidence": "qa/evidence/phase234-20261024/",
+  "first_confirmed_utc": "2026-10-24T05:17:19.381055+00:00",
+  "latest_retest_utc": "2026-10-24T12:29:58.149242+00:00",
+  "latest_retest": {
+    "status": "PASS",
+    "expected_deployed_sha": "8b0928ba10eb9b02ac3822ac33eca5b8778195b6",
+    "backend_runtime_sha_attested": false,
+    "evidence": "qa/evidence/signedin-uat-8b0928b-20261024/journeys/results.json",
+    "test_id": "SIGNED-DENIED",
+    "note": "Real authenticated UAT; workflow-reported deployment identity, application source identical to81d9d03. Original failed evidence and affected SHAs retained."
+  },
+  "history": [
+    {
+      "status": "CONFIRMED_OPEN",
+      "latest_retest": "Still reproduced at applicable current HEAD; old evidence retained",
+      "latest_retest_utc": "2026-10-24T05:27:30.953684+00:00"
+    }
+  ]
+}

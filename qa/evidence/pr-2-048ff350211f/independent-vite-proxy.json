@@ -1,0 +1,48 @@
+{
+  "tested_sha": "048ff350211f5620b69269c356e50fe8871b37fd",
+  "scope": "Real Vite; no unrelated backend contacted.",
+  "results": [
+    {
+      "id": "VITE-SHELL",
+      "story_ids": [
+        "LD-003"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Pinned frontend installed; owned non-listening backend socket."
+      ],
+      "test_data": {
+        "backend": "owned loopback socket"
+      },
+      "steps": [
+        "Start candidate Vite with explicit backend override; GET named resource."
+      ],
+      "expected_results": [
+        "HTTP200"
+      ],
+      "actual": 200,
+      "status": "PASS"
+    },
+    {
+      "id": "VITE-MISSING-BACKEND-CONTRACT",
+      "story_ids": [
+        "LD-003"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Pinned frontend installed; owned non-listening backend socket."
+      ],
+      "test_data": {
+        "backend": "owned loopback socket"
+      },
+      "steps": [
+        "Start candidate Vite with explicit backend override; GET named resource."
+      ],
+      "expected_results": [
+        "HTTP502"
+      ],
+      "actual": 502,
+      "status": "PASS"
+    }
+  ]
+}

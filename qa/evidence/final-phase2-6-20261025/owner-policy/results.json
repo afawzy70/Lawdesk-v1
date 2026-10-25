@@ -1,0 +1,2324 @@
+{
+  "tested_sha": "0338cac0fca07eb0ce06eb8f2b45a54dd0386f7e",
+  "utc": "2026-10-25T12:17:42.255096+00:00",
+  "candidate": "/tmp/lawdesk-final-20261025-candidate",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 55,
+    "FAIL": 1,
+    "BLOCKED": 0,
+    "NOT_RUN": 1
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "a180df00-3e43-4835-b735-e941f2ad7d6d",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-25T12:17:24.911839Z",
+          "updatedAt": "2026-10-25T12:17:24.911839Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-0",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-0"
+      },
+      "steps": [
+        "GET /api/v1/users with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/users",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-0",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-0"
+      },
+      "steps": [
+        "GET /api/v1/users without page/size then size101"
+      ],
+      "expected_results": "Default page0/size20; valid size101 capped100",
+      "actual": {
+        "path": "/api/v1/users",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-0",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-0"
+      },
+      "steps": [
+        "Malformed /api/v1/users query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/users",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-1",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-1"
+      },
+      "steps": [
+        "GET /api/v1/audit with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/audit",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-1",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-1"
+      },
+      "steps": [
+        "GET /api/v1/audit without page/size then size101"
+      ],
+      "expected_results": "Default page0/size20; valid size101 capped100",
+      "actual": {
+        "path": "/api/v1/audit",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-1",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-1"
+      },
+      "steps": [
+        "Malformed /api/v1/audit query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/audit",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-2",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-2"
+      },
+      "steps": [
+        "GET /api/v1/courts with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/courts",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-2",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-2"
+      },
+      "steps": [
+        "GET /api/v1/courts without page/size then size101"
+      ],
+      "expected_results": "Default page0/size20; valid size101 capped100",
+      "actual": {
+        "path": "/api/v1/courts",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-2",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-2"
+      },
+      "steps": [
+        "Malformed /api/v1/courts query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/courts",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-3",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-3"
+      },
+      "steps": [
+        "GET /api/v1/experts with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/experts",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-3",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-3"
+      },
+      "steps": [
+        "GET /api/v1/experts without page/size then size101"
+      ],
+      "expected_results": "Default page0/size20; valid size101 capped100",
+      "actual": {
+        "path": "/api/v1/experts",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-3",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-3"
+      },
+      "steps": [
+        "Malformed /api/v1/experts query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/experts",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-4",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-4"
+      },
+      "steps": [
+        "GET /api/v1/hearings with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/hearings",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-4",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-4"
+      },
+      "steps": [
+        "GET /api/v1/hearings without page/size then size101"
+      ],
+      "expected_results": "Default page0/size20; valid size101 capped100",
+      "actual": {
+        "path": "/api/v1/hearings",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-4",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-4"
+      },
+      "steps": [
+        "Malformed /api/v1/hearings query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/hearings",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-5",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-5"
+      },
+      "steps": [
+        "GET /api/v1/documents with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/documents",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-5",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-5"
+      },
+      "steps": [
+        "GET /api/v1/documents without page/size then size101"
+      ],
+      "expected_results": "Default page0/size20; valid size101 capped100",
+      "actual": {
+        "path": "/api/v1/documents",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-5",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-5"
+      },
+      "steps": [
+        "Malformed /api/v1/documents query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/documents",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-6",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-6"
+      },
+      "steps": [
+        "GET /api/v1/tasks with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/tasks",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-6",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-6"
+      },
+      "steps": [
+        "GET /api/v1/tasks without page/size then size101"
+      ],
+      "expected_results": "Default page0/size20; valid size101 capped100",
+      "actual": {
+        "path": "/api/v1/tasks",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-6",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-6"
+      },
+      "steps": [
+        "Malformed /api/v1/tasks query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/tasks",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-7",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-7"
+      },
+      "steps": [
+        "GET /api/v1/cases with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/cases",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-7",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-7"
+      },
+      "steps": [
+        "GET /api/v1/cases without page/size then size101"
+      ],
+      "expected_results": "Default page0/size20; valid size101 capped100",
+      "actual": {
+        "path": "/api/v1/cases",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-7",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-7"
+      },
+      "steps": [
+        "Malformed /api/v1/cases query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/cases",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-8",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-8"
+      },
+      "steps": [
+        "GET /api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/hearings with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/hearings",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-8",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-8"
+      },
+      "steps": [
+        "GET /api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/hearings without page/size then size101"
+      ],
+      "expected_results": "Default page0/size20; valid size101 capped100",
+      "actual": {
+        "path": "/api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/hearings",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-8",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-8"
+      },
+      "steps": [
+        "Malformed /api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/hearings query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/hearings",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-9",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-9"
+      },
+      "steps": [
+        "GET /api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/notes with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/notes",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-9",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-9"
+      },
+      "steps": [
+        "GET /api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/notes without page/size then size101"
+      ],
+      "expected_results": "Default page0/size20; valid size101 capped100",
+      "actual": {
+        "path": "/api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/notes",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-9",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-9"
+      },
+      "steps": [
+        "Malformed /api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/notes query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/notes",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-10",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-10"
+      },
+      "steps": [
+        "GET /api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/timeline with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/timeline",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-10",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-10"
+      },
+      "steps": [
+        "GET /api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/timeline without page/size then size101"
+      ],
+      "expected_results": "Default page0/size20; valid size101 capped100",
+      "actual": {
+        "path": "/api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/timeline",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-10",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-10"
+      },
+      "steps": [
+        "Malformed /api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/timeline query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/timeline",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-11",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-11"
+      },
+      "steps": [
+        "GET /api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/proceedings with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/proceedings",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-11",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-11"
+      },
+      "steps": [
+        "GET /api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/proceedings without page/size then size101"
+      ],
+      "expected_results": "Default page0/size20; valid size101 capped100",
+      "actual": {
+        "path": "/api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/proceedings",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-11",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-11"
+      },
+      "steps": [
+        "Malformed /api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/proceedings query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/proceedings",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-12",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-12"
+      },
+      "steps": [
+        "GET /api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/judgments with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/judgments",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-12",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-12"
+      },
+      "steps": [
+        "GET /api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/judgments without page/size then size101"
+      ],
+      "expected_results": "Default page0/size20; valid size101 capped100",
+      "actual": {
+        "path": "/api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/judgments",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-12",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-12"
+      },
+      "steps": [
+        "Malformed /api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/judgments query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/judgments",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-13",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-13"
+      },
+      "steps": [
+        "GET /api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/special-decisions with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/special-decisions",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-13",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-13"
+      },
+      "steps": [
+        "GET /api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/special-decisions without page/size then size101"
+      ],
+      "expected_results": "Default page0/size20; valid size101 capped100",
+      "actual": {
+        "path": "/api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/special-decisions",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-13",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-13"
+      },
+      "steps": [
+        "Malformed /api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/special-decisions query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/cases/42073964-69f8-4564-a6db-5a9f51d92c88/special-decisions",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-14",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-14"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/reports/cases",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-14",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-14"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases without page/size then size101"
+      ],
+      "expected_results": "Default page0/size20; valid size101 capped100",
+      "actual": {
+        "path": "/api/v1/reports/cases",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-14",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-14"
+      },
+      "steps": [
+        "Malformed /api/v1/reports/cases query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/reports/cases",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-15",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-15"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/reports/judgments",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-15",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-15"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments without page/size then size101"
+      ],
+      "expected_results": "Default page0/size20; valid size101 capped100",
+      "actual": {
+        "path": "/api/v1/reports/judgments",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-15",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-15"
+      },
+      "steps": [
+        "Malformed /api/v1/reports/judgments query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/reports/judgments",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-16",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-16"
+      },
+      "steps": [
+        "GET /api/v1/reports/hearings with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/reports/hearings",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-16",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-16"
+      },
+      "steps": [
+        "GET /api/v1/reports/hearings without page/size then size101"
+      ],
+      "expected_results": "Default page0/size20; valid size101 capped100",
+      "actual": {
+        "path": "/api/v1/reports/hearings",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-16",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-16"
+      },
+      "steps": [
+        "Malformed /api/v1/reports/hearings query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/reports/hearings",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-EMPTY-OWNER-CLARIFICATION",
+      "story_ids": [
+        "LD-015",
+        "LD-027"
+      ],
+      "priority": "P2",
+      "preconditions": [
+        "Current remediation; owner clarification requested"
+      ],
+      "test_data": {
+        "queries": [
+          "page=",
+          "size=",
+          "page=%20%20"
+        ]
+      },
+      "steps": [
+        "Send explicitly empty/whitespace pagination values",
+        "Record actual result separately from agreed invalid nonempty cases"
+      ],
+      "expected_results": "Pending owner choice:400 or defaults; do not silently approve additional empty-value exception",
+      "actual": {
+        "page=": 200,
+        "size=": 200,
+        "page=%20%20": 200
+      },
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "TASK-DIRECT-DONE-AUDIT",
+      "story_ids": [
+        "LD-027",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-DIRECT-DONE-AUDIT"
+      },
+      "steps": [
+        "Create OPEN task -> directly DONE -> inspect task/event/security audit"
+      ],
+      "expected_results": "200 DONE/completedAt; exactly one SUCCESS audit with actor, TASK id, OPEN->DONE and no free text",
+      "actual": {
+        "status": 200,
+        "task_status": "DONE",
+        "completed": true,
+        "audit": [
+          {
+            "id": 24,
+            "occurredAt": "2026-10-25T12:17:39.950697Z",
+            "actorId": "cdc4afe7-2ed3-47e7-89e4-26936fe25990",
+            "actorUsername": "qaadmin",
+            "action": "TASK_STATUS_CHANGED",
+            "targetType": "TASK",
+            "targetId": "9b298a7f-2196-4e8e-9b4f-a23f4860aa36",
+            "outcome": "SUCCESS",
+            "reason": "OPEN->DONE",
+            "requestId": "qa-phase234"
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-REFUSED-NO-SUCCESS-AUDIT-REPEAT",
+      "story_ids": [
+        "LD-027",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-REFUSED-NO-SUCCESS-AUDIT-REPEAT"
+      },
+      "steps": [
+        "Refused REPEAT transition -> count task success events"
+      ],
+      "expected_results": "Expected refusal; only original success event",
+      "actual": {
+        "status": 422,
+        "delta": 1
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-REFUSED-NO-SUCCESS-AUDIT-STALE",
+      "story_ids": [
+        "LD-027",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-REFUSED-NO-SUCCESS-AUDIT-STALE"
+      },
+      "steps": [
+        "Refused STALE transition -> count task success events"
+      ],
+      "expected_results": "Expected refusal; only original success event",
+      "actual": {
+        "status": 409,
+        "delta": 1
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-COMMIT-ROLLBACK-AUDIT-ATOMICITY",
+      "story_ids": [
+        "LD-027",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-COMMIT-ROLLBACK-AUDIT-ATOMICITY"
+      },
+      "steps": [
+        "Install disposable deferred task trigger that fails at COMMIT -> OPEN->DONE -> query task/history/audit after rollback"
+      ],
+      "expected_results": "500; task/history unchanged; no successful status audit for rolled-back write",
+      "actual": {
+        "http_status": 500,
+        "task_history_unchanged": true,
+        "success_audit_before": "0",
+        "success_audit_after": "1"
+      },
+      "status": "FAIL"
+    }
+  ]
+}

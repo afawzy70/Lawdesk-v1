@@ -1,0 +1,191 @@
+[
+  {
+    "id": "QAD-007",
+    "status": "OPEN",
+    "severity": "Medium",
+    "type": "CONFIRMED_IMPLEMENTATION_DEFECT",
+    "tested_sha": "ffd3c8a297db0172d78ac5840a51a67d7fffcfbb",
+    "story_ids": [
+      "LD-001"
+    ],
+    "baseline_case_ids": [
+      "QA-0003"
+    ],
+    "source": "tools/repo_policy.py",
+    "title": "Git-invalid branch names pass policy",
+    "environment": "Independent git-blob-verified snapshot; Java21; real PostgreSQL18.6; loopback ephemeral HTTP",
+    "preconditions": [
+      "Follow qa/independent/PHASE-1-EXECUTION.md; never execute against shared infrastructure."
+    ],
+    "test_data": {
+      "branches": [
+        "feature/a.lock",
+        "feature/a.",
+        "feature/a\n"
+      ]
+    },
+    "reproduction_steps": [
+      "Run git check-ref-format --branch with each exact name.",
+      "Run python3 tools/repo_policy.py branch with the same argument array."
+    ],
+    "actual_result": "Native Git exits128; policy exits0 and returns no error.",
+    "expected_result": "Policy must reject names Git cannot create.",
+    "failed_assertion_ids": [
+      "P1-BRANCH-INVALID-1",
+      "P1-BRANCH-INVALID-2",
+      "P1-BRANCH-INVALID-3"
+    ],
+    "evidence_directory": "qa/evidence/pr-2-ffd3c8a297db"
+  },
+  {
+    "id": "QAD-008",
+    "status": "OPEN",
+    "severity": "Medium",
+    "type": "CONFIRMED_INTEGRITY_DEFECT",
+    "tested_sha": "ffd3c8a297db0172d78ac5840a51a67d7fffcfbb",
+    "story_ids": [
+      "LD-004"
+    ],
+    "baseline_case_ids": [
+      "QA-0026"
+    ],
+    "source": "backend/src/main/resources/db/migration/V1__app_release.sql",
+    "title": "PostgreSQL permits whitespace-only versions rejected by bean contract",
+    "environment": "Independent git-blob-verified snapshot; Java21; real PostgreSQL18.6; loopback ephemeral HTTP",
+    "preconditions": [
+      "Follow qa/independent/PHASE-1-EXECUTION.md; never execute against shared infrastructure."
+    ],
+    "test_data": {
+      "versions": [
+        "\t",
+        "\n",
+        "\r\n",
+        " "
+      ]
+    },
+    "reproduction_steps": [
+      "Run the QA-owned IndependentDatabaseAcceptanceTest against isolated real PostgreSQL.",
+      "The parameterized method bypasses bean validation using prepared JDBC INSERT.",
+      "Inspect four failed assertThatThrownBy assertions; afterEach removes inserted synthetic rows."
+    ],
+    "actual_result": "All four whitespace-only strings insert successfully; CHECK length(trim(version)) > 0 trims ordinary spaces only.",
+    "expected_result": "Database constraints must reject the same blank inputs promised in LD-004 proposed AC3 and @NotBlank entity rule.",
+    "failed_assertion_ids": [
+      "databaseRejectsWhitespaceOnlyVersionLikeBeanValidation[1]",
+      "databaseRejectsWhitespaceOnlyVersionLikeBeanValidation[2]",
+      "databaseRejectsWhitespaceOnlyVersionLikeBeanValidation[3]",
+      "databaseRejectsWhitespaceOnlyVersionLikeBeanValidation[4]"
+    ],
+    "evidence_directory": "qa/evidence/pr-2-ffd3c8a297db"
+  },
+  {
+    "id": "QAD-009",
+    "status": "OPEN",
+    "severity": "Medium",
+    "type": "PROPOSED_CONTRACT_MISMATCH",
+    "tested_sha": "ffd3c8a297db0172d78ac5840a51a67d7fffcfbb",
+    "story_ids": [
+      "LD-002"
+    ],
+    "baseline_case_ids": [
+      "QA-0349"
+    ],
+    "source": "backend/src/main/java/com/lawdesk/platform/SecurityConfig.java",
+    "title": "Firewall 400 misses baseline security/cache headers",
+    "environment": "Independent git-blob-verified snapshot; Java21; real PostgreSQL18.6; loopback ephemeral HTTP",
+    "preconditions": [
+      "Follow qa/independent/PHASE-1-EXECUTION.md; never execute against shared infrastructure."
+    ],
+    "test_data": {
+      "method": "GET",
+      "path": "//actuator/health"
+    },
+    "reproduction_steps": [
+      "Run the real jar on isolated loopback QA instance.",
+      "Send literal double-slash path without redirect following.",
+      "Inspect response headers and compare proposed AC4."
+    ],
+    "actual_result": "400 application/json with correlation ID but missing CSP, X-Frame-Options, nosniff, Referrer-Policy and Cache-Control.",
+    "expected_result": "Proposed AC4 requires baseline headers on every response, including rejected requests; agree scope and cover firewall path.",
+    "failed_assertion_ids": [
+      "P1-HEADERS-//actuator/health"
+    ],
+    "evidence_directory": "qa/evidence/pr-2-ffd3c8a297db"
+  },
+  {
+    "id": "QAD-010",
+    "status": "OPEN",
+    "severity": "Low",
+    "type": "PROPOSED_CONTRACT_MISMATCH",
+    "tested_sha": "ffd3c8a297db0172d78ac5840a51a67d7fffcfbb",
+    "story_ids": [
+      "LD-002"
+    ],
+    "baseline_case_ids": [
+      "QA-0009"
+    ],
+    "source": "backend/src/main/resources/application.yaml",
+    "title": "Public info exposes extra fields beyond proposed allowlist",
+    "environment": "Independent git-blob-verified snapshot; Java21; real PostgreSQL18.6; loopback ephemeral HTTP",
+    "preconditions": [
+      "Follow qa/independent/PHASE-1-EXECUTION.md; never execute against shared infrastructure."
+    ],
+    "test_data": {
+      "path": "/actuator/info"
+    },
+    "reproduction_steps": [
+      "GET public info.",
+      "Compare JSON build keys with proposed name/version-only AC2."
+    ],
+    "actual_result": "Also exposes artifact, group and time.",
+    "expected_result": "Either enforce exact approved allowlist or revise contract with reviewed rationale; developer name/version test must assert full allowed keys.",
+    "failed_assertion_ids": [
+      "P1-INFO-ALLOWLIST"
+    ],
+    "evidence_directory": "qa/evidence/pr-2-ffd3c8a297db"
+  },
+  {
+    "id": "QAD-011",
+    "status": "OPEN",
+    "severity": "Medium",
+    "type": "PROPOSED_CONTRACT_INCONSISTENCY",
+    "tested_sha": "ffd3c8a297db0172d78ac5840a51a67d7fffcfbb",
+    "story_ids": [
+      "LD-002"
+    ],
+    "baseline_case_ids": [
+      "QA-0012"
+    ],
+    "source": "docs/delivery/PHASE-1-ACCEPTANCE.md",
+    "title": "Anonymous write 403 conflicts with proposed exact 401 rule",
+    "environment": "Independent git-blob-verified snapshot; Java21; real PostgreSQL18.6; loopback ephemeral HTTP",
+    "preconditions": [
+      "Follow qa/independent/PHASE-1-EXECUTION.md; never execute against shared infrastructure."
+    ],
+    "test_data": {
+      "requests": [
+        [
+          "POST",
+          "/api/v1/cases"
+        ],
+        [
+          "POST",
+          "/actuator/health"
+        ]
+      ],
+      "credentials": "none",
+      "csrf_token": "absent"
+    },
+    "reproduction_steps": [
+      "POST {} without session or CSRF token.",
+      "Compare 403 actual to proposed AC3 anonymous401 and developer test accepting401/403."
+    ],
+    "actual_result": "Both requests get403 problem JSON because CSRF precedes authentication; access stays denied.",
+    "expected_result": "Clarify exact authentication/CSRF precedence and assert that contract; this is not evidence of authorization bypass.",
+    "failed_assertion_ids": [
+      "P1-POST-STATUS-/api/v1/cases",
+      "P1-POST-STATUS-/actuator/health"
+    ],
+    "evidence_directory": "qa/evidence/pr-2-ffd3c8a297db"
+  }
+]

@@ -1,0 +1,107 @@
+{
+  "reported_utc": "2026-10-24T18:09:37.823607+00:00",
+  "owner": "Claude implementation; independent QA verification",
+  "environment": "Canonical candidate archive; real Java21 jar and disposable PostgreSQL18.6 on loopback. No customer records or deployment.",
+  "no_customer_data": true,
+  "id": "QAD-034",
+  "title": "Proceeding filing edit invalidates an expert referral date",
+  "status": "FIX_VERIFIED_UAT_AND_LOCAL_API",
+  "priority": "P2",
+  "severity": "S2",
+  "story_ids": [
+    "LD-019",
+    "LD-025"
+  ],
+  "affected": [
+    "61d615927163d0c5df60f5165798557e5e56cf9d"
+  ],
+  "fixed_sha": "0db2befa642badfe262bc1edaeee287eb1b9fa43",
+  "preconditions": [
+    "Synthetic first-instance proceeding and active expert"
+  ],
+  "test_data": {
+    "filing": "2026-01-02",
+    "referral": "2026-01-03",
+    "later_filing": "2026-01-04"
+  },
+  "steps": [
+    "POST referral on Jan3",
+    "PUT parent proceeding filing Jan4/version0",
+    "Read committed referral/proceeding dates"
+  ],
+  "expected": "422; unchanged valid chronology",
+  "actual_original": "200; invalid stored pair independently observed",
+  "retest": {
+    "api_sql": {
+      "PASS": 37,
+      "FAIL": 0,
+      "BLOCKED": 0,
+      "NOT_RUN": 0
+    },
+    "browser": {
+      "PASS": 14,
+      "FAIL": 0,
+      "BLOCKED": 0,
+      "NOT_RUN": 0
+    },
+    "scope": "Original parent edit plus six concurrent creation races; cancelled history and rollback; UI en/ar320/375/1366. Not UAT acceptance."
+  },
+  "evidence": [
+    "qa/evidence/continuous-phase56-20261024/history/pr43-review/results.json",
+    "qa/evidence/continuous-phase56-20261024/current/pr43-experts/results.json",
+    "qa/evidence/continuous-phase56-20261024/current/pr43-experts/browser/results.json"
+  ],
+  "handoff": "https://github.com/afawzy70/Lawdesk-v1/pull/43#issuecomment-6387329231",
+  "fix_guidance": "No repeat implementation requested; retain fix while resolving independent stack dependencies.",
+  "retests": [
+    {
+      "utc": "2026-10-24T18:34:11.989922+00:00",
+      "evidence_root": "qa/evidence/priority-qad032-20261024",
+      "status": "FIX_VERIFIED_LOCAL_API_NOT_DEPLOYED",
+      "tested_sha": "1b302bc8cdf7382777b3a802fba9db5029fa3138",
+      "note": "37 expert API/SQL checks passed on updated head; no UI rerun needed for internal read-port-only change. New port tests recorded separately."
+    },
+    {
+      "utc": "2026-10-25T09:41:46.243707+00:00",
+      "previous_status": "FIX_VERIFIED_LOCAL_API_NOT_DEPLOYED",
+      "status": "FIX_VERIFIED_UAT_AND_LOCAL_API",
+      "tested_sha": "9bdbdd9533f17007c70dbfae2c0d61c45932df00",
+      "note": "Deployed expert chronology/referral/session assertions pass; local expert37/37 and V407 probes pass",
+      "evidence": [
+        "qa/evidence/phase56-acceptance-20261025/phase5-retest/results.json",
+        "qa/evidence/phase56-acceptance-20261025/experts/results.json",
+        "qa/evidence/phase56-acceptance-20261025/current-db/results.json"
+      ]
+    },
+    {
+      "utc": "2026-10-25T09:49:41.055713+00:00",
+      "previous_status": "FIX_VERIFIED_LOCAL_API_NOT_DEPLOYED",
+      "status": "FIX_VERIFIED_UAT_AND_LOCAL_API",
+      "tested_sha": "b849b1cabcbebd4df058e4ab989d1e8c1a562899",
+      "note": "Fresh isolated child-only UAT fixture guards, with no masking by another module; exact parent/history snapshots preserved",
+      "evidence": [
+        "qa/evidence/phase56-acceptance-20261025/current-parent-guards/results.json"
+      ]
+    },
+    {
+      "utc": "2026-10-25T12:38:18.543317+00:00",
+      "previous_status": "FIX_VERIFIED_UAT_AND_LOCAL_API",
+      "status": "FIX_VERIFIED_UAT_AND_LOCAL_API",
+      "tested_sha": "0338cac0fca07eb0ce06eb8f2b45a54dd0386f7e",
+      "note": "Isolated expert-only parent guard; expert API/session/rollback37 checks pass",
+      "evidence": [
+        "qa/evidence/final-phase2-6-20261025/phase6-uat/results.json"
+      ]
+    }
+  ],
+  "latest_verification": {
+    "utc": "2026-10-25T09:49:41.055713+00:00",
+    "previous_status": "FIX_VERIFIED_LOCAL_API_NOT_DEPLOYED",
+    "status": "FIX_VERIFIED_UAT_AND_LOCAL_API",
+    "tested_sha": "b849b1cabcbebd4df058e4ab989d1e8c1a562899",
+    "note": "Fresh isolated child-only UAT fixture guards, with no masking by another module; exact parent/history snapshots preserved",
+    "evidence": [
+      "qa/evidence/phase56-acceptance-20261025/current-parent-guards/results.json"
+    ]
+  }
+}

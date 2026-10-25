@@ -1,0 +1,1753 @@
+{
+  "tested_sha": "9bdbdd9533f17007c70dbfae2c0d61c45932df00",
+  "utc": "2026-10-25T09:13:06.721366+00:00",
+  "candidate": "/tmp/lawdesk-acceptance-20261025-phase5",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 45,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "5b42f838-8b99-4c37-9eb5-ecf338f3d848",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-25T09:13:02.059888Z",
+          "updatedAt": "2026-10-25T09:13:02.059888Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-ANON",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-ANON"
+      },
+      "steps": [
+        "GET /api/v1/tasks",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 401,
+        "rule": null
+      },
+      "actual": {
+        "status": 401,
+        "body": {
+          "type": "about:blank",
+          "title": "Unauthorized",
+          "status": 401
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-DENIED",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-DENIED"
+      },
+      "steps": [
+        "POST /api/v1/tasks",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 403,
+        "rule": null
+      },
+      "actual": {
+        "status": 403,
+        "body": {
+          "type": "about:blank",
+          "title": "Forbidden",
+          "status": 403
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REMINDER-DENIED",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "REMINDER-DENIED"
+      },
+      "steps": [
+        "GET /api/v1/tasks/reminders",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 403,
+        "rule": null
+      },
+      "actual": {
+        "status": 403,
+        "body": {
+          "type": "about:blank",
+          "title": "Forbidden",
+          "status": 403
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-CREATE",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-CREATE"
+      },
+      "steps": [
+        "POST /api/v1/tasks",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "33ec41dc-4582-481e-a13b-f0cd8a9ae4f9",
+          "caseId": "176df8ee-d864-4f06-8f8e-31b28c65db54",
+          "caseReferenceNo": "QA56-001",
+          "caseTitle": "QA phase56",
+          "title": "QA independent task",
+          "description": "QA isolated task",
+          "assigneeId": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+          "assigneeName": "Administrator",
+          "dueDate": "2026-10-25",
+          "priority": "NORMAL",
+          "status": "OPEN",
+          "completedAt": null,
+          "overdue": false,
+          "dueSoon": true,
+          "version": 0,
+          "createdAt": "2026-10-25T09:13:03.445911Z",
+          "createdBy": "1902cf1b-f758-4ddf-836a-a5bd2cdc76e2",
+          "updatedAt": "2026-10-25T09:13:03.445911Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-CASE-DEFAULTS",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-CASE-DEFAULTS"
+      },
+      "steps": [
+        "Read created case task"
+      ],
+      "expected_results": "Trimmed title; same case; normal/open; not overdue; dueSoon",
+      "actual": {
+        "id": "33ec41dc-4582-481e-a13b-f0cd8a9ae4f9",
+        "caseId": "176df8ee-d864-4f06-8f8e-31b28c65db54",
+        "caseReferenceNo": "QA56-001",
+        "caseTitle": "QA phase56",
+        "title": "QA independent task",
+        "description": "QA isolated task",
+        "assigneeId": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+        "assigneeName": "Administrator",
+        "dueDate": "2026-10-25",
+        "priority": "NORMAL",
+        "status": "OPEN",
+        "completedAt": null,
+        "overdue": false,
+        "dueSoon": true,
+        "version": 0,
+        "createdAt": "2026-10-25T09:13:03.445911Z",
+        "createdBy": "1902cf1b-f758-4ddf-836a-a5bd2cdc76e2",
+        "updatedAt": "2026-10-25T09:13:03.445911Z"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-BLANK",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-BLANK"
+      },
+      "steps": [
+        "POST /api/v1/tasks",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/tasks",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "field": "title",
+              "code": "NotBlank"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-LONG",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-LONG"
+      },
+      "steps": [
+        "POST /api/v1/tasks",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/tasks",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "field": "title",
+              "code": "Size"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-PAST",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-PAST"
+      },
+      "steps": [
+        "POST /api/v1/tasks",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/tasks",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "field": "dueDate",
+              "code": "FutureOrPresent"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-MISSING-CASE",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-MISSING-CASE"
+      },
+      "steps": [
+        "POST /api/v1/tasks",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 404,
+        "rule": null
+      },
+      "actual": {
+        "status": 404,
+        "body": {
+          "instance": "/api/v1/tasks",
+          "status": 404,
+          "title": "Not Found",
+          "type": "about:blank"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-MISSING-ASSIGNEE",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-MISSING-ASSIGNEE"
+      },
+      "steps": [
+        "POST /api/v1/tasks",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": null
+      },
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/tasks",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "ASSIGNEE_NOT_ASSIGNABLE"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-DISABLED-ASSIGNEE",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-DISABLED-ASSIGNEE"
+      },
+      "steps": [
+        "POST /api/v1/tasks",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": null
+      },
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/tasks",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "ASSIGNEE_NOT_ASSIGNABLE"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-STALE",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-STALE"
+      },
+      "steps": [
+        "PUT /api/v1/tasks/33ec41dc-4582-481e-a13b-f0cd8a9ae4f9",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 409,
+        "rule": null
+      },
+      "actual": {
+        "status": 409,
+        "body": {
+          "instance": "/api/v1/tasks/33ec41dc-4582-481e-a13b-f0cd8a9ae4f9",
+          "status": 409,
+          "title": "Conflict",
+          "type": "about:blank"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-ILLEGAL-SAME-STATE",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-ILLEGAL-SAME-STATE"
+      },
+      "steps": [
+        "POST /api/v1/tasks/33ec41dc-4582-481e-a13b-f0cd8a9ae4f9/status",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": null
+      },
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/tasks/33ec41dc-4582-481e-a13b-f0cd8a9ae4f9/status",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "TASK_STATUS_TRANSITION"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-DIRECT-DONE-PROPOSED",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-DIRECT-DONE-PROPOSED"
+      },
+      "steps": [
+        "POST /api/v1/tasks/33ec41dc-4582-481e-a13b-f0cd8a9ae4f9/status",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "id": "33ec41dc-4582-481e-a13b-f0cd8a9ae4f9",
+          "caseId": "176df8ee-d864-4f06-8f8e-31b28c65db54",
+          "caseReferenceNo": "QA56-001",
+          "caseTitle": "QA phase56",
+          "title": "QA independent task",
+          "description": "QA isolated task",
+          "assigneeId": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+          "assigneeName": "Administrator",
+          "dueDate": "2026-10-25",
+          "priority": "NORMAL",
+          "status": "DONE",
+          "completedAt": "2026-10-25T09:13:04.310158Z",
+          "overdue": false,
+          "dueSoon": false,
+          "version": 1,
+          "createdAt": "2026-10-25T09:13:03.445911Z",
+          "createdBy": "1902cf1b-f758-4ddf-836a-a5bd2cdc76e2",
+          "updatedAt": "2026-10-25T09:13:04.310158Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-DIRECT-COMPLETION",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-DIRECT-COMPLETION"
+      },
+      "steps": [
+        "Proposed QAD-031 contract; owner decision still open"
+      ],
+      "expected_results": "DONE with completion timestamp",
+      "actual": {
+        "id": "33ec41dc-4582-481e-a13b-f0cd8a9ae4f9",
+        "caseId": "176df8ee-d864-4f06-8f8e-31b28c65db54",
+        "caseReferenceNo": "QA56-001",
+        "caseTitle": "QA phase56",
+        "title": "QA independent task",
+        "description": "QA isolated task",
+        "assigneeId": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+        "assigneeName": "Administrator",
+        "dueDate": "2026-10-25",
+        "priority": "NORMAL",
+        "status": "DONE",
+        "completedAt": "2026-10-25T09:13:04.310158Z",
+        "overdue": false,
+        "dueSoon": false,
+        "version": 1,
+        "createdAt": "2026-10-25T09:13:03.445911Z",
+        "createdBy": "1902cf1b-f758-4ddf-836a-a5bd2cdc76e2",
+        "updatedAt": "2026-10-25T09:13:04.310158Z"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-LIFECYCLE-FIXTURE",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-LIFECYCLE-FIXTURE"
+      },
+      "steps": [
+        "POST /api/v1/tasks",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "2733810d-9692-4137-9ecd-81b00beb2c16",
+          "caseId": "176df8ee-d864-4f06-8f8e-31b28c65db54",
+          "caseReferenceNo": "QA56-001",
+          "caseTitle": "QA phase56",
+          "title": "QA independent task",
+          "description": "QA isolated task",
+          "assigneeId": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+          "assigneeName": "Administrator",
+          "dueDate": "2026-10-25",
+          "priority": "NORMAL",
+          "status": "OPEN",
+          "completedAt": null,
+          "overdue": false,
+          "dueSoon": true,
+          "version": 0,
+          "createdAt": "2026-10-25T09:13:04.399272Z",
+          "createdBy": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+          "updatedAt": "2026-10-25T09:13:04.399272Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-STATE-IN_PROGRESS",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-STATE-IN_PROGRESS"
+      },
+      "steps": [
+        "POST /api/v1/tasks/2733810d-9692-4137-9ecd-81b00beb2c16/status",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "id": "2733810d-9692-4137-9ecd-81b00beb2c16",
+          "caseId": "176df8ee-d864-4f06-8f8e-31b28c65db54",
+          "caseReferenceNo": "QA56-001",
+          "caseTitle": "QA phase56",
+          "title": "QA independent task",
+          "description": "QA isolated task",
+          "assigneeId": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+          "assigneeName": "Administrator",
+          "dueDate": "2026-10-25",
+          "priority": "NORMAL",
+          "status": "IN_PROGRESS",
+          "completedAt": null,
+          "overdue": false,
+          "dueSoon": true,
+          "version": 1,
+          "createdAt": "2026-10-25T09:13:04.399272Z",
+          "createdBy": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+          "updatedAt": "2026-10-25T09:13:04.465545Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-COMPLETION-IN_PROGRESS",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-COMPLETION-IN_PROGRESS"
+      },
+      "steps": [
+        "Change status and read timestamp"
+      ],
+      "expected_results": "completedAt iff DONE",
+      "actual": null,
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-STATE-DONE",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-STATE-DONE"
+      },
+      "steps": [
+        "POST /api/v1/tasks/2733810d-9692-4137-9ecd-81b00beb2c16/status",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "id": "2733810d-9692-4137-9ecd-81b00beb2c16",
+          "caseId": "176df8ee-d864-4f06-8f8e-31b28c65db54",
+          "caseReferenceNo": "QA56-001",
+          "caseTitle": "QA phase56",
+          "title": "QA independent task",
+          "description": "QA isolated task",
+          "assigneeId": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+          "assigneeName": "Administrator",
+          "dueDate": "2026-10-25",
+          "priority": "NORMAL",
+          "status": "DONE",
+          "completedAt": "2026-10-25T09:13:04.670547Z",
+          "overdue": false,
+          "dueSoon": false,
+          "version": 2,
+          "createdAt": "2026-10-25T09:13:04.399272Z",
+          "createdBy": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+          "updatedAt": "2026-10-25T09:13:04.670547Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-COMPLETION-DONE",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-COMPLETION-DONE"
+      },
+      "steps": [
+        "Change status and read timestamp"
+      ],
+      "expected_results": "completedAt iff DONE",
+      "actual": "2026-10-25T09:13:04.670547Z",
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-STATE-OPEN",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-STATE-OPEN"
+      },
+      "steps": [
+        "POST /api/v1/tasks/2733810d-9692-4137-9ecd-81b00beb2c16/status",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "id": "2733810d-9692-4137-9ecd-81b00beb2c16",
+          "caseId": "176df8ee-d864-4f06-8f8e-31b28c65db54",
+          "caseReferenceNo": "QA56-001",
+          "caseTitle": "QA phase56",
+          "title": "QA independent task",
+          "description": "QA isolated task",
+          "assigneeId": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+          "assigneeName": "Administrator",
+          "dueDate": "2026-10-25",
+          "priority": "NORMAL",
+          "status": "OPEN",
+          "completedAt": null,
+          "overdue": false,
+          "dueSoon": true,
+          "version": 3,
+          "createdAt": "2026-10-25T09:13:04.399272Z",
+          "createdBy": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+          "updatedAt": "2026-10-25T09:13:04.883832Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-COMPLETION-OPEN",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-COMPLETION-OPEN"
+      },
+      "steps": [
+        "Change status and read timestamp"
+      ],
+      "expected_results": "completedAt iff DONE",
+      "actual": null,
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-REASSIGN",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-REASSIGN"
+      },
+      "steps": [
+        "PUT /api/v1/tasks/2733810d-9692-4137-9ecd-81b00beb2c16",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "id": "2733810d-9692-4137-9ecd-81b00beb2c16",
+          "caseId": "176df8ee-d864-4f06-8f8e-31b28c65db54",
+          "caseReferenceNo": "QA56-001",
+          "caseTitle": "QA phase56",
+          "title": "QA independent task",
+          "description": "QA isolated task",
+          "assigneeId": "1902cf1b-f758-4ddf-836a-a5bd2cdc76e2",
+          "assigneeName": "QA phase_staff",
+          "dueDate": "2026-10-25",
+          "priority": "NORMAL",
+          "status": "OPEN",
+          "completedAt": null,
+          "overdue": false,
+          "dueSoon": true,
+          "version": 4,
+          "createdAt": "2026-10-25T09:13:04.399272Z",
+          "createdBy": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+          "updatedAt": "2026-10-25T09:13:05.011436Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-ASSIGNEE-CHANGED",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-ASSIGNEE-CHANGED"
+      },
+      "steps": [
+        "Read reassignment"
+      ],
+      "expected_results": "Staff id and version4",
+      "actual": {
+        "id": "2733810d-9692-4137-9ecd-81b00beb2c16",
+        "caseId": "176df8ee-d864-4f06-8f8e-31b28c65db54",
+        "caseReferenceNo": "QA56-001",
+        "caseTitle": "QA phase56",
+        "title": "QA independent task",
+        "description": "QA isolated task",
+        "assigneeId": "1902cf1b-f758-4ddf-836a-a5bd2cdc76e2",
+        "assigneeName": "QA phase_staff",
+        "dueDate": "2026-10-25",
+        "priority": "NORMAL",
+        "status": "OPEN",
+        "completedAt": null,
+        "overdue": false,
+        "dueSoon": true,
+        "version": 4,
+        "createdAt": "2026-10-25T09:13:04.399272Z",
+        "createdBy": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+        "updatedAt": "2026-10-25T09:13:05.011436Z"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-RACE",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-RACE"
+      },
+      "steps": [
+        "Two outcomes same version"
+      ],
+      "expected_results": "200/409",
+      "actual": [
+        200,
+        409
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-INVALID-due=bad",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-INVALID-due=bad"
+      },
+      "steps": [
+        "GET /api/v1/tasks?due=bad",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/tasks",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "field": "due",
+              "code": "Pattern"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-INVALID-status=bad",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-INVALID-status=bad"
+      },
+      "steps": [
+        "GET /api/v1/tasks?status=bad",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/tasks",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-INVALID-assignee=bad",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-INVALID-assignee=bad"
+      },
+      "steps": [
+        "GET /api/v1/tasks?assignee=bad",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/tasks",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "field": "assignee",
+              "code": "Pattern"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-PAGING-page=-1",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-PAGING-page=-1"
+      },
+      "steps": [
+        "GET /api/v1/tasks?page=-1",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "id": "33ec41dc-4582-481e-a13b-f0cd8a9ae4f9",
+              "caseId": "176df8ee-d864-4f06-8f8e-31b28c65db54",
+              "caseReferenceNo": "QA56-001",
+              "caseTitle": "QA phase56",
+              "title": "QA independent task",
+              "description": "QA isolated task",
+              "assigneeId": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+              "assigneeName": "Administrator",
+              "dueDate": "2026-10-25",
+              "priority": "NORMAL",
+              "status": "DONE",
+              "completedAt": "2026-10-25T09:13:04.310158Z",
+              "overdue": false,
+              "dueSoon": false,
+              "version": 1,
+              "createdAt": "2026-10-25T09:13:03.445911Z",
+              "createdBy": "1902cf1b-f758-4ddf-836a-a5bd2cdc76e2",
+              "updatedAt": "2026-10-25T09:13:04.310158Z"
+            },
+            {
+              "id": "2733810d-9692-4137-9ecd-81b00beb2c16",
+              "caseId": "176df8ee-d864-4f06-8f8e-31b28c65db54",
+              "caseReferenceNo": "QA56-001",
+              "caseTitle": "QA phase56",
+              "title": "QA independent task",
+              "description": "QA isolated task",
+              "assigneeId": "1902cf1b-f758-4ddf-836a-a5bd2cdc76e2",
+              "assigneeName": "QA phase_staff",
+              "dueDate": "2026-10-25",
+              "priority": "NORMAL",
+              "status": "IN_PROGRESS",
+              "completedAt": null,
+              "overdue": false,
+              "dueSoon": true,
+              "version": 5,
+              "createdAt": "2026-10-25T09:13:04.399272Z",
+              "createdBy": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+              "updatedAt": "2026-10-25T09:13:05.097540Z"
+            }
+          ],
+          "page": 0,
+          "size": 20,
+          "totalItems": 2,
+          "totalPages": 1
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-PAGING-page=-1-NORMALIZED",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-PAGING-page=-1-NORMALIZED"
+      },
+      "steps": [
+        "Read normalized paging under proposed current contract"
+      ],
+      "expected_results": "page0,size20; QAD-029 owner decision remains open",
+      "actual": {
+        "page": 0,
+        "size": 20
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-PAGING-size=bad",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-PAGING-size=bad"
+      },
+      "steps": [
+        "GET /api/v1/tasks?size=bad",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "id": "33ec41dc-4582-481e-a13b-f0cd8a9ae4f9",
+              "caseId": "176df8ee-d864-4f06-8f8e-31b28c65db54",
+              "caseReferenceNo": "QA56-001",
+              "caseTitle": "QA phase56",
+              "title": "QA independent task",
+              "description": "QA isolated task",
+              "assigneeId": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+              "assigneeName": "Administrator",
+              "dueDate": "2026-10-25",
+              "priority": "NORMAL",
+              "status": "DONE",
+              "completedAt": "2026-10-25T09:13:04.310158Z",
+              "overdue": false,
+              "dueSoon": false,
+              "version": 1,
+              "createdAt": "2026-10-25T09:13:03.445911Z",
+              "createdBy": "1902cf1b-f758-4ddf-836a-a5bd2cdc76e2",
+              "updatedAt": "2026-10-25T09:13:04.310158Z"
+            },
+            {
+              "id": "2733810d-9692-4137-9ecd-81b00beb2c16",
+              "caseId": "176df8ee-d864-4f06-8f8e-31b28c65db54",
+              "caseReferenceNo": "QA56-001",
+              "caseTitle": "QA phase56",
+              "title": "QA independent task",
+              "description": "QA isolated task",
+              "assigneeId": "1902cf1b-f758-4ddf-836a-a5bd2cdc76e2",
+              "assigneeName": "QA phase_staff",
+              "dueDate": "2026-10-25",
+              "priority": "NORMAL",
+              "status": "IN_PROGRESS",
+              "completedAt": null,
+              "overdue": false,
+              "dueSoon": true,
+              "version": 5,
+              "createdAt": "2026-10-25T09:13:04.399272Z",
+              "createdBy": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+              "updatedAt": "2026-10-25T09:13:05.097540Z"
+            }
+          ],
+          "page": 0,
+          "size": 20,
+          "totalItems": 2,
+          "totalPages": 1
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-PAGING-size=bad-NORMALIZED",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-PAGING-size=bad-NORMALIZED"
+      },
+      "steps": [
+        "Read normalized paging under proposed current contract"
+      ],
+      "expected_results": "page0,size20; QAD-029 owner decision remains open",
+      "actual": {
+        "page": 0,
+        "size": 20
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-CREATE-ROLLBACK",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-CREATE-ROLLBACK"
+      },
+      "steps": [
+        "Fail local timeline insert then create"
+      ],
+      "expected_results": "500; task/event counts unchanged",
+      "actual": {
+        "status": 500,
+        "before": "2\t8",
+        "after": "2\t8"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-SQL-ORPHAN-CASE",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-SQL-ORPHAN-CASE"
+      },
+      "steps": [
+        "update task set case_id='00000000-0000-4000-8000-000000000099' where id='2733810d-9692-4137-9ecd-81b00beb2c16'"
+      ],
+      "expected_results": "Reject by constraint",
+      "actual": 1,
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-SQL-COMPLETED-CHECK",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-SQL-COMPLETED-CHECK"
+      },
+      "steps": [
+        "update task set status='DONE',completed_at=null where id='2733810d-9692-4137-9ecd-81b00beb2c16'"
+      ],
+      "expected_results": "Reject by constraint",
+      "actual": 1,
+      "status": "PASS"
+    },
+    {
+      "id": "REMINDER-FIXTURE-0",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "REMINDER-FIXTURE-0"
+      },
+      "steps": [
+        "POST /api/v1/tasks",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "ea6fdb97-f8ad-4b61-94a0-8d9d5b831861",
+          "caseId": null,
+          "caseReferenceNo": null,
+          "caseTitle": null,
+          "title": "QA reminder 0",
+          "description": "QA isolated task",
+          "assigneeId": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+          "assigneeName": "Administrator",
+          "dueDate": "2026-10-25",
+          "priority": "NORMAL",
+          "status": "OPEN",
+          "completedAt": null,
+          "overdue": false,
+          "dueSoon": true,
+          "version": 0,
+          "createdAt": "2026-10-25T09:13:05.870127Z",
+          "createdBy": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+          "updatedAt": "2026-10-25T09:13:05.870127Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REMINDER-FIXTURE-1",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "REMINDER-FIXTURE-1"
+      },
+      "steps": [
+        "POST /api/v1/tasks",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "e38fd484-fb29-46f9-b7d3-53c0174795f0",
+          "caseId": null,
+          "caseReferenceNo": null,
+          "caseTitle": null,
+          "title": "QA reminder 1",
+          "description": "QA isolated task",
+          "assigneeId": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+          "assigneeName": "Administrator",
+          "dueDate": "2026-10-25",
+          "priority": "NORMAL",
+          "status": "OPEN",
+          "completedAt": null,
+          "overdue": false,
+          "dueSoon": true,
+          "version": 0,
+          "createdAt": "2026-10-25T09:13:06.019992Z",
+          "createdBy": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+          "updatedAt": "2026-10-25T09:13:06.019992Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REMINDER-FIXTURE-2",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "REMINDER-FIXTURE-2"
+      },
+      "steps": [
+        "POST /api/v1/tasks",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "bfda1eaa-d0d1-4445-897f-6356d04a019a",
+          "caseId": null,
+          "caseReferenceNo": null,
+          "caseTitle": null,
+          "title": "QA reminder 2",
+          "description": "QA isolated task",
+          "assigneeId": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+          "assigneeName": "Administrator",
+          "dueDate": "2026-10-25",
+          "priority": "NORMAL",
+          "status": "OPEN",
+          "completedAt": null,
+          "overdue": false,
+          "dueSoon": true,
+          "version": 0,
+          "createdAt": "2026-10-25T09:13:06.132008Z",
+          "createdBy": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+          "updatedAt": "2026-10-25T09:13:06.132008Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REMINDER-FIXTURE-3",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "REMINDER-FIXTURE-3"
+      },
+      "steps": [
+        "POST /api/v1/tasks",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "b2c31fde-a75f-4fb7-becd-f1acc0c78521",
+          "caseId": null,
+          "caseReferenceNo": null,
+          "caseTitle": null,
+          "title": "QA reminder 3",
+          "description": "QA isolated task",
+          "assigneeId": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+          "assigneeName": "Administrator",
+          "dueDate": "2026-10-25",
+          "priority": "NORMAL",
+          "status": "OPEN",
+          "completedAt": null,
+          "overdue": false,
+          "dueSoon": true,
+          "version": 0,
+          "createdAt": "2026-10-25T09:13:06.308822Z",
+          "createdBy": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+          "updatedAt": "2026-10-25T09:13:06.308822Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REMINDERS-SELF",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "REMINDERS-SELF"
+      },
+      "steps": [
+        "GET /api/v1/tasks/reminders",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "today": "2026-10-25",
+          "dueSoonDays": 3,
+          "overdue": 1,
+          "dueSoon": 2
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REMINDERS-BOUNDARIES",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "REMINDERS-BOUNDARIES"
+      },
+      "steps": [
+        "Own fixtures yesterday/today/+3/+4; other user task excluded"
+      ],
+      "expected_results": "overdue1, dueSoon2, three-day window",
+      "actual": {
+        "today": "2026-10-25",
+        "dueSoonDays": 3,
+        "overdue": 1,
+        "dueSoon": 2
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-ARCHIVE-CASE",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-ARCHIVE-CASE"
+      },
+      "steps": [
+        "POST /api/v1/cases/176df8ee-d864-4f06-8f8e-31b28c65db54/status",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "id": "176df8ee-d864-4f06-8f8e-31b28c65db54",
+          "referenceNo": "QA56-001",
+          "title": "QA phase56",
+          "caseType": "CIVIL",
+          "subject": null,
+          "openedOn": "2026-01-01",
+          "status": "CLOSED",
+          "version": 1,
+          "createdAt": "2026-10-25T09:13:02.572446Z",
+          "createdBy": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+          "updatedAt": "2026-10-25T09:13:06.559127Z",
+          "updatedBy": "fc2ceffc-9409-481d-80cf-2a609b3f9007"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-ARCHIVE-CASE-2",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-ARCHIVE-CASE-2"
+      },
+      "steps": [
+        "POST /api/v1/cases/176df8ee-d864-4f06-8f8e-31b28c65db54/status",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "id": "176df8ee-d864-4f06-8f8e-31b28c65db54",
+          "referenceNo": "QA56-001",
+          "title": "QA phase56",
+          "caseType": "CIVIL",
+          "subject": null,
+          "openedOn": "2026-01-01",
+          "status": "ARCHIVED",
+          "version": 2,
+          "createdAt": "2026-10-25T09:13:02.572446Z",
+          "createdBy": "fc2ceffc-9409-481d-80cf-2a609b3f9007",
+          "updatedAt": "2026-10-25T09:13:06.632398Z",
+          "updatedBy": "fc2ceffc-9409-481d-80cf-2a609b3f9007"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-ARCHIVED-CREATE",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-ARCHIVED-CREATE"
+      },
+      "steps": [
+        "POST /api/v1/tasks",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": "CASE_ARCHIVED"
+      },
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/tasks",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "CASE_ARCHIVED"
+        }
+      },
+      "status": "PASS"
+    }
+  ]
+}

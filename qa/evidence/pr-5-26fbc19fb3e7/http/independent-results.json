@@ -1,0 +1,1855 @@
+{
+  "tested_sha": "26fbc19fb3e7a5911d6689631a3f46e6e6b3daac",
+  "integration_base": "91551a3",
+  "utc": "2026-10-23T20:05:45.581408+00:00",
+  "candidate_source": "git archive with every tracked blob verified",
+  "jar_sha256": "9198901b090b089360776dda5ad49089a1699f5795ba6849e93343217533028b",
+  "environment": {
+    "java": "openjdk version \"21.0.12.1\" 2026-08-18 LTS",
+    "bind": "loopback ephemeral port",
+    "postgresql": "disposable PostgreSQL configured"
+  },
+  "contract": "PR #2 docs/delivery/PHASE-1-ACCEPTANCE.md PROPOSED, not approved",
+  "results": [
+    {
+      "id": "P1-BRANCH-INVALID-1",
+      "baseline_case_ids": [
+        "QA-0003"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "branch": "feature/a.lock"
+      },
+      "steps": [
+        "Compare Git's native ref validator with the implementation policy for the same name."
+      ],
+      "expected": "Git-invalid name is rejected by policy",
+      "status": "PASS",
+      "actual": {
+        "git_exit": 128,
+        "policy_errors": [
+          "branch 'feature/a.lock' must look like <prefix>/<slug> with prefix one of feature/, fix/, docs/, qa/, chore/, release/, hotfix/ and a slug of letters, digits, '.', '_' or '-' (e.g. feature/LD-002-backend-bootstrap)"
+        ]
+      },
+      "priority": "P1",
+      "story_ids": [
+        "LD-001"
+      ],
+      "expected_results": [
+        "Git-invalid name is rejected by policy"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-BRANCH-INVALID-2",
+      "baseline_case_ids": [
+        "QA-0003"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "branch": "feature/a."
+      },
+      "steps": [
+        "Compare Git's native ref validator with the implementation policy for the same name."
+      ],
+      "expected": "Git-invalid name is rejected by policy",
+      "status": "PASS",
+      "actual": {
+        "git_exit": 128,
+        "policy_errors": [
+          "branch 'feature/a.' must look like <prefix>/<slug> with prefix one of feature/, fix/, docs/, qa/, chore/, release/, hotfix/ and a slug of letters, digits, '.', '_' or '-' (e.g. feature/LD-002-backend-bootstrap)"
+        ]
+      },
+      "priority": "P1",
+      "story_ids": [
+        "LD-001"
+      ],
+      "expected_results": [
+        "Git-invalid name is rejected by policy"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-BRANCH-INVALID-3",
+      "baseline_case_ids": [
+        "QA-0003"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "branch": "feature/a\n"
+      },
+      "steps": [
+        "Compare Git's native ref validator with the implementation policy for the same name."
+      ],
+      "expected": "Git-invalid name is rejected by policy",
+      "status": "PASS",
+      "actual": {
+        "git_exit": 128,
+        "policy_errors": [
+          "branch 'feature/a\n' must look like <prefix>/<slug> with prefix one of feature/, fix/, docs/, qa/, chore/, release/, hotfix/ and a slug of letters, digits, '.', '_' or '-' (e.g. feature/LD-002-backend-bootstrap)"
+        ]
+      },
+      "priority": "P1",
+      "story_ids": [
+        "LD-001"
+      ],
+      "expected_results": [
+        "Git-invalid name is rejected by policy"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-BRANCH-VALID-feature/LD-002-health",
+      "baseline_case_ids": [
+        "QA-0001"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "branch": "feature/LD-002-health"
+      },
+      "steps": [
+        "Validate a documented allowed branch."
+      ],
+      "expected": "Allowed branch accepted",
+      "status": "PASS",
+      "actual": [],
+      "priority": "P1",
+      "story_ids": [
+        "LD-001"
+      ],
+      "expected_results": [
+        "Allowed branch accepted"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-BRANCH-VALID-qa/phase-1-review",
+      "baseline_case_ids": [
+        "QA-0001"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "branch": "qa/phase-1-review"
+      },
+      "steps": [
+        "Validate a documented allowed branch."
+      ],
+      "expected": "Allowed branch accepted",
+      "status": "PASS",
+      "actual": [],
+      "priority": "P1",
+      "story_ids": [
+        "LD-001"
+      ],
+      "expected_results": [
+        "Allowed branch accepted"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-BRANCH-VALID-main",
+      "baseline_case_ids": [
+        "QA-0001"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "branch": "main"
+      },
+      "steps": [
+        "Validate a documented allowed branch."
+      ],
+      "expected": "Allowed branch accepted",
+      "status": "PASS",
+      "actual": [],
+      "priority": "P1",
+      "story_ids": [
+        "LD-001"
+      ],
+      "expected_results": [
+        "Allowed branch accepted"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-BRANCH-VALID-develop",
+      "baseline_case_ids": [
+        "QA-0001"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "branch": "develop"
+      },
+      "steps": [
+        "Validate a documented allowed branch."
+      ],
+      "expected": "Allowed branch accepted",
+      "status": "PASS",
+      "actual": [],
+      "priority": "P1",
+      "story_ids": [
+        "LD-001"
+      ],
+      "expected_results": [
+        "Allowed branch accepted"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-COMMIT-71",
+      "baseline_case_ids": [
+        "QA-0003"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "subject": "feat(LD-001): aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "steps": [
+        "Validate Conventional Commit subject at 71/72/73 character boundary."
+      ],
+      "expected": "Only >72 character subject rejected",
+      "status": "PASS",
+      "actual": [],
+      "priority": "P1",
+      "story_ids": [
+        "LD-001"
+      ],
+      "expected_results": [
+        "Only >72 character subject rejected"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-COMMIT-72",
+      "baseline_case_ids": [
+        "QA-0003"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "subject": "feat(LD-001): aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "steps": [
+        "Validate Conventional Commit subject at 71/72/73 character boundary."
+      ],
+      "expected": "Only >72 character subject rejected",
+      "status": "PASS",
+      "actual": [],
+      "priority": "P1",
+      "story_ids": [
+        "LD-001"
+      ],
+      "expected_results": [
+        "Only >72 character subject rejected"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-COMMIT-73",
+      "baseline_case_ids": [
+        "QA-0003"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "subject": "feat(LD-001): aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "steps": [
+        "Validate Conventional Commit subject at 71/72/73 character boundary."
+      ],
+      "expected": "Only >72 character subject rejected",
+      "status": "PASS",
+      "actual": [
+        "commit subject is 73 characters; keep it within 72"
+      ],
+      "priority": "P1",
+      "story_ids": [
+        "LD-001"
+      ],
+      "expected_results": [
+        "Only >72 character subject rejected"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-FLOW-feature/a-develop",
+      "baseline_case_ids": [
+        "QA-0001",
+        "QA-0005"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "head": "feature/a",
+        "base": "develop"
+      },
+      "steps": [
+        "Validate documented source and target branch flow."
+      ],
+      "expected": "PR flow follows documented policy",
+      "status": "PASS",
+      "actual": [],
+      "priority": "P1",
+      "story_ids": [
+        "LD-001"
+      ],
+      "expected_results": [
+        "PR flow follows documented policy"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-FLOW-qa/a-develop",
+      "baseline_case_ids": [
+        "QA-0001",
+        "QA-0005"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "head": "qa/a",
+        "base": "develop"
+      },
+      "steps": [
+        "Validate documented source and target branch flow."
+      ],
+      "expected": "PR flow follows documented policy",
+      "status": "PASS",
+      "actual": [],
+      "priority": "P1",
+      "story_ids": [
+        "LD-001"
+      ],
+      "expected_results": [
+        "PR flow follows documented policy"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-FLOW-feature/a-main",
+      "baseline_case_ids": [
+        "QA-0001",
+        "QA-0005"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "head": "feature/a",
+        "base": "main"
+      },
+      "steps": [
+        "Validate documented source and target branch flow."
+      ],
+      "expected": "PR flow follows documented policy",
+      "status": "PASS",
+      "actual": [
+        "'feature/a' may not target main; open the pull request against develop (only release/* and hotfix/* branches merge into main)"
+      ],
+      "priority": "P1",
+      "story_ids": [
+        "LD-001"
+      ],
+      "expected_results": [
+        "PR flow follows documented policy"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-FLOW-release/v1-main",
+      "baseline_case_ids": [
+        "QA-0001",
+        "QA-0005"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "head": "release/v1",
+        "base": "main"
+      },
+      "steps": [
+        "Validate documented source and target branch flow."
+      ],
+      "expected": "PR flow follows documented policy",
+      "status": "PASS",
+      "actual": [],
+      "priority": "P1",
+      "story_ids": [
+        "LD-001"
+      ],
+      "expected_results": [
+        "PR flow follows documented policy"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-FLOW-hotfix/a-main",
+      "baseline_case_ids": [
+        "QA-0001",
+        "QA-0005"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "head": "hotfix/a",
+        "base": "main"
+      },
+      "steps": [
+        "Validate documented source and target branch flow."
+      ],
+      "expected": "PR flow follows documented policy",
+      "status": "PASS",
+      "actual": [],
+      "priority": "P1",
+      "story_ids": [
+        "LD-001"
+      ],
+      "expected_results": [
+        "PR flow follows documented policy"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-FLOW-feature/a-unknown",
+      "baseline_case_ids": [
+        "QA-0001",
+        "QA-0005"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "head": "feature/a",
+        "base": "unknown"
+      },
+      "steps": [
+        "Validate documented source and target branch flow."
+      ],
+      "expected": "PR flow follows documented policy",
+      "status": "PASS",
+      "actual": [
+        "pull requests must target develop or main, not 'unknown'"
+      ],
+      "priority": "P1",
+      "story_ids": [
+        "LD-001"
+      ],
+      "expected_results": [
+        "PR flow follows documented policy"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-HEALTH-/actuator/health",
+      "baseline_case_ids": [
+        "QA-0009"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/health"
+      },
+      "steps": [
+        "GET public health route without credentials; parse exact health state and inspect details."
+      ],
+      "expected": "200 UP; no components/details",
+      "status": "PASS",
+      "actual": {
+        "status": 200,
+        "headers": {
+          "X-Request-Id": "a6b1a464-2331-4188-abfc-a831dcbeee33",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/vnd.spring-boot.actuator.v3+json",
+          "Transfer-Encoding": "chunked",
+          "Date": "Fri, 23 Oct 2026 20:05:29 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"groups\":[\"liveness\",\"readiness\"],\"status\":\"UP\"}"
+      },
+      "priority": "P1",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "200 UP; no components/details"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-HEALTH-/actuator/health/liveness",
+      "baseline_case_ids": [
+        "QA-0009"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/health/liveness"
+      },
+      "steps": [
+        "GET public health route without credentials; parse exact health state and inspect details."
+      ],
+      "expected": "200 UP; no components/details",
+      "status": "PASS",
+      "actual": {
+        "status": 200,
+        "headers": {
+          "X-Request-Id": "33d7b6da-7e43-4e13-9b6c-1e29ce2dabb1",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/vnd.spring-boot.actuator.v3+json",
+          "Transfer-Encoding": "chunked",
+          "Date": "Fri, 23 Oct 2026 20:05:30 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"status\":\"UP\"}"
+      },
+      "priority": "P1",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "200 UP; no components/details"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-HEALTH-/actuator/health/readiness",
+      "baseline_case_ids": [
+        "QA-0009"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/health/readiness"
+      },
+      "steps": [
+        "GET public health route without credentials; parse exact health state and inspect details."
+      ],
+      "expected": "200 UP; no components/details",
+      "status": "PASS",
+      "actual": {
+        "status": 200,
+        "headers": {
+          "X-Request-Id": "942abf0c-7e6a-46fc-b3d2-bef72bfbe37d",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/vnd.spring-boot.actuator.v3+json",
+          "Transfer-Encoding": "chunked",
+          "Date": "Fri, 23 Oct 2026 20:05:30 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"status\":\"UP\"}"
+      },
+      "priority": "P1",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "200 UP; no components/details"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-INFO-ALLOWLIST",
+      "baseline_case_ids": [
+        "QA-0009"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/info"
+      },
+      "steps": [
+        "GET public info; compare build fields to proposed LD-002 AC2 name/version-only allowlist."
+      ],
+      "expected": "Only build.name and build.version are public (proposed AC2)",
+      "status": "PASS",
+      "actual": {
+        "status": 200,
+        "headers": {
+          "X-Request-Id": "31575962-1324-4d64-a9bb-f42b3b83f0df",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/vnd.spring-boot.actuator.v3+json",
+          "Content-Length": "63",
+          "Date": "Fri, 23 Oct 2026 20:05:30 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"build\":{\"name\":\"lawdesk-backend\",\"version\":\"0.0.1-SNAPSHOT\"}}"
+      },
+      "priority": "P1",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "Only build.name and build.version are public (proposed AC2)"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-ANON-/api/v1/cases",
+      "baseline_case_ids": [
+        "QA-0012",
+        "QA-0013"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/api/v1/cases"
+      },
+      "steps": [
+        "GET protected route as anonymous; assert exact 401 RFC9457 JSON, no redirect or internals."
+      ],
+      "expected": "401 application/problem+json; no internals",
+      "status": "PASS",
+      "actual": {
+        "status": 401,
+        "headers": {
+          "X-Request-Id": "90eb5093-9eb7-40ae-b6cb-6eb8ebf9227b",
+          "Set-Cookie": "JSESSIONID=[REDACTED]; Path=/; HttpOnly",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "58",
+          "Date": "Fri, 23 Oct 2026 20:05:30 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401}"
+      },
+      "priority": "P0",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "401 application/problem+json; no internals"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-ANON-/actuator/env",
+      "baseline_case_ids": [
+        "QA-0012",
+        "QA-0013"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/env"
+      },
+      "steps": [
+        "GET protected route as anonymous; assert exact 401 RFC9457 JSON, no redirect or internals."
+      ],
+      "expected": "401 application/problem+json; no internals",
+      "status": "PASS",
+      "actual": {
+        "status": 401,
+        "headers": {
+          "X-Request-Id": "3e5e4b3d-da73-41d8-a3be-ab05296450b1",
+          "Set-Cookie": "JSESSIONID=[REDACTED]; Path=/; HttpOnly",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "58",
+          "Date": "Fri, 23 Oct 2026 20:05:30 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401}"
+      },
+      "priority": "P0",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "401 application/problem+json; no internals"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-ANON-/actuator/beans",
+      "baseline_case_ids": [
+        "QA-0012",
+        "QA-0013"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/beans"
+      },
+      "steps": [
+        "GET protected route as anonymous; assert exact 401 RFC9457 JSON, no redirect or internals."
+      ],
+      "expected": "401 application/problem+json; no internals",
+      "status": "PASS",
+      "actual": {
+        "status": 401,
+        "headers": {
+          "X-Request-Id": "243c3de2-d8c7-4fee-aef1-03ce1ab81bb6",
+          "Set-Cookie": "JSESSIONID=[REDACTED]; Path=/; HttpOnly",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "58",
+          "Date": "Fri, 23 Oct 2026 20:05:30 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401}"
+      },
+      "priority": "P0",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "401 application/problem+json; no internals"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-ANON-/actuator/configprops",
+      "baseline_case_ids": [
+        "QA-0012",
+        "QA-0013"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/configprops"
+      },
+      "steps": [
+        "GET protected route as anonymous; assert exact 401 RFC9457 JSON, no redirect or internals."
+      ],
+      "expected": "401 application/problem+json; no internals",
+      "status": "PASS",
+      "actual": {
+        "status": 401,
+        "headers": {
+          "X-Request-Id": "7baa31c5-6988-4d7f-bdfa-5c9a217919d5",
+          "Set-Cookie": "JSESSIONID=[REDACTED]; Path=/; HttpOnly",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "58",
+          "Date": "Fri, 23 Oct 2026 20:05:30 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401}"
+      },
+      "priority": "P0",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "401 application/problem+json; no internals"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-ANON-/actuator/heapdump",
+      "baseline_case_ids": [
+        "QA-0012",
+        "QA-0013"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/heapdump"
+      },
+      "steps": [
+        "GET protected route as anonymous; assert exact 401 RFC9457 JSON, no redirect or internals."
+      ],
+      "expected": "401 application/problem+json; no internals",
+      "status": "PASS",
+      "actual": {
+        "status": 401,
+        "headers": {
+          "X-Request-Id": "012e2d98-6559-4e04-a8c4-863cb903cac0",
+          "Set-Cookie": "JSESSIONID=[REDACTED]; Path=/; HttpOnly",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "58",
+          "Date": "Fri, 23 Oct 2026 20:05:30 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401}"
+      },
+      "priority": "P0",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "401 application/problem+json; no internals"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-ANON-/actuator/loggers",
+      "baseline_case_ids": [
+        "QA-0012",
+        "QA-0013"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/loggers"
+      },
+      "steps": [
+        "GET protected route as anonymous; assert exact 401 RFC9457 JSON, no redirect or internals."
+      ],
+      "expected": "401 application/problem+json; no internals",
+      "status": "PASS",
+      "actual": {
+        "status": 401,
+        "headers": {
+          "X-Request-Id": "beee4a42-611b-426a-84bb-4cb8d3c6c4ff",
+          "Set-Cookie": "JSESSIONID=[REDACTED]; Path=/; HttpOnly",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "58",
+          "Date": "Fri, 23 Oct 2026 20:05:30 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401}"
+      },
+      "priority": "P0",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "401 application/problem+json; no internals"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-ANON-/actuator/mappings",
+      "baseline_case_ids": [
+        "QA-0012",
+        "QA-0013"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/mappings"
+      },
+      "steps": [
+        "GET protected route as anonymous; assert exact 401 RFC9457 JSON, no redirect or internals."
+      ],
+      "expected": "401 application/problem+json; no internals",
+      "status": "PASS",
+      "actual": {
+        "status": 401,
+        "headers": {
+          "X-Request-Id": "2c2d8a1a-1f61-4f2f-a270-8203ef969fee",
+          "Set-Cookie": "JSESSIONID=[REDACTED]; Path=/; HttpOnly",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "58",
+          "Date": "Fri, 23 Oct 2026 20:05:30 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401}"
+      },
+      "priority": "P0",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "401 application/problem+json; no internals"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-ANON-/actuator/threaddump",
+      "baseline_case_ids": [
+        "QA-0012",
+        "QA-0013"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/threaddump"
+      },
+      "steps": [
+        "GET protected route as anonymous; assert exact 401 RFC9457 JSON, no redirect or internals."
+      ],
+      "expected": "401 application/problem+json; no internals",
+      "status": "PASS",
+      "actual": {
+        "status": 401,
+        "headers": {
+          "X-Request-Id": "ea470c3d-efc8-49f4-9413-31cebd3dba0c",
+          "Set-Cookie": "JSESSIONID=[REDACTED]; Path=/; HttpOnly",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "58",
+          "Date": "Fri, 23 Oct 2026 20:05:31 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401}"
+      },
+      "priority": "P0",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "401 application/problem+json; no internals"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-POST-STATUS-/api/v1/cases",
+      "baseline_case_ids": [
+        "QA-0012"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/api/v1/cases"
+      },
+      "steps": [
+        "POST without session or CSRF token; compare to proposed AC3 exact anonymous 401 rule."
+      ],
+      "expected": "401 for unauthenticated other endpoint per proposed AC3 (CSRF 403 requires contract clarification)",
+      "status": "PASS",
+      "actual": {
+        "status": 401,
+        "headers": {
+          "X-Request-Id": "1cc703c1-1c2b-4839-aff4-f26ae838739a",
+          "Set-Cookie": "JSESSIONID=[REDACTED]; Path=/; HttpOnly",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "58",
+          "Date": "Fri, 23 Oct 2026 20:05:31 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401}"
+      },
+      "priority": "P0",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "401 for unauthenticated other endpoint per proposed AC3 (CSRF 403 requires contract clarification)"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-POST-STATUS-/actuator/health",
+      "baseline_case_ids": [
+        "QA-0012"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/actuator/health"
+      },
+      "steps": [
+        "POST without session or CSRF token; compare to proposed AC3 exact anonymous 401 rule."
+      ],
+      "expected": "401 for unauthenticated other endpoint per proposed AC3 (CSRF 403 requires contract clarification)",
+      "status": "PASS",
+      "actual": {
+        "status": 401,
+        "headers": {
+          "X-Request-Id": "ee6fc30d-d75c-4330-aa73-8dd3edaa46d2",
+          "Set-Cookie": "JSESSIONID=[REDACTED]; Path=/; HttpOnly",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "58",
+          "Date": "Fri, 23 Oct 2026 20:05:31 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401}"
+      },
+      "priority": "P0",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "401 for unauthenticated other endpoint per proposed AC3 (CSRF 403 requires contract clarification)"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-HEADERS-/actuator/health",
+      "baseline_case_ids": [
+        "QA-0349"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/health"
+      },
+      "steps": [
+        "Request success, security denial, MVC 404 or firewall rejection and inspect baseline security headers."
+      ],
+      "expected": "All baseline headers including no-store on every response per proposed AC4",
+      "status": "PASS",
+      "actual": {
+        "status": 200,
+        "headers": {
+          "X-Request-Id": "20ddf103-1096-4ea2-80b9-b44fae35f60b",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/vnd.spring-boot.actuator.v3+json",
+          "Transfer-Encoding": "chunked",
+          "Date": "Fri, 23 Oct 2026 20:05:31 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"groups\":[\"liveness\",\"readiness\"],\"status\":\"UP\"}"
+      },
+      "priority": "P0",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "All baseline headers including no-store on every response per proposed AC4"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-HEADERS-/api/v1/cases",
+      "baseline_case_ids": [
+        "QA-0349"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/api/v1/cases"
+      },
+      "steps": [
+        "Request success, security denial, MVC 404 or firewall rejection and inspect baseline security headers."
+      ],
+      "expected": "All baseline headers including no-store on every response per proposed AC4",
+      "status": "PASS",
+      "actual": {
+        "status": 401,
+        "headers": {
+          "X-Request-Id": "259d5d0b-beae-4bdd-8771-ae3ff929ca91",
+          "Set-Cookie": "JSESSIONID=[REDACTED]; Path=/; HttpOnly",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "58",
+          "Date": "Fri, 23 Oct 2026 20:05:31 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401}"
+      },
+      "priority": "P0",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "All baseline headers including no-store on every response per proposed AC4"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-HEADERS-/actuator/health/does-not-exist",
+      "baseline_case_ids": [
+        "QA-0349"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/health/does-not-exist"
+      },
+      "steps": [
+        "Request success, security denial, MVC 404 or firewall rejection and inspect baseline security headers."
+      ],
+      "expected": "All baseline headers including no-store on every response per proposed AC4",
+      "status": "PASS",
+      "actual": {
+        "status": 404,
+        "headers": {
+          "X-Request-Id": "5a3c0223-dbdc-4ebc-a2e3-dd116d7b75d8",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Length": "0",
+          "Date": "Fri, 23 Oct 2026 20:05:31 GMT",
+          "Connection": "close"
+        },
+        "body": ""
+      },
+      "priority": "P0",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "All baseline headers including no-store on every response per proposed AC4"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-HEADERS-//actuator/health",
+      "baseline_case_ids": [
+        "QA-0349"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "//actuator/health"
+      },
+      "steps": [
+        "Request success, security denial, MVC 404 or firewall rejection and inspect baseline security headers."
+      ],
+      "expected": "All baseline headers including no-store on every response per proposed AC4",
+      "status": "PASS",
+      "actual": {
+        "status": 400,
+        "headers": {
+          "X-Request-Id": "4e124764-83fe-4be9-8729-a084fb7a05be",
+          "X-Content-Type-Options": "nosniff",
+          "X-Frame-Options": "DENY",
+          "Referrer-Policy": "no-referrer",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "57",
+          "Date": "Fri, 23 Oct 2026 20:05:31 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Bad Request\",\"status\":400}"
+      },
+      "priority": "P0",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "All baseline headers including no-store on every response per proposed AC4"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-REQUEST-ID-34",
+      "baseline_case_ids": [
+        "QA-0011"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "request_id": "a"
+      },
+      "steps": [
+        "Send X-Request-Id at valid/invalid and 1/64/65 character boundaries."
+      ],
+      "expected": "Valid id echoed; invalid/oversized id replaced by UUID",
+      "status": "PASS",
+      "actual": {
+        "sent": "a",
+        "received": "a",
+        "status": 200
+      },
+      "priority": "P1",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "Valid id echoed; invalid/oversized id replaced by UUID"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-REQUEST-ID-35",
+      "baseline_case_ids": [
+        "QA-0011"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "request_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "steps": [
+        "Send X-Request-Id at valid/invalid and 1/64/65 character boundaries."
+      ],
+      "expected": "Valid id echoed; invalid/oversized id replaced by UUID",
+      "status": "PASS",
+      "actual": {
+        "sent": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "received": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "status": 200
+      },
+      "priority": "P1",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "Valid id echoed; invalid/oversized id replaced by UUID"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-REQUEST-ID-36",
+      "baseline_case_ids": [
+        "QA-0011"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "request_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "steps": [
+        "Send X-Request-Id at valid/invalid and 1/64/65 character boundaries."
+      ],
+      "expected": "Valid id echoed; invalid/oversized id replaced by UUID",
+      "status": "PASS",
+      "actual": {
+        "sent": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "received": "90197192-ae91-4400-9e90-4d14915b052f",
+        "status": 200
+      },
+      "priority": "P1",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "Valid id echoed; invalid/oversized id replaced by UUID"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-REQUEST-ID-37",
+      "baseline_case_ids": [
+        "QA-0011"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "request_id": "bad id"
+      },
+      "steps": [
+        "Send X-Request-Id at valid/invalid and 1/64/65 character boundaries."
+      ],
+      "expected": "Valid id echoed; invalid/oversized id replaced by UUID",
+      "status": "PASS",
+      "actual": {
+        "sent": "bad id",
+        "received": "938f2e3a-a743-45ca-9c84-fdab4fdcda9b",
+        "status": 200
+      },
+      "priority": "P1",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "Valid id echoed; invalid/oversized id replaced by UUID"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-REQUEST-ID-38",
+      "baseline_case_ids": [
+        "QA-0011"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "request_id": "QA._-9"
+      },
+      "steps": [
+        "Send X-Request-Id at valid/invalid and 1/64/65 character boundaries."
+      ],
+      "expected": "Valid id echoed; invalid/oversized id replaced by UUID",
+      "status": "PASS",
+      "actual": {
+        "sent": "QA._-9",
+        "received": "QA._-9",
+        "status": 200
+      },
+      "priority": "P1",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "Valid id echoed; invalid/oversized id replaced by UUID"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-CONCURRENT-IDS",
+      "baseline_case_ids": [
+        "QA-0015"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "clients": 20
+      },
+      "steps": [
+        "Send 20 concurrent health requests without caller IDs; assert 20 distinct nonempty UUIDs."
+      ],
+      "expected": "20 successful requests, 20 distinct ids",
+      "status": "PASS",
+      "actual": {
+        "statuses": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ],
+        "ids": [
+          "16234921-7c37-463d-a52a-89b3715f4d6f",
+          "43926e66-41d6-410f-96cf-1beeed004b66",
+          "beb1e5e2-7eb3-47bc-b71b-b79ccdb25c3b",
+          "b8b93d1f-211b-495c-9cbd-d82877e14839",
+          "bda5795f-3fcf-4a88-b22a-11a0696374ab",
+          "e238c4d3-598d-4f56-8119-41ddb7b1f5fc",
+          "5c7b971e-312f-41f4-a486-26415875961c",
+          "0e6c3c4a-aa4f-4820-ad19-abb088273b3d",
+          "9e18ef3d-4403-42cc-8b94-78a476355b88",
+          "399d8b2f-c5a1-4999-a196-250cf402bf74",
+          "8e05c84d-0e0f-46a1-85fb-25876a05612c",
+          "a54af029-37b2-4cbe-84e4-3e91f6fb2db9",
+          "7968cc1a-e341-40c8-b5da-9780048d4be7",
+          "3a970953-df9f-4094-90a0-47db151255f4",
+          "1518bad1-acbb-4960-af1f-62e698f85420",
+          "706d7ba4-5c31-4a4d-bf96-ae788cb7f402",
+          "6aff93da-b618-4f4f-b21a-079989924ae7",
+          "95248780-9b14-4d5c-8308-da17a126426f",
+          "d7cee012-0586-45b0-aedf-a3cc88afcdc4",
+          "06c636eb-6110-419e-84df-5a8c5d25ff8b"
+        ]
+      },
+      "priority": "P1",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "20 successful requests, 20 distinct ids"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-DB-HEALTHY-STABILITY",
+      "baseline_case_ids": [
+        "QA-0032"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "probes": 30
+      },
+      "steps": [
+        "Probe healthy readiness30 times before disturbing the owned database."
+      ],
+      "expected": "30 healthy readiness probes all return200",
+      "status": "PASS",
+      "actual": {
+        "statuses": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ]
+      },
+      "priority": "P1",
+      "story_ids": [
+        "LD-004"
+      ],
+      "expected_results": [
+        "30 healthy readiness probes all return200"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-DB-OUTAGE-READINESS",
+      "baseline_case_ids": [
+        "QA-0032"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "client_timeout_seconds": 5.1,
+        "response_limit_seconds": 5,
+        "probes": 3,
+        "warmup": false
+      },
+      "steps": [
+        "First probe starts immediately after owned DB stops; no retry or warm-up; measure three responses."
+      ],
+      "expected": "First and next two readiness probes return503 each within5s",
+      "status": "PASS",
+      "actual": [
+        {
+          "status": 503,
+          "body": "{\"status\":\"DOWN\"}",
+          "elapsed_seconds": 0.127
+        },
+        {
+          "status": 503,
+          "body": "{\"status\":\"DOWN\"}",
+          "elapsed_seconds": 3.098
+        },
+        {
+          "status": 503,
+          "body": "{\"status\":\"DOWN\"}",
+          "elapsed_seconds": 3.116
+        }
+      ],
+      "priority": "P1",
+      "story_ids": [
+        "LD-004"
+      ],
+      "expected_results": [
+        "First and next two readiness probes return503 each within5s"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-DB-OUTAGE-LIVENESS",
+      "baseline_case_ids": [
+        "QA-0032"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {},
+      "steps": [
+        "While QA database is stopped, GET liveness."
+      ],
+      "expected": "Liveness remains200 during DB outage",
+      "status": "PASS",
+      "actual": {
+        "status": 200,
+        "headers": {
+          "X-Request-Id": "841ece72-4b5c-4c98-8683-7d32b01d4855",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/vnd.spring-boot.actuator.v3+json",
+          "Transfer-Encoding": "chunked",
+          "Date": "Fri, 23 Oct 2026 20:05:41 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"status\":\"UP\"}"
+      },
+      "priority": "P1",
+      "story_ids": [
+        "LD-004"
+      ],
+      "expected_results": [
+        "Liveness remains200 during DB outage"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-DB-RECOVERY",
+      "baseline_case_ids": [
+        "QA-0032"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {},
+      "steps": [
+        "Restart same owned PostgreSQL and poll readiness recovery."
+      ],
+      "expected": "Readiness recovers200 after database restart",
+      "status": "PASS",
+      "actual": {
+        "response": {
+          "status": 200,
+          "headers": {
+            "X-Request-Id": "fad9c38c-ea67-4580-a272-56e6a0b7171b",
+            "X-Content-Type-Options": "nosniff",
+            "X-XSS-Protection": "0",
+            "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
+            "X-Frame-Options": "DENY",
+            "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+            "Referrer-Policy": "no-referrer",
+            "Content-Type": "application/vnd.spring-boot.actuator.v3+json",
+            "Transfer-Encoding": "chunked",
+            "Date": "Fri, 23 Oct 2026 20:05:45 GMT",
+            "Connection": "close"
+          },
+          "body": "{\"status\":\"UP\"}"
+        },
+        "elapsed_seconds": 3.779
+      },
+      "priority": "P1",
+      "story_ids": [
+        "LD-004"
+      ],
+      "expected_results": [
+        "Readiness recovers200 after database restart"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-LOG-ONE-EVENT",
+      "baseline_case_ids": [
+        "QA-0348"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "request_id": "QA-INDEPENDENT-LOG-PROBE"
+      },
+      "steps": [
+        "Find exactly one ECS completion event for known request ID."
+      ],
+      "expected": "Exactly one completion event per instrumented request",
+      "status": "PASS",
+      "actual": {
+        "events": 1
+      },
+      "priority": "P1",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "Exactly one completion event per instrumented request"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-LOG-FIELDS",
+      "baseline_case_ids": [
+        "QA-0348"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {},
+      "steps": [
+        "Inspect real JSON completion event shape and duration."
+      ],
+      "expected": "ECS event has method/path/status/nonnegative duration and request ID",
+      "status": "PASS",
+      "actual": {
+        "@timestamp": "2026-10-23T20:05:32.460813662Z",
+        "log": {
+          "level": "INFO",
+          "logger": "com.lawdesk.platform.RequestCorrelationFilter"
+        },
+        "process": {
+          "pid": 1026615,
+          "thread": {
+            "name": "http-nio-127.0.0.1-38897-exec-6"
+          }
+        },
+        "service": {
+          "name": "lawdesk-backend",
+          "version": "0.0.1-SNAPSHOT",
+          "node": {}
+        },
+        "message": "request completed",
+        "requestId": "QA-INDEPENDENT-LOG-PROBE",
+        "http": {
+          "request": {
+            "method": "GET"
+          },
+          "response": {
+            "status_code": 200
+          }
+        },
+        "url": {
+          "path": "/actuator/health"
+        },
+        "event": {
+          "duration_ms": 27
+        },
+        "ecs": {
+          "version": "8.11"
+        }
+      },
+      "priority": "P1",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "ECS event has method/path/status/nonnegative duration and request ID"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "P1-LOG-REDACTION",
+      "baseline_case_ids": [
+        "QA-0348"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {},
+      "steps": [
+        "Search captured application log for synthetic query/Authorization sentinels."
+      ],
+      "expected": "Query strings and authorization values absent from logs",
+      "status": "PASS",
+      "actual": {
+        "leaked_markers": []
+      },
+      "priority": "P1",
+      "story_ids": [
+        "LD-002"
+      ],
+      "expected_results": [
+        "Query strings and authorization values absent from logs"
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    }
+  ],
+  "assertion_counts": {
+    "PASS": 47,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "baseline_case_promotion": "NONE: these are partial assertions under a proposed contract, not full-case passes"
+}

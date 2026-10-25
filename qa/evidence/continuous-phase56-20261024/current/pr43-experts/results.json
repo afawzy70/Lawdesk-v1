@@ -1,0 +1,1417 @@
+{
+  "tested_sha": "0db2befa642badfe262bc1edaeee287eb1b9fa43",
+  "utc": "2026-10-24T17:57:01.658222+00:00",
+  "candidate": "/tmp/lawdesk-continuous2-pr43-0db2befa",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 37,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "a2822bb8-4a87-4758-856c-435f80810d26",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-24T17:56:52.475709Z",
+          "updatedAt": "2026-10-24T17:56:52.475709Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "EXPERT-ANON",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "GET",
+        "path": "/api/v1/experts",
+        "body": null
+      },
+      "steps": [
+        "GET /api/v1/experts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 401,
+        "rule": null
+      },
+      "actual": {
+        "status": 401,
+        "body": {
+          "type": "about:blank",
+          "title": "Unauthorized",
+          "status": 401
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "EXPERT-DENIED",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/api/v1/experts",
+        "body": {}
+      },
+      "steps": [
+        "POST /api/v1/experts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 403,
+        "rule": null
+      },
+      "actual": {
+        "status": 403,
+        "body": {
+          "type": "about:blank",
+          "title": "Forbidden",
+          "status": 403
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "EXPERT-CREATE",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/api/v1/experts",
+        "body": {
+          "name": " QA Expert عربي ",
+          "specialty": "Engineering",
+          "office": "QA Office",
+          "phone": "+20 100 000 0000"
+        }
+      },
+      "steps": [
+        "POST /api/v1/experts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "ef213a46-5304-4cf3-aa16-4da307c6a194",
+          "name": "QA Expert عربي",
+          "specialty": "Engineering",
+          "office": "QA Office",
+          "phone": "+20 100 000 0000",
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-24T17:56:53.882574Z",
+          "updatedAt": "2026-10-24T17:56:53.882574Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "EXPERT-TRIM",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "EXPERT-TRIM"
+      },
+      "steps": [
+        "Read registry entry"
+      ],
+      "expected_results": "Normalized active version0",
+      "actual": {
+        "id": "ef213a46-5304-4cf3-aa16-4da307c6a194",
+        "name": "QA Expert عربي",
+        "specialty": "Engineering",
+        "office": "QA Office",
+        "phone": "+20 100 000 0000",
+        "active": true,
+        "version": 0,
+        "createdAt": "2026-10-24T17:56:53.882574Z",
+        "updatedAt": "2026-10-24T17:56:53.882574Z"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "EXPERT-INVALID-NAME",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/api/v1/experts",
+        "body": {
+          "name": " ",
+          "specialty": "QA"
+        }
+      },
+      "steps": [
+        "POST /api/v1/experts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/experts",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "code": "NotBlank",
+              "field": "name"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "EXPERT-INVALID-PHONE",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/api/v1/experts",
+        "body": {
+          "name": "QA",
+          "specialty": "QA",
+          "phone": "javascript:"
+        }
+      },
+      "steps": [
+        "POST /api/v1/experts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/experts",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "code": "Pattern",
+              "field": "phone"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REFERRAL-BEFORE-FILING",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/api/v1/proceedings/9d1a1d88-0094-4902-bc55-be45967fad50/expert-referrals",
+        "body": {
+          "expertId": "ef213a46-5304-4cf3-aa16-4da307c6a194",
+          "referralDate": "2026-01-01",
+          "mission": "QA private expert mission",
+          "reportDueDate": "2026-01-07"
+        }
+      },
+      "steps": [
+        "POST /api/v1/proceedings/9d1a1d88-0094-4902-bc55-be45967fad50/expert-referrals",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": null
+      },
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/proceedings/9d1a1d88-0094-4902-bc55-be45967fad50/expert-referrals",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "REFERRAL_BEFORE_FILING"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REFERRAL-DUE-BEFORE",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/api/v1/proceedings/9d1a1d88-0094-4902-bc55-be45967fad50/expert-referrals",
+        "body": {
+          "expertId": "ef213a46-5304-4cf3-aa16-4da307c6a194",
+          "referralDate": "2026-01-03",
+          "mission": "QA private expert mission",
+          "reportDueDate": "2026-01-02"
+        }
+      },
+      "steps": [
+        "POST /api/v1/proceedings/9d1a1d88-0094-4902-bc55-be45967fad50/expert-referrals",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": null
+      },
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/proceedings/9d1a1d88-0094-4902-bc55-be45967fad50/expert-referrals",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "REPORT_DUE_BEFORE_REFERRAL"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REFERRAL-CREATE",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/api/v1/proceedings/9d1a1d88-0094-4902-bc55-be45967fad50/expert-referrals",
+        "body": {
+          "expertId": "ef213a46-5304-4cf3-aa16-4da307c6a194",
+          "referralDate": "2026-01-03",
+          "mission": "QA private expert mission",
+          "reportDueDate": "2026-01-07"
+        }
+      },
+      "steps": [
+        "POST /api/v1/proceedings/9d1a1d88-0094-4902-bc55-be45967fad50/expert-referrals",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "44fd2720-fa7f-45d1-825f-814b9f46f2e9",
+          "caseId": "9ea3d9d9-50e6-465b-9c03-dd1edb1a8018",
+          "caseReferenceNo": "QA56-001",
+          "caseTitle": "QA phase56",
+          "proceedingId": "9d1a1d88-0094-4902-bc55-be45967fad50",
+          "stage": "FIRST_INSTANCE",
+          "courtCaseNumber": "QA2",
+          "courtCaseYear": 2026,
+          "expertId": "ef213a46-5304-4cf3-aa16-4da307c6a194",
+          "expertName": "QA Expert عربي",
+          "expertSpecialty": "Engineering",
+          "referralDate": "2026-01-03",
+          "mission": "QA private expert mission",
+          "reportDueDate": "2026-01-07",
+          "status": "OPEN",
+          "reportSubmittedDate": null,
+          "reportOverdue": true,
+          "sessions": [],
+          "version": 0,
+          "createdAt": "2026-10-24T17:56:55.057746Z",
+          "updatedAt": "2026-10-24T17:56:55.057746Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REFERRAL-CONSISTENCY",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "REFERRAL-CONSISTENCY"
+      },
+      "steps": [
+        "Read created referral"
+      ],
+      "expected_results": "Same case/proceeding/expert",
+      "actual": {
+        "id": "44fd2720-fa7f-45d1-825f-814b9f46f2e9",
+        "caseId": "9ea3d9d9-50e6-465b-9c03-dd1edb1a8018",
+        "caseReferenceNo": "QA56-001",
+        "caseTitle": "QA phase56",
+        "proceedingId": "9d1a1d88-0094-4902-bc55-be45967fad50",
+        "stage": "FIRST_INSTANCE",
+        "courtCaseNumber": "QA2",
+        "courtCaseYear": 2026,
+        "expertId": "ef213a46-5304-4cf3-aa16-4da307c6a194",
+        "expertName": "QA Expert عربي",
+        "expertSpecialty": "Engineering",
+        "referralDate": "2026-01-03",
+        "mission": "QA private expert mission",
+        "reportDueDate": "2026-01-07",
+        "status": "OPEN",
+        "reportSubmittedDate": null,
+        "reportOverdue": true,
+        "sessions": [],
+        "version": 0,
+        "createdAt": "2026-10-24T17:56:55.057746Z",
+        "updatedAt": "2026-10-24T17:56:55.057746Z"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "SESSION-BEFORE-REFERRAL",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/api/v1/expert-referrals/44fd2720-fa7f-45d1-825f-814b9f46f2e9/sessions",
+        "body": {
+          "sessionDate": "2026-01-02"
+        }
+      },
+      "steps": [
+        "POST /api/v1/expert-referrals/44fd2720-fa7f-45d1-825f-814b9f46f2e9/sessions",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": null
+      },
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/expert-referrals/44fd2720-fa7f-45d1-825f-814b9f46f2e9/sessions",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "SESSION_BEFORE_REFERRAL"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "SESSION-CREATE",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/api/v1/expert-referrals/44fd2720-fa7f-45d1-825f-814b9f46f2e9/sessions",
+        "body": {
+          "sessionDate": "2026-01-05",
+          "sessionTime": "09:30",
+          "location": "QA room",
+          "notes": "QA private session"
+        }
+      },
+      "steps": [
+        "POST /api/v1/expert-referrals/44fd2720-fa7f-45d1-825f-814b9f46f2e9/sessions",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "44fd2720-fa7f-45d1-825f-814b9f46f2e9",
+          "caseId": "9ea3d9d9-50e6-465b-9c03-dd1edb1a8018",
+          "caseReferenceNo": "QA56-001",
+          "caseTitle": "QA phase56",
+          "proceedingId": "9d1a1d88-0094-4902-bc55-be45967fad50",
+          "stage": "FIRST_INSTANCE",
+          "courtCaseNumber": "QA2",
+          "courtCaseYear": 2026,
+          "expertId": "ef213a46-5304-4cf3-aa16-4da307c6a194",
+          "expertName": "QA Expert عربي",
+          "expertSpecialty": "Engineering",
+          "referralDate": "2026-01-03",
+          "mission": "QA private expert mission",
+          "reportDueDate": "2026-01-07",
+          "status": "OPEN",
+          "reportSubmittedDate": null,
+          "reportOverdue": true,
+          "sessions": [
+            {
+              "id": "cf7ed08f-74f6-49b8-8152-ded2b590e216",
+              "sessionDate": "2026-01-05",
+              "sessionTime": "09:30",
+              "location": "QA room",
+              "notes": "QA private session",
+              "createdAt": "2026-10-24T17:56:55.369537Z"
+            }
+          ],
+          "version": 1,
+          "createdAt": "2026-10-24T17:56:55.057746Z",
+          "updatedAt": "2026-10-24T17:56:55.369537Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "SESSION-PERSISTENCE",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "SESSION-PERSISTENCE"
+      },
+      "steps": [
+        "Read referral sessions"
+      ],
+      "expected_results": "One exact session",
+      "actual": {
+        "id": "44fd2720-fa7f-45d1-825f-814b9f46f2e9",
+        "caseId": "9ea3d9d9-50e6-465b-9c03-dd1edb1a8018",
+        "caseReferenceNo": "QA56-001",
+        "caseTitle": "QA phase56",
+        "proceedingId": "9d1a1d88-0094-4902-bc55-be45967fad50",
+        "stage": "FIRST_INSTANCE",
+        "courtCaseNumber": "QA2",
+        "courtCaseYear": 2026,
+        "expertId": "ef213a46-5304-4cf3-aa16-4da307c6a194",
+        "expertName": "QA Expert عربي",
+        "expertSpecialty": "Engineering",
+        "referralDate": "2026-01-03",
+        "mission": "QA private expert mission",
+        "reportDueDate": "2026-01-07",
+        "status": "OPEN",
+        "reportSubmittedDate": null,
+        "reportOverdue": true,
+        "sessions": [
+          {
+            "id": "cf7ed08f-74f6-49b8-8152-ded2b590e216",
+            "sessionDate": "2026-01-05",
+            "sessionTime": "09:30",
+            "location": "QA room",
+            "notes": "QA private session",
+            "createdAt": "2026-10-24T17:56:55.369537Z"
+          }
+        ],
+        "version": 1,
+        "createdAt": "2026-10-24T17:56:55.057746Z",
+        "updatedAt": "2026-10-24T17:56:55.369537Z"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REPORT-STALE",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/api/v1/expert-referrals/44fd2720-fa7f-45d1-825f-814b9f46f2e9/report",
+        "body": {
+          "reportSubmittedDate": "2026-01-06",
+          "version": -1
+        }
+      },
+      "steps": [
+        "POST /api/v1/expert-referrals/44fd2720-fa7f-45d1-825f-814b9f46f2e9/report",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 409,
+        "rule": null
+      },
+      "actual": {
+        "status": 409,
+        "body": {
+          "instance": "/api/v1/expert-referrals/44fd2720-fa7f-45d1-825f-814b9f46f2e9/report",
+          "status": 409,
+          "title": "Conflict",
+          "type": "about:blank"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REPORT-SUBMIT",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/api/v1/expert-referrals/44fd2720-fa7f-45d1-825f-814b9f46f2e9/report",
+        "body": {
+          "reportSubmittedDate": "2026-01-06",
+          "version": 1
+        }
+      },
+      "steps": [
+        "POST /api/v1/expert-referrals/44fd2720-fa7f-45d1-825f-814b9f46f2e9/report",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "id": "44fd2720-fa7f-45d1-825f-814b9f46f2e9",
+          "caseId": "9ea3d9d9-50e6-465b-9c03-dd1edb1a8018",
+          "caseReferenceNo": "QA56-001",
+          "caseTitle": "QA phase56",
+          "proceedingId": "9d1a1d88-0094-4902-bc55-be45967fad50",
+          "stage": "FIRST_INSTANCE",
+          "courtCaseNumber": "QA2",
+          "courtCaseYear": 2026,
+          "expertId": "ef213a46-5304-4cf3-aa16-4da307c6a194",
+          "expertName": "QA Expert عربي",
+          "expertSpecialty": "Engineering",
+          "referralDate": "2026-01-03",
+          "mission": "QA private expert mission",
+          "reportDueDate": "2026-01-07",
+          "status": "REPORT_SUBMITTED",
+          "reportSubmittedDate": "2026-01-06",
+          "reportOverdue": false,
+          "sessions": [
+            {
+              "id": "cf7ed08f-74f6-49b8-8152-ded2b590e216",
+              "sessionDate": "2026-01-05",
+              "sessionTime": "09:30",
+              "location": "QA room",
+              "notes": "QA private session",
+              "createdAt": "2026-10-24T17:56:55.369537Z"
+            }
+          ],
+          "version": 2,
+          "createdAt": "2026-10-24T17:56:55.057746Z",
+          "updatedAt": "2026-10-24T17:56:55.668087Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "SESSION-CLOSED",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/api/v1/expert-referrals/44fd2720-fa7f-45d1-825f-814b9f46f2e9/sessions",
+        "body": {
+          "sessionDate": "2026-01-07"
+        }
+      },
+      "steps": [
+        "POST /api/v1/expert-referrals/44fd2720-fa7f-45d1-825f-814b9f46f2e9/sessions",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": "REFERRAL_CLOSED"
+      },
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/expert-referrals/44fd2720-fa7f-45d1-825f-814b9f46f2e9/sessions",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "REFERRAL_CLOSED"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REFERRAL-TERMINAL",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/api/v1/expert-referrals/44fd2720-fa7f-45d1-825f-814b9f46f2e9/cancel",
+        "body": {
+          "version": 2
+        }
+      },
+      "steps": [
+        "POST /api/v1/expert-referrals/44fd2720-fa7f-45d1-825f-814b9f46f2e9/cancel",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": "REFERRAL_CLOSED"
+      },
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/expert-referrals/44fd2720-fa7f-45d1-825f-814b9f46f2e9/cancel",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "REFERRAL_CLOSED"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REFERRAL-PARENT-CHRONOLOGY",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "PUT",
+        "path": "/api/v1/proceedings/9d1a1d88-0094-4902-bc55-be45967fad50",
+        "body": {
+          "courtId": "a2822bb8-4a87-4758-856c-435f80810d26",
+          "courtCaseNumber": "QA2",
+          "courtCaseYear": 2026,
+          "filingDate": "2026-01-04",
+          "version": 0
+        }
+      },
+      "steps": [
+        "PUT /api/v1/proceedings/9d1a1d88-0094-4902-bc55-be45967fad50",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": null
+      },
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/proceedings/9d1a1d88-0094-4902-bc55-be45967fad50",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "FILING_AFTER_DEPENDENT_REFERRAL"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REFERRAL-CHRONOLOGY-PERSISTED",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "REFERRAL-CHRONOLOGY-PERSISTED"
+      },
+      "steps": [
+        "Read persisted parent/referral dates"
+      ],
+      "expected_results": "0 invalid chronology",
+      "actual": "0",
+      "status": "PASS"
+    },
+    {
+      "id": "REFERRAL-DB-CASE-CONSISTENCY",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "REFERRAL-DB-CASE-CONSISTENCY"
+      },
+      "steps": [
+        "Try mismatched case_id via SQL transaction"
+      ],
+      "expected_results": "Database rejects case/proceeding mismatch",
+      "actual": 1,
+      "status": "PASS"
+    },
+    {
+      "id": "REFERRAL-RACE-FIXTURE",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/api/v1/proceedings/1343ec17-1153-4643-83b5-44d7ab12ac41/expert-referrals",
+        "body": {
+          "expertId": "ef213a46-5304-4cf3-aa16-4da307c6a194",
+          "referralDate": "2026-01-03",
+          "mission": "QA private expert mission",
+          "reportDueDate": "2026-01-07"
+        }
+      },
+      "steps": [
+        "POST /api/v1/proceedings/1343ec17-1153-4643-83b5-44d7ab12ac41/expert-referrals",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "b267d566-cac4-48c1-be19-4f86aba4470a",
+          "caseId": "420de80b-ddc2-430b-bdc3-959777d1f228",
+          "caseReferenceNo": "QA56-003",
+          "caseTitle": "QA expert other",
+          "proceedingId": "1343ec17-1153-4643-83b5-44d7ab12ac41",
+          "stage": "FIRST_INSTANCE",
+          "courtCaseNumber": "QA4",
+          "courtCaseYear": 2026,
+          "expertId": "ef213a46-5304-4cf3-aa16-4da307c6a194",
+          "expertName": "QA Expert عربي",
+          "expertSpecialty": "Engineering",
+          "referralDate": "2026-01-03",
+          "mission": "QA private expert mission",
+          "reportDueDate": "2026-01-07",
+          "status": "OPEN",
+          "reportSubmittedDate": null,
+          "reportOverdue": true,
+          "sessions": [],
+          "version": 0,
+          "createdAt": "2026-10-24T17:56:56.438986Z",
+          "updatedAt": "2026-10-24T17:56:56.438986Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REFERRAL-RACE-TERMINAL",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "REFERRAL-RACE-TERMINAL"
+      },
+      "steps": [
+        "Race report and cancel at same version"
+      ],
+      "expected_results": "200/409",
+      "actual": [
+        200,
+        409
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "REFERRAL-ROLLBACK",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "REFERRAL-ROLLBACK"
+      },
+      "steps": [
+        "Fail timeline then create referral"
+      ],
+      "expected_results": "500 and no persisted rows/events",
+      "actual": {
+        "status": 500,
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REFERRAL-CHRONOLOGY-RACE-0",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "REFERRAL-CHRONOLOGY-RACE-0"
+      },
+      "steps": [
+        "Race parent filing correction with earlier referral creation"
+      ],
+      "expected_results": "One200/422 or422/201; no invalid persisted pair",
+      "actual": {
+        "statuses": [
+          422,
+          201
+        ],
+        "invalid_rows": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REFERRAL-CHRONOLOGY-RACE-1",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "REFERRAL-CHRONOLOGY-RACE-1"
+      },
+      "steps": [
+        "Race parent filing correction with earlier referral creation"
+      ],
+      "expected_results": "One200/422 or422/201; no invalid persisted pair",
+      "actual": {
+        "statuses": [
+          200,
+          422
+        ],
+        "invalid_rows": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REFERRAL-CHRONOLOGY-RACE-2",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "REFERRAL-CHRONOLOGY-RACE-2"
+      },
+      "steps": [
+        "Race parent filing correction with earlier referral creation"
+      ],
+      "expected_results": "One200/422 or422/201; no invalid persisted pair",
+      "actual": {
+        "statuses": [
+          200,
+          422
+        ],
+        "invalid_rows": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REFERRAL-CHRONOLOGY-RACE-3",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "REFERRAL-CHRONOLOGY-RACE-3"
+      },
+      "steps": [
+        "Race parent filing correction with earlier referral creation"
+      ],
+      "expected_results": "One200/422 or422/201; no invalid persisted pair",
+      "actual": {
+        "statuses": [
+          422,
+          201
+        ],
+        "invalid_rows": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REFERRAL-CHRONOLOGY-RACE-4",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "REFERRAL-CHRONOLOGY-RACE-4"
+      },
+      "steps": [
+        "Race parent filing correction with earlier referral creation"
+      ],
+      "expected_results": "One200/422 or422/201; no invalid persisted pair",
+      "actual": {
+        "statuses": [
+          422,
+          201
+        ],
+        "invalid_rows": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REFERRAL-CHRONOLOGY-RACE-5",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "REFERRAL-CHRONOLOGY-RACE-5"
+      },
+      "steps": [
+        "Race parent filing correction with earlier referral creation"
+      ],
+      "expected_results": "One200/422 or422/201; no invalid persisted pair",
+      "actual": {
+        "statuses": [
+          422,
+          201
+        ],
+        "invalid_rows": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REFERRAL-CANCELLED-FIXTURE",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/api/v1/proceedings/79fdbb9a-5b8a-42c7-b886-2e70e6516a95/expert-referrals",
+        "body": {
+          "expertId": "ef213a46-5304-4cf3-aa16-4da307c6a194",
+          "referralDate": "2026-01-03",
+          "mission": "QA private expert mission",
+          "reportDueDate": "2026-01-07"
+        }
+      },
+      "steps": [
+        "POST /api/v1/proceedings/79fdbb9a-5b8a-42c7-b886-2e70e6516a95/expert-referrals",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "21b23d8c-c2fa-486d-88b3-c5b694c11b75",
+          "caseId": "ca92cf4f-ac14-48a2-a7bc-5d841dadddb1",
+          "caseReferenceNo": "QA56-017",
+          "caseTitle": "QA cancelled expert history",
+          "proceedingId": "79fdbb9a-5b8a-42c7-b886-2e70e6516a95",
+          "stage": "FIRST_INSTANCE",
+          "courtCaseNumber": "QA18",
+          "courtCaseYear": 2026,
+          "expertId": "ef213a46-5304-4cf3-aa16-4da307c6a194",
+          "expertName": "QA Expert عربي",
+          "expertSpecialty": "Engineering",
+          "referralDate": "2026-01-03",
+          "mission": "QA private expert mission",
+          "reportDueDate": "2026-01-07",
+          "status": "OPEN",
+          "reportSubmittedDate": null,
+          "reportOverdue": true,
+          "sessions": [],
+          "version": 0,
+          "createdAt": "2026-10-24T17:57:00.990418Z",
+          "updatedAt": "2026-10-24T17:57:00.990418Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REFERRAL-CANCELLED-RESULT",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/api/v1/expert-referrals/21b23d8c-c2fa-486d-88b3-c5b694c11b75/cancel",
+        "body": {
+          "version": 0
+        }
+      },
+      "steps": [
+        "POST /api/v1/expert-referrals/21b23d8c-c2fa-486d-88b3-c5b694c11b75/cancel",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "id": "21b23d8c-c2fa-486d-88b3-c5b694c11b75",
+          "caseId": "ca92cf4f-ac14-48a2-a7bc-5d841dadddb1",
+          "caseReferenceNo": "QA56-017",
+          "caseTitle": "QA cancelled expert history",
+          "proceedingId": "79fdbb9a-5b8a-42c7-b886-2e70e6516a95",
+          "stage": "FIRST_INSTANCE",
+          "courtCaseNumber": "QA18",
+          "courtCaseYear": 2026,
+          "expertId": "ef213a46-5304-4cf3-aa16-4da307c6a194",
+          "expertName": "QA Expert عربي",
+          "expertSpecialty": "Engineering",
+          "referralDate": "2026-01-03",
+          "mission": "QA private expert mission",
+          "reportDueDate": "2026-01-07",
+          "status": "CANCELLED",
+          "reportSubmittedDate": null,
+          "reportOverdue": false,
+          "sessions": [],
+          "version": 1,
+          "createdAt": "2026-10-24T17:57:00.990418Z",
+          "updatedAt": "2026-10-24T17:57:01.120106Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REFERRAL-CANCELLED-PARENT",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "PUT",
+        "path": "/api/v1/proceedings/79fdbb9a-5b8a-42c7-b886-2e70e6516a95",
+        "body": {
+          "courtId": "a2822bb8-4a87-4758-856c-435f80810d26",
+          "courtCaseNumber": "QA18",
+          "courtCaseYear": 2026,
+          "filingDate": "2026-01-04",
+          "version": 0
+        }
+      },
+      "steps": [
+        "PUT /api/v1/proceedings/79fdbb9a-5b8a-42c7-b886-2e70e6516a95",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": null
+      },
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/proceedings/79fdbb9a-5b8a-42c7-b886-2e70e6516a95",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "FILING_AFTER_DEPENDENT_REFERRAL"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REFERRAL-CANCELLED-HISTORY",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "REFERRAL-CANCELLED-HISTORY"
+      },
+      "steps": [
+        "Attempt to invalidate cancelled referral date"
+      ],
+      "expected_results": "Referral and history unchanged",
+      "actual": {
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "EXPERT-DEACTIVATE",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "PUT",
+        "path": "/api/v1/experts/ef213a46-5304-4cf3-aa16-4da307c6a194",
+        "body": {
+          "name": "QA Expert عربي",
+          "specialty": "Engineering",
+          "active": false,
+          "version": 0
+        }
+      },
+      "steps": [
+        "PUT /api/v1/experts/ef213a46-5304-4cf3-aa16-4da307c6a194",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "id": "ef213a46-5304-4cf3-aa16-4da307c6a194",
+          "name": "QA Expert عربي",
+          "specialty": "Engineering",
+          "office": null,
+          "phone": null,
+          "active": false,
+          "version": 1,
+          "createdAt": "2026-10-24T17:56:53.882574Z",
+          "updatedAt": "2026-10-24T17:57:01.451888Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "EXPERT-INACTIVE-REFERRAL",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/api/v1/proceedings/1343ec17-1153-4643-83b5-44d7ab12ac41/expert-referrals",
+        "body": {
+          "expertId": "ef213a46-5304-4cf3-aa16-4da307c6a194",
+          "referralDate": "2026-01-03",
+          "mission": "QA private expert mission",
+          "reportDueDate": "2026-01-07"
+        }
+      },
+      "steps": [
+        "POST /api/v1/proceedings/1343ec17-1153-4643-83b5-44d7ab12ac41/expert-referrals",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": "EXPERT_INACTIVE"
+      },
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/proceedings/1343ec17-1153-4643-83b5-44d7ab12ac41/expert-referrals",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "EXPERT_INACTIVE"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "EXPERT-TIMELINE-PRIVACY",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "EXPERT-TIMELINE-PRIVACY"
+      },
+      "steps": [
+        "Inspect expert timeline summaries"
+      ],
+      "expected_results": "Mission/session notes absent",
+      "actual": {
+        "private_text": false
+      },
+      "status": "PASS"
+    }
+  ]
+}

@@ -1,0 +1,653 @@
+{
+  "tested_sha": "2d07a222189f82ddeacf74fdcd28165980cea85d",
+  "utc": "2026-10-25T13:44:54.797214+00:00",
+  "candidate": "/tmp/lawdesk-r54-candidate",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 11,
+    "FAIL": 11,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "627f2445-7131-4f91-8443-ad3b5688e1f1",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-25T13:44:37.152818Z",
+          "updatedAt": "2026-10-25T13:44:37.152818Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "AUDIT-COMMIT-USER-UPDATE",
+      "story_ids": [
+        "LD-008",
+        "LD-009",
+        "LD-010",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "AUDIT-COMMIT-USER-UPDATE"
+      },
+      "steps": [
+        "Snapshot owned business state/audit -> install deferred COMMIT failure on app_user -> authenticated operation -> remove fault -> compare committed state"
+      ],
+      "expected_results": "500; business state unchanged; no SUCCESS events for rolled-back operation",
+      "actual": {
+        "http_status": 500,
+        "business_snapshot_unchanged": true,
+        "success_audit_delta": {
+          "USER_UPDATE": 1
+        }
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "AUDIT-COMMIT-USER-DISABLE",
+      "story_ids": [
+        "LD-008",
+        "LD-009",
+        "LD-010",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "AUDIT-COMMIT-USER-DISABLE"
+      },
+      "steps": [
+        "Snapshot owned business state/audit -> install deferred COMMIT failure on app_user -> authenticated operation -> remove fault -> compare committed state"
+      ],
+      "expected_results": "500; business state unchanged; no SUCCESS events for rolled-back operation",
+      "actual": {
+        "http_status": 500,
+        "business_snapshot_unchanged": true,
+        "success_audit_delta": {
+          "USER_DISABLE": 1
+        }
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "AUDIT-COMMIT-USER-ROLES",
+      "story_ids": [
+        "LD-008",
+        "LD-009",
+        "LD-010",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "AUDIT-COMMIT-USER-ROLES"
+      },
+      "steps": [
+        "Snapshot owned business state/audit -> install deferred COMMIT failure on app_user -> authenticated operation -> remove fault -> compare committed state"
+      ],
+      "expected_results": "500; business state unchanged; no SUCCESS events for rolled-back operation",
+      "actual": {
+        "http_status": 500,
+        "business_snapshot_unchanged": true,
+        "success_audit_delta": {
+          "USER_ROLES_CHANGE": 1
+        }
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "AUDIT-COMMIT-PASSWORD-RESET",
+      "story_ids": [
+        "LD-008",
+        "LD-009",
+        "LD-010",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "AUDIT-COMMIT-PASSWORD-RESET"
+      },
+      "steps": [
+        "Snapshot owned business state/audit -> install deferred COMMIT failure on app_user -> authenticated operation -> remove fault -> compare committed state"
+      ],
+      "expected_results": "500; business state unchanged; no SUCCESS events for rolled-back operation",
+      "actual": {
+        "http_status": 500,
+        "business_snapshot_unchanged": true,
+        "success_audit_delta": {
+          "PASSWORD_RESET": 1
+        }
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "AUDIT-COMMIT-USER-ENABLE",
+      "story_ids": [
+        "LD-008",
+        "LD-009",
+        "LD-010",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "AUDIT-COMMIT-USER-ENABLE"
+      },
+      "steps": [
+        "Snapshot owned business state/audit -> install deferred COMMIT failure on app_user -> authenticated operation -> remove fault -> compare committed state"
+      ],
+      "expected_results": "500; business state unchanged; no SUCCESS events for rolled-back operation",
+      "actual": {
+        "http_status": 500,
+        "business_snapshot_unchanged": true,
+        "success_audit_delta": {
+          "USER_ENABLE": 1
+        }
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "AUDIT-COMMIT-USER-CREATE",
+      "story_ids": [
+        "LD-008",
+        "LD-009",
+        "LD-010",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "AUDIT-COMMIT-USER-CREATE"
+      },
+      "steps": [
+        "Snapshot owned business state/audit -> install deferred COMMIT failure on app_user -> authenticated operation -> remove fault -> compare committed state"
+      ],
+      "expected_results": "500; business state unchanged; no SUCCESS events for rolled-back operation",
+      "actual": {
+        "http_status": 500,
+        "business_snapshot_unchanged": true,
+        "success_audit_delta": {
+          "USER_CREATE": 1
+        }
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "AUDIT-COMMIT-ROLE-CREATE",
+      "story_ids": [
+        "LD-008",
+        "LD-009",
+        "LD-010",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "AUDIT-COMMIT-ROLE-CREATE"
+      },
+      "steps": [
+        "Snapshot owned business state/audit -> install deferred COMMIT failure on app_role -> authenticated operation -> remove fault -> compare committed state"
+      ],
+      "expected_results": "500; business state unchanged; no SUCCESS events for rolled-back operation",
+      "actual": {
+        "http_status": 500,
+        "business_snapshot_unchanged": true,
+        "success_audit_delta": {
+          "ROLE_CREATE": 1
+        }
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "AUDIT-COMMIT-ROLE-NAME",
+      "story_ids": [
+        "LD-008",
+        "LD-009",
+        "LD-010",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "AUDIT-COMMIT-ROLE-NAME"
+      },
+      "steps": [
+        "Snapshot owned business state/audit -> install deferred COMMIT failure on app_role -> authenticated operation -> remove fault -> compare committed state"
+      ],
+      "expected_results": "500; business state unchanged; no SUCCESS events for rolled-back operation",
+      "actual": {
+        "http_status": 500,
+        "business_snapshot_unchanged": true,
+        "success_audit_delta": {
+          "ROLE_UPDATE": 1
+        }
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "AUDIT-COMMIT-ROLE-PERMISSIONS",
+      "story_ids": [
+        "LD-008",
+        "LD-009",
+        "LD-010",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "AUDIT-COMMIT-ROLE-PERMISSIONS"
+      },
+      "steps": [
+        "Snapshot owned business state/audit -> install deferred COMMIT failure on app_role -> authenticated operation -> remove fault -> compare committed state"
+      ],
+      "expected_results": "500; business state unchanged; no SUCCESS events for rolled-back operation",
+      "actual": {
+        "http_status": 500,
+        "business_snapshot_unchanged": true,
+        "success_audit_delta": {
+          "ROLE_UPDATE": 1,
+          "ROLE_PERMISSIONS_CHANGE": 1
+        }
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "AUDIT-ROLE-DEPENDENT-WRITE-ROLLBACK",
+      "story_ids": [
+        "LD-008",
+        "LD-009",
+        "LD-010",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "AUDIT-ROLE-DEPENDENT-WRITE-ROLLBACK"
+      },
+      "steps": [
+        "Snapshot owned business state/audit -> install immediate dependent-write failure on role_permission -> authenticated operation -> remove fault -> compare committed state"
+      ],
+      "expected_results": "500; business state unchanged; no SUCCESS events for rolled-back operation",
+      "actual": {
+        "http_status": 500,
+        "business_snapshot_unchanged": true,
+        "success_audit_delta": {
+          "ROLE_UPDATE": 1,
+          "ROLE_PERMISSIONS_CHANGE": 0
+        }
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "AUDIT-COMMITTED-USER-UPDATE",
+      "story_ids": [
+        "LD-008",
+        "LD-009",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "AUDIT-COMMITTED-USER-UPDATE"
+      },
+      "steps": [
+        "PUT owned user operation without fault -> inspect event delta"
+      ],
+      "expected_results": "Expected success and exactly one audit per committed operation",
+      "actual": {
+        "status": 200,
+        "delta": {
+          "USER_UPDATE": 1
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "AUDIT-COMMITTED-USER-DISABLE",
+      "story_ids": [
+        "LD-008",
+        "LD-009",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "AUDIT-COMMITTED-USER-DISABLE"
+      },
+      "steps": [
+        "PUT owned user operation without fault -> inspect event delta"
+      ],
+      "expected_results": "Expected success and exactly one audit per committed operation",
+      "actual": {
+        "status": 200,
+        "delta": {
+          "USER_DISABLE": 1
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "AUDIT-COMMITTED-USER-ROLES",
+      "story_ids": [
+        "LD-008",
+        "LD-009",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "AUDIT-COMMITTED-USER-ROLES"
+      },
+      "steps": [
+        "PUT owned user operation without fault -> inspect event delta"
+      ],
+      "expected_results": "Expected success and exactly one audit per committed operation",
+      "actual": {
+        "status": 200,
+        "delta": {
+          "USER_ROLES_CHANGE": 1
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "AUDIT-COMMITTED-PASSWORD-RESET",
+      "story_ids": [
+        "LD-008",
+        "LD-009",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "AUDIT-COMMITTED-PASSWORD-RESET"
+      },
+      "steps": [
+        "POST owned user operation without fault -> inspect event delta"
+      ],
+      "expected_results": "Expected success and exactly one audit per committed operation",
+      "actual": {
+        "status": 204,
+        "delta": {
+          "PASSWORD_RESET": 1
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "AUDIT-COMMITTED-ROLE",
+      "story_ids": [
+        "LD-010",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "AUDIT-COMMITTED-ROLE"
+      },
+      "steps": [
+        "Commit role name/permissions update -> compare audit"
+      ],
+      "expected_results": "200; one ROLE_UPDATE and one ROLE_PERMISSIONS_CHANGE",
+      "actual": {
+        "status": 200,
+        "delta": {
+          "ROLE_UPDATE": 1,
+          "ROLE_PERMISSIONS_CHANGE": 1
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "AUDIT-PASSWORD-FAILED-ATTEMPT-DURABLE",
+      "story_ids": [
+        "LD-008",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "AUDIT-PASSWORD-FAILED-ATTEMPT-DURABLE"
+      },
+      "steps": [
+        "Wrong current password -> rejected request -> read FAILURE event"
+      ],
+      "expected_results": "400; password state unchanged; one durable BAD_CURRENT_PASSWORD FAILURE",
+      "actual": {
+        "status": 400,
+        "unchanged": true,
+        "failure_delta": 1
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "AUDIT-PASSWORD-DB-COMMIT-FAILURE",
+      "story_ids": [
+        "LD-008",
+        "LD-009",
+        "LD-010",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "AUDIT-PASSWORD-DB-COMMIT-FAILURE"
+      },
+      "steps": [
+        "Snapshot owned business state/audit -> install deferred COMMIT failure on app_user -> authenticated operation -> remove fault -> compare committed state"
+      ],
+      "expected_results": "500; business state unchanged; no SUCCESS events for rolled-back operation",
+      "actual": {
+        "http_status": 500,
+        "business_snapshot_unchanged": true,
+        "success_audit_delta": {
+          "PASSWORD_CHANGE": 0
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "AUDIT-PASSWORD-AUDIT-FAILURE-ATOMICITY",
+      "story_ids": [
+        "LD-008",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "AUDIT-PASSWORD-AUDIT-FAILURE-ATOMICITY"
+      },
+      "steps": [
+        "Reject only PASSWORD_CHANGE SUCCESS audit insert -> change own password -> inspect DB and authenticate new password"
+      ],
+      "expected_results": "Failed audited operation must not leave committed unaudited password change",
+      "actual": {
+        "status": 500,
+        "business_snapshot_unchanged": false,
+        "success_audit_delta": 0,
+        "new_password_authenticates": true
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "AUDIT-PASSWORD-COMMITTED",
+      "story_ids": [
+        "LD-008",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "AUDIT-PASSWORD-COMMITTED"
+      },
+      "steps": [
+        "Valid own password change with functioning audit"
+      ],
+      "expected_results": "204; exactly one SUCCESS",
+      "actual": {
+        "status": 204,
+        "delta": 1
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "AUDIT-LOGIN-FAILURE-DURABLE",
+      "story_ids": [
+        "LD-007",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "AUDIT-LOGIN-FAILURE-DURABLE"
+      },
+      "steps": [
+        "Unknown login request ->401 -> read audit"
+      ],
+      "expected_results": "401 and one durable FAILURE independent of refused request",
+      "actual": {
+        "status": 401,
+        "failure_delta": 1
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "AUDIT-ACCESS-DENIAL-DURABLE",
+      "story_ids": [
+        "LD-010",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "AUDIT-ACCESS-DENIAL-DURABLE"
+      },
+      "steps": [
+        "No-permission client POST users ->403 -> read audit"
+      ],
+      "expected_results": "403 and durable DENIED; do not roll back security evidence",
+      "actual": {
+        "status": 403,
+        "denied_delta": 1
+      },
+      "status": "PASS"
+    }
+  ]
+}

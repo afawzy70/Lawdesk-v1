@@ -1,0 +1,93 @@
+{
+  "utc": "2026-10-24T05:25:08.638177+00:00",
+  "scope_counts": {
+    "BLOCKED": 3,
+    "NOT_RUN": 5
+  },
+  "cases": [
+    {
+      "id": "UAT-AUTHENTICATED-SECURITY",
+      "story_ids": [
+        "LD-007",
+        "LD-008",
+        "LD-009",
+        "LD-010",
+        "LD-011"
+      ],
+      "status": "BLOCKED",
+      "reason": "No approved UAT test account/session available; no bootstrap secret read or credential guessing"
+    },
+    {
+      "id": "UAT-CASE-WRITES",
+      "story_ids": [
+        "LD-012",
+        "LD-013",
+        "LD-014",
+        "LD-015",
+        "LD-016",
+        "LD-017"
+      ],
+      "status": "BLOCKED",
+      "reason": "No approved UAT test account; routing/integration also incomplete; local API tests are not UAT write evidence"
+    },
+    {
+      "id": "UAT-FULL-JUDICIAL-JOURNEY",
+      "story_ids": [
+        "LD-018",
+        "LD-019",
+        "LD-020",
+        "LD-021",
+        "LD-022",
+        "LD-023"
+      ],
+      "status": "NOT_RUN",
+      "reason": "PR17/19 judicial functionality not merged at tested develop; critical chronology defect open"
+    },
+    {
+      "id": "ROLE-CREATE-EDIT",
+      "story_ids": [
+        "LD-009"
+      ],
+      "status": "NOT_RUN",
+      "reason": "Current user-admin slice only lists roles; role create/edit not delivered"
+    },
+    {
+      "id": "AUDIT-BROWSING",
+      "story_ids": [
+        "LD-011"
+      ],
+      "status": "NOT_RUN",
+      "reason": "Current source has audit writing but no independently tested delivered browsing endpoint"
+    },
+    {
+      "id": "REAL-CONTAINER-QA",
+      "story_ids": [
+        "LD-004",
+        "LD-006"
+      ],
+      "status": "BLOCKED",
+      "reason": "Local QA Docker access previously denied; successful developer CI/UAT supporting context does not become independent local container PASS; nonblocking ordinary Dev/UAT"
+    },
+    {
+      "id": "MANUAL-CROSS-BROWSER-ACCESSIBILITY",
+      "story_ids": [
+        "LD-035",
+        "LD-036",
+        "LD-037"
+      ],
+      "status": "NOT_RUN",
+      "reason": "Chromium and axe login subset only; no Safari/WebKit/manual reader certification; not a Dev/UAT deployment gate"
+    },
+    {
+      "id": "DIRECT-UAT-BACKEND-SHA-ATTESTATION",
+      "story_ids": [
+        "LD-006"
+      ],
+      "status": "NOT_RUN",
+      "reason": "Deploy job reports exact develop success and frontend build matches; no authenticated runtime backend commit attestation read"
+    }
+  ],
+  "planned_specifications": "qa/independent/phase234-next-specifications.json;17 further NOT_RUN designs, counted separately",
+  "baseline": "qa/defects/baseline-findings.json retained; no351-case blanket promotion",
+  "policy": "Approved Dev/UAT: production-only checks are not ordinary deploy blockers; critical functional/security/data-integrity findings are flagged"
+}

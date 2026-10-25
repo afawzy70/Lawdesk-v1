@@ -1,0 +1,557 @@
+{
+  "tested_sha": "2d07a222189f82ddeacf74fdcd28165980cea85d",
+  "utc": "2026-10-25T13:42:28.829348+00:00",
+  "candidate": "/tmp/lawdesk-r54-candidate",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 20,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "98c7c52a-be4e-41d7-81de-c5a47ba7d9cd",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-25T13:42:11.168032Z",
+          "updatedAt": "2026-10-25T13:42:11.168032Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "QAD039-9999-csv-RESPONSE",
+      "story_ids": [
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "QAD039-9999-csv-RESPONSE"
+      },
+      "steps": [
+        "Exactly9999 synthetic experts -> authorized Arabic export"
+      ],
+      "expected_results": "200 attachment with correct format",
+      "actual": {
+        "status": 200,
+        "bytes": 470058,
+        "sha256": "b4eccaceeda059ac01f999c635ec9a3ebb1779a60b2e88e575246abdeb305729",
+        "elapsed_seconds": 0.847
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "QAD039-9999-csv-CONTENT",
+      "story_ids": [
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "QAD039-9999-csv-CONTENT"
+      },
+      "steps": [
+        "Independently parse/render actual export -> compare every synthetic identifier"
+      ],
+      "expected_results": "Exact row count and complete unique name set",
+      "actual": {
+        "rows": 9999,
+        "unique": 9999,
+        "missing": 0,
+        "unexpected": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "QAD039-9999-xlsx-RESPONSE",
+      "story_ids": [
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "QAD039-9999-xlsx-RESPONSE"
+      },
+      "steps": [
+        "Exactly9999 synthetic experts -> authorized Arabic export"
+      ],
+      "expected_results": "200 attachment with correct format",
+      "actual": {
+        "status": 200,
+        "bytes": 220946,
+        "sha256": "77ab69e2261b68761f3b7749d991d7db01af6e273e1a5dcf77b6168823ade902",
+        "elapsed_seconds": 1.531
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "QAD039-9999-xlsx-CONTENT",
+      "story_ids": [
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "QAD039-9999-xlsx-CONTENT"
+      },
+      "steps": [
+        "Independently parse/render actual export -> compare every synthetic identifier"
+      ],
+      "expected_results": "Exact row count and complete unique name set",
+      "actual": {
+        "rows": 9999,
+        "unique": 9999,
+        "missing": 0,
+        "unexpected": 0,
+        "streaming_rows": 10000,
+        "rtl": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "QAD039-9999-pdf-RESPONSE",
+      "story_ids": [
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "QAD039-9999-pdf-RESPONSE"
+      },
+      "steps": [
+        "Exactly9999 synthetic experts -> authorized Arabic export"
+      ],
+      "expected_results": "200 attachment with correct format",
+      "actual": {
+        "status": 200,
+        "bytes": 458792,
+        "sha256": "7438562b5112a2eff6fdeab3a9ea5b79b308cdb861d44e0ef5a78e83cb5145a1",
+        "elapsed_seconds": 5.082
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "QAD039-9999-pdf-CONTENT",
+      "story_ids": [
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "QAD039-9999-pdf-CONTENT"
+      },
+      "steps": [
+        "Independently parse/render actual export -> compare every synthetic identifier"
+      ],
+      "expected_results": "Exact row count and complete unique name set",
+      "actual": {
+        "rows": 9999,
+        "unique": 9999,
+        "missing": 0,
+        "unexpected": 0,
+        "pages": 334
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "QAD039-AUDIT-9999",
+      "story_ids": [
+        "LD-011",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "QAD039-AUDIT-9999"
+      },
+      "steps": [
+        "Compare audit rows around three export requests"
+      ],
+      "expected_results": "3 successful exports audited, or0 if overlimit",
+      "actual": 3,
+      "status": "PASS"
+    },
+    {
+      "id": "QAD039-10000-csv-RESPONSE",
+      "story_ids": [
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "QAD039-10000-csv-RESPONSE"
+      },
+      "steps": [
+        "Exactly10000 synthetic experts -> authorized Arabic export"
+      ],
+      "expected_results": "200 attachment with correct format",
+      "actual": {
+        "status": 200,
+        "bytes": 470105,
+        "sha256": "87ea2f8a79eada151f99d11f8186372e9367322feef3efeaa5ec14b892048ed3",
+        "elapsed_seconds": 0.201
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "QAD039-10000-csv-CONTENT",
+      "story_ids": [
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "QAD039-10000-csv-CONTENT"
+      },
+      "steps": [
+        "Independently parse/render actual export -> compare every synthetic identifier"
+      ],
+      "expected_results": "Exact row count and complete unique name set",
+      "actual": {
+        "rows": 10000,
+        "unique": 10000,
+        "missing": 0,
+        "unexpected": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "QAD039-10000-xlsx-RESPONSE",
+      "story_ids": [
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "QAD039-10000-xlsx-RESPONSE"
+      },
+      "steps": [
+        "Exactly10000 synthetic experts -> authorized Arabic export"
+      ],
+      "expected_results": "200 attachment with correct format",
+      "actual": {
+        "status": 200,
+        "bytes": 220973,
+        "sha256": "094c8ecbe4ecf056f0e57482c1656509b52aa82223d8e210d598441a7a850330",
+        "elapsed_seconds": 0.347
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "QAD039-10000-xlsx-CONTENT",
+      "story_ids": [
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "QAD039-10000-xlsx-CONTENT"
+      },
+      "steps": [
+        "Independently parse/render actual export -> compare every synthetic identifier"
+      ],
+      "expected_results": "Exact row count and complete unique name set",
+      "actual": {
+        "rows": 10000,
+        "unique": 10000,
+        "missing": 0,
+        "unexpected": 0,
+        "streaming_rows": 10001,
+        "rtl": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "QAD039-10000-pdf-RESPONSE",
+      "story_ids": [
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "QAD039-10000-pdf-RESPONSE"
+      },
+      "steps": [
+        "Exactly10000 synthetic experts -> authorized Arabic export"
+      ],
+      "expected_results": "200 attachment with correct format",
+      "actual": {
+        "status": 200,
+        "bytes": 458824,
+        "sha256": "f8ef1e55e228ee63ca89b4eeb0cc2e39a76ee75465f64ffe6b8a07c8fa244297",
+        "elapsed_seconds": 2.774
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "QAD039-10000-pdf-CONTENT",
+      "story_ids": [
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "QAD039-10000-pdf-CONTENT"
+      },
+      "steps": [
+        "Independently parse/render actual export -> compare every synthetic identifier"
+      ],
+      "expected_results": "Exact row count and complete unique name set",
+      "actual": {
+        "rows": 10000,
+        "unique": 10000,
+        "missing": 0,
+        "unexpected": 0,
+        "pages": 334
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "QAD039-AUDIT-10000",
+      "story_ids": [
+        "LD-011",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "QAD039-AUDIT-10000"
+      },
+      "steps": [
+        "Compare audit rows around three export requests"
+      ],
+      "expected_results": "3 successful exports audited, or0 if overlimit",
+      "actual": 3,
+      "status": "PASS"
+    },
+    {
+      "id": "QAD039-10001-csv",
+      "story_ids": [
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "QAD039-10001-csv"
+      },
+      "steps": [
+        "Insert10001 synthetic experts -> authorized Arabic csv export -> inspect error/headers"
+      ],
+      "expected_results": "422 EXPORT_TOO_LARGE; no attachment or sensitive exception details",
+      "actual": {
+        "status": 422,
+        "rule": "EXPORT_TOO_LARGE",
+        "no_sensitive_details": true,
+        "attachment": null,
+        "elapsed_seconds": 0.177
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "QAD039-10001-xlsx",
+      "story_ids": [
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "QAD039-10001-xlsx"
+      },
+      "steps": [
+        "Insert10001 synthetic experts -> authorized Arabic xlsx export -> inspect error/headers"
+      ],
+      "expected_results": "422 EXPORT_TOO_LARGE; no attachment or sensitive exception details",
+      "actual": {
+        "status": 422,
+        "rule": "EXPORT_TOO_LARGE",
+        "no_sensitive_details": true,
+        "attachment": null,
+        "elapsed_seconds": 0.055
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "QAD039-10001-pdf",
+      "story_ids": [
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "QAD039-10001-pdf"
+      },
+      "steps": [
+        "Insert10001 synthetic experts -> authorized Arabic pdf export -> inspect error/headers"
+      ],
+      "expected_results": "422 EXPORT_TOO_LARGE; no attachment or sensitive exception details",
+      "actual": {
+        "status": 422,
+        "rule": "EXPORT_TOO_LARGE",
+        "no_sensitive_details": true,
+        "attachment": null,
+        "elapsed_seconds": 0.059
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "QAD039-AUDIT-10001",
+      "story_ids": [
+        "LD-011",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "QAD039-AUDIT-10001"
+      },
+      "steps": [
+        "Compare audit rows around three export requests"
+      ],
+      "expected_results": "3 successful exports audited, or0 if overlimit",
+      "actual": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "QAD039-SCREEN-10001",
+      "story_ids": [
+        "LD-033"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "QAD039-SCREEN-10001"
+      },
+      "steps": [
+        "Read on-screen expert report with10001 registry entries"
+      ],
+      "expected_results": "200; all10001 names mapped in chunks; no500",
+      "actual": {
+        "status": 200,
+        "rows": 10001
+      },
+      "status": "PASS"
+    }
+  ]
+}

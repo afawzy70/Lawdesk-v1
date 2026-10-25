@@ -1,0 +1,500 @@
+{
+  "tested_sha": "c0da6910884a7e85ee17e80a78416aac51de216c",
+  "utc": "2026-10-23T15:55:55.363342+00:00",
+  "scope": "Independent native render and static CI checks. No Docker daemon/container, role or deployment PASS is implied.",
+  "results": [
+    {
+      "id": "COMPOSE-NATIVE-RENDER",
+      "expected": "Native CLI renders the exact candidate without daemon mutations.",
+      "actual": {
+        "exit": 0,
+        "stderr": ""
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-006"
+      ],
+      "traceability": "Proposed Phase1 LD-006",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "candidate_sha": "c0da6910884a7e85ee17e80a78416aac51de216c",
+        "assertion_id": "COMPOSE-NATIVE-RENDER"
+      },
+      "steps": [
+        "Run the matching QA command documented in qa/independent/CONTINUATION-EXECUTION.md and compare this assertion."
+      ],
+      "expected_results": [
+        "Native CLI renders the exact candidate without daemon mutations."
+      ]
+    },
+    {
+      "id": "COMPOSE-NO-HOST-PORTS",
+      "expected": "No service publishes a host port.",
+      "actual": {
+        "backend": [],
+        "db": [],
+        "web": []
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-006"
+      ],
+      "traceability": "Proposed Phase1 LD-006",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "candidate_sha": "c0da6910884a7e85ee17e80a78416aac51de216c",
+        "assertion_id": "COMPOSE-NO-HOST-PORTS"
+      },
+      "steps": [
+        "Run the matching QA command documented in qa/independent/CONTINUATION-EXECUTION.md and compare this assertion."
+      ],
+      "expected_results": [
+        "No service publishes a host port."
+      ]
+    },
+    {
+      "id": "COMPOSE-DB-API-ISOLATION",
+      "expected": "DB/backend use only internal network; only web has edge.",
+      "actual": {
+        "backend": [
+          "internal"
+        ],
+        "db": [
+          "internal"
+        ],
+        "web": [
+          "edge",
+          "internal"
+        ]
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-006"
+      ],
+      "traceability": "Proposed Phase1 LD-006",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "candidate_sha": "c0da6910884a7e85ee17e80a78416aac51de216c",
+        "assertion_id": "COMPOSE-DB-API-ISOLATION"
+      },
+      "steps": [
+        "Run the matching QA command documented in qa/independent/CONTINUATION-EXECUTION.md and compare this assertion."
+      ],
+      "expected_results": [
+        "DB/backend use only internal network; only web has edge."
+      ]
+    },
+    {
+      "id": "COMPOSE-READONLY-APP",
+      "expected": "Backend and web read-only with writable tmpfs only.",
+      "actual": {
+        "backend": {
+          "read_only": true,
+          "tmpfs": [
+            "/tmp"
+          ]
+        },
+        "web": {
+          "read_only": true,
+          "tmpfs": [
+            "/tmp"
+          ]
+        }
+      },
+      "status": "PASS",
+      "priority": "P0",
+      "story_ids": [
+        "LD-006"
+      ],
+      "traceability": "Proposed Phase1 LD-006",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "candidate_sha": "c0da6910884a7e85ee17e80a78416aac51de216c",
+        "assertion_id": "COMPOSE-READONLY-APP"
+      },
+      "steps": [
+        "Run the matching QA command documented in qa/independent/CONTINUATION-EXECUTION.md and compare this assertion."
+      ],
+      "expected_results": [
+        "Backend and web read-only with writable tmpfs only."
+      ]
+    },
+    {
+      "id": "COMPOSE-HARDENING",
+      "expected": "All drop ALL and prohibit privilege gain; DB has explicit documented bootstrap capability exceptions.",
+      "actual": {
+        "backend": {
+          "drop": [
+            "ALL"
+          ],
+          "add": [],
+          "options": [
+            "no-new-privileges:true"
+          ]
+        },
+        "db": {
+          "drop": [
+            "ALL"
+          ],
+          "add": [
+            "CHOWN",
+            "DAC_OVERRIDE",
+            "FOWNER",
+            "SETGID",
+            "SETUID"
+          ],
+          "options": [
+            "no-new-privileges:true"
+          ]
+        },
+        "web": {
+          "drop": [
+            "ALL"
+          ],
+          "add": [],
+          "options": [
+            "no-new-privileges:true"
+          ]
+        }
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-006"
+      ],
+      "traceability": "Proposed Phase1 LD-006",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "candidate_sha": "c0da6910884a7e85ee17e80a78416aac51de216c",
+        "assertion_id": "COMPOSE-HARDENING"
+      },
+      "steps": [
+        "Run the matching QA command documented in qa/independent/CONTINUATION-EXECUTION.md and compare this assertion."
+      ],
+      "expected_results": [
+        "All drop ALL and prohibit privilege gain; DB has explicit documented bootstrap capability exceptions."
+      ]
+    },
+    {
+      "id": "COMPOSE-IMMUTABLE-IMAGE-SELECTORS",
+      "expected": "DB digest-pinned; app selectors end with exact SHA.",
+      "actual": {
+        "backend": "lawdesk-qa/backend:c0da6910884a7e85ee17e80a78416aac51de216c",
+        "db": "postgres:18.6-alpine3.24@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5",
+        "web": "lawdesk-qa/web:c0da6910884a7e85ee17e80a78416aac51de216c"
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-006"
+      ],
+      "traceability": "Proposed Phase1 LD-006",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "candidate_sha": "c0da6910884a7e85ee17e80a78416aac51de216c",
+        "assertion_id": "COMPOSE-IMMUTABLE-IMAGE-SELECTORS"
+      },
+      "steps": [
+        "Run the matching QA command documented in qa/independent/CONTINUATION-EXECUTION.md and compare this assertion."
+      ],
+      "expected_results": [
+        "DB digest-pinned; app selectors end with exact SHA."
+      ]
+    },
+    {
+      "id": "COMPOSE-RESOURCE-LOG-HEALTH-BOUNDS",
+      "expected": "All have memory limits, bounded logs and health checks.",
+      "actual": {
+        "backend": {
+          "memory": "805306368",
+          "logging": {
+            "driver": "json-file",
+            "options": {
+              "max-file": "5",
+              "max-size": "10m"
+            }
+          },
+          "health": {
+            "test": [
+              "CMD",
+              "wget",
+              "-q",
+              "-O",
+              "/dev/null",
+              "http://127.0.0.1:8080/actuator/health/readiness"
+            ],
+            "timeout": "5s",
+            "interval": "10s",
+            "retries": 6,
+            "start_period": "1m30s"
+          }
+        },
+        "db": {
+          "memory": "536870912",
+          "logging": {
+            "driver": "json-file",
+            "options": {
+              "max-file": "5",
+              "max-size": "10m"
+            }
+          },
+          "health": {
+            "test": [
+              "CMD",
+              "pg_isready",
+              "-U",
+              "postgres",
+              "-d",
+              "lawdesk"
+            ],
+            "timeout": "5s",
+            "interval": "10s",
+            "retries": 10,
+            "start_period": "30s"
+          }
+        },
+        "web": {
+          "memory": "67108864",
+          "logging": {
+            "driver": "json-file",
+            "options": {
+              "max-file": "5",
+              "max-size": "10m"
+            }
+          },
+          "health": {
+            "test": [
+              "CMD",
+              "wget",
+              "-q",
+              "-O",
+              "/dev/null",
+              "http://127.0.0.1:8080/healthz"
+            ],
+            "timeout": "5s",
+            "interval": "10s",
+            "retries": 3,
+            "start_period": "10s"
+          }
+        }
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-006"
+      ],
+      "traceability": "Proposed Phase1 LD-006",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "candidate_sha": "c0da6910884a7e85ee17e80a78416aac51de216c",
+        "assertion_id": "COMPOSE-RESOURCE-LOG-HEALTH-BOUNDS"
+      },
+      "steps": [
+        "Run the matching QA command documented in qa/independent/CONTINUATION-EXECUTION.md and compare this assertion."
+      ],
+      "expected_results": [
+        "All have memory limits, bounded logs and health checks."
+      ]
+    },
+    {
+      "id": "COMPOSE-MISSING-RELEASE",
+      "expected": "Missing release selector rejects before runtime.",
+      "actual": {
+        "exit": 1,
+        "stderr": "error while interpolating services.backend.image: required variable LAWDESK_TAG is missing a value: set LAWDESK_TAG to the release commit SHA\nerror while interpolating services.web.image: required variable LAWDESK_TAG is missing a value: set LAWDESK_TAG to the release commit SHA\n"
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-006"
+      ],
+      "traceability": "Proposed Phase1 LD-006",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "candidate_sha": "c0da6910884a7e85ee17e80a78416aac51de216c",
+        "assertion_id": "COMPOSE-MISSING-RELEASE"
+      },
+      "steps": [
+        "Run the matching QA command documented in qa/independent/CONTINUATION-EXECUTION.md and compare this assertion."
+      ],
+      "expected_results": [
+        "Missing release selector rejects before runtime."
+      ]
+    },
+    {
+      "id": "CI-PR-TRIGGERS",
+      "expected": "PR jobs target develop/main with read-only token and no privileged PR event.",
+      "actual": {
+        "events": {
+          "pull_request": {
+            "branches": [
+              "develop",
+              "main"
+            ]
+          },
+          "push": {
+            "branches": [
+              "develop",
+              "main"
+            ]
+          },
+          "workflow_dispatch": null
+        },
+        "permissions": {
+          "contents": "read"
+        }
+      },
+      "status": "PASS",
+      "priority": "P0",
+      "story_ids": [
+        "LD-005"
+      ],
+      "traceability": "Proposed Phase1 LD-005",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "candidate_sha": "c0da6910884a7e85ee17e80a78416aac51de216c",
+        "assertion_id": "CI-PR-TRIGGERS"
+      },
+      "steps": [
+        "Run the matching QA command documented in qa/independent/CONTINUATION-EXECUTION.md and compare this assertion."
+      ],
+      "expected_results": [
+        "PR jobs target develop/main with read-only token and no privileged PR event."
+      ]
+    },
+    {
+      "id": "CI-ACTION-PINS",
+      "expected": "Every action uses a full immutable SHA.",
+      "actual": [
+        "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0",
+        "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad",
+        "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+        "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad",
+        "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+        "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+      ],
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-005"
+      ],
+      "traceability": "Proposed Phase1 LD-005",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "candidate_sha": "c0da6910884a7e85ee17e80a78416aac51de216c",
+        "assertion_id": "CI-ACTION-PINS"
+      },
+      "steps": [
+        "Run the matching QA command documented in qa/independent/CONTINUATION-EXECUTION.md and compare this assertion."
+      ],
+      "expected_results": [
+        "Every action uses a full immutable SHA."
+      ]
+    },
+    {
+      "id": "CI-BOUNDED-CANCELLED-RUNS",
+      "expected": "All jobs bounded<=30min; superseded runs cancelled.",
+      "actual": {
+        "timeouts": {
+          "policy": 10,
+          "backend": 20,
+          "backend-postgres-image": 20,
+          "frontend": 15,
+          "stack": 25,
+          "secrets": 10
+        },
+        "concurrency": {
+          "group": "ci-${{ github.ref }}",
+          "cancel-in-progress": true
+        }
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-005"
+      ],
+      "traceability": "Proposed Phase1 LD-005",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "candidate_sha": "c0da6910884a7e85ee17e80a78416aac51de216c",
+        "assertion_id": "CI-BOUNDED-CANCELLED-RUNS"
+      },
+      "steps": [
+        "Run the matching QA command documented in qa/independent/CONTINUATION-EXECUTION.md and compare this assertion."
+      ],
+      "expected_results": [
+        "All jobs bounded<=30min; superseded runs cancelled."
+      ]
+    },
+    {
+      "id": "CI-SIX-GATE-CONFIG",
+      "expected": "All six expected gates configured; this does not certify their execution or server enforcement.",
+      "actual": [
+        "policy",
+        "backend",
+        "backend-postgres-image",
+        "frontend",
+        "stack",
+        "secrets"
+      ],
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-005"
+      ],
+      "traceability": "Proposed Phase1 LD-005",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "candidate_sha": "c0da6910884a7e85ee17e80a78416aac51de216c",
+        "assertion_id": "CI-SIX-GATE-CONFIG"
+      },
+      "steps": [
+        "Run the matching QA command documented in qa/independent/CONTINUATION-EXECUTION.md and compare this assertion."
+      ],
+      "expected_results": [
+        "All six expected gates configured; this does not certify their execution or server enforcement."
+      ]
+    }
+  ],
+  "counts": {
+    "PASS": 12,
+    "FAIL": 0,
+    "BLOCKED": 0
+  },
+  "runtime_blockers": [
+    "Docker local socket permission denied, including escalated read-only retry.",
+    "No changes to socket permissions, daemon, shared proxy or other applications."
+  ]
+}

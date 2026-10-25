@@ -1,0 +1,72 @@
+{
+  "reported_utc": "2026-10-25T09:41:46.243707+00:00",
+  "owner": "Claude implementation; independent QA verification",
+  "status": "FIX_VERIFIED_INDEPENDENT_POSTGRESQL_AND_API",
+  "priority": "P1",
+  "severity": "S2",
+  "affected": [
+    "9bdbdd9533f17007c70dbfae2c0d61c45932df00",
+    "b849b1cabcbebd4df058e4ab989d1e8c1a562899"
+  ],
+  "recommendation": "FIX_VERIFIED_ORIGINAL_SCOPE",
+  "merge_performed_by_qa": false,
+  "deployment_performed_by_qa": false,
+  "id": "QAD-038",
+  "title": "Concurrent SQL updates commit a successor hearing before its adjourned parent despite V406",
+  "story_ids": [
+    "LD-024",
+    "LD-019"
+  ],
+  "environment": "Exact source JAR + disposable PostgreSQL18.6; normal triggers; non-owner NOSUPERUSER/NOCREATEDB/NOCREATEROLE writer with SELECT/UPDATE only",
+  "preconditions": [
+    "Proceeding filing2026-01-02",
+    "Parent hearing2026-01-03 adjourned via API to successor2026-01-06",
+    "Two ordinary READ COMMITTED database connections; no disabled integrity triggers"
+  ],
+  "test_data": {
+    "parent_new_date": "2026-01-05",
+    "successor_new_date": "2026-01-04"
+  },
+  "steps": [
+    "A: BEGIN; UPDATE hearing SET hearing_date='2026-01-05' WHERE id='<parent>'; leave uncommitted",
+    "B: BEGIN; UPDATE hearing SET hearing_date='2026-01-04' WHERE id='<successor>'; COMMIT",
+    "A: COMMIT",
+    "Fresh SELECT joins successor.adjourned_from_id=parent.id and compares dates"
+  ],
+  "expected": "Reject or serialize incompatible writes; zero committed successor dates on/before parent",
+  "actual": {
+    "parent": "2026-01-05",
+    "successor": "2026-01-04",
+    "both_committed": true,
+    "invalid_pairs": 1
+  },
+  "risk_boundary": "Trusted database writer invariant hole. No remote API/authorization bypass asserted. All reproduction SQL confined to disposable QA databases. Original QAD033 parent/date/case probes now pass; this additional linked-hearing race remains.",
+  "evidence": [
+    "qa/evidence/phase56-acceptance-20261025/dbextended/results.json",
+    "qa/evidence/phase56-acceptance-20261025/current-db/results.json"
+  ],
+  "fix_guidance": "Coordinate date checks and writes across both linked hearings with a consistent locking/serialization strategy. Retest both transaction orders, rollback and cancelled/history preservation; avoid deadlocks.",
+  "retests": [
+    {
+      "utc": "2026-10-25T12:38:18.543317+00:00",
+      "previous_status": "CONFIRMED_OPEN",
+      "status": "FIX_VERIFIED_INDEPENDENT_POSTGRESQL_AND_API",
+      "tested_sha": "0338cac0fca07eb0ce06eb8f2b45a54dd0386f7e",
+      "note": "Original reproduction and both lock orders prevent invalid commits; expert race,40P01victim rollback,API chronology29 and real V408 upgrade5 pass. No direct UAT SQL fault injection.",
+      "evidence": [
+        "qa/evidence/final-phase2-6-20261025/qad038-db/results.json"
+      ]
+    },
+    {
+      "utc": "2026-10-25T13:54:17.408746+00:00",
+      "previous_status": "FIX_VERIFIED_INDEPENDENT_POSTGRESQL_AND_API",
+      "status": "FIX_VERIFIED_INDEPENDENT_POSTGRESQL_AND_API",
+      "tested_sha": "2d07a222189f82ddeacf74fdcd28165980cea85d",
+      "note": "Original reproduction,bothlockorders,expert/session races,deadlock rollback14PASS; currentUAT parentguardsPASS.",
+      "evidence": [
+        "qa/evidence/pr54-retest-20261025/integrity/results.json"
+      ]
+    }
+  ],
+  "original_recommendation": "REQUEST_CHANGES"
+}

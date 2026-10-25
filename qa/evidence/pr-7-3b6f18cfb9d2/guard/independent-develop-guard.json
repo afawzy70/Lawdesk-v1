@@ -1,0 +1,287 @@
+{
+  "tested_sha": "3b6f18cfb9d2f47a6be4dc79803254d748c69a15",
+  "utc": "2026-10-23T20:04:55.070056+00:00",
+  "scope": "Procedural guard only, not server-side branch protection or independent actor authentication.",
+  "results": [
+    {
+      "id": "VALID-CLEARED-MERGE",
+      "story_ids": [
+        "LD-001",
+        "LD-005"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate guard imported; GitHub API fixtures only; no actual verdict publication."
+      ],
+      "test_data": {
+        "associated_pr": true,
+        "forced": false,
+        "parent_guarded": true,
+        "expected_accept": true
+      },
+      "steps": [
+        "Execute actual guard check with named comments/history fixture."
+      ],
+      "expected_results": [
+        "Accept"
+      ],
+      "actual_errors": [],
+      "status": "PASS",
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "DIRECT-PUSH",
+      "story_ids": [
+        "LD-001",
+        "LD-005"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate guard imported; GitHub API fixtures only; no actual verdict publication."
+      ],
+      "test_data": {
+        "associated_pr": false,
+        "forced": false,
+        "parent_guarded": true,
+        "expected_accept": false
+      },
+      "steps": [
+        "Execute actual guard check with named comments/history fixture."
+      ],
+      "expected_results": [
+        "Reject"
+      ],
+      "actual_errors": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa is not the merge of a pull request into develop (direct push?)"
+      ],
+      "status": "PASS",
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "FORCE-PUSH",
+      "story_ids": [
+        "LD-001",
+        "LD-005"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate guard imported; GitHub API fixtures only; no actual verdict publication."
+      ],
+      "test_data": {
+        "associated_pr": true,
+        "forced": true,
+        "parent_guarded": true,
+        "expected_accept": false
+      },
+      "steps": [
+        "Execute actual guard check with named comments/history fixture."
+      ],
+      "expected_results": [
+        "Reject"
+      ],
+      "actual_errors": [
+        "develop was force-pushed; restore it from the last guarded commit (see DEVELOP-PROTECTION.md)"
+      ],
+      "status": "PASS",
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "NO-VERDICT",
+      "story_ids": [
+        "LD-001",
+        "LD-005"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate guard imported; GitHub API fixtures only; no actual verdict publication."
+      ],
+      "test_data": {
+        "associated_pr": true,
+        "forced": false,
+        "parent_guarded": true,
+        "expected_accept": false
+      },
+      "steps": [
+        "Execute actual guard check with named comments/history fixture."
+      ],
+      "expected_results": [
+        "Reject"
+      ],
+      "actual_errors": [
+        "pull request #100 was merged without 'QA-VERDICT: PASS bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as QA's latest verdict for its head before the merge (found: none)"
+      ],
+      "status": "PASS",
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "QUOTED-VERDICT",
+      "story_ids": [
+        "LD-001",
+        "LD-005"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate guard imported; GitHub API fixtures only; no actual verdict publication."
+      ],
+      "test_data": {
+        "associated_pr": true,
+        "forced": false,
+        "parent_guarded": true,
+        "expected_accept": false
+      },
+      "steps": [
+        "Execute actual guard check with named comments/history fixture."
+      ],
+      "expected_results": [
+        "Reject"
+      ],
+      "actual_errors": [
+        "pull request #100 was merged without 'QA-VERDICT: PASS bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as QA's latest verdict for its head before the merge (found: none)"
+      ],
+      "status": "PASS",
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "FENCED-VERDICT",
+      "story_ids": [
+        "LD-001",
+        "LD-005"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate guard imported; GitHub API fixtures only; no actual verdict publication."
+      ],
+      "test_data": {
+        "associated_pr": true,
+        "forced": false,
+        "parent_guarded": true,
+        "expected_accept": false
+      },
+      "steps": [
+        "Execute actual guard check with named comments/history fixture."
+      ],
+      "expected_results": [
+        "Reject"
+      ],
+      "actual_errors": [
+        "pull request #100 was merged without 'QA-VERDICT: PASS bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as QA's latest verdict for its head before the merge (found: none)"
+      ],
+      "status": "PASS",
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "POST-MERGE-EDIT",
+      "story_ids": [
+        "LD-001",
+        "LD-005"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate guard imported; GitHub API fixtures only; no actual verdict publication."
+      ],
+      "test_data": {
+        "associated_pr": true,
+        "forced": false,
+        "parent_guarded": true,
+        "expected_accept": false
+      },
+      "steps": [
+        "Execute actual guard check with named comments/history fixture."
+      ],
+      "expected_results": [
+        "Reject"
+      ],
+      "actual_errors": [
+        "pull request #100 was merged without 'QA-VERDICT: PASS bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as QA's latest verdict for its head before the merge (found: none)"
+      ],
+      "status": "PASS",
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "LATER-FAIL",
+      "story_ids": [
+        "LD-001",
+        "LD-005"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate guard imported; GitHub API fixtures only; no actual verdict publication."
+      ],
+      "test_data": {
+        "associated_pr": true,
+        "forced": false,
+        "parent_guarded": true,
+        "expected_accept": false
+      },
+      "steps": [
+        "Execute actual guard check with named comments/history fixture."
+      ],
+      "expected_results": [
+        "Reject"
+      ],
+      "actual_errors": [
+        "pull request #100 was merged without 'QA-VERDICT: PASS bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as QA's latest verdict for its head before the merge (found: FAIL)"
+      ],
+      "status": "PASS",
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "UNGUARDED-PARENT",
+      "story_ids": [
+        "LD-001",
+        "LD-005"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate guard imported; GitHub API fixtures only; no actual verdict publication."
+      ],
+      "test_data": {
+        "associated_pr": true,
+        "forced": false,
+        "parent_guarded": false,
+        "expected_accept": false
+      },
+      "steps": [
+        "Execute actual guard check with named comments/history fixture."
+      ],
+      "expected_results": [
+        "Reject"
+      ],
+      "actual_errors": [
+        "the develop head cccccccccccccccccccccccccccccccccccccccc this merge builds on has not passed the develop guard (skipped or failed CI); QA must review it and post 'QA-VERDICT: RECOVER cccccccccccccccccccccccccccccccccccccccc' on the pull request"
+      ],
+      "status": "PASS",
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "EXPLICIT-RECOVERY",
+      "story_ids": [
+        "LD-001",
+        "LD-005"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate guard imported; GitHub API fixtures only; no actual verdict publication."
+      ],
+      "test_data": {
+        "associated_pr": true,
+        "forced": false,
+        "parent_guarded": false,
+        "expected_accept": true
+      },
+      "steps": [
+        "Execute actual guard check with named comments/history fixture."
+      ],
+      "expected_results": [
+        "Accept"
+      ],
+      "actual_errors": [],
+      "status": "PASS",
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    }
+  ],
+  "counts": {
+    "PASS": 10,
+    "FAIL": 0
+  }
+}
