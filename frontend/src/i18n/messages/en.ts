@@ -23,6 +23,9 @@ export const en = {
   'shell.primaryNav': 'Primary',
   'shell.menu': 'Menu',
   'shell.switchLanguage': 'العربية',
+  'shell.caseSearch': 'Search cases by reference or title',
+  'shell.caseSearchPlaceholder': 'Case reference or title',
+  'shell.search': 'Search',
 
   'nav.dashboard': 'Dashboard',
   'nav.cases': 'Cases',

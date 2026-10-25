@@ -1,0 +1,67 @@
+/* The approved Stitch dashboard gives the court diary and active dossier the first working row. */
+.mc-signal-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  list-style: none;
+  margin: 1.5rem 0 1.75rem;
+  padding: .45rem .2rem;
+  border-block: 1px solid var(--ld-border);
+  background: #f8f6f0;
+}
+.mc-signal-strip li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .25rem .7rem;
+  padding: .65rem 1rem;
+  border-inline-end: 1px solid var(--ld-border);
+  min-inline-size: 0;
+}
+.mc-signal-strip li:last-child { border-inline-end: 0; }
+.mc-signal-strip span { color: var(--ld-muted); font-size: .78rem; font-weight: 700; line-height: 1.4; }
+.mc-signal-strip strong { color: #5d4824; font-size: 1.2rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.mc-daily-workspace { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 1.25rem; margin-block-end: 2rem; align-items: start; }
+.mc-daily-workspace.mc-single { grid-template-columns: minmax(0, 1fr); }
+.mc-work-panel { min-inline-size: 0; border: 1px solid var(--ld-border); border-radius: var(--mc-radius); background: var(--mc-paper); }
+.mc-work-heading { display: flex; align-items: start; justify-content: space-between; gap: .75rem 1rem; padding: 1.2rem 1.3rem 1rem; border-block-end: 1px solid var(--ld-border); }
+.mc-work-heading > div { min-inline-size: 0; }
+.app-main .mc-work-heading h2 { margin: .15rem 0 .2rem; padding: 0; border: 0; font-size: clamp(1.22rem, 1.75vw, 1.6rem); line-height: 1.24; }
+.mc-work-heading p { margin: 0; color: var(--ld-muted); font-size: .82rem; line-height: 1.45; }
+.mc-work-heading .mc-kicker { color: var(--ld-accent); font-size: .68rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+:root[lang='ar'] .mc-work-heading .mc-kicker { letter-spacing: 0; }
+.mc-work-heading > a { flex: 0 0 auto; padding-block: .2rem; font-size: .78rem; font-weight: 700; }
+.mc-hearing-list, .mc-matter-list { list-style: none; margin: 0; padding: 0 1.3rem 1.25rem; }
+.mc-hearing-list li { padding: .95rem 0; border-block-end: 1px solid #e3dccf; }
+.mc-hearing-list li:last-child, .mc-matter-list li:last-child { border-block-end: 0; }
+.mc-hearing-list p, .mc-matter-list p { margin: 0; }
+.mc-hearing-time { color: var(--ld-accent); font-size: .77rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.mc-hearing-title { margin-block: .24rem .18rem !important; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.mc-hearing-meta { color: var(--ld-muted); font-size: .77rem; line-height: 1.45; overflow-wrap: anywhere; }
+.mc-work-empty, .mc-work-panel > p { margin: 0; padding: 1.3rem; color: var(--ld-muted); }
+.mc-matter-list li { padding: .9rem 0; border-block-end: 1px solid #e3dccf; }
+.mc-matter-list li.mc-matter-lead { margin: 1.1rem 0 .2rem; padding: 1rem 1.1rem 1.15rem; border: 1px solid #d9cbb4; border-block-start: 4px solid var(--mc-brass); background: #f7f3ea; }
+.mc-case-reference { color: var(--ld-accent); font-size: .78rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.mc-matter-list h3 { margin: .25rem 0 .3rem; font-size: 1rem; line-height: 1.36; overflow-wrap: anywhere; }
+.mc-matter-list .mc-matter-lead h3 { font-size: 1.18rem; }
+.mc-matter-list h3 a { color: var(--ld-fg); text-decoration: none; }
+.mc-matter-list h3 a:hover { color: var(--ld-accent); text-decoration: underline; }
+.mc-matter-list p { color: var(--ld-muted); font-size: .78rem; }
+.mc-open-dossier { display: inline-flex; min-block-size: 2.75rem; align-items: center; margin-block-start: .85rem; padding: .45rem .8rem; color: #fffbf3; background: var(--ld-accent); text-decoration: none; font-size: .8rem; font-weight: 700; border-radius: var(--mc-radius); }
+.mc-open-dossier:hover { background: #4d3b1e; color: #fff; }
+@media (max-width: 1120px) {
+  .mc-signal-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mc-signal-strip li:nth-child(2) { border-inline-end: 0; }
+  .mc-signal-strip li:nth-child(-n+2) { border-block-end: 1px solid var(--ld-border); }
+}
+@media (max-width: 767px) {
+  .mc-daily-workspace { grid-template-columns: minmax(0, 1fr); }
+  .mc-work-heading { flex-wrap: wrap; padding: 1rem; }
+  .mc-hearing-list, .mc-matter-list { padding-inline: 1rem; }
+}
+@media (max-width: 410px) {
+  .mc-signal-strip { grid-template-columns: minmax(0, 1fr); }
+  .mc-signal-strip li { border-inline-end: 0; border-block-end: 1px solid var(--ld-border); }
+  .mc-signal-strip li:last-child { border-block-end: 0; }
+}

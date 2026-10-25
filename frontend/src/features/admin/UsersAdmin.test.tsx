@@ -66,8 +66,9 @@ describe('user list', () => {
     expect(row).toHaveTextContent('Legal staff');
     expect(row).toHaveTextContent('Active');
 
-    await user.type(screen.getByRole('searchbox', { name: 'Search users' }), 'nobody');
-    await user.click(screen.getByRole('button', { name: 'Search' }));
+    const userSearch = screen.getByRole('searchbox', { name: 'Search users' });
+    await user.type(userSearch, 'nobody');
+    await user.click(within(userSearch.closest('form') as HTMLFormElement).getByRole('button', { name: 'Search' }));
 
     expect(await screen.findByText('No users match.')).toBeInTheDocument();
   });
