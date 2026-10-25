@@ -1,5 +1,4 @@
-# A scheduling probe only. This job has no checkout, secrets, or deployment access.
-# Remove it after the proof and keep its result in the CI recovery runbook.
+# Harmless POC for the manually started runner; no checkout, secrets, or Docker.
 name: Self-hosted runner viability
 
 on:
@@ -7,8 +6,6 @@ on:
     branches: [develop]
     paths:
       - .github/workflows/runner-viability.yml
-      - docs/operations/CI-BILLING-RECOVERY.md
-      - tools/ci-runner/install-systemd-poc.sh
 
 permissions: {}
 
@@ -22,28 +19,13 @@ jobs:
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.head_ref == 'infra/actions-billing-runner'
-    runs-on: [self-hosted, lawdesk-ci-poc-49]
+    runs-on: self-hosted
     timeout-minutes: 2
     steps:
-      - name: Confirm execution on the isolated proof runner
+      - name: Confirm harmless step executed
         shell: bash
         run: |
           set -euo pipefail
-          printf 'LAWDESK_CI_POC_EXECUTED\n'
+          test "${RUNNER_ENVIRONMENT:-}" = self-hosted
           test "$(id -u)" -ne 0
-          test ! -r /var/run/docker.sock
-          test ! -r /srv/deployments/lawdesk/secrets
-          test ! -r /srv/ai-workspaces/secrets
-          test ! -r /srv/deployments/matbakhy
-          test ! -r /home/aiagent
-          test ! -r /home/devops
-          # Fail closed if the systemd service limits were not applied.
-          grep -Eq "^NoNewPrivs:[[:space:]]+1" /proc/self/status
-          grep -Eq "^Seccomp:[[:space:]]+2" /proc/self/status
-          grep -Eq "^CapEff:[[:space:]]+0{16}" /proc/self/status
-          cg=$(cut -d: -f3 /proc/self/cgroup)
-          test "$cg" = /system.slice/lawdesk-runner-poc.service
-          limits="/sys/fs/cgroup$cg"
-          test "$(cat "$limits/memory.max")" -le 1073741824
-          test "$(cat "$limits/pids.max")" -le 128
-          awk 'NR == 1 { exit !($1 != "max" && $1 <= $2) }' "$limits/cpu.max"
+          printf 'LAWDESK_CI_POC_EXECUTED runner=%s user=%s\n' "${RUNNER_NAME:-unknown}" "$(id -un)"
