@@ -157,7 +157,9 @@ class HearingReportApiTest extends PostgresTestSupport {
         mvc.perform(report().param("size", "2").param("page", "1"))
                 .andExpect(jsonPath("$.items[*].id", contains(h.get("H1"), h.get("H2"))))
                 .andExpect(jsonPath("$.totalItems").value(5)).andExpect(jsonPath("$.totalPages").value(3));
-        mvc.perform(report().param("size", "250")).andExpect(jsonPath("$.size").value(100));
+        mvc.perform(report().param("size", "100")).andExpect(jsonPath("$.size").value(100));
+        mvc.perform(report().param("size", "250")).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("size"));
     }
 
     @ParameterizedTest

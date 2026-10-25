@@ -38,8 +38,9 @@ the office, and its internal legal notes.
    missing (`NotBlank`). Length limits count characters after trimming.
 6. Lists are `PageResponse` (`page`, `size` default 20, capped at 100). **ASSUMPTION:** list order is fixed per
    endpoint (given below); `sort` is ignored. **OWNER DECISION 2026-10-25 (QAD-029):** an invalid `page` or `size` (not an integer, `page` below 0, `size` below 1) is
-   refused with 400 and names the parameter (`errors[].field`, code `Min` or `Digits`); a missing or blank one takes the
-   default (page 0, size 20); a `size` above 100 is capped. One rule for every list, including the case list and case
+   refused with 400 and names the parameter (`errors[].field`, code `Min`, `Max` or `Digits`); only a missing one takes the
+   default (page 0, size 20); an explicitly empty value is 400, and so is a `size` above 100 (never clamped; superseded
+   2026-10-25, see CONTRACTS §4). One rule for every list, including the case list and case
    timeline (PHASE-3-ACCEPTANCE LD-015): a shared interceptor applies it to every handler that takes a `Pageable`, after
    the authorization check, so a caller without the permission still gets 403. `PagingPolicyTest` pins it, including a
    test that discovers every paged handler (architecture/CONTRACTS.md §4).
@@ -211,6 +212,14 @@ Acceptance criteria:
    text ever enters the event: not the title, the description nor a name. The admin audit page offers the action as a
    filter and names it in both languages ("Task status changed", "تغيير حالة مهمة"). Tests: `TaskStatusAuditTest` and
    the admin audit page test. Evidence: `LD-027-11-red-task-status-audit.log`, `LD-027-12-green-task-status-audit.log`.
+   **QAD-040 (atomicity):** the event is written *in the transaction of the change* (`AuditLog.recordWithChange`,
+   propagation `MANDATORY`), not in a separate one, so a SUCCESS event exists exactly when the status change is committed:
+   an exception after the audit write, a failure of the commit itself (a deferred constraint), and the loser of a race
+   (409) leave no event; a retry records one. No asynchronous mechanism is involved, so no committed change can lose its
+   event; if the event cannot be written the change is refused. Tests: `TaskAuditAtomicityTest` on real PostgreSQL.
+   Evidence: `docs/evidence/REMEDIATION-2/QAD-040-01-red.log`, `QAD-040-02-green.log`. **Open observation:** the other
+   audited administrative writes (user and role administration, password change) still use the independent
+   transaction; not part of QAD-040, recorded for QA triage.
 4. **ASSUMPTION:** any `TASK_MANAGE` holder may change any task (a small office shares the work); tasks are never
    deleted (cancel instead); edits are allowed in every status. A disabled assignee may stay on a task until it is
    reassigned. Changes to a task of an `ARCHIVED` case are `422 CASE_ARCHIVED`. Writes lock the task row and check

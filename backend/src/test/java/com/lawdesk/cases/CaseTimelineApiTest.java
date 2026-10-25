@@ -72,8 +72,10 @@ class CaseTimelineApiTest extends PostgresTestSupport {
                         .with(as(Permission.CASE_VIEW)))
                 .andExpect(jsonPath("$.items[*].summary", contains("first")))
                 .andExpect(jsonPath("$.totalPages").value(2));
-        mvc.perform(get("/api/v1/cases/" + id + "/timeline").param("size", "1000").with(as(Permission.CASE_VIEW)))
+        mvc.perform(get("/api/v1/cases/" + id + "/timeline").param("size", "100").with(as(Permission.CASE_VIEW)))
                 .andExpect(jsonPath("$.size").value(100));
+        mvc.perform(get("/api/v1/cases/" + id + "/timeline").param("size", "1000").with(as(Permission.CASE_VIEW)))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.errors[0].field").value("size"));
         mvc.perform(get("/api/v1/cases/" + id + "/timeline").param("page", "-1").with(as(Permission.CASE_VIEW)))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.errors[0].field").value("page"));
     }

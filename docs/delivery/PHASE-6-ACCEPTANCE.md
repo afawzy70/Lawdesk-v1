@@ -30,7 +30,7 @@ until QA executes it.
    `REPORT_EXPORT` alone opens exports.
 5. **Errors** (CONTRACTS §4): a malformed value (date that is not `yyyy-MM-dd`, unknown enum value, malformed UUID,
    non-numeric page) → 400 with `errors[{field, code}]` (`typeMismatch`) and no echoed values; `page < 0` → 400 `Min`;
-   `size < 1` → 400 `Min`; `size > 100` is capped at 100; `q` longer than 100 characters → 400 `Size`; a `sort` outside
+   `size < 1` → 400 `Min`; `size > 100` → 400 `Max` (never clamped; CONTRACTS §4, `PagingValidationInterceptor`); `q` longer than 100 characters → 400 `Size`; a `sort` outside
    the report's whitelist, or a direction other than `asc`/`desc` → 400 `Pattern`. **ASSUMPTION:** an inverted period
    (`from` after `to`) is `422` with `rule: DATE_RANGE_INVALID`, the same rule the case list uses (LD-015).
 6. **Lists** are `PageResponse` (`items`, `page`, `size` default 20, `totalItems`, `totalPages`) plus a `summary`
