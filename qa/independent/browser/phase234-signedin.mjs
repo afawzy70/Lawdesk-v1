@@ -189,7 +189,7 @@ test('CASE-SEARCH-UI', 'LD-015', 'Open /cases -> Search unique reference -> Insp
   'Own case appears on mounted case list; QAD-023 retest', async () => {
     ownId('cases', legalCase); await page.goto(base + '/cases?q=' + prefix + '&lang=en');
     await page.getByRole('searchbox', { name: 'Search by reference or title' }).fill(prefix);
-    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.locator('form.case-filters').getByRole('button', { name: 'Search', exact: true }).click();
     await page.locator('a[href*="/cases/' + legalCase.id + '"]').first().waitFor();
     await screenshot('case-search-en');
   });

@@ -1,0 +1,170 @@
+{
+  "tested_sha": "714d2f3b0c3ed7239b85c79966426d5fe27d2d1d",
+  "prefix": "QASEARCHCD572BB174",
+  "owned": [
+    "3b719832-0979-494e-a638-4aa92874b4f1",
+    "13716f5a-8ac4-4f69-bfbb-beedea3d8c88",
+    "e9dec003-3016-48c7-a623-f2a1e0659593"
+  ],
+  "scope": "Independent authenticated UAT browser/API; unique synthetic records",
+  "counts": {
+    "PASS": 5,
+    "FAIL": 1,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "SEARCH-RELEASE-START",
+      "story_ids": [
+        "LD-015"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA admin; TLS; exact attested runtime",
+        "Only current-prefix synthetic writes"
+      ],
+      "test_data": {
+        "prefix": "QASEARCHCD572BB174"
+      },
+      "steps": [
+        "Authenticate",
+        "GET release"
+      ],
+      "expected_results": "Exact runtime SHA",
+      "status": "PASS",
+      "actual": {
+        "release": "714d2f3b0c3ed7239b85c79966426d5fe27d2d1d"
+      }
+    },
+    {
+      "id": "SEARCH-LITERAL-RELOAD-en-37",
+      "story_ids": [
+        "LD-015"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA admin; TLS; exact attested runtime",
+        "Only current-prefix synthetic writes"
+      ],
+      "test_data": {
+        "prefix": "QASEARCHCD572BB174"
+      },
+      "steps": [
+        "Open case search with owned prefix",
+        "Submit literal % with OPEN and CIVIL filters",
+        "Inspect only expected case",
+        "Reload URL and verify identical filters/results"
+      ],
+      "expected_results": "One exact owned match; literal query and filters survive reload",
+      "status": "PASS",
+      "actual": {
+        "rows": 1,
+        "expected_case": "3b719832-0979-494e-a638-4aa92874b4f1",
+        "literal_preserved": true,
+        "filters_preserved": true
+      }
+    },
+    {
+      "id": "SEARCH-LITERAL-RELOAD-en-95",
+      "story_ids": [
+        "LD-015"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA admin; TLS; exact attested runtime",
+        "Only current-prefix synthetic writes"
+      ],
+      "test_data": {
+        "prefix": "QASEARCHCD572BB174"
+      },
+      "steps": [
+        "Open case search with owned prefix",
+        "Submit literal _ with OPEN and CIVIL filters",
+        "Inspect only expected case",
+        "Reload URL and verify identical filters/results"
+      ],
+      "expected_results": "One exact owned match; literal query and filters survive reload",
+      "status": "PASS",
+      "actual": {
+        "rows": 1,
+        "expected_case": "13716f5a-8ac4-4f69-bfbb-beedea3d8c88",
+        "literal_preserved": true,
+        "filters_preserved": true
+      }
+    },
+    {
+      "id": "SEARCH-LITERAL-RELOAD-ar-37",
+      "story_ids": [
+        "LD-015"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA admin; TLS; exact attested runtime",
+        "Only current-prefix synthetic writes"
+      ],
+      "test_data": {
+        "prefix": "QASEARCHCD572BB174"
+      },
+      "steps": [
+        "Open case search with owned prefix",
+        "Submit literal % with OPEN and CIVIL filters",
+        "Inspect only expected case",
+        "Reload URL and verify identical filters/results"
+      ],
+      "expected_results": "One exact owned match; literal query and filters survive reload",
+      "status": "PASS",
+      "actual": {
+        "rows": 1,
+        "expected_case": "3b719832-0979-494e-a638-4aa92874b4f1",
+        "literal_preserved": true,
+        "filters_preserved": true
+      }
+    },
+    {
+      "id": "SEARCH-LITERAL-RELOAD-ar-95",
+      "story_ids": [
+        "LD-015"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA admin; TLS; exact attested runtime",
+        "Only current-prefix synthetic writes"
+      ],
+      "test_data": {
+        "prefix": "QASEARCHCD572BB174"
+      },
+      "steps": [
+        "Open case search with owned prefix",
+        "Submit literal _ with OPEN and CIVIL filters",
+        "Inspect only expected case",
+        "Reload URL and verify identical filters/results"
+      ],
+      "expected_results": "One exact owned match; literal query and filters survive reload",
+      "status": "FAIL",
+      "actual": "Unexpected search rows"
+    },
+    {
+      "id": "SEARCH-RELEASE-END",
+      "story_ids": [
+        "LD-015"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA admin; TLS; exact attested runtime",
+        "Only current-prefix synthetic writes"
+      ],
+      "test_data": {
+        "prefix": "QASEARCHCD572BB174"
+      },
+      "steps": [
+        "GET release after browser checks"
+      ],
+      "expected_results": "Exact runtime SHA",
+      "status": "PASS",
+      "actual": {
+        "release": "714d2f3b0c3ed7239b85c79966426d5fe27d2d1d"
+      }
+    }
+  ]
+}

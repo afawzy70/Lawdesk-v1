@@ -1,21 +1,27 @@
 {
   "id": "QAD-044",
   "reported_utc": "2026-10-25T15:44:23.101302+00:00",
-  "status": "CONFIRMED_OPEN",
+  "status": "PARTIALLY_FIXED_CONFIRMED_OPEN",
   "severity": "S3",
   "priority": "P1",
   "affected": [
-    "1e74945961a77fcf5a67fc26f3a51d0715660628"
+    "1e74945961a77fcf5a67fc26f3a51d0715660628",
+    "714d2f3b0c3ed7239b85c79966426d5fe27d2d1d",
+    "aed1f7d68597cf1da5da9d8aa658d1b6036960bd"
   ],
   "story_ids": [
     "LD-018",
     "LD-019",
     "LD-024",
-    "LD-025"
+    "LD-025",
+    "LD-031",
+    "LD-032",
+    "LD-034",
+    "LD-038"
   ],
   "title": "Judicial screens and hearing/expert selectors silently omit records after first100",
   "owner": "Claude remediation; Codex verification",
-  "recommendation": "REQUEST_CHANGES_PHASES_4_5",
+  "recommendation": "REQUEST_CHANGES_PHASES_6_7_REPORT_COURT_FILTERS",
   "environment": "Exact archived frontend and Spring Boot with disposable PostgreSQL 18.6 and Chromium; no bulk writes on UAT.",
   "preconditions": [
     "Authorized synthetic ADMIN account",
@@ -53,5 +59,45 @@
     "101 proceedings reachable in ladder and selectable for hearings/expert referrals",
     "Judgments and special decisions above 100",
     "Arabic/English; unchanged strict size cap 100 and authorization regression"
+  ],
+  "independent_retests": [
+    {
+      "sha": "714d2f3b0c3ed7239b85c79966426d5fe27d2d1d",
+      "utc": "2026-10-25T16:58:23.261455+00:00",
+      "status": "CONFIRMED_OPEN",
+      "judicial_browser_fail": 8,
+      "report_filter_local_fail": 4,
+      "report_filter_live_uat_fail": 2,
+      "case_list_beyond100_pass": 2,
+      "evidence": "qa/evidence/phase7-uat-714d-20261025",
+      "uat_report_courts": {
+        "api_total": 115,
+        "target_id": "df512109-410a-4c3f-a657-2449a160c35c",
+        "option_count": 100,
+        "target_selectable": false
+      },
+      "steps_addendum": [
+        "With115courts on UAT, GET /api/v1/courts?page=1&size=100&sort=code,asc identifies existing QA target.",
+        "Open /reports/judgments in en/ar: select[name=courtId] has100 choices and omits target.",
+        "Isolated exact-source102court fixture also fails both /reports and /reports/judgments filters in en/ar."
+      ],
+      "root_cause_addendum": "features/reports/courts.ts returns page0 only; both case and judgment report filter consumers truncate.",
+      "claude_handoff": "https://github.com/afawzy70/Lawdesk-v1/pull/56#issuecomment-6400300827"
+    },
+    {
+      "sha": "aed1f7d68597cf1da5da9d8aa658d1b6036960bd",
+      "utc": "2026-10-25T17:01:04.018491+00:00",
+      "status": "PARTIALLY_FIXED_CONFIRMED_OPEN",
+      "fixed": "8originaljudicialcourt/proceeding checksPASS;101recordoperations andexpertselectorPASS;realUATformsPASS",
+      "remaining": "Reports court filters still page0only;2liveUATFAIL atnewSHA. Sharedcase/judgment helperunchanged.",
+      "counts": {
+        "PASS": 78,
+        "FAIL": 2,
+        "BLOCKED": 0,
+        "NOT_RUN": 0
+      },
+      "evidence": "qa/evidence/phase7-uat-714d-20261025/pr58-retest/execution-summary.json",
+      "claude_handoff": "https://github.com/afawzy70/Lawdesk-v1/pull/58#issuecomment-6400444288"
+    }
   ]
 }

@@ -1,0 +1,81 @@
+{
+  "tested_sha": "714d2f3b0c3ed7239b85c79966426d5fe27d2d1d",
+  "utc": "2026-10-25T16:39:38.022497+00:00",
+  "candidate": "/tmp/lawdesk-p7-714d-candidate",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 2,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "1d994a45-2e4d-45c8-b7d4-e143e1ad8993",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-25T16:39:36.952200Z",
+          "updatedAt": "2026-10-25T16:39:36.952200Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "COURTS-SECOND-PAGE-API",
+      "story_ids": [
+        "LD-018",
+        "LD-019"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "COURTS-SECOND-PAGE-API"
+      },
+      "steps": [
+        "Seed 101 synthetic active courts plus fixture court",
+        "read both API pages"
+      ],
+      "expected_results": "102 total; target QA-EDGE-101 reachable on page1",
+      "actual": {
+        "total": 102,
+        "page0": 100,
+        "page1": 2,
+        "target_id": "b35b1849-a0d5-446e-8c85-5737495ca8ef"
+      },
+      "status": "PASS"
+    }
+  ]
+}

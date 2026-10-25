@@ -1,0 +1,201 @@
+{
+  "reviewed_sha": "714d2f3b0c3ed7239b85c79966426d5fe27d2d1d",
+  "counts": {
+    "BLOCKED": 2,
+    "NOT_RUN": 6
+  },
+  "results": [
+    {
+      "id": "UAT-DIRECT-DATABASE-AUDIT",
+      "story_ids": [
+        "LD-006",
+        "LD-024",
+        "LD-025",
+        "LD-034"
+      ],
+      "priority": "P2",
+      "preconditions": [
+        "Approved isolated environment/tooling appropriate to scope"
+      ],
+      "test_data": {
+        "sha": "714d2f3b0c3ed7239b85c79966426d5fe27d2d1d",
+        "historical_origin_sha": "b849b1cabcbebd4df058e4ab989d1e8c1a562899",
+        "previous_reviewed_sha": "1e74945961a77fcf5a67fc26f3a51d0715660628"
+      },
+      "steps": [
+        "Acquire approved read-only diagnostic or isolated testing capability",
+        "Execute indicated scope without touching shared infrastructure"
+      ],
+      "expected_results": "Read-only audit of all already-deployed judicial chronology/FK invariants",
+      "actual": "No approved direct UAT SQL diagnostic connection available; synthetic API and exact-source disposable SQL coverage are separate",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "INDEPENDENT-IMAGE-ROLLBACK-DRILL",
+      "story_ids": [
+        "LD-006",
+        "LD-024",
+        "LD-025",
+        "LD-034"
+      ],
+      "priority": "P2",
+      "preconditions": [
+        "Approved isolated environment/tooling appropriate to scope"
+      ],
+      "test_data": {
+        "sha": "714d2f3b0c3ed7239b85c79966426d5fe27d2d1d",
+        "historical_origin_sha": "b849b1cabcbebd4df058e4ab989d1e8c1a562899",
+        "previous_reviewed_sha": "1e74945961a77fcf5a67fc26f3a51d0715660628"
+      },
+      "steps": [
+        "Acquire approved read-only diagnostic or isolated testing capability",
+        "Execute indicated scope without touching shared infrastructure"
+      ],
+      "expected_results": "Independent replay of image+database restore on isolated actual containers",
+      "actual": "QA Docker socket denied and sudo requires password. Successful developer CI container/rollback job reviewed, not counted as independent PASS",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "ADVISORY-JARMODE-TOOLS",
+      "story_ids": [
+        "LD-006",
+        "LD-024",
+        "LD-025",
+        "LD-034"
+      ],
+      "priority": "P2",
+      "preconditions": [
+        "Approved isolated environment/tooling appropriate to scope"
+      ],
+      "test_data": {
+        "sha": "714d2f3b0c3ed7239b85c79966426d5fe27d2d1d",
+        "historical_origin_sha": "b849b1cabcbebd4df058e4ab989d1e8c1a562899",
+        "previous_reviewed_sha": "1e74945961a77fcf5a67fc26f3a51d0715660628"
+      },
+      "steps": [
+        "Acquire approved read-only diagnostic or isolated testing capability",
+        "Execute indicated scope without touching shared infrastructure"
+      ],
+      "expected_results": "Verified public coordinates/advisories for remaining embedded tooling JAR",
+      "actual": "99 identified runtime Maven coordinates checked against OSV; spring-boot-jarmode-tools4.1.2 lacks verified cache/pom identity in this scan",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "FULL-AUTOMATED-SAST",
+      "story_ids": [
+        "LD-006",
+        "LD-024",
+        "LD-025",
+        "LD-034"
+      ],
+      "priority": "P2",
+      "preconditions": [
+        "Approved isolated environment/tooling appropriate to scope"
+      ],
+      "test_data": {
+        "sha": "714d2f3b0c3ed7239b85c79966426d5fe27d2d1d",
+        "historical_origin_sha": "b849b1cabcbebd4df058e4ab989d1e8c1a562899",
+        "previous_reviewed_sha": "1e74945961a77fcf5a67fc26f3a51d0715660628"
+      },
+      "steps": [
+        "Acquire approved read-only diagnostic or isolated testing capability",
+        "Execute indicated scope without touching shared infrastructure"
+      ],
+      "expected_results": "Full automated Java/TypeScript SAST",
+      "actual": "Focused manual source security review, secret scan and safe dynamic checks completed; no full Java/TS engine executed",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "SPREADSHEET-DESKTOP",
+      "story_ids": [
+        "LD-034",
+        "LD-036",
+        "LD-037"
+      ],
+      "priority": "P2",
+      "preconditions": [
+        "Approved isolated desktop/browser tooling"
+      ],
+      "test_data": {
+        "sha": "714d2f3b0c3ed7239b85c79966426d5fe27d2d1d",
+        "previous_reviewed_sha": "1e74945961a77fcf5a67fc26f3a51d0715660628"
+      },
+      "steps": [
+        "Execute indicated scope using only owned artifacts/records"
+      ],
+      "expected_results": "Open exported workbook in real Excel/LibreOffice GUI",
+      "actual": "NOT_RUN; independent normal/streaming openpyxl, raw XML and browser download checks executed instead",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "CROSS-BROWSER-SCREENREADER",
+      "story_ids": [
+        "LD-034",
+        "LD-036",
+        "LD-037"
+      ],
+      "priority": "P2",
+      "preconditions": [
+        "Approved isolated desktop/browser tooling"
+      ],
+      "test_data": {
+        "sha": "714d2f3b0c3ed7239b85c79966426d5fe27d2d1d",
+        "previous_reviewed_sha": "1e74945961a77fcf5a67fc26f3a51d0715660628"
+      },
+      "steps": [
+        "Execute indicated scope using only owned artifacts/records"
+      ],
+      "expected_results": "Firefox/WebKit plus manual assistive technology full coverage",
+      "actual": "NOT_RUN; Chromium/en/ar/axe/current functional usability verified; comprehensive coverage reservedPhase8",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "EXHAUSTIVE-PERMISSION-PERMUTATIONS",
+      "story_ids": [
+        "LD-009",
+        "LD-010"
+      ],
+      "priority": "P2",
+      "preconditions": [
+        "Owned isolated synthetic dataset and exactcandidate"
+      ],
+      "test_data": {
+        "sha": "714d2f3b0c3ed7239b85c79966426d5fe27d2d1d",
+        "previous_reviewed_sha": "1e74945961a77fcf5a67fc26f3a51d0715660628"
+      },
+      "steps": [
+        "Prepare indicated dataset/role combinations",
+        "Exercise actualbrowser/API",
+        "Compare persistedrecords with reachableUIrecords"
+      ],
+      "expected_results": "Every permission/verb/resource/grant permutation",
+      "actual": "Retained historicalNOT_RUN; focusedfour-role and custom-permission security testsPASS. Comprehensive expansion not inferred from them.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "JUDGMENTS-DECISIONS-OVER100-UI",
+      "story_ids": [
+        "LD-022",
+        "LD-023"
+      ],
+      "priority": "P2",
+      "preconditions": [
+        "Owned isolated synthetic dataset and exactcandidate"
+      ],
+      "test_data": {
+        "sha": "714d2f3b0c3ed7239b85c79966426d5fe27d2d1d",
+        "previous_reviewed_sha": "1e74945961a77fcf5a67fc26f3a51d0715660628"
+      },
+      "steps": [
+        "Prepare indicated dataset/role combinations",
+        "Exercise actualbrowser/API",
+        "Compare persistedrecords with reachableUIrecords"
+      ],
+      "expected_results": "Every judgment/specialdecision reachable beyond100",
+      "actual": "Related firstpageonlysourcepattern; currentprobe testedcourts/proceedings/hearing/expertselectors. Separatejudgment/decisiondatasetNOT_RUN; QAD044retetstscope.",
+      "status": "NOT_RUN"
+    }
+  ],
+  "policy": "Operational/production-depth gaps not automatic ordinaryDev/UATblockers. QAD044 is a real functional acceptance blocker forPhases4/5. No blocked case relabelledPASS.",
+  "previous_reviewed_sha": "1e74945961a77fcf5a67fc26f3a51d0715660628"
+}

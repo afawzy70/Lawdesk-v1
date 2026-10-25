@@ -1,0 +1,32 @@
+{
+  "tested_sha": "714d2f3b0c3ed7239b85c79966426d5fe27d2d1d",
+  "replacements": [
+    {
+      "original": "signed234/results.json:SIGNED-CASE-SEARCH-UI",
+      "cause": "New shell adds another Search button; unscoped locator ambiguous. Product supports both valid controls.",
+      "replacement": "matrix/results.json:SIGNED-CASE-SEARCH-UI",
+      "outcome": "PASS on original owned fixture after form-scoped click"
+    },
+    {
+      "original": "search/results.json:SEARCH-LITERAL-RELOAD-ar-95",
+      "cause": "Old matching link already in unfiltered DOM; row count read before filtered response settled.",
+      "replacement": "search-verified/results.json",
+      "outcome": "Six checks actually reexecuted; 6 PASS. Wait exact filtered response and DOM row count. Original5passes not counted twice."
+    },
+    {
+      "original": "matrix/results.json:P7-CASE-BEYOND100-en/ar",
+      "cause": "Wrong QA heading selector .case-dossier; actual class .case-dossier-head. Case navigation had succeeded.",
+      "replacement": "case101-verified/results.json",
+      "outcome": "2 PASS actual beyond100 navigation, both locales"
+    },
+    {
+      "original": "downloads/results.json",
+      "cause": "Playwright download completed but attachment did not produce awaited page response event. Six timeout failures retained.",
+      "replacement": "downloads-verified/results.json",
+      "outcome": "30 actual browser download completion/signature checks; no unsupported HTTP-event assertion. Separate API/header verification remains in phase56 results."
+    }
+  ],
+  "other_harness_setup": "One search runner invocation failed before any test due to absent @playwright/test. Replaced dependency with native waitForFunction; no execution PASS credited to aborted setup.",
+  "duplicate_exclusion": "Release-final detects deployment drift to aed1 and is excluded from714d product counts; its1PASS/4FAIL are retained as identity-drift evidence. Prior release-end verified714d. Four viewport capture repetitions excluded from reconciled check count. Six original empty judgment export checks from downloads-verified retained; intermediate judgment-downloads current-month empty variants excluded as repeats. Six explicit-year populated own-court variants replace them. Initial five-export-parsing results are superseded by five-export-final to cover populated judgment artifacts.",
+  "audit_alerts": "Four axe scrollable-region-focusable failures are NOT removed or called PASS. Direct Tab/arrow checks on Chromium pass in access/results.json. Cross-engine keyboard behavior remains NOT_RUN; do not claim confirmed keyboard failure on current Chromium."
+}
