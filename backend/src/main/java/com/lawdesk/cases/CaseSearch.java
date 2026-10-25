@@ -36,7 +36,7 @@ record CaseSearch(
         return page == null ? 0 : page;
     }
 
-    /** Sizes above the maximum are capped rather than refused (architecture/CONTRACTS.md §4). */
+    /** A size above the maximum is refused with 400 before it gets here (PagingValidationInterceptor, CONTRACTS §4). */
     int sizeOrDefault() {
         return size == null ? DEFAULT_SIZE : Math.min(size, MAX_SIZE);
     }

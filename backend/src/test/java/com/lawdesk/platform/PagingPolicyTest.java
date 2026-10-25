@@ -21,6 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -31,17 +32,18 @@ import com.jayway.jsonpath.JsonPath;
 import com.lawdesk.security.Permission;
 
 /**
- * Owner decision 2026-10-25 (QAD-029, architecture/CONTRACTS.md §4): an invalid {@code page} or {@code size} is
- * refused with 400 on every list, a missing or blank one takes the default (page 0, size 20), and a {@code size} above
- * 100 is capped. Until then the lists built on Spring Data paging silently fell back to the defaults whereas the case
- * list and timeline answered 400. A caller without the permission is still answered 403 first (QAD-026).
+ * Owner decisions 2026-10-25 (QAD-029, architecture/CONTRACTS.md §4): a missing {@code page} or {@code size} takes the
+ * default (page 0, size 20); anything else that is not a valid integer in range is refused with 400 on every list: an
+ * explicitly empty value, a non-number, a negative page, a size below 1 and a size above 100 (never clamped, never read
+ * as omitted). A caller without the permission is still answered 403 first (QAD-026).
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 class PagingPolicyTest extends PostgresTestSupport {
 
     private static final String[][] INVALID = {{"page", "-1"}, {"page", "bad"}, {"page", "1.5"},
-            {"page", "2147483648"}, {"size", "-1"}, {"size", "0"}, {"size", "bad"}, {"size", "2147483648"}};
+            {"page", "2147483648"}, {"size", "-1"}, {"size", "0"}, {"size", "bad"}, {"size", "2147483648"},
+            {"page", ""}, {"size", ""}, {"page", " "}, {"size", "101"}, {"size", "500"}};
 
     @Autowired
     MockMvc mvc;
@@ -69,7 +71,10 @@ class PagingPolicyTest extends PostgresTestSupport {
                 new Endpoint("/api/v1/courts", Permission.COURT_VIEW),
                 new Endpoint("/api/v1/audit", Permission.AUDIT_VIEW),
                 new Endpoint("/api/v1/cases/" + caseId + "/hearings", Permission.HEARING_VIEW),
-                new Endpoint("/api/v1/cases/" + caseId + "/notes", Permission.CASE_VIEW)};
+                new Endpoint("/api/v1/cases/" + caseId + "/notes", Permission.CASE_VIEW),
+                new Endpoint("/api/v1/cases", Permission.CASE_VIEW),
+                new Endpoint("/api/v1/cases/" + caseId + "/timeline", Permission.CASE_VIEW),
+                new Endpoint("/api/v1/reports/cases", Permission.REPORT_VIEW)};
     }
 
     @Test
@@ -85,15 +90,12 @@ class PagingPolicyTest extends PostgresTestSupport {
     }
 
     @Test
-    void missingOrBlankPagingTakesTheDefaultsAndAHugeSizeIsCapped() throws Exception {
+    void missingPagingTakesTheDefaultsAndTheLimitsAreValid() throws Exception {
         UUID caseId = createCase();
         for (Endpoint endpoint : lists(caseId)) {
             mvc.perform(get(endpoint.path()).with(as(endpoint.permission()))).andExpect(status().isOk())
                     .andExpect(jsonPath("$.page").value(0)).andExpect(jsonPath("$.size").value(20));
-            mvc.perform(get(endpoint.path()).param("page", "").param("size", "").with(as(endpoint.permission())))
-                    .andExpect(status().isOk()).andExpect(jsonPath("$.page").value(0))
-                    .andExpect(jsonPath("$.size").value(20));
-            mvc.perform(get(endpoint.path()).param("size", "500").with(as(endpoint.permission())))
+            mvc.perform(get(endpoint.path()).param("size", "100").with(as(endpoint.permission())))
                     .andExpect(status().isOk()).andExpect(jsonPath("$.size").value(100));
             mvc.perform(get(endpoint.path()).param("page", "0").param("size", "1").with(as(endpoint.permission())))
                     .andExpect(status().isOk()).andExpect(jsonPath("$.size").value(1));
@@ -109,22 +111,30 @@ class PagingPolicyTest extends PostgresTestSupport {
     }
 
     @Test
-    void everyHandlerThatTakesAPageableIsCovered() throws Exception {
-        // Discovered, not listed: a future list built on Spring Data paging is validated without anyone remembering to.
+    void everyPagedHandlerIsCoveredWithEveryInvalidValue() throws Exception {
+        // Discovered, not listed: a future list (Spring Data paging or a page/size query record) is validated without
+        // anyone remembering to. Exports ignore page and size and are not lists.
         List<String> checked = new ArrayList<>();
         for (var entry : mappings.getHandlerMethods().entrySet()) {
-            boolean paged = Arrays.stream(entry.getValue().getMethodParameters())
-                    .anyMatch(p -> Pageable.class.isAssignableFrom(p.getParameterType()));
+            boolean paged = Arrays.stream(entry.getValue().getMethodParameters()).anyMatch(p -> {
+                Class<?> type = p.getParameterType();
+                return Pageable.class.isAssignableFrom(type) || type.isRecord() && Arrays.stream(type.getRecordComponents())
+                        .map(c -> c.getName()).toList().containsAll(List.of("page", "size"));
+            });
             var methods = entry.getKey().getMethodsCondition().getMethods();
-            if (!paged || !(methods.isEmpty() || methods.contains(RequestMethod.GET))) {
+            if (!paged || ResponseEntity.class.isAssignableFrom(entry.getValue().getMethod().getReturnType())
+                    || !(methods.isEmpty() || methods.contains(RequestMethod.GET))) {
                 continue;
             }
             String pattern = entry.getKey().getPathPatternsCondition().getPatterns().iterator().next().getPatternString();
             String path = pattern.replaceAll("\\{[^}]+}", UUID.randomUUID().toString());
-            mvc.perform(get(path).param("page", "-1").with(as(Permission.values()))).andExpect(status().isBadRequest());
+            for (String[] parameter : INVALID) {
+                mvc.perform(get(path).param(parameter[0], parameter[1]).with(as(Permission.values())))
+                        .andExpect(status().isBadRequest());
+            }
             checked.add(path);
         }
-        assertThat(checked.size()).as("paged GET handlers found: %s", checked).isGreaterThanOrEqualTo(10);
+        assertThat(checked.size()).as("paged GET handlers found: %s", checked).isGreaterThanOrEqualTo(15);
     }
 
     @Test
