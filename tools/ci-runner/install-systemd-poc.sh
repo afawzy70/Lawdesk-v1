@@ -50,13 +50,16 @@ printf 'Get the short-lived registration token from Lawdesk-v1 → Settings → 
 IFS= read -r -s -p 'Registration token: ' token </dev/tty
 printf '\n'
 [[ -n $token ]] || fail 'empty registration token'
-runuser -u lawdesk-runner -- env HOME="$work" \
-  "$runner/config.sh" --unattended \
-  --url https://github.com/afawzy70/Lawdesk-v1 \
-  --token "$token" \
-  --name lawdesk-ci-poc-49-contabo \
-  --labels lawdesk-ci-poc-49 \
-  --ephemeral --work _work
+(
+  cd "$runner"
+  runuser -u lawdesk-runner -- env HOME="$work" \
+    ./config.sh --unattended \
+    --url https://github.com/afawzy70/Lawdesk-v1 \
+    --token "$token" \
+    --name lawdesk-ci-poc-49-contabo \
+    --labels lawdesk-ci-poc-49 \
+    --ephemeral --work _work
+)
 unset token
 
 cat > "$service" <<'UNIT'
