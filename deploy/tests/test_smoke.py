@@ -30,7 +30,11 @@ FAKE_WGET = textwrap.dedent("""\
     import json, os, sys
     args = sys.argv[1:]
     path = "/" + args[-1].split("/", 3)[3]
-    status, body = json.loads(os.environ["FAKE_RESPONSES"]).get(path, [None, ""])
+    key = path
+    post = [a for a in args if a.startswith("--post-file")]
+    if post:  # scenarios key a POST by path and body size
+        key = f"POST {path} {os.path.getsize(post[0].split('=', 1)[1])}"
+    status, body = json.loads(os.environ["FAKE_RESPONSES"]).get(key, [None, ""])
     if status is None:
         print("wget: can't connect to remote host", file=sys.stderr)
         sys.exit(1)
@@ -44,12 +48,18 @@ FAKE_WGET = textwrap.dedent("""\
     sys.exit(0)
     """)
 
+UPLOAD = "/api/v1/cases/00000000-0000-0000-0000-000000000000/documents"
+
 HEALTHY = {
     "/healthz": [200, "ok"],
     "/": [200, "<!doctype html>"],
     "/actuator/health/readiness": [200, '{"status":"UP"}'],
     "/api/v1/cases": [401, '{"status":401}'],
     "/actuator/env": [404, ""],
+    # QAD-037: the upload route takes a body above nginx's old 1 MiB default (the backend then refuses the anonymous
+    # request) and still refuses one above its own 11 MiB allowance.
+    f"POST {UPLOAD} 1572864": [403, ""],
+    f"POST {UPLOAD} 12582912": [413, ""],
 }
 
 
@@ -76,7 +86,7 @@ class SmokeTest(unittest.TestCase):
         result = self.smoke()
 
         self.assertEqual(0, result.returncode, result.stderr)
-        self.assertEqual(5, result.stdout.count("ok   "), result.stdout)
+        self.assertEqual(7, result.stdout.count("ok   "), result.stdout)
 
     def test_each_failed_check_fails_the_smoke_test(self):
         scenarios = {
@@ -96,6 +106,26 @@ class SmokeTest(unittest.TestCase):
                 result = self.smoke(**change)
                 self.assertNotEqual(0, result.returncode, result.stdout)
                 self.assertIn("FAIL", result.stderr)
+
+    def test_the_upload_route_must_take_bodies_above_one_mib(self):
+        # QAD-037: nginx's default client_max_body_size (1 MiB) answered 413 to every PDF above ~1 MiB.
+        result = self.smoke(**{f"POST {UPLOAD} 1572864": [413, ""]})
+
+        self.assertNotEqual(0, result.returncode, result.stdout)
+        self.assertIn("refused with 413", result.stderr)
+
+    def test_the_upload_route_must_still_refuse_bodies_above_its_allowance(self):
+        for status in (403, 200, 502):
+            with self.subTest(status=status):
+                result = self.smoke(**{f"POST {UPLOAD} 12582912": [status, ""]})
+
+                self.assertNotEqual(0, result.returncode, result.stdout)
+                self.assertIn("12 MiB", result.stderr)
+
+    def test_an_unreachable_upload_route_fails_instead_of_passing_silently(self):
+        result = self.smoke(**{f"POST {UPLOAD} 1572864": [None, ""]})
+
+        self.assertNotEqual(0, result.returncode, result.stdout)
 
     def test_failure_names_the_check_and_the_actual_status(self):
         result = self.smoke(**{"/api/v1/cases": [200, "[]"]})
