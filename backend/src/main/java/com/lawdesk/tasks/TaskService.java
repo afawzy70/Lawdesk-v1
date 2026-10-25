@@ -20,6 +20,7 @@ import com.lawdesk.api.BusinessRuleException;
 import com.lawdesk.api.ConflictException;
 import com.lawdesk.api.FieldErrorException;
 import com.lawdesk.api.NotFoundException;
+import com.lawdesk.audit.AuditLog;
 import com.lawdesk.cases.CaseLookup;
 import com.lawdesk.cases.CaseSummary;
 import com.lawdesk.security.ActorRef;
@@ -42,16 +43,22 @@ class TaskService {
 
     private static final LocalDate EARLIEST = LocalDate.of(1, 1, 1);
 
+    /** The audit action of every task status change. */
+    static final String STATUS_CHANGED = "TASK_STATUS_CHANGED";
+
     private final TaskRepository tasks;
     private final CaseLookup cases;
     private final UserDirectory users;
     private final CurrentActor currentActor;
+    private final AuditLog audit;
 
-    TaskService(TaskRepository tasks, CaseLookup cases, UserDirectory users, CurrentActor currentActor) {
+    TaskService(TaskRepository tasks, CaseLookup cases, UserDirectory users, CurrentActor currentActor,
+            AuditLog audit) {
         this.tasks = tasks;
         this.cases = cases;
         this.users = users;
         this.currentActor = currentActor;
+        this.audit = audit;
     }
 
     @Transactional
@@ -161,6 +168,11 @@ class TaskService {
             cases.recordEvent(legalCase.id(), event, "Task \"%s\" %s".formatted(stored.getTitle(),
                     request.status().name().toLowerCase(Locale.ROOT).replace('_', ' ')));
         }
+        // OWNER DECISION 2026-10-25 (QAD-031): a task may be completed straight from OPEN, and every status change is
+        // audited. Recorded last, after everything that can still refuse the change; the detail is the transition
+        // only (for example OPEN->DONE), never the title, the description or a name.
+        audit.record(STATUS_CHANGED, AuditLog.Outcome.SUCCESS, actor.id(), actor.username(), "TASK",
+                stored.getId().toString(), from.name() + "->" + stored.getStatus().name());
         return new Lookups().respond(stored, Rules.today());
     }
 

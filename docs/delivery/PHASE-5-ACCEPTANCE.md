@@ -190,7 +190,7 @@ Acceptance criteria:
 | `assigneeId` | Required: an enabled user of `UserDirectory` (`GET /api/v1/users/directory`); an unknown or disabled user is `422 ASSIGNEE_NOT_ASSIGNABLE`. Stored without a foreign key (§8.3). |
 | `dueDate` | Optional date. A new or changed due date cannot be before today (`400`, code `FutureOrPresent`); an unchanged past due date may stay. **ASSUMPTION**: tasks have dates, not times. |
 | `priority` | `LOW`, `NORMAL` (default), `HIGH`, `URGENT`. **ASSUMPTION**. |
-| `status` | `OPEN` → `IN_PROGRESS` → `DONE`; `OPEN` → `DONE` directly (QAD-031); `OPEN` / `IN_PROGRESS` → `CANCELLED`; `DONE` / `CANCELLED` → `OPEN` (reopen); `IN_PROGRESS` → `OPEN`. Other moves are `422 TASK_STATUS_TRANSITION`. **ASSUMPTION** for owner review (QAD-031): a task may be completed directly from `OPEN`, without first being marked `IN_PROGRESS`, because a small office often finishes a short task in one step; the owner may require the `IN_PROGRESS` step instead. Pinned by `TaskApiTest.aTaskCanBeCompletedDirectlyFromOpen`. |
+| `status` | `OPEN` → `IN_PROGRESS` → `DONE`; `OPEN` → `DONE` directly (QAD-031); `OPEN` / `IN_PROGRESS` → `CANCELLED`; `DONE` / `CANCELLED` → `OPEN` (reopen); `IN_PROGRESS` → `OPEN`. Other moves are `422 TASK_STATUS_TRANSITION`. **OWNER DECISION 2026-10-25** (QAD-031, no longer an assumption): a task may be completed directly from `OPEN`, without first being marked `IN_PROGRESS`, and every status change is audited (criterion 3a). Pinned by `TaskApiTest.aTaskCanBeCompletedDirectlyFromOpen`. |
 
 1. `POST /api/v1/tasks` (`TASK_MANAGE`): 201, `Location`. `GET /api/v1/tasks/{id}` (`TASK_VIEW`). `PUT
    /api/v1/tasks/{id}` (`TASK_MANAGE`, with `version`) changes title, description, assignee, due date and priority.
@@ -203,6 +203,14 @@ Acceptance criteria:
    **ASSUMPTION:** `TASK_VIEW` shows every task of the office, and the case reference and title of case tasks.
 3. Timeline (case tasks only): `TASK_CREATED`, `TASK_ASSIGNED` (assignee changed), `TASK_COMPLETED`, `TASK_CANCELLED`,
    `TASK_REOPENED`. Other edits add no entry.
+3a. **OWNER DECISION 2026-10-25 (QAD-031): audit of every status change.** Each successful status change writes one
+   security audit event through `com.lawdesk.audit.AuditLog`: action `TASK_STATUS_CHANGED`, outcome `SUCCESS`, the acting
+   user, target type `TASK`, the task id as target, and as detail the transition only (for example `OPEN->DONE`,
+   `DONE->OPEN`). It is recorded last, so a refused change (422, 409, 404, 403, 400, an archived case) and a change
+   that rolls back (a failing timeline event) record nothing; creating or editing a task is not a status change. No free
+   text ever enters the event: not the title, the description nor a name. The admin audit page offers the action as a
+   filter and names it in both languages ("Task status changed", "تغيير حالة مهمة"). Tests: `TaskStatusAuditTest` and
+   the admin audit page test. Evidence: `LD-027-11-red-task-status-audit.log`, `LD-027-12-green-task-status-audit.log`.
 4. **ASSUMPTION:** any `TASK_MANAGE` holder may change any task (a small office shares the work); tasks are never
    deleted (cancel instead); edits are allowed in every status. A disabled assignee may stay on a task until it is
    reassigned. Changes to a task of an `ARCHIVED` case are `422 CASE_ARCHIVED`. Writes lock the task row and check
