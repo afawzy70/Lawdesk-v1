@@ -111,6 +111,37 @@ describe('PagedSelect', () => {
     expect(screen.getByLabelText('Court')).toHaveValue('i205');
   });
 
+  it('waits for a pause in typing and abandons a request that the next text has made obsolete', async () => {
+    const user = userEvent.setup();
+    const signals: AbortSignal[] = [];
+    const load = vi.fn((page: number, query: string, signal: AbortSignal): Promise<PagedResult<Item>> => {
+      signals.push(signal);
+      const hits = ALL.filter((i) => i.name.includes(query));
+      // The first answer for 'Court 1' is slow, so it is still in flight when the text changes.
+      const answer = { items: hits.slice(page * 100, (page + 1) * 100), totalItems: hits.length, totalPages: Math.ceil(hits.length / 100) };
+      return query === 'Court 1' ? new Promise((resolve) => setTimeout(() => { resolve(answer); }, 600)) : Promise.resolve(answer);
+    });
+    render(
+      <MemoryRouter>
+        <LocaleProvider>
+          <PagedSelect<Item>
+            selectProps={{ 'aria-label': 'Court' }} value="" onChange={() => undefined} load={load}
+            optionLabel={(i) => i.name} serverSearch searchLabel="Search courts" chooseLabel="Choose…"
+          />
+        </LocaleProvider>
+      </MemoryRouter>,
+    );
+    await screen.findByRole('option', { name: 'Court 000' });
+    await user.type(screen.getByRole('searchbox'), 'Court 1');
+    // Seven keystrokes, one request: nothing was sent per key.
+    await waitFor(() => { expect(load.mock.calls.map(([, q]) => q)).toEqual(['', 'Court 1']); });
+    await user.type(screen.getByRole('searchbox'), '99');
+    await screen.findByRole('option', { name: 'Court 199' });
+    expect(load.mock.calls.map(([, q]) => q)).toEqual(['', 'Court 1', 'Court 199']);
+    expect(signals[1]?.aborted).toBe(true);
+    expect(options()).toEqual(['Choose…', 'Court 199']);
+  });
+
   it('filters the loaded records locally when the API cannot search, and says so when none match', async () => {
     const user = userEvent.setup();
     const load = loader(ALL);

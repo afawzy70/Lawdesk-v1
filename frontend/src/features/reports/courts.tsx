@@ -11,8 +11,9 @@ import type { Court } from '../courts/courtsApi';
  * proceedings too, offered through the shared paged selector so none is out of reach. Needs COURT_VIEW; without it
  * the filter is not shown. The form reads it by its name, `courtId`, like the other filters.
  */
-function listReportCourts(page: number, signal: AbortSignal): Promise<PagedResult<Court>> {
+function listReportCourts(page: number, q: string, signal: AbortSignal): Promise<PagedResult<Court>> {
   const query = new URLSearchParams({ page: String(page), size: String(LIST_PAGE_SIZE), sort: 'code,asc' });
+  if (q.trim() !== '') query.set('q', q.trim());
   return api<PagedResult<Court>>(`/api/v1/courts?${query.toString()}`, { signal });
 }
 
@@ -31,11 +32,10 @@ export function CourtFilter({ initial, anyLabel }: { initial: string; anyLabel: 
         selectProps={{ name: 'courtId', 'aria-label': t('reports.filter.court') }}
         value={value}
         onChange={setValue}
-        load={(page, _query, signal) => listReportCourts(page, signal)}
+        load={(page, query, signal) => listReportCourts(page, query, signal)}
         resolve={getCourt}
         optionLabel={(court) => (locale === 'ar' ? court.nameAr : court.nameEn)}
-        searchText={(court) => `${court.code} ${court.nameAr} ${court.nameEn}`}
-        serverSearch={false}
+        serverSearch
         searchLabel={t('proceedings.searchCourts')}
         chooseLabel={anyLabel}
       />

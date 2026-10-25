@@ -49,10 +49,16 @@ public class CourtService {
     }
 
     @Transactional(readOnly = true)
-    Page<Court> list(CourtLevel level, Boolean active, Pageable pageable) {
+    Page<Court> list(CourtLevel level, Boolean active, String q, Pageable pageable) {
         Sort sort = Sort.by(pageable.getSort().filter(order -> SORTABLE.contains(order.getProperty())).toList());
         Sort order = sort.isSorted() ? sort.and(DEFAULT_ORDER) : DEFAULT_ORDER;
-        return courts.search(level, active, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), order));
+        return courts.search(level, active, pattern(q), PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), order));
+    }
+
+    /** {@code %text%}, lower-cased with LIKE wildcards escaped; {@code %} (everything) for a missing or blank text. */
+    private static String pattern(String q) {
+        String text = q == null ? "" : q.strip().toLowerCase(Locale.ROOT);
+        return "%" + text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
     }
 
     @Transactional

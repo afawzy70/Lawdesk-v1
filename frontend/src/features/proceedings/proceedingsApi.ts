@@ -77,9 +77,10 @@ export function listSpecialDecisions(caseId: string, signal: AbortSignal): Promi
   return listAll<SpecialDecision>(casePath(caseId, 'special-decisions'), {}, signal);
 }
 
-/** One page of the active courts of the level that hears `stage`, in code order. */
-export function listCourtsPage(stage: Stage, page: number, signal: AbortSignal): Promise<PagedResult<Court>> {
+/** One page of the active courts of the level that hears `stage`, in code order, matching `q` on code and names. */
+export function listCourtsPage(stage: Stage, page: number, q: string, signal: AbortSignal): Promise<PagedResult<Court>> {
   const query = new URLSearchParams({ active: 'true', level: stage, page: String(page), size: String(LIST_PAGE_SIZE), sort: 'code,asc' });
+  if (q.trim() !== '') query.set('q', q.trim());
   return api<PagedResult<Court>>(`/api/v1/courts?${query.toString()}`, { signal });
 }
 

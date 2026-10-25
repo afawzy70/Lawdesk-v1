@@ -30,14 +30,16 @@ const courts = Array.from({ length: 102 }, (_, i) => ({
 const LAST = courts[101]?.id ?? '';
 
 function courtPage(request: SentRequest): Response {
+  const q = request.params.get('q')?.toLowerCase();
+  const hits = q ? courts.filter((c) => `${c.code} ${c.nameAr} ${c.nameEn}`.toLowerCase().includes(q)) : courts;
   const number = Number(request.params.get('page') ?? '0');
   const size = Number(request.params.get('size') ?? '20');
   return jsonResponse({
-    items: courts.slice(number * size, (number + 1) * size),
+    items: hits.slice(number * size, (number + 1) * size),
     page: number,
     size,
-    totalItems: courts.length,
-    totalPages: Math.ceil(courts.length / size),
+    totalItems: hits.length,
+    totalPages: Math.ceil(hits.length / size),
   });
 }
 
@@ -98,6 +100,7 @@ describe.each(REPORTS)('court filter of the $name', ({ path, api }) => {
     expect(location()).toContain(`courtId=${LAST}`);
     // Applying re-creates the form (as for every filter), which reads the first page again.
     expect(sent(COURTS_PATH).map((r) => r.params.get('page'))).toEqual(['0', '1', '0']);
+    expect(sent(COURTS_PATH).some((r) => r.params.has('q'))).toBe(false);
     expect(sent(COURTS_PATH).every((r) => Number(r.params.get('size')) <= 100)).toBe(true);
   });
 
@@ -118,14 +121,22 @@ describe.each(REPORTS)('court filter of the $name', ({ path, api }) => {
     expect(select).toHaveValue(LAST);
   });
 
-  it('finds an Arabic court name among the loaded courts', async () => {
+  it('searches the server for a court that is not loaded, selects it and applies it', async () => {
     const user = userEvent.setup();
-    serve();
+    const { sent } = serve();
     await renderAt(`${path}?lang=ar`);
     const select = await screen.findByRole('combobox', { name: 'المحكمة' });
     await within(select).findByRole('option', { name: 'محكمة رقم 1' });
-    await user.type(screen.getByRole('searchbox', { name: 'ابحث في المحاكم' }), 'رقم 77');
-    expect(within(select).getAllByRole('option').map((o) => o.textContent)).toEqual(['الكل', 'محكمة رقم 77']);
+    expect(within(select).queryByRole('option', { name: 'محكمة رقم 102' })).not.toBeInTheDocument();
+    await user.type(screen.getByRole('searchbox', { name: 'ابحث في المحاكم' }), 'رقم 102');
+    await within(select).findByRole('option', { name: 'محكمة رقم 102' });
+    expect(within(select).getAllByRole('option').map((o) => o.textContent)).toEqual(['الكل', 'محكمة رقم 102']);
+    expect(sent(COURTS_PATH).filter((r) => r.params.has('q')).map((r) => r.params.get('q'))).toEqual(['رقم 102']);
+    await user.selectOptions(select, LAST);
+    await user.click(screen.getByRole('button', { name: 'تطبيق' }));
+    await waitFor(() => {
+      expect(sent(api).at(-1)?.params.get('courtId')).toBe(LAST);
+    });
   });
 
   it('offers no court filter without COURT_VIEW and keeps the report usable when the courts fail', async () => {
