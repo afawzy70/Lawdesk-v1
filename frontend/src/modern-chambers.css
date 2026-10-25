@@ -143,6 +143,8 @@ bdi, [dir='ltr'] { unicode-bidi: isolate; }
 .rpt-sections a, .admin-tabs a { display: inline-flex; align-items: center; min-block-size: 2.75rem; padding: .4rem .8rem; color: var(--ld-muted); text-decoration: none; border-block-end: 2px solid transparent; }
 .rpt-sections a[aria-current='page'], .admin-tabs a[aria-current='page'] { color: var(--ld-accent); border-block-end-color: var(--mc-brass); }
 .rpt-filters, .case-filters, .admin-filters { background: #ebe7de; border: 1px solid var(--ld-border); border-radius: var(--mc-radius); padding: 1rem 1.15rem; max-inline-size: none; }
+.admin-filters { display: grid; grid-template-columns: minmax(7rem, 10rem) minmax(0, 1fr); align-items: center; gap: .65rem 1rem; max-inline-size: 44rem; }
+.admin-filters button { grid-column: 2; justify-self: start; }
 .rpt-table { min-inline-size: 53rem; }
 .rpt-exports { gap: .4rem .75rem; }
 .rpt-exports a { border: 1px solid #aa997f; padding: .4rem .75rem; text-decoration: none; background: var(--mc-paper); font-weight: 600; }
@@ -167,7 +169,7 @@ bdi, [dir='ltr'] { unicode-bidi: isolate; }
 .case-notice, .ops-saved { border: 1px solid #a9c4b4; border-inline-start: 4px solid var(--ld-ok); background: #eff5ef; color: #225344; border-radius: var(--mc-radius); padding: .8rem 1rem; }
 .case-form, .court-form, .judicial-form, .ops-form, .admin-form { background: var(--mc-paper); border: 1px solid var(--ld-border); border-radius: var(--mc-radius); padding: 1rem 1.2rem; max-inline-size: 48rem; }
 .case-filters { max-inline-size: none; }
-.ops-filters { background: #ebe7de; padding: .6rem .8rem; }
+.ops-filters { background: #ebe7de; padding: .6rem .8rem; min-inline-size: 0; max-inline-size: 100%; }
 .ops-reminder { background: #f6e8cc; border-color: #bda06d; }
 .ops-reminder-danger { background: #f8e5e1; border-color: #c18580; }
 .ops-toolbar [aria-pressed='true'] { outline: 2px solid var(--mc-brass); background: var(--ld-accent-soft); }
@@ -209,6 +211,14 @@ bdi, [dir='ltr'] { unicode-bidi: isolate; }
   .rpt-dashboard { grid-template-columns: minmax(0, 1fr); }
   .rpt-panel:first-child, .rpt-panel:last-child { grid-column: auto; }
   .rpt-filters, .case-filters { grid-template-columns: minmax(0, 1fr); }
+  .admin-filters { grid-template-columns: minmax(0, 1fr); }
+  .admin-filters button { grid-column: 1; }
+  .ops-toolbar { min-inline-size: 0; }
+  .ops-filters { display: grid; grid-template-columns: minmax(0, 1fr); inline-size: 100%; box-sizing: border-box; }
+  .ops-filters input, .ops-filters select { inline-size: 100%; min-inline-size: 0; }
+  .courts-toolbar { min-inline-size: 0; }
+  .courts-filters { display: grid; grid-template-columns: minmax(0, 1fr); inline-size: 100%; min-inline-size: 0; box-sizing: border-box; }
+  .courts-filters select { inline-size: 100%; min-inline-size: 0; }
   .case-filters .case-actions, .rpt-actions { grid-column: auto; }
   .app-main table:not(.rpt-table) { min-inline-size: 40rem; }
   .case-facts { grid-template-columns: minmax(0, 1fr); gap: .15rem; }
