@@ -112,6 +112,27 @@ Acceptance criteria:
    `LD-024-18-red-QAD-032-backend.log`, `LD-024-19-green-QAD-032-backend.log`, `LD-024-20/21` (frontend message).
    **ASSUMPTION:** the date of a hearing is still not checked against the proceeding's judgment date (hearings after
    the judgment, such as on enforcement, stay possible).
+   QAD-033: the database enforces the same chronology, so no other writer (direct SQL, a future module) can break it.
+   Migration `V406__LD-024_hearing_dates_database_integrity.sql` adds triggers that refuse, with a check violation
+   (SQLSTATE 23514) naming the invariant and nothing changed:
+   - `hearing_not_before_filing`: a hearing inserted or moved to before its proceeding's filing date (cancelled
+     hearings count, as in the API);
+   - `proceeding_filing_not_after_hearing`: a filing date moved to after any hearing of the proceeding (the same day is
+     valid);
+   - `proceeding_case_immutable`: a proceeding's `case_id` changes (Phase 4 never changes it, so this is simply
+     immutable; the hearing-side mismatch was already refused by V401);
+   - `hearing_follows_adjourned`: an adjourned hearing's next hearing not strictly after the hearing it continues,
+     whichever of the two is edited.
+   The hearing trigger reads the proceeding row `FOR SHARE`, the filing-date correction holds it exclusively, so even two
+   writers that do not use the API lock are serialised. The API pre-check under the proceeding row lock still runs first
+   and answers the 422 rules above, never a 500. The migration validates and rewrites no existing row (only new
+   statements are checked), so it cannot fail on data the API accepted; `MigrationPhase5IntegrityTest` proves it with
+   rows written through V405. **Authorized exception:** the trigger on the Phase 4 table `proceeding` is created from a
+   Phase 5 migration (listed in architecture/CONTRACTS.md §8). Tests: `HearingDatabaseIntegrityTest` (the three QA
+   probes as direct SQL, cancelled hearings, the adjournment chain, same-day edits, two SQL writers racing in both
+   orders, the API still answering 422), and the six race tests of `HearingFilingChronologyTest` unchanged. Evidence:
+   `LD-024-25-red-QAD-033-hearing-database.log`, `LD-024-26-red-QAD-033-share-lock-mutation.log` (the race test fails
+   without `FOR SHARE`), `LD-024-27-green-QAD-033-hearing-database.log`.
 8. **Report port for Phase 6:** `com.lawdesk.hearings.HearingReportQueries` (read-only, no security of its own: the
    reports module checks `REPORT_VIEW`): hearings in a date range with optional status, case and proceeding filters,
    paged, with their total, and counts by status. The rules "upcoming" (`SCHEDULED` and dated today or later) and
