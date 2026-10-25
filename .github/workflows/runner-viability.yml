@@ -37,3 +37,11 @@ jobs:
           test ! -e /srv/deployments/matbakhy
           test ! -e /home/aiagent
           test ! -e /home/devops
+          # Fail closed if Docker isolation or cgroup limits were not applied.
+          grep -Eq '^NoNewPrivs:[[:space:]]+1 /proc/self/status
+          grep -Eq '^Seccomp:[[:space:]]+2 /proc/self/status
+          grep -Eq '^CapEff:[[:space:]]+0{16} /proc/self/status
+          awk 'NR == 1 { exit !($2 != 0 && $3 < 4294967295) }' /proc/self/uid_map
+          test "$(cat /sys/fs/cgroup/memory.max)" -le 1073741824
+          test "$(cat /sys/fs/cgroup/pids.max)" -le 128
+          awk 'NR == 1 { exit !($1 != "max" && $1 <= $2) }' /sys/fs/cgroup/cpu.max
