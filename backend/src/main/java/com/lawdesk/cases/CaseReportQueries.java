@@ -92,6 +92,13 @@ public class CaseReportQueries {
 
     private final JdbcClient jdbc;
 
+    /**
+     * The ids of a query as an uncorrelated subquery. A filter written {@code id = any(cast(? as uuid[]))} re-evaluates
+     * the cast for every row of a sequential scan (about 105 s for 10 000 ids, QAD-039 audit); the subquery reads the
+     * array once and joins it.
+     */
+    private static final String IDS = "(select unnest(cast(:ids as uuid[])))";
+
     CaseReportQueries(JdbcClient jdbc) {
         this.jdbc = jdbc;
     }
@@ -148,7 +155,7 @@ public class CaseReportQueries {
             return Map.of();
         }
         Map<UUID, CaseSummary> found = new LinkedHashMap<>();
-        jdbc.sql("select id, reference_no, title, status from legal_case where id = any(cast(:ids as uuid[]))")
+        jdbc.sql("select id, reference_no, title, status from legal_case where id in " + IDS)
                 .param("ids", uuidArray(ids)).query(rs -> {
                     UUID id = rs.getObject("id", UUID.class);
                     found.put(id, new CaseSummary(id, rs.getString("reference_no"), rs.getString("title"),
@@ -190,7 +197,7 @@ public class CaseReportQueries {
             params.put("openedTo", filter.openedTo());
         }
         if (filter.onlyCases() != null) {
-            sql.append(" and id = any(cast(:onlyCases as uuid[]))");
+            sql.append(" and id in (select unnest(cast(:onlyCases as uuid[])))");
             params.put("onlyCases", uuidArray(filter.onlyCases()));
         }
         return new Where(sql.toString(), params);
