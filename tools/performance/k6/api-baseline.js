@@ -11,6 +11,7 @@ const FORMATS = ['csv', 'xlsx', 'pdf'];
 
 export const options = {
   scenarios: { api: { executor: 'shared-iterations', vus: 1, iterations: 15, maxDuration: '20m' } },
+  thresholds: { checks: ['rate>0.99'], http_req_failed: ['rate<0.01'] },
   maxRedirects: 0,
   noCookiesReset: true,
   summaryTrendStats: ['min', 'med', 'p(90)', 'p(95)', 'p(99)', 'max'],
