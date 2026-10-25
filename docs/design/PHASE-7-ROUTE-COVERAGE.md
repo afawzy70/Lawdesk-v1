@@ -5,7 +5,7 @@ Baseline: `origin/develop` `2d07a222189f82ddeacf74fdcd28165980cea85d`. This matr
 | Screen / route | Current coverage | Visual status and limit |
 | --- | --- | --- |
 | Login | B4, T | Modern Chambers entry; axe scan in all 8 states. |
-| Forced password change | T | Shared form design; current full viewport capture still needed. |
+| Forced password change | B4, T, S | Shared form design under mandatory reset state. |
 | Profile `/profile` | B4, T | Shared dossier treatment. |
 | Dashboard `/` | B4, T, J, S | Compared with the only approved Stitch screen; live diary, case register and API metrics. Axe scan in all 8 states. |
 | Case list `/cases` | B4, T, J, S | URL search, filters, paging and mobile records. |
@@ -35,11 +35,11 @@ Baseline: `origin/develop` `2d07a222189f82ddeacf74fdcd28165980cea85d`. This matr
 | User detail `/admin/users/:id` | B4, T | Roles, enablement and reset controls. |
 | Roles `/admin/roles` | B4, T | Permission-aware registry. |
 | New role `/admin/roles/new` | B4, T | Real role and permission form. |
-| Role detail `/admin/roles/:id` | T | Shared role detail component; current full viewport capture still needed. |
+| Role detail `/admin/roles/:id` | B4, T, S | Shared role detail component and permission form; visual review found crowded mobile checkboxes, corrected to one labelled permission per row and rescanned. |
 | Security audit `/admin/audit` | B4, T, S | Includes PR #53's task-status event translation. |
-| Planned judgments `/judgments` | T | Explicit existing coming-soon page; no simulated workflow. |
-| Unknown route | T | Existing not-found state. |
+| Planned judgments `/judgments` | B4, T | Explicit existing coming-soon page; no simulated workflow. |
+| Unknown route | B4, T, S | Existing not-found state. |
 
 Shared loading, empty, failure, forbidden and session-expired branches remain covered by component tests; the browser sweeps primarily used loaded or empty fictional responses. Populated Phase 2–6 workflows and all states still require independent UAT regression before integration. The five reports, secondary screens and mobile layouts are Modern Chambers interpretations because the approved Stitch project contains only one desktop dashboard.
 
-Evidence: [dashboard](screenshots/after/dashboard-current-matrix.json), [primary routes](screenshots/after/primary-current-matrix.json), [case detail](screenshots/after/case-details-current-matrix.json), [secondary routes](screenshots/after/secondary-current-matrix.json), and [inventory report](screenshots/after/inventory-current-matrix.json). See [visual gap review](PHASE-7-VISUAL-GAP.md) for direct comparison with Stitch.
+Evidence: [dashboard](screenshots/after/dashboard-current-matrix.json), [primary routes](screenshots/after/primary-current-matrix.json), [case detail](screenshots/after/case-details-current-matrix.json), [secondary routes](screenshots/after/secondary-current-matrix.json), [remaining routes and auth state](screenshots/after/extras-current-matrix.json), [role permission recapture](screenshots/after/role-permissions-current-matrix.json), and [inventory report](screenshots/after/inventory-current-matrix.json). See [visual gap review](PHASE-7-VISUAL-GAP.md) for direct comparison with Stitch.
