@@ -52,6 +52,13 @@ public class ProceedingReportQueries {
 
     private final JdbcClient jdbc;
 
+    /**
+     * The ids of a query as an uncorrelated subquery. A filter written {@code col = any(cast(? as uuid[]))} re-evaluates
+     * the cast for every row of a sequential scan (about 105 s for 10 000 ids, QAD-039 audit); the subquery reads the
+     * array once and joins it.
+     */
+    private static final String IDS = "(select unnest(cast(:ids as uuid[])))";
+
     ProceedingReportQueries(JdbcClient jdbc) {
         this.jdbc = jdbc;
     }
@@ -96,7 +103,7 @@ public class ProceedingReportQueries {
             return positions;
         }
         jdbc.sql("select cur.*, (select count(*) from proceeding x where x.case_id = cur.case_id) as proceedings from ("
-                        + CURRENT.formatted("where p.case_id = any(cast(:ids as uuid[]))", RANK) + ") cur")
+                        + CURRENT.formatted("where p.case_id in " + IDS, RANK) + ") cur")
                 .param("ids", uuidArray(caseIds)).query(rs -> {
                     UUID caseId = rs.getObject("case_id", UUID.class);
                     positions.put(caseId, new CasePosition(caseId, Stage.valueOf(rs.getString("stage")),
@@ -107,8 +114,19 @@ public class ProceedingReportQueries {
         return positions;
     }
 
-    /** How many of these cases stand at each stage; cases without proceedings are not counted. */
+    /** The most case ids one call takes (QAD-039 audit); callers with more cases ask in chunks and add the counts. */
+    public static final int MAX_IDS = 10_000;
+
+    /**
+     * How many of these cases stand at each stage; cases without proceedings are not counted. At most
+     * {@link #MAX_IDS} distinct ids per call.
+     *
+     * @throws IllegalArgumentException when more ids are given
+     */
     public Map<Stage, Long> currentStageCounts(Collection<UUID> caseIds) {
+        if (caseIds.size() > MAX_IDS) {
+            throw new IllegalArgumentException("at most " + MAX_IDS + " cases per call");
+        }
         Map<Stage, Long> counts = new EnumMap<>(Stage.class);
         for (Stage stage : Stage.values()) {
             counts.put(stage, 0L);
@@ -117,7 +135,7 @@ public class ProceedingReportQueries {
             return counts;
         }
         jdbc.sql("select cur.stage, count(*) as n from ("
-                        + CURRENT.formatted("where p.case_id = any(cast(:ids as uuid[]))", RANK) + ") cur"
+                        + CURRENT.formatted("where p.case_id in " + IDS, RANK) + ") cur"
                         + " group by cur.stage")
                 .param("ids", uuidArray(caseIds))
                 .query(rs -> {
@@ -139,7 +157,7 @@ public class ProceedingReportQueries {
         jdbc.sql("""
                 select p.id, p.stage, p.court_case_number, p.court_case_year, c.id as court_id, c.code, c.name_ar,
                        c.name_en
-                from proceeding p join court c on c.id = p.court_id where p.id = any(cast(:ids as uuid[]))""")
+                from proceeding p join court c on c.id = p.court_id where p.id in """ + IDS)
                 .param("ids", uuidArray(ids)).query(rs -> {
                     UUID id = rs.getObject("id", UUID.class);
                     found.put(id, new ProceedingRef(id, Stage.valueOf(rs.getString("stage")),
