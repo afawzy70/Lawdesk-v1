@@ -221,7 +221,7 @@ public class UserAdministration {
     }
 
     private void record(String action, ActorRef actor, UUID target, String reason) {
-        audit.record(action, AuditLog.Outcome.SUCCESS, actor.id(), actor.username(), "USER", target.toString(), reason);
+        audit.recordWithChange(action, actor.id(), actor.username(), "USER", target.toString(), reason);
     }
 
     private static UserView view(ResultSet rs) throws SQLException {

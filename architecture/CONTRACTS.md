@@ -89,7 +89,9 @@ manager/admin-only by default. The last active `ADMIN` can never be disabled, lo
   or non-numeric value, `Min`, `Max`); an explicitly empty `page=`/`size=` is invalid, not omitted, and a `size` above
   100 is refused, never clamped. `com.lawdesk.platform.PagingValidationInterceptor` enforces it for every list handler
   (a `Pageable`, or a query record with `page` and `size`: the case list, timeline, parties, reports), after the
-  authorization check, so 403 comes first. Exports take no paging.
+  authorization check, so 403 comes first. Exports take no paging. **Offset (QAD-041):** the data layer takes the
+  offset `page × size` as a 32-bit integer, so a request whose offset exceeds 2 147 483 647 is refused with 400 on
+  `page` (code `Max`), on every list; a smaller offset past the last row answers 200 with an empty page.
 - **Writes** return the stored representation. Creations answer 201 with `Location`. Updates send `version` and get 409
   when it is stale.
 
