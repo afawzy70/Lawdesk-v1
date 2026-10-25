@@ -9,7 +9,7 @@ import com.lawdesk.api.PageResponse;
 
 /**
  * Query parameters of the simple lists (timeline, parties): an optional search text and the shared paging rules
- * (architecture/CONTRACTS.md §4). Sizes above the maximum are capped rather than refused.
+ * (architecture/CONTRACTS.md §4). Values are validated beforehand (PagingValidationInterceptor): a size above the maximum never gets here.
  */
 record Paging(@Size(max = 100) String q, @Min(0) Integer page, @Min(1) Integer size) {
 

@@ -158,8 +158,10 @@ class CaseSearchApiTest extends PostgresTestSupport {
                 .andExpect(jsonPath("$.size").value(3))
                 .andExpect(jsonPath("$.totalItems").value(4))
                 .andExpect(jsonPath("$.totalPages").value(2));
-        list(cases().param("size", "500")).andExpect(jsonPath("$.size").value(100))
+        list(cases().param("size", "100")).andExpect(jsonPath("$.size").value(100))
                 .andExpect(jsonPath("$.totalItems").value(4));
+        list(cases().param("size", "500")).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("size")).andExpect(jsonPath("$.errors[0].code").value("Max"));
         list(cases().param("page", "9")).andExpect(jsonPath("$.items", empty()))
                 .andExpect(jsonPath("$.totalItems").value(4));
     }
@@ -168,7 +170,7 @@ class CaseSearchApiTest extends PostgresTestSupport {
     @CsvSource({"status, DELETED, typeMismatch", "caseType, TAX, typeMismatch",
             "openedFrom, 01/01/2026, typeMismatch", "openedTo, 2026-13-01, typeMismatch",
             "sort, 'subject,asc', Pattern", "sort, 'title,up', Pattern", "page, -1, Min", "size, 0, Min",
-            "page, x, typeMismatch"})
+            "page, x, Digits", "page, '', Digits", "size, '', Digits", "size, 101, Max"})
     void invalidParametersAreFieldErrors(String parameter, String value, String code) throws Exception {
         list(cases().param(parameter, value)).andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))

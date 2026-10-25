@@ -82,12 +82,14 @@ manager/admin-only by default. The last active `ADMIN` can never be disabled, lo
   | `BusinessRuleException` | 422 | `rule: "<CODE>"` |
 
   Unexpected errors return a 500 without details.
-- **Lists:** `?page=0&size=20&sort=<field>,<asc|desc>`, where `size` defaults to 20 and is capped at 100. The answer is
-  `PageResponse { items[], page, size, totalItems, totalPages }`. **Owner decision 2026-10-25 (QAD-029):** an
-  invalid `page` or `size` (not an integer, `page` below 0, `size` below 1) is refused with 400 on every list, naming the
-  parameter in `errors[]`; a missing or blank value takes the default and a `size` above 100 is capped.
-  `com.lawdesk.platform.PagingValidationInterceptor` enforces it for every handler that takes a `Pageable` (after the
-  authorization check, so 403 comes first).
+- **Lists:** `?page=0&size=20&sort=<field>,<asc|desc>`, where a missing `size` is 20 and a missing `page` is 0. The answer is
+  `PageResponse { items[], page, size, totalItems, totalPages }`. **Owner decisions 2026-10-25 (QAD-029, QAD-040
+  round):** only a *missing* `page` or `size` takes the default. Any present value must be an integer with `page` ≥ 0 and
+  1 ≤ `size` ≤ 100, otherwise the request is refused with 400 naming the parameter in `errors[]` (`Digits` for an empty
+  or non-numeric value, `Min`, `Max`); an explicitly empty `page=`/`size=` is invalid, not omitted, and a `size` above
+  100 is refused, never clamped. `com.lawdesk.platform.PagingValidationInterceptor` enforces it for every list handler
+  (a `Pageable`, or a query record with `page` and `size`: the case list, timeline, parties, reports), after the
+  authorization check, so 403 comes first. Exports take no paging.
 - **Writes** return the stored representation. Creations answer 201 with `Location`. Updates send `version` and get 409
   when it is stale.
 

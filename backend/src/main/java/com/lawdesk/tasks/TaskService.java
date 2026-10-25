@@ -169,10 +169,11 @@ class TaskService {
                     request.status().name().toLowerCase(Locale.ROOT).replace('_', ' ')));
         }
         // OWNER DECISION 2026-10-25 (QAD-031): a task may be completed straight from OPEN, and every status change is
-        // audited. Recorded last, after everything that can still refuse the change; the detail is the transition
-        // only (for example OPEN->DONE), never the title, the description or a name.
-        audit.record(STATUS_CHANGED, AuditLog.Outcome.SUCCESS, actor.id(), actor.username(), "TASK",
-                stored.getId().toString(), from.name() + "->" + stored.getStatus().name());
+        // audited; the detail is the transition only (for example OPEN->DONE), never the title, the description or a
+        // name. QAD-040: the event is written in this transaction, so it exists exactly when the change is committed
+        // (a failure while answering, or of the commit itself, removes both).
+        audit.recordWithChange(STATUS_CHANGED, actor.id(), actor.username(), "TASK", stored.getId().toString(),
+                from.name() + "->" + stored.getStatus().name());
         return new Lookups().respond(stored, Rules.today());
     }
 
