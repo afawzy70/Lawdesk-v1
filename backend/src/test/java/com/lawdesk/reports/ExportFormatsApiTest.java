@@ -190,6 +190,38 @@ class ExportFormatsApiTest extends PostgresTestSupport {
         assertThat(audited()).containsExactly("CASE_INVENTORY:PDF");
     }
 
+    /** QAD-036: the glyphs drawn, in drawing order, in a PDF of the given language with these extra case titles. */
+    private String drawnPdf(String lang, String... titles) throws Exception {
+        for (String title : titles) {
+            data.insertCase(title, "CIVIL", "OPEN", LocalDate.of(2025, 4, 1));
+        }
+        byte[] bytes = mvc.perform(export(CASES, "pdf", lang).param("q", m)).andExpect(status().isOk()).andReturn()
+                .getResponse().getContentAsByteArray();
+        try (PDDocument pdf = Loader.loadPDF(bytes)) {
+            return drawn(pdf);
+        }
+    }
+
+    @Test
+    void neutralExpressionsKeepTheirLogicalOrderInArabicAndEnglishPdfs() throws Exception {
+        List<String> titles = List.of("=1+1", "-1+1", "+7", "@a");
+        String arabic = drawnPdf("ar", titles.toArray(String[]::new));
+        String english = drawnPdf("en");
+        for (String title : titles) {
+            assertThat(arabic).as("ar " + title).contains(title);
+            assertThat(english).as("en " + title).contains(title);
+        }
+        for (String drawn : List.of(arabic, english)) {
+            assertThat(drawn).doesNotContain("1+1=").doesNotContain("1+1-").doesNotContain("7+");
+        }
+    }
+
+    @Test
+    void anArabicTitleStillReadsRightToLeftNextToANeutralOne() throws Exception {
+        String drawn = drawnPdf("ar", "=1+1 تركة");
+        assertThat(drawn).contains("\uFE94\uFEDB\uFEAE\uFE97 1+1=").doesNotContain("تركة");
+    }
+
     @Test
     void exportsAnEnglishPdfOfTheJudgments() throws Exception {
         byte[] bytes = mvc.perform(export(JUDGMENTS, "pdf", "en").param("from", "2031-03-10").param("to", "2031-03-10")
@@ -210,7 +242,8 @@ class ExportFormatsApiTest extends PostgresTestSupport {
                 .getResponse().getContentAsByteArray();
         try (PDDocument pdf = Loader.loadPDF(bytes)) {
             assertThat(pdf.getNumberOfPages()).isGreaterThan(1);
-            String text = new PDFTextStripper().getText(pdf);
+            // A long reference may wrap inside its cell, so the line breaks are left out of the comparison.
+            String text = new PDFTextStripper().getText(pdf).replaceAll("\\s+", "");
             assertThat(text).contains(m + "-BULK-120", m + "-BULK-99", m + "-A");
         }
     }

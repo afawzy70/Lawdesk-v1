@@ -189,6 +189,24 @@ Acceptance criteria:
 language); the court column holds the court name in the export language; a case without proceedings has empty stage
 and court cells.
 
+**QAD-035 (XLSX dimension), fixed.** The writer (fastexcel) declares `<dimension ref="A1"/>` whatever the sheet holds,
+so streaming readers (openpyxl `read_only=True`) saw one row. Every `.xlsx` export now declares
+`A1:<last column><last row>` (header row included, for example `A1:I10001` at the 10 000-row limit), in English and
+Arabic; the sheet part is rewritten while the workbook is zipped again and every other part is copied unchanged.
+Tests: `XlsxTest` (streaming XML read of `sheet1.xml`), `ExportFormatsApiTest` (English, Arabic, limit); extra evidence
+`docs/evidence/PHASE-6/44-qad035-openpyxl-readonly-check.log` (openpyxl 3.1.5 in a throwaway virtual environment, not a
+project dependency): normal and read-only readers agree at 7 and 10 001 rows.
+
+**ASSUMPTION (QAD-036, owner-delegated decision): direction of PDF cells.** A PDF cell (and the title line) without any
+strong right-to-left character keeps its logical order and is laid out left to right, in English and Arabic exports:
+`=1+1`, `-1+1`, `+7`, `@a` are drawn as written. A cell with Arabic (or other right-to-left) letters stays right to
+left and follows the Unicode bidirectional algorithm, so an operator next to a number inside such a cell may move
+(`=1+1 تركة` reads `1+1=` beside the word, as in any Arabic text). Headers, the mirroring of the table and the
+right alignment of Arabic exports are unchanged. CSV and Excel keep their formula-injection neutralisation exactly
+as before (a `'` prefix in CSV, text cells in Excel). Tests: `PdfTextTest` (11 neutral cells, both languages; mixed
+cells), `ExportFormatsApiTest` (extracted text order of `=1+1`, `-1+1`, `+7`, `@a` in Arabic and English PDFs);
+rendered sample `docs/evidence/PHASE-6/47-pdf-neutral-cells-arabic.png`.
+
 ## Dependencies
 
 - Phase 5 read ports of Workstream D (architecture/CONTRACTS.md §8.3): `HearingReportQueries` (hearings this week, the
