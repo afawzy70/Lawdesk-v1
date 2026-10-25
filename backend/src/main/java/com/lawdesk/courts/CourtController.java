@@ -35,8 +35,9 @@ class CourtController {
     @GetMapping
     @PreAuthorize(Permission.Codes.COURT_VIEW)
     PageResponse<CourtRequests.Response> list(@RequestParam(required = false) CourtLevel level,
-            @RequestParam(required = false) Boolean active, Pageable pageable) {
-        return PageResponse.from(service.list(level, active, pageable).map(CourtRequests.Response::of));
+            @RequestParam(required = false) Boolean active, @RequestParam(required = false) String q,
+            Pageable pageable) {
+        return PageResponse.from(service.list(level, active, q, pageable).map(CourtRequests.Response::of));
     }
 
     @GetMapping("/{id}")

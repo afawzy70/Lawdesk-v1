@@ -125,11 +125,13 @@ manager/admin-only by default. The last active `ADMIN` can never be disabled, lo
   special decisions, hearings, referrals, tasks, notes) are read in full through `listAll` (`src/api/pagedList.ts`:
   pages of 100 in the server's order; a list over `MAX_LIST_PAGES` pages fails loudly instead of being cut). A selector
   over reference data (courts, experts) is the shared `PagedSelect` (`src/components/PagedSelect.tsx`): a search box,
-  the native `<select>`, "Showing n of N" and "Load more". It searches on the server where the API has `q` (experts) and
-  filters the loaded rows where it has not (courts). The size cap stays 100 (§4). A redesign keeps this component
+  the native `<select>`, "Showing n of N" and "Load more". It searches on the server through `q` (experts: name and specialty; courts:
+  code, Arabic and English name, case-insensitive, `%`/`_` literal), debounced and cancelling the request the next text
+  makes obsolete; with `serverSearch` off it filters the loaded rows instead. The size cap stays 100 (§4). A redesign keeps this component
   contract: the search box, the select, the status line and the button are separate focusable controls with the labels
   above; restyle them with CSS, never replace them with a fixed-size list. The report court filters (`features/reports/courts.tsx`, `CourtFilter`) use it too, named `courtId` so the
   filter form and the export links are unchanged; `resolve` restores a court from the address that is not on page one.
+- **Courts list (`GET /api/v1/courts`):** gained the optional `q` (QAD-044); without it, or blank, the answer is as before.
 
 ## 7. Delivery
 

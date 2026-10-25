@@ -14,6 +14,8 @@ interface CourtRepository extends JpaRepository<Court, UUID> {
 
     @Query("""
             select c from Court c
-            where (:level is null or c.level = :level) and (:active is null or c.active = :active)""")
-    Page<Court> search(CourtLevel level, Boolean active, Pageable pageable);
+            where (:level is null or c.level = :level) and (:active is null or c.active = :active)
+              and (lower(c.code) like :pattern escape '\\' or lower(c.nameAr) like :pattern escape '\\'
+                   or lower(c.nameEn) like :pattern escape '\\')""")
+    Page<Court> search(CourtLevel level, Boolean active, String pattern, Pageable pageable);
 }

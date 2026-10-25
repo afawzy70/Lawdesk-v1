@@ -87,7 +87,10 @@ function serve() {
       const q = r.query.get('q')?.toLowerCase();
       return paged(q ? experts.filter((e) => e.name.toLowerCase().includes(q)) : experts, r);
     }
-    if (r.path === '/api/v1/courts') return paged(courts, r);
+    if (r.path === '/api/v1/courts') {
+      const q = r.query.get('q')?.toLowerCase();
+      return paged(q ? courts.filter((c) => `${c.code} ${c.nameAr} ${c.nameEn}`.toLowerCase().includes(q)) : courts, r);
+    }
     if (r.path.startsWith(`/api/v1/cases/${CASE}/`) || r.path === '/api/v1/tasks') return page([]);
     return undefined;
   });
@@ -219,15 +222,22 @@ describe('the judicial ladder and the court selector', () => {
     expect(reads.every((r) => r.query.get('level') === 'FIRST_INSTANCE' && r.query.get('active') === 'true')).toBe(true);
   });
 
-  it('finds an Arabic court name among the loaded courts', async () => {
+  it('finds an unloaded court by an Arabic name through the server, with one request for the typed text', async () => {
     const user = userEvent.setup();
-    serve();
+    const { requests } = serve();
     renderLadder('ar');
     await waitFor(() => { expect(screen.getAllByRole('article')).toHaveLength(COUNT); });
     await user.click(screen.getByRole('button', { name: 'تسجيل دعوى' }));
     const form = screen.getByRole('form', { name: 'تسجيل دعوى' });
-    await within(form).findByRole('option', { name: 'محكمة رقم 1' });
-    await user.type(within(form).getByRole('searchbox'), 'رقم 77');
-    expect(within(within(form).getByLabelText('المحكمة')).getAllByRole('option').map((o) => o.textContent)).toEqual(['اختر…', 'محكمة رقم 77']);
+    const select = within(form).getByLabelText('المحكمة');
+    await within(select).findByRole('option', { name: 'محكمة رقم 1' });
+    expect(within(select).queryByRole('option', { name: 'محكمة رقم 102' })).not.toBeInTheDocument();
+    await user.type(within(form).getByRole('searchbox'), 'رقم 102');
+    await within(select).findByRole('option', { name: 'محكمة رقم 102' });
+    expect(within(select).getAllByRole('option').map((o) => o.textContent)).toEqual(['اختر…', 'محكمة رقم 102']);
+    const searches = requests.filter((r) => r.path === '/api/v1/courts' && r.query.has('q'));
+    expect(searches.map((r) => r.query.get('q'))).toEqual(['رقم 102']);
+    await user.selectOptions(select, 'court-102');
+    expect(select).toHaveValue('court-102');
   });
 });

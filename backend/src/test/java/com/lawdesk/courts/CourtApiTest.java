@@ -153,6 +153,63 @@ class CourtApiTest extends PostgresTestSupport {
     }
 
     @Test
+    void searchesCourtsByCodeAndByArabicAndEnglishNamesAcrossAllPages() throws Exception {
+        for (int i = 1; i <= 150; i++) {
+            String n = "%03d".formatted(i);
+            createCourt(body("S-" + n, "محكمة رقم " + n, "Court No. " + n, i % 3 == 0 ? "APPEAL" : "FIRST_INSTANCE", null));
+        }
+        createCourt(body("CAIRO-ECO", "محكمة القاهرة الاقتصادية", "Cairo Economic Court", "FIRST_INSTANCE", null));
+        createCourt(body("PCT-1", "محكمة 100% نسبة", "Percent_Court", "FIRST_INSTANCE", null));
+
+        // A court past the first page of 100 by code is found by its English name, Arabic name and code.
+        mvc.perform(get(COURTS).param("q", "No. 150").with(as(Permission.COURT_VIEW)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[*].code").value(Matchers.contains("S-150")))
+                .andExpect(jsonPath("$.totalItems").value(1));
+        mvc.perform(get(COURTS).param("q", "القاهرة").with(as(Permission.COURT_VIEW)))
+                .andExpect(jsonPath("$.items[*].code").value(Matchers.contains("CAIRO-ECO")));
+        mvc.perform(get(COURTS).param("q", "cairo-eco").with(as(Permission.COURT_VIEW)))
+                .andExpect(jsonPath("$.items[*].code").value(Matchers.contains("CAIRO-ECO")));
+        mvc.perform(get(COURTS).param("q", "  ECONOMIC ").with(as(Permission.COURT_VIEW)))
+                .andExpect(jsonPath("$.items[*].code").value(Matchers.contains("CAIRO-ECO")));
+
+        // Paging applies to the matches, and the totals describe the matches.
+        mvc.perform(get(COURTS).param("q", "S-1").param("size", "20").param("page", "2").with(as(Permission.COURT_VIEW)))
+                .andExpect(jsonPath("$.totalItems").value(51))
+                .andExpect(jsonPath("$.totalPages").value(3))
+                .andExpect(jsonPath("$.items.length()").value(11));
+        // Combined with the other filters.
+        mvc.perform(get(COURTS).param("q", "S-1").param("level", "APPEAL").param("size", "100")
+                        .with(as(Permission.COURT_VIEW)))
+                .andExpect(jsonPath("$.totalItems").value(17));
+
+        // LIKE wildcards are literal; blank and missing q keep the old behaviour.
+        mvc.perform(get(COURTS).param("q", "%").with(as(Permission.COURT_VIEW)))
+                .andExpect(jsonPath("$.items[*].code").value(Matchers.contains("PCT-1")));
+        mvc.perform(get(COURTS).param("q", "_").with(as(Permission.COURT_VIEW)))
+                .andExpect(jsonPath("$.items[*].code").value(Matchers.contains("PCT-1")));
+        mvc.perform(get(COURTS).param("q", "   ").with(as(Permission.COURT_VIEW)))
+                .andExpect(jsonPath("$.totalItems").value(152));
+        mvc.perform(get(COURTS).with(as(Permission.COURT_VIEW)))
+                .andExpect(jsonPath("$.totalItems").value(152));
+        mvc.perform(get(COURTS).param("q", "no such court").with(as(Permission.COURT_VIEW)))
+                .andExpect(jsonPath("$.items.length()").value(0))
+                .andExpect(jsonPath("$.totalItems").value(0));
+    }
+
+    @Test
+    void searchNeedsTheSameAuthorizationAsTheList() throws Exception {
+        createCourt(validBody("Q-1"));
+        mvc.perform(get(COURTS).param("q", "Sample")).andExpect(status().isUnauthorized());
+        mvc.perform(get(COURTS).param("q", "Sample").with(as(Permission.CASE_VIEW)))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentTypeCompatibleWith(PROBLEM));
+        mvc.perform(get(COURTS).param("q", "x".repeat(300)).param("page", "2147483647")
+                        .with(as(Permission.CASE_VIEW)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void unknownSortFieldsAreIgnored() throws Exception {
         createCourt(validBody("Z-1"));
         mvc.perform(get(COURTS).param("sort", "createdBy,desc").with(as(Permission.COURT_VIEW)))

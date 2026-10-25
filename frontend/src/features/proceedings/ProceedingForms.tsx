@@ -203,10 +203,9 @@ export function ProceedingForm({ caseId, proceedings, onSaved, onCancel }: Proce
           selectProps={form.control('courtId')}
           value={courtId}
           onChange={setCourtId}
-          load={(courtPage, _query, signal) => listCourtsPage(stage, courtPage, signal)}
+          load={(courtPage, query, signal) => listCourtsPage(stage, courtPage, query, signal)}
           optionLabel={(court) => (locale === 'ar' ? court.nameAr : court.nameEn)}
-          searchText={(court) => `${court.code} ${court.nameAr} ${court.nameEn}`}
-          serverSearch={false}
+          serverSearch
           searchLabel={t('proceedings.searchCourts')}
           chooseLabel={t('proceedings.choose')}
         />,

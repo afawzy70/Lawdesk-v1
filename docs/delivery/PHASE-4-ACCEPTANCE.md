@@ -229,3 +229,5 @@ case, for the case details page of Workstream B. It is not routed on its own and
 ## QAD-044 note
 
 Proceedings, judgments and special decisions of a case are read in full page by page (no silent cut at 100); the court selector of the proceeding form is the paged `PagedSelect` (Load more, local filter over the loaded courts, "Showing n of N"). Tests: `LongLists.test.tsx` (102 courts, 101 proceedings/judgments, Arabic and English).
+
+`GET /api/v1/courts` also takes an optional `q` (QAD-044, server-side court search): a case-insensitive contains on code, Arabic name and English name, `%` and `_` taken literally, combined with `level`/`active`, paged and sorted as before; missing or blank `q` changes nothing. Same `COURT_VIEW` rule, checked before any parameter. Tests: `CourtApiTest.searchesCourts…`, `searchNeedsTheSameAuthorizationAsTheList`.
