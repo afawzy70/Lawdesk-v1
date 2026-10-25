@@ -1,0 +1,42 @@
+# Rootless Docker daemon for the LawDesk CI runner (docs/operations/CI-RUNNER.md).
+#
+# A systemd USER unit of lawdesk-ci, installed root-owned in /etc/systemd/user and enabled with
+# `runuser -u lawdesk-ci -- env XDG_RUNTIME_DIR=/run/user/<uid> systemctl --user enable --now lawdesk-ci-docker.service`. It runs inside a user namespace:
+# its containers, images, networks and volumes are its own and invisible to the host daemon, so a CI run named
+# "lawdesk-staging" can never touch the real staging stack or anything of Matbakhy. The socket is private to the user
+# (%t is /run/user/<uid>); nobody is added to the docker group. A user manager also gives Docker the systemd cgroup
+# driver, the only one that enforces the compose memory limits in a rootless daemon.
+[Unit]
+Description=Rootless Docker daemon for the LawDesk CI runner
+StartLimitBurst=3
+StartLimitIntervalSec=60
+
+[Service]
+Type=notify
+NotifyAccess=all
+Environment=PATH=/usr/bin:/usr/sbin:/bin:/sbin
+# Published ports are bound by the daemon on the host; CI binds them to 127.0.0.1 only. Containers cannot connect to
+# services listening on the host's loopback.
+Environment=DOCKERD_ROOTLESS_ROOTLESSKIT_PORT_DRIVER=builtin
+Environment=DOCKERD_ROOTLESS_ROOTLESSKIT_DISABLE_HOST_LOOPBACK=true
+ExecStart=/usr/bin/dockerd-rootless.sh --host=unix://%t/docker.sock
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=on-failure
+RestartSec=5
+TimeoutSec=120
+# newuidmap/newgidmap are setuid helpers, so NoNewPrivileges must stay off for rootless Docker.
+Delegate=yes
+KillMode=mixed
+LimitNOFILE=1048576
+LimitNPROC=infinity
+LimitCORE=0
+# The host is shared with Matbakhy: bound everything this daemon and its containers can use (cgroup v2). The same
+# ceiling is also set, root-owned, on user-<uid>.slice (user-slice-limits.conf), because the user can edit this unit.
+CPUQuota=300%
+MemoryHigh=4500M
+MemoryMax=5G
+TasksMax=8192
+Nice=10
+
+[Install]
+WantedBy=default.target
