@@ -5,7 +5,7 @@ import java.util.Map;
 
 /**
  * Paging and sorting of report lists (architecture/CONTRACTS.md §4): {@code page} from 0, {@code size} default 20 and
- * capped at 100, {@code sort=<field>,<asc|desc>} whose field the query's pattern already restricted to a whitelist.
+ * at most 100 (larger values are refused with 400 by PagingValidationInterceptor), {@code sort=<field>,<asc|desc>} whose field the query's pattern already restricted to a whitelist.
  */
 record Paging(int page, int size) {
 

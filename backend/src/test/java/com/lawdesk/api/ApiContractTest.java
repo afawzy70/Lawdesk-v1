@@ -120,14 +120,16 @@ class ApiContractTest extends PostgresTestSupport {
     }
 
     @Test
-    void pagesHaveTheSharedShapeAndAreCappedAtOneHundred() throws Exception {
-        mvc.perform(get(BASE + "/page").param("page", "1").param("size", "500").with(as(Permission.CASE_VIEW)))
+    void pagesHaveTheSharedShapeAndRefuseMoreThanOneHundred() throws Exception {
+        mvc.perform(get(BASE + "/page").param("page", "1").param("size", "100").with(as(Permission.CASE_VIEW)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items.length()").value(2))
                 .andExpect(jsonPath("$.page").value(1))
                 .andExpect(jsonPath("$.size").value(100))
                 .andExpect(jsonPath("$.totalItems").value(250))
                 .andExpect(jsonPath("$.totalPages").value(3));
+        mvc.perform(get(BASE + "/page").param("size", "500").with(as(Permission.CASE_VIEW)))
+                .andExpect(status().isBadRequest());
         mvc.perform(get(BASE + "/page").with(as(Permission.CASE_VIEW)))
                 .andExpect(jsonPath("$.page").value(0)).andExpect(jsonPath("$.size").value(20));
     }

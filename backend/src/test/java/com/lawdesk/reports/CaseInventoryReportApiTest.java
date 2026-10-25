@@ -238,7 +238,9 @@ class CaseInventoryReportApiTest extends PostgresTestSupport {
                 .andExpect(jsonPath("$.items[*].referenceNo", contains(m + "-D")));
         mvc.perform(report().param("page", "9")).andExpect(jsonPath("$.items", empty()))
                 .andExpect(jsonPath("$.totalItems").value(5));
-        mvc.perform(report().param("size", "500")).andExpect(jsonPath("$.size").value(100));
+        mvc.perform(report().param("size", "100")).andExpect(jsonPath("$.size").value(100));
+        mvc.perform(report().param("size", "500")).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("size"));
     }
 
     @ParameterizedTest
@@ -248,7 +250,8 @@ class CaseInventoryReportApiTest extends PostgresTestSupport {
             "sort | title;drop | Pattern",
             "page | -1 | Min",
             "size | 0 | Min",
-            "page | one | typeMismatch",
+            "page | one | Digits",
+            "size | 101 | Max",
             "status | LOST | typeMismatch",
             "statusGroup | MAYBE | typeMismatch",
             "caseType | MARITIME | typeMismatch",

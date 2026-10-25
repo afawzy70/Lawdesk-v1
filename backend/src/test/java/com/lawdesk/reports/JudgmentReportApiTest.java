@@ -182,7 +182,9 @@ class JudgmentReportApiTest extends PostgresTestSupport {
         mvc.perform(report().param("size", "2").param("page", "1"))
                 .andExpect(jsonPath("$.items[*].id", contains(j.get("J1")))).andExpect(jsonPath("$.totalItems").value(3))
                 .andExpect(jsonPath("$.totalPages").value(2)).andExpect(jsonPath("$.summary.total").value(3));
-        mvc.perform(report().param("size", "1000")).andExpect(jsonPath("$.size").value(100));
+        mvc.perform(report().param("size", "100")).andExpect(jsonPath("$.size").value(100));
+        mvc.perform(report().param("size", "1000")).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("size"));
     }
 
     @ParameterizedTest
