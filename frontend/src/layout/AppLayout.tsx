@@ -85,6 +85,10 @@ export function AppLayout() {
           aria-label={t('shell.primaryNav')}
           data-open={menuOpen}
         >
+          <div className="nav-brand">
+            <span className="nav-brand-mark" aria-hidden="true">L</span>
+            <span>{t('app.name')}</span>
+          </div>
           <ul>
             {navItems.map((item) => (
               <li key={item.path}>
