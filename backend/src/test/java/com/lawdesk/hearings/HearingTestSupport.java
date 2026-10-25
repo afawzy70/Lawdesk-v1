@@ -21,6 +21,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import com.jayway.jsonpath.JsonPath;
+import com.lawdesk.platform.OperationsTestData;
 import com.lawdesk.cases.CaseLookup;
 import com.lawdesk.platform.PostgresTestSupport;
 import com.lawdesk.security.Permission;
@@ -61,6 +62,7 @@ abstract class HearingTestSupport extends PostgresTestSupport {
         jdbc.update("delete from proceeding where stage = 'APPEAL'");
         jdbc.update("delete from proceeding");
         jdbc.update("delete from court");
+        OperationsTestData.deleteAll(jdbc);
     }
 
     static LocalDate today() {

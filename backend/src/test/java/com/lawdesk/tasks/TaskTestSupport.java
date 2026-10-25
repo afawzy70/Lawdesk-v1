@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import com.jayway.jsonpath.JsonPath;
+import com.lawdesk.platform.OperationsTestData;
 import com.lawdesk.cases.CaseLookup;
 import com.lawdesk.platform.PostgresTestSupport;
 import com.lawdesk.security.Permission;
@@ -48,7 +49,7 @@ abstract class TaskTestSupport extends PostgresTestSupport {
 
     @AfterEach
     void removeTasks() {
-        jdbc.update("delete from task");
+        OperationsTestData.deleteAll(jdbc);
     }
 
     static LocalDate today() {

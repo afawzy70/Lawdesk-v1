@@ -45,6 +45,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 
 import com.jayway.jsonpath.JsonPath;
+import com.lawdesk.platform.OperationsTestData;
 import com.lawdesk.cases.CaseLookup;
 import com.lawdesk.platform.PostgresTestSupport;
 import com.lawdesk.security.Permission;
@@ -71,6 +72,7 @@ class DocumentApiTest extends PostgresTestSupport {
         dropPause();
         jdbc.update("delete from case_document");
         jdbc.update("delete from case_document_quota");
+        OperationsTestData.deleteAll(jdbc);
     }
 
     static byte[] pdf(String text) {
