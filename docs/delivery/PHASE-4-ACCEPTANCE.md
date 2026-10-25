@@ -224,3 +224,8 @@ Acceptance criteria:
 `src/features/proceedings/CaseProceedings.tsx` exports `<CaseProceedings caseId="…" />`, the judicial stages of one
 case, for the case details page of Workstream B. It is not routed on its own and no navigation entry is flipped:
 `/hearings` and `/judgments` stay `planned` because their cross-case screens are not built in this phase.
+
+
+## QAD-044 note
+
+Proceedings, judgments and special decisions of a case are read in full page by page (no silent cut at 100); the court selector of the proceeding form is the paged `PagedSelect` (Load more, local filter over the loaded courts, "Showing n of N"). Tests: `LongLists.test.tsx` (102 courts, 101 proceedings/judgments, Arabic and English).

@@ -1,4 +1,6 @@
 import { api } from '../../api/http';
+import { LIST_PAGE_SIZE, listAll } from '../../api/pagedList';
+import type { PagedResult } from '../../components/PagedSelect';
 import type { Court } from '../courts/courtsApi';
 
 /** Proceedings, judgments and special decisions of a case (LD-019…LD-023, docs/delivery/PHASE-4-ACCEPTANCE.md). */
@@ -59,32 +61,26 @@ export interface SpecialDecision {
   updatedAt: string;
 }
 
-interface Page<T> {
-  items: T[];
-}
-
-/** A case holds a handful of records; one page of the maximum size holds them all. */
-const ALL = 'size=100';
-
-const casePath = (caseId: string, what: string) => `/api/v1/cases/${encodeURIComponent(caseId)}/${what}?${ALL}`;
+const casePath = (caseId: string, what: string) => `/api/v1/cases/${encodeURIComponent(caseId)}/${what}`;
 const proceedingPath = (id: string, what: string) => `/api/v1/proceedings/${encodeURIComponent(id)}/${what}`;
 
-export async function listProceedings(caseId: string, signal: AbortSignal): Promise<Proceeding[]> {
-  return (await api<Page<Proceeding>>(casePath(caseId, 'proceedings'), { signal })).items;
+/** The lists of a case are read in full, page by page (QAD-044), never cut at the first page. */
+export function listProceedings(caseId: string, signal: AbortSignal): Promise<Proceeding[]> {
+  return listAll<Proceeding>(casePath(caseId, 'proceedings'), {}, signal);
 }
 
-export async function listJudgments(caseId: string, signal: AbortSignal): Promise<Judgment[]> {
-  return (await api<Page<Judgment>>(casePath(caseId, 'judgments'), { signal })).items;
+export function listJudgments(caseId: string, signal: AbortSignal): Promise<Judgment[]> {
+  return listAll<Judgment>(casePath(caseId, 'judgments'), {}, signal);
 }
 
-export async function listSpecialDecisions(caseId: string, signal: AbortSignal): Promise<SpecialDecision[]> {
-  return (await api<Page<SpecialDecision>>(casePath(caseId, 'special-decisions'), { signal })).items;
+export function listSpecialDecisions(caseId: string, signal: AbortSignal): Promise<SpecialDecision[]> {
+  return listAll<SpecialDecision>(casePath(caseId, 'special-decisions'), {}, signal);
 }
 
-/** Active courts of the level that hears `stage`. */
-export async function listCourtsFor(stage: Stage, signal: AbortSignal): Promise<Court[]> {
-  const query = new URLSearchParams({ active: 'true', level: stage, size: '100', sort: 'code,asc' });
-  return (await api<Page<Court>>(`/api/v1/courts?${query.toString()}`, { signal })).items;
+/** One page of the active courts of the level that hears `stage`, in code order. */
+export function listCourtsPage(stage: Stage, page: number, signal: AbortSignal): Promise<PagedResult<Court>> {
+  const query = new URLSearchParams({ active: 'true', level: stage, page: String(page), size: String(LIST_PAGE_SIZE), sort: 'code,asc' });
+  return api<PagedResult<Court>>(`/api/v1/courts?${query.toString()}`, { signal });
 }
 
 export interface ProceedingInput {

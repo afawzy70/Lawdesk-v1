@@ -1,4 +1,5 @@
 import { api } from '../../../api/http';
+import { listAll } from '../../../api/pagedList';
 
 /** Legal notes of a case (LD-029, docs/delivery/PHASE-5-ACCEPTANCE.md). */
 export interface CaseNote {
@@ -20,7 +21,7 @@ const notePath = (id: string) => `/api/v1/notes/${encodeURIComponent(id)}`;
 
 /** The newest hundred notes of the case. */
 export async function listNotes(caseId: string, signal: AbortSignal): Promise<CaseNote[]> {
-  return (await api<{ items: CaseNote[] }>(`${casePath(caseId)}?size=100`, { signal })).items;
+  return listAll<CaseNote>(casePath(caseId), {}, signal);
 }
 
 export function addNote(caseId: string, body: string): Promise<CaseNote> {

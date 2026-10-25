@@ -223,6 +223,7 @@ export const operationsAr: Record<keyof typeof operationsEn, string> = {
   'operations.referral.refer': 'إحالة',
   'operations.referral.expert': 'الخبير',
   'operations.referral.expertOption': '{name} (التخصص: {specialty})',
+  'operations.referral.searchExperts': 'ابحث عن خبير بالاسم أو التخصص',
   'operations.referral.proceeding': '{stage} رقم {number}',
   'operations.referral.label': 'إحالة إلى {name}',
   'operations.referral.date': 'تاريخ الإحالة',

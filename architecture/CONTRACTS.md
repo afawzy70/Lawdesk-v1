@@ -121,6 +121,14 @@ manager/admin-only by default. The last active `ADMIN` can never be disabled, lo
   have the same keys.
 - **API calls** go through `src/api/http.ts`, which sends credentials, sets the CSRF header and turns problems into
   `ApiError`.
+- **Long lists (QAD-044):** a screen never reads one page and stops. A case's own lists (proceedings, judgments,
+  special decisions, hearings, referrals, tasks, notes) are read in full through `listAll` (`src/api/pagedList.ts`:
+  pages of 100 in the server's order; a list over `MAX_LIST_PAGES` pages fails loudly instead of being cut). A selector
+  over reference data (courts, experts) is the shared `PagedSelect` (`src/components/PagedSelect.tsx`): a search box,
+  the native `<select>`, "Showing n of N" and "Load more". It searches on the server where the API has `q` (experts) and
+  filters the loaded rows where it has not (courts). The size cap stays 100 (§4). A redesign keeps this component
+  contract: the search box, the select, the status line and the button are separate focusable controls with the labels
+  above; restyle them with CSS, never replace them with a fixed-size list.
 
 ## 7. Delivery
 

@@ -1,4 +1,5 @@
 import { api } from '../../../api/http';
+import { LIST_PAGE_SIZE, listAll } from '../../../api/pagedList';
 import type { Stage } from '../../proceedings/proceedingsApi';
 import { blankToNull } from '../formErrors';
 
@@ -111,10 +112,14 @@ export function updateExpert(id: string, input: ExpertInput, active: boolean, ve
   });
 }
 
-/** A case holds a handful of referrals; the answer holds them all, each with its sessions. */
-export async function listCaseReferrals(caseId: string, signal: AbortSignal): Promise<Referral[]> {
-  const path = `/api/v1/cases/${encodeURIComponent(caseId)}/expert-referrals`;
-  return (await api<{ items: Referral[] }>(path, { signal })).items;
+/** Every referral of the case with its sessions, read page by page (QAD-044). */
+export function listCaseReferrals(caseId: string, signal: AbortSignal): Promise<Referral[]> {
+  return listAll<Referral>(`/api/v1/cases/${encodeURIComponent(caseId)}/expert-referrals`, {}, signal);
+}
+
+/** One page of the active experts, matching `query` on name and specialty when given. */
+export function listExpertsPage(page: number, query: string, signal: AbortSignal): Promise<ExpertPage> {
+  return listExperts({ active: true, q: query, page, size: LIST_PAGE_SIZE }, signal);
 }
 
 export function referToExpert(proceedingId: string, input: ReferralInput): Promise<Referral> {
