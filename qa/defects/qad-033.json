@@ -5,7 +5,7 @@
   "no_customer_data": true,
   "id": "QAD-033",
   "title": "Database permits hearing chronology and reverse parent/case inconsistency",
-  "status": "CONFIRMED_OPEN",
+  "status": "FIX_VERIFIED_ORIGINAL_SCOPE",
   "priority": "P2",
   "severity": "S2",
   "story_ids": [
@@ -51,6 +51,38 @@
       "status": "CONFIRMED_OPEN",
       "tested_sha": "6e27f5c427380fddb1914872f53ea437eb642fc9",
       "note": "All3 counterexamples now COMMIT with NOSUPERUSER/NOCREATEDB/NOCREATEROLE role granted only schema usage and SELECT/UPDATE on hearing/proceeding. New connection observes1 invalid row per probe. Disposable QA DB only; not a remote API authorization bypass."
+    },
+    {
+      "utc": "2026-10-25T09:41:46.243707+00:00",
+      "previous_status": "CONFIRMED_OPEN",
+      "status": "FIX_VERIFIED_ORIGINAL_SCOPE",
+      "tested_sha": "b849b1cabcbebd4df058e4ab989d1e8c1a562899",
+      "note": "All three originally reported non-owner COMMIT violations rejected; V406/V407 original guards verified. Additional adjournment race QAD038 remains blocking; do not claim complete DB chronology acceptance.",
+      "evidence": [
+        "qa/evidence/phase56-acceptance-20261025/dbwriter/results.json",
+        "qa/evidence/phase56-acceptance-20261025/dbextended/results.json",
+        "qa/evidence/phase56-acceptance-20261025/current-db/results.json"
+      ]
+    },
+    {
+      "utc": "2026-10-25T09:49:41.056313+00:00",
+      "previous_status": "CONFIRMED_OPEN",
+      "status": "FIX_VERIFIED_ORIGINAL_SCOPE",
+      "tested_sha": "b849b1cabcbebd4df058e4ab989d1e8c1a562899",
+      "note": "Original three non-owner SQL COMMIT violations independently rejected on current SHA; injected parent-write fault rolls back. Additional QAD038 remains open.",
+      "evidence": [
+        "qa/evidence/phase56-acceptance-20261025/current-dbwriter/results.json"
+      ]
     }
-  ]
+  ],
+  "latest_verification": {
+    "utc": "2026-10-25T09:49:41.056313+00:00",
+    "previous_status": "CONFIRMED_OPEN",
+    "status": "FIX_VERIFIED_ORIGINAL_SCOPE",
+    "tested_sha": "b849b1cabcbebd4df058e4ab989d1e8c1a562899",
+    "note": "Original three non-owner SQL COMMIT violations independently rejected on current SHA; injected parent-write fault rolls back. Additional QAD038 remains open.",
+    "evidence": [
+      "qa/evidence/phase56-acceptance-20261025/current-dbwriter/results.json"
+    ]
+  }
 }

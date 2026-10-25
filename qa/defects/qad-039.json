@@ -1,0 +1,45 @@
+{
+  "id": "QAD-039",
+  "reported_utc": "2026-10-25T09:49:02.314829+00:00",
+  "owner": "Claude implementation; independent QA verification",
+  "status": "CONFIRMED_OPEN",
+  "priority": "P2",
+  "severity": "S3",
+  "story_ids": [
+    "LD-033",
+    "LD-034"
+  ],
+  "affected": [
+    "312bf2933bf31562ad16ec32158cf9627e32fe7d",
+    "b849b1cabcbebd4df058e4ab989d1e8c1a562899"
+  ],
+  "tested_sha": "b849b1cabcbebd4df058e4ab989d1e8c1a562899",
+  "environment": "Canonical candidate JAR/disposable PostgreSQL18.6, synthetic rows only; no UAT bulk writes",
+  "preconditions": [
+    "Approved REPORT_EXPORT synthetic local admin",
+    "Exactly10000 experts created in disposable database"
+  ],
+  "test_data": {
+    "at_limit": 10000,
+    "above_limit": 10001,
+    "formats": [
+      "csv",
+      "xlsx",
+      "pdf"
+    ]
+  },
+  "steps": [
+    "GET /api/v1/reports/experts/export?format=csv at10000 rows; independently parse10000data rows",
+    "Insert10001st synthetic expert",
+    "GET /api/v1/reports/experts/export?format=csv, then xlsx, then pdf"
+  ],
+  "expected": "422 EXPORT_TOO_LARGE before serialization; no attachment or successful-export audit",
+  "actual": "All three formats return500; no attachment; no success audit. Same boundaries pass for hearing/workload exports.",
+  "source_cause": "ReportExports.experts calls ExpertReport.read before checking result size; ExpertReport calls ExpertReportQueries.experts with >10000 IDs, causing IllegalArgumentException before export guard.",
+  "scope_limit": "No claim of data corruption or remote authorization bypass. Normal expert report at10001 has same source path but was not separately executed in this run.",
+  "evidence": [
+    "qa/evidence/phase56-acceptance-20261025/current-export-limits/results.json"
+  ],
+  "recommendation": "REQUEST_CHANGES for affected export acceptance; S3 is not an automatic block on ordinary owner-approved Dev/UAT deployment",
+  "fix_guidance": "Check export size before the bounded lookup; retain explicit limit error and test10000/10001 for all formats."
+}

@@ -1,0 +1,718 @@
+{
+  "tested_sha": "9bdbdd9533f17007c70dbfae2c0d61c45932df00",
+  "utc": "2026-10-25T09:09:17.826993+00:00",
+  "candidate": "/tmp/lawdesk-acceptance-20261025-phase5",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 24,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "8e5e0945-4b96-48fc-9e59-0d376b32cea1",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-25T09:09:12.399238Z",
+          "updatedAt": "2026-10-25T09:09:12.399238Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DOCUMENT-ANON",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "GET",
+        "path": "/api/v1/cases/4c5e3f84-1dd5-475c-a53a-f2facd4c3194/documents",
+        "body": null
+      },
+      "steps": [
+        "GET /api/v1/cases/4c5e3f84-1dd5-475c-a53a-f2facd4c3194/documents",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 401,
+        "rule": null
+      },
+      "actual": {
+        "status": 401,
+        "body": {
+          "type": "about:blank",
+          "title": "Unauthorized",
+          "status": 401
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DOCUMENT-DENIED",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "GET",
+        "path": "/api/v1/cases/4c5e3f84-1dd5-475c-a53a-f2facd4c3194/documents",
+        "body": null
+      },
+      "steps": [
+        "GET /api/v1/cases/4c5e3f84-1dd5-475c-a53a-f2facd4c3194/documents",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 403,
+        "rule": null
+      },
+      "actual": {
+        "status": 403,
+        "body": {
+          "type": "about:blank",
+          "title": "Forbidden",
+          "status": 403
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DOCUMENT-WRITE-DENIED",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DOCUMENT-WRITE-DENIED"
+      },
+      "steps": [
+        "POST multipart with no permission"
+      ],
+      "expected_results": "403",
+      "actual": 403,
+      "status": "PASS"
+    },
+    {
+      "id": "DOCUMENT-VIEW-ONLY",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "GET",
+        "path": "/api/v1/cases/4c5e3f84-1dd5-475c-a53a-f2facd4c3194/documents",
+        "body": null
+      },
+      "steps": [
+        "GET /api/v1/cases/4c5e3f84-1dd5-475c-a53a-f2facd4c3194/documents",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "items": [],
+          "page": 0,
+          "size": 10,
+          "totalItems": 0,
+          "totalPages": 0
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DOCUMENT-VIEW-ONLY-WRITE",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DOCUMENT-VIEW-ONLY-WRITE"
+      },
+      "steps": [
+        "View-only multipart upload"
+      ],
+      "expected_results": "403",
+      "actual": 403,
+      "status": "PASS"
+    },
+    {
+      "id": "DOCUMENT-ATTACH",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DOCUMENT-ATTACH"
+      },
+      "steps": [
+        "Upload synthetic PDF with traversal filename"
+      ],
+      "expected_results": "201; clean filename,size,sha256; no content bytes in metadata",
+      "actual": {
+        "id": "ea3021b9-2c84-43d1-b7c8-ebd1425a4ed6",
+        "caseId": "4c5e3f84-1dd5-475c-a53a-f2facd4c3194",
+        "caseReferenceNo": "QA56-001",
+        "caseTitle": "QA phase56",
+        "title": "QA document",
+        "fileName": "qa.pdf",
+        "mediaType": "application/pdf",
+        "sizeBytes": 27,
+        "sha256": "7363072a5454b7474ab0b5aaa745e32368a5b5bc1ee25d1ffa18fb56c1144590",
+        "version": 0,
+        "createdAt": "2026-10-25T09:09:14.344603Z",
+        "createdBy": "5671a5e4-f5bf-45a4-b5a0-4e1a1f1da229"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DOCUMENT-DOWNLOAD",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DOCUMENT-DOWNLOAD"
+      },
+      "steps": [
+        "Download through view-only account"
+      ],
+      "expected_results": "Exact bytes, attachment,no-store,nosniff",
+      "actual": {
+        "status": 200,
+        "exact": true,
+        "contentType": "application/pdf",
+        "disposition": "attachment; filename=\"qa.pdf\"; filename*=UTF-8''qa.pdf",
+        "cache": "no-store"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DOCUMENT-INVALID-EMPTY",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DOCUMENT-INVALID-EMPTY"
+      },
+      "steps": [
+        "Upload EMPTY"
+      ],
+      "expected_results": "400",
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/cases/4c5e3f84-1dd5-475c-a53a-f2facd4c3194/documents",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "field": "file",
+              "code": "NotEmpty"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DOCUMENT-INVALID-MAGIC",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DOCUMENT-INVALID-MAGIC"
+      },
+      "steps": [
+        "Upload MAGIC"
+      ],
+      "expected_results": "400",
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/cases/4c5e3f84-1dd5-475c-a53a-f2facd4c3194/documents",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "field": "file",
+              "code": "PdfOnly"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DOCUMENT-INVALID-MIME",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DOCUMENT-INVALID-MIME"
+      },
+      "steps": [
+        "Upload MIME"
+      ],
+      "expected_results": "400",
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/cases/4c5e3f84-1dd5-475c-a53a-f2facd4c3194/documents",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "field": "file",
+              "code": "PdfOnly"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DOCUMENT-INVALID-TITLE",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DOCUMENT-INVALID-TITLE"
+      },
+      "steps": [
+        "Upload TITLE"
+      ],
+      "expected_results": "400",
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/cases/4c5e3f84-1dd5-475c-a53a-f2facd4c3194/documents",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "field": "title",
+              "code": "Size"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DOCUMENT-UNKNOWN-CASE",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DOCUMENT-UNKNOWN-CASE"
+      },
+      "steps": [
+        "Upload unknown case"
+      ],
+      "expected_results": "404",
+      "actual": 404,
+      "status": "PASS"
+    },
+    {
+      "id": "DOCUMENT-EXACT-10MIB",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DOCUMENT-EXACT-10MIB"
+      },
+      "steps": [
+        "Upload exactly10MiB"
+      ],
+      "expected_results": "201 exact size",
+      "actual": {
+        "status": 201,
+        "size": 10485760
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DOCUMENT-OVER-10MIB",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DOCUMENT-OVER-10MIB"
+      },
+      "steps": [
+        "Upload10MiB+1"
+      ],
+      "expected_results": "400 no attachment",
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/cases/6f5c113a-3d5e-441f-a962-9af842d6be8c/documents",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "field": "file",
+              "code": "MaxSize"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DOCUMENT-RACE-QUOTA",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DOCUMENT-RACE-QUOTA"
+      },
+      "steps": [
+        "At9 attachments race2 uploads"
+      ],
+      "expected_results": "201/422 and exactly10 persisted",
+      "actual": {
+        "statuses": [
+          201,
+          422
+        ],
+        "count": "10"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DOCUMENT-DELETE-STALE",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "DELETE",
+        "path": "/api/v1/documents/ea3021b9-2c84-43d1-b7c8-ebd1425a4ed6?version=-1",
+        "body": null
+      },
+      "steps": [
+        "DELETE /api/v1/documents/ea3021b9-2c84-43d1-b7c8-ebd1425a4ed6?version=-1",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 409,
+        "rule": null
+      },
+      "actual": {
+        "status": 409,
+        "body": {
+          "instance": "/api/v1/documents/ea3021b9-2c84-43d1-b7c8-ebd1425a4ed6",
+          "status": 409,
+          "title": "Conflict",
+          "type": "about:blank"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DOCUMENT-DELETE",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "DELETE",
+        "path": "/api/v1/documents/ea3021b9-2c84-43d1-b7c8-ebd1425a4ed6?version=0",
+        "body": null
+      },
+      "steps": [
+        "DELETE /api/v1/documents/ea3021b9-2c84-43d1-b7c8-ebd1425a4ed6?version=0",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 204,
+        "rule": null
+      },
+      "actual": {
+        "status": 204,
+        "body": ""
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DOCUMENT-DELETED-CONTENT",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "GET",
+        "path": "/api/v1/documents/ea3021b9-2c84-43d1-b7c8-ebd1425a4ed6/content",
+        "body": null
+      },
+      "steps": [
+        "GET /api/v1/documents/ea3021b9-2c84-43d1-b7c8-ebd1425a4ed6/content",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 404,
+        "rule": null
+      },
+      "actual": {
+        "status": 404,
+        "body": {
+          "instance": "/api/v1/documents/ea3021b9-2c84-43d1-b7c8-ebd1425a4ed6/content",
+          "status": 404,
+          "title": "Not Found",
+          "type": "about:blank"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DOCUMENT-DELETE-CASCADE",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DOCUMENT-DELETE-CASCADE"
+      },
+      "steps": [
+        "Query content after delete"
+      ],
+      "expected_results": "0 orphan bytes",
+      "actual": "0",
+      "status": "PASS"
+    },
+    {
+      "id": "DOCUMENT-QUOTA-FREED",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DOCUMENT-QUOTA-FREED"
+      },
+      "steps": [
+        "Upload after deletion"
+      ],
+      "expected_results": "201",
+      "actual": 201,
+      "status": "PASS"
+    },
+    {
+      "id": "DOCUMENT-ROLLBACK",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DOCUMENT-ROLLBACK"
+      },
+      "steps": [
+        "Fail timeline insert, attempt upload, compare metadata/content/events"
+      ],
+      "expected_results": "500; complete rollback",
+      "actual": {
+        "status": 500,
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DOCUMENT-FK",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DOCUMENT-FK"
+      },
+      "steps": [
+        "Try orphan case viaSQL transaction"
+      ],
+      "expected_results": "FK rejects",
+      "actual": 1,
+      "status": "PASS"
+    },
+    {
+      "id": "DOCUMENT-ARCHIVED",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DOCUMENT-ARCHIVED"
+      },
+      "steps": [
+        "Upload archived case"
+      ],
+      "expected_results": "422 CASE_ARCHIVED",
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/cases/5b003519-5126-4bff-a5ab-a9748f83a401/documents",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "CASE_ARCHIVED"
+        }
+      },
+      "status": "PASS"
+    }
+  ]
+}

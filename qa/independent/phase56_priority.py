@@ -33,8 +33,9 @@ class PriorityReview(PhaseReview):
             finally:conn.close()
             invalid=int(self.sql(f"select count(*) from hearing h join proceeding p on p.id=h.proceeding_id where h.id='{hh['id']}' and (h.hearing_date<p.filing_date or h.case_id<>p.case_id)").stdout)
             self.oracle('LIMITED-WRITER-COMMIT-'+name,sql+'; COMMIT; then query joined hearing/proceeding in a new connection','Database rejects invalid write even at commit; no invalid pair',dict(rejected=rejected,sqlstate=state,committed_invalid_rows=invalid),rejected and invalid==0)
-        # This head intentionally has no expert module. No expert PASS is assigned to PR33.
-        self.results.append(dict(id='PR33-EXPERT-REFERRAL-INTEGRATION',story_ids=['LD-019','LD-025'],priority='P1',preconditions=['Expert referral implementation integrated with proceeding date guard'],test_data={'filing':'2026-01-02','referral':'2026-01-03','new_filing':'2026-01-04'},steps=['Create expert/referral','Correct parent filing date concurrently','Read persisted chronology and history'],expected_results='Reject incompatible writes; preserve history',status='BLOCKED',actual='Expert implementation is absent from PR33. Existing independent PR43 and cumulative evidence covers implemented expert integration separately.'))
+        # Preserve the explicit missing-module blocker on historical PR33 only.
+        if not (Path(self.args.candidate)/"backend/src/main/java/com/lawdesk/experts").is_dir():
+            self.results.append(dict(id='PR33-EXPERT-REFERRAL-INTEGRATION',story_ids=['LD-019','LD-025'],priority='P1',preconditions=['Expert referral implementation integrated with proceeding date guard'],test_data={'filing':'2026-01-02','referral':'2026-01-03','new_filing':'2026-01-04'},steps=['Create expert/referral','Correct parent filing date concurrently','Read persisted chronology and history'],expected_results='Reject incompatible writes; preserve history',status='BLOCKED',actual='Expert implementation is absent from PR33. Existing independent PR43 and cumulative evidence covers implemented expert integration separately.'))
         self.save()
 
     def performance(self):
