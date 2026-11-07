@@ -50,4 +50,6 @@ QA retests it.
 7. Older case: opens, edits, shows "not specified".
 8. Arabic RTL and a 375 px viewport: no horizontal overflow, labels as above, keyboard-only registration.
 
+UAT browser evidence (27/27, deployed f9aa4aa, Chromium, en/ar, 1366 and 375 px): `docs/evidence/GOV-INTAKE/uat/` (`e2e.mjs`, `results.json`, screenshots).
+
 Tests: `GovernmentIntakeApiTest`, `CaseMembershipAccessTest` (backend); `CaseCreatePage.test.tsx`, `CaseIntakeDetails.test.tsx`, `PagedSelect.test.tsx` (frontend). Evidence: `docs/evidence/GOV-INTAKE/`.
