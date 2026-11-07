@@ -4,7 +4,7 @@ import type { MessageKey } from '../../i18n/catalog';
 import { useI18n } from '../../i18n/I18nContext';
 import { withLang } from '../../i18n/locale';
 import { usePageTitle } from '../../i18n/usePageTitle';
-import { getCase, updateCase, type LegalCase, type NewCase } from './api';
+import { getCase, updateCase, type CaseExtras, type LegalCase, type NewCase } from './api';
 import { CaseForm, type Failure } from './CaseForm';
 import { AccessDeniedPage } from '../auth/AccessDeniedPage';
 import { CASES_PATH, casePath } from './paths';
@@ -36,6 +36,14 @@ function formValues(legalCase: LegalCase): NewCase {
     caseType: legalCase.caseType,
     subject: legalCase.subject ?? '',
     openedOn: legalCase.openedOn,
+  };
+}
+
+function extrasOf(legalCase: LegalCase): CaseExtras {
+  return {
+    automatedNo: legalCase.automatedNo ?? '',
+    financialImpact: legalCase.financialImpact ?? '',
+    financialAmount: legalCase.financialAmount ?? '',
   };
 }
 
@@ -109,8 +117,8 @@ export function CaseEditPage() {
   }
 
   const legalCase = load.legalCase;
-  const submit = async (values: NewCase) => {
-    const updated = await updateCase(legalCase.id, values, legalCase.version);
+  const submit = async (values: NewCase, extras?: CaseExtras) => {
+    const updated = await updateCase(legalCase.id, values, legalCase.version, extras);
     setResult({ key, load: { kind: 'loaded', legalCase: updated } });
     setSaved(true);
   };
@@ -135,6 +143,7 @@ export function CaseEditPage() {
       <CaseForm
         key={`${String(legalCase.version)}-${String(generation)}`}
         initial={formValues(legalCase)}
+        initialExtras={extrasOf(legalCase)}
         withReference={false}
         submitLabel="cases.edit.submit"
         onSubmit={submit}

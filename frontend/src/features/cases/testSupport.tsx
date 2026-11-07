@@ -11,7 +11,7 @@ import { CaseListPage } from './CaseListPage';
 
 /** Test-only helpers for the case screens: the routes as App.tsx mounts them, and a scripted backend. */
 
-export function renderCases(path: string) {
+export function renderCases(path: string, state?: unknown) {
   const router = createMemoryRouter(
     [
       {
@@ -28,7 +28,7 @@ export function renderCases(path: string) {
         ],
       },
     ],
-    { initialEntries: [path] },
+    { initialEntries: [state === undefined ? path : { pathname: path, state }] },
   );
   const result = render(<RouterProvider router={router} />);
   return { ...result, url: () => `${router.state.location.pathname}${router.state.location.search}` };

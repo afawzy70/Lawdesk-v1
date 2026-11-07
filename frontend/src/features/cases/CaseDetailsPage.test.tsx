@@ -137,19 +137,10 @@ describe('case details (LD-014)', () => {
   });
 
   it('confirms a case that was just created', async () => {
-    backend({
-      legalCase: CASE,
-      parties: [],
-      events: [],
-      answer: (r) => (r.method === 'POST' ? jsonResponse(CASE, 201) : undefined),
-    });
-    const user = userEvent.setup();
-    const { url } = renderCases('/cases/new');
-    await user.type(screen.getByRole('textbox', { name: 'Title' }), 'Ahmed v. Nile Trading');
-    await user.click(screen.getByRole('button', { name: 'Create case' }));
+    backend({ legalCase: CASE, parties: [], events: [] });
+    renderCases(PATH, { created: 'LD-2026-00001' });
 
     expect(await screen.findByText('Case LD-2026-00001 created.')).toHaveAttribute('role', 'status');
-    expect(url()).toBe(`${PATH}?lang=en`);
   });
 
   it('shows the not-found page for an address that cannot be a case', () => {
@@ -284,7 +275,7 @@ describe('case parties (LD-016)', () => {
     const form = await screen.findByRole('form', { name: 'New party' });
     await user.selectOptions(within(form).getByRole('combobox', { name: 'Kind' }), 'PERSON');
     await user.type(within(form).getByRole('textbox', { name: 'Name' }), 'Ahmed Hassan');
-    await user.type(within(form).getByRole('textbox', { name: 'National ID' }), '29001011234567');
+    await user.type(within(form).getByRole('textbox', { name: 'Party automated number' }), '0012345');
     await user.selectOptions(within(form).getByRole('combobox', { name: 'Role' }), 'CLIENT');
     await user.click(within(form).getByRole('button', { name: 'Add party' }));
 
@@ -294,7 +285,7 @@ describe('case parties (LD-016)', () => {
     expect(posts[0]).toEqual({
       method: 'POST',
       url: '/api/v1/parties',
-      body: { kind: 'PERSON', name: 'Ahmed Hassan', nationalId: '29001011234567', registrationNo: null },
+      body: { kind: 'PERSON', name: 'Ahmed Hassan', nationalId: '0012345', registrationNo: null },
     });
     expect(posts[1]?.body).toEqual({ partyId: AHMED.partyId, role: 'CLIENT' });
   });
@@ -308,7 +299,7 @@ describe('case parties (LD-016)', () => {
     await user.selectOptions(within(form).getByRole('combobox', { name: 'Kind' }), 'ORGANIZATION');
 
     expect(within(form).getByRole('textbox', { name: 'Commercial registration no.' })).toBeInTheDocument();
-    expect(within(form).queryByRole('textbox', { name: 'National ID' })).not.toBeInTheDocument();
+    expect(within(form).queryByRole('textbox', { name: 'Party automated number' })).not.toBeInTheDocument();
   });
 
   it('adds an existing party found by search', async () => {
@@ -353,7 +344,7 @@ describe('case parties (LD-016)', () => {
   });
 
   it.each([
-    [problem(409), 'This party is already on the case, or its national ID belongs to another party.'],
+    [problem(409), 'This party is already on the case, or its automated number belongs to another party.'],
     [problem(400, { errors: [{ field: 'nationalId', code: 'Pattern' }] }), 'Please correct the party details.'],
     [problem(422, { rule: 'PARTY_KIND_MISMATCH' }), 'Please correct the party details.'],
     [problem(403), 'You do not have permission to do this.'],

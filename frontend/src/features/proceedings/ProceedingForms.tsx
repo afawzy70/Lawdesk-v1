@@ -109,13 +109,14 @@ const PROCEEDING_FIELDS = ['courtId', 'courtCaseNumber', 'courtCaseYear', 'filin
 
 interface ProceedingFormProps {
   caseId: string;
+  automatedNo?: string | null;
   proceedings: readonly Proceeding[];
   onSaved: () => void;
   onCancel: () => void;
 }
 
 /** Records a proceeding; the parent can only be a judged proceeding of the previous stage (LD-020, LD-021). */
-export function ProceedingForm({ caseId, proceedings, onSaved, onCancel }: ProceedingFormProps) {
+export function ProceedingForm({ caseId, automatedNo = null, proceedings, onSaved, onCancel }: ProceedingFormProps) {
   const { locale, t } = useI18n();
   const form = useFormErrors<(typeof PROCEEDING_FIELDS)[number]>();
   const { saving, run } = useSave(
@@ -155,6 +156,9 @@ export function ProceedingForm({ caseId, proceedings, onSaved, onCancel }: Proce
 
   return (
     <FormShell label={t('proceedings.record')} error={form.formError} saving={saving} onSubmit={submit} onCancel={onCancel}>
+      {automatedNo === null ? null : (
+        <p className="judicial-hint">{t('intake.stage.automated', { number: automatedNo })}</p>
+      )}
       <div className="judicial-field">
         <label htmlFor={`${form.control('courtId').id}-stage`}>{t('proceedings.field.stage')}</label>
         <select

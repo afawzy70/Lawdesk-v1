@@ -54,6 +54,8 @@ async function loadStages(caseId: string, signal: AbortSignal): Promise<Stages> 
 
 interface Props {
   caseId: string;
+  /** The case's automated number (LD-045): shown once, read-only; each stage below has its own number. */
+  automatedNo?: string | null;
 }
 
 /**
@@ -61,7 +63,7 @@ interface Props {
  * judgments and special decisions, and forms to record them. Built to be embedded in the case details page
  * (Workstream B). The backend enforces every permission and rule; this component explains its answers.
  */
-export function CaseProceedings({ caseId }: Props) {
+export function CaseProceedings({ caseId, automatedNo = null }: Props) {
   const { locale, t } = useI18n();
   const headingId = useId();
   const [reload, setReload] = useState(0);
@@ -138,7 +140,7 @@ export function CaseProceedings({ caseId }: Props) {
           {t('proceedings.record')}
         </button>
         {open?.kind === 'proceeding' ? (
-          <ProceedingForm caseId={caseId} proceedings={proceedings} onSaved={onSaved} onCancel={onCancel} />
+          <ProceedingForm caseId={caseId} automatedNo={automatedNo} proceedings={proceedings} onSaved={onSaved} onCancel={onCancel} />
         ) : null}
         {proceedings.length === 0 ? <p>{t('proceedings.empty')}</p> : null}
         <ol className="judicial-ladder">
@@ -241,6 +243,7 @@ export function CaseProceedings({ caseId }: Props) {
   return (
     <section className="case-proceedings" aria-labelledby={headingId}>
       <h2 id={headingId}>{t('proceedings.stages')}</h2>
+      {automatedNo === null ? null : <p className="judicial-hint">{t('intake.details.stageNumbers', { number: automatedNo })}</p>}
       {saved ? (
         <p role="status" className="judicial-saved">
           {t('proceedings.saved')}

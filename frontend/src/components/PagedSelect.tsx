@@ -19,6 +19,8 @@ interface Props<T extends { id: string }> {
   selectProps: SelectHTMLAttributes<HTMLSelectElement>;
   value: string;
   onChange: (id: string) => void;
+  /** Called with the chosen record (null when the choice is cleared), for callers that need more than its id. */
+  onSelect?: (item: T | null) => void;
   load: (page: number, query: string, signal: AbortSignal) => Promise<PagedResult<T>>;
   optionLabel: (item: T) => string;
   /** Text matched by the local filter; defaults to the option label. */
@@ -36,6 +38,7 @@ export function PagedSelect<T extends { id: string }>({
   selectProps,
   value,
   onChange,
+  onSelect,
   load,
   optionLabel,
   searchText,
@@ -146,8 +149,10 @@ export function PagedSelect<T extends { id: string }>({
         value={value}
         onChange={(event) => {
           const id = event.target.value;
-          setChosen(items.find((i) => i.id === id) ?? null);
+          const item = items.find((i) => i.id === id) ?? null;
+          setChosen(item);
           onChange(id);
+          onSelect?.(item);
         }}
       >
         <option value="">{chooseLabel}</option>

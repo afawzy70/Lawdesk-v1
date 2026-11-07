@@ -245,3 +245,10 @@ page, but without its statistics (LD-030).
    with filters, sorting, pagination and CSV (LD-034 part). D begins with hearings (LD-024), then tasks and reminders
    (LD-027, LD-028), documents (LD-026), experts (LD-025), then notes (LD-029).
 3. **E integrates each Phase 5 report** (hearings, workload, experts) after D's matching port is merged.
+
+## 9. Government case intake (LD-045)
+
+- `POST /api/v1/cases/intake` (`CASE_CREATE` + `PROCEEDING_MANAGE`; `PARTY_MANAGE` when parties are given) registers a case atomically: the case, its first-instance proceeding (through the `FirstInstanceRecorder` port the proceedings module implements), the authority and other parties with a `side`, the members, the financial impact. Details: `docs/delivery/GOVERNMENT-INTAKE-ACCEPTANCE.md`.
+- `legal_case` gained nullable `automated_no`, `authority_position`, `financial_impact`, `financial_amount`, `primary_member_id`, `alternate_member_id`; `case_party.side`; `party.authority`. `null` = not specified (older records).
+- **Case-level access.** `CaseAccess` (cases module) decides who may change one case. Modules write to a case only through `CaseLookup#recordEvent`, which enforces it; a module must not write case content without recording an event.
+- `GET /api/v1/cases/members`, `PUT /api/v1/cases/{id}/assignment`; `PUT /api/v1/cases/{id}` accepts the optional `automatedNo`, `financialImpact`, `financialAmount`; `POST /api/v1/cases/{id}/parties` accepts `side`.

@@ -18,7 +18,7 @@ class PartyRepository {
 
     private static final String COLUMNS = """
             id, kind, name, national_id, registration_no, phone, email, address, version, created_at, created_by,
-            updated_at, updated_by""";
+            updated_at, updated_by, authority""";
 
     private final JdbcClient jdbc;
 
@@ -84,12 +84,31 @@ class PartyRepository {
         return paging.page(items, total);
     }
 
-    void link(UUID caseId, UUID partyId, PartyRole role, UUID actor) {
+    void link(UUID caseId, UUID partyId, PartyRole role, Side side, UUID actor) {
         jdbc.sql("""
-                        insert into case_party (case_id, party_id, role, created_by)
-                        values (:caseId, :partyId, :role, :actor)""")
-                .param("caseId", caseId).param("partyId", partyId).param("role", role.name()).param("actor", actor)
+                        insert into case_party (case_id, party_id, role, side, created_by)
+                        values (:caseId, :partyId, :role, :side, :actor)""")
+                .param("caseId", caseId).param("partyId", partyId).param("role", role.name())
+                .param("side", side == null ? null : side.name()).param("actor", actor)
                 .update();
+    }
+
+    /**
+     * The authority party (الهيئة): the one organisation row marked {@code authority}, created on first use and
+     * renamed when the configured name changes. A concurrent first use waits on the unique index and reads the row.
+     */
+    UUID authorityParty(String name, UUID actor) {
+        jdbc.sql("""
+                        insert into party (kind, name, authority, created_by, updated_by)
+                        values ('ORGANIZATION', :name, true, :actor, :actor)
+                        on conflict ((true)) where authority do nothing""")
+                .param("name", name).param("actor", actor).update();
+        UUID id = jdbc.sql("select id from party where authority").query(UUID.class).single();
+        jdbc.sql("""
+                        update party set name = :name, version = version + 1, updated_at = now(), updated_by = :actor
+                        where id = :id and name <> :name""")
+                .param("id", id).param("name", name).param("actor", actor).update();
+        return id;
     }
 
     /** Removes the link and returns what it was, or empty when the party was not on the case. */
@@ -112,13 +131,15 @@ class PartyRepository {
     }
 
     private static final String CASE_PARTIES = """
-            select p.id, p.kind, p.name, cp.role, cp.created_at
+            select p.id, p.kind, p.name, cp.role, cp.created_at, cp.side, p.authority
             from case_party cp join party p on p.id = cp.party_id""";
 
     private static CaseParty caseParty(ResultSet rs, int rowNum) throws SQLException {
         return new CaseParty(rs.getObject("id", UUID.class), PartyKind.valueOf(rs.getString("kind")),
                 rs.getString("name"), PartyRole.valueOf(rs.getString("role")),
-                rs.getObject("created_at", OffsetDateTime.class).toInstant());
+                rs.getObject("created_at", OffsetDateTime.class).toInstant(),
+                rs.getString("side") == null ? null : Side.valueOf(rs.getString("side")),
+                rs.getBoolean("authority"));
     }
 
     private static Party row(ResultSet rs, int rowNum) throws SQLException {
@@ -135,6 +156,7 @@ class PartyRepository {
                 rs.getObject("created_at", OffsetDateTime.class).toInstant(),
                 rs.getObject("created_by", UUID.class),
                 rs.getObject("updated_at", OffsetDateTime.class).toInstant(),
-                rs.getObject("updated_by", UUID.class));
+                rs.getObject("updated_by", UUID.class),
+                rs.getBoolean("authority"));
     }
 }

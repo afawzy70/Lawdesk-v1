@@ -8,6 +8,18 @@ export type CaseType = (typeof CASE_TYPES)[number];
 export const CASE_STATUSES = ['OPEN', 'ACTIVE', 'SUSPENDED', 'CLOSED', 'ARCHIVED'] as const;
 export type CaseStatus = (typeof CASE_STATUSES)[number];
 
+export const SIDES = ['PLAINTIFF', 'DEFENDANT'] as const;
+export type Side = (typeof SIDES)[number];
+
+export const FINANCIAL_IMPACTS = ['YES', 'NO'] as const;
+export type FinancialImpact = (typeof FINANCIAL_IMPACTS)[number];
+
+/** A member of the legal department assigned to a case (العضو المختص / العضو البديل). */
+export interface MemberRef {
+  id: string;
+  displayName: string;
+}
+
 export interface LegalCase {
   id: string;
   referenceNo: string;
@@ -21,6 +33,14 @@ export interface LegalCase {
   createdBy: string;
   updatedAt: string;
   updatedBy: string;
+  /** LD-045 fields; absent on cases that predate them, which are "not specified", never invented. */
+  automatedNo?: string | null;
+  authorityPosition?: Side | null;
+  financialImpact?: FinancialImpact | null;
+  /** Dinars with three decimals, as text. */
+  financialAmount?: string | null;
+  primaryMember?: MemberRef | null;
+  alternateMember?: MemberRef | null;
 }
 
 export interface CaseListItem {
@@ -59,6 +79,14 @@ export interface CaseFields {
 
 export interface NewCase extends CaseFields {
   referenceNo: string;
+}
+
+/** What an edit may also change (LD-045): the automated number and the financial impact; empty means unchanged. */
+export interface CaseExtras {
+  automatedNo: string;
+  financialImpact: FinancialImpact | '';
+  /** Only with "YES"; with "NO" the stored amount is cleared. */
+  financialAmount: string;
 }
 
 const BASE = '/api/v1/cases';
@@ -119,6 +147,7 @@ export interface Party {
   nationalId?: string | null;
   registrationNo?: string | null;
   version: number;
+  authority?: boolean;
 }
 
 export interface CaseParty {
@@ -127,6 +156,10 @@ export interface CaseParty {
   name: string;
   role: PartyRole;
   addedAt: string;
+  /** Plaintiff or defendant side; null for parties linked before sides existed. */
+  side?: Side | null;
+  /** True for the authority (الهيئة) itself. */
+  authority?: boolean;
 }
 
 export interface CaseEvent {
@@ -183,14 +216,105 @@ export function createParty(party: NewParty): Promise<Party> {
   });
 }
 
-export function addCaseParty(id: string, partyId: string, role: PartyRole): Promise<CaseParty> {
-  return api(`${BASE}/${encodeURIComponent(id)}/parties`, { method: 'POST', body: { partyId, role } });
+/** `side` is required on cases registered through the intake; the role then follows from it on the server. */
+export function addCaseParty(id: string, partyId: string, role: PartyRole, side?: Side): Promise<CaseParty> {
+  return api(`${BASE}/${encodeURIComponent(id)}/parties`, {
+    method: 'POST',
+    body: side === undefined ? { partyId, role } : { partyId, role, side },
+  });
 }
 
 export function removeCaseParty(id: string, partyId: string): Promise<void> {
   return api(`${BASE}/${encodeURIComponent(id)}/parties/${encodeURIComponent(partyId)}`, { method: 'DELETE' });
 }
 
-export function updateCase(id: string, values: CaseFields, version: number): Promise<LegalCase> {
-  return api(`${BASE}/${encodeURIComponent(id)}`, { method: 'PUT', body: { ...fields(values), version } });
+/** The financial part of a request: an absent impact leaves it alone, "NO" carries no amount. */
+export function financialBody(extras: Pick<CaseExtras, 'financialImpact' | 'financialAmount'>) {
+  if (extras.financialImpact === '') return {};
+  return extras.financialImpact === 'YES'
+    ? { financialImpact: 'YES', financialAmount: extras.financialAmount.trim() }
+    : { financialImpact: 'NO' };
+}
+
+export function updateCase(id: string, values: CaseFields, version: number, extras?: CaseExtras): Promise<LegalCase> {
+  const automatedNo = extras?.automatedNo.trim() ?? '';
+  return api(`${BASE}/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: {
+      ...fields(values),
+      version,
+      ...(automatedNo === '' ? {} : { automatedNo }),
+      ...(extras === undefined ? {} : financialBody(extras)),
+    },
+  });
+}
+
+/** LD-045: the active legal department members who can be assigned to a case. */
+export function listCaseMembers(signal?: AbortSignal): Promise<MemberRef[]> {
+  return api(`${BASE}/members`, signal === undefined ? {} : { signal });
+}
+
+/** Reassigns the case (case supervisors only); the server re-evaluates everyone's access at once. */
+export function assignCase(
+  id: string,
+  primaryMemberId: string,
+  alternateMemberId: string,
+  version: number,
+): Promise<LegalCase> {
+  return api(`${BASE}/${encodeURIComponent(id)}/assignment`, {
+    method: 'PUT',
+    body: { primaryMemberId, alternateMemberId: alternateMemberId === '' ? null : alternateMemberId, version },
+  });
+}
+
+export interface IntakeParty {
+  /** A registered party, or the fields of a new one. */
+  partyId?: string;
+  newParty?: { kind: PartyKind; name: string; nationalId: string | null; registrationNo: string | null; phone: string | null };
+  side: Side;
+}
+
+export interface IntakeInput {
+  automatedNo: string;
+  title: string;
+  caseType: CaseType | '';
+  subject: string;
+  openedOn: string;
+  courtId: string;
+  courtCaseNumber: string;
+  courtCaseYear: string;
+  filingDate: string;
+  authorityPosition: Side | '';
+  parties: IntakeParty[];
+  primaryMemberId: string;
+  alternateMemberId: string;
+  financialImpact: FinancialImpact | '';
+  financialAmount: string;
+}
+
+/** Registers a case with its first stage, parties, members and financial impact in one request. */
+export function registerCase(input: IntakeInput): Promise<LegalCase> {
+  const empty = (value: string) => (value.trim() === '' ? null : value.trim());
+  return api(`${BASE}/intake`, {
+    method: 'POST',
+    body: {
+      automatedNo: empty(input.automatedNo),
+      title: input.title,
+      caseType: input.caseType === '' ? null : input.caseType,
+      subject: empty(input.subject),
+      openedOn: empty(input.openedOn),
+      firstInstance: {
+        courtId: empty(input.courtId),
+        courtCaseNumber: empty(input.courtCaseNumber),
+        courtCaseYear: empty(input.courtCaseYear) === null ? null : Number(input.courtCaseYear),
+        filingDate: empty(input.filingDate),
+      },
+      authorityPosition: input.authorityPosition === '' ? null : input.authorityPosition,
+      parties: input.parties,
+      primaryMemberId: empty(input.primaryMemberId),
+      alternateMemberId: empty(input.alternateMemberId),
+      financialImpact: input.financialImpact === '' ? null : input.financialImpact,
+      ...(input.financialImpact === 'YES' ? { financialAmount: empty(input.financialAmount) } : {}),
+    },
+  });
 }

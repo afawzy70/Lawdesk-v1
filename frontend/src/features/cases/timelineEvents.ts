@@ -6,6 +6,7 @@ const KNOWN_EVENTS: Record<string, MessageKey> = {
   CASE_STATUS_CHANGED: 'cases.event.CASE_STATUS_CHANGED',
   PARTY_ADDED: 'cases.event.PARTY_ADDED',
   PARTY_REMOVED: 'cases.event.PARTY_REMOVED',
+  CASE_ASSIGNED: 'cases.event.CASE_ASSIGNED',
   // Recorded by other modules through CaseLookup#recordEvent (Phase 4; Phase 5, LD-029 activity history).
   PROCEEDING_RECORDED: 'cases.event.PROCEEDING_RECORDED',
   JUDGMENT_RECORDED: 'cases.event.JUDGMENT_RECORDED',

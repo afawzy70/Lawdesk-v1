@@ -1,5 +1,6 @@
 package com.lawdesk.cases;
 
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -24,7 +25,10 @@ class CaseRepository {
 
     private static final String COLUMNS = """
             id, reference_no, title, case_type, subject, opened_on, status, version, created_at, created_by,
-            updated_at, updated_by""";
+            updated_at, updated_by, automated_no, authority_position, financial_impact, financial_amount,
+            primary_member_id, alternate_member_id,
+            (select display_name from app_user where id = primary_member_id) as primary_member_name,
+            (select display_name from app_user where id = alternate_member_id) as alternate_member_name""";
 
     private static final Map<String, String> SORT_COLUMNS = Map.of(
             "referenceNo", "reference_no",
@@ -52,22 +56,84 @@ class CaseRepository {
                 .query(CaseRepository::row).single();
     }
 
+    /** A case registered through the government intake: the legacy columns plus the intake ones (LD-045). */
+    LegalCase insertIntake(String referenceNo, String automatedNo, String title, CaseType caseType, String subject,
+            LocalDate openedOn, Side authorityPosition, FinancialImpact impact, BigDecimal amount, UUID actor) {
+        return jdbc.sql("""
+                        insert into legal_case (reference_no, automated_no, title, case_type, subject, opened_on,
+                                                authority_position, financial_impact, financial_amount, created_by,
+                                                updated_by)
+                        values (:referenceNo, :automatedNo, :title, :caseType, :subject, :openedOn, :position,
+                                :impact, :amount, :actor, :actor)
+                        returning\s""" + COLUMNS)
+                .param("referenceNo", referenceNo).param("automatedNo", automatedNo).param("title", title)
+                .param("caseType", caseType.name()).param("subject", subject).param("openedOn", openedOn)
+                .param("position", authorityPosition.name()).param("impact", impact.name()).param("amount", amount)
+                .param("actor", actor)
+                .query(CaseRepository::row).single();
+    }
+
+    /** What an edit may change besides the legacy fields; a null value leaves the column alone (LD-045). */
+    record DetailsChange(String automatedNo, FinancialImpact impact, BigDecimal amount) {
+    }
+
     /**
      * Applies an edit if {@code expectedVersion} is still current and the case is not read-only; empty otherwise, so
      * the caller cannot overwrite a change it has not seen.
      */
     Optional<LegalCase> update(UUID id, long expectedVersion, String title, CaseType caseType, String subject,
-            LocalDate openedOn, UUID actor) {
+            LocalDate openedOn, DetailsChange change, UUID actor) {
         return jdbc.sql("""
                         update legal_case
                         set title = :title, case_type = :caseType, subject = :subject, opened_on = :openedOn,
+                            automated_no = coalesce(cast(:automatedNo as varchar), automated_no),
+                            financial_impact = coalesce(cast(:impact as varchar), financial_impact),
+                            financial_amount = case when cast(:impact as varchar) is null then financial_amount
+                                                    when cast(:impact as varchar) = 'NO' then null
+                                                    else cast(:amount as numeric) end,
                             version = version + 1, updated_at = now(), updated_by = :actor
                         where id = :id and version = :version and status not in ('CLOSED', 'ARCHIVED')
                         returning\s""" + COLUMNS)
                 .param("id", id).param("version", expectedVersion).param("title", title)
                 .param("caseType", caseType.name()).param("subject", subject).param("openedOn", openedOn)
-                .param("actor", actor)
+                .param("automatedNo", change.automatedNo())
+                .param("impact", change.impact() == null ? null : change.impact().name())
+                .param("amount", change.amount()).param("actor", actor)
                 .query(CaseRepository::row).optional();
+    }
+
+    /** The members of a case, or empty when there is no such case. */
+    record Assignment(UUID primary, UUID alternate) {
+
+        boolean isMember(UUID user) {
+            return user != null && (user.equals(primary) || user.equals(alternate));
+        }
+    }
+
+    Optional<Assignment> assignment(UUID id) {
+        return jdbc.sql("select primary_member_id, alternate_member_id from legal_case where id = :id").param("id", id)
+                .query((rs, n) -> new Assignment(rs.getObject("primary_member_id", UUID.class),
+                        rs.getObject("alternate_member_id", UUID.class)))
+                .optional();
+    }
+
+    /** Sets the members if {@code expectedVersion} is still current; empty otherwise. */
+    Optional<LegalCase> assign(UUID id, long expectedVersion, UUID primary, UUID alternate, UUID actor) {
+        return jdbc.sql("""
+                        update legal_case
+                        set primary_member_id = :primary, alternate_member_id = :alternate, version = version + 1,
+                            updated_at = now(), updated_by = :actor
+                        where id = :id and version = :version
+                        returning\s""" + COLUMNS)
+                .param("id", id).param("version", expectedVersion).param("primary", primary)
+                .param("alternate", alternate).param("actor", actor)
+                .query(CaseRepository::row).optional();
+    }
+
+    /** Intake only: sets the members of the case just registered, in the same transaction. */
+    void assignNew(UUID id, UUID primary, UUID alternate) {
+        jdbc.sql("update legal_case set primary_member_id = :primary, alternate_member_id = :alternate where id = :id")
+                .param("id", id).param("primary", primary).param("alternate", alternate).update();
     }
 
     /** Moves the case from {@code from} to {@code to} if {@code expectedVersion} is still current; empty otherwise. */
@@ -180,6 +246,21 @@ class CaseRepository {
                 rs.getObject("created_at", OffsetDateTime.class).toInstant(),
                 rs.getObject("created_by", UUID.class),
                 rs.getObject("updated_at", OffsetDateTime.class).toInstant(),
-                rs.getObject("updated_by", UUID.class));
+                rs.getObject("updated_by", UUID.class),
+                rs.getString("automated_no"),
+                optional(rs.getString("authority_position"), Side::valueOf),
+                optional(rs.getString("financial_impact"), FinancialImpact::valueOf),
+                rs.getBigDecimal("financial_amount"),
+                member(rs, "primary_member_id", "primary_member_name"),
+                member(rs, "alternate_member_id", "alternate_member_name"));
+    }
+
+    private static <T> T optional(String value, java.util.function.Function<String, T> parse) {
+        return value == null ? null : parse.apply(value);
+    }
+
+    private static MemberRef member(ResultSet rs, String id, String name) throws SQLException {
+        UUID memberId = rs.getObject(id, UUID.class);
+        return memberId == null ? null : new MemberRef(memberId, rs.getString(name));
     }
 }
