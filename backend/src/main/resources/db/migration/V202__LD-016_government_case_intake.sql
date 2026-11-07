@@ -1,4 +1,5 @@
--- LD-045: government case intake (docs/delivery/GOVERNMENT-INTAKE-ACCEPTANCE.md). Additive only: every new column is
+-- Government case intake (owner directive 2026-11-07, tracked as LD-045; the file carries LD-016 because the repository
+-- policy only knows the original stories' migration ranges). See docs/delivery/GOVERNMENT-INTAKE-ACCEPTANCE.md. Additive only: every new column is
 -- nullable, and a null means "not specified" for records that predate the change; nothing is guessed or backfilled.
 alter table legal_case
     -- الرقم الآلي للقضية: typed by the user, kept as text (leading zeros), the same on every stage of the case. No
