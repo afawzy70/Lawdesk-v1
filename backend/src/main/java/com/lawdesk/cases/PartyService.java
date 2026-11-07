@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.lawdesk.api.BusinessRuleException;
 import com.lawdesk.api.ConflictException;
+import com.lawdesk.api.FieldErrorException;
 import com.lawdesk.api.NotFoundException;
 import com.lawdesk.api.PageResponse;
 import com.lawdesk.security.ActorRef;
@@ -19,13 +20,17 @@ import com.lawdesk.security.CurrentActor;
 class PartyService {
 
     static final String PARTY_KIND_MISMATCH = "PARTY_KIND_MISMATCH";
+    static final String PARTY_IS_AUTHORITY = "PARTY_IS_AUTHORITY";
 
     private final PartyRepository parties;
     private final CaseRepository cases;
     private final CaseTimeline timeline;
     private final CurrentActor currentActor;
+    private final CaseAccess access;
 
-    PartyService(PartyRepository parties, CaseRepository cases, CaseTimeline timeline, CurrentActor currentActor) {
+    PartyService(PartyRepository parties, CaseRepository cases, CaseTimeline timeline, CurrentActor currentActor,
+            CaseAccess access) {
+        this.access = access;
         this.parties = parties;
         this.cases = cases;
         this.timeline = timeline;
@@ -79,39 +84,56 @@ class PartyService {
     @Transactional
     CaseParty link(UUID caseId, LinkPartyRequest request) {
         ActorRef actor = currentActor.require();
-        requireChangeableParties(caseId);
-        if (!parties.exists(request.partyId())) {
-            throw new NotFoundException("party");
+        access.requireChange(caseId);
+        LegalCase legalCase = requireChangeableParties(caseId);
+        Party party = parties.find(request.partyId()).orElseThrow(() -> new NotFoundException("party"));
+        if (party.authority()) {
+            throw new BusinessRuleException(PARTY_IS_AUTHORITY, "the authority is part of the case already");
         }
         PartyRole role = PartyRole.valueOf(request.role());
+        Side side = request.side() == null ? null : Side.valueOf(request.side());
+        if (legalCase.authorityPosition() != null) {
+            // A case registered through the intake: the party's capacity is its side, and the role follows from it.
+            if (side == null) {
+                throw new FieldErrorException("side", "NotNull");
+            }
+            role = side == legalCase.authorityPosition() ? PartyRole.OTHER : PartyRole.OPPONENT;
+        }
         if (parties.linked(caseId, request.partyId()).isPresent()) {
             throw new ConflictException("party is already on the case");
         }
         try {
-            parties.link(caseId, request.partyId(), role, actor.id());
+            parties.link(caseId, request.partyId(), role, side, actor.id());
         } catch (DuplicateKeyException e) {
             throw new ConflictException("party is already on the case");
         }
         CaseParty linked = parties.linked(caseId, request.partyId()).orElseThrow();
-        timeline.append(caseId, CaseTimeline.PARTY_ADDED, linked.name() + " added as " + role, actor.id());
+        timeline.append(caseId, CaseTimeline.PARTY_ADDED, linked.name() + " added as "
+                + (side == null ? role.name() : side.name()), actor.id());
         return linked;
     }
 
     @Transactional
     void unlink(UUID caseId, UUID partyId) {
         ActorRef actor = currentActor.require();
+        access.requireChange(caseId);
         requireChangeableParties(caseId);
+        CaseParty current = parties.linked(caseId, partyId).orElseThrow(() -> new NotFoundException("case party"));
+        if (current.authority()) {
+            throw new BusinessRuleException(PARTY_IS_AUTHORITY, "the authority stays on its case");
+        }
         CaseParty removed = parties.unlink(caseId, partyId).orElseThrow(() -> new NotFoundException("case party"));
-        timeline.append(caseId, CaseTimeline.PARTY_REMOVED, removed.name() + " removed as " + removed.role(),
-                actor.id());
+        timeline.append(caseId, CaseTimeline.PARTY_REMOVED, removed.name() + " removed as "
+                + (removed.side() == null ? removed.role() : removed.side()), actor.id());
     }
 
     /** Only an archived case keeps its parties as they are (acceptance criterion LD-016 4). */
-    private void requireChangeableParties(UUID caseId) {
+    private LegalCase requireChangeableParties(UUID caseId) {
         LegalCase legalCase = cases.find(caseId).orElseThrow(() -> new NotFoundException("case"));
         if (legalCase.status() == CaseStatus.ARCHIVED) {
             throw new BusinessRuleException(CaseService.CASE_READ_ONLY, "case " + caseId + " is archived");
         }
+        return legalCase;
     }
 
     private void check(PartyRequest request, UUID self) {

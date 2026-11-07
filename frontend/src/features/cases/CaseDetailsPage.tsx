@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router';
 import type { MessageKey } from '../../i18n/catalog';
-import { formatDateTime } from '../../i18n/format';
+import { formatDateTime, formatNumber } from '../../i18n/format';
 import { useI18n } from '../../i18n/I18nContext';
 import { withLang } from '../../i18n/locale';
 import { usePageTitle } from '../../i18n/usePageTitle';
@@ -10,6 +10,7 @@ import { AccessDeniedPage } from '../auth/AccessDeniedPage';
 import { getCase, type LegalCase } from './api';
 import { CaseOperations } from '../operations/CaseOperations';
 import { CaseProceedings } from '../proceedings/CaseProceedings';
+import { CaseAssignmentSection } from './intake/CaseAssignmentSection';
 import { CasePartiesSection } from './CasePartiesSection';
 import { CaseStatusForm } from './CaseStatusForm';
 import { CaseTimelineList } from './CaseTimelineList';
@@ -103,6 +104,14 @@ function CaseDetails({ id }: { id: string }) {
   }
 
   const legalCase = load.legalCase;
+  const financialText = (c: LegalCase) =>
+    c.financialImpact == null
+      ? t('intake.financial.unspecified')
+      : c.financialImpact === 'NO' || c.financialAmount == null
+        ? t('intake.financial.NO')
+        : `${t('intake.financial.YES')}: ${t('intake.financial.show', {
+            amount: formatNumber(Number(c.financialAmount), locale, { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
+          })}`;
   const archived = legalCase.status === 'ARCHIVED';
   // The latest action's confirmation, else the confirmation of a creation that just opened this page.
   const confirmation =
@@ -118,6 +127,10 @@ function CaseDetails({ id }: { id: string }) {
           </p>
         )}
         <dl className="case-facts">
+          <dt>{t('intake.details.automatedNo')}</dt>
+          <dd>{legalCase.automatedNo ?? t('intake.details.notSpecified')}</dd>
+          <dt>{t('intake.details.referenceNo')}</dt>
+          <dd>{legalCase.referenceNo}</dd>
           <dt>{t('cases.field.title')}</dt>
           <dd>{legalCase.title}</dd>
           <dt>{t('cases.field.caseType')}</dt>
@@ -130,6 +143,18 @@ function CaseDetails({ id }: { id: string }) {
           <dd>{legalCase.subject ?? '—'}</dd>
           <dt>{t('cases.field.openedOn')}</dt>
           <dd>{formatDate(legalCase.openedOn, locale)}</dd>
+          <dt>{t('intake.details.position')}</dt>
+          <dd>
+            {legalCase.authorityPosition == null
+              ? t('intake.details.notSpecified')
+              : t(`intake.position.${legalCase.authorityPosition}`)}
+          </dd>
+          <dt>{t('intake.details.financial')}</dt>
+          <dd>{financialText(legalCase)}</dd>
+          <dt>{t('intake.details.primary')}</dt>
+          <dd>{legalCase.primaryMember?.displayName ?? t('intake.details.notSpecified')}</dd>
+          <dt>{t('intake.details.alternate')}</dt>
+          <dd>{legalCase.alternateMember?.displayName ?? t('intake.details.noAlternate')}</dd>
           <dt>{t('cases.field.updatedAt')}</dt>
           <dd>{formatDateTime(legalCase.updatedAt, locale)}</dd>
         </dl>
@@ -155,8 +180,16 @@ function CaseDetails({ id }: { id: string }) {
               }}
             />
           )}
+          <CaseAssignmentSection
+            key={`assign-${String(legalCase.version)}`}
+            legalCase={legalCase}
+            onChanged={() => {
+              refresh('intake.assign.done');
+            }}
+          />
           <CasePartiesSection
             caseId={legalCase.id}
+            authorityPosition={legalCase.authorityPosition ?? null}
             generation={generation}
             editable={!archived}
             onChanged={() => {
@@ -167,7 +200,7 @@ function CaseDetails({ id }: { id: string }) {
         </div>
         <div className="case-workspace-content">
           {/* Judicial stages belong to Workstream C; the case only hosts them (architecture/CONTRACTS.md §5). */}
-          <CaseProceedings caseId={legalCase.id} />
+          <CaseProceedings caseId={legalCase.id} automatedNo={legalCase.automatedNo ?? null} />
           <CaseOperations caseId={legalCase.id} />
         </div>
       </div>

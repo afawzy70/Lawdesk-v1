@@ -119,3 +119,61 @@
     grid-column: 1 / -1;
   }
 }
+
+/* LD-045 government intake: fieldsets, radios, the two sides of the case. Logical properties keep RTL/LTR symmetric. */
+.case-fieldset {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border, #c7ced6);
+  border-radius: 0.5rem;
+}
+
+.case-radio {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-block-size: 2.75rem;
+}
+
+.case-radio input {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+}
+
+.case-tag {
+  display: inline-block;
+  padding-inline: 0.5rem;
+  border-radius: 0.75rem;
+  background: var(--color-surface-alt, #e8eef5);
+  font-size: 0.85em;
+}
+
+.intake-sides {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-block: 1rem;
+}
+
+@media (max-width: 40rem) {
+  .intake-sides {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.intake-side ul {
+  margin: 0;
+  padding-inline-start: 1.25rem;
+}
+
+.intake-add-party {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px dashed var(--color-border, #c7ced6);
+  border-radius: 0.5rem;
+}
+
+.intake-form .case-section {
+  margin-block-end: 1.5rem;
+}

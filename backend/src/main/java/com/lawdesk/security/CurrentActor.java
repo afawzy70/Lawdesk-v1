@@ -17,4 +17,11 @@ public class CurrentActor {
         }
         return new ActorRef(principal.id(), principal.username());
     }
+
+    /** Whether the signed-in user holds {@code permission}; false without a signed-in user. */
+    public boolean has(Permission permission) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals(permission.name()));
+    }
 }

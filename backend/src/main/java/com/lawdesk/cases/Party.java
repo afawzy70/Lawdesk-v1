@@ -17,5 +17,7 @@ record Party(
         Instant createdAt,
         UUID createdBy,
         Instant updatedAt,
-        UUID updatedBy) {
+        UUID updatedBy,
+        /** True for the authority (الهيئة), the party every intake case carries. */
+        boolean authority) {
 }

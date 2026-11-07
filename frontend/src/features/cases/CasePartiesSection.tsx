@@ -7,12 +7,14 @@ import {
   getCaseParties,
   PARTY_KINDS,
   PARTY_ROLES,
+  SIDES,
   removeCaseParty,
   searchParties,
   type CaseParty,
   type Party,
   type PartyKind,
   type PartyRole,
+  type Side,
 } from './api';
 import { isStatus, problemMessage } from './problems';
 
@@ -24,31 +26,63 @@ function explain(error: unknown): MessageKey {
 
 interface Props {
   caseId: string;
+  /** Set on cases registered through the intake: parties then have a side and the role follows from it. */
+  authorityPosition: Side | null;
   generation: number;
   /** False for an archived case: its parties are shown but cannot change. */
   editable: boolean;
   onChanged: () => void;
 }
 
-function RoleSelect({ value, onChange }: { value: PartyRole; onChange: (role: PartyRole) => void }) {
+interface Choice {
+  role: PartyRole;
+  side: Side;
+}
+
+/** The role of a party on an older case, or its side on a case registered through the intake (LD-045). */
+function RoleOrSide({
+  position,
+  value,
+  onChange,
+}: {
+  position: Side | null;
+  value: Choice;
+  onChange: (next: Choice) => void;
+}) {
   const { t } = useI18n();
   const id = useId();
   return (
     <div className="case-field">
-      <label htmlFor={id}>{t('cases.parties.role')}</label>
-      <select
-        id={id}
-        value={value}
-        onChange={(e) => {
-          onChange(e.target.value as PartyRole);
-        }}
-      >
-        {PARTY_ROLES.map((role) => (
-          <option key={role} value={role}>
-            {t(`cases.role.${role}`)}
-          </option>
-        ))}
-      </select>
+      <label htmlFor={id}>{t(position === null ? 'cases.parties.role' : 'intake.parties.side')}</label>
+      {position === null ? (
+        <select
+          id={id}
+          value={value.role}
+          onChange={(e) => {
+            onChange({ ...value, role: e.target.value as PartyRole });
+          }}
+        >
+          {PARTY_ROLES.map((role) => (
+            <option key={role} value={role}>
+              {t(`cases.role.${role}`)}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <select
+          id={id}
+          value={value.side}
+          onChange={(e) => {
+            onChange({ ...value, side: e.target.value as Side });
+          }}
+        >
+          {SIDES.map((side) => (
+            <option key={side} value={side}>
+              {t(`intake.position.${side}`)}
+            </option>
+          ))}
+        </select>
+      )}
     </div>
   );
 }
@@ -63,13 +97,13 @@ function Failure({ message }: { message: MessageKey | null }) {
 }
 
 /** Creates a party and links it to the case in one step. */
-function NewPartyForm({ caseId, onChanged }: { caseId: string; onChanged: () => void }) {
+function NewPartyForm({ caseId, position, onChanged }: { caseId: string; position: Side | null; onChanged: () => void }) {
   const { t } = useI18n();
   const id = useId();
   const [kind, setKind] = useState<PartyKind>('PERSON');
   const [name, setName] = useState('');
   const [identifier, setIdentifier] = useState('');
-  const [role, setRole] = useState<PartyRole>('CLIENT');
+  const [choice, setChoice] = useState<Choice>({ role: 'CLIENT', side: position === 'PLAINTIFF' ? 'DEFENDANT' : 'PLAINTIFF' });
   const [failure, setFailure] = useState<MessageKey | null>(null);
 
   const submit = async (event: SyntheticEvent) => {
@@ -77,7 +111,7 @@ function NewPartyForm({ caseId, onChanged }: { caseId: string; onChanged: () => 
     setFailure(null);
     try {
       const party = await createParty({ kind, name, identifier });
-      await addCaseParty(caseId, party.id, role);
+      await addCaseParty(caseId, party.id, choice.role, position === null ? undefined : choice.side);
       onChanged();
     } catch (error) {
       setFailure(explain(error));
@@ -124,15 +158,14 @@ function NewPartyForm({ caseId, onChanged }: { caseId: string; onChanged: () => 
         <input
           id={`${id}-identifier`}
           type="text"
-          inputMode={kind === 'PERSON' ? 'numeric' : 'text'}
-          maxLength={kind === 'PERSON' ? 14 : 50}
+                    maxLength={50}
           value={identifier}
           onChange={(e) => {
             setIdentifier(e.target.value);
           }}
         />
       </div>
-      <RoleSelect value={role} onChange={setRole} />
+      <RoleOrSide position={position} value={choice} onChange={setChoice} />
       <div className="case-actions">
         <button type="submit" className="primary">
           {t('cases.parties.add')}
@@ -143,11 +176,11 @@ function NewPartyForm({ caseId, onChanged }: { caseId: string; onChanged: () => 
 }
 
 /** Finds an existing party by name or identifier and links it to the case. */
-function FindPartyForm({ caseId, onChanged }: { caseId: string; onChanged: () => void }) {
+function FindPartyForm({ caseId, position, onChanged }: { caseId: string; position: Side | null; onChanged: () => void }) {
   const { t } = useI18n();
   const id = useId();
   const [q, setQ] = useState('');
-  const [role, setRole] = useState<PartyRole>('CLIENT');
+  const [choice, setChoice] = useState<Choice>({ role: 'CLIENT', side: position === 'PLAINTIFF' ? 'DEFENDANT' : 'PLAINTIFF' });
   const [found, setFound] = useState<Party[] | null>(null);
   const [failure, setFailure] = useState<MessageKey | null>(null);
 
@@ -164,7 +197,7 @@ function FindPartyForm({ caseId, onChanged }: { caseId: string; onChanged: () =>
   const add = async (party: Party) => {
     setFailure(null);
     try {
-      await addCaseParty(caseId, party.id, role);
+      await addCaseParty(caseId, party.id, choice.role, position === null ? undefined : choice.side);
       onChanged();
     } catch (error) {
       setFailure(explain(error));
@@ -187,7 +220,7 @@ function FindPartyForm({ caseId, onChanged }: { caseId: string; onChanged: () =>
           }}
         />
       </div>
-      <RoleSelect value={role} onChange={setRole} />
+      <RoleOrSide position={position} value={choice} onChange={setChoice} />
       <div className="case-actions">
         <button type="submit">{t('cases.parties.findButton')}</button>
       </div>
@@ -214,7 +247,7 @@ function FindPartyForm({ caseId, onChanged }: { caseId: string; onChanged: () =>
 }
 
 /** LD-016: the parties of a case with their roles; adding and removing them is recorded in the timeline. */
-export function CasePartiesSection({ caseId, generation, editable, onChanged }: Props) {
+export function CasePartiesSection({ caseId, authorityPosition, generation, editable, onChanged }: Props) {
   const { t } = useI18n();
   const headingId = useId();
   const key = `${caseId}#${String(generation)}`;
@@ -252,6 +285,11 @@ export function CasePartiesSection({ caseId, generation, editable, onChanged }: 
   return (
     <section aria-labelledby={headingId} className="case-section">
       <h2 id={headingId}>{t('cases.parties.title')}</h2>
+      {authorityPosition === null ? null : (
+        <p className="case-position">
+          <strong>{t('intake.details.position')}:</strong> {t(`intake.position.${authorityPosition}`)}
+        </p>
+      )}
       <Failure message={current?.failure ?? removeFailure} />
       {current?.parties?.length === 0 ? <p>{t('cases.parties.empty')}</p> : null}
       {current?.parties !== undefined && current.parties !== null && current.parties.length > 0 ? (
@@ -262,7 +300,7 @@ export function CasePartiesSection({ caseId, generation, editable, onChanged }: 
               <tr>
                 <th scope="col">{t('cases.parties.name')}</th>
                 <th scope="col">{t('cases.parties.kind')}</th>
-                <th scope="col">{t('cases.parties.role')}</th>
+                <th scope="col">{t(authorityPosition === null ? 'cases.parties.role' : 'intake.parties.side')}</th>
                 {editable ? (
                   <th scope="col">
                     <span className="visually-hidden">{t('cases.parties.remove')}</span>
@@ -275,10 +313,13 @@ export function CasePartiesSection({ caseId, generation, editable, onChanged }: 
                 <tr key={party.partyId}>
                   <td>{party.name}</td>
                   <td>{t(`cases.kind.${party.kind}`)}</td>
-                  <td>{t(`cases.role.${party.role}`)}</td>
+                  <td>
+                    {party.side == null ? t(`cases.role.${party.role}`) : t(`intake.position.${party.side}`)}
+                    {party.authority === true ? <> <span className="case-tag">{t('intake.authority.tag')}</span></> : null}
+                  </td>
                   {editable ? (
                     <td>
-                      <button
+                      {party.authority === true ? null : <button
                         type="button"
                         aria-label={t('cases.parties.removeNamed', { name: party.name })}
                         onClick={() => {
@@ -286,7 +327,7 @@ export function CasePartiesSection({ caseId, generation, editable, onChanged }: 
                         }}
                       >
                         {t('cases.parties.remove')}
-                      </button>
+                      </button>}
                     </td>
                   ) : null}
                 </tr>
@@ -297,8 +338,8 @@ export function CasePartiesSection({ caseId, generation, editable, onChanged }: 
       ) : null}
       {editable ? (
         <div className="case-party-forms">
-          <NewPartyForm key={key} caseId={caseId} onChanged={onChanged} />
-          <FindPartyForm key={key} caseId={caseId} onChanged={onChanged} />
+          <NewPartyForm key={key} caseId={caseId} position={authorityPosition} onChanged={onChanged} />
+          <FindPartyForm key={key} caseId={caseId} position={authorityPosition} onChanged={onChanged} />
         </div>
       ) : null}
     </section>

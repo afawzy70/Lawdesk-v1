@@ -15,10 +15,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.lawdesk.api.BusinessRuleException;
 import com.lawdesk.api.ConflictException;
+import com.lawdesk.api.FieldErrorException;
 import com.lawdesk.api.NotFoundException;
 import com.lawdesk.api.PageResponse;
+import com.lawdesk.audit.AuditLog;
 import com.lawdesk.security.ActorRef;
 import com.lawdesk.security.CurrentActor;
+import com.lawdesk.users.UserDirectory;
 
 /** Case use cases (docs/delivery/PHASE-3-ACCEPTANCE.md) and the {@link CaseLookup} port for other modules. */
 @Service
@@ -29,6 +32,7 @@ class CaseService implements CaseLookup {
     static final String DATE_RANGE_INVALID = "DATE_RANGE_INVALID";
     static final String STATUS_TRANSITION_NOT_ALLOWED = "STATUS_TRANSITION_NOT_ALLOWED";
     static final String REASON_REQUIRED = "REASON_REQUIRED";
+    static final String MEMBER_NOT_ELIGIBLE = "MEMBER_NOT_ELIGIBLE";
 
     /** Supplied numbers may not look generated, so a generated number can never collide with one. */
     private static final Pattern RESERVED = Pattern.compile("(?i)LD-[0-9].*");
@@ -36,11 +40,18 @@ class CaseService implements CaseLookup {
     private final CaseRepository cases;
     private final CaseTimeline timeline;
     private final CurrentActor currentActor;
+    private final CaseAccess access;
+    private final AuditLog audit;
+    private final UserDirectory users;
 
-    CaseService(CaseRepository cases, CaseTimeline timeline, CurrentActor currentActor) {
+    CaseService(CaseRepository cases, CaseTimeline timeline, CurrentActor currentActor, CaseAccess access,
+            AuditLog audit, UserDirectory users) {
         this.cases = cases;
         this.timeline = timeline;
         this.currentActor = currentActor;
+        this.access = access;
+        this.audit = audit;
+        this.users = users;
     }
 
     @Transactional
@@ -75,27 +86,110 @@ class CaseService implements CaseLookup {
     LegalCase update(UUID id, UpdateCaseRequest request) {
         ActorRef actor = currentActor.require();
         LegalCase current = get(id);
+        access.requireChange(id);
         if (current.status().detailsReadOnly()) {
             throw new BusinessRuleException(CASE_READ_ONLY, "case " + id + " is " + current.status());
         }
         if (current.version() != request.version()) {
             throw new ConflictException("case " + id + " has changed since version " + request.version());
         }
+        FinancialImpact impact = financialImpactOf(request);
         CaseType caseType = CaseType.valueOf(request.caseType());
         List<String> changed = new ArrayList<>();
         if (!current.title().equals(request.title())) changed.add("title");
         if (current.caseType() != caseType) changed.add("caseType");
         if (!Objects.equals(current.subject(), request.subject())) changed.add("subject");
         if (!current.openedOn().equals(request.openedOn())) changed.add("openedOn");
+        boolean automatedNoChanged = request.automatedNo() != null && !request.automatedNo().equals(current.automatedNo());
+        if (automatedNoChanged) changed.add("automatedNo");
+        boolean impactChanged = impact != null && (impact != current.financialImpact()
+                || current.financialAmount() == null && request.financialAmount() != null
+                || current.financialAmount() != null && request.financialAmount() != null
+                        && current.financialAmount().compareTo(request.financialAmount()) != 0);
+        if (impactChanged) changed.add("financialImpact");
         if (changed.isEmpty()) {
             return current;
         }
         LegalCase updated = cases.update(id, request.version(), request.title(), caseType, request.subject(),
-                        request.openedOn(), actor.id())
+                        request.openedOn(), new CaseRepository.DetailsChange(request.automatedNo(), impact,
+                                request.financialAmount()), actor.id())
                 // Another request changed the case between the read above and this update.
                 .orElseThrow(() -> new ConflictException("case " + id + " has changed concurrently"));
         timeline.append(id, CaseTimeline.CASE_UPDATED, "Changed: " + String.join(", ", changed), actor.id());
+        if (automatedNoChanged) {
+            audit.recordWithChange("CASE_AUTOMATED_NO_CHANGE", actor.id(), actor.username(), "CASE", id.toString(),
+                    "changed");
+        }
+        if (impactChanged) {
+            audit.recordWithChange("CASE_FINANCIAL_IMPACT_CHANGE", actor.id(), actor.username(), "CASE", id.toString(),
+                    "impact=" + impact);
+        }
         return updated;
+    }
+
+    /** The impact an edit asks for, or null when it leaves the impact alone; an amount always goes with "YES". */
+    private static FinancialImpact financialImpactOf(UpdateCaseRequest request) {
+        if (request.financialImpact() == null) {
+            if (request.financialAmount() != null) {
+                throw new FieldErrorException("financialImpact", "NotNull");
+            }
+            return null;
+        }
+        FinancialImpact impact = FinancialImpact.valueOf(request.financialImpact());
+        if (impact == FinancialImpact.YES && request.financialAmount() == null) {
+            throw new FieldErrorException("financialAmount", "NotNull");
+        }
+        if (impact == FinancialImpact.NO && request.financialAmount() != null) {
+            throw new FieldErrorException("financialAmount", "Null");
+        }
+        return impact;
+    }
+
+    /** LD-045: replaces the members of a case. Only a case supervisor gets here (the controller checks it). */
+    @Transactional
+    LegalCase assign(UUID id, AssignmentRequest request) {
+        ActorRef actor = currentActor.require();
+        LegalCase current = get(id);
+        if (current.version() != request.version()) {
+            throw new ConflictException("case " + id + " has changed since version " + request.version());
+        }
+        if (request.primaryMemberId().equals(request.alternateMemberId())) {
+            throw new FieldErrorException("alternateMemberId", "SameAsPrimary");
+        }
+        requireEligible(request.primaryMemberId(), "primaryMemberId");
+        if (request.alternateMemberId() != null) {
+            requireEligible(request.alternateMemberId(), "alternateMemberId");
+        }
+        MemberRef primary = current.primaryMember();
+        MemberRef alternate = current.alternateMember();
+        if (primary != null && primary.id().equals(request.primaryMemberId())
+                && Objects.equals(alternate == null ? null : alternate.id(), request.alternateMemberId())) {
+            return current;
+        }
+        LegalCase updated = cases.assign(id, request.version(), request.primaryMemberId(), request.alternateMemberId(),
+                        actor.id())
+                .orElseThrow(() -> new ConflictException("case " + id + " has changed concurrently"));
+        recordAssignment(updated, actor);
+        return updated;
+    }
+
+    /** The timeline entry and the audit event of a new assignment (same transaction as the change). */
+    void recordAssignment(LegalCase updated, ActorRef actor) {
+        timeline.append(updated.id(), CaseTimeline.CASE_ASSIGNED, CaseTimeline.fit("Assigned: "
+                + updated.primaryMember().displayName() + (updated.alternateMember() == null ? ""
+                        : ", alternate " + updated.alternateMember().displayName())), actor.id());
+        // The audit reason holds 64 characters: one event per role, each with the member's id.
+        audit.recordWithChange("CASE_ASSIGNMENT_CHANGE", actor.id(), actor.username(), "CASE",
+                updated.id().toString(), "primary=" + updated.primaryMember().id());
+        audit.recordWithChange("CASE_ASSIGNMENT_CHANGE", actor.id(), actor.username(), "CASE",
+                updated.id().toString(), "alternate=" + (updated.alternateMember() == null ? "none"
+                        : updated.alternateMember().id()));
+    }
+
+    private void requireEligible(UUID member, String field) {
+        if (!users.isLegalDepartmentMember(member)) {
+            throw new BusinessRuleException(MEMBER_NOT_ELIGIBLE, field + " is not an active legal department member");
+        }
     }
 
     /** LD-017: applies an allowed transition at the current version and records it in the timeline. */
@@ -147,6 +241,8 @@ class CaseService implements CaseLookup {
         if (caseId == null || !cases.exists(caseId)) {
             throw new NotFoundException("case");
         }
+        // Every module writes to a case through this call, so it is where "only its members change a case" holds.
+        access.requireChange(caseId);
         timeline.append(caseId, type, checked, actor.id());
     }
 
@@ -160,7 +256,7 @@ class CaseService implements CaseLookup {
         return referenceNo;
     }
 
-    private String generateReferenceNo() {
+    String generateReferenceNo() {
         int year = Year.now(ZoneOffset.UTC).getValue();
         return "LD-%d-%05d".formatted(year, cases.nextReferenceNumber(year));
     }

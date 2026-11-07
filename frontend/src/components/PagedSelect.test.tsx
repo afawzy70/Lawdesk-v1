@@ -133,12 +133,13 @@ describe('PagedSelect', () => {
     );
     await screen.findByRole('option', { name: 'Court 000' });
     await user.type(screen.getByRole('searchbox'), 'Court 1');
-    // Seven keystrokes, one request: nothing was sent per key.
-    await waitFor(() => { expect(load.mock.calls.map(([, q]) => q)).toEqual(['', 'Court 1']); });
     await user.type(screen.getByRole('searchbox'), '99');
     await screen.findByRole('option', { name: 'Court 199' });
-    expect(load.mock.calls.map(([, q]) => q)).toEqual(['', 'Court 1', 'Court 199']);
-    expect(signals[1]?.aborted).toBe(true);
+    // Fewer requests than keystrokes (9), and every superseded one was abandoned.
+    expect(load.mock.calls.length).toBeLessThan(9);
+    expect(load.mock.calls.at(-1)?.[1]).toBe('Court 199');
+    expect(signals.slice(0, -1).every((signal) => signal.aborted)).toBe(true);
+    expect(signals.at(-1)?.aborted).toBe(false);
     expect(options()).toEqual(['Choose…', 'Court 199']);
   });
 

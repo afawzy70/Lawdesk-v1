@@ -19,6 +19,7 @@ class CaseTimeline {
     static final String CASE_STATUS_CHANGED = "CASE_STATUS_CHANGED";
     static final String PARTY_ADDED = "PARTY_ADDED";
     static final String PARTY_REMOVED = "PARTY_REMOVED";
+    static final String CASE_ASSIGNED = "CASE_ASSIGNED";
 
     private static final Pattern TYPE = Pattern.compile("[A-Z][A-Z0-9_]{0,63}");
     private static final int SUMMARY_MAX = 500;

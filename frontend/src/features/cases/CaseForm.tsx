@@ -1,7 +1,8 @@
 import { useId, useState, type ReactNode, type SyntheticEvent } from 'react';
 import type { MessageKey } from '../../i18n/catalog';
 import { useI18n } from '../../i18n/I18nContext';
-import { CASE_TYPES, type NewCase } from './api';
+import { CASE_TYPES, type CaseExtras, type NewCase } from './api';
+import { FinancialImpactFields } from './intake/FinancialImpactFields';
 import type { CaseField, FieldErrors } from './problems';
 import './cases.css';
 
@@ -17,7 +18,9 @@ interface Props {
   /** Only a new case has an (optional) reference number; it never changes afterwards. */
   withReference: boolean;
   submitLabel: MessageKey;
-  onSubmit: (values: NewCase) => Promise<void>;
+  /** With `initialExtras`, the automated number and the financial impact (LD-045) are edited too. */
+  initialExtras?: CaseExtras;
+  onSubmit: (values: NewCase, extras?: CaseExtras) => Promise<void>;
   explain: (error: unknown) => Failure;
   onReload?: () => void;
 }
@@ -26,10 +29,12 @@ interface Props {
  * The case fields (LD-012, LD-013). Validation is the server's: its field errors are shown next to each field and
  * announced in a summary. Nothing the server sends is displayed, only the matching translated messages.
  */
-export function CaseForm({ initial, withReference, submitLabel, onSubmit, explain, onReload }: Props) {
+export function CaseForm({ initial, withReference, submitLabel, initialExtras, onSubmit, explain, onReload }: Props) {
   const { t } = useI18n();
   const formId = useId();
   const [values, setValues] = useState(initial);
+  const [extras, setExtras] = useState(initialExtras);
+  const [amountError, setAmountError] = useState(false);
   const [failure, setFailure] = useState<Failure | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -40,10 +45,15 @@ export function CaseForm({ initial, withReference, submitLabel, onSubmit, explai
   const submit = async (event: SyntheticEvent) => {
     event.preventDefault();
     if (saving) return;
+    setAmountError(false);
+    if (extras?.financialImpact === 'YES' && !/^\d{1,12}([.,]\d{1,3})?$/.test(extras.financialAmount.trim())) {
+      setAmountError(true);
+      return;
+    }
     setSaving(true);
     setFailure(null);
     try {
-      await onSubmit(values);
+      await onSubmit(values, extras);
     } catch (error) {
       setFailure(explain(error));
     } finally {
@@ -167,6 +177,31 @@ export function CaseForm({ initial, withReference, submitLabel, onSubmit, explai
           }}
           {...ids('openedOn')}
         />,
+      )}
+      {extras === undefined ? null : (
+        <>
+          <div className="case-field">
+            <label htmlFor={`${formId}-automatedNo`}>{t('intake.field.automatedNo')}</label>
+            <input
+              id={`${formId}-automatedNo`}
+              type="text"
+              maxLength={100}
+              autoComplete="off"
+              value={extras.automatedNo}
+              onChange={(e) => {
+                setExtras({ ...extras, automatedNo: e.target.value });
+              }}
+            />
+          </div>
+          <FinancialImpactFields
+            legendRequired={false}
+            value={{ impact: extras.financialImpact, amount: extras.financialAmount }}
+            onChange={(next) => {
+              setExtras({ ...extras, financialImpact: next.impact, financialAmount: next.amount });
+            }}
+            amountError={amountError ? 'intake.error.amount' : undefined}
+          />
+        </>
       )}
       <div className="case-actions">
         <button type="submit" className="primary" disabled={saving}>

@@ -3,6 +3,7 @@ import { adminEn } from './admin.en';
 import { casesEn } from './cases.en';
 import { courtsEn } from './courts.en';
 import { proceedingsEn } from './proceedings.en';
+import { intakeEn } from './intake.en';
 import { selectorEn } from './selector.en';
 import { operationsEn } from './operations.en';
 import { reportsEn } from './reports.en';
@@ -57,6 +58,7 @@ export const en = {
   ...casesEn,
   ...courtsEn,
   ...proceedingsEn,
+  ...intakeEn,
   ...selectorEn,
   ...operationsEn,
   ...reportsEn,

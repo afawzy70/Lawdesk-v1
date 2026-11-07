@@ -13,7 +13,7 @@ import jakarta.validation.constraints.Size;
 record PartyRequest(
         @NotNull @Pattern(regexp = PartyKind.PATTERN) String kind,
         @NotBlank @Size(max = 200) String name,
-        @Pattern(regexp = "[0-9]{14}") String nationalId,
+        @Size(max = 50) String nationalId,
         @Size(max = 50) String registrationNo,
         @Size(max = 30) @Pattern(regexp = "[0-9 +()-]+") String phone,
         @Size(max = 254) @Email String email,

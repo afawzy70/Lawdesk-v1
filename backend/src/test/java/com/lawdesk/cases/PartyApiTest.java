@@ -85,12 +85,22 @@ class PartyApiTest extends PostgresTestSupport {
         create("{}").andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors[*].field", containsInAnyOrder("kind", "name")));
         create("""
-                {"kind":"ROBOT","name":"%s","nationalId":"123","registrationNo":"%s","phone":"call me",
-                 "email":"not-an-email","address":"%s"}""".formatted("n".repeat(201), "r".repeat(51), "a".repeat(501)))
+                {"kind":"ROBOT","name":"%s","nationalId":"%s","registrationNo":"%s","phone":"call me",
+                 "email":"not-an-email","address":"%s"}""".formatted("n".repeat(201), "9".repeat(51), "r".repeat(51), "a".repeat(501)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors[*].field", containsInAnyOrder("kind", "name", "nationalId",
                         "registrationNo", "phone", "email", "address")));
         assertThat(jdbc.queryForObject("select count(*) from party", Long.class)).isZero();
+    }
+
+    /** LD-045: "الرقم الآلي للطرف" has no format rule (the Egyptian 14-digit rule is gone); only its length is bounded. */
+    @Test
+    void thePartyAutomatedNumberIsAnyVisibleTextAndKeepsItsLeadingZeros() throws Exception {
+        create("{\"kind\":\"PERSON\",\"name\":\"A\",\"nationalId\":\"000123\"}")
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.nationalId").value("000123"));
+        create("{\"kind\":\"PERSON\",\"name\":\"B\",\"nationalId\":\"AB-12/x\"}").andExpect(status().isCreated());
+        create("{\"kind\":\"PERSON\",\"name\":\"C\",\"nationalId\":\"   \"}")
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.nationalId").doesNotExist());
     }
 
     @Test
