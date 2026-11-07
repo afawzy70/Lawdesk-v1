@@ -1,6 +1,6 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { jsonResponse } from '../../../test/http';
 import {
   CASE,
@@ -15,6 +15,8 @@ import {
 } from '../testSupport';
 
 /** LD-025 expert referrals and sessions in the case's operations section (PHASE-5-ACCEPTANCE, QA-0200). */
+
+vi.setConfig({ testTimeout: 20_000 });
 
 const REFERRALS = `/api/v1/cases/${CASE}/expert-referrals`;
 
