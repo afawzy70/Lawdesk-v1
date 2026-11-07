@@ -1,10 +1,14 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { configure, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { MemoryRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 import { LocaleProvider } from '../i18n/LocaleProvider';
 import { PagedSelect, type PagedResult } from './PagedSelect';
+
+// The coverage run is slow and these lists hold 250 rows: give the asynchronous queries and each test room.
+configure({ asyncUtilTimeout: 8000 });
+vi.setConfig({ testTimeout: 30_000 });
 
 /** QAD-044: a selector over a long list pages (and, where the API searches, searches) on the server. */
 
