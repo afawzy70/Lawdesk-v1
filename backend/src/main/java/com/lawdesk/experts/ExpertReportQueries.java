@@ -16,6 +16,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.lawdesk.cases.CaseAccessPolicy;
+
 /**
  * The read-only expert port for Phase 6 reports (architecture/CONTRACTS.md §8.3): referrals by expert and status, and
  * overdue reports. It has no security of its own: the reports module checks {@code REPORT_VIEW} first. "Overdue" (an
@@ -75,9 +77,11 @@ public class ExpertReportQueries {
     private static final String OVERDUE = "status = 'OPEN' and report_due_date < :today";
 
     private final NamedParameterJdbcTemplate jdbc;
+    private final CaseAccessPolicy access;
 
-    ExpertReportQueries(NamedParameterJdbcTemplate jdbc) {
+    ExpertReportQueries(NamedParameterJdbcTemplate jdbc, CaseAccessPolicy access) {
         this.jdbc = jdbc;
+        this.access = access;
     }
 
     /** "Today" for every expert rule: the calendar date in Egypt. */
@@ -122,11 +126,13 @@ public class ExpertReportQueries {
 
     /** Every expert of the registry with its open and overdue referrals, by expert id. */
     public List<ExpertWorkload> workload() {
+        CaseAccessPolicy.Predicate visible = access.visibleCaseIds("r.case_id");
         return jdbc.query("""
                 select e.id, count(r.id) filter (where r.status = 'OPEN') as open,
                        count(r.id) filter (where r.status = 'OPEN' and r.report_due_date < :today) as overdue
-                from expert e left join expert_referral r on r.expert_id = e.id
-                group by e.id order by e.id""", new MapSqlParameterSource("today", today()),
+                from expert e left join expert_referral r on r.expert_id = e.id""" + " and " + visible.sql() + """
+
+                group by e.id order by e.id""", new MapSqlParameterSource(visible.params()).addValue("today", today()),
                 (rs, n) -> new ExpertWorkload(rs.getObject("id", UUID.class), rs.getLong("open"),
                         rs.getLong("overdue")));
     }
@@ -152,8 +158,8 @@ public class ExpertReportQueries {
         return found;
     }
 
-    private static String where(ReferralFilter filter) {
-        StringBuilder sql = new StringBuilder(" where true");
+    private String where(ReferralFilter filter) {
+        StringBuilder sql = new StringBuilder(" where " + access.visibleCaseIds("case_id").sql());
         if (!filter.statuses().isEmpty()) {
             sql.append(" and status in (:statuses)");
         }
@@ -170,7 +176,8 @@ public class ExpertReportQueries {
     }
 
     private MapSqlParameterSource params(ReferralFilter filter) {
-        return new MapSqlParameterSource().addValue("statuses", filter.statuses().stream().map(Enum::name).toList())
+        return new MapSqlParameterSource(access.visibleCaseIds("case_id").params())
+                .addValue("statuses", filter.statuses().stream().map(Enum::name).toList())
                 .addValue("expertId", filter.expertId()).addValue("caseId", filter.caseId())
                 .addValue("today", today());
     }

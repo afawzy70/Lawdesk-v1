@@ -15,6 +15,9 @@ public final class OperationsTestData {
     }
 
     public static void deleteAll(JdbcTemplate jdbc) {
+        // LD-050: access records hang off cases, users and the organisation tree.
+        jdbc.update("delete from case_grant");
+        jdbc.update("delete from access_scope where subject_type = 'USER'");
         // Phase 5, children before parents.
         jdbc.update("delete from case_note");
         jdbc.update("delete from case_document");
@@ -36,5 +39,7 @@ public final class OperationsTestData {
         jdbc.update("delete from case_party");
         jdbc.update("delete from case_event");
         jdbc.update("delete from legal_case");
+        jdbc.update("update app_user set org_unit_id = null where org_unit_id is not null");
+        jdbc.update("delete from org_unit");
     }
 }

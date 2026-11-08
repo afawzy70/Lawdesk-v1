@@ -374,12 +374,12 @@ class GovernmentIntakeApiTest extends GovernmentIntakeTestSupport {
                 .andExpect(jsonPath("$.automatedNo").doesNotExist())
                 .andExpect(jsonPath("$.financialImpact").doesNotExist())
                 .andExpect(jsonPath("$.primaryMember").doesNotExist());
-        // Without a specialist, the permission alone decides, as before.
-        mvc.perform(putCase(as(Permission.CASE_EDIT), legacy,
+        // Without a specialist, a holder of the edit-in-scope right decides (LD-050).
+        mvc.perform(putCase(as(Permission.CASE_EDIT, Permission.CASE_EDIT_IN_SCOPE), legacy,
                         "{\"title\":\"Legacy case 2\",\"caseType\":\"CIVIL\",\"openedOn\":\"2020-01-01\",\"version\":0}"))
                 .andExpect(status().isOk());
         // The unspecified impact is not "no impact"; an edit may specify it.
-        mvc.perform(putCase(as(Permission.CASE_EDIT), legacy,
+        mvc.perform(putCase(as(Permission.CASE_EDIT, Permission.CASE_EDIT_IN_SCOPE), legacy,
                         "{\"title\":\"Legacy case 2\",\"caseType\":\"CIVIL\",\"openedOn\":\"2020-01-01\",\"version\":1,"
                                 + "\"automatedNo\":\"0042\",\"financialImpact\":\"YES\",\"financialAmount\":\"10\"}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.automatedNo").value("0042"))

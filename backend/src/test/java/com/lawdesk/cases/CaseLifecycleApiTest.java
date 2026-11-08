@@ -66,7 +66,7 @@ class CaseLifecycleApiTest extends PostgresTestSupport {
 
     private ResultActions change(String json) throws Exception {
         return mvc.perform(post("/api/v1/cases/" + id + "/status")
-                .with(as(MANAGER, "manager", Permission.CASE_STATUS_CHANGE)).with(csrf())
+                .with(as(MANAGER, "manager", Permission.CASE_STATUS_CHANGE, Permission.CASE_EDIT_IN_SCOPE)).with(csrf())
                 .contentType(MediaType.APPLICATION_JSON).content(json));
     }
 
@@ -166,7 +166,7 @@ class CaseLifecycleApiTest extends PostgresTestSupport {
     @Test
     void anUnknownCaseIsNotFound() throws Exception {
         mvc.perform(post("/api/v1/cases/" + UUID.randomUUID() + "/status")
-                        .with(as(Permission.CASE_STATUS_CHANGE)).with(csrf())
+                        .with(as(Permission.CASE_STATUS_CHANGE, Permission.CASE_EDIT_IN_SCOPE)).with(csrf())
                         .contentType(MediaType.APPLICATION_JSON).content(body("ACTIVE", null, 0)))
                 .andExpect(status().isNotFound());
     }

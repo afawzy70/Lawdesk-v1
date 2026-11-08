@@ -1,7 +1,10 @@
 package com.lawdesk.security;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -25,9 +28,22 @@ public final class TestActors {
         return as(DEFAULT_ID, "test.user", permissions);
     }
 
+    /**
+     * Holds exactly the given permissions and, so that tests written before case-visibility scopes (LD-050) keep
+     * testing what they were written for, the department-wide scope {@code ALL}. Tests of visibility itself use
+     * {@link #scoped}, which grants no scope but the ones it is given.
+     */
     public static RequestPostProcessor as(UUID id, String username, Permission... permissions) {
+        return scoped(id, username, List.of("ALL"), permissions);
+    }
+
+    /** Holds the given permissions and exactly the given scope tokens ({@code ALL}, {@code UNIT:<id>}, {@code TYPE:<t>}). */
+    public static RequestPostProcessor scoped(UUID id, String username, Collection<String> scopes,
+            Permission... permissions) {
         ActorPrincipal principal = new TestPrincipal(id, username);
-        var authorities = Arrays.stream(permissions).map(p -> new SimpleGrantedAuthority(p.name())).toList();
+        var authorities = Stream.concat(Arrays.stream(permissions).map(Permission::name),
+                scopes.stream().map(scope -> LawdeskUser.SCOPE_PREFIX + scope))
+                .map(SimpleGrantedAuthority::new).toList();
         return authentication(UsernamePasswordAuthenticationToken.authenticated(principal, null, authorities));
     }
 

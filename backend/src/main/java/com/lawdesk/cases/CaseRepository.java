@@ -48,8 +48,9 @@ class CaseRepository {
             UUID actor) {
         return jdbc.sql("""
                         insert into legal_case (reference_no, title, case_type, subject, opened_on, created_by,
-                                                updated_by)
-                        values (:referenceNo, :title, :caseType, :subject, :openedOn, :actor, :actor)
+                                                updated_by, owning_unit_id)
+                        values (:referenceNo, :title, :caseType, :subject, :openedOn, :actor, :actor,
+                                (select org_unit_id from app_user where id = :actor))
                         returning\s""" + COLUMNS)
                 .param("referenceNo", referenceNo).param("title", title).param("caseType", caseType.name())
                 .param("subject", subject).param("openedOn", openedOn).param("actor", actor)
@@ -62,9 +63,9 @@ class CaseRepository {
         return jdbc.sql("""
                         insert into legal_case (reference_no, automated_no, title, case_type, subject, opened_on,
                                                 authority_position, financial_impact, financial_amount, created_by,
-                                                updated_by)
+                                                updated_by, owning_unit_id)
                         values (:referenceNo, :automatedNo, :title, :caseType, :subject, :openedOn, :position,
-                                :impact, :amount, :actor, :actor)
+                                :impact, :amount, :actor, :actor, (select org_unit_id from app_user where id = :actor))
                         returning\s""" + COLUMNS)
                 .param("referenceNo", referenceNo).param("automatedNo", automatedNo).param("title", title)
                 .param("caseType", caseType.name()).param("subject", subject).param("openedOn", openedOn)
@@ -122,6 +123,8 @@ class CaseRepository {
         return jdbc.sql("""
                         update legal_case
                         set primary_member_id = :primary, alternate_member_id = :alternate, version = version + 1,
+                            owning_unit_id = coalesce((select org_unit_id from app_user where id = :primary),
+                                                      owning_unit_id),
                             updated_at = now(), updated_by = :actor
                         where id = :id and version = :version
                         returning\s""" + COLUMNS)
@@ -132,7 +135,11 @@ class CaseRepository {
 
     /** Intake only: sets the members of the case just registered, in the same transaction. */
     void assignNew(UUID id, UUID primary, UUID alternate) {
-        jdbc.sql("update legal_case set primary_member_id = :primary, alternate_member_id = :alternate where id = :id")
+        jdbc.sql("""
+                        update legal_case set primary_member_id = :primary, alternate_member_id = :alternate,
+                            owning_unit_id = coalesce((select org_unit_id from app_user where id = :primary),
+                                                      owning_unit_id)
+                        where id = :id""")
                 .param("id", id).param("primary", primary).param("alternate", alternate).update();
     }
 
@@ -148,13 +155,13 @@ class CaseRepository {
                 .query(CaseRepository::row).optional();
     }
 
-    PageResponse<CaseListItem> search(CaseSearch search) {
-        StringBuilder where = new StringBuilder(" where true");
-        Map<String, Object> params = new HashMap<>();
+    PageResponse<CaseListItem> search(CaseSearch search, CaseAccessPolicy.Predicate visible) {
+        StringBuilder where = new StringBuilder(" where " + visible.sql());
+        Map<String, Object> params = new HashMap<>(visible.params());
         if (search.q() != null) {
             where.append(" and (reference_no ilike :q escape '\\' or title ilike :q escape '\\'"
                     + " or exists (select 1 from case_party cp join party p on p.id = cp.party_id"
-                    + " where cp.case_id = legal_case.id and p.name ilike :q escape '\\'))");
+                    + " where cp.case_id = c.id and p.name ilike :q escape '\\'))");
             params.put("q", "%" + Text.escapeLike(search.q()) + "%");
         }
         if (!search.status().isEmpty()) {
@@ -173,7 +180,7 @@ class CaseRepository {
             where.append(" and opened_on <= :openedTo");
             params.put("openedTo", search.openedTo());
         }
-        long total = jdbc.sql("select count(*) from legal_case" + where).params(params).query(Long.class).single();
+        long total = jdbc.sql("select count(*) from legal_case c" + where).params(params).query(Long.class).single();
 
         int page = search.pageOrDefault();
         int size = search.sizeOrDefault();
@@ -181,7 +188,7 @@ class CaseRepository {
         params.put("offset", (long) page * size);
         List<CaseListItem> items = jdbc.sql("""
                         select id, reference_no, title, case_type, status, opened_on, updated_at
-                        from legal_case""" + where + orderBy(search.sort()) + " limit :limit offset :offset")
+                        from legal_case c""" + where + orderBy(search.sort()) + " limit :limit offset :offset")
                 .params(params)
                 .query((rs, rowNum) -> new CaseListItem(
                         rs.getObject("id", UUID.class),

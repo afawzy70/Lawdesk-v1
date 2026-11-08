@@ -21,6 +21,7 @@ import com.lawdesk.api.PageResponse;
 import com.lawdesk.audit.AuditLog;
 import com.lawdesk.security.ActorRef;
 import com.lawdesk.security.CurrentActor;
+import com.lawdesk.security.Permission;
 import com.lawdesk.users.UserDirectory;
 
 /** Case use cases (docs/delivery/PHASE-3-ACCEPTANCE.md) and the {@link CaseLookup} port for other modules. */
@@ -40,11 +41,11 @@ class CaseService implements CaseLookup {
     private final CaseRepository cases;
     private final CaseTimeline timeline;
     private final CurrentActor currentActor;
-    private final CaseAccess access;
+    private final CaseAccessPolicy access;
     private final AuditLog audit;
     private final UserDirectory users;
 
-    CaseService(CaseRepository cases, CaseTimeline timeline, CurrentActor currentActor, CaseAccess access,
+    CaseService(CaseRepository cases, CaseTimeline timeline, CurrentActor currentActor, CaseAccessPolicy access,
             AuditLog audit, UserDirectory users) {
         this.cases = cases;
         this.timeline = timeline;
@@ -75,7 +76,7 @@ class CaseService implements CaseLookup {
         if (search.openedFrom() != null && search.openedTo() != null && search.openedFrom().isAfter(search.openedTo())) {
             throw new BusinessRuleException(DATE_RANGE_INVALID, "openedFrom is after openedTo");
         }
-        return cases.search(search);
+        return cases.search(search, access.viewable("c"));
     }
 
     /**
@@ -150,6 +151,7 @@ class CaseService implements CaseLookup {
     LegalCase assign(UUID id, AssignmentRequest request) {
         ActorRef actor = currentActor.require();
         LegalCase current = get(id);
+        access.requireDistribute(id, Permission.ASSIGN_CASE);
         if (current.version() != request.version()) {
             throw new ConflictException("case " + id + " has changed since version " + request.version());
         }
@@ -197,6 +199,7 @@ class CaseService implements CaseLookup {
     LegalCase changeStatus(UUID id, StatusChangeRequest request) {
         ActorRef actor = currentActor.require();
         LegalCase current = get(id);
+        access.requireDistribute(id, Permission.CASE_STATUS_CHANGE);
         CaseStatus target = CaseStatus.valueOf(request.status());
         if (current.version() != request.version()) {
             throw new ConflictException("case " + id + " has changed since version " + request.version());
@@ -216,21 +219,20 @@ class CaseService implements CaseLookup {
 
     @Transactional(readOnly = true)
     PageResponse<CaseEvent> timeline(UUID id, Paging paging) {
-        if (!cases.exists(id)) {
-            throw new NotFoundException("case");
-        }
+        access.requireView(id);
         return timeline.page(id, paging);
     }
 
     @Transactional(readOnly = true)
     LegalCase get(UUID id) {
+        access.requireView(id);
         return cases.find(id).orElseThrow(() -> new NotFoundException("case"));
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<CaseSummary> find(UUID id) {
-        return cases.find(id).map(LegalCase::summary);
+        return access.canView(id) ? cases.find(id).map(LegalCase::summary) : Optional.empty();
     }
 
     @Override
@@ -243,6 +245,15 @@ class CaseService implements CaseLookup {
         }
         // Every module writes to a case through this call, so it is where "only its members change a case" holds.
         access.requireChange(caseId);
+        timeline.append(caseId, type, checked, actor.id());
+    }
+
+    @Override
+    @Transactional
+    public void recordTaskEvent(UUID caseId, String type, String summary) {
+        String checked = CaseTimeline.checkedSummary(type, summary);
+        ActorRef actor = currentActor.require();
+        access.requireView(caseId);
         timeline.append(caseId, type, checked, actor.id());
     }
 

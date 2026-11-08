@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Component;
 
+import com.lawdesk.cases.CaseAccessPolicy;
+
 import com.lawdesk.proceedings.ProceedingReportQueries.CourtRef;
 
 /**
@@ -67,9 +69,11 @@ public class JudgmentReportQueries {
             " from judgment j join proceeding p on p.id = j.proceeding_id join court c on c.id = p.court_id";
 
     private final JdbcClient jdbc;
+    private final CaseAccessPolicy access;
 
-    JudgmentReportQueries(JdbcClient jdbc) {
+    JudgmentReportQueries(JdbcClient jdbc, CaseAccessPolicy access) {
         this.jdbc = jdbc;
+        this.access = access;
     }
 
     /** The judgments dated between the two days, both included. */
@@ -125,9 +129,10 @@ public class JudgmentReportQueries {
     private record Where(String sql, Map<String, Object> params) {
     }
 
-    private static Where where(JudgmentFilter filter) {
-        StringBuilder sql = new StringBuilder(" where j.judgment_date between :from and :to");
-        Map<String, Object> params = new HashMap<>();
+    private Where where(JudgmentFilter filter) {
+        CaseAccessPolicy.Predicate visible = access.visibleCaseIds("p.case_id");
+        StringBuilder sql = new StringBuilder(" where j.judgment_date between :from and :to and " + visible.sql());
+        Map<String, Object> params = new HashMap<>(visible.params());
         params.put("from", filter.from());
         params.put("to", filter.to());
         if (!filter.outcomes().isEmpty()) {

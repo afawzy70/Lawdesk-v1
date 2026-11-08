@@ -13,6 +13,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
+import com.lawdesk.cases.CaseAccessPolicy;
+
 interface TaskRepository extends JpaRepository<Task, UUID> {
 
     /** Reads the task with {@code select ... for update}, so racing writes to it are serialised. */
@@ -27,6 +29,9 @@ interface TaskRepository extends JpaRepository<Task, UUID> {
     String FILTER = """
             from Task t
             where (:assignee is null or t.assigneeId = :assignee) and (:caseId is null or t.caseId = :caseId)
+              and (t.assigneeId = :#{#scope.me} or t.createdBy = :#{#scope.me} or (t.caseId is not null
+                   and function('case_visible', t.caseId, :#{#scope.me}, :#{#scope.all}, :#{#scope.units},
+                                :#{#scope.types}) = true))
               and t.status in :statuses
               and (:anyDue = true or t.dueDate between :dueFrom and :dueTo)""";
 
@@ -39,7 +44,8 @@ interface TaskRepository extends JpaRepository<Task, UUID> {
                       t.createdAt, t.id""",
             countQuery = "select count(t) " + FILTER)
     Page<Task> search(UUID assignee, UUID caseId, Collection<TaskStatus> statuses, boolean anyDue, LocalDate dueFrom,
-            LocalDate dueTo, Pageable pageable);
+            LocalDate dueTo, @org.springframework.data.repository.query.Param("scope") CaseAccessPolicy.Scope scope,
+            Pageable pageable);
 
     long countByAssigneeIdAndStatusInAndDueDateBefore(UUID assigneeId, Collection<TaskStatus> statuses,
             LocalDate before);

@@ -72,7 +72,7 @@ class CaseEditApiTest extends PostgresTestSupport {
     }
 
     private ResultActions edit(UUID caseId, String json) throws Exception {
-        return mvc.perform(put(CASES + caseId).with(as(EDITOR, "editor", Permission.CASE_EDIT)).with(csrf())
+        return mvc.perform(put(CASES + caseId).with(as(EDITOR, "editor", Permission.CASE_EDIT, Permission.CASE_EDIT_IN_SCOPE)).with(csrf())
                 .contentType(MediaType.APPLICATION_JSON).content(json));
     }
 
@@ -201,7 +201,7 @@ class CaseEditApiTest extends PostgresTestSupport {
     @Test
     void anUnknownOrMalformedCaseIsNotFound() throws Exception {
         edit(UUID.randomUUID(), body("T", "CIVIL", null, "2026-01-05", 0L)).andExpect(status().isNotFound());
-        mvc.perform(put(CASES + "nope").with(as(Permission.CASE_EDIT)).with(csrf())
+        mvc.perform(put(CASES + "nope").with(as(Permission.CASE_EDIT, Permission.CASE_EDIT_IN_SCOPE)).with(csrf())
                         .contentType(MediaType.APPLICATION_JSON).content(body("T", "CIVIL", null, "2026-01-05", 0L)))
                 .andExpect(status().isNotFound());
     }
@@ -213,7 +213,7 @@ class CaseEditApiTest extends PostgresTestSupport {
                 .andExpect(status().isUnauthorized());
         mvc.perform(put(CASES + id).with(as(Permission.CASE_VIEW, Permission.CASE_CREATE)).with(csrf())
                 .contentType(MediaType.APPLICATION_JSON).content(json)).andExpect(status().isForbidden());
-        mvc.perform(put(CASES + id).with(as(Permission.CASE_EDIT)).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(put(CASES + id).with(as(Permission.CASE_EDIT, Permission.CASE_EDIT_IN_SCOPE)).contentType(MediaType.APPLICATION_JSON)
                 .content(json)).andExpect(status().isForbidden());
 
         assertThat(row()).containsEntry("title", "Original title").containsEntry("version", 0L);

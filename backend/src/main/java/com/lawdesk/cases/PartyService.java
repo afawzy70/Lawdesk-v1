@@ -26,10 +26,10 @@ class PartyService {
     private final CaseRepository cases;
     private final CaseTimeline timeline;
     private final CurrentActor currentActor;
-    private final CaseAccess access;
+    private final CaseAccessPolicy access;
 
     PartyService(PartyRepository parties, CaseRepository cases, CaseTimeline timeline, CurrentActor currentActor,
-            CaseAccess access) {
+            CaseAccessPolicy access) {
         this.access = access;
         this.parties = parties;
         this.cases = cases;
@@ -75,9 +75,7 @@ class PartyService {
 
     @Transactional(readOnly = true)
     List<CaseParty> ofCase(UUID caseId) {
-        if (!cases.exists(caseId)) {
-            throw new NotFoundException("case");
-        }
+        access.requireView(caseId);
         return parties.ofCase(caseId);
     }
 

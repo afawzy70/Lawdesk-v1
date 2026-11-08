@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -21,13 +22,16 @@ import com.lawdesk.users.Account;
  */
 public record LawdeskUser(UUID id, String username, String email, String displayName, String locale,
         String passwordHash, boolean enabled, boolean mustChangePassword, Instant lockedUntil, Set<String> roles,
-        Set<String> permissions, long credentialVersion) implements UserDetails, ActorPrincipal {
+        Set<String> permissions, long credentialVersion, Set<String> scopes) implements UserDetails, ActorPrincipal {
 
     @Serial
-    // 2: credentialVersion (LD-008.7). Sessions serialized before it no longer deserialize, so they end.
-    private static final long serialVersionUID = 2L;
+    // 3: scopes (LD-050). 2: credentialVersion (LD-008.7). Sessions serialized before it no longer deserialize, so they end.
+    private static final long serialVersionUID = 3L;
 
     public static final String ADMIN = "ADMIN";
+
+    /** Scope tokens are carried as authorities {@code SCOPE:ALL}, {@code SCOPE:UNIT:<id>}, {@code SCOPE:TYPE:<type>}. */
+    public static final String SCOPE_PREFIX = "SCOPE:";
 
     public static LawdeskUser of(Account account) {
         Set<String> granted = new TreeSet<>();
@@ -39,7 +43,8 @@ public record LawdeskUser(UUID id, String username, String email, String display
         }
         return new LawdeskUser(account.id(), account.username(), account.email(), account.displayName(),
                 account.locale(), account.passwordHash(), account.enabled(), account.mustChangePassword(),
-                account.lockedUntil(), Set.copyOf(account.roles()), Set.copyOf(granted), account.credentialVersion());
+                account.lockedUntil(), Set.copyOf(account.roles()), Set.copyOf(granted), account.credentialVersion(),
+                Set.copyOf(account.scopes()));
     }
 
     private static boolean known(String code) {
@@ -48,7 +53,8 @@ public record LawdeskUser(UUID id, String username, String email, String display
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return permissions.stream().sorted().map(SimpleGrantedAuthority::new).toList();
+        return Stream.concat(permissions.stream().sorted(), scopes.stream().sorted().map(token -> SCOPE_PREFIX + token))
+                .map(SimpleGrantedAuthority::new).toList();
     }
 
     @Override
@@ -74,13 +80,13 @@ public record LawdeskUser(UUID id, String username, String email, String display
     /** The principal kept in the session and in the context: without the password hash. */
     public LawdeskUser withoutPassword() {
         return new LawdeskUser(id, username, email, displayName, locale, null, enabled, mustChangePassword,
-                lockedUntil, roles, permissions, credentialVersion);
+                lockedUntil, roles, permissions, credentialVersion, scopes);
     }
 
     /** The same principal after its own password change raised the credential version (LD-008.7). */
     public LawdeskUser withCredentialVersion(long version) {
         return new LawdeskUser(id, username, email, displayName, locale, passwordHash, enabled, mustChangePassword,
-                lockedUntil, roles, permissions, version);
+                lockedUntil, roles, permissions, version, scopes);
     }
 
     public List<String> sortedRoles() {

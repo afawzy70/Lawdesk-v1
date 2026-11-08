@@ -125,4 +125,8 @@ export const adminAr: Record<keyof typeof adminEn, string> = {
   'admin.permission.NOTE_MANAGE': 'كتابة الملاحظات القانونية',
   'admin.permission.REPORT_VIEW': 'عرض التقارير',
   'admin.permission.REPORT_EXPORT': 'تصدير التقارير',
+  'admin.permission.ASSIGN_CASE': 'توزيع القضايا وتعيين الأعضاء',
+  'admin.permission.CASE_EDIT_IN_SCOPE': 'تعديل أي قضية ضمن النطاق',
+  'admin.permission.CASE_GRANT_MANAGE': 'إدارة الاطلاع على القضايا والنطاقات',
+  'admin.permission.ORG_MANAGE': 'إدارة الهيكل التنظيمي',
 };

@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Component;
 
+import com.lawdesk.cases.CaseAccessPolicy;
+
 /**
  * The read-only port reports use to count proceedings and place cases on the judicial ladder
  * (architecture/CONTRACTS.md §8.3; Workstream E, Phase 6). It never writes. A proceeding awaits its judgment while no
@@ -51,6 +53,7 @@ public class ProceedingReportQueries {
             order by p.case_id, %s desc, p.filing_date desc, p.created_at desc, p.id desc""";
 
     private final JdbcClient jdbc;
+    private final CaseAccessPolicy access;
 
     /**
      * The ids of a query as an uncorrelated subquery. A filter written {@code col = any(cast(? as uuid[]))} re-evaluates
@@ -59,17 +62,19 @@ public class ProceedingReportQueries {
      */
     private static final String IDS = "(select unnest(cast(:ids as uuid[])))";
 
-    ProceedingReportQueries(JdbcClient jdbc) {
+    ProceedingReportQueries(JdbcClient jdbc, CaseAccessPolicy access) {
         this.jdbc = jdbc;
+        this.access = access;
     }
 
     /** Every stage in ladder order, zeros included. */
     public List<StageCount> byStage() {
         Map<Stage, StageCount> counts = new EnumMap<>(Stage.class);
+        CaseAccessPolicy.Predicate visible = access.visibleCaseIds("p.case_id");
         jdbc.sql("""
                 select p.stage, count(*) as total, count(*) filter (where j.id is null) as awaiting
                 from proceeding p left join judgment j on j.proceeding_id = p.id
-                group by p.stage""").query(rs -> {
+                where """ + visible.sql() + " group by p.stage").params(visible.params()).query(rs -> {
                     Stage stage = Stage.valueOf(rs.getString("stage"));
                     counts.put(stage, new StageCount(stage, rs.getLong("total"), rs.getLong("awaiting")));
                 });
@@ -82,9 +87,10 @@ public class ProceedingReportQueries {
      * before {@code courtId} (any court when null).
      */
     public Set<UUID> casesMatching(Set<Stage> currentStages, UUID courtId) {
-        StringBuilder sql = new StringBuilder("select cur.case_id from (" + CURRENT.formatted("", RANK) + ") cur"
-                + " where true");
-        Map<String, Object> params = new HashMap<>();
+        CaseAccessPolicy.Predicate visible = access.visibleCaseIds("p.case_id");
+        StringBuilder sql = new StringBuilder("select cur.case_id from ("
+                + CURRENT.formatted("where " + visible.sql(), RANK) + ") cur where true");
+        Map<String, Object> params = new HashMap<>(visible.params());
         if (!currentStages.isEmpty()) {
             sql.append(" and cur.stage in (:stages)");
             params.put("stages", currentStages.stream().map(Enum::name).toList());
@@ -102,9 +108,10 @@ public class ProceedingReportQueries {
         if (caseIds.isEmpty()) {
             return positions;
         }
+        CaseAccessPolicy.Predicate visible = access.visibleCaseIds("p.case_id");
         jdbc.sql("select cur.*, (select count(*) from proceeding x where x.case_id = cur.case_id) as proceedings from ("
-                        + CURRENT.formatted("where p.case_id in " + IDS, RANK) + ") cur")
-                .param("ids", uuidArray(caseIds)).query(rs -> {
+                        + CURRENT.formatted("where p.case_id in " + IDS + " and " + visible.sql(), RANK) + ") cur")
+                .params(visible.params()).param("ids", uuidArray(caseIds)).query(rs -> {
                     UUID caseId = rs.getObject("case_id", UUID.class);
                     positions.put(caseId, new CasePosition(caseId, Stage.valueOf(rs.getString("stage")),
                             new CourtRef(rs.getObject("court_id", UUID.class), rs.getString("code"),
@@ -134,10 +141,11 @@ public class ProceedingReportQueries {
         if (caseIds.isEmpty()) {
             return counts;
         }
+        CaseAccessPolicy.Predicate visible = access.visibleCaseIds("p.case_id");
         jdbc.sql("select cur.stage, count(*) as n from ("
-                        + CURRENT.formatted("where p.case_id in " + IDS, RANK) + ") cur"
+                        + CURRENT.formatted("where p.case_id in " + IDS + " and " + visible.sql(), RANK) + ") cur"
                         + " group by cur.stage")
-                .param("ids", uuidArray(caseIds))
+                .params(visible.params()).param("ids", uuidArray(caseIds))
                 .query(rs -> {
                     counts.put(Stage.valueOf(rs.getString("stage")), rs.getLong("n"));
                 });
@@ -157,8 +165,9 @@ public class ProceedingReportQueries {
         jdbc.sql("""
                 select p.id, p.stage, p.court_case_number, p.court_case_year, c.id as court_id, c.code, c.name_ar,
                        c.name_en
-                from proceeding p join court c on c.id = p.court_id where p.id in """ + IDS)
-                .param("ids", uuidArray(ids)).query(rs -> {
+                from proceeding p join court c on c.id = p.court_id where p.id in """ + IDS
+                + " and " + access.visibleCaseIds("p.case_id").sql())
+                .params(access.visibleCaseIds("p.case_id").params()).param("ids", uuidArray(ids)).query(rs -> {
                     UUID id = rs.getObject("id", UUID.class);
                     found.put(id, new ProceedingRef(id, Stage.valueOf(rs.getString("stage")),
                             new CourtRef(rs.getObject("court_id", UUID.class), rs.getString("code"),

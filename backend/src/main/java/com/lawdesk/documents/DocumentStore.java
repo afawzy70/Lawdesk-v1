@@ -3,12 +3,17 @@ package com.lawdesk.documents;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+
+import com.lawdesk.cases.CaseAccessPolicy;
 
 /** The document tables (V403): metadata, bytes in their own table, and the per-case lock row. */
 @Repository
@@ -19,9 +24,11 @@ class DocumentStore {
             from case_document""";
 
     private final JdbcTemplate jdbc;
+    private final NamedParameterJdbcTemplate named;
 
     DocumentStore(JdbcTemplate jdbc) {
         this.jdbc = jdbc;
+        this.named = new NamedParameterJdbcTemplate(jdbc);
     }
 
     /**
@@ -58,12 +65,17 @@ class DocumentStore {
     }
 
     /** The latest documents of every case, newest first. */
-    List<CaseDocument> latest(long offset, int limit) {
-        return jdbc.query(SELECT + " order by created_at desc, id offset ? limit ?", (rs, n) -> row(rs), offset, limit);
+    List<CaseDocument> latest(CaseAccessPolicy.Predicate visible, long offset, int limit) {
+        Map<String, Object> params = new HashMap<>(visible.params());
+        params.put("offset", offset);
+        params.put("limit", limit);
+        return named.query(SELECT + " where " + visible.sql() + " order by created_at desc, id offset :offset limit :limit",
+                params, (rs, n) -> row(rs));
     }
 
-    long count() {
-        Long count = jdbc.queryForObject("select count(*) from case_document", Long.class);
+    long count(CaseAccessPolicy.Predicate visible) {
+        Long count = named.queryForObject("select count(*) from case_document where " + visible.sql(),
+                visible.params(), Long.class);
         return count == null ? 0 : count;
     }
 

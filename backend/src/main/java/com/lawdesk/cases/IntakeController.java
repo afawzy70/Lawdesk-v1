@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.lawdesk.security.Permission;
 import com.lawdesk.users.UserDirectory;
 
 /** The government intake and the case assignment (LD-045). */
@@ -47,7 +48,7 @@ class IntakeController {
 
     /** Reassignment is for case supervisors; the members themselves cannot hand a case over. */
     @PutMapping("/api/v1/cases/{id}/assignment")
-    @PreAuthorize("hasAuthority('CASE_EDIT') and hasAuthority('CASE_STATUS_CHANGE')")
+    @PreAuthorize(Permission.Codes.ASSIGN_CASE)
     LegalCase assign(@PathVariable String id, @Valid @RequestBody AssignmentRequest request) {
         return cases.assign(Text.id(id, "case"), request);
     }

@@ -15,6 +15,8 @@ import java.util.UUID;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
+
+import com.lawdesk.cases.CaseAccessPolicy;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -67,9 +69,11 @@ public class HearingReportQueries {
     private static final String ORDER = " order by hearing_date, hearing_time nulls first, created_at, id";
 
     private final NamedParameterJdbcTemplate jdbc;
+    private final CaseAccessPolicy access;
 
-    HearingReportQueries(NamedParameterJdbcTemplate jdbc) {
+    HearingReportQueries(NamedParameterJdbcTemplate jdbc, CaseAccessPolicy access) {
         this.jdbc = jdbc;
+        this.access = access;
     }
 
     /** "Today" for every hearing rule: the calendar date in Egypt. */
@@ -120,13 +124,16 @@ public class HearingReportQueries {
 
     /** Hearings awaiting a result: still scheduled although their day has passed. */
     public long awaitingResultCount() {
-        Long count = jdbc.queryForObject("select count(*) from hearing where status = 'SCHEDULED' and hearing_date < :today",
-                new MapSqlParameterSource("today", today()), Long.class);
+        CaseAccessPolicy.Predicate visible = access.visibleCaseIds("case_id");
+        Long count = jdbc.queryForObject("select count(*) from hearing where status = 'SCHEDULED'"
+                + " and hearing_date < :today and " + visible.sql(),
+                new MapSqlParameterSource(visible.params()).addValue("today", today()), Long.class);
         return count == null ? 0 : count;
     }
 
-    private static String where(HearingFilter filter) {
-        StringBuilder sql = new StringBuilder(" where hearing_date between :from and :to");
+    private String where(HearingFilter filter) {
+        StringBuilder sql = new StringBuilder(" where hearing_date between :from and :to and "
+                + access.visibleCaseIds("case_id").sql());
         if (!filter.statuses().isEmpty()) {
             sql.append(" and status in (:statuses)");
         }
@@ -139,8 +146,8 @@ public class HearingReportQueries {
         return sql.toString();
     }
 
-    private static MapSqlParameterSource params(HearingFilter filter) {
-        return new MapSqlParameterSource().addValue("from", filter.from()).addValue("to", filter.to())
+    private MapSqlParameterSource params(HearingFilter filter) {
+        return new MapSqlParameterSource(access.visibleCaseIds("case_id").params()).addValue("from", filter.from()).addValue("to", filter.to())
                 .addValue("statuses", filter.statuses().stream().map(Enum::name).toList())
                 .addValue("caseId", filter.caseId()).addValue("proceedingId", filter.proceedingId());
     }

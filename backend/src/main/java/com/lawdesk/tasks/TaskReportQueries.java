@@ -14,6 +14,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.lawdesk.cases.CaseAccessPolicy;
+
 /**
  * The read-only task port for Phase 6 reports (architecture/CONTRACTS.md §8.3): tasks by status, assignee and overdue
  * state, and the open workload per assignee. It has no security of its own: the reports module checks
@@ -73,9 +75,18 @@ public class TaskReportQueries {
     private static final String OPEN = "status in ('OPEN', 'IN_PROGRESS')";
 
     private final NamedParameterJdbcTemplate jdbc;
+    private final CaseAccessPolicy access;
 
-    TaskReportQueries(NamedParameterJdbcTemplate jdbc) {
+    TaskReportQueries(NamedParameterJdbcTemplate jdbc, CaseAccessPolicy access) {
         this.jdbc = jdbc;
+        this.access = access;
+    }
+
+    /** A task is reported to its assignee, its creator and whoever sees its case. */
+    private CaseAccessPolicy.Predicate visible() {
+        CaseAccessPolicy.Predicate cases = access.visibleCaseIds("case_id");
+        return new CaseAccessPolicy.Predicate("(assignee_id = :av_me or created_by = :av_me or (case_id is not null and "
+                + cases.sql() + "))", cases.params());
     }
 
     /** "Today" for every task rule: the calendar date in Egypt. */
@@ -117,18 +128,21 @@ public class TaskReportQueries {
     }
 
     public long dueSoonCount() {
-        return number("select count(*) from task where " + OPEN + " and due_date between :today and :soon",
-                new MapSqlParameterSource("today", today()).addValue("soon", today().plusDays(DUE_SOON_DAYS)));
+        CaseAccessPolicy.Predicate visible = visible();
+        return number("select count(*) from task where " + OPEN + " and due_date between :today and :soon and "
+                + visible.sql(), new MapSqlParameterSource(visible.params()).addValue("today", today())
+                .addValue("soon", today().plusDays(DUE_SOON_DAYS)));
     }
 
     /** Assignees with open tasks, by assignee id. */
     public List<AssigneeWorkload> workload() {
+        CaseAccessPolicy.Predicate visible = visible();
         return jdbc.query("""
                 select assignee_id, count(*) filter (where status = 'OPEN') as open,
                        count(*) filter (where status = 'IN_PROGRESS') as in_progress,
                        count(*) filter (where due_date < :today) as overdue
-                from task where""" + " " + OPEN + " group by assignee_id order by assignee_id",
-                new MapSqlParameterSource("today", today()),
+                from task where""" + " " + OPEN + " and " + visible.sql() + " group by assignee_id order by assignee_id",
+                new MapSqlParameterSource(visible.params()).addValue("today", today()),
                 (rs, n) -> new AssigneeWorkload(rs.getObject("assignee_id", UUID.class), rs.getLong("open"),
                         rs.getLong("in_progress"), rs.getLong("overdue")));
     }
@@ -138,8 +152,8 @@ public class TaskReportQueries {
         return count == null ? 0 : count;
     }
 
-    private static String where(TaskFilter filter) {
-        StringBuilder sql = new StringBuilder(" where true");
+    private String where(TaskFilter filter) {
+        StringBuilder sql = new StringBuilder(" where " + visible().sql());
         if (!filter.statuses().isEmpty()) {
             sql.append(" and status in (:statuses)");
         }
@@ -156,7 +170,8 @@ public class TaskReportQueries {
     }
 
     private MapSqlParameterSource params(TaskFilter filter) {
-        return new MapSqlParameterSource().addValue("statuses", filter.statuses().stream().map(Enum::name).toList())
+        return new MapSqlParameterSource(visible().params())
+                .addValue("statuses", filter.statuses().stream().map(Enum::name).toList())
                 .addValue("assigneeId", filter.assigneeId()).addValue("caseId", filter.caseId())
                 .addValue("today", today());
     }

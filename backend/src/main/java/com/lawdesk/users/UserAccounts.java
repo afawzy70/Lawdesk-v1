@@ -27,7 +27,7 @@ public class UserAccounts {
 
     private static final String COLUMNS = """
             id, username, email, display_name, locale, password_hash, enabled, must_change_password, locked_until,
-            credential_version""";
+            credential_version, org_unit_id""";
 
     private final JdbcTemplate jdbc;
 
@@ -111,6 +111,32 @@ public class UserAccounts {
         return new Account(id, rs.getString("username"), rs.getString("email"), rs.getString("display_name"),
                 rs.getString("locale"), rs.getString("password_hash"), rs.getBoolean("enabled"),
                 rs.getBoolean("must_change_password"), locked == null ? null : locked.toInstant(), roles, permissions,
-                rs.getLong("credential_version"));
+                rs.getLong("credential_version"), scopes(id, roles, rs.getObject("org_unit_id", UUID.class)));
+    }
+
+    /**
+     * The scope tokens of a user: rows of their roles and of themselves. {@code OWN_UNIT} becomes the user's own unit
+     * (nothing when the user has none), so the policy never has to look it up.
+     */
+    private Set<String> scopes(UUID id, Set<String> roles, UUID orgUnit) {
+        Set<String> tokens = new TreeSet<>();
+        jdbc.query("""
+                select scope_type, scope_ref from access_scope
+                where (subject_type = 'USER' and subject_ref = ?)
+                   or (subject_type = 'ROLE' and subject_ref = any (cast(? as text[])))""", rs -> {
+            String type = rs.getString("scope_type");
+            switch (type) {
+                case "ALL" -> tokens.add("ALL");
+                case "ORG_UNIT" -> tokens.add("UNIT:" + rs.getString("scope_ref"));
+                case "CASE_TYPE" -> tokens.add("TYPE:" + rs.getString("scope_ref"));
+                case "OWN_UNIT" -> {
+                    if (orgUnit != null) {
+                        tokens.add("UNIT:" + orgUnit);
+                    }
+                }
+                default -> { }
+            }
+        }, id.toString(), roles.toArray(String[]::new));
+        return tokens;
     }
 }
