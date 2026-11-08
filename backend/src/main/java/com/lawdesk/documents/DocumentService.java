@@ -26,6 +26,7 @@ import com.lawdesk.api.ConflictException;
 import com.lawdesk.api.FieldErrorException;
 import com.lawdesk.api.NotFoundException;
 import com.lawdesk.audit.AuditLog;
+import com.lawdesk.cases.CaseAccessPolicy;
 import com.lawdesk.cases.CaseLookup;
 import com.lawdesk.cases.CaseSummary;
 import com.lawdesk.security.ActorRef;
@@ -50,12 +51,15 @@ class DocumentService {
 
     private final DocumentStore store;
     private final CaseLookup cases;
+    private final CaseAccessPolicy access;
     private final CurrentActor currentActor;
     private final AuditLog audit;
 
-    DocumentService(DocumentStore store, CaseLookup cases, CurrentActor currentActor, AuditLog audit) {
+    DocumentService(DocumentStore store, CaseLookup cases, CaseAccessPolicy access, CurrentActor currentActor,
+            AuditLog audit) {
         this.store = store;
         this.cases = cases;
+        this.access = access;
         this.currentActor = currentActor;
         this.audit = audit;
     }
@@ -94,8 +98,9 @@ class DocumentService {
     /** The latest documents of every case, newest first, for the documents screen. */
     @Transactional(readOnly = true)
     Page<CaseDocument> latest(Pageable pageable) {
-        return new PageImpl<>(store.latest(pageable.getOffset(), pageable.getPageSize()),
-                PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()), store.count());
+        CaseAccessPolicy.Predicate visible = access.visibleCaseIds("case_id");
+        return new PageImpl<>(store.latest(visible, pageable.getOffset(), pageable.getPageSize()),
+                PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()), store.count(visible));
     }
 
     /** What the answers say about each document's case; a page holds a few cases. */
@@ -112,7 +117,12 @@ class DocumentService {
 
     @Transactional(readOnly = true)
     CaseDocument get(UUID id) {
-        return store.find(id).orElseThrow(() -> new NotFoundException("document"));
+        CaseDocument document = store.find(id).orElseThrow(() -> new NotFoundException("document"));
+        // A document is as visible as its case: one the user may not see is reported missing.
+        if (!access.canView(document.caseId())) {
+            throw new NotFoundException("document");
+        }
+        return document;
     }
 
     /** The file and its metadata; every download is recorded in the security audit log (ASSUMPTION). */
@@ -133,6 +143,7 @@ class DocumentService {
             throw new FieldErrorException("version", "NotNull");
         }
         CaseDocument document = get(id);
+        access.requireChange(document.caseId());
         writableCase(document.caseId());
         store.lockCase(document.caseId());
         if (!store.delete(id, version)) {
@@ -150,6 +161,7 @@ class DocumentService {
 
     private CaseSummary writableCase(UUID caseId) {
         CaseSummary legalCase = cases.find(caseId).orElseThrow(() -> new NotFoundException("case"));
+        access.requireChange(caseId);
         if ("ARCHIVED".equals(legalCase.status())) {
             throw new BusinessRuleException(Rules.CASE_ARCHIVED, "an archived case is read-only");
         }

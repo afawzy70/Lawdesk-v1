@@ -4,7 +4,7 @@ import type { MessageKey } from '../../i18n/catalog';
 import { useI18n } from '../../i18n/I18nContext';
 import { withLang } from '../../i18n/locale';
 import { usePageTitle } from '../../i18n/usePageTitle';
-import { getCase, updateCase, type CaseExtras, type LegalCase, type NewCase } from './api';
+import { detailsInputOf, getCase, updateCase, type CaseExtras, type LegalCase, type NewCase } from './api';
 import { CaseForm, type Failure } from './CaseForm';
 import { AccessDeniedPage } from '../auth/AccessDeniedPage';
 import { CASES_PATH, casePath } from './paths';
@@ -44,6 +44,7 @@ function extrasOf(legalCase: LegalCase): CaseExtras {
     automatedNo: legalCase.automatedNo ?? '',
     financialImpact: legalCase.financialImpact ?? '',
     financialAmount: legalCase.financialAmount ?? '',
+    details: detailsInputOf(legalCase.details),
   };
 }
 

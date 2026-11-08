@@ -14,6 +14,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
+import com.lawdesk.cases.CaseAccessPolicy;
+
 interface HearingRepository extends JpaRepository<Hearing, UUID> {
 
     /** Reads the hearing with {@code select ... for update}, so racing writes to it are serialised. */
@@ -32,11 +34,16 @@ interface HearingRepository extends JpaRepository<Hearing, UUID> {
     @Query(value = """
             select h from Hearing h
             where h.hearingDate between :from and :to and (:status is null or h.status = :status)
+              and function('case_visible', h.caseId, :#{#scope.me}, :#{#scope.all}, :#{#scope.units},
+                           :#{#scope.types}) = true
             order by h.hearingDate, h.hearingTime nulls first, h.createdAt, h.id""",
             countQuery = """
                     select count(h) from Hearing h
-                    where h.hearingDate between :from and :to and (:status is null or h.status = :status)""")
-    Page<Hearing> findBetween(LocalDate from, LocalDate to, HearingStatus status, Pageable pageable);
+                    where h.hearingDate between :from and :to and (:status is null or h.status = :status)
+                      and function('case_visible', h.caseId, :#{#scope.me}, :#{#scope.all}, :#{#scope.units},
+                                   :#{#scope.types}) = true""")
+    Page<Hearing> findBetween(LocalDate from, LocalDate to, HearingStatus status,
+            @org.springframework.data.repository.query.Param("scope") CaseAccessPolicy.Scope scope, Pageable pageable);
 
     Optional<Hearing> findByAdjournedFromId(UUID adjournedFromId);
 

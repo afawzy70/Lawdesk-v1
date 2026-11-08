@@ -50,7 +50,7 @@ function report(items: InventoryRow[], extra: Partial<InventoryReport> = {}): Re
       open: 1200,
       closed: 34,
       byStatus: { OPEN: 700, ACTIVE: 450, SUSPENDED: 50, CLOSED: 30, ARCHIVED: 4 },
-      byType: { CIVIL: 600, CRIMINAL: 0, COMMERCIAL: 400, LABOR: 100, FAMILY: 120, ADMINISTRATIVE: 14 },
+      byType: { CIVIL: 600, CRIMINAL: 0, COMMERCIAL: 400, LABOR: 100, FAMILY: 120, ADMINISTRATIVE: 14, CONSTITUTIONAL: 0, OTHER: 0 },
       byStage: { FIRST_INSTANCE: 900, APPEAL: 200, CASSATION: 30, NONE: 104 },
     },
     ...extra,

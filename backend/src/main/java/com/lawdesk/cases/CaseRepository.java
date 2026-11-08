@@ -26,7 +26,8 @@ class CaseRepository {
     private static final String COLUMNS = """
             id, reference_no, title, case_type, subject, opened_on, status, version, created_at, created_by,
             updated_at, updated_by, automated_no, authority_position, financial_impact, financial_amount,
-            primary_member_id, alternate_member_id,
+            primary_member_id, alternate_member_id, confidentiality, owning_unit_id,
+            chamber, received_on, referring_unit_id, referred_by, facts, claimed_amount, importance, internal_notes,
             (select display_name from app_user where id = primary_member_id) as primary_member_name,
             (select display_name from app_user where id = alternate_member_id) as alternate_member_name""";
 
@@ -48,8 +49,9 @@ class CaseRepository {
             UUID actor) {
         return jdbc.sql("""
                         insert into legal_case (reference_no, title, case_type, subject, opened_on, created_by,
-                                                updated_by)
-                        values (:referenceNo, :title, :caseType, :subject, :openedOn, :actor, :actor)
+                                                updated_by, owning_unit_id)
+                        values (:referenceNo, :title, :caseType, :subject, :openedOn, :actor, :actor,
+                                (select org_unit_id from app_user where id = :actor))
                         returning\s""" + COLUMNS)
                 .param("referenceNo", referenceNo).param("title", title).param("caseType", caseType.name())
                 .param("subject", subject).param("openedOn", openedOn).param("actor", actor)
@@ -62,9 +64,9 @@ class CaseRepository {
         return jdbc.sql("""
                         insert into legal_case (reference_no, automated_no, title, case_type, subject, opened_on,
                                                 authority_position, financial_impact, financial_amount, created_by,
-                                                updated_by)
+                                                updated_by, owning_unit_id)
                         values (:referenceNo, :automatedNo, :title, :caseType, :subject, :openedOn, :position,
-                                :impact, :amount, :actor, :actor)
+                                :impact, :amount, :actor, :actor, (select org_unit_id from app_user where id = :actor))
                         returning\s""" + COLUMNS)
                 .param("referenceNo", referenceNo).param("automatedNo", automatedNo).param("title", title)
                 .param("caseType", caseType.name()).param("subject", subject).param("openedOn", openedOn)
@@ -74,7 +76,7 @@ class CaseRepository {
     }
 
     /** What an edit may change besides the legacy fields; a null value leaves the column alone (LD-045). */
-    record DetailsChange(String automatedNo, FinancialImpact impact, BigDecimal amount) {
+    record DetailsChange(String automatedNo, FinancialImpact impact, BigDecimal amount, CaseDetails details) {
     }
 
     /**
@@ -91,6 +93,14 @@ class CaseRepository {
                             financial_amount = case when cast(:impact as varchar) is null then financial_amount
                                                     when cast(:impact as varchar) = 'NO' then null
                                                     else cast(:amount as numeric) end,
+                            chamber = case when :replace then :chamber else chamber end,
+                            received_on = case when :replace then :receivedOn else received_on end,
+                            referring_unit_id = case when :replace then :referringUnit else referring_unit_id end,
+                            referred_by = case when :replace then :referredBy else referred_by end,
+                            facts = case when :replace then :facts else facts end,
+                            claimed_amount = case when :replace then :claimed else claimed_amount end,
+                            importance = case when :replace then :importance else importance end,
+                            internal_notes = case when :replace then :notes else internal_notes end,
                             version = version + 1, updated_at = now(), updated_by = :actor
                         where id = :id and version = :version and status not in ('CLOSED', 'ARCHIVED')
                         returning\s""" + COLUMNS)
@@ -99,7 +109,34 @@ class CaseRepository {
                 .param("automatedNo", change.automatedNo())
                 .param("impact", change.impact() == null ? null : change.impact().name())
                 .param("amount", change.amount()).param("actor", actor)
+                .param("replace", change.details() != null)
+                .param("chamber", d(change.details()).chamber()).param("receivedOn", d(change.details()).receivedOn())
+                .param("referringUnit", d(change.details()).referringUnitId())
+                .param("referredBy", d(change.details()).referredBy()).param("facts", d(change.details()).facts())
+                .param("claimed", d(change.details()).claimedAmount())
+                .param("importance", d(change.details()).importance())
+                .param("notes", d(change.details()).internalNotes())
                 .query(CaseRepository::row).optional();
+    }
+
+    private static CaseDetails d(CaseDetails details) {
+        return details == null ? CaseDetails.EMPTY : details;
+    }
+
+    /** Sets the details of the case just registered, in the same transaction; no version change. */
+    void setDetails(UUID id, CaseDetails details) {
+        if (details.isEmpty()) {
+            return;
+        }
+        jdbc.sql("""
+                        update legal_case set chamber = :chamber, received_on = :receivedOn,
+                            referring_unit_id = :referringUnit, referred_by = :referredBy, facts = :facts,
+                            claimed_amount = :claimed, importance = :importance, internal_notes = :notes
+                        where id = :id""")
+                .param("id", id).param("chamber", details.chamber()).param("receivedOn", details.receivedOn())
+                .param("referringUnit", details.referringUnitId()).param("referredBy", details.referredBy())
+                .param("facts", details.facts()).param("claimed", details.claimedAmount())
+                .param("importance", details.importance()).param("notes", details.internalNotes()).update();
     }
 
     /** The members of a case, or empty when there is no such case. */
@@ -122,6 +159,8 @@ class CaseRepository {
         return jdbc.sql("""
                         update legal_case
                         set primary_member_id = :primary, alternate_member_id = :alternate, version = version + 1,
+                            owning_unit_id = coalesce((select org_unit_id from app_user where id = :primary),
+                                                      owning_unit_id),
                             updated_at = now(), updated_by = :actor
                         where id = :id and version = :version
                         returning\s""" + COLUMNS)
@@ -132,7 +171,11 @@ class CaseRepository {
 
     /** Intake only: sets the members of the case just registered, in the same transaction. */
     void assignNew(UUID id, UUID primary, UUID alternate) {
-        jdbc.sql("update legal_case set primary_member_id = :primary, alternate_member_id = :alternate where id = :id")
+        jdbc.sql("""
+                        update legal_case set primary_member_id = :primary, alternate_member_id = :alternate,
+                            owning_unit_id = coalesce((select org_unit_id from app_user where id = :primary),
+                                                      owning_unit_id)
+                        where id = :id""")
                 .param("id", id).param("primary", primary).param("alternate", alternate).update();
     }
 
@@ -148,13 +191,23 @@ class CaseRepository {
                 .query(CaseRepository::row).optional();
     }
 
-    PageResponse<CaseListItem> search(CaseSearch search) {
-        StringBuilder where = new StringBuilder(" where true");
-        Map<String, Object> params = new HashMap<>();
+    PageResponse<CaseListItem> search(CaseSearch search, CaseAccessPolicy.Predicate visible) {
+        StringBuilder where = new StringBuilder(" where " + visible.sql());
+        Map<String, Object> params = new HashMap<>(visible.params());
         if (search.q() != null) {
+            // Section 1: by case number (internal, judicial automated or court number), subject, opponent, member or
+            // involved employee and unit.
             where.append(" and (reference_no ilike :q escape '\\' or title ilike :q escape '\\'"
+                    + " or subject ilike :q escape '\\' or automated_no ilike :q escape '\\'"
                     + " or exists (select 1 from case_party cp join party p on p.id = cp.party_id"
-                    + " where cp.case_id = legal_case.id and p.name ilike :q escape '\\'))");
+                    + " where cp.case_id = c.id and p.name ilike :q escape '\\')"
+                    + " or exists (select 1 from proceeding pr where pr.case_id = c.id"
+                    + " and pr.court_case_number ilike :q escape '\\')"
+                    + " or exists (select 1 from app_user m where m.id in (c.primary_member_id, c.alternate_member_id)"
+                    + " and m.display_name ilike :q escape '\\')"
+                    + " or exists (select 1 from case_org_involvement i where i.case_id = c.id and i.removed_at is null"
+                    + " and (i.contact_name ilike :q escape '\\' or i.sector_name_snapshot ilike :q escape '\\'"
+                    + " or i.department_name_snapshot ilike :q escape '\\' or i.section_name_snapshot ilike :q escape '\\')))");
             params.put("q", "%" + Text.escapeLike(search.q()) + "%");
         }
         if (!search.status().isEmpty()) {
@@ -173,7 +226,7 @@ class CaseRepository {
             where.append(" and opened_on <= :openedTo");
             params.put("openedTo", search.openedTo());
         }
-        long total = jdbc.sql("select count(*) from legal_case" + where).params(params).query(Long.class).single();
+        long total = jdbc.sql("select count(*) from legal_case c" + where).params(params).query(Long.class).single();
 
         int page = search.pageOrDefault();
         int size = search.sizeOrDefault();
@@ -181,7 +234,7 @@ class CaseRepository {
         params.put("offset", (long) page * size);
         List<CaseListItem> items = jdbc.sql("""
                         select id, reference_no, title, case_type, status, opened_on, updated_at
-                        from legal_case""" + where + orderBy(search.sort()) + " limit :limit offset :offset")
+                        from legal_case c""" + where + orderBy(search.sort()) + " limit :limit offset :offset")
                 .params(params)
                 .query((rs, rowNum) -> new CaseListItem(
                         rs.getObject("id", UUID.class),
@@ -219,6 +272,11 @@ class CaseRepository {
                 .query(Boolean.class).single();
     }
 
+    boolean isActiveAuthorityUnit(UUID unit) {
+        return jdbc.sql("select exists (select 1 from org_unit where id = :id and tree = 'AUTHORITY' and active)")
+                .param("id", unit).query(Boolean.class).single();
+    }
+
     boolean referenceNoTaken(String referenceNo) {
         return jdbc.sql("select exists (select 1 from legal_case where lower(reference_no) = lower(:referenceNo))")
                 .param("referenceNo", referenceNo).query(Boolean.class).single();
@@ -252,7 +310,13 @@ class CaseRepository {
                 optional(rs.getString("financial_impact"), FinancialImpact::valueOf),
                 rs.getBigDecimal("financial_amount"),
                 member(rs, "primary_member_id", "primary_member_name"),
-                member(rs, "alternate_member_id", "alternate_member_name"));
+                member(rs, "alternate_member_id", "alternate_member_name"),
+                rs.getString("confidentiality"),
+                rs.getObject("owning_unit_id", UUID.class),
+                new CaseDetails(rs.getString("chamber"), rs.getObject("received_on", LocalDate.class),
+                        rs.getObject("referring_unit_id", UUID.class), rs.getString("referred_by"),
+                        rs.getString("facts"), rs.getBigDecimal("claimed_amount"), rs.getString("importance"),
+                        rs.getString("internal_notes")));
     }
 
     private static <T> T optional(String value, java.util.function.Function<String, T> parse) {

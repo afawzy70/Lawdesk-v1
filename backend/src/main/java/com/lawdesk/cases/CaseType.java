@@ -7,11 +7,13 @@ public enum CaseType {
     COMMERCIAL,
     LABOR,
     FAMILY,
-    ADMINISTRATIVE;
+    ADMINISTRATIVE,
+    CONSTITUTIONAL,
+    OTHER;
 
     /**
      * The names as a validation pattern, so that an unknown type is a field error rather than unreadable JSON.
      * Annotations need a constant; {@code CaseTypeTest} keeps it equal to the values above.
      */
-    static final String PATTERN = "CIVIL|CRIMINAL|COMMERCIAL|LABOR|FAMILY|ADMINISTRATIVE";
+    static final String PATTERN = "CIVIL|CRIMINAL|COMMERCIAL|LABOR|FAMILY|ADMINISTRATIVE|CONSTITUTIONAL|OTHER";
 }

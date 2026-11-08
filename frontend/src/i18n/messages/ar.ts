@@ -1,6 +1,7 @@
 import type { Messages } from './en';
 import { authAr } from './auth.ar';
 import { adminAr } from './admin.ar';
+import { accessAr } from './access.ar';
 import { casesAr } from './cases.ar';
 import { courtsAr } from './courts.ar';
 import { proceedingsAr } from './proceedings.ar';
@@ -52,6 +53,7 @@ export const ar: Messages = {
   // Area messages, one file per workstream (architecture/CONTRACTS.md §6).
   ...authAr,
   ...adminAr,
+  ...accessAr,
   ...casesAr,
   ...courtsAr,
   ...proceedingsAr,

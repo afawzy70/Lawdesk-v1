@@ -138,7 +138,7 @@ describe('the case page after the intake', () => {
 });
 
 describe('the assignment control', () => {
-  const SUPERVISOR: Permission[] = ['CASE_VIEW', 'CASE_EDIT', 'CASE_STATUS_CHANGE', 'PARTY_MANAGE'];
+  const SUPERVISOR: Permission[] = ['CASE_VIEW', 'CASE_EDIT', 'CASE_STATUS_CHANGE', 'ASSIGN_CASE', 'PARTY_MANAGE'];
 
   it('is shown to case supervisors only', async () => {
     serve(registered());

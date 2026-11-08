@@ -12,7 +12,11 @@ MIGRATIONS = Path("backend/src/main/resources/db/migration")
 
 # Flyway version range of each phase, and the stories of that phase (product/DELIVERY-PLAN.md).
 RANGES = {2: (100, 199, range(7, 12)), 3: (200, 299, range(12, 18)), 4: (300, 399, range(18, 24)),
-          5: (400, 499, range(24, 30)), 6: (500, 599, range(30, 35))}
+          5: (400, 499, range(24, 30)), 6: (500, 599, range(30, 35)),
+          # The comprehensive requirements programme (docs/design/LD-DOC-06): LD-050 core and access, LD-051 claims and
+          # judgments, LD-052 library, LD-053 hearings and risk, LD-054 deadlines, LD-055 enforcement and archive,
+          # LD-056 tasks and notifications, LD-057 settlements and search, LD-058 reports, LD-059 assistant.
+          7: (600, 999, range(50, 60))}
 
 _MIGRATION_RE = re.compile(r"V(?P<version>\d+)__(?:LD-(?P<story>\d{3})_)?[a-z0-9_]+\.sql")
 

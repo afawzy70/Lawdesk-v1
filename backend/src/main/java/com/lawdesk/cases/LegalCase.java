@@ -30,7 +30,13 @@ public record LegalCase(
         /** Dinars with three decimals, as text so it is never rounded by a client; null unless there is an impact. */
         @JsonFormat(shape = JsonFormat.Shape.STRING) BigDecimal financialAmount,
         MemberRef primaryMember,
-        MemberRef alternateMember) {
+        MemberRef alternateMember,
+        /** NORMAL or RESTRICTED (LD-050): a restricted case is reachable only by its members and explicit grants. */
+        String confidentiality,
+        /** The legal-department unit that owns the case, or null when none was recorded. */
+        UUID owningUnitId,
+        /** Chamber, receipt date, referrer, facts, claimed amount, importance and notes (LD-050). */
+        CaseDetails details) {
 
     CaseSummary summary() {
         return new CaseSummary(id, referenceNo, title, status.name());

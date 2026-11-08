@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 class UserDirectoryController {
 
-    static final String READ = "hasAnyAuthority('TASK_VIEW', 'TASK_MANAGE', 'REPORT_VIEW')";
+    static final String READ = "hasAnyAuthority('TASK_VIEW', 'TASK_MANAGE', 'REPORT_VIEW', 'CASE_GRANT_MANAGE')";
 
     private final UserDirectory directory;
 

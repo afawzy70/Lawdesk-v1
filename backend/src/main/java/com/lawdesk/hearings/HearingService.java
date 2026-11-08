@@ -22,6 +22,7 @@ import com.lawdesk.api.BusinessRuleException;
 import com.lawdesk.api.ConflictException;
 import com.lawdesk.api.FieldErrorException;
 import com.lawdesk.api.NotFoundException;
+import com.lawdesk.cases.CaseAccessPolicy;
 import com.lawdesk.cases.CaseLookup;
 import com.lawdesk.cases.CaseSummary;
 import com.lawdesk.courts.Court;
@@ -51,14 +52,16 @@ class HearingService {
 
     private final HearingRepository hearings;
     private final CaseLookup cases;
+    private final CaseAccessPolicy access;
     private final ProceedingLookup proceedings;
     private final CourtService courts;
     private final CurrentActor currentActor;
 
-    HearingService(HearingRepository hearings, CaseLookup cases, ProceedingLookup proceedings, CourtService courts,
-            CurrentActor currentActor) {
+    HearingService(HearingRepository hearings, CaseLookup cases, CaseAccessPolicy access, ProceedingLookup proceedings,
+            CourtService courts, CurrentActor currentActor) {
         this.hearings = hearings;
         this.cases = cases;
+        this.access = access;
         this.proceedings = proceedings;
         this.courts = courts;
         this.currentActor = currentActor;
@@ -102,7 +105,7 @@ class HearingService {
         if (end.isBefore(start) || ChronoUnit.DAYS.between(start, end) > MAX_WINDOW_DAYS) {
             throw new FieldErrorException("to", "Range");
         }
-        return respond(hearings.findBetween(start, end, status, unsorted(pageable)));
+        return respond(hearings.findBetween(start, end, status, access.scope(), unsorted(pageable)));
     }
 
     @Transactional
@@ -186,6 +189,7 @@ class HearingService {
 
     private CaseSummary writableCase(UUID caseId) {
         CaseSummary legalCase = cases.find(caseId).orElseThrow(() -> new NotFoundException("case"));
+        access.requireChange(caseId);
         if ("ARCHIVED".equals(legalCase.status())) {
             throw new BusinessRuleException(Rules.CASE_ARCHIVED, "an archived case is read-only");
         }

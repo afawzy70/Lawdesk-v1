@@ -14,6 +14,7 @@ import com.lawdesk.api.BusinessRuleException;
 import com.lawdesk.api.ConflictException;
 import com.lawdesk.api.FieldErrorException;
 import com.lawdesk.api.NotFoundException;
+import com.lawdesk.cases.CaseAccessPolicy;
 import com.lawdesk.cases.CaseLookup;
 import com.lawdesk.cases.CaseSummary;
 import com.lawdesk.proceedings.ProceedingLookup;
@@ -32,14 +33,16 @@ class ReferralService {
     private final ReferralStore referrals;
     private final ExpertRegistry experts;
     private final CaseLookup cases;
+    private final CaseAccessPolicy access;
     private final ProceedingLookup proceedings;
     private final CurrentActor currentActor;
 
-    ReferralService(ReferralStore referrals, ExpertRegistry experts, CaseLookup cases, ProceedingLookup proceedings,
-            CurrentActor currentActor) {
+    ReferralService(ReferralStore referrals, ExpertRegistry experts, CaseLookup cases, CaseAccessPolicy access,
+            ProceedingLookup proceedings, CurrentActor currentActor) {
         this.referrals = referrals;
         this.experts = experts;
         this.cases = cases;
+        this.access = access;
         this.proceedings = proceedings;
         this.currentActor = currentActor;
     }
@@ -149,6 +152,7 @@ class ReferralService {
 
     private CaseSummary writableCase(UUID caseId) {
         CaseSummary legalCase = cases.find(caseId).orElseThrow(() -> new NotFoundException("case"));
+        access.requireChange(caseId);
         if ("ARCHIVED".equals(legalCase.status())) {
             throw new BusinessRuleException(Rules.CASE_ARCHIVED, "an archived case is read-only");
         }

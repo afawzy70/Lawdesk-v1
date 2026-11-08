@@ -10,6 +10,8 @@ export const casesAr: Record<keyof typeof casesEn, string> = {
   'cases.type.LABOR': 'عمالي',
   'cases.type.FAMILY': 'أحوال شخصية',
   'cases.type.ADMINISTRATIVE': 'إداري',
+  'cases.type.CONSTITUTIONAL': 'دستوري',
+  'cases.type.OTHER': 'أخرى',
 
   'cases.status.OPEN': 'مفتوحة',
   'cases.status.ACTIVE': 'متداولة',

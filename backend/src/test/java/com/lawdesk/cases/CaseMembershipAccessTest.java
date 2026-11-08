@@ -1,6 +1,7 @@
 package com.lawdesk.cases;
 
 import static com.lawdesk.security.TestActors.as;
+import static com.lawdesk.security.TestActors.scoped;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -29,8 +30,8 @@ class CaseMembershipAccessTest extends GovernmentIntakeTestSupport {
         Permission.PROCEEDING_VIEW, Permission.PROCEEDING_MANAGE, Permission.COURT_VIEW, Permission.TASK_VIEW,
         Permission.TASK_MANAGE, Permission.NOTE_MANAGE, Permission.HEARING_VIEW, Permission.HEARING_MANAGE};
     private static final Permission[] SUPERVISOR = {Permission.CASE_VIEW, Permission.CASE_EDIT,
-        Permission.CASE_STATUS_CHANGE, Permission.PARTY_MANAGE, Permission.PROCEEDING_VIEW,
-        Permission.PROCEEDING_MANAGE, Permission.TASK_MANAGE, Permission.NOTE_MANAGE};
+        Permission.CASE_STATUS_CHANGE, Permission.ASSIGN_CASE, Permission.CASE_EDIT_IN_SCOPE, Permission.PARTY_MANAGE,
+        Permission.PROCEEDING_VIEW, Permission.PROCEEDING_MANAGE, Permission.TASK_MANAGE, Permission.NOTE_MANAGE};
 
     private UUID specialist;
     private UUID alternate;
@@ -41,7 +42,7 @@ class CaseMembershipAccessTest extends GovernmentIntakeTestSupport {
     private UUID court;
 
     private RequestPostProcessor by(UUID id, Permission... permissions) {
-        return as(id, "u" + id.toString().substring(0, 6), permissions);
+        return scoped(id, "u" + id.toString().substring(0, 6), java.util.List.of("ALL"), permissions);
     }
 
     @BeforeEach
@@ -174,15 +175,16 @@ class CaseMembershipAccessTest extends GovernmentIntakeTestSupport {
     }
 
     @Test
-    void aCaseWithoutASpecialistKeepsTheOldRule() throws Exception {
+    void aCaseWithoutASpecialistIsChangedByTheSupervisorsWhoDistributeCases() throws Exception {
         UUID legacy = jdbc.queryForObject("""
                 insert into legal_case (reference_no, title, case_type, opened_on, created_by, updated_by)
                 values ('OLD-2', 'Legacy', 'CIVIL', '2020-01-01', gen_random_uuid(), gen_random_uuid()) returning id""",
                 UUID.class);
-        mvc.perform(putCase(by(outsider, STAFF), legacy,
-                        "{\"title\":\"Legacy 2\",\"caseType\":\"CIVIL\",\"openedOn\":\"2020-01-01\",\"version\":0}"))
-                .andExpect(status().isOk());
-        // A supervisor can give it a specialist, from then on the new rule holds.
+        String edit = "{\"title\":\"Legacy 2\",\"caseType\":\"CIVIL\",\"openedOn\":\"2020-01-01\",\"version\":0}";
+        // LD-050: seeing a case does not allow changing it, whatever the department-wide scope.
+        mvc.perform(putCase(by(outsider, STAFF), legacy, edit)).andExpect(status().isForbidden());
+        mvc.perform(putCase(by(supervisor, SUPERVISOR), legacy, edit)).andExpect(status().isOk());
+        // A supervisor can give it a specialist, from then on the specialist's rule holds.
         mvc.perform(assign(by(supervisor, SUPERVISOR), legacy,
                         "{\"primaryMemberId\":\"" + specialist + "\",\"version\":1}"))
                 .andExpect(status().isOk());

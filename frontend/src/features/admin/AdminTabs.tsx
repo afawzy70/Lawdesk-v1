@@ -8,6 +8,8 @@ import { useAuth } from '../auth/AuthContext';
 const TABS: readonly { path: string; label: MessageKey; requires: Permission }[] = [
   { path: '/admin', label: 'admin.tabs.users', requires: 'USER_VIEW' },
   { path: '/admin/roles', label: 'admin.tabs.roles', requires: 'ROLE_VIEW' },
+  { path: '/admin/org', label: 'admin.tabs.org', requires: 'ORG_MANAGE' },
+  { path: '/admin/access', label: 'admin.tabs.access', requires: 'CASE_GRANT_MANAGE' },
   { path: '/admin/audit', label: 'admin.tabs.audit', requires: 'AUDIT_VIEW' },
 ];
 

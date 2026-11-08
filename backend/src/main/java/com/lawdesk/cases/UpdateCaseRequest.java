@@ -3,6 +3,7 @@ package com.lawdesk.cases;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -25,7 +26,9 @@ record UpdateCaseRequest(
         @NotNull Long version,
         @Size(max = 100) String automatedNo,
         @Pattern(regexp = FinancialImpact.PATTERN) String financialImpact,
-        @Positive @Digits(integer = 12, fraction = 3) BigDecimal financialAmount) {
+        @Positive @Digits(integer = 12, fraction = 3) BigDecimal financialAmount,
+        /** When present, replaces the stored details as a whole; when absent, leaves them as they are. */
+        @Valid CaseDetails details) {
 
     UpdateCaseRequest {
         title = Text.trimToNull(title);

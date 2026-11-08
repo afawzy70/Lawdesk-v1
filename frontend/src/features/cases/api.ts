@@ -2,7 +2,16 @@ import { api } from '../../api/http';
 
 /** Case API (docs/delivery/PHASE-3-ACCEPTANCE.md, LD-012, LD-013, LD-015); every call goes through `api()`. */
 
-export const CASE_TYPES = ['CIVIL', 'CRIMINAL', 'COMMERCIAL', 'LABOR', 'FAMILY', 'ADMINISTRATIVE'] as const;
+export const CASE_TYPES = [
+  'CIVIL',
+  'CRIMINAL',
+  'COMMERCIAL',
+  'LABOR',
+  'FAMILY',
+  'ADMINISTRATIVE',
+  'CONSTITUTIONAL',
+  'OTHER',
+] as const;
 export type CaseType = (typeof CASE_TYPES)[number];
 
 export const CASE_STATUSES = ['OPEN', 'ACTIVE', 'SUSPENDED', 'CLOSED', 'ARCHIVED'] as const;
@@ -41,6 +50,86 @@ export interface LegalCase {
   financialAmount?: string | null;
   primaryMember?: MemberRef | null;
   alternateMember?: MemberRef | null;
+  /** LD-050: a restricted case is reachable only by its members and explicit grants. */
+  confidentiality?: 'NORMAL' | 'RESTRICTED';
+  owningUnitId?: string | null;
+  /** Chamber, receipt date, referrer, facts, claimed amount, importance and internal notes (LD-050). */
+  details?: CaseDetails;
+}
+
+export const IMPORTANCE_LEVELS = ['LOW', 'NORMAL', 'HIGH', 'CRITICAL'] as const;
+export type Importance = (typeof IMPORTANCE_LEVELS)[number];
+
+/** The case record beyond its numbers and parties as the server returns it; every value may be absent. */
+export interface CaseDetails {
+  chamber?: string | null;
+  receivedOn?: string | null;
+  referringUnitId?: string | null;
+  referredBy?: string | null;
+  facts?: string | null;
+  /** KWD with three decimals, as text. */
+  claimedAmount?: string | null;
+  importance?: Importance | null;
+  internalNotes?: string | null;
+}
+
+/** The same fields as a form holds them: empty strings mean "not given". */
+export interface DetailsInput {
+  chamber: string;
+  receivedOn: string;
+  referringUnitId: string;
+  referredBy: string;
+  facts: string;
+  claimedAmount: string;
+  importance: Importance | '';
+  internalNotes: string;
+}
+
+export const EMPTY_DETAILS: DetailsInput = {
+  chamber: '',
+  receivedOn: '',
+  referringUnitId: '',
+  referredBy: '',
+  facts: '',
+  claimedAmount: '',
+  importance: '',
+  internalNotes: '',
+};
+
+export function detailsInputOf(details: CaseDetails | undefined): DetailsInput {
+  return {
+    chamber: details?.chamber ?? '',
+    receivedOn: details?.receivedOn ?? '',
+    referringUnitId: details?.referringUnitId ?? '',
+    referredBy: details?.referredBy ?? '',
+    facts: details?.facts ?? '',
+    claimedAmount: details?.claimedAmount ?? '',
+    importance: details?.importance ?? '',
+    internalNotes: details?.internalNotes ?? '',
+  };
+}
+
+/** The request form of the details: empty values go out as null, a comma decimal separator as a point. */
+export function detailsBody(input: DetailsInput) {
+  const empty = (value: string) => (value.trim() === '' ? null : value.trim());
+  return {
+    chamber: empty(input.chamber),
+    receivedOn: empty(input.receivedOn),
+    referringUnitId: empty(input.referringUnitId),
+    referredBy: empty(input.referredBy),
+    facts: empty(input.facts),
+    claimedAmount: empty(input.claimedAmount)?.replace(',', '.') ?? null,
+    importance: input.importance === '' ? null : input.importance,
+    internalNotes: empty(input.internalNotes),
+  };
+}
+
+/** Up to twelve digits and three decimals, as the server accepts; empty is allowed. */
+export const CLAIMED_AMOUNT = /^\d{1,12}([.,]\d{1,3})?$/;
+
+/** Whether the claimed amount is acceptable: empty, or up to twelve digits and three decimals. */
+export function claimedAmountValid(value: string): boolean {
+  return value.trim() === '' || CLAIMED_AMOUNT.test(value.trim());
 }
 
 export interface CaseListItem {
@@ -87,6 +176,8 @@ export interface CaseExtras {
   financialImpact: FinancialImpact | '';
   /** Only with "YES"; with "NO" the stored amount is cleared. */
   financialAmount: string;
+  /** The case details; sent as a whole, so the form must start from the stored values. */
+  details: DetailsInput;
 }
 
 const BASE = '/api/v1/cases';
@@ -245,6 +336,7 @@ export function updateCase(id: string, values: CaseFields, version: number, extr
       version,
       ...(automatedNo === '' ? {} : { automatedNo }),
       ...(extras === undefined ? {} : financialBody(extras)),
+      ...(extras === undefined ? {} : { details: detailsBody(extras.details) }),
     },
   });
 }
@@ -290,6 +382,7 @@ export interface IntakeInput {
   alternateMemberId: string;
   financialImpact: FinancialImpact | '';
   financialAmount: string;
+  details: DetailsInput;
 }
 
 /** Registers a case with its first stage, parties, members and financial impact in one request. */
@@ -315,6 +408,64 @@ export function registerCase(input: IntakeInput): Promise<LegalCase> {
       alternateMemberId: empty(input.alternateMemberId),
       financialImpact: input.financialImpact === '' ? null : input.financialImpact,
       ...(input.financialImpact === 'YES' ? { financialAmount: empty(input.financialAmount) } : {}),
+      details: detailsBody(input.details),
     },
   });
+}
+
+/** An administrative unit a case concerns, with the structure's names as they were when it was recorded (section 6). */
+export interface Involvement {
+  id: string;
+  caseId: string;
+  orgUnitId: string | null;
+  primary: boolean;
+  sectorName: string | null;
+  departmentName: string | null;
+  sectionName: string | null;
+  contactName: string | null;
+  contactInfo: string | null;
+  referralDate: string | null;
+  requestedFromUnit: string | null;
+  notes: string | null;
+  version: number;
+}
+
+export interface NewInvolvement {
+  orgUnitId: string;
+  sectorName: string;
+  departmentName: string;
+  sectionName: string;
+  primary: boolean;
+  contactName: string;
+  contactInfo: string;
+  referralDate: string;
+  requestedFromUnit: string;
+  notes: string;
+}
+
+export function listInvolvements(caseId: string, signal?: AbortSignal): Promise<Involvement[]> {
+  return api(`${BASE}/${encodeURIComponent(caseId)}/involvements`, signal === undefined ? {} : { signal });
+}
+
+export function addInvolvement(caseId: string, value: NewInvolvement): Promise<Involvement> {
+  const empty = (text: string) => (text.trim() === '' ? null : text.trim());
+  return api(`${BASE}/${encodeURIComponent(caseId)}/involvements`, {
+    method: 'POST',
+    body: {
+      orgUnitId: empty(value.orgUnitId),
+      sectorName: empty(value.sectorName),
+      departmentName: empty(value.departmentName),
+      sectionName: empty(value.sectionName),
+      primary: value.primary,
+      contactName: empty(value.contactName),
+      contactInfo: empty(value.contactInfo),
+      referralDate: empty(value.referralDate),
+      requestedFromUnit: empty(value.requestedFromUnit),
+      notes: empty(value.notes),
+    },
+  });
+}
+
+export function removeInvolvement(caseId: string, id: string): Promise<void> {
+  return api(`${BASE}/${encodeURIComponent(caseId)}/involvements/${encodeURIComponent(id)}`, { method: 'DELETE' });
 }

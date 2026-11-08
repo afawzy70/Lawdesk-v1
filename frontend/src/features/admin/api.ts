@@ -14,6 +14,7 @@ export interface UserView {
   createdAt: string;
   updatedAt: string;
   version: number;
+  orgUnitId?: string | null;
 }
 
 export interface RoleView {

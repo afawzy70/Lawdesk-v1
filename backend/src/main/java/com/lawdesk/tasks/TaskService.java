@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,7 @@ import com.lawdesk.api.ConflictException;
 import com.lawdesk.api.FieldErrorException;
 import com.lawdesk.api.NotFoundException;
 import com.lawdesk.audit.AuditLog;
+import com.lawdesk.cases.CaseAccessPolicy;
 import com.lawdesk.cases.CaseLookup;
 import com.lawdesk.cases.CaseSummary;
 import com.lawdesk.security.ActorRef;
@@ -48,14 +50,16 @@ class TaskService {
 
     private final TaskRepository tasks;
     private final CaseLookup cases;
+    private final CaseAccessPolicy access;
     private final UserDirectory users;
     private final CurrentActor currentActor;
     private final AuditLog audit;
 
-    TaskService(TaskRepository tasks, CaseLookup cases, UserDirectory users, CurrentActor currentActor,
-            AuditLog audit) {
+    TaskService(TaskRepository tasks, CaseLookup cases, CaseAccessPolicy access, UserDirectory users,
+            CurrentActor currentActor, AuditLog audit) {
         this.tasks = tasks;
         this.cases = cases;
+        this.access = access;
         this.users = users;
         this.currentActor = currentActor;
         this.audit = audit;
@@ -65,6 +69,10 @@ class TaskService {
     TaskRequests.Response create(TaskRequests.Create request) {
         ActorRef actor = currentActor.require();
         CaseSummary legalCase = request.caseId() == null ? null : writableCase(request.caseId());
+        if (legalCase != null) {
+            // Distributing work on a case is changing the case: a task alone never gives that right.
+            access.requireChange(legalCase.id());
+        }
         LocalDate today = Rules.today();
         requireNotPast(request.dueDate(), today);
         UserSummary assignee = assignable(request.assigneeId());
@@ -82,7 +90,11 @@ class TaskService {
 
     @Transactional(readOnly = true)
     TaskRequests.Response get(UUID id) {
-        return new Lookups().respond(tasks.findById(id).orElseThrow(() -> new NotFoundException("task")), Rules.today());
+        Task task = tasks.findById(id).orElseThrow(() -> new NotFoundException("task"));
+        if (!mayRead(task)) {
+            throw new NotFoundException("task");
+        }
+        return new Lookups().respond(task, Rules.today());
     }
 
     @Transactional(readOnly = true)
@@ -109,7 +121,7 @@ class TaskService {
             return Page.empty(page);
         }
         Lookups lookups = new Lookups();
-        return tasks.search(assigneeId, caseId, wanted, due == null, from, to, page)
+        return tasks.search(assigneeId, caseId, wanted, due == null, from, to, access.scope(), page)
                 .map(t -> lookups.respond(t, today));
     }
 
@@ -127,6 +139,9 @@ class TaskService {
     TaskRequests.Response update(UUID id, TaskRequests.Update request) {
         ActorRef actor = currentActor.require();
         Task task = lockedCurrent(id, request.version());
+        if (!mayEdit(task)) {
+            throw new AccessDeniedException("only the creator or a member of the case edits a task");
+        }
         CaseSummary legalCase = task.getCaseId() == null ? null : writableCase(task.getCaseId());
         LocalDate today = Rules.today();
         if (!Objects.equals(request.dueDate(), task.getDueDate())) {
@@ -150,24 +165,29 @@ class TaskService {
     TaskRequests.Response changeStatus(UUID id, TaskRequests.StatusChange request) {
         ActorRef actor = currentActor.require();
         Task task = lockedCurrent(id, request.version());
+        // The assignee moves their own task; so does anyone who may edit it. Nobody else, whatever they see.
+        if (!currentActor.require().id().equals(task.getAssigneeId()) && !mayEdit(task)) {
+            throw new AccessDeniedException("only the assignee or an editor of the task changes its status");
+        }
         CaseSummary legalCase = task.getCaseId() == null ? null : writableCase(task.getCaseId());
         TaskStatus from = task.getStatus();
         if (!from.next().contains(request.status())) {
             throw new BusinessRuleException(Rules.TASK_STATUS_TRANSITION,
                     "a task cannot move from " + from + " to " + request.status());
         }
-        task.move(request.status(), actor, Rules.now());
-        Task stored = tasks.saveAndFlush(task);
         String event = switch (request.status()) {
             case DONE -> "TASK_COMPLETED";
             case CANCELLED -> "TASK_CANCELLED";
             case OPEN -> from.isOpen() ? null : "TASK_REOPENED";
             case IN_PROGRESS -> null;
         };
+        // Recorded first: an assignee sees the case through the open task, so once it is done they no longer do.
         if (legalCase != null && event != null) {
-            cases.recordEvent(legalCase.id(), event, "Task \"%s\" %s".formatted(stored.getTitle(),
+            cases.recordTaskEvent(legalCase.id(), event, "Task \"%s\" %s".formatted(task.getTitle(),
                     request.status().name().toLowerCase(Locale.ROOT).replace('_', ' ')));
         }
+        task.move(request.status(), actor, Rules.now());
+        Task stored = tasks.saveAndFlush(task);
         // OWNER DECISION 2026-10-25 (QAD-031): a task may be completed straight from OPEN, and every status change is
         // audited; the detail is the transition only (for example OPEN->DONE), never the title, the description or a
         // name. QAD-040: the event is written in this transaction, so it exists exactly when the change is committed
@@ -177,8 +197,32 @@ class TaskService {
         return new Lookups().respond(stored, Rules.today());
     }
 
+    /** Who sees a task: its assignee, its creator, and whoever sees its case. */
+    private boolean mayRead(Task task) {
+        UUID me = currentActor.require().id();
+        if (task.getCaseId() == null) {
+            return me.equals(task.getAssigneeId()) || me.equals(task.getCreatedBy()) || access.scope().all();
+        }
+        return me.equals(task.getAssigneeId()) || me.equals(task.getCreatedBy()) || access.canView(task.getCaseId());
+    }
+
+    /**
+     * Who edits a task's fields and reassigns it: its creator, whoever may change its case, and — for a task that
+     * belongs to no case — its assignee. The assignee of a case task changes its status only.
+     */
+    private boolean mayEdit(Task task) {
+        UUID me = currentActor.require().id();
+        if (me.equals(task.getCreatedBy())) {
+            return true;
+        }
+        return task.getCaseId() == null ? me.equals(task.getAssigneeId()) : access.mayChange(task.getCaseId());
+    }
+
     private Task lockedCurrent(UUID id, long version) {
         Task task = tasks.lockById(id).orElseThrow(() -> new NotFoundException("task"));
+        if (!mayRead(task)) {
+            throw new NotFoundException("task");
+        }
         if (task.getVersion() != version) {
             throw new ConflictException("task was changed by someone else");
         }

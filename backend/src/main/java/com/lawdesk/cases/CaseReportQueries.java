@@ -99,8 +99,11 @@ public class CaseReportQueries {
      */
     private static final String IDS = "(select unnest(cast(:ids as uuid[])))";
 
-    CaseReportQueries(JdbcClient jdbc) {
+    private final CaseAccessPolicy access;
+
+    CaseReportQueries(JdbcClient jdbc, CaseAccessPolicy access) {
         this.jdbc = jdbc;
+        this.access = access;
     }
 
     /** Every stored case, counted by status and by type. */
@@ -155,8 +158,9 @@ public class CaseReportQueries {
             return Map.of();
         }
         Map<UUID, CaseSummary> found = new LinkedHashMap<>();
-        jdbc.sql("select id, reference_no, title, status from legal_case where id in " + IDS)
-                .param("ids", uuidArray(ids)).query(rs -> {
+        CaseAccessPolicy.Predicate visible = access.viewable("legal_case");
+        jdbc.sql("select id, reference_no, title, status from legal_case where id in " + IDS + " and " + visible.sql())
+                .params(visible.params()).param("ids", uuidArray(ids)).query(rs -> {
                     UUID id = rs.getObject("id", UUID.class);
                     found.put(id, new CaseSummary(id, rs.getString("reference_no"), rs.getString("title"),
                             rs.getString("status")));
@@ -166,16 +170,18 @@ public class CaseReportQueries {
 
     /** The number of cases opened between the two dates, both included. */
     public long openedBetween(LocalDate from, LocalDate to) {
-        return jdbc.sql("select count(*) from legal_case where opened_on between :from and :to")
-                .param("from", from).param("to", to).query(Long.class).single();
+        CaseAccessPolicy.Predicate visible = access.viewable("legal_case");
+        return jdbc.sql("select count(*) from legal_case where opened_on between :from and :to and " + visible.sql())
+                .params(visible.params()).param("from", from).param("to", to).query(Long.class).single();
     }
 
     private record Where(String sql, Map<String, Object> params) {
     }
 
-    private static Where where(CaseFilter filter) {
-        StringBuilder sql = new StringBuilder(" where true");
-        Map<String, Object> params = new HashMap<>();
+    private Where where(CaseFilter filter) {
+        CaseAccessPolicy.Predicate visible = access.viewable("legal_case");
+        StringBuilder sql = new StringBuilder(" where " + visible.sql());
+        Map<String, Object> params = new HashMap<>(visible.params());
         if (filter.text() != null) {
             sql.append(" and (reference_no ilike :text escape '\\' or title ilike :text escape '\\')");
             params.put("text", "%" + Text.escapeLike(filter.text()) + "%");

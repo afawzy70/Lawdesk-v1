@@ -14,6 +14,8 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.lawdesk.security.TestActors;
 import org.springframework.http.MediaType;
 
 import com.lawdesk.experts.ExpertReportQueries.ExpertRef;
@@ -26,7 +28,13 @@ import com.lawdesk.security.Permission;
 class ExpertReportQueriesTest extends ExpertTestSupport {
 
     @Autowired
-    ExpertReportQueries reports;
+    ExpertReportQueries port;
+
+    /** The port refuses to answer without a signed-in user (LD-050); MockMvc clears the context after each request. */
+    private ExpertReportQueries reports() {
+        TestActors.signIn();
+        return port;
+    }
 
     @Test
     void findsReferralsByExpertCaseAndStatusWithTheOverdueRule() throws Exception {
@@ -41,29 +49,29 @@ class ExpertReportQueriesTest extends ExpertTestSupport {
         mvc.perform(action(submitted, "report", "{\"reportSubmittedDate\":\"2025-02-09\",\"version\":0}"))
                 .andExpect(status().isOk());
 
-        assertThat(reports.find(ReferralFilter.all(), 0, 100)).extracting(ReferralRow::id)
+        assertThat(reports().find(ReferralFilter.all(), 0, 100)).extracting(ReferralRow::id)
                 .containsExactly(late, onTime, submitted);
-        ReferralRow first = reports.find(ReferralFilter.all(), 0, 1).getFirst();
+        ReferralRow first = reports().find(ReferralFilter.all(), 0, 1).getFirst();
         assertThat(first.caseId()).isEqualTo(caseId);
         assertThat(first.proceedingId()).isEqualTo(proceeding);
         assertThat(first.expertId()).isEqualTo(samir);
         assertThat(first.status()).isEqualTo(ReferralStatus.OPEN);
         assertThat(first.reportOverdue()).isTrue();
-        assertThat(reports.find(ReferralFilter.all(), 1, 1).getFirst().reportOverdue()).isFalse();
+        assertThat(reports().find(ReferralFilter.all(), 1, 1).getFirst().reportOverdue()).isFalse();
 
-        assertThat(reports.count(ReferralFilter.all().withExpert(samir))).isEqualTo(2);
-        assertThat(reports.find(ReferralFilter.all().withCase(caseId), 0, 100)).extracting(ReferralRow::id)
+        assertThat(reports().count(ReferralFilter.all().withExpert(samir))).isEqualTo(2);
+        assertThat(reports().find(ReferralFilter.all().withCase(caseId), 0, 100)).extracting(ReferralRow::id)
                 .containsExactly(late, submitted);
-        assertThat(reports.find(ReferralFilter.all().withStatuses(Set.of(ReferralStatus.REPORT_SUBMITTED)), 0, 100))
+        assertThat(reports().find(ReferralFilter.all().withStatuses(Set.of(ReferralStatus.REPORT_SUBMITTED)), 0, 100))
                 .extracting(ReferralRow::id).containsExactly(submitted);
-        assertThat(reports.find(ReferralFilter.all().overdueOnly(), 0, 100)).extracting(ReferralRow::id)
+        assertThat(reports().find(ReferralFilter.all().overdueOnly(), 0, 100)).extracting(ReferralRow::id)
                 .containsExactly(late);
-        assertThat(reports.overdueReportCount()).isEqualTo(1);
-        assertThat(reports.countByStatus(ReferralFilter.all())).containsExactlyInAnyOrderEntriesOf(Map.of(
+        assertThat(reports().overdueReportCount()).isEqualTo(1);
+        assertThat(reports().countByStatus(ReferralFilter.all())).containsExactlyInAnyOrderEntriesOf(Map.of(
                 ReferralStatus.OPEN, 2L, ReferralStatus.REPORT_SUBMITTED, 1L, ReferralStatus.CANCELLED, 0L));
-        assertThat(reports.workload()).containsExactlyInAnyOrder(new ExpertWorkload(samir, 2, 1),
+        assertThat(reports().workload()).containsExactlyInAnyOrder(new ExpertWorkload(samir, 2, 1),
                 new ExpertWorkload(hoda, 0, 0));
-        assertThat(reports.today()).isEqualTo(today());
+        assertThat(reports().today()).isEqualTo(today());
     }
 
     @Test
@@ -75,21 +83,21 @@ class ExpertReportQueriesTest extends ExpertTestSupport {
                         .content(ExpertApiTest.edit("Hoda", "Accounting", false, 0)))
                 .andExpect(status().isOk());
 
-        Map<UUID, ExpertRef> named = reports.experts(Set.of(samir, hoda, UUID.randomUUID()));
+        Map<UUID, ExpertRef> named = reports().experts(Set.of(samir, hoda, UUID.randomUUID()));
         assertThat(named).containsOnlyKeys(samir, hoda);
         assertThat(named.get(samir)).isEqualTo(new ExpertRef(samir, "Samir", "Engineering", true));
         assertThat(named.get(hoda)).isEqualTo(new ExpertRef(hoda, "Hoda", "Accounting", false));
-        assertThat(reports.experts(Set.of())).isEmpty();
-        assertThatThrownBy(() -> reports.experts(Stream.generate(UUID::randomUUID).limit(10_001)
+        assertThat(reports().experts(Set.of())).isEmpty();
+        assertThatThrownBy(() -> reports().experts(Stream.generate(UUID::randomUUID).limit(10_001)
                 .toList())).isInstanceOf(IllegalArgumentException.class);
-        assertThat(reports.experts(Stream.generate(UUID::randomUUID).limit(10_000).toList()))
+        assertThat(reports().experts(Stream.generate(UUID::randomUUID).limit(10_000).toList()))
                 .isEmpty();
     }
 
     @Test
     void refusesUnboundedQueries() {
-        assertThatThrownBy(() -> reports.find(ReferralFilter.all(), 0, 10_001))
+        assertThatThrownBy(() -> reports().find(ReferralFilter.all(), 0, 10_001))
                 .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> reports.find(ReferralFilter.all(), -1, 1)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> reports().find(ReferralFilter.all(), -1, 1)).isInstanceOf(IllegalArgumentException.class);
     }
 }

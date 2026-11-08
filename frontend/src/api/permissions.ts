@@ -31,6 +31,10 @@ export const PERMISSIONS = [
   'NOTE_MANAGE',
   'REPORT_VIEW',
   'REPORT_EXPORT',
+  'ASSIGN_CASE',
+  'CASE_EDIT_IN_SCOPE',
+  'CASE_GRANT_MANAGE',
+  'ORG_MANAGE',
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

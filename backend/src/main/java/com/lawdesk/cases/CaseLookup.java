@@ -22,4 +22,11 @@ public interface CaseLookup {
      * @throws IllegalArgumentException          when the type or the summary is malformed
      */
     void recordEvent(UUID caseId, String type, String summary);
+
+    /**
+     * Like {@link #recordEvent} for a task's own lifecycle: it needs only that the signed-in user can see the case, because
+     * the caller (the task module) has already established that the user holds that task. A task assignee never gets the
+     * right to change the case itself through this.
+     */
+    void recordTaskEvent(UUID caseId, String type, String summary);
 }

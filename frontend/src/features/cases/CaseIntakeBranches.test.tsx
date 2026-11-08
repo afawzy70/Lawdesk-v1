@@ -83,7 +83,7 @@ describe('the parties of an intake case', () => {
 });
 
 describe('the assignment control failures', () => {
-  const SUPERVISOR: Permission[] = ['CASE_VIEW', 'CASE_EDIT', 'CASE_STATUS_CHANGE'];
+  const SUPERVISOR: Permission[] = ['CASE_VIEW', 'CASE_EDIT', 'CASE_STATUS_CHANGE', 'ASSIGN_CASE'];
 
   async function open(answers: Response[]) {
     const user = userEvent.setup();

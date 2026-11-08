@@ -44,6 +44,7 @@ public class UserAdministration {
     private static final String SELECT = """
             select u.id, u.username, u.email, u.display_name, u.locale, u.enabled, u.must_change_password,
                    (u.locked_until is not null and u.locked_until > now()) as locked, u.created_at, u.updated_at, u.version,
+                   u.org_unit_id,
                    array(select r.code from user_role ur join app_role r on r.id = ur.role_id
                          where ur.user_id = u.id order by r.code) as roles
             from app_user u""";
@@ -230,7 +231,7 @@ public class UserAdministration {
                 rs.getString("display_name"), rs.getString("locale"), rs.getBoolean("enabled"),
                 rs.getBoolean("must_change_password"), rs.getBoolean("locked"),
                 List.of((String[]) roles.getArray()), rs.getTimestamp("created_at").toInstant(),
-                rs.getTimestamp("updated_at").toInstant(), rs.getLong("version"));
+                rs.getTimestamp("updated_at").toInstant(), rs.getLong("version"), rs.getObject("org_unit_id", UUID.class));
     }
 
     private static String escapeLike(String value) {

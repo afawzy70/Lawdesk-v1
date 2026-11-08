@@ -2,6 +2,7 @@ package com.lawdesk.cases;
 
 import java.time.LocalDate;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
@@ -17,11 +18,13 @@ record CreateCaseRequest(
         @NotBlank @Size(max = 200) String title,
         @NotNull @Pattern(regexp = CaseType.PATTERN) String caseType,
         @Size(max = 4000) String subject,
-        @NotNull @PastOrPresent LocalDate openedOn) {
+        @NotNull @PastOrPresent LocalDate openedOn,
+        @Valid CaseDetails details) {
 
     CreateCaseRequest {
         referenceNo = Text.trimToNull(referenceNo);
         title = Text.trimToNull(title);
         subject = Text.trimToNull(subject);
+        details = details == null ? CaseDetails.EMPTY : details;
     }
 }

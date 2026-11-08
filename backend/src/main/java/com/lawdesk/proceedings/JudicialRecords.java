@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import com.lawdesk.api.NotFoundException;
+import com.lawdesk.cases.CaseAccessPolicy;
 import com.lawdesk.cases.CaseLookup;
 import com.lawdesk.courts.Court;
 import com.lawdesk.courts.CourtService;
@@ -27,11 +28,13 @@ class JudicialRecords {
             .thenComparing(Proceeding::getFilingDate).thenComparing(Proceeding::getCreatedAt);
 
     private final CaseLookup cases;
+    private final CaseAccessPolicy access;
     private final CourtService courts;
     private final ProceedingRepository proceedings;
 
-    JudicialRecords(CaseLookup cases, CourtService courts, ProceedingRepository proceedings) {
+    JudicialRecords(CaseLookup cases, CaseAccessPolicy access, CourtService courts, ProceedingRepository proceedings) {
         this.cases = cases;
+        this.access = access;
         this.courts = courts;
         this.proceedings = proceedings;
     }
@@ -47,7 +50,12 @@ class JudicialRecords {
     }
 
     Proceeding proceeding(UUID id) {
-        return proceedings.findById(id).orElseThrow(() -> new NotFoundException("proceeding"));
+        Proceeding found = proceedings.findById(id).orElseThrow(() -> new NotFoundException("proceeding"));
+        // A proceeding is as visible as its case.
+        if (!access.canView(found.getCaseId())) {
+            throw new NotFoundException("proceeding");
+        }
+        return found;
     }
 
     /**
@@ -55,7 +63,9 @@ class JudicialRecords {
      * then the one it attacks), so two writers cannot deadlock.
      */
     Proceeding lockedProceeding(UUID id) {
-        return proceedings.lockById(id).orElseThrow(() -> new NotFoundException("proceeding"));
+        Proceeding found = proceedings.lockById(id).orElseThrow(() -> new NotFoundException("proceeding"));
+        access.requireChange(found.getCaseId());
+        return found;
     }
 
     /** The earliest filing among the proceedings attacking {@code parentId}; call it with the parent locked. */

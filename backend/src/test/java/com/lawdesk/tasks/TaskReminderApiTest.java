@@ -53,7 +53,7 @@ class TaskReminderApiTest extends TaskTestSupport {
                 .andExpect(jsonPath("$.items[*].id").value(Matchers.contains(dueToday.toString(), started.toString(),
                         inThreeDays.toString())))
                 .andExpect(jsonPath("$.items[*].dueSoon").value(Matchers.everyItem(Matchers.is(true))));
-        mvc.perform(get("/api/v1/tasks").param("due", "overdue").with(as(Permission.TASK_VIEW)))
+        mvc.perform(get("/api/v1/tasks").param("due", "overdue").with(as(CLERK, "clerk", Permission.TASK_VIEW)))
                 .andExpect(jsonPath("$.totalItems").value(2));
     }
 

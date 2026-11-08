@@ -122,6 +122,7 @@ describe('the registration screen', () => {
       primaryMemberId: SPECIALIST,
       alternateMemberId: null,
       financialImpact: 'NO',
+      details: { chamber: null, receivedOn: null, referringUnitId: null, referredBy: null, facts: null, claimedAmount: null, importance: null, internalNotes: null },
     });
     // Registering writes nothing but the registration itself: no hearing, task, note or document is created.
     expect(requests.filter((r) => r.method !== 'GET').map((r) => r.url)).toEqual(['/api/v1/cases/intake']);

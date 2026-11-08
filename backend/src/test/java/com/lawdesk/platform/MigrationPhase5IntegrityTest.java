@@ -86,7 +86,9 @@ class MigrationPhase5IntegrityTest extends PostgresTestSupport {
                 referral, actor);
         Map<String, List<String>> before = snapshot(jdbc);
 
-        var result = configured(database, MigrationVersion.LATEST).migrate();
+        // The integrity migrations are the last of Phase 5 (V406-V408); later phases add columns to these tables, which
+        // changes a row's text, so the untouched-rows check stops at V408 and the later migrations get their own below.
+        var result = configured(database, MigrationVersion.fromVersion("408")).migrate();
 
         assertThat(result.success).isTrue();
         assertThat(result.migrations).extracting(m -> m.version).contains("406", "407");
@@ -108,5 +110,14 @@ class MigrationPhase5IntegrityTest extends PostgresTestSupport {
                 .isOne();
         assertThat(jdbc.queryForObject("select filing_date from proceeding where id = ?", LocalDate.class, proceeding))
                 .isEqualTo(LocalDate.parse("2025-01-10"));
+
+        // LD-050 and later: an existing case keeps every value, becomes NORMAL and belongs to no unit (nothing is
+        // guessed), and the number of cases, hearings and referrals is the same.
+        assertThat(configured(database, MigrationVersion.LATEST).migrate().success).isTrue();
+        assertThat(jdbc.queryForMap("select reference_no, confidentiality, owning_unit_id from legal_case where id = ?",
+                caseId)).containsEntry("reference_no", "LD-2025-00001").containsEntry("confidentiality", "NORMAL")
+                .containsEntry("owning_unit_id", null);
+        assertThat(jdbc.queryForObject("select count(*) from hearing", Integer.class)).isEqualTo(2);
+        assertThat(jdbc.queryForObject("select count(*) from expert_referral", Integer.class)).isOne();
     }
 }

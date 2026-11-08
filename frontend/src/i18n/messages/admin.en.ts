@@ -123,4 +123,8 @@ export const adminEn = {
   'admin.permission.NOTE_MANAGE': 'Write legal notes',
   'admin.permission.REPORT_VIEW': 'View reports',
   'admin.permission.REPORT_EXPORT': 'Export reports',
+  'admin.permission.ASSIGN_CASE': 'Assign case members',
+  'admin.permission.CASE_EDIT_IN_SCOPE': 'Edit any case in scope',
+  'admin.permission.CASE_GRANT_MANAGE': 'Manage case access and scopes',
+  'admin.permission.ORG_MANAGE': 'Manage the organisation structure',
 } as const;

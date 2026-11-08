@@ -10,6 +10,9 @@ import { AccessDeniedPage } from '../auth/AccessDeniedPage';
 import { getCase, type LegalCase } from './api';
 import { CaseOperations } from '../operations/CaseOperations';
 import { CaseProceedings } from '../proceedings/CaseProceedings';
+import { CaseAccessSection } from '../access/CaseAccessSection';
+import { CaseDetailsView } from './CaseDetailsView';
+import { CaseInvolvementsSection } from './CaseInvolvementsSection';
 import { CaseAssignmentSection } from './intake/CaseAssignmentSection';
 import { CasePartiesSection } from './CasePartiesSection';
 import { CaseStatusForm } from './CaseStatusForm';
@@ -164,6 +167,7 @@ function CaseDetails({ id }: { id: string }) {
           </p>
         )}
       </div>
+      <CaseDetailsView details={legalCase.details} />
       <div className="case-workspace">
         <div className="case-workspace-index">
           {archived ? (
@@ -185,6 +189,16 @@ function CaseDetails({ id }: { id: string }) {
             legalCase={legalCase}
             onChanged={() => {
               refresh('intake.assign.done');
+            }}
+          />
+          <CaseInvolvementsSection caseId={legalCase.id} editable={!archived} />
+          <CaseAccessSection
+            key={`access-${String(legalCase.version)}`}
+            caseId={legalCase.id}
+            confidentiality={legalCase.confidentiality ?? 'NORMAL'}
+            version={legalCase.version}
+            onChanged={() => {
+              refresh('access.case.saved');
             }}
           />
           <CasePartiesSection

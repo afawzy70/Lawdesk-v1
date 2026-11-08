@@ -66,7 +66,7 @@ class CasePartyApiTest extends PostgresTestSupport {
     }
 
     private ResultActions link(UUID partyId, String role) throws Exception {
-        return mvc.perform(post(parties()).with(as(CLERK, "clerk", Permission.PARTY_MANAGE)).with(csrf())
+        return mvc.perform(post(parties()).with(as(CLERK, "clerk", Permission.PARTY_MANAGE, Permission.CASE_EDIT_IN_SCOPE)).with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"partyId\":\"%s\",\"role\":\"%s\"}".formatted(partyId, role)));
     }
@@ -104,9 +104,9 @@ class CasePartyApiTest extends PostgresTestSupport {
     void unlinksAPartyAndRecordsIt() throws Exception {
         link(client, "CLIENT");
 
-        mvc.perform(delete(parties() + "/" + client).with(as(Permission.PARTY_MANAGE)).with(csrf()))
+        mvc.perform(delete(parties() + "/" + client).with(as(Permission.PARTY_MANAGE, Permission.CASE_EDIT_IN_SCOPE)).with(csrf()))
                 .andExpect(status().isNoContent());
-        mvc.perform(delete(parties() + "/" + client).with(as(Permission.PARTY_MANAGE)).with(csrf()))
+        mvc.perform(delete(parties() + "/" + client).with(as(Permission.PARTY_MANAGE, Permission.CASE_EDIT_IN_SCOPE)).with(csrf()))
                 .andExpect(status().isNotFound());
 
         mvc.perform(get(parties()).with(as(Permission.CASE_VIEW))).andExpect(jsonPath("$.length()").value(0));
@@ -116,7 +116,7 @@ class CasePartyApiTest extends PostgresTestSupport {
 
     @Test
     void validatesTheLink() throws Exception {
-        mvc.perform(post(parties()).with(as(Permission.PARTY_MANAGE)).with(csrf())
+        mvc.perform(post(parties()).with(as(Permission.PARTY_MANAGE, Permission.CASE_EDIT_IN_SCOPE)).with(csrf())
                         .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors[?(@.field == 'partyId')].code").value("NotNull"))
@@ -135,7 +135,7 @@ class CasePartyApiTest extends PostgresTestSupport {
 
         link(opponent, "OPPONENT").andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.rule").value("CASE_READ_ONLY"));
-        mvc.perform(delete(parties() + "/" + client).with(as(Permission.PARTY_MANAGE)).with(csrf()))
+        mvc.perform(delete(parties() + "/" + client).with(as(Permission.PARTY_MANAGE, Permission.CASE_EDIT_IN_SCOPE)).with(csrf()))
                 .andExpect(status().isUnprocessableContent());
         assertThat(events()).hasSize(1);
     }
@@ -156,7 +156,7 @@ class CasePartyApiTest extends PostgresTestSupport {
                 .andExpect(status().isUnauthorized());
         mvc.perform(post(parties()).with(as(Permission.CASE_EDIT, Permission.CASE_VIEW)).with(csrf())
                 .contentType(MediaType.APPLICATION_JSON).content(json)).andExpect(status().isForbidden());
-        mvc.perform(get(parties()).with(as(Permission.PARTY_MANAGE))).andExpect(status().isForbidden());
+        mvc.perform(get(parties()).with(as(Permission.PARTY_MANAGE, Permission.CASE_EDIT_IN_SCOPE))).andExpect(status().isForbidden());
         mvc.perform(get("/api/v1/cases/" + UUID.randomUUID() + "/parties").with(as(Permission.CASE_VIEW)))
                 .andExpect(status().isNotFound());
         assertThat(events()).isEmpty();

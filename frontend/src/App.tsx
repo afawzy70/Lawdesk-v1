@@ -3,6 +3,8 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { ProfilePage } from './features/auth/ProfilePage';
 import { SessionGate } from './features/auth/SessionGate';
+import { AccessScopesPage } from './features/access/AccessScopesPage';
+import { OrgUnitsPage } from './features/access/OrgUnitsPage';
 import { AuditPage } from './features/admin/AuditPage';
 import { NewUserPage } from './features/admin/NewUserPage';
 import { RoleDetailsPage } from './features/admin/RoleDetailsPage';
@@ -51,6 +53,8 @@ export function AppRoutes({ locale }: LocaleProps) {
               <Route path="/admin/roles/new" element={<RoleDetailsPage />} />
               <Route path="/admin/roles/:id" element={<RoleDetailsPage />} />
               <Route path="/admin/audit" element={<AuditPage />} />
+              <Route path="/admin/org" element={<OrgUnitsPage />} />
+              <Route path="/admin/access" element={<AccessScopesPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/courts" element={<CourtsPage />} />
               {operationsRoutes()}

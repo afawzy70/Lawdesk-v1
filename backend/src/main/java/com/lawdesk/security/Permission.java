@@ -33,7 +33,11 @@ public enum Permission {
     TASK_MANAGE,
     NOTE_MANAGE,
     REPORT_VIEW,
-    REPORT_EXPORT;
+    REPORT_EXPORT,
+    ASSIGN_CASE,
+    CASE_EDIT_IN_SCOPE,
+    CASE_GRANT_MANAGE,
+    ORG_MANAGE;
 
     /** {@code @PreAuthorize} expressions, one per permission: {@code @PreAuthorize(Permission.Codes.CASE_CREATE)}. */
     public static final class Codes {
@@ -65,6 +69,10 @@ public enum Permission {
         public static final String NOTE_MANAGE = "hasAuthority('NOTE_MANAGE')";
         public static final String REPORT_VIEW = "hasAuthority('REPORT_VIEW')";
         public static final String REPORT_EXPORT = "hasAuthority('REPORT_EXPORT')";
+        public static final String ASSIGN_CASE = "hasAuthority('ASSIGN_CASE')";
+        public static final String CASE_EDIT_IN_SCOPE = "hasAuthority('CASE_EDIT_IN_SCOPE')";
+        public static final String CASE_GRANT_MANAGE = "hasAuthority('CASE_GRANT_MANAGE')";
+        public static final String ORG_MANAGE = "hasAuthority('ORG_MANAGE')";
 
         private Codes() {
         }
