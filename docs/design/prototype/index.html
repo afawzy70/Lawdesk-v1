@@ -1,0 +1,380 @@
+<!-- LawDesk comprehensive requirements: reviewable screen prototype (LD-DOC design package).
+     Layout: a charcoal journey rail beside a paper workspace; one case followed from registration to enforcement.
+     All people, numbers and judgments below are synthetic and exist only to show the screens. -->
+<title>LawDesk — معاينة التصميم</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+:root{
+  --canvas:#F3EFE6; --paper:#FFFCF6; --rail:#272A29; --rail-fg:#E9E4D8; --rail-mute:#A9A597;
+  --ink:#252926; --mute:#625F57; --brass:#876B3C; --accent:#6C5326; --accent-fg:#FFFCF6;
+  --line:#D1C9BA; --ok:#326451; --ok-bg:#E3EFE8; --bad:#963C3B; --bad-bg:#F6E4E1; --warn:#8A5A12; --warn-bg:#F7EBD2;
+  --info:#2F5774; --info-bg:#E1ECF3; --soft:#EDE7DA;
+  --font-ar:"IBM Plex Sans Arabic","Cairo","Noto Sans Arabic",Tahoma,sans-serif;
+  --font-en:"DM Sans","Noto Sans","Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --canvas:#181A19; --paper:#222624; --rail:#101211; --rail-fg:#E9E4D8; --rail-mute:#8F8B7E;
+  --ink:#ECE8DD; --mute:#A8A498; --brass:#C2A468; --accent:#C9A35E; --accent-fg:#1A1713;
+  --line:#3A3F3C; --ok:#7DC3A3; --ok-bg:#1E3329; --bad:#E39A97; --bad-bg:#3A2322; --warn:#E3B968; --warn-bg:#3A2E17;
+  --info:#8FBCDD; --info-bg:#1D2F3C; --soft:#2B2F2D; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --canvas:#181A19; --paper:#222624; --rail:#101211; --rail-fg:#E9E4D8; --rail-mute:#8F8B7E;
+  --ink:#ECE8DD; --mute:#A8A498; --brass:#C2A468; --accent:#C9A35E; --accent-fg:#1A1713;
+  --line:#3A3F3C; --ok:#7DC3A3; --ok-bg:#1E3329; --bad:#E39A97; --bad-bg:#3A2322; --warn:#E3B968; --warn-bg:#3A2E17;
+  --info:#8FBCDD; --info-bg:#1D2F3C; --soft:#2B2F2D; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--canvas);color:var(--ink);font-family:var(--font-ar);font-size:16px;line-height:1.7;margin:0}
+.shell{display:grid;grid-template-columns:260px minmax(0,1fr);min-height:100vh}
+.rail{background:var(--rail);color:var(--rail-fg);padding:20px 16px;position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto}
+.brand{font-weight:700;font-size:20px;letter-spacing:.02em;margin:0 0 4px}
+.brand small{display:block;font-weight:400;font-size:12px;color:var(--rail-mute)}
+.rail h2{font-size:12px;color:var(--rail-mute);margin:20px 0 6px;font-weight:600;letter-spacing:.04em}
+.rail button{all:unset;box-sizing:border-box;display:flex;gap:10px;align-items:center;width:100%;padding:8px 10px;border-radius:4px;cursor:pointer;font-size:14px;min-height:40px;color:var(--rail-fg)}
+.rail button:hover{background:#ffffff14}
+.rail button[aria-current="page"]{background:#ffffff1f;box-shadow:inset -3px 0 0 var(--brass)}
+.rail button:focus-visible,.btn:focus-visible,select:focus-visible,input:focus-visible,.tab:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.rail .n{font-family:var(--font-en);font-size:12px;color:var(--rail-mute);min-width:20px;text-align:center}
+.main{padding:24px max(16px,env(safe-area-inset-right,0px)) 64px max(16px,env(safe-area-inset-left,0px));min-width:0}
+.wrap{max-width:1040px;margin:0 auto}
+.crumb{font-size:13px;color:var(--mute);display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.syn{background:var(--warn-bg);color:var(--warn);padding:2px 10px;border-radius:4px;font-size:12px}
+h1{font-size:clamp(24px,3vw,32px);line-height:1.35;margin:8px 0 4px;text-wrap:balance}
+.lead{color:var(--mute);margin:0 0 20px;max-width:70ch}
+h3{font-size:18px;margin:0 0 12px}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:20px;margin-bottom:16px;min-width:0}
+.panel.top{border-top:3px solid var(--brass)}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.kv{display:grid;grid-template-columns:minmax(120px,170px) minmax(0,1fr);gap:6px 14px;margin:0}
+.kv dt{color:var(--mute);font-size:14px}.kv dd{margin:0;overflow-wrap:anywhere}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-size:14px;color:var(--mute)}
+.field input,.field select,.field textarea,select{background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:9px 10px;min-height:44px;font:inherit;width:100%}
+.hint{font-size:12.5px;color:var(--mute)}
+.btn{background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:8px 14px;min-height:44px;font:inherit;cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.btn.sm{min-height:36px;padding:4px 10px;font-size:14px}
+.pill{display:inline-block;padding:1px 10px;border-radius:999px;font-size:13px;border:1px solid transparent;white-space:nowrap}
+.p-ok{background:var(--ok-bg);color:var(--ok)}.p-bad{background:var(--bad-bg);color:var(--bad)}.p-warn{background:var(--warn-bg);color:var(--warn)}.p-info{background:var(--info-bg);color:var(--info)}.p-mute{background:var(--soft);color:var(--mute)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:start;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--mute);font-weight:600;font-size:13px;background:var(--soft)}
+.num{font-family:var(--font-en);font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:16px}
+.tab{all:unset;cursor:pointer;padding:8px 14px;font-size:14px;border-bottom:3px solid transparent;color:var(--mute)}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--brass);font-weight:600}
+.tl{list-style:none;margin:0;padding:0}
+.tl li{display:grid;grid-template-columns:110px 18px minmax(0,1fr);gap:8px;padding:6px 0}
+.tl .dot{width:10px;height:10px;border-radius:50%;background:var(--brass);margin-top:9px}
+.tl .future .dot{background:transparent;border:2px dashed var(--mute)}
+.tl .warn .dot{background:var(--bad)}
+.kpi{background:var(--paper);border:1px solid var(--line);border-top:3px solid var(--brass);border-radius:4px;padding:14px;cursor:pointer;text-align:start;font:inherit;color:inherit;width:100%}
+.kpi strong{display:block;font-size:28px;font-family:var(--font-en);line-height:1.2}
+.kpi span{font-size:13px;color:var(--mute)}
+.callout{border-inline-start:4px solid var(--info);background:var(--info-bg);color:var(--ink);padding:10px 14px;border-radius:4px;margin:0 0 16px;font-size:14.5px}
+.callout.warn{border-color:var(--warn);background:var(--warn-bg)}
+.callout.bad{border-color:var(--bad);background:var(--bad-bg)}
+.cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.step-nav{display:flex;justify-content:space-between;gap:12px;margin-top:24px;flex-wrap:wrap}
+.matrix td,.matrix th{text-align:center}.matrix td:first-child,.matrix th:first-child{text-align:start}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.theme{margin-top:20px;font-size:12px}
+@media (max-width:860px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .rail{position:static;height:auto;padding:12px 16px}
+  .rail nav{display:flex;gap:4px;overflow-x:auto;padding-bottom:4px}
+  .rail h2{display:none}
+  .rail button{width:auto;white-space:nowrap;flex:0 0 auto}
+  .g2,.g3,.g4,.cols{grid-template-columns:minmax(0,1fr)}
+  .kv{grid-template-columns:minmax(0,1fr)}
+  .tl li{grid-template-columns:84px 14px minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="shell" dir="rtl" lang="ar">
+  <aside class="rail">
+    <p class="brand">LawDesk<small>رحلة قضية واحدة · معاينة تصميم</small></p>
+    <nav id="nav" aria-label="شاشات المعاينة"></nav>
+    <div class="theme"><button type="button" id="themeBtn" style="all:unset;cursor:pointer;text-decoration:underline;font-size:12px;color:var(--rail-mute)">تبديل الوضع الداكن / الفاتح</button></div>
+  </aside>
+  <main class="main"><div class="wrap" id="view" tabindex="-1"></div></main>
+</div>
+
+<script>
+(function () {
+  var CASE = { ref: 'LD-2026-00418', auto: '0026114075', title: 'الطعن على قرار إنهاء خدمة موظف — قضية اصطناعية' };
+  var SCREENS = [
+    ['dashboard', 'اللوحة الرئيسية', 'نظرة عامة'],
+    ['register', 'تسجيل القضية', 'رحلة القضية'],
+    ['summary', 'الملخص والخط الزمني', 'رحلة القضية'],
+    ['claims', 'طلبات الدعوى', 'رحلة القضية'],
+    ['defenses', 'الدفوع', 'رحلة القضية'],
+    ['evidence', 'الأدلة والوقائع', 'رحلة القضية'],
+    ['requests', 'طلبات الإفادة', 'رحلة القضية'],
+    ['hearings', 'الجلسات والتأجيل', 'رحلة القضية'],
+    ['judgment', 'تسجيل الحكم', 'رحلة القضية'],
+    ['appeal', 'درجة تالية', 'رحلة القضية'],
+    ['deadlines', 'المواعيد والتنفيذ', 'رحلة القضية'],
+    ['library', 'المكتبة والسوابق', 'مراجع ومخاطر'],
+    ['risk', 'المخاطر القانونية', 'مراجع ومخاطر'],
+    ['access', 'الصلاحيات', 'مراجع ومخاطر']
+  ];
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var state = {
+    claims: [
+      { n: 1, text: 'إلغاء قرار إنهاء الخدمة رقم 118 لسنة 2026 وما يترتب على ذلك من آثار', kind: 'أصلي', st: 'قائم', r1: 'REJECTED', a1: '', r2: 'REJECTED', a2: '' },
+      { n: 2, text: 'إلزام الهيئة بدفع تعويض عن الضرر المادي', kind: 'تابع', st: 'معدل', r1: 'PARTIAL', a1: '1500.000', r2: 'ACCEPTED', a2: '1500.000' },
+      { n: 3, text: 'إلزام الهيئة بالمصروفات', kind: 'تابع', st: 'قائم', r1: 'ACCEPTED', a1: '', r2: 'NOT_DECIDED', a2: '' }
+    ],
+    approved: false, revisionOpen: false, role: 'LEGAL_STAFF'
+  };
+  var RES = { ACCEPTED: ['قبول الطلب', 'p-ok'], PARTIAL: ['قبول جزئي', 'p-warn'], REJECTED: ['رفض الطلب', 'p-bad'], INADMISSIBLE: ['عدم قبول الطلب', 'p-bad'], NO_JURISDICTION: ['عدم الاختصاص', 'p-mute'], REFERRED: ['الإحالة', 'p-info'], EXTINGUISHED: ['انقضاء الخصومة', 'p-mute'], WAIVER: ['إثبات التنازل', 'p-mute'], ABANDON: ['إثبات الترك', 'p-mute'], NOT_DECIDED: ['عدم الفصل في الطلب', 'p-mute'], DEFERRED: ['تأجيل الفصل فيه', 'p-info'], OTHER: ['نتيجة أخرى', 'p-mute'] };
+  function pill(key) { var r = RES[key] || [key, 'p-mute']; return '<span class="pill ' + r[1] + '">' + r[0] + '</span>'; }
+  function resOptions(sel) { return Object.keys(RES).map(function (k) { return '<option value="' + k + '"' + (k === sel ? ' selected' : '') + '>' + RES[k][0] + '</option>'; }).join(''); }
+  function head(title, lead, crumb) {
+    return '<div class="crumb"><span>' + (crumb || '') + '</span><span class="syn">بيانات اصطناعية للمعاينة فقط</span></div><h1>' + title + '</h1><p class="lead">' + lead + '</p>';
+  }
+  function caseBar() {
+    return '<div class="panel top"><div class="grid g3"><dl class="kv" style="grid-template-columns:1fr"><dt>رقم القضية الداخلي</dt><dd class="num">' + CASE.ref + '</dd></dl>' +
+      '<dl class="kv" style="grid-template-columns:1fr"><dt>الرقم الآلي (قضائي)</dt><dd class="num">' + CASE.auto + '</dd></dl>' +
+      '<dl class="kv" style="grid-template-columns:1fr"><dt>الدرجة الحالية</dt><dd>استئناف · رقم <span class="num">1840/2026</span></dd></dl></div>' +
+      '<p style="margin:8px 0 0"><strong>' + CASE.title + '</strong> · موقف الهيئة: <span class="pill p-info">مدعى عليه</span> · العضو المختص: أ. اصطناعي · البديل: أ. اصطناعية</p></div>';
+  }
+  function table(cols, rows) {
+    return '<div class="tbl"><table><thead><tr>' + cols.map(function (c) { return '<th>' + c + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      rows.map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + c + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>';
+  }
+  function tl(items) {
+    return '<ul class="tl">' + items.map(function (i) { return '<li class="' + (i[3] || '') + '"><span class="num">' + i[0] + '</span><span class="dot"></span><span>' + i[1] + ' <span class="hint">· ' + i[2] + '</span></span></li>'; }).join('') + '</ul>';
+  }
+  function f(label, ctl, hint, id) { return '<div class="field"><label for="' + id + '">' + label + '</label>' + ctl + (hint ? '<span class="hint">' + hint + '</span>' : '') + '</div>'; }
+  function inp(id, v, ph) { return '<input id="' + id + '" value="' + (v || '') + '" placeholder="' + (ph || '') + '">'; }
+  function sel(id, opts, cur) { return '<select id="' + id + '">' + opts.map(function (o) { return '<option' + (o === cur ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select>'; }
+
+  var V = {};
+
+  V.dashboard = function () {
+    var k = [['القضايا المتداولة', 128, 'cases-open'], ['المحجوزة للحكم', 9, 'reserved'], ['أحكام جارٍ تنفيذها', 14, 'enforcement'], ['جلسات الأسبوع', 17, 'hearings-week'],
+      ['جلسات الخبراء', 5, 'experts'], ['مواعيد الطعون القائمة', 11, 'deadlines'], ['مهام متأخرة', 6, 'tasks-late'], ['قضايا مرتفعة المخاطر', 8, 'risk-high'],
+      ['طلبات إدارات متأخرة', 7, 'requests-late'], ['قضايا مرتبطة', 23, 'linked'], ['إجمالي القضايا', 412, 'all'], ['أحكام صدرت هذا العام', 96, 'judgments'], ['قضايا جديدة', 12, 'new'], ['قضايا منتهية', 271, 'closed']];
+    return head('اللوحة الرئيسية', 'كل مؤشر يفتح قائمة مفلترة تطابق رقمه بالضبط. الرقم والقائمة يخرجان من تعريف واحد في الخادم فلا يختلفان.', 'القسم 26') +
+      '<div class="grid g4">' + k.map(function (x) { return '<button type="button" class="kpi" data-go="filter" data-key="' + x[2] + '"><strong>' + x[1] + '</strong><span>' + x[0] + '</span></button>'; }).join('') + '</div>' +
+      '<div class="panel" id="filterOut" style="margin-top:16px"><h3>القائمة المفلترة</h3><p class="hint">اضغط مؤشرًا لعرض المثال.</p></div>' +
+      '<div class="grid g2"><div class="panel"><h3>القضايا حسب القطاع (مثال)</h3>' + table(['القطاع', 'القضايا'], [['قطاع الخدمات المساندة', '<span class="num">64</span>'], ['قطاع الشؤون الفنية', '<span class="num">41</span>'], ['قطاع الموارد', '<span class="num">23</span>']]) + '</div>' +
+      '<div class="panel"><h3>القضايا حسب العضو (مثال)</h3>' + table(['العضو', 'متداولة'], [['أ. اصطناعي', '<span class="num">22</span>'], ['أ. اصطناعية', '<span class="num">19</span>'], ['أ. ثالث', '<span class="num">17</span>']]) + '</div></div>';
+  };
+
+  V.register = function () {
+    return head('تسجيل القضية', 'تسجيل في عملية واحدة: القضية ودرجتها الأولى وأطرافها وجهاتها المعنية وعضوها المختص. لا يظهر هنا قسم «العمليات القانونية».', 'الأقسام 1 و2 و3 و4 و6') +
+      '<div class="callout warn" id="dup"><strong>تنبيه تشابه</strong> — وُجدت قضية مسجلة بالمحكمة والدائرة نفسها وطرف مشابه: <span class="num">LD-2025-00977</span> (تشابه، وليس تكرارًا مؤكدًا). يمكنك المتابعة، أو ربط الدعوى بها، أو فتحها للمراجعة. لا يُدمج شيء تلقائيًا.</div>' +
+      '<div class="panel top"><h3>الهوية</h3><div class="grid g3">' +
+      f('رقم القضية الداخلي', '<input id="r1" value="يُولَّد عند الحفظ" disabled>', 'يولده النظام ولا يتغير', 'r1') +
+      f('الرقم الآلي (قضائي)', inp('r2', CASE.auto), 'يدخله المستخدم، نص، ثابت عبر الدرجات', 'r2') +
+      f('رقم القضية بالمحكمة · درجة 1', inp('r3', '5521/2026'), 'يُحفظ لكل درجة', 'r3') +
+      f('اسم القضية', inp('r4', 'الطعن على قرار إنهاء خدمة موظف'), '', 'r4') +
+      f('طبيعة النزاع', sel('r5', ['إدارية', 'مدنية', 'تجارية', 'عمالية', 'جزائية', 'دستورية', 'أخرى'], 'إدارية'), 'التنفيذ والتظلم والاستئناف مسارات، لا طبيعة نزاع', 'r5') +
+      f('المسار / الدرجة', sel('r6', ['أول درجة', 'استئناف', 'تمييز', 'دستورية', 'تنفيذ', 'تظلم'], 'أول درجة'), '', 'r6') +
+      f('المحكمة', sel('r7', ['المحكمة الكلية', 'محكمة الاستئناف', 'محكمة التمييز'], 'المحكمة الكلية'), '', 'r7') +
+      f('الدائرة', inp('r8', 'الدائرة الإدارية'), 'جديد', 'r8') +
+      f('تاريخ رفع الدعوى', '<input id="r9" type="date" value="2026-02-10">', '', 'r9') +
+      f('تاريخ ورود القضية للإدارة', '<input id="r10" type="date" value="2026-02-15">', 'جديد', 'r10') +
+      f('الجهة المحيلة', inp('r11', 'إدارة الشؤون الإدارية'), 'جديد', 'r11') +
+      f('الأهمية', sel('r12', ['منخفضة', 'عادية', 'مرتفعة', 'حرجة'], 'مرتفعة'), 'جديد', 'r12') + '</div>' +
+      '<div class="field" style="margin-top:14px"><label for="r13">موضوع الدعوى</label><textarea id="r13" rows="2">طعن على قرار إنهاء الخدمة والمطالبة بالتعويض</textarea></div>' +
+      '<div class="field" style="margin-top:14px"><label for="r14">ملخص الوقائع</label><textarea id="r14" rows="2">وقائع مختصرة اصطناعية: صدر القرار بعد تحقيق إداري، ويدعي المدعي مخالفته للإجراءات.</textarea><span class="hint">حقل مستقل عن الموضوع (جديد)</span></div></div>' +
+      '<div class="grid g2"><div class="panel"><h3>الأطراف وموقف الهيئة</h3>' + f('موقف الهيئة', sel('r15', ['مدعى عليه', 'مدعٍ'], 'مدعى عليه'), 'الهيئة طرف فعلي؛ تغيير الموقف يطلب مراجعة الأطراف', 'r15') +
+      table(['الاسم', 'الجانب', 'الرقم المدني / المنشأة', 'المحامي'], [['الهيئة', 'مدعى عليه', '<span class="hint">—</span>', '—'], ['مدعٍ اصطناعي', 'مدعٍ', '<span class="num">2•••••••••••</span> <span class="pill p-mute">سري</span>', 'محامٍ اصطناعي']]) + '<p><button type="button" class="btn sm">إضافة طرف</button></p></div>' +
+      '<div class="panel"><h3>الجهات الإدارية المعنية</h3>' + table(['القطاع ← الإدارة ← القسم', 'النوع', 'الموظف'], [['الخدمات المساندة ← الشؤون الإدارية ← شؤون الموظفين', '<span class="pill p-ok">رئيسية</span>', 'موظف اصطناعي'], ['الموارد ← الموارد البشرية ← التحقيقات', '<span class="pill p-mute">مساندة</span>', '—']]) +
+      '<p class="hint">يُحفظ الهيكل كما هو وقت التسجيل حتى لو أُعيدت تسمية الوحدات لاحقًا.</p><p><button type="button" class="btn sm">إضافة جهة</button></p></div></div>' +
+      '<div class="grid g2"><div class="panel"><h3>العضو المختص</h3><div class="grid g2">' + f('العضو المختص', sel('r16', ['أ. اصطناعي', 'أ. اصطناعية'], 'أ. اصطناعي'), 'من أعضاء الإدارة القانونية النشطين', 'r16') + f('العضو البديل', sel('r17', ['أ. اصطناعية', '—'], 'أ. اصطناعية'), 'يختلف عن المختص', 'r17') + '</div></div>' +
+      '<div class="panel"><h3>المبالغ</h3><div class="grid g2">' + f('القيمة المطالب بها (د.ك)', '<input id="r18" class="num" value="25000.000" inputmode="decimal">', 'ثلاث خانات عشرية · جديد', 'r18') + f('الأثر المالي', sel('r19', ['يوجد أثر مالي', 'لا يوجد أثر مالي'], 'يوجد أثر مالي'), '', 'r19') + f('مبلغ الأثر (د.ك)', '<input id="r20" class="num" value="18000.000" inputmode="decimal">', '', 'r20') + '</div><p class="hint">الحكم والتسوية والخسارة المحتملة تُسجل في أماكنها لاحقًا، لا هنا.</p></div></div>' +
+      '<div class="toolbar"><button type="button" class="btn primary">حفظ وتسجيل القضية</button><button type="button" class="btn">إلغاء</button></div>';
+  };
+
+  V.summary = function () {
+    return head('الملخص التنفيذي والخط الزمني', 'يُبنى الملخص من بيانات القضية الفعلية عند كل فتح، دون ذكاء اصطناعي. أي عنصر بلا بيانات يظهر «لا يوجد» لا قيمة مخترعة.', 'القسم 21') + caseBar() +
+      '<div class="panel"><h3>الملخص التنفيذي</h3><div class="grid g2"><dl class="kv"><dt>الأطراف</dt><dd>مدعٍ اصطناعي ضد الهيئة</dd><dt>الجهة المعنية</dt><dd>شؤون الموظفين (رئيسية)</dd><dt>موقف الجهة</dt><dd>مدعى عليه</dd><dt>الطلبات</dt><dd>3 (طلب 2 معدل)</dd><dt>أهم الدفوع</dt><dd>دفع بعدم قبول الدعوى شكلًا · دفع موضوعي</dd><dt>الأدلة الأساسية</dt><dd>قرار 118 · محضر التحقيق</dd><dt>آخر إجراء</dt><dd>استئناف مقيد 2026-10-20</dd></dl>' +
+      '<dl class="kv"><dt>آخر جلسة وقرارها</dt><dd><span class="num">2026-10-27</span> · التأجيل للمذكرات</dd><dt>الجلسة القادمة</dt><dd><span class="num">2026-11-24 09:00</span></dd><dt>آخر حكم</dt><dd><span class="num">2026-09-28</span> · أول درجة</dd><dt>المواعيد القائمة</dt><dd>مذكرة الرد (يدوي)</dd><dt>تنفيذ الحكم</dt><dd>لا يوجد</dd><dt>مستوى المخاطر</dt><dd><span class="pill p-warn">مرتفعة</span> إصدار 3</dd><dt>الناقص</dt><dd>إفادة شؤون الموظفين (جزئية) · مستند واحد غير متوافر</dd><dt>المطلوب الآن</dt><dd>إعداد مذكرة الاستئناف</dd></dl></div></div>' +
+      '<div class="panel"><h3>الخط الزمني</h3><div class="toolbar" style="margin-bottom:8px">' + ['الكل', 'الجلسات', 'الأحكام', 'الإفادات', 'المواعيد'].map(function (t, i) { return '<button type="button" class="btn sm" aria-pressed="' + (i === 0) + '">' + t + '</button>'; }).join('') + '</div>' +
+      tl([['2026-02-10', 'رفع الدعوى', 'محمد (إدخال)'], ['2026-02-15', 'ورود القضية للإدارة القانونية', 'النظام'], ['2026-02-16', 'تعيين العضو المختص', 'مدير الإدارة'], ['2026-03-01', 'طلب إفادة من شؤون الموظفين', 'أ. اصطناعي'], ['2026-03-20', 'ورد رد جزئي', 'شؤون الموظفين'],
+        ['2026-06-02', 'جلسة — تأجيل للرد', 'محكمة كلية'], ['2026-09-28', 'صدر الحكم — نتائج الطلبات مسجلة', 'أ. اصطناعي'], ['2026-10-20', 'قيد الاستئناف', 'أ. اصطناعي'], ['2026-11-24', 'جلسة استئناف (قادمة)', 'مجدولة', 'future'], ['2026-11-30', 'موعد مذكرة — لم يستكمل', 'متأخر قريبًا', 'future warn']]) + '</div>';
+  };
+
+  V.claims = function () {
+    var rev = state.revisionOpen ? '<div class="callout" id="revBox"><strong>سجل تعديلات الطلب 2</strong>' + table(['النسخة', 'النص', 'المستخدم', 'التاريخ', 'السبب'], [['2 (الحالية)', 'إلزام الهيئة بدفع تعويض عن الضرر المادي', 'أ. اصطناعي', '<span class="num">2026-05-12</span>', 'حذف الضرر الأدبي'], ['1', 'إلزام الهيئة بدفع تعويض عن الضررين المادي والأدبي', 'أ. اصطناعي', '<span class="num">2026-02-10</span>', 'النص الأصلي']]) + '</div>' : '';
+    return head('طلبات الدعوى', 'عدد غير محدود، لكل طلب رقم تسلسلي مستقل. تعديل الطلب يحفظ النص السابق والمستخدم والتاريخ. الطلبات تحمل نتائج كل درجة منفصلة.', 'القسم 5') + caseBar() +
+      '<div class="panel"><div class="toolbar" style="justify-content:space-between"><h3 style="margin:0">الطلبات (3)</h3><button type="button" class="btn sm primary">إضافة طلب</button></div>' +
+      table(['#', 'نص الطلب', 'النوع', 'مقدمه', 'المرحلة', 'المستند', 'الحالة', ''], state.claims.map(function (c) {
+        return ['<span class="num">' + c.n + '</span>', c.text, c.kind, 'المدعي', 'أول درجة', 'صحيفة الدعوى', '<span class="pill ' + (c.st === 'معدل' ? 'p-warn' : 'p-ok') + '">' + c.st + '</span>', c.n === 2 ? '<button type="button" class="btn sm" data-act="rev">' + (state.revisionOpen ? 'إخفاء' : 'عرض') + ' نسخ التعديل</button>' : ''];
+      })) + '</div>' + rev +
+      '<div class="panel"><h3>نتيجة كل طلب في كل درجة</h3><p class="hint">لا تُستبدل نتيجة درجة بنتيجة الأخرى؛ كل حكم له نتائجه.</p>' +
+      table(['#', 'أول درجة (2026-09-28)', 'المبلغ', 'استئناف'], state.claims.map(function (c) { return ['<span class="num">' + c.n + '</span>', pill(c.r1), '<span class="num">' + (c.a1 || '—') + '</span>', '<span class="pill p-mute">لم يصدر حكم</span>']; })) + '</div>';
+  };
+
+  V.defenses = function () {
+    return head('الدفوع وأوجه الدفاع', 'كل دفع له موقف مستقل من كل حكم، ويُتتبع تمسك الهيئة به في كل درجة، فلا يضيع التاريخ.', 'القسم 17') + caseBar() +
+      '<div class="panel"><div class="toolbar" style="justify-content:space-between"><h3 style="margin:0">الدفوع (3)</h3><button type="button" class="btn sm primary">إضافة دفع</button><button type="button" class="btn sm">من مكتبة الدفوع</button></div>' +
+      table(['#', 'الدفع', 'النوع', 'المذكرة', 'المستندات', 'أول درجة', 'استئناف'], [
+        ['<span class="num">1</span>', 'عدم قبول الدعوى لرفعها بعد الميعاد', 'شكلي', 'مذكرة 2026-03-30', '2', '<span class="pill p-bad">رفض</span>', '<span class="pill p-info">أُعيد التمسك به</span>'],
+        ['<span class="num">2</span>', 'سلامة إجراءات التحقيق قبل القرار', 'موضوعي', 'مذكرة 2026-05-15', '3', '<span class="pill p-ok">قبول</span>', '<span class="pill p-info">أُعيد التمسك به</span>'],
+        ['<span class="num">3</span>', 'عدم توافر ركن الضرر', 'موضوعي', 'مذكرة 2026-05-15', '1', '<span class="pill p-warn">قبول جزئي</span>', '<span class="pill p-mute">لم يُتمسك به</span>']]) + '</div>' +
+      '<div class="panel"><h3>الدفع 1 — التفاصيل</h3><dl class="kv"><dt>الأسانيد القانونية</dt><dd>تُسجل بنصها (حقل نصي)</dd><dt>الوقائع المرتبطة</dt><dd>واقعة 1: تاريخ إعلان القرار</dd><dt>الأحكام المؤيدة</dt><dd>حكم المكتبة اصطناعي 1/2020 <span class="pill p-mute">مصدر موثق</span></dd><dt>المستندات الداعمة</dt><dd>محضر إعلان القرار · كشف الاستلام</dd><dt>موقف المحكمة</dt><dd>رفض — أسباب المحكمة مسجلة · منطوق: «…» (نص اصطناعي)</dd><dt>الدرجات</dt><dd>أول درجة: أُثير ← استئناف: أُعيد التمسك ← تمييز: لم يُرفع بعد</dd></dl></div>' +
+      '<div class="callout">مكتبة الدفوع: لا يُنسخ دفع إلى قضية جديدة تلقائيًا. يُقترح للمراجعة ويحتاج ملاءمة العضو لوقائع القضية.</div>';
+  };
+
+  V.evidence = function () {
+    return head('الأدلة والوقائع', 'ليست مجرد مرفقات: لكل مستند دور وأهمية وواقعة يثبتها ودفع يؤيده. علاقات متعددة، وكشف للنواقص.', 'القسم 20') + caseBar() +
+      '<div class="panel"><h3>مصفوفة المستندات</h3>' + table(['المستند', 'الدور', 'الأهمية', 'يثبت الواقعة', 'الدفع', 'قُدّم للمحكمة', 'تعقيب الخصم'], [
+        ['قرار إنهاء الخدمة 118', '<span class="pill p-ok">مؤيد</span>', 'حاسمة', 'و1', 'د2', 'نعم — مذكرة 2026-03-30', 'لا'],
+        ['محضر التحقيق', '<span class="pill p-ok">مؤيد</span>', 'عالية', 'و2', 'د2', 'نعم — جلسة 2026-06-02', 'نعم'],
+        ['خطاب المدعي', '<span class="pill p-warn">مقدم من الخصم</span>', 'متوسطة', 'و3', '—', '—', '—'],
+        ['كشف الاستلام', '<span class="pill p-bad">مطلوب</span>', 'عالية', 'و1', 'د1', 'لا', '—'],
+        ['سجل حضور 2025', '<span class="pill p-mute">غير متوافر</span>', 'متوسطة', 'و2', 'د2', 'لا', '—']]) + '</div>' +
+      '<div class="grid g2"><div class="panel"><h3>النواقص (2)</h3><ul style="padding-inline-start:20px;margin:0"><li>كشف الاستلام — مطلوب من شؤون الموظفين <a href="#requests" data-go="requests">طلب إفادة ← </a></li><li>سجل حضور 2025 — غير متوافر <button type="button" class="btn sm">إنشاء مهمة متابعة</button></li></ul></div>' +
+      '<div class="panel"><h3>وقائع</h3>' + table(['#', 'الواقعة', 'المستندات'], [['و1', 'تاريخ إعلان القرار', '2'], ['و2', 'إجراءات التحقيق', '2'], ['و3', 'رسالة المدعي', '1']]) + '</div></div>';
+  };
+
+  V.requests = function () {
+    return head('طلبات الإفادة والمستندات من الإدارات', 'ردود متعددة لكل طلب، ويُفرَّق بين الجزئي وغير المكتمل والمكتمل. التأخر يُنبّه ويُصعَّد حسب الصلاحية.', 'القسم 18') + caseBar() +
+      '<div class="panel"><div class="toolbar" style="justify-content:space-between"><h3 style="margin:0">طلب <span class="num">REQ-2026-0212</span></h3><span class="pill p-warn">رد جزئي</span> <span class="pill p-bad">متأخر 14 يومًا</span></div>' +
+      '<dl class="kv"><dt>الجهة</dt><dd>الخدمات المساندة ← الشؤون الإدارية ← شؤون الموظفين</dd><dt>الموضوع</dt><dd>إفادة بتاريخ إعلان القرار وصورة كشف الاستلام</dd><dt>الكتاب</dt><dd>رقم <span class="num">م/ق/334</span> بتاريخ <span class="num">2026-03-01</span></dd><dt>الموعد المحدد</dt><dd><span class="num">2026-03-15</span></dd><dt>المخاطَب</dt><dd>موظف اصطناعي</dd></dl>' +
+      '<h3 style="margin-top:16px">الردود</h3>' + table(['التاريخ', 'الاكتمال', 'الملخص', 'المرفق', 'ربط'], [['<span class="num">2026-03-20</span>', '<span class="pill p-warn">جزئي</span>', 'إفادة بتاريخ الإعلان دون الكشف', 'إفادة.pdf', 'و1'], ['<span class="num">2026-04-02</span>', '<span class="pill p-warn">غير مكتمل</span>', 'صورة غير مقروءة', 'كشف.jpg', 'د1']]) +
+      '<h3 style="margin-top:16px">المتابعات</h3>' + tl([['2026-03-14', 'تذكير قبل الموعد', 'تلقائي'], ['2026-03-16', 'تنبيه للمسؤول المباشر عند التأخر', 'تلقائي'], ['2026-04-05', 'إعادة مخاطبة الإدارة', 'أ. اصطناعي — سبب التأخير: غياب الموظف المختص']]) +
+      '<div class="toolbar"><button type="button" class="btn">تسجيل رد</button><button type="button" class="btn">إعادة مخاطبة</button><button type="button" class="btn primary">تصعيد</button></div></div>';
+  };
+
+  V.hearings = function () {
+    return head('الجلسات والتأجيل', 'التأجيل لا يستبدل الجلسة: تبقى بحالة «مؤجلة» وتُنشأ جلسة مستقلة للتالية. إن لم يُحدد موعد تُسجَّل الحالة وتدخل المتابعة.', 'القسم 7') + caseBar() +
+      '<div class="panel"><div class="grid g4"><div><strong class="num" style="font-size:24px">4</strong><br><span class="hint">جلسات</span></div><div><strong class="num" style="font-size:24px">3</strong><br><span class="hint">تأجيلات</span></div><div><strong>الأسباب</strong><br><span class="hint">رد، مذكرات، إحالة لخبير</span></div><div><strong>المتابعة</strong><br><span class="hint">لا جلسات بلا موعد</span></div></div></div>' +
+      '<div class="panel"><h3>سجل زمني موحد</h3>' + table(['التاريخ والوقت', 'النوع', 'القاضي/الخبير', 'الحاضرون', 'ما تم / القرار', 'الحالة'], [
+        ['<span class="num">2026-04-14 09:00</span>', 'محكمة', 'المستشار (اصطناعي)', 'أ. اصطناعي', 'تقديم صحيفة الرد', '<span class="pill p-info">مؤجلة</span> ← '],
+        ['<span class="num">2026-06-02 09:00</span>', 'محكمة', 'المستشار (اصطناعي)', 'أ. اصطناعي', 'الإحالة لخبير', '<span class="pill p-info">مؤجلة</span> ← '],
+        ['<span class="num">2026-07-08 10:30</span>', 'خبراء', 'خبير اصطناعي', 'أ. اصطناعية', 'مناقشة التقرير', '<span class="pill p-ok">منعقدة</span>'],
+        ['<span class="num">2026-09-28 09:00</span>', 'محكمة', 'المستشار (اصطناعي)', 'أ. اصطناعي', 'النطق بالحكم', '<span class="pill p-ok">منعقدة</span>'],
+        ['<span class="num">2026-11-24 09:00</span>', 'محكمة (استئناف)', '—', '—', '—', '<span class="pill p-mute">مجدولة</span>']]) +
+      '<div class="callout warn" style="margin-top:12px"><strong>مثال لحالة بلا موعد تالٍ</strong>: «قررت المحكمة الحجز للحكم دون تحديد موعد». السبب مسجل، وتدخل القضية قائمة المتابعة ويصدر تنبيه.</div></div>';
+  };
+
+  V.judgment = function () {
+    return head('تسجيل الحكم', 'تظهر كل الطلبات والدفوع القائمة وقت الحكم، ويحدد المستخدم نتيجة كل طلب وموقف المحكمة من كل دفع على حدة. جرّب تغيير النتائج.', 'الأقسام 5 و9 و17') + caseBar() +
+      '<div class="panel top"><h3>بيانات الحكم</h3><div class="grid g3">' + f('تاريخ الحكم', '<input id="j1" type="date" value="2026-09-28">', '', 'j1') + f('نوع الحكم', sel('j2', ['حكم موضوعي', 'حكم تمهيدي', 'حكم في الاختصاص'], 'حكم موضوعي'), 'قائمة معيارية تحتاج اعتماد المالك', 'j2') + f('صفة الحكم', sel('j3', ['ابتدائي', 'نهائي'], 'ابتدائي'), 'قائمة معيارية', 'j3') +
+      f('المصروفات (د.ك)', '<input id="j4" class="num" value="120.000">', '', 'j4') + f('أتعاب المحاماة (د.ك)', '<input id="j5" class="num" value="300.000">', '', 'j5') + f('تاريخ الإعلان', '<input id="j6" type="date" value="2026-09-30">', '', 'j6') + '</div>' +
+      '<div class="field" style="margin-top:12px"><label for="j7">منطوق الحكم كاملًا</label><textarea id="j7" rows="2">نص المنطوق الاصطناعي…</textarea></div></div>' +
+      '<div class="panel"><h3>نتيجة كل طلب</h3>' + table(['#', 'الطلب', 'النتيجة', 'المبلغ المحكوم به (د.ك)', 'ملاحظة'], state.claims.map(function (c, i) {
+        return ['<span class="num">' + c.n + '</span>', c.text, '<select data-claim="' + i + '" aria-label="نتيجة الطلب ' + c.n + '">' + resOptions(c.r1) + '</select>', '<input class="num" data-amt="' + i + '" value="' + c.a1 + '" aria-label="مبلغ الطلب ' + c.n + '" style="min-height:36px;width:120px" inputmode="decimal">', '—'];
+      })) + '<p id="jsum" class="hint"></p></div>' +
+      '<div class="panel"><h3>موقف المحكمة من كل دفع</h3>' + table(['الدفع', 'الموقف', 'الأسباب'], [['1 — عدم قبول الدعوى', '<select aria-label="موقف الدفع 1"><option>رفض الدفع</option><option>قبول الدفع</option><option>قبول جزئي</option><option>عدم التعرض للدفع</option><option>عدم الحاجة إلى الفصل فيه</option><option>تأجيل الفصل فيه</option><option>نتيجة أخرى</option></select>', 'مسجلة'], ['2 — سلامة التحقيق', '<select aria-label="موقف الدفع 2"><option>قبول الدفع</option><option>رفض الدفع</option></select>', 'مسجلة'], ['3 — الضرر', '<select aria-label="موقف الدفع 3"><option>قبول جزئي</option><option>رفض الدفع</option></select>', 'مسجلة']]) + '</div>' +
+      '<div class="toolbar"><button type="button" class="btn primary">حفظ الحكم</button><span class="hint">يفتح الحفظ ميعاد الطعن للاعتماد ويحدّث الملخص والتقارير.</span></div>';
+  };
+
+  V.appeal = function () {
+    return head('درجة تالية — الاستئناف', 'تُنشأ درجة جديدة مرتبطة بالقضية نفسها. كل ما سُجل في أول درجة يبقى كما هو ويُعرض بجانب الدرجة الجديدة.', 'الأقسام 4 و5 و17') + caseBar() +
+      '<div class="cols"><div class="panel"><h3>أول درجة <span class="pill p-mute">محفوظة</span></h3><dl class="kv" style="grid-template-columns:1fr"><dt>رقم القضية</dt><dd class="num">5521/2026</dd><dt>الحكم</dt><dd class="num">2026-09-28</dd><dt>الجلسات</dt><dd>4</dd><dt>المستندات</dt><dd>9</dd></dl></div>' +
+      '<div class="panel top"><h3>استئناف <span class="pill p-info">جارية</span></h3><dl class="kv" style="grid-template-columns:1fr"><dt>رقم القضية</dt><dd class="num">1840/2026</dd><dt>الجلسات</dt><dd>1 قادمة</dd><dt>المستندات</dt><dd>2</dd></dl></div>' +
+      '<div class="panel"><h3>تمييز <span class="pill p-mute">لم يُفتح</span></h3><p class="hint">يُنشأ عند الحاجة.</p><button type="button" class="btn sm">فتح درجة</button></div></div>' +
+      '<div class="panel"><h3>الطلبات عبر الدرجات</h3>' + table(['#', 'الطلب', 'أول درجة', 'استئناف', 'تمييز'], state.claims.map(function (c) { return ['<span class="num">' + c.n + '</span>', c.text, pill(c.r1), '<span class="pill p-mute">لم يصدر حكم</span>', '—']; })) + '</div>' +
+      '<div class="panel"><h3>الدفوع عبر الدرجات</h3>' + table(['الدفع', 'أول درجة', 'استئناف', 'تمييز'], [['1 — عدم القبول', 'أُثير · رُفض', 'أُعيد التمسك به', '—'], ['2 — سلامة التحقيق', 'أُثير · قُبل', 'أُعيد التمسك به', '—'], ['3 — الضرر', 'أُثير · جزئي', 'لم يُتمسك به', '—']]) + '</div>';
+  };
+
+  V.deadlines = function () {
+    var appr = state.approved;
+    return head('المواعيد القانونية وتنفيذ الحكم', 'لا يُعرض تاريخ محسوب كميعاد قانوني معتمد إلا بعد اعتماد عضو مختص. المدد والعطلات تُدخلها الإدارة المختصة في الإعدادات، ولا يضيف النظام مددًا من عنده.', 'الأقسام 10 و11') + caseBar() +
+      '<div class="callout warn"><strong>لا توجد قواعد مدد معتمدة في هذه البيئة.</strong> الشاشة أدناه تعرض مسار الاعتماد بقاعدة <u>توضيحية غير قانونية</u> لأغراض المعاينة فقط.</div>' +
+      '<div class="panel"><div class="toolbar" style="justify-content:space-between"><h3 style="margin:0">ميعاد الطعن على حكم 2026-09-28</h3>' + (appr ? '<span class="pill p-ok">معتمد</span>' : '<span class="pill p-warn">مقترح — بانتظار الاعتماد</span>') + '</div>' +
+      '<dl class="kv"><dt>المصدر</dt><dd>الحكم · إعلان <span class="num">2026-09-30</span></dd><dt>البداية</dt><dd class="num">2026-09-30</dd><dt>المدة</dt><dd>قاعدة توضيحية: <span class="num">N</span> يومًا تقويميًا (ليست قاعدة قانونية)</dd><dt>آخر موعد</dt><dd><span class="num">2026-10-22</span> ' + (appr ? '' : '<span class="hint">(محسوب آليًا — لم يُعتمد)</span>') + '</dd><dt>الإجراء</dt><dd>قيد صحيفة الاستئناف</dd><dt>المسؤول</dt><dd>أ. اصطناعي</dd><dt>المعتمِد</dt><dd id="apprWho">' + (appr ? 'أ. اصطناعي — <span class="num">2026-10-01</span>' : 'لم يُعتمد بعد') + '</dd><dt>الإتمام</dt><dd>' + (appr ? '<span class="num">2026-10-20</span> · إثبات: إيصال القيد.pdf' : '—') + '</dd></dl>' +
+      '<div class="toolbar" style="margin-top:12px">' + (appr ? '' : '<button type="button" class="btn primary" data-act="approve">اعتماد التاريخ</button>') + '<button type="button" class="btn">تعديل يدوي بسبب</button></div></div>' +
+      '<div class="panel"><h3>ملف تنفيذ الحكم</h3><p class="hint">مثال لحكم صادر لصالح الهيئة بالمصروفات.</p>' + table(['الحكم', 'الجهة المكلفة', 'المبلغ (د.ك)', 'آخر إجراء', 'العقبة', 'الحالة'], [['<span class="num">2026-09-28</span> · طلب 3', 'إدارة التنفيذ (اصطناعية)', '<span class="num">420.000</span>', 'إنذار 2026-10-25', 'إعلان المدين', '<span class="pill p-bad">متأخر</span>']]) + '</div>';
+  };
+
+  V.library = function () {
+    return head('مكتبة الأحكام والسوابق', 'أحكام الهيئة والأحكام الخارجية بمصدرها وبيانات التحقق. المبدأ المستخلص منفصل عن نص الحكم. الاقتراح هنا ببحث وترتيب موثق، ولا يُنتج نصًا.', 'القسم 16') + caseBar() +
+      '<div class="callout warn">هذه سجلات اصطناعية لشرح الشاشة، وليست أحكامًا حقيقية.</div>' +
+      '<div class="panel top"><h3>سوابق مقترحة لهذه القضية</h3><p class="hint">أساس الاقتراح: طبيعة النزاع · نص قانوني مدخل · نوع الدفع · نوع الطلب. الترتيب بعدد التطابقات.</p>' +
+      table(['الحكم', 'المحكمة والتاريخ', 'التشابه', 'الاختلاف', 'الاتجاه', 'الحجية', 'المصدر'], [
+        ['اصطناعي 1/2020 — طعن 77', 'تمييز · 2020-03-04', 'دفع بعدم القبول شكلًا، النزاع الإداري نفسه', 'مدة مختلفة', '<span class="pill p-ok">لصالح الجهة</span>', 'نهائي · لم يُطعن', 'نسخة محفوظة ✓'],
+        ['اصطناعي 9/2022 — استئناف 310', 'استئناف · 2022-11-18', 'إجراءات التحقيق', 'قرار فرعي', '<span class="pill p-bad">ضد الجهة</span>', 'ألغي جزئيًا لاحقًا', 'بيانات ناقصة ⚠']]) +
+      '<p class="hint">حكمان فقط في المكتبة بهذا الموضوع: لا يُوصف الاتجاه بالمستقر. التقدير للعضو.</p></div>' +
+      '<div class="grid g2"><div class="panel"><h3>المبدأ المستخلص من الحكم 1/2020</h3><p>«نص المبدأ كما صاغه العضو» <span class="hint">· الموضوع: مواعيد الدعوى الإدارية · النص القانوني: (يدخله العضو) · نطاق التطبيق: …</span></p><p class="hint">الصياغة المختصرة لا تغني عن الرجوع إلى الحكم: <a href="#library" data-go="library">فتح نسخة الحكم</a></p></div>' +
+      '<div class="panel"><h3>بحث متقدم</h3><div class="grid g2">' + f('نص / كلمة مفتاحية', inp('l1', 'عدم قبول'), '', 'l1') + f('المحكمة', sel('l2', ['الكل', 'تمييز', 'استئناف', 'كلية'], 'الكل'), '', 'l2') + f('السنة', inp('l3', '2020'), '', 'l3') + f('النتيجة', sel('l4', ['الكل', 'لصالح الجهة', 'ضد الجهة', 'أخرى'], 'الكل'), '', 'l4') + '</div></div></div>';
+  };
+
+  V.risk = function () {
+    return head('تقييم المخاطر القانونية', 'أداة مساعدة للقرار، وليست توقعًا قضائيًا ولا بديلًا عن الرأي القانوني. كل تحديث إصدار جديد، والسابق يبقى.', 'القسم 19') + caseBar() +
+      '<div class="callout">هذا التقييم أداة مساعدة لاتخاذ القرار ولا يعد توقعًا قضائيًا مؤكدًا.</div>' +
+      '<div class="panel top"><div class="toolbar" style="justify-content:space-between"><h3 style="margin:0">الإصدار 3 · <span class="num">2026-10-28</span></h3><span class="pill p-warn">مرتفعة</span></div>' +
+      table(['العنصر', 'التقدير', 'السبب'], [['قوة الموقف القانوني', 'متوسطة', 'دفعان قُبلا جزئيًا'], ['قوة المستندات والأدلة', 'ضعيفة', 'كشف الاستلام غير متوافر'], ['سلامة الإجراءات الإدارية', 'جيدة', 'محضر التحقيق'], ['عيوب إجرائية محتملة', 'محتملة', 'إعلان القرار'], ['سوابق مشابهة', 'متعارضة', 'حكمان متعارضان'], ['استقرار الاتجاه القضائي', 'غير محدد', 'يقدره العضو'], ['القيمة المحتملة للخسارة', '<span class="num">18000.000</span> د.ك', 'من الأثر المالي'], ['الآثار الإدارية', 'متوسطة', 'قرارات مماثلة'], ['امتداد الأثر لقضايا أخرى', 'محتمل', '3 قضايا مرتبطة'], ['توفر إفادات الإدارات', 'ناقصة', 'طلب REQ-2026-0212']]) + '</div>' +
+      '<div class="grid g2"><div class="panel"><h3>خطة المعالجة</h3>' + table(['السبب', 'الإجراء', 'المسؤول', 'الموعد', 'الحالة'], [['كشف الاستلام ناقص', 'تصعيد طلب الإفادة', 'أ. اصطناعي', '<span class="num">2026-11-15</span>', '<span class="pill p-warn">جارية</span>']]) + '</div>' +
+      '<div class="panel"><h3>الإصدارات</h3>' + table(['#', 'التاريخ', 'المستوى', 'سبب التحديث'], [['3', '<span class="num">2026-10-28</span>', 'مرتفعة', 'حكم أول درجة'], ['2', '<span class="num">2026-07-10</span>', 'متوسطة', 'مستند جديد'], ['1', '<span class="num">2026-02-16</span>', 'متوسطة', 'تقييم أولي']]) + '</div></div>';
+  };
+
+  V.access = function () {
+    var roles = [['ADMIN', 'مدير النظام'], ['LEGAL_MANAGER', 'مدير الإدارة القانونية'], ['SECTION_HEAD', 'رئيس القسم'], ['LEGAL_STAFF', 'العضو القانوني'], ['DATA_ENTRY', 'مدخل البيانات'], ['ARCHIVIST', 'مسؤول الأرشفة'], ['READ_ONLY', 'مستخدم للاطلاع فقط']];
+    var P = {
+      ADMIN: ['y', 'y', 'y', 'y', 'y', 'y', 'y'], LEGAL_MANAGER: ['y', 'y', 'y', 'y', 'y', 'y', 'y'], SECTION_HEAD: ['نطاقه', 'نطاقه', 'نطاقه', 'y', 'نطاقه', 'نطاقه', 'n'], LEGAL_STAFF: ['عضويته', 'عضويته', 'عضويته', 'n', 'n', 'n', 'n'],
+      DATA_ENTRY: ['n', 'مسودة', 'مسودة', 'n', 'n', 'n', 'n'], ARCHIVIST: ['n', 'n', 'n', 'n', 'n', 'n', 'n'], READ_ONLY: ['نطاقه', 'n', 'n', 'n', 'n', 'n', 'n']
+    };
+    var cols = ['الاطلاع على القضايا', 'تعديل القضية', 'إضافة جلسة/حكم/دفع', 'اعتماد مذكرة', 'اعتماد ميعاد', 'توزيع المهام', 'إعدادات الهيكل'];
+    var cur = P[state.role];
+    var cell = function (v) { return v === 'y' ? '<span class="pill p-ok">نعم</span>' : v === 'n' ? '<span class="pill p-mute">لا</span>' : '<span class="pill p-info">' + v + '</span>'; };
+    return head('الأدوار والصلاحيات', 'التحقق في الخادم عبر سياسة وصول واحدة تستعملها الشاشات والملفات والبحث والتقارير والتصدير والمساعد. لا يُمنح الاطلاع الشامل لكل عضو تلقائيًا.', 'الأقسام 30 و31') + caseBar() +
+      '<div class="panel"><div class="field" style="max-width:320px"><label for="roleSel">اختر دورًا لمعاينة أثره</label><select id="roleSel">' + roles.map(function (r) { return '<option value="' + r[0] + '"' + (r[0] === state.role ? ' selected' : '') + '>' + r[1] + '</option>'; }).join('') + '</select></div>' +
+      '<div class="grid g4" style="margin-top:14px">' + cols.map(function (c, i) { return '<div><span class="hint">' + c + '</span><br>' + cell(cur[i]) + '</div>'; }).join('') + '</div></div>' +
+      '<div class="panel"><h3>مصدر الرؤية لقضية معينة</h3><p>يرى المستخدم القضية إذا انطبق أحد: نطاقه (وحدة تنظيمية أو نوع نزاع) · عضويته (مختص، بديل، مكلَّف بمهمة) · منح صريح. القضية «المقيّدة» لا يراها إلا الأعضاء والمشرفون والممنوحون.</p>' +
+      '<div class="callout warn"><strong>المكلَّف بمهمة محدودة</strong> يرى القضية ويعدّل مهمته فقط، ولا يعدّل القضية.</div></div>' +
+      '<div class="panel"><h3>سجل التدقيق (مثال)</h3>' + table(['الوقت', 'المستخدم', 'العملية', 'قبل', 'بعد', 'السبب'], [['<span class="num">2026-10-28 11:02</span>', 'أ. اصطناعي', 'تحديث تقييم المخاطر', 'متوسطة', 'مرتفعة', 'حكم أول درجة'], ['<span class="num">2026-10-20 08:40</span>', 'مدير الإدارة', 'تغيير العضو البديل', 'أ. ثالث', 'أ. اصطناعية', '—']]) + '<p class="hint">السجل غير قابل للتعديل أو الحذف من المستخدمين العاديين.</p></div>';
+  };
+
+  function render(id) {
+    id = V[id] ? id : 'dashboard';
+    $('#view').innerHTML = V[id]() + stepNav(id);
+    $('#nav').innerHTML = (function () {
+      var groups = {}, order = [];
+      SCREENS.forEach(function (s) { if (!groups[s[2]]) { groups[s[2]] = []; order.push(s[2]); } groups[s[2]].push(s); });
+      return order.map(function (g) { return '<h2>' + g + '</h2>' + groups[g].map(function (s) { return '<button type="button" data-go="' + s[0] + '"' + (s[0] === id ? ' aria-current="page"' : '') + '>' + s[1] + '</button>'; }).join(''); }).join('');
+    })();
+    try { if (location.hash !== '#' + id) history.replaceState(null, '', '#' + id); } catch (e) { /* embedded */ }
+    wire(id);
+    updateSummary();
+  }
+  function stepNav(id) {
+    var i = SCREENS.findIndex(function (s) { return s[0] === id; });
+    var p = SCREENS[i - 1], n = SCREENS[i + 1];
+    return '<div class="step-nav">' + (p ? '<button type="button" class="btn" data-go="' + p[0] + '">→ ' + p[1] + '</button>' : '<span></span>') + (n ? '<button type="button" class="btn primary" data-go="' + n[0] + '">' + n[1] + ' ←</button>' : '') + '</div>';
+  }
+  function updateSummary() {
+    var el = $('#jsum'); if (!el) return;
+    var total = state.claims.reduce(function (a, c) { return a + (parseFloat(c.a1) || 0); }, 0);
+    var accepted = state.claims.filter(function (c) { return c.r1 === 'ACCEPTED' || c.r1 === 'PARTIAL'; }).length;
+    el.textContent = 'ملخص: ' + accepted + ' من ' + state.claims.length + ' طلبات قُبلت كليًا أو جزئيًا · إجمالي المبالغ المحكوم بها ' + total.toFixed(3) + ' د.ك (تُجمع من نتائج الطلبات ولا تتكرر).';
+  }
+  function wire(id) {
+    var view = $('#view');
+    view.querySelectorAll('[data-claim]').forEach(function (s) { s.addEventListener('change', function () { state.claims[+s.dataset.claim].r1 = s.value; updateSummary(); }); });
+    view.querySelectorAll('[data-amt]').forEach(function (s) { s.addEventListener('input', function () { state.claims[+s.dataset.amt].a1 = s.value; updateSummary(); }); });
+    var rs = $('#roleSel'); if (rs) rs.addEventListener('change', function () { state.role = rs.value; render('access'); });
+    view.querySelectorAll('[data-act="rev"]').forEach(function (b) { b.addEventListener('click', function () { state.revisionOpen = !state.revisionOpen; render('claims'); }); });
+    view.querySelectorAll('[data-act="approve"]').forEach(function (b) { b.addEventListener('click', function () { state.approved = true; render('deadlines'); }); });
+    view.querySelectorAll('[data-key]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var out = $('#filterOut');
+        out.innerHTML = '<h3>' + b.querySelector('span').textContent + ' — ' + b.querySelector('strong').textContent + ' قضية</h3>' + table(['القضية', 'المحكمة', 'المختص', 'آخر إجراء'], [[CASE.ref, 'استئناف', 'أ. اصطناعي', 'قيد الاستئناف'], ['LD-2026-00402', 'كلية', 'أ. اصطناعية', 'جلسة'], ['LD-2025-01115', 'تمييز', 'أ. ثالث', 'حجز للحكم']]) + '<p class="hint">يعرض المثال أول صفوف القائمة؛ العدد الكلي يطابق رقم المؤشر.</p>';
+      });
+    });
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-go]');
+    if (t && t.dataset.go !== 'filter') { e.preventDefault(); render(t.dataset.go); window.scrollTo(0, 0); }
+  });
+  $('#themeBtn').addEventListener('click', function () {
+    var r = document.documentElement, dark = r.getAttribute('data-theme') === 'dark' || (!r.getAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches);
+    r.setAttribute('data-theme', dark ? 'light' : 'dark');
+  });
+  window.addEventListener('hashchange', function () { render((location.hash || '').slice(1)); });
+  render((location.hash || '').slice(1));
+})();
+</script>
