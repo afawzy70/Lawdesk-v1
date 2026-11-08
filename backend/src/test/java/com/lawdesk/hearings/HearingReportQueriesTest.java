@@ -13,6 +13,8 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.lawdesk.security.TestActors;
+
 import com.lawdesk.hearings.HearingReportQueries.HearingFilter;
 import com.lawdesk.hearings.HearingReportQueries.HearingRow;
 
@@ -20,7 +22,13 @@ import com.lawdesk.hearings.HearingReportQueries.HearingRow;
 class HearingReportQueriesTest extends HearingTestSupport {
 
     @Autowired
-    HearingReportQueries reports;
+    HearingReportQueries port;
+
+    /** The port refuses to answer without a signed-in user (LD-050); MockMvc clears the context after each request. */
+    private HearingReportQueries reports() {
+        TestActors.signIn();
+        return port;
+    }
 
     @Test
     void findsHearingsInADateRangeWithFiltersInCalendarOrder() throws Exception {
@@ -34,11 +42,11 @@ class HearingReportQueriesTest extends HearingTestSupport {
         schedule(proceeding, "2025-05-01");
 
         HearingFilter march = HearingFilter.between(LocalDate.parse("2025-02-01"), LocalDate.parse("2025-03-31"));
-        assertThat(reports.find(march, 0, 100)).extracting(HearingRow::id).containsExactly(held, untimed, timed);
-        assertThat(reports.count(march)).isEqualTo(3);
-        assertThat(reports.find(march, 1, 1)).extracting(HearingRow::id).containsExactly(untimed);
+        assertThat(reports().find(march, 0, 100)).extracting(HearingRow::id).containsExactly(held, untimed, timed);
+        assertThat(reports().count(march)).isEqualTo(3);
+        assertThat(reports().find(march, 1, 1)).extracting(HearingRow::id).containsExactly(untimed);
 
-        HearingRow row = reports.find(march, 2, 1).getFirst();
+        HearingRow row = reports().find(march, 2, 1).getFirst();
         assertThat(row.caseId()).isEqualTo(caseId);
         assertThat(row.proceedingId()).isEqualTo(proceeding);
         assertThat(row.hearingDate()).isEqualTo(LocalDate.parse("2025-03-01"));
@@ -47,11 +55,11 @@ class HearingReportQueriesTest extends HearingTestSupport {
         assertThat(row.status()).isEqualTo(HearingStatus.SCHEDULED);
         assertThat(row.awaitingResult()).isTrue();
 
-        assertThat(reports.find(march.withStatuses(Set.of(HearingStatus.HELD)), 0, 100)).extracting(HearingRow::id)
+        assertThat(reports().find(march.withStatuses(Set.of(HearingStatus.HELD)), 0, 100)).extracting(HearingRow::id)
                 .containsExactly(held);
-        assertThat(reports.find(march.withCase(caseId), 0, 100)).extracting(HearingRow::id)
+        assertThat(reports().find(march.withCase(caseId), 0, 100)).extracting(HearingRow::id)
                 .containsExactly(held, timed);
-        assertThat(reports.count(march.withProceeding(otherProceeding))).isEqualTo(1);
+        assertThat(reports().count(march.withProceeding(otherProceeding))).isEqualTo(1);
     }
 
     @Test
@@ -64,7 +72,7 @@ class HearingReportQueriesTest extends HearingTestSupport {
         mvc.perform(postResult(cancelled, HearingApiTest.result("CANCELLED", null, null, 0)))
                 .andExpect(status().isOk());
 
-        Map<HearingStatus, Long> counts = reports.countByStatus(
+        Map<HearingStatus, Long> counts = reports().countByStatus(
                 HearingFilter.between(LocalDate.parse("2025-01-01"), LocalDate.parse("2025-12-31")));
         assertThat(counts).containsExactlyInAnyOrderEntriesOf(Map.of(HearingStatus.SCHEDULED, 1L,
                 HearingStatus.HELD, 0L, HearingStatus.ADJOURNED, 1L, HearingStatus.CANCELLED, 1L));
@@ -73,7 +81,7 @@ class HearingReportQueriesTest extends HearingTestSupport {
     @Test
     void upcomingAndAwaitingResultFollowTheModulesRules() throws Exception {
         UUID proceeding = createProceeding(createCase("Rules"), "320");
-        LocalDate today = reports.today();
+        LocalDate today = reports().today();
         assertThat(today).isEqualTo(today());
         schedule(proceeding, today);
         schedule(proceeding, today.plusDays(7));
@@ -82,8 +90,8 @@ class HearingReportQueriesTest extends HearingTestSupport {
         UUID held = schedule(proceeding, today.minusDays(2));
         mvc.perform(postResult(held, HearingApiTest.result("HELD", null, null, 0))).andExpect(status().isOk());
 
-        assertThat(reports.upcomingCount(7)).isEqualTo(2);
-        assertThat(reports.awaitingResultCount()).isEqualTo(1);
+        assertThat(reports().upcomingCount(7)).isEqualTo(2);
+        assertThat(reports().awaitingResultCount()).isEqualTo(1);
     }
 
     @Test
@@ -91,8 +99,8 @@ class HearingReportQueriesTest extends HearingTestSupport {
         HearingFilter filter = HearingFilter.between(LocalDate.parse("2025-01-01"), LocalDate.parse("2025-01-31"));
         assertThatThrownBy(() -> HearingFilter.between(null, LocalDate.now()))
                 .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> reports.find(filter, 0, 10_001)).isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> reports.find(filter, -1, 10)).isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> reports.upcomingCount(-1)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> reports().find(filter, 0, 10_001)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> reports().find(filter, -1, 10)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> reports().upcomingCount(-1)).isInstanceOf(IllegalArgumentException.class);
     }
 }

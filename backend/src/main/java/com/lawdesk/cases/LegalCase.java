@@ -34,7 +34,9 @@ public record LegalCase(
         /** NORMAL or RESTRICTED (LD-050): a restricted case is reachable only by its members and explicit grants. */
         String confidentiality,
         /** The legal-department unit that owns the case, or null when none was recorded. */
-        UUID owningUnitId) {
+        UUID owningUnitId,
+        /** Chamber, receipt date, referrer, facts, claimed amount, importance and notes (LD-050). */
+        CaseDetails details) {
 
     CaseSummary summary() {
         return new CaseSummary(id, referenceNo, title, status.name());

@@ -1,6 +1,7 @@
 package com.lawdesk.cases;
 
 import static com.lawdesk.security.TestActors.as;
+import static com.lawdesk.security.TestActors.scoped;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -41,7 +42,7 @@ class CaseMembershipAccessTest extends GovernmentIntakeTestSupport {
     private UUID court;
 
     private RequestPostProcessor by(UUID id, Permission... permissions) {
-        return as(id, "u" + id.toString().substring(0, 6), permissions);
+        return scoped(id, "u" + id.toString().substring(0, 6), java.util.List.of("ALL"), permissions);
     }
 
     @BeforeEach

@@ -67,7 +67,7 @@ class TaskApiTest extends TaskTestSupport {
         assertThat(result.getResponse().getHeader("Location")).endsWith("/api/v1/tasks/" + id);
         verify(caseLookup).recordEvent(eq(caseId), eq("TASK_CREATED"), contains("File the appeal memorandum"));
 
-        mvc.perform(get("/api/v1/tasks/" + id).with(as(Permission.TASK_VIEW)))
+        mvc.perform(get("/api/v1/tasks/" + id).with(as(CLERK, "clerk", Permission.TASK_VIEW)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.assigneeName").value("Mona Saleh"));
     }
@@ -119,18 +119,18 @@ class TaskApiTest extends TaskTestSupport {
 
         mvc.perform(moveTask(id, "IN_PROGRESS", 0)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
-        verify(caseLookup, never()).recordEvent(eq(caseId), anyString(), anyString());
+        verify(caseLookup, never()).recordTaskEvent(eq(caseId), anyString(), anyString());
         mvc.perform(moveTask(id, "DONE", 1)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("DONE"))
                 .andExpect(jsonPath("$.completedAt").isString());
-        verify(caseLookup).recordEvent(eq(caseId), eq("TASK_COMPLETED"), contains("Collect the documents"));
+        verify(caseLookup).recordTaskEvent(eq(caseId), eq("TASK_COMPLETED"), contains("Collect the documents"));
         mvc.perform(moveTask(id, "IN_PROGRESS", 2)).andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.rule").value("TASK_STATUS_TRANSITION"));
         mvc.perform(moveTask(id, "OPEN", 2)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.completedAt").value(Matchers.nullValue()));
-        verify(caseLookup).recordEvent(eq(caseId), eq("TASK_REOPENED"), anyString());
+        verify(caseLookup).recordTaskEvent(eq(caseId), eq("TASK_REOPENED"), anyString());
         mvc.perform(moveTask(id, "CANCELLED", 3)).andExpect(status().isOk());
-        verify(caseLookup).recordEvent(eq(caseId), eq("TASK_CANCELLED"), anyString());
+        verify(caseLookup).recordTaskEvent(eq(caseId), eq("TASK_CANCELLED"), anyString());
         mvc.perform(moveTask(id, "DONE", 4)).andExpect(status().isUnprocessableContent());
         mvc.perform(moveTask(id, "CANCELLED", 4)).andExpect(status().isUnprocessableContent());
         mvc.perform(moveTask(id, "OPEN", 4)).andExpect(status().isOk());
@@ -161,28 +161,28 @@ class TaskApiTest extends TaskTestSupport {
         UUID done = create("Done", caseId, mona, today());
         move(done, "DONE", 0);
 
-        mvc.perform(get("/api/v1/tasks").with(as(Permission.TASK_VIEW)))
+        mvc.perform(get("/api/v1/tasks").with(as(CLERK, "clerk", Permission.TASK_VIEW)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[*].id").value(Matchers.contains(done.toString(), soonUrgent.toString(),
                         soonNormal.toString(), later.toString(), undated.toString())))
                 .andExpect(jsonPath("$.totalItems").value(5));
-        mvc.perform(get("/api/v1/tasks").param("assignee", omar.toString()).with(as(Permission.TASK_VIEW)))
+        mvc.perform(get("/api/v1/tasks").param("assignee", omar.toString()).with(as(CLERK, "clerk", Permission.TASK_VIEW)))
                 .andExpect(jsonPath("$.items[*].id").value(Matchers.contains(soonNormal.toString())));
         mvc.perform(get("/api/v1/tasks").param("assignee", "me").with(as(mona, "mona", Permission.TASK_VIEW)))
                 .andExpect(jsonPath("$.totalItems").value(4));
         mvc.perform(get("/api/v1/tasks").param("caseId", caseId.toString()).param("status", "OPEN")
-                        .with(as(Permission.TASK_VIEW)))
+                        .with(as(CLERK, "clerk", Permission.TASK_VIEW)))
                 .andExpect(jsonPath("$.items[*].id").value(Matchers.contains(soonUrgent.toString(), later.toString())));
         mvc.perform(get("/api/v1/tasks").param("status", "OPEN").param("status", "DONE").param("size", "2")
-                        .with(as(Permission.TASK_VIEW)))
+                        .with(as(CLERK, "clerk", Permission.TASK_VIEW)))
                 .andExpect(jsonPath("$.totalItems").value(5))
                 .andExpect(jsonPath("$.totalPages").value(3));
-        mvc.perform(get("/api/v1/tasks").param("assignee", "someone").with(as(Permission.TASK_VIEW)))
+        mvc.perform(get("/api/v1/tasks").param("assignee", "someone").with(as(CLERK, "clerk", Permission.TASK_VIEW)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors[0].field").value("assignee"));
-        mvc.perform(get("/api/v1/tasks").param("status", "WAITING").with(as(Permission.TASK_VIEW)))
+        mvc.perform(get("/api/v1/tasks").param("status", "WAITING").with(as(CLERK, "clerk", Permission.TASK_VIEW)))
                 .andExpect(status().isBadRequest());
-        mvc.perform(get("/api/v1/tasks").param("due", "tomorrow").with(as(Permission.TASK_VIEW)))
+        mvc.perform(get("/api/v1/tasks").param("due", "tomorrow").with(as(CLERK, "clerk", Permission.TASK_VIEW)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -295,10 +295,10 @@ class TaskApiTest extends TaskTestSupport {
                         .contentType(MediaType.APPLICATION_JSON).content(task("x", null, assignee, null, null)))
                 .andExpect(status().isForbidden());
         UUID id = create("Guarded", null, assignee, null);
-        mvc.perform(put("/api/v1/tasks/" + id).with(as(Permission.TASK_VIEW)).with(csrf())
+        mvc.perform(put("/api/v1/tasks/" + id).with(as(CLERK, "clerk", Permission.TASK_VIEW)).with(csrf())
                         .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isForbidden());
-        mvc.perform(post("/api/v1/tasks/" + id + "/status").with(as(Permission.TASK_VIEW)).with(csrf())
+        mvc.perform(post("/api/v1/tasks/" + id + "/status").with(as(CLERK, "clerk", Permission.TASK_VIEW)).with(csrf())
                         .contentType(MediaType.APPLICATION_JSON).content("{\"status\":\"DONE\",\"version\":0}"))
                 .andExpect(status().isForbidden());
         for (String path : List.of("/api/v1/tasks", "/api/v1/tasks/" + id, "/api/v1/tasks/reminders")) {
@@ -328,6 +328,8 @@ class TaskApiTest extends TaskTestSupport {
         UUID id = create("Kept", caseId, assignee, null);
         doThrow(new IllegalStateException("timeline unavailable")).when(caseLookup)
                 .recordEvent(eq(caseId), anyString(), anyString());
+        doThrow(new IllegalStateException("timeline unavailable")).when(caseLookup)
+                .recordTaskEvent(eq(caseId), anyString(), anyString());
         mvc.perform(postTask(task("Lost", caseId, assignee, null, null))).andExpect(status().isInternalServerError());
         mvc.perform(moveTask(id, "DONE", 0)).andExpect(status().isInternalServerError());
         assertThat(tasks()).isEqualTo(1);
@@ -336,10 +338,10 @@ class TaskApiTest extends TaskTestSupport {
 
     @Test
     void unknownTasksAreNotFoundAndTheDatabaseKeepsStatusesConsistent() throws Exception {
-        mvc.perform(get("/api/v1/tasks/" + UUID.randomUUID()).with(as(Permission.TASK_VIEW)))
+        mvc.perform(get("/api/v1/tasks/" + UUID.randomUUID()).with(as(CLERK, "clerk", Permission.TASK_VIEW)))
                 .andExpect(status().isNotFound());
         mvc.perform(moveTask(UUID.randomUUID(), "DONE", 0)).andExpect(status().isNotFound());
-        mvc.perform(get("/api/v1/tasks/not-a-uuid").with(as(Permission.TASK_VIEW))).andExpect(status().isBadRequest());
+        mvc.perform(get("/api/v1/tasks/not-a-uuid").with(as(CLERK, "clerk", Permission.TASK_VIEW))).andExpect(status().isBadRequest());
         UUID actor = UUID.randomUUID();
         String insert = """
                 insert into task (title, assignee_id, status, completed_at, created_by, updated_by)

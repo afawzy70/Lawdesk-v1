@@ -67,8 +67,10 @@ class CaseService implements CaseLookup {
             // A concurrent request took the number between the check and the insert.
             throw new ConflictException("reference number " + referenceNo + " is already used");
         }
+        checkDetails(request.details());
+        cases.setDetails(created.id(), request.details());
         timeline.append(created.id(), CaseTimeline.CASE_CREATED, "Case " + referenceNo + " created", actor.id());
-        return created;
+        return cases.find(created.id()).orElseThrow();
     }
 
     @Transactional(readOnly = true)
@@ -103,6 +105,13 @@ class CaseService implements CaseLookup {
         if (!current.openedOn().equals(request.openedOn())) changed.add("openedOn");
         boolean automatedNoChanged = request.automatedNo() != null && !request.automatedNo().equals(current.automatedNo());
         if (automatedNoChanged) changed.add("automatedNo");
+        boolean detailsChanged = request.details() != null && !request.details().equals(current.details());
+        if (detailsChanged) {
+            checkDetails(request.details());
+            changed.add("details");
+        }
+        boolean claimedChanged = detailsChanged && !sameAmount(current.details().claimedAmount(),
+                request.details().claimedAmount());
         boolean impactChanged = impact != null && (impact != current.financialImpact()
                 || current.financialAmount() == null && request.financialAmount() != null
                 || current.financialAmount() != null && request.financialAmount() != null
@@ -113,7 +122,7 @@ class CaseService implements CaseLookup {
         }
         LegalCase updated = cases.update(id, request.version(), request.title(), caseType, request.subject(),
                         request.openedOn(), new CaseRepository.DetailsChange(request.automatedNo(), impact,
-                                request.financialAmount()), actor.id())
+                                request.financialAmount(), request.details()), actor.id())
                 // Another request changed the case between the read above and this update.
                 .orElseThrow(() -> new ConflictException("case " + id + " has changed concurrently"));
         timeline.append(id, CaseTimeline.CASE_UPDATED, "Changed: " + String.join(", ", changed), actor.id());
@@ -125,7 +134,22 @@ class CaseService implements CaseLookup {
             audit.recordWithChange("CASE_FINANCIAL_IMPACT_CHANGE", actor.id(), actor.username(), "CASE", id.toString(),
                     "impact=" + impact);
         }
+        if (claimedChanged) {
+            audit.recordWithChange("CASE_CLAIMED_AMOUNT_CHANGE", actor.id(), actor.username(), "CASE", id.toString(),
+                    "changed");
+        }
         return updated;
+    }
+
+    private static boolean sameAmount(java.math.BigDecimal a, java.math.BigDecimal b) {
+        return a == null ? b == null : b != null && a.compareTo(b) == 0;
+    }
+
+    /** The referring unit, when given, must be an active unit of the authority's tree. */
+    void checkDetails(CaseDetails details) {
+        if (details != null && details.referringUnitId() != null && !cases.isActiveAuthorityUnit(details.referringUnitId())) {
+            throw new FieldErrorException("details.referringUnitId", "Exists");
+        }
     }
 
     /** The impact an edit asks for, or null when it leaves the impact alone; an amount always goes with "YES". */

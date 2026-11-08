@@ -101,7 +101,7 @@ class TaskStatusAuditTest extends TaskTestSupport {
         UUID caseId = createCase("Rolled back");
         UUID id = secretTask(caseId);
         doThrow(new IllegalStateException("timeline unavailable")).when(caseLookup)
-                .recordEvent(eq(caseId), anyString(), anyString());
+                .recordTaskEvent(eq(caseId), anyString(), anyString());
         mvc.perform(moveTask(id, "DONE", 0)).andExpect(status().isInternalServerError());
         assertThat(statusOf(id)).isEqualTo("OPEN");
         assertThat(auditOf(id)).isEmpty();

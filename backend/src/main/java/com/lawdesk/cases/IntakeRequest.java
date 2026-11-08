@@ -36,13 +36,16 @@ record IntakeRequest(
         @NotNull UUID primaryMemberId,
         UUID alternateMemberId,
         @NotNull @Pattern(regexp = FinancialImpact.PATTERN) String financialImpact,
-        @Positive @Digits(integer = 12, fraction = 3) BigDecimal financialAmount) {
+        @Positive @Digits(integer = 12, fraction = 3) BigDecimal financialAmount,
+        /** Chamber, receipt, referral, facts, claimed amount, importance and notes; all optional. */
+        @Valid CaseDetails details) {
 
     IntakeRequest {
         automatedNo = Text.trimToNull(automatedNo);
         title = Text.trimToNull(title);
         subject = Text.trimToNull(subject);
         parties = parties == null ? List.of() : parties;
+        details = details == null ? CaseDetails.EMPTY : details;
     }
 
     record FirstInstance(

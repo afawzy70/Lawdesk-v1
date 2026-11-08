@@ -10,6 +10,8 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.lawdesk.security.TestActors;
+
 import com.lawdesk.tasks.TaskReportQueries.AssigneeWorkload;
 import com.lawdesk.tasks.TaskReportQueries.TaskFilter;
 import com.lawdesk.tasks.TaskReportQueries.TaskRow;
@@ -18,7 +20,13 @@ import com.lawdesk.tasks.TaskReportQueries.TaskRow;
 class TaskReportQueriesTest extends TaskTestSupport {
 
     @Autowired
-    TaskReportQueries reports;
+    TaskReportQueries port;
+
+    /** The port refuses to answer without a signed-in user (LD-050); MockMvc clears the context after each request. */
+    private TaskReportQueries reports() {
+        TestActors.signIn(CLERK);
+        return port;
+    }
 
     @Test
     void findsTasksByStatusAssigneeCaseAndOverdueState() throws Exception {
@@ -31,8 +39,8 @@ class TaskReportQueriesTest extends TaskTestSupport {
         UUID done = create("Done", caseId, omar, null);
         move(done, "DONE", 0);
 
-        assertThat(reports.find(TaskFilter.all(), 0, 100)).extracting(TaskRow::id).containsExactly(late, open, done);
-        TaskRow row = reports.find(TaskFilter.all(), 0, 1).getFirst();
+        assertThat(reports().find(TaskFilter.all(), 0, 100)).extracting(TaskRow::id).containsExactly(late, open, done);
+        TaskRow row = reports().find(TaskFilter.all(), 0, 1).getFirst();
         assertThat(row.caseId()).isEqualTo(caseId);
         assertThat(row.assigneeId()).isEqualTo(mona);
         assertThat(row.title()).isEqualTo("Late");
@@ -40,15 +48,15 @@ class TaskReportQueriesTest extends TaskTestSupport {
         assertThat(row.status()).isEqualTo(TaskStatus.OPEN);
         assertThat(row.overdue()).isTrue();
 
-        assertThat(reports.count(TaskFilter.all().withStatuses(Set.of(TaskStatus.DONE)))).isEqualTo(1);
-        assertThat(reports.find(TaskFilter.all().withAssignee(omar), 0, 100)).extracting(TaskRow::id)
+        assertThat(reports().count(TaskFilter.all().withStatuses(Set.of(TaskStatus.DONE)))).isEqualTo(1);
+        assertThat(reports().find(TaskFilter.all().withAssignee(omar), 0, 100)).extracting(TaskRow::id)
                 .containsExactly(open, done);
-        assertThat(reports.find(TaskFilter.all().withCase(caseId), 0, 100)).extracting(TaskRow::id)
+        assertThat(reports().find(TaskFilter.all().withCase(caseId), 0, 100)).extracting(TaskRow::id)
                 .containsExactly(late, done);
-        assertThat(reports.find(TaskFilter.all().overdueOnly(), 0, 100)).extracting(TaskRow::id).containsExactly(late);
-        assertThat(reports.overdueCount()).isEqualTo(1);
-        assertThat(reports.dueSoonCount()).isEqualTo(1);
-        assertThat(reports.countByStatus(TaskFilter.all())).containsExactlyInAnyOrderEntriesOf(Map.of(
+        assertThat(reports().find(TaskFilter.all().overdueOnly(), 0, 100)).extracting(TaskRow::id).containsExactly(late);
+        assertThat(reports().overdueCount()).isEqualTo(1);
+        assertThat(reports().dueSoonCount()).isEqualTo(1);
+        assertThat(reports().countByStatus(TaskFilter.all())).containsExactlyInAnyOrderEntriesOf(Map.of(
                 TaskStatus.OPEN, 2L, TaskStatus.IN_PROGRESS, 0L, TaskStatus.DONE, 1L, TaskStatus.CANCELLED, 0L));
     }
 
@@ -63,14 +71,14 @@ class TaskReportQueriesTest extends TaskTestSupport {
         UUID done = create("Done", null, omar, null);
         move(done, "DONE", 0);
 
-        assertThat(reports.workload()).containsExactly(new AssigneeWorkload(mona, 1, 1, 1));
-        assertThat(reports.today()).isEqualTo(today());
+        assertThat(reports().workload()).containsExactly(new AssigneeWorkload(mona, 1, 1, 1));
+        assertThat(reports().today()).isEqualTo(today());
         assertThat(TaskReportQueries.DUE_SOON_DAYS).isEqualTo(3);
     }
 
     @Test
     void refusesUnboundedQueries() {
-        assertThatThrownBy(() -> reports.find(TaskFilter.all(), 0, 10_001)).isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> reports.find(TaskFilter.all(), -1, 1)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> reports().find(TaskFilter.all(), 0, 10_001)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> reports().find(TaskFilter.all(), -1, 1)).isInstanceOf(IllegalArgumentException.class);
     }
 }

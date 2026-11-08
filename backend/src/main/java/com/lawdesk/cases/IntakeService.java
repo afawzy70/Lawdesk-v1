@@ -101,6 +101,8 @@ class IntakeService {
         firstInstance.record(caseId, stage.courtId(), stage.courtCaseNumber(), stage.courtCaseYear(),
                 stage.filingDate());
 
+        caseService.checkDetails(request.details());
+        cases.setDetails(caseId, request.details());
         cases.assignNew(caseId, request.primaryMemberId(), request.alternateMemberId());
         LegalCase registered = cases.find(caseId).orElseThrow();
         caseService.recordAssignment(registered, actor);
