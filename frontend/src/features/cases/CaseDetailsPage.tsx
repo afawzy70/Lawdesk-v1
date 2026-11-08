@@ -10,6 +10,7 @@ import { AccessDeniedPage } from '../auth/AccessDeniedPage';
 import { getCase, type LegalCase } from './api';
 import { CaseOperations } from '../operations/CaseOperations';
 import { CaseProceedings } from '../proceedings/CaseProceedings';
+import { CaseAccessSection } from '../access/CaseAccessSection';
 import { CaseAssignmentSection } from './intake/CaseAssignmentSection';
 import { CasePartiesSection } from './CasePartiesSection';
 import { CaseStatusForm } from './CaseStatusForm';
@@ -185,6 +186,15 @@ function CaseDetails({ id }: { id: string }) {
             legalCase={legalCase}
             onChanged={() => {
               refresh('intake.assign.done');
+            }}
+          />
+          <CaseAccessSection
+            key={`access-${String(legalCase.version)}`}
+            caseId={legalCase.id}
+            confidentiality={legalCase.confidentiality ?? 'NORMAL'}
+            version={legalCase.version}
+            onChanged={() => {
+              refresh('access.case.saved');
             }}
           />
           <CasePartiesSection

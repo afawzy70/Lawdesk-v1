@@ -41,6 +41,9 @@ export interface LegalCase {
   financialAmount?: string | null;
   primaryMember?: MemberRef | null;
   alternateMember?: MemberRef | null;
+  /** LD-050: a restricted case is reachable only by its members and explicit grants. */
+  confidentiality?: 'NORMAL' | 'RESTRICTED';
+  owningUnitId?: string | null;
 }
 
 export interface CaseListItem {

@@ -23,7 +23,7 @@ export function CaseAssignmentSection({ legalCase, onChanged }: Props) {
   const [saving, setSaving] = useState(false);
 
   const permissions = state?.status === 'signedIn' ? state.me.permissions : [];
-  if (!permissions.includes('CASE_EDIT') || !permissions.includes('CASE_STATUS_CHANGE')) return null;
+  if (!permissions.includes('ASSIGN_CASE')) return null;
 
   const submit = async (event: SyntheticEvent) => {
     event.preventDefault();

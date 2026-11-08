@@ -26,7 +26,7 @@ class CaseRepository {
     private static final String COLUMNS = """
             id, reference_no, title, case_type, subject, opened_on, status, version, created_at, created_by,
             updated_at, updated_by, automated_no, authority_position, financial_impact, financial_amount,
-            primary_member_id, alternate_member_id,
+            primary_member_id, alternate_member_id, confidentiality, owning_unit_id,
             (select display_name from app_user where id = primary_member_id) as primary_member_name,
             (select display_name from app_user where id = alternate_member_id) as alternate_member_name""";
 
@@ -259,7 +259,9 @@ class CaseRepository {
                 optional(rs.getString("financial_impact"), FinancialImpact::valueOf),
                 rs.getBigDecimal("financial_amount"),
                 member(rs, "primary_member_id", "primary_member_name"),
-                member(rs, "alternate_member_id", "alternate_member_name"));
+                member(rs, "alternate_member_id", "alternate_member_name"),
+                rs.getString("confidentiality"),
+                rs.getObject("owning_unit_id", UUID.class));
     }
 
     private static <T> T optional(String value, java.util.function.Function<String, T> parse) {

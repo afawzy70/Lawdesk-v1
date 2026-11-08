@@ -1,5 +1,6 @@
 import { authEn } from './auth.en';
 import { adminEn } from './admin.en';
+import { accessEn } from './access.en';
 import { casesEn } from './cases.en';
 import { courtsEn } from './courts.en';
 import { proceedingsEn } from './proceedings.en';
@@ -55,6 +56,7 @@ export const en = {
   // Area messages, one file per workstream (architecture/CONTRACTS.md §6).
   ...authEn,
   ...adminEn,
+  ...accessEn,
   ...casesEn,
   ...courtsEn,
   ...proceedingsEn,

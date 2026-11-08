@@ -4,6 +4,7 @@ import { ApiError } from '../../api/http';
 import { useI18n } from '../../i18n/I18nContext';
 import { usePageTitle } from '../../i18n/usePageTitle';
 import { AccessDeniedPage } from '../auth/AccessDeniedPage';
+import { UserUnitSection } from '../access/UserUnitSection';
 import { getUser, listRoles, resetPassword, type RoleView, setEnabled, setRoles, updateUser, type UserView } from './api';
 import { FIELD_LABELS, failureMessages, roleLabel, statusKey } from './messages';
 
@@ -147,6 +148,7 @@ export function UserDetailsPage() {
         />
         <button type="submit">{t('admin.users.resetPassword')}</button>
       </form>
+      <UserUnitSection key={user.id} userId={user.id} orgUnitId={user.orgUnitId ?? null} />
     </section>
   );
 }
