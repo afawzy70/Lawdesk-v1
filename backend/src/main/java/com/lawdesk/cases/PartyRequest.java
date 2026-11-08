@@ -18,7 +18,9 @@ record PartyRequest(
         @Size(max = 30) @Pattern(regexp = "[0-9 +()-]+") String phone,
         @Size(max = 254) @Email String email,
         @Size(max = 500) String address,
-        @NotNull(groups = Update.class) Long version) {
+        @NotNull(groups = Update.class) Long version,
+        Boolean confidential,
+        @Size(max = 2000) String notes) {
 
     /** Validation group of an edit. */
     interface Update {
@@ -31,6 +33,8 @@ record PartyRequest(
         phone = Text.trimToNull(phone);
         email = Text.trimToNull(email);
         address = Text.trimToNull(address);
+        notes = Text.trimToNull(notes);
+        confidential = confidential != null && confidential;
     }
 
     PartyKind partyKind() {

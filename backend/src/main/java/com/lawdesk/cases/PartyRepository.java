@@ -18,7 +18,7 @@ class PartyRepository {
 
     private static final String COLUMNS = """
             id, kind, name, national_id, registration_no, phone, email, address, version, created_at, created_by,
-            updated_at, updated_by, authority""";
+            updated_at, updated_by, authority, confidential, notes""";
 
     private final JdbcClient jdbc;
 
@@ -29,12 +29,14 @@ class PartyRepository {
     Party insert(PartyRequest request, UUID actor) {
         return jdbc.sql("""
                         insert into party (kind, name, national_id, registration_no, phone, email, address,
-                                           created_by, updated_by)
-                        values (:kind, :name, :nationalId, :registrationNo, :phone, :email, :address, :actor, :actor)
+                                           confidential, notes, created_by, updated_by)
+                        values (:kind, :name, :nationalId, :registrationNo, :phone, :email, :address, :confidential,
+                                :notes, :actor, :actor)
                         returning\s""" + COLUMNS)
                 .param("kind", request.kind()).param("name", request.name()).param("nationalId", request.nationalId())
                 .param("registrationNo", request.registrationNo()).param("phone", request.phone())
-                .param("email", request.email()).param("address", request.address()).param("actor", actor)
+                .param("email", request.email()).param("address", request.address())
+                .param("confidential", request.confidential()).param("notes", request.notes()).param("actor", actor)
                 .query(PartyRepository::row).single();
     }
 
@@ -43,14 +45,16 @@ class PartyRepository {
         return jdbc.sql("""
                         update party
                         set kind = :kind, name = :name, national_id = :nationalId, registration_no = :registrationNo,
-                            phone = :phone, email = :email, address = :address, version = version + 1,
+                            phone = :phone, email = :email, address = :address, confidential = :confidential,
+                            notes = :notes, version = version + 1,
                             updated_at = now(), updated_by = :actor
                         where id = :id and version = :version
                         returning\s""" + COLUMNS)
                 .param("id", id).param("version", request.version())
                 .param("kind", request.kind()).param("name", request.name()).param("nationalId", request.nationalId())
                 .param("registrationNo", request.registrationNo()).param("phone", request.phone())
-                .param("email", request.email()).param("address", request.address()).param("actor", actor)
+                .param("email", request.email()).param("address", request.address())
+                .param("confidential", request.confidential()).param("notes", request.notes()).param("actor", actor)
                 .query(PartyRepository::row).optional();
     }
 
@@ -72,9 +76,9 @@ class PartyRepository {
     }
 
     /** Parties whose name or identifiers contain {@code q} (ignoring case), by name. */
-    PageResponse<Party> search(Paging paging) {
+    PageResponse<Party> search(Paging paging, boolean byIdentifier) {
         String where = paging.q() == null ? "" : " where name ilike :q escape '\\'"
-                + " or national_id ilike :q escape '\\' or registration_no ilike :q escape '\\'";
+                + (byIdentifier ? " or national_id ilike :q escape '\\' or registration_no ilike :q escape '\\'" : "");
         String pattern = paging.q() == null ? null : "%" + Text.escapeLike(paging.q()) + "%";
         long total = jdbc.sql("select count(*) from party" + where).param("q", pattern).query(Long.class).single();
         List<Party> items = jdbc.sql("select " + COLUMNS + " from party" + where
@@ -157,6 +161,25 @@ class PartyRepository {
                 rs.getObject("created_by", UUID.class),
                 rs.getObject("updated_at", OffsetDateTime.class).toInstant(),
                 rs.getObject("updated_by", UUID.class),
-                rs.getBoolean("authority"));
+                rs.getBoolean("authority"),
+                rs.getBoolean("confidential"),
+                rs.getString("notes"));
+    }
+
+    /** The cases a party is on, among those {@code visible} allows, newest first. */
+    List<PartyCase> casesOf(UUID partyId, CaseAccessPolicy.Predicate visible) {
+        java.util.Map<String, Object> params = new java.util.HashMap<>(visible.params());
+        params.put("party", partyId);
+        return jdbc.sql("""
+                        select c.id, c.reference_no, c.title, c.status, cp.role, cp.side
+                        from case_party cp join legal_case c on c.id = cp.case_id
+                        where cp.party_id = :party and\s""" + visible.sql() + " order by c.created_at desc, c.id")
+                .params(params).query((rs, n) -> new PartyCase(rs.getObject("id", UUID.class),
+                        rs.getString("reference_no"), rs.getString("title"), rs.getString("status"),
+                        rs.getString("role"), rs.getString("side"))).list();
+    }
+
+    /** A case a party is on, with the party's role and side there. */
+    record PartyCase(UUID caseId, String referenceNo, String title, String status, String role, String side) {
     }
 }

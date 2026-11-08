@@ -15,11 +15,12 @@ final class InvolvementRequests {
 
     /** At least a unit of the structure or a name must identify the involved unit. */
     record Create(UUID orgUnitId, @Size(max = 200) String sectorName, @Size(max = 200) String departmentName,
-            @Size(max = 200) String sectionName, boolean primary, @Size(max = 200) String contactName,
+            @Size(max = 200) String sectionName, Boolean primary, @Size(max = 200) String contactName,
             @Size(max = 300) String contactInfo, LocalDate referralDate, @Size(max = 1000) String requestedFromUnit,
             @Size(max = 2000) String notes) {
 
         Create {
+            primary = primary != null && primary;
             sectorName = Text.trimToNull(sectorName);
             departmentName = Text.trimToNull(departmentName);
             sectionName = Text.trimToNull(sectionName);
@@ -30,11 +31,12 @@ final class InvolvementRequests {
         }
     }
 
-    record Update(boolean primary, @Size(max = 200) String contactName, @Size(max = 300) String contactInfo,
+    record Update(Boolean primary, @Size(max = 200) String contactName, @Size(max = 300) String contactInfo,
             LocalDate referralDate, @Size(max = 1000) String requestedFromUnit, @Size(max = 2000) String notes,
             @NotNull Long version) {
 
         Update {
+            primary = primary != null && primary;
             contactName = Text.trimToNull(contactName);
             contactInfo = Text.trimToNull(contactInfo);
             requestedFromUnit = Text.trimToNull(requestedFromUnit);

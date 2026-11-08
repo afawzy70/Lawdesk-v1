@@ -1,6 +1,7 @@
 package com.lawdesk.cases;
 
 import java.util.List;
+import java.util.UUID;
 
 import jakarta.validation.Valid;
 
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -24,11 +26,13 @@ class IntakeController {
     private final IntakeService intake;
     private final CaseService cases;
     private final UserDirectory users;
+    private final DuplicateCheck duplicates;
 
-    IntakeController(IntakeService intake, CaseService cases, UserDirectory users) {
+    IntakeController(IntakeService intake, CaseService cases, UserDirectory users, DuplicateCheck duplicates) {
         this.intake = intake;
         this.cases = cases;
         this.users = users;
+        this.duplicates = duplicates;
     }
 
     @PostMapping("/api/v1/cases/intake")
@@ -37,6 +41,16 @@ class IntakeController {
         LegalCase created = intake.register(request);
         return ResponseEntity.created(ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("/api/v1/cases/{id}").buildAndExpand(created.id()).toUri()).body(created);
+    }
+
+    /** Cases that may be the same as the one being registered; the cases the asker cannot see are counted only. */
+    @GetMapping("/api/v1/cases/duplicate-check")
+    @PreAuthorize(Permission.Codes.CASE_CREATE)
+    DuplicateCheck.Result duplicateCheck(@RequestParam(required = false) String automatedNo,
+            @RequestParam(required = false) UUID courtId, @RequestParam(required = false) String courtCaseNumber,
+            @RequestParam(required = false) Integer courtCaseYear, @RequestParam(required = false) String title) {
+        return duplicates.find(new DuplicateCheck.Candidate(Text.trimToNull(automatedNo), courtId,
+                Text.trimToNull(courtCaseNumber), courtCaseYear, Text.trimToNull(title)));
     }
 
     /** The active legal department members who can be assigned (العضو المختص / العضو البديل). */

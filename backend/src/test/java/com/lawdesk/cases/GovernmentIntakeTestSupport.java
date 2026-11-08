@@ -91,7 +91,17 @@ abstract class GovernmentIntakeTestSupport extends PostgresTestSupport {
                 .formatted(court, primary, extra == null || extra.isEmpty() ? "" : "," + extra);
     }
 
+    /**
+     * A registration that has already been told about any resemblance to another case: most tests register several
+     * cases that look alike and are not about the duplicate warning, which {@link #registerStrict} leaves in force.
+     */
     MockHttpServletRequestBuilder register(RequestPostProcessor user, String json) {
+        String confirmed = json.contains("\"confirmDistinct\"") ? json
+                : json.substring(0, json.lastIndexOf('}')) + ",\"confirmDistinct\":true}";
+        return registerStrict(user, confirmed);
+    }
+
+    MockHttpServletRequestBuilder registerStrict(RequestPostProcessor user, String json) {
         return post(INTAKE).with(user).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(json);
     }
 

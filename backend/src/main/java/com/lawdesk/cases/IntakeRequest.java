@@ -38,7 +38,10 @@ record IntakeRequest(
         @NotNull @Pattern(regexp = FinancialImpact.PATTERN) String financialImpact,
         @Positive @Digits(integer = 12, fraction = 3) BigDecimal financialAmount,
         /** Chamber, receipt, referral, facts, claimed amount, importance and notes; all optional. */
-        @Valid CaseDetails details) {
+        @Valid CaseDetails details,
+        /** The registrar saw the warning about a possible duplicate and says the case is a different one. */
+        Boolean confirmDistinct,
+        @Size(max = 500) String distinctNote) {
 
     IntakeRequest {
         automatedNo = Text.trimToNull(automatedNo);
@@ -46,6 +49,8 @@ record IntakeRequest(
         subject = Text.trimToNull(subject);
         parties = parties == null ? List.of() : parties;
         details = details == null ? CaseDetails.EMPTY : details;
+        distinctNote = Text.trimToNull(distinctNote);
+        confirmDistinct = confirmDistinct != null && confirmDistinct;
     }
 
     record FirstInstance(
