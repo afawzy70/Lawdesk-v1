@@ -29,7 +29,8 @@ interface TaskRepository extends JpaRepository<Task, UUID> {
     String FILTER = """
             from Task t
             where (:assignee is null or t.assigneeId = :assignee) and (:caseId is null or t.caseId = :caseId)
-              and (t.assigneeId = :#{#scope.me} or t.createdBy = :#{#scope.me} or (t.caseId is not null
+              and (t.assigneeId = :#{#scope.me} or t.createdBy = :#{#scope.me}
+                   or (t.caseId is null and :#{#scope.all} = true) or (t.caseId is not null
                    and function('case_visible', t.caseId, :#{#scope.me}, :#{#scope.all}, :#{#scope.units},
                                 :#{#scope.types}) = true))
               and t.status in :statuses

@@ -200,8 +200,10 @@ class TaskService {
     /** Who sees a task: its assignee, its creator, and whoever sees its case. */
     private boolean mayRead(Task task) {
         UUID me = currentActor.require().id();
-        return me.equals(task.getAssigneeId()) || me.equals(task.getCreatedBy())
-                || task.getCaseId() != null && access.canView(task.getCaseId());
+        if (task.getCaseId() == null) {
+            return me.equals(task.getAssigneeId()) || me.equals(task.getCreatedBy()) || access.scope().all();
+        }
+        return me.equals(task.getAssigneeId()) || me.equals(task.getCreatedBy()) || access.canView(task.getCaseId());
     }
 
     /**

@@ -91,6 +91,9 @@ class SessionRevocationTest extends PostgresTestSupport {
             }
             return result;
         }).when(accounts).findById(any(UUID.class));
+        // These users read a case by right of their role (LD-050): the staff role is given the department-wide scope.
+        jdbc.update("insert into access_scope (subject_type, subject_ref, scope_type) values ('ROLE', 'LEGAL_STAFF', 'ALL')"
+                + " on conflict do nothing");
         var administrator = users.create("ADMIN");
         admin = signIn(administrator.username(), TestUsers.PASSWORD);
         caseId = jdbc.queryForObject("""
@@ -103,6 +106,7 @@ class SessionRevocationTest extends PostgresTestSupport {
     void tearDown() {
         jdbc.update("delete from case_event where case_id = ?", caseId);
         jdbc.update("delete from legal_case where id = ?", caseId);
+        jdbc.update("delete from access_scope where subject_type = 'ROLE' and subject_ref = 'LEGAL_STAFF'");
     }
 
     private Browser signIn(String login, String password) {

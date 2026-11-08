@@ -74,7 +74,7 @@ public class ProceedingReportQueries {
         jdbc.sql("""
                 select p.stage, count(*) as total, count(*) filter (where j.id is null) as awaiting
                 from proceeding p left join judgment j on j.proceeding_id = p.id
-                where """ + visible.sql() + " group by p.stage").params(visible.params()).query(rs -> {
+                where""" + " " + visible.sql() + " group by p.stage").params(visible.params()).query(rs -> {
                     Stage stage = Stage.valueOf(rs.getString("stage"));
                     counts.put(stage, new StageCount(stage, rs.getLong("total"), rs.getLong("awaiting")));
                 });

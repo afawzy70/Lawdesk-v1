@@ -85,8 +85,11 @@ public class TaskReportQueries {
     /** A task is reported to its assignee, its creator and whoever sees its case. */
     private CaseAccessPolicy.Predicate visible() {
         CaseAccessPolicy.Predicate cases = access.visibleCaseIds("case_id");
-        return new CaseAccessPolicy.Predicate("(assignee_id = :av_me or created_by = :av_me or (case_id is not null and "
-                + cases.sql() + "))", cases.params());
+        // A task of no case is private to its creator and assignee, and open to the department-wide scope (the manager
+        // who oversees everyone's work).
+        java.util.Map<String, Object> params = new java.util.HashMap<>(cases.params());
+        return new CaseAccessPolicy.Predicate("(assignee_id = :av_me or created_by = :av_me or (case_id is null and :av_all)"
+                + " or (case_id is not null and " + cases.sql() + "))", params);
     }
 
     /** "Today" for every task rule: the calendar date in Egypt. */

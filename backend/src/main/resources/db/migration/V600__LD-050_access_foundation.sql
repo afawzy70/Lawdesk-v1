@@ -119,46 +119,80 @@ on conflict do nothing;
 --            RESTRICTED - a scope that covers it (department level, an organisational unit with its subtree, a type).
 --   change : member, alternate, the creator while no primary member is set, a CONTRIBUTE grant, or - unless RESTRICTED -
 --            a scope that covers it for a holder of CASE_EDIT_IN_SCOPE.
-create function case_in_scope(p_case uuid, p_all boolean, p_units text, p_types text) returns boolean
-    language sql stable as $$
-    select exists (
-        select 1 from legal_case c
-        where c.id = p_case and c.confidentiality <> 'RESTRICTED' and (
-            p_all
-            or c.case_type = any (string_to_array(p_types, ','))
-            or c.owning_unit_id in (
-                with recursive tree(id) as (
-                    select u.id from org_unit u where u.id = any (cast(string_to_array(p_units, ',') as uuid[]))
-                    union
-                    select o.id from org_unit o join tree on o.parent_id = tree.id)
-                select id from tree)
-            or (c.owning_unit_id is null and exists (
-                select 1 from org_unit top
-                where top.id = any (cast(string_to_array(p_units, ',') as uuid[])) and top.parent_id is null))))
+-- Written in plpgsql with the cheap tests first: a report over tens of thousands of cases calls it once per row, and the
+-- department-wide scope answers after one indexed read of the case.
+create function case_in_scope(p_confidentiality text, p_case_type text, p_owning uuid, p_all boolean, p_units text,
+                              p_types text) returns boolean
+    language plpgsql stable as $$
+begin
+    if p_confidentiality = 'RESTRICTED' then
+        return false;
+    end if;
+    if p_all then
+        return true;
+    end if;
+    if p_types <> '' and p_case_type = any (string_to_array(p_types, ',')) then
+        return true;
+    end if;
+    if p_units <> '' then
+        if p_owning is null then
+            -- A case with no owning unit belongs to the department level: a top-level unit's scope covers it.
+            return exists (select 1 from org_unit top
+                           where top.id = any (cast(string_to_array(p_units, ',') as uuid[])) and top.parent_id is null);
+        end if;
+        return exists (
+            with recursive tree(id) as (
+                select u.id from org_unit u where u.id = any (cast(string_to_array(p_units, ',') as uuid[]))
+                union
+                select o.id from org_unit o join tree on o.parent_id = tree.id)
+            select 1 from tree where id = p_owning);
+    end if;
+    return false;
+end
 $$;
 
 create function case_visible(p_case uuid, p_me uuid, p_all boolean, p_units text, p_types text) returns boolean
-    language sql stable as $$
-    select exists (
-        select 1 from legal_case c
-        where c.id = p_case and (
-            c.primary_member_id = p_me or c.alternate_member_id = p_me or c.created_by = p_me
-            or exists (select 1 from case_grant g where g.case_id = c.id and g.user_id = p_me and g.revoked_at is null
-                       and (g.expires_at is null or g.expires_at > now()))
-            or exists (select 1 from task t where t.case_id = c.id and t.assignee_id = p_me
-                       and t.status in ('OPEN', 'IN_PROGRESS'))))
-        or case_in_scope(p_case, p_all, p_units, p_types)
+    language plpgsql stable as $$
+declare
+    c record;
+begin
+    select primary_member_id, alternate_member_id, created_by, confidentiality, case_type, owning_unit_id
+      into c from legal_case where id = p_case;
+    if not found then
+        return false;
+    end if;
+    if c.primary_member_id = p_me or c.alternate_member_id = p_me or c.created_by = p_me then
+        return true;
+    end if;
+    if case_in_scope(c.confidentiality, c.case_type, c.owning_unit_id, p_all, p_units, p_types) then
+        return true;
+    end if;
+    return exists (select 1 from case_grant g where g.case_id = p_case and g.user_id = p_me and g.revoked_at is null
+                   and (g.expires_at is null or g.expires_at > now()))
+        or exists (select 1 from task t where t.case_id = p_case and t.assignee_id = p_me
+                   and t.status in ('OPEN', 'IN_PROGRESS'));
+end
 $$;
 
 create function case_changeable(p_case uuid, p_me uuid, p_edit_in_scope boolean, p_all boolean, p_units text,
                                 p_types text) returns boolean
-    language sql stable as $$
-    select exists (
-        select 1 from legal_case c
-        where c.id = p_case and (
-            c.primary_member_id = p_me or c.alternate_member_id = p_me
-            or (c.created_by = p_me and c.primary_member_id is null)
-            or exists (select 1 from case_grant g where g.case_id = c.id and g.user_id = p_me and g.level = 'CONTRIBUTE'
-                       and g.revoked_at is null and (g.expires_at is null or g.expires_at > now()))))
-        or (p_edit_in_scope and case_in_scope(p_case, p_all, p_units, p_types))
+    language plpgsql stable as $$
+declare
+    c record;
+begin
+    select primary_member_id, alternate_member_id, created_by, confidentiality, case_type, owning_unit_id
+      into c from legal_case where id = p_case;
+    if not found then
+        return false;
+    end if;
+    if c.primary_member_id = p_me or c.alternate_member_id = p_me
+       or (c.created_by = p_me and c.primary_member_id is null) then
+        return true;
+    end if;
+    if p_edit_in_scope and case_in_scope(c.confidentiality, c.case_type, c.owning_unit_id, p_all, p_units, p_types) then
+        return true;
+    end if;
+    return exists (select 1 from case_grant g where g.case_id = p_case and g.user_id = p_me and g.level = 'CONTRIBUTE'
+                   and g.revoked_at is null and (g.expires_at is null or g.expires_at > now()));
+end
 $$;
