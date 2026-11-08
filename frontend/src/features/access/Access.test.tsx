@@ -22,16 +22,15 @@ const unit = (over: Partial<OrgUnit>): OrgUnit => ({
   version: 0,
   ...over,
 });
-const UNITS = [
-  unit({}),
-  unit({
-    id: 'u2',
-    parentId: 'u1',
-    level: 'SECTION',
-    nameAr: 'قسم القضايا',
-    nameEn: null,
-  }),
-];
+const ROOT = unit({});
+const SECTION = unit({ id: 'u2', parentId: 'u1', level: 'SECTION', nameAr: 'قسم القضايا', nameEn: null });
+const UNITS = [ROOT, SECTION];
+
+function nth<T>(list: T[], index: number): T {
+  const found = list[index];
+  if (found === undefined) throw new Error(`no item ${String(index)}`);
+  return found;
+}
 const problem = (status: number) => () =>
   new Response(JSON.stringify({ status }), {
     status,
@@ -60,7 +59,7 @@ beforeEach(() => {
 
 describe('arrange', () => {
   it('puts children under their parent and treats an unknown parent as top level', () => {
-    const rows = arrange([UNITS[1], unit({ id: 'u3', parentId: 'gone', nameAr: 'يتيمة' }), UNITS[0]]);
+    const rows = arrange([SECTION, unit({ id: 'u3', parentId: 'gone', nameAr: 'يتيمة' }), ROOT]);
     expect(rows.map((row) => [row.unit.id, row.depth])).toEqual([
       ['u3', 0],
       ['u1', 0],
@@ -75,7 +74,7 @@ describe('organisation structure', () => {
       routes: {
         'GET /api/v1/org-units?tree=LEGAL&includeInactive=true': () => jsonResponse(UNITS),
         'POST /api/v1/org-units': () => jsonResponse(unit({ id: 'u9' }), 201),
-        'PUT /api/v1/org-units/u2': () => jsonResponse({ ...UNITS[1], active: false, version: 1 }),
+        'PUT /api/v1/org-units/u2': () => jsonResponse({ ...SECTION, active: false, version: 1 }),
       },
     });
     vi.stubGlobal('fetch', fetchMock);
@@ -101,7 +100,7 @@ describe('organisation structure', () => {
       nameEn: 'New section',
     });
 
-    await user.click(within(list).getAllByRole('button', { name: 'Deactivate' })[1]);
+    await user.click(nth(within(list).getAllByRole('button', { name: 'Deactivate' }), 1));
     expect(await screen.findByText('Unit saved.')).toBeInTheDocument();
     expect(bodyOf(fetchMock, 'PUT', '/api/v1/org-units/u2')).toMatchObject({
       active: false,
@@ -225,7 +224,7 @@ describe('access scopes', () => {
   it('lists scopes, adds one of each kind and removes one', async () => {
     const fetchMock = fakeApi({
       routes: routes({
-        'POST /api/v1/access-scopes': () => jsonResponse({ ...SCOPES[0], id: 's9' }, 201),
+        'POST /api/v1/access-scopes': () => jsonResponse({ ...nth(SCOPES, 0), id: 's9' }, 201),
         'DELETE /api/v1/access-scopes/s1': () => new Response(null, { status: 204 }),
       }),
     });
@@ -255,7 +254,7 @@ describe('access scopes', () => {
     await user.selectOptions(screen.getByLabelText('Scope'), 'ALL');
     expect(screen.queryByLabelText('Unit or case type')).not.toBeInTheDocument();
 
-    await user.click(screen.getAllByRole('button', { name: 'Remove' })[0]);
+    await user.click(nth(screen.getAllByRole('button', { name: 'Remove' }), 0));
     expect(await screen.findByText('Scope removed.')).toBeInTheDocument();
   });
 
@@ -286,7 +285,7 @@ describe('access scopes', () => {
     const user = userEvent.setup();
     const first = renderAt('/admin/access');
     await screen.findByText(/قسم القضايا/);
-    await user.click(screen.getAllByRole('button', { name: 'Remove' })[0]);
+    await user.click(nth(screen.getAllByRole('button', { name: 'Remove' }), 0));
     expect(await screen.findByRole('alert')).toHaveTextContent('could not be loaded or saved');
     first.unmount();
 

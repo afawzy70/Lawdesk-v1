@@ -47,6 +47,8 @@ export function scriptedFetch(respond: (request: Request) => Response | Promise<
     const body = typeof init?.body === 'string' ? (JSON.parse(init.body) as unknown) : null;
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
     const request = { method: init?.method ?? 'GET', url, body };
+    // The structure lists of LD-050 (units a case concerns, the authority's units) are not what these tests script.
+    if (request.method === 'GET' && /\/involvements$|\/api\/v1\/org-units/.test(url)) return Promise.resolve(jsonResponse([]));
     requests.push(request);
     return Promise.resolve(respond(request));
   });

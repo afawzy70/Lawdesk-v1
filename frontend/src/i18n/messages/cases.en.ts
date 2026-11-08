@@ -8,6 +8,8 @@ export const casesEn = {
   'cases.type.LABOR': 'Labour',
   'cases.type.FAMILY': 'Family (personal status)',
   'cases.type.ADMINISTRATIVE': 'Administrative',
+  'cases.type.CONSTITUTIONAL': 'Constitutional',
+  'cases.type.OTHER': 'Other',
 
   'cases.status.OPEN': 'Open',
   'cases.status.ACTIVE': 'Active',

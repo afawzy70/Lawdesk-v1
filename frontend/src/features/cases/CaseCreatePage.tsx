@@ -8,7 +8,8 @@ import { withLang } from '../../i18n/locale';
 import { usePageTitle } from '../../i18n/usePageTitle';
 import { listCourtsPage } from '../proceedings/proceedingsApi';
 import type { Court } from '../courts/courtsApi';
-import { CASE_TYPES, registerCase, type IntakeInput, type Side } from './api';
+import { CASE_TYPES, claimedAmountValid, EMPTY_DETAILS, registerCase, type IntakeInput, type Side } from './api';
+import { CaseDetailsFields } from './intake/CaseDetailsFields';
 import { FinancialImpactFields, type FinancialValue } from './intake/FinancialImpactFields';
 import { IntakePartiesSection, type DraftParty } from './intake/IntakePartiesSection';
 import { MemberFields } from './intake/MemberFields';
@@ -25,7 +26,7 @@ export interface CreatedState {
 type Field =
   | 'automatedNo' | 'title' | 'caseType' | 'subject' | 'openedOn' | 'courtId' | 'courtCaseNumber' | 'courtCaseYear'
   | 'filingDate' | 'authorityPosition' | 'parties' | 'primaryMemberId' | 'alternateMemberId' | 'financialImpact'
-  | 'financialAmount';
+  | 'financialAmount' | 'claimedAmount';
 type Errors = Partial<Record<Field, MessageKey>>;
 
 const SERVER_FIELDS: Record<string, Field> = {
@@ -34,6 +35,7 @@ const SERVER_FIELDS: Record<string, Field> = {
   'firstInstance.courtCaseYear': 'courtCaseYear', 'firstInstance.filingDate': 'filingDate',
   firstInstance: 'courtId', authorityPosition: 'authorityPosition', primaryMemberId: 'primaryMemberId',
   alternateMemberId: 'alternateMemberId', financialImpact: 'financialImpact', financialAmount: 'financialAmount',
+  'details.claimedAmount': 'claimedAmount',
 };
 
 const CODES: Record<string, MessageKey> = {
@@ -99,6 +101,7 @@ function check(v: IntakeInput, financial: FinancialValue, reviewPending: boolean
   required('primaryMemberId', v.primaryMemberId);
   if (v.authorityPosition === '') errors.authorityPosition = 'cases.error.NotNull';
   if (reviewPending) errors.parties = 'intake.review.pending';
+  if (!claimedAmountValid(v.details.claimedAmount)) errors.claimedAmount = 'details.error.amount';
   if (financial.impact === '') errors.financialImpact = 'intake.financial.required';
   if (financial.impact === 'YES') {
     const amount = financial.amount.trim();
@@ -120,7 +123,7 @@ export function CaseCreatePage() {
   const [values, setValues] = useState<IntakeInput>(() => ({
     automatedNo: '', title: '', caseType: '', subject: '', openedOn: todayIso(), courtId: '', courtCaseNumber: '',
     courtCaseYear: '', filingDate: '', authorityPosition: '', parties: [], primaryMemberId: '', alternateMemberId: '',
-    financialImpact: '', financialAmount: '',
+    financialImpact: '', financialAmount: '', details: EMPTY_DETAILS,
   }));
   const [drafts, setDrafts] = useState<DraftParty[]>([]);
   const [reviewPending, setReviewPending] = useState(false);
@@ -303,6 +306,11 @@ export function CaseCreatePage() {
             amountError={errors.financialAmount}
           />
         ))}
+        <CaseDetailsFields
+          value={values.details}
+          onChange={(next) => { setValues((c) => ({ ...c, details: next })); }}
+          amountError={errors.claimedAmount}
+        />
         <div className="case-actions">
           <button type="submit" className="primary" disabled={saving}>
             {t(saving ? 'intake.saving' : 'intake.submit')}

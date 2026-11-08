@@ -1,7 +1,8 @@
 import { useId, useState, type ReactNode, type SyntheticEvent } from 'react';
 import type { MessageKey } from '../../i18n/catalog';
 import { useI18n } from '../../i18n/I18nContext';
-import { CASE_TYPES, type CaseExtras, type NewCase } from './api';
+import { CASE_TYPES, type CaseExtras, claimedAmountValid, type NewCase } from './api';
+import { CaseDetailsFields } from './intake/CaseDetailsFields';
 import { FinancialImpactFields } from './intake/FinancialImpactFields';
 import type { CaseField, FieldErrors } from './problems';
 import './cases.css';
@@ -35,6 +36,7 @@ export function CaseForm({ initial, withReference, submitLabel, initialExtras, o
   const [values, setValues] = useState(initial);
   const [extras, setExtras] = useState(initialExtras);
   const [amountError, setAmountError] = useState(false);
+  const [claimedError, setClaimedError] = useState(false);
   const [failure, setFailure] = useState<Failure | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -46,6 +48,11 @@ export function CaseForm({ initial, withReference, submitLabel, initialExtras, o
     event.preventDefault();
     if (saving) return;
     setAmountError(false);
+    setClaimedError(false);
+    if (extras !== undefined && !claimedAmountValid(extras.details.claimedAmount)) {
+      setClaimedError(true);
+      return;
+    }
     if (extras?.financialImpact === 'YES' && !/^\d{1,12}([.,]\d{1,3})?$/.test(extras.financialAmount.trim())) {
       setAmountError(true);
       return;
@@ -200,6 +207,13 @@ export function CaseForm({ initial, withReference, submitLabel, initialExtras, o
               setExtras({ ...extras, financialImpact: next.impact, financialAmount: next.amount });
             }}
             amountError={amountError ? 'intake.error.amount' : undefined}
+          />
+          <CaseDetailsFields
+            value={extras.details}
+            onChange={(next) => {
+              setExtras({ ...extras, details: next });
+            }}
+            amountError={claimedError ? 'details.error.amount' : undefined}
           />
         </>
       )}

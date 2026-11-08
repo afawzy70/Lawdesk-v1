@@ -4,6 +4,7 @@ import type { MessageKey } from '../../i18n/catalog';
 import { useI18n } from '../../i18n/I18nContext';
 import { usePageTitle } from '../../i18n/usePageTitle';
 import { AccessDeniedPage } from '../auth/AccessDeniedPage';
+import { CASE_TYPES } from '../cases/api';
 import { AdminTabs } from '../admin/AdminTabs';
 import { listRoles, type RoleView } from '../admin/api';
 import {
@@ -16,8 +17,6 @@ import {
   SCOPE_TYPES,
   type ScopeType,
 } from './api';
-
-const CASE_TYPES = ['CIVIL', 'CRIMINAL', 'COMMERCIAL', 'LABOR', 'FAMILY', 'ADMINISTRATIVE'] as const;
 
 /** LD-050: which cases each role sees beyond the ones its users are members of. */
 export function AccessScopesPage() {

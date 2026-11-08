@@ -47,7 +47,14 @@ describe('edit case (LD-013)', () => {
     expect(requests[1]).toEqual({
       method: 'PUT',
       url: `/api/v1/cases/${CASE.id}`,
-      body: { title: 'New title', caseType: 'COMMERCIAL', subject: 'Unpaid invoices', openedOn: '2026-03-01', version: 4 },
+      body: {
+        title: 'New title',
+        caseType: 'COMMERCIAL',
+        subject: 'Unpaid invoices',
+        openedOn: '2026-03-01',
+        version: 4,
+        details: { chamber: null, receivedOn: null, referringUnitId: null, referredBy: null, facts: null, claimedAmount: null, importance: null, internalNotes: null },
+      },
     });
     expect(screen.getByRole('textbox', { name: 'Title' })).toHaveValue('New title');
 
