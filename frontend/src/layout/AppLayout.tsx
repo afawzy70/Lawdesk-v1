@@ -79,7 +79,7 @@ export function AppLayout() {
                 const q = typeof value === 'string' ? value.trim() : '';
                 const params = new URLSearchParams({ lang: locale });
                 if (q !== '') params.set('q', q);
-                void navigate(`/cases?${params.toString()}`);
+                void navigate(`/search?${params.toString()}`);
               }}
             >
               <label className="visually-hidden" htmlFor="app-case-search">{t('shell.caseSearch')}</label>

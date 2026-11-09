@@ -51,6 +51,11 @@ export const PERMISSIONS = [
   'EVIDENCE_VIEW',
   'EVIDENCE_MANAGE',
   'LOOKUP_MANAGE',
+  'SETTLEMENT_MANAGE',
+  'SETTLEMENT_APPROVE',
+  'DIRECTIVE_MANAGE',
+  'TEMPLATE_MANAGE',
+  'SEARCH_ALL',
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
