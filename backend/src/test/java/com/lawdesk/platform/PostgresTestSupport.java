@@ -42,7 +42,7 @@ public abstract class PostgresTestSupport {
     }
 
     /** A new, empty database (no migrations applied) on the same server, for tests that drive Flyway themselves. */
-    protected static DataSource freshDatabase() {
+    public static DataSource freshDatabase() {
         Server server = Server.INSTANCE;
         PGSimpleDataSource dataSource = new PGSimpleDataSource();
         dataSource.setUrl(server.jdbcUrl(server.createDatabase()));

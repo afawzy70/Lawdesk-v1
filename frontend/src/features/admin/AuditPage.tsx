@@ -114,7 +114,7 @@ export function AuditPage() {
       {failure === 'error' && <p role="alert">{t('admin.error.unexpected')}</p>}
       {result !== null && result.items.length === 0 && <p>{t('admin.audit.none')}</p>}
       {result !== null && result.items.length > 0 && (
-        <div className="table-scroll">
+        <div className="table-scroll" role="region" tabIndex={0} aria-label={t('admin.audit.title')}>
           <table>
             <caption>{t('admin.audit.title')}</caption>
             <thead>

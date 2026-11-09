@@ -43,7 +43,7 @@ export function RolesPage() {
       {canManage && <Link to={withLang('/admin/roles/new', locale)}>{t('admin.roles.new')}</Link>}
       {failure === 'error' && <p role="alert">{t('admin.error.unexpected')}</p>}
       {roles !== null && (
-        <div className="table-scroll">
+        <div className="table-scroll" role="region" tabIndex={0} aria-label={t('admin.roles.title')}>
           <table>
             <caption>{t('admin.roles.title')}</caption>
             <thead>

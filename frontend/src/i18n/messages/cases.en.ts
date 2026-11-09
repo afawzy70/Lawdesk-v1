@@ -99,6 +99,7 @@ export const casesEn = {
   'cases.role.OTHER': 'Other',
 
   'cases.parties.title': 'Parties',
+  'cases.parties.table': 'Parties table',
   'cases.parties.empty': 'No parties yet.',
   'cases.parties.name': 'Name',
   'cases.parties.kind': 'Kind',

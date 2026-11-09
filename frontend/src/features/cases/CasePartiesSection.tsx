@@ -294,7 +294,7 @@ export function CasePartiesSection({ caseId, authorityPosition, generation, edit
       <Failure message={current?.failure ?? removeFailure} />
       {current?.parties?.length === 0 ? <p>{t('cases.parties.empty')}</p> : null}
       {current?.parties !== undefined && current.parties !== null && current.parties.length > 0 ? (
-        <div className="table-scroll" role="region" tabIndex={0} aria-labelledby={headingId}>
+        <div className="table-scroll" role="region" tabIndex={0} aria-label={t('cases.parties.table')}>
           <table className="case-table">
             <caption className="visually-hidden">{t('cases.parties.title')}</caption>
             <thead>

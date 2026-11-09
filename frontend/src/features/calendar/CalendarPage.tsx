@@ -68,6 +68,12 @@ function MonthGrid({ view, onOpen }: { view: CalendarView; onOpen: (date: string
   const counts = new Map(view.days.map((d) => [d.date, d.count]));
   const conflicts = new Set(view.events.filter((e) => e.conflict).map((e) => e.date));
   const days: (string | null)[] = [...Array<null>(lead).fill(null), ...datesBetween(view.from, view.to)];
+  const weeks: (string | null)[][] = [];
+  for (let i = 0; i < days.length; i += 7) {
+    const week = days.slice(i, i + 7);
+    while (week.length < 7) week.push(null);
+    weeks.push(week);
+  }
   const weekdays = datesBetween('2027-01-03', '2027-01-09');
   return (
     <div className="wp6-month" role="grid" aria-label={t('wp6.calendar.monthGrid')}>
@@ -81,28 +87,34 @@ function MonthGrid({ view, onOpen }: { view: CalendarView; onOpen: (date: string
         ))}
       </div>
       <div className="wp6-month-body">
-        {days.map((date, index) => {
-          if (date === null) return <span key={`blank-${String(index)}`} className="wp6-cell wp6-cell-blank" role="gridcell" />;
-          const count = counts.get(date) ?? 0;
-          const label = t('wp6.calendar.dayCount', { date: formatDate(date, locale), count: formatNumber(count, locale) });
-          return (
-            <button
-              key={date}
-              type="button"
-              role="gridcell"
-              className="wp6-cell"
-              data-busy={count > 0}
-              data-conflict={conflicts.has(date)}
-              aria-label={label}
-              onClick={() => {
-                onOpen(date);
-              }}
-            >
-              <span className="wp6-cell-day">{formatNumber(Number(date.slice(8)), locale)}</span>
-              {count === 0 ? null : <span className="wp6-cell-count">{formatNumber(count, locale)}</span>}
-            </button>
-          );
-        })}
+        {weeks.map((week, weekIndex) => (
+          <div key={weekIndex} role="row" className="wp6-week">
+            {week.map((date, offset) => {
+              if (date === null) {
+                return <span key={`blank-${String(weekIndex)}-${String(offset)}`} className="wp6-cell wp6-cell-blank" role="gridcell" />;
+              }
+              const count = counts.get(date) ?? 0;
+              const label = t('wp6.calendar.dayCount', { date: formatDate(date, locale), count: formatNumber(count, locale) });
+              return (
+                <button
+                  key={date}
+                  type="button"
+                  role="gridcell"
+                  className="wp6-cell"
+                  data-busy={count > 0}
+                  data-conflict={conflicts.has(date)}
+                  aria-label={label}
+                  onClick={() => {
+                    onOpen(date);
+                  }}
+                >
+                  <span className="wp6-cell-day">{formatNumber(Number(date.slice(8)), locale)}</span>
+                  {count === 0 ? null : <span className="wp6-cell-count">{formatNumber(count, locale)}</span>}
+                </button>
+              );
+            })}
+          </div>
+        ))}
       </div>
     </div>
   );

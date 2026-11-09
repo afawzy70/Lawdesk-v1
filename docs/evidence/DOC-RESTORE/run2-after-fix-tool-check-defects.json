@@ -1,0 +1,2696 @@
+{
+  "checks": [
+    {
+      "check": "source: stored files match their SHA-256 column",
+      "ok": true,
+      "detail": "[{\"kind\": \"version\", \"files\": 1200, \"bytes\": 70971384}, {\"kind\": \"head\", \"files\": 600, \"bytes\": 36183372}]"
+    },
+    {
+      "check": "experiment: role-script-first order is refused by pg_restore (documented as the wrong order)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "pg_restore printed nothing on stderr (no warnings, no ignored errors)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "restored database is identical to the source (rows, content hashes, files, FKs, links, versions, grants, scopes, sequences, structure, visibility)",
+      "ok": false,
+      "detail": "structure: before=[{\"kind\": \"functions\", \"n\": 25, \"digest\": \"99e7c35642d2d98179f7a6bc275a35ca\"}, {\"kind\": \"triggers\", \"n\": 27, \"digest\": \" after=[{\"kind\": \"functions\", \"n\": 25, \"digest\": \"99e7c35642d2d98179f7a6bc275a35ca\"}, {\"kind\": \"triggers\", \"n\": 27, \"digest\": \""
+    },
+    {
+      "check": "restored: every stored file matches its SHA-256 column and size",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "restored: no orphan rows and every foreign key validated",
+      "ok": true,
+      "detail": "131 foreign keys"
+    },
+    {
+      "check": "restored: no document link across cases",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "restored: the visibility answers of four personas are identical",
+      "ok": true,
+      "detail": "{\"manager\": 267, \"head\": 173, \"staff\": 225, \"archivist\": 187}"
+    },
+    {
+      "check": "restored: the fast CaseAccessPolicy predicate equals case_visible() for every persona",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "restored: the application role keeps search_path=lawdesk after the role script",
+      "ok": true,
+      "detail": "{search_path=lawdesk}"
+    },
+    {
+      "check": "experiment: the -j 4 restore is identical as well",
+      "ok": false,
+      "detail": "structure: before=[{\"kind\": \"functions\", \"n\": 25, \"digest\": \"99e7c35642d2d98179f7a6bc275a35ca\"}, {\"kind\": \"triggers\", \"n\": 27, \"digest\": \" after=[{\"kind\": \"functions\", \"n\": 25, \"digest\": \"99e7c35642d2d98179f7a6bc275a35ca\"}, {\"kind\": \"triggers\", \"n\": 27, \"digest\": \""
+    },
+    {
+      "check": "restored: Flyway applied nothing new and the schema validated",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "restored: the API answers (cases, documents, downloaded file hashes) are identical for the four personas",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "restored: smoke reads worked",
+      "ok": false,
+      "detail": ""
+    },
+    {
+      "check": "restored: files downloaded through the API were hashed",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "measurements": {
+    "seed_seconds": 19.9,
+    "source_database_bytes": 132301327,
+    "dump_bytes": 123622275,
+    "dump_sha256": "b12d3c1f95e5c88b487224424b61441a380ef71aa99a28530148d09e14e50ec6",
+    "dump_toc_entries": 638
+  },
+  "started": "2026-11-09T16:03:19+00:00",
+  "scale": 1,
+  "client_version": "pg_dump (PostgreSQL) 18.6 (Ubuntu 18.6-3.pgdg24.04+1)",
+  "restore_version": "pg_restore (PostgreSQL) 18.6 (Ubuntu 18.6-3.pgdg24.04+1)",
+  "server_version": "18.6",
+  "server_encoding_collation": "C.UTF-8 / UTF8",
+  "migration_boot": {
+    "migrations_applied": 59,
+    "schema_up_to_date_message": false
+  },
+  "api_before": {
+    "anonymous_cases_status": 401,
+    "release_status": 401,
+    "manager": {
+      "login_status": 200,
+      "cases": 267,
+      "cases_digest": "6079c08e56ed95c4d089004b582b1db40ff0d996fd026fcad4f8de49ae478f7f",
+      "documents": 534,
+      "documents_digest": "34394673cb93d48e1362dee542d3c61d8cd48c0c99fa046def33affa5d73c5bd",
+      "downloaded_files": 69,
+      "download_digest": "45eccd0a1630d6820a03dabef72982ade512e05be4576c0c6f37957d62062b2e",
+      "tasks_status": 200,
+      "tasks_first_page_statuses": [
+        "CANCELLED",
+        "COMPLETED",
+        "IN_PROGRESS",
+        "LATE",
+        "NEW",
+        "WAITING_DOCUMENTS",
+        "WAITING_OTHER"
+      ]
+    },
+    "head": {
+      "login_status": 200,
+      "cases": 173,
+      "cases_digest": "61c50aca65dfbfd3e7502fc40891794ddc83eeccfae6b05cf55f298905468759",
+      "documents": 346,
+      "documents_digest": "84e11b34b3decdde898e3595951628f2595017f8b7a7890eb844f1c2c6b9425d",
+      "downloaded_files": 65,
+      "download_digest": "06725d3224fe78de739568c636e167a228f8c8ce4ae960baf822edcece764ab6",
+      "tasks_status": 200,
+      "tasks_first_page_statuses": [
+        "CANCELLED",
+        "COMPLETED",
+        "IN_PROGRESS",
+        "LATE",
+        "NEW",
+        "WAITING_DOCUMENTS",
+        "WAITING_OTHER"
+      ]
+    },
+    "staff": {
+      "login_status": 200,
+      "cases": 225,
+      "cases_digest": "77e5e55c5f80f42811a425768da6d65524b1e0db7248a4eb8062e16334888b51",
+      "documents": 450,
+      "documents_digest": "2211b3fe39c6b53d470c105a76500fcc7e6a0ef723f1cadf86d2d098b79f3e11",
+      "downloaded_files": 70,
+      "download_digest": "fc9724bdba08700c02a2ffd53388c15f35fd7f50682500d96959e437346b8f81",
+      "tasks_status": 200,
+      "tasks_first_page_statuses": [
+        "CANCELLED",
+        "COMPLETED",
+        "IN_PROGRESS",
+        "LATE",
+        "NEW",
+        "WAITING_DOCUMENTS",
+        "WAITING_OTHER"
+      ]
+    },
+    "archivist": {
+      "login_status": 200,
+      "cases": 187,
+      "cases_digest": "913dd0b124fbfdc49488b742573a4ce3e83fe8eeef804b32d4f402de35aa0e88",
+      "documents": 374,
+      "documents_digest": "aa123970b2cab2addf161677bcebafa73af19fc57c7dac630654ef8456330412",
+      "downloaded_files": 81,
+      "download_digest": "645df61cba2e93d32872b0038996f1340897352ac3544c535162cd0d9c24e7d7",
+      "tasks_status": 403
+    }
+  },
+  "fingerprint_before": {
+    "tables": 88,
+    "rows_total": 15422,
+    "non_empty_tables": 43,
+    "rows_per_table": {
+      "access_scope": 5,
+      "app_release": 2,
+      "app_role": 7,
+      "app_user": 4,
+      "archive_format": 6,
+      "archive_setting": 5,
+      "audit_event": 3290,
+      "case_document": 600,
+      "case_document_content": 600,
+      "case_document_quota": 300,
+      "case_event": 900,
+      "case_grant": 60,
+      "case_note": 100,
+      "case_party": 600,
+      "case_reference_counter": 1,
+      "claim": 600,
+      "court": 12,
+      "defense": 150,
+      "document_link": 848,
+      "document_text": 1200,
+      "document_version": 1200,
+      "document_version_content": 1200,
+      "enforcement_action": 200,
+      "enforcement_file": 100,
+      "flyway_schema_history": 59,
+      "hearing": 150,
+      "judgment": 200,
+      "legal_case": 300,
+      "legal_document": 300,
+      "legal_document_event": 300,
+      "library_classification": 22,
+      "lookup_value": 14,
+      "lookup_value_history": 14,
+      "managed_list_value": 20,
+      "notification": 75,
+      "org_unit": 10,
+      "party": 200,
+      "proceeding": 300,
+      "role_permission": 257,
+      "task": 600,
+      "task_history": 600,
+      "task_status_map": 7,
+      "user_role": 4
+    },
+    "files": [
+      {
+        "kind": "version",
+        "files": 1200,
+        "bytes": 70971384,
+        "hash_mismatch": 0,
+        "size_mismatch": 0
+      },
+      {
+        "kind": "head",
+        "files": 600,
+        "bytes": 36183372,
+        "hash_mismatch": 0,
+        "size_mismatch": 0
+      }
+    ],
+    "foreign_keys": {
+      "count": 131,
+      "not_validated": [],
+      "orphans": {}
+    },
+    "links": {
+      "links": 848,
+      "to_claims": 300,
+      "to_defenses": 150,
+      "to_hearings": 78,
+      "to_judgments": 200,
+      "to_tasks": 120,
+      "claims_with_source": 300,
+      "defenses_with_memo": 150,
+      "enforcement_actions_with_document": 200,
+      "memos_with_file": 300,
+      "texts": 1200,
+      "texts_with_marker": 1200,
+      "links_across_cases": 0,
+      "digest": "9e96a160d522580d5982dda452b333a1"
+    },
+    "version_history": [
+      {
+        "documents": 600,
+        "current_not_latest": 0,
+        "digest": "922b214dc4dd769be7c514ab2b1aaa7b"
+      }
+    ],
+    "sequences": [
+      {
+        "name": "lawdesk.app_release_id_seq",
+        "last_value": 2
+      },
+      {
+        "name": "lawdesk.assistant_query_log_id_seq",
+        "last_value": null
+      },
+      {
+        "name": "lawdesk.audit_event_id_seq",
+        "last_value": 3290
+      },
+      {
+        "name": "lawdesk.case_event_seq_seq",
+        "last_value": 900
+      },
+      {
+        "name": "lawdesk.directive_no_seq",
+        "last_value": null
+      },
+      {
+        "name": "lawdesk.info_request_no_seq",
+        "last_value": null
+      }
+    ],
+    "structure": [
+      {
+        "kind": "functions",
+        "n": 25,
+        "digest": "99e7c35642d2d98179f7a6bc275a35ca"
+      },
+      {
+        "kind": "triggers",
+        "n": 27,
+        "digest": "ef4c3ee5c3cddf79e482224b43fcf125"
+      },
+      {
+        "kind": "indexes",
+        "n": 265,
+        "digest": "b30aee58b2e08f84d2ee389f41a2db13"
+      },
+      {
+        "kind": "constraints",
+        "n": 1234,
+        "digest": "1ea0bedcc5eaa9f31709bf243c9106d6"
+      }
+    ],
+    "ownership": [
+      {
+        "relkind": "S",
+        "owner": "lawdesk_app",
+        "n": 6
+      },
+      {
+        "relkind": "i",
+        "owner": "lawdesk_app",
+        "n": 265
+      },
+      {
+        "relkind": "r",
+        "owner": "lawdesk_app",
+        "n": 88
+      }
+    ],
+    "flyway": {
+      "applied": 59,
+      "failed": 0,
+      "latest": 800
+    },
+    "visibility": {
+      "manager": {
+        "viewable": 267,
+        "viewable_digest": "0a67c1786d9049f9319ef679e4184cea",
+        "viewable_by_function": 267,
+        "changeable": 267,
+        "changeable_digest": "0a67c1786d9049f9319ef679e4184cea",
+        "documents": 534,
+        "versions": 1068,
+        "tasks": 534,
+        "hearings": 126,
+        "enforcement_files": 91,
+        "memos": 267,
+        "scope": {
+          "all": true,
+          "units": "",
+          "types": "",
+          "edit": true
+        }
+      },
+      "head": {
+        "viewable": 173,
+        "viewable_digest": "53caeaafce327ca6768f39055f72c130",
+        "viewable_by_function": 173,
+        "changeable": 86,
+        "changeable_digest": "44833576f08fa4c85f351c1fe6d47cab",
+        "documents": 346,
+        "versions": 626,
+        "tasks": 346,
+        "hearings": 81,
+        "enforcement_files": 56,
+        "memos": 173,
+        "scope": {
+          "all": false,
+          "units": "10000000-0000-4000-8000-000000000002",
+          "types": "",
+          "edit": true
+        }
+      },
+      "staff": {
+        "viewable": 225,
+        "viewable_digest": "7f737b069d1f9b36c6ad5cf49536640a",
+        "viewable_by_function": 225,
+        "changeable": 54,
+        "changeable_digest": "ece9efbb69a988e6f1f1d422231f4f1f",
+        "documents": 450,
+        "versions": 900,
+        "tasks": 450,
+        "hearings": 106,
+        "enforcement_files": 73,
+        "memos": 225,
+        "scope": {
+          "all": false,
+          "units": "10000000-0000-4000-8000-000000000005",
+          "types": "LABOR",
+          "edit": false
+        }
+      },
+      "archivist": {
+        "viewable": 187,
+        "viewable_digest": "3265216aa5cd0188822ca4320213a0b5",
+        "viewable_by_function": 187,
+        "changeable": 39,
+        "changeable_digest": "a025ede23e6e5aed915cb03d57214df2",
+        "documents": 374,
+        "versions": 835,
+        "tasks": 374,
+        "hearings": 96,
+        "enforcement_files": 59,
+        "memos": 187,
+        "scope": {
+          "all": false,
+          "units": "10000000-0000-4000-8000-000000000003",
+          "types": "",
+          "edit": false
+        }
+      }
+    }
+  },
+  "negative_experiment": {
+    "rc": 1,
+    "stderr": "pg_restore: error: could not execute query: ERROR:  schema \"lawdesk\" already exists\nCommand was: CREATE SCHEMA lawdesk;\n\n\n",
+    "tables_after": 0
+  },
+  "fingerprint_after": {
+    "tables": 88,
+    "rows_total": 15422,
+    "non_empty_tables": 43,
+    "rows_per_table": {
+      "access_scope": 5,
+      "app_release": 2,
+      "app_role": 7,
+      "app_user": 4,
+      "archive_format": 6,
+      "archive_setting": 5,
+      "audit_event": 3290,
+      "case_document": 600,
+      "case_document_content": 600,
+      "case_document_quota": 300,
+      "case_event": 900,
+      "case_grant": 60,
+      "case_note": 100,
+      "case_party": 600,
+      "case_reference_counter": 1,
+      "claim": 600,
+      "court": 12,
+      "defense": 150,
+      "document_link": 848,
+      "document_text": 1200,
+      "document_version": 1200,
+      "document_version_content": 1200,
+      "enforcement_action": 200,
+      "enforcement_file": 100,
+      "flyway_schema_history": 59,
+      "hearing": 150,
+      "judgment": 200,
+      "legal_case": 300,
+      "legal_document": 300,
+      "legal_document_event": 300,
+      "library_classification": 22,
+      "lookup_value": 14,
+      "lookup_value_history": 14,
+      "managed_list_value": 20,
+      "notification": 75,
+      "org_unit": 10,
+      "party": 200,
+      "proceeding": 300,
+      "role_permission": 257,
+      "task": 600,
+      "task_history": 600,
+      "task_status_map": 7,
+      "user_role": 4
+    },
+    "files": [
+      {
+        "kind": "version",
+        "files": 1200,
+        "bytes": 70971384,
+        "hash_mismatch": 0,
+        "size_mismatch": 0
+      },
+      {
+        "kind": "head",
+        "files": 600,
+        "bytes": 36183372,
+        "hash_mismatch": 0,
+        "size_mismatch": 0
+      }
+    ],
+    "foreign_keys": {
+      "count": 131,
+      "not_validated": [],
+      "orphans": {}
+    },
+    "links": {
+      "links": 848,
+      "to_claims": 300,
+      "to_defenses": 150,
+      "to_hearings": 78,
+      "to_judgments": 200,
+      "to_tasks": 120,
+      "claims_with_source": 300,
+      "defenses_with_memo": 150,
+      "enforcement_actions_with_document": 200,
+      "memos_with_file": 300,
+      "texts": 1200,
+      "texts_with_marker": 1200,
+      "links_across_cases": 0,
+      "digest": "9e96a160d522580d5982dda452b333a1"
+    },
+    "version_history": [
+      {
+        "documents": 600,
+        "current_not_latest": 0,
+        "digest": "922b214dc4dd769be7c514ab2b1aaa7b"
+      }
+    ],
+    "sequences": [
+      {
+        "name": "lawdesk.app_release_id_seq",
+        "last_value": 2
+      },
+      {
+        "name": "lawdesk.assistant_query_log_id_seq",
+        "last_value": null
+      },
+      {
+        "name": "lawdesk.audit_event_id_seq",
+        "last_value": 3290
+      },
+      {
+        "name": "lawdesk.case_event_seq_seq",
+        "last_value": 900
+      },
+      {
+        "name": "lawdesk.directive_no_seq",
+        "last_value": null
+      },
+      {
+        "name": "lawdesk.info_request_no_seq",
+        "last_value": null
+      }
+    ],
+    "structure": [
+      {
+        "kind": "functions",
+        "n": 25,
+        "digest": "99e7c35642d2d98179f7a6bc275a35ca"
+      },
+      {
+        "kind": "triggers",
+        "n": 27,
+        "digest": "ef4c3ee5c3cddf79e482224b43fcf125"
+      },
+      {
+        "kind": "indexes",
+        "n": 265,
+        "digest": "15e94531f83c6c99f2fe8363a6701050"
+      },
+      {
+        "kind": "constraints",
+        "n": 1234,
+        "digest": "c9d32f81ccf66c3d480cdd664b90b3ce"
+      }
+    ],
+    "ownership": [
+      {
+        "relkind": "S",
+        "owner": "lawdesk_app",
+        "n": 6
+      },
+      {
+        "relkind": "i",
+        "owner": "lawdesk_app",
+        "n": 265
+      },
+      {
+        "relkind": "r",
+        "owner": "lawdesk_app",
+        "n": 88
+      }
+    ],
+    "flyway": {
+      "applied": 59,
+      "failed": 0,
+      "latest": 800
+    },
+    "visibility": {
+      "manager": {
+        "viewable": 267,
+        "viewable_digest": "0a67c1786d9049f9319ef679e4184cea",
+        "viewable_by_function": 267,
+        "changeable": 267,
+        "changeable_digest": "0a67c1786d9049f9319ef679e4184cea",
+        "documents": 534,
+        "versions": 1068,
+        "tasks": 534,
+        "hearings": 126,
+        "enforcement_files": 91,
+        "memos": 267,
+        "scope": {
+          "all": true,
+          "units": "",
+          "types": "",
+          "edit": true
+        }
+      },
+      "head": {
+        "viewable": 173,
+        "viewable_digest": "53caeaafce327ca6768f39055f72c130",
+        "viewable_by_function": 173,
+        "changeable": 86,
+        "changeable_digest": "44833576f08fa4c85f351c1fe6d47cab",
+        "documents": 346,
+        "versions": 626,
+        "tasks": 346,
+        "hearings": 81,
+        "enforcement_files": 56,
+        "memos": 173,
+        "scope": {
+          "all": false,
+          "units": "10000000-0000-4000-8000-000000000002",
+          "types": "",
+          "edit": true
+        }
+      },
+      "staff": {
+        "viewable": 225,
+        "viewable_digest": "7f737b069d1f9b36c6ad5cf49536640a",
+        "viewable_by_function": 225,
+        "changeable": 54,
+        "changeable_digest": "ece9efbb69a988e6f1f1d422231f4f1f",
+        "documents": 450,
+        "versions": 900,
+        "tasks": 450,
+        "hearings": 106,
+        "enforcement_files": 73,
+        "memos": 225,
+        "scope": {
+          "all": false,
+          "units": "10000000-0000-4000-8000-000000000005",
+          "types": "LABOR",
+          "edit": false
+        }
+      },
+      "archivist": {
+        "viewable": 187,
+        "viewable_digest": "3265216aa5cd0188822ca4320213a0b5",
+        "viewable_by_function": 187,
+        "changeable": 39,
+        "changeable_digest": "a025ede23e6e5aed915cb03d57214df2",
+        "documents": 374,
+        "versions": 835,
+        "tasks": 374,
+        "hearings": 96,
+        "enforcement_files": 59,
+        "memos": 187,
+        "scope": {
+          "all": false,
+          "units": "10000000-0000-4000-8000-000000000003",
+          "types": "",
+          "edit": false
+        }
+      }
+    }
+  },
+  "differences": [
+    "structure: before=[{\"kind\": \"functions\", \"n\": 25, \"digest\": \"99e7c35642d2d98179f7a6bc275a35ca\"}, {\"kind\": \"triggers\", \"n\": 27, \"digest\": \" after=[{\"kind\": \"functions\", \"n\": 25, \"digest\": \"99e7c35642d2d98179f7a6bc275a35ca\"}, {\"kind\": \"triggers\", \"n\": 27, \"digest\": \""
+  ],
+  "restored_boot": {
+    "migrations_applied": 0,
+    "schema_up_to_date_message": true
+  },
+  "api_after": {
+    "anonymous_cases_status": 401,
+    "release_status": 401,
+    "manager": {
+      "login_status": 200,
+      "cases": 267,
+      "cases_digest": "6079c08e56ed95c4d089004b582b1db40ff0d996fd026fcad4f8de49ae478f7f",
+      "documents": 534,
+      "documents_digest": "34394673cb93d48e1362dee542d3c61d8cd48c0c99fa046def33affa5d73c5bd",
+      "downloaded_files": 69,
+      "download_digest": "45eccd0a1630d6820a03dabef72982ade512e05be4576c0c6f37957d62062b2e",
+      "tasks_status": 200,
+      "tasks_first_page_statuses": [
+        "CANCELLED",
+        "COMPLETED",
+        "IN_PROGRESS",
+        "LATE",
+        "NEW",
+        "WAITING_DOCUMENTS",
+        "WAITING_OTHER"
+      ]
+    },
+    "head": {
+      "login_status": 200,
+      "cases": 173,
+      "cases_digest": "61c50aca65dfbfd3e7502fc40891794ddc83eeccfae6b05cf55f298905468759",
+      "documents": 346,
+      "documents_digest": "84e11b34b3decdde898e3595951628f2595017f8b7a7890eb844f1c2c6b9425d",
+      "downloaded_files": 65,
+      "download_digest": "06725d3224fe78de739568c636e167a228f8c8ce4ae960baf822edcece764ab6",
+      "tasks_status": 200,
+      "tasks_first_page_statuses": [
+        "CANCELLED",
+        "COMPLETED",
+        "IN_PROGRESS",
+        "LATE",
+        "NEW",
+        "WAITING_DOCUMENTS",
+        "WAITING_OTHER"
+      ]
+    },
+    "staff": {
+      "login_status": 200,
+      "cases": 225,
+      "cases_digest": "77e5e55c5f80f42811a425768da6d65524b1e0db7248a4eb8062e16334888b51",
+      "documents": 450,
+      "documents_digest": "2211b3fe39c6b53d470c105a76500fcc7e6a0ef723f1cadf86d2d098b79f3e11",
+      "downloaded_files": 70,
+      "download_digest": "fc9724bdba08700c02a2ffd53388c15f35fd7f50682500d96959e437346b8f81",
+      "tasks_status": 200,
+      "tasks_first_page_statuses": [
+        "CANCELLED",
+        "COMPLETED",
+        "IN_PROGRESS",
+        "LATE",
+        "NEW",
+        "WAITING_DOCUMENTS",
+        "WAITING_OTHER"
+      ]
+    },
+    "archivist": {
+      "login_status": 200,
+      "cases": 187,
+      "cases_digest": "913dd0b124fbfdc49488b742573a4ce3e83fe8eeef804b32d4f402de35aa0e88",
+      "documents": 374,
+      "documents_digest": "aa123970b2cab2addf161677bcebafa73af19fc57c7dac630654ef8456330412",
+      "downloaded_files": 81,
+      "download_digest": "645df61cba2e93d32872b0038996f1340897352ac3544c535162cd0d9c24e7d7",
+      "tasks_status": 403
+    }
+  },
+  "passed": false,
+  "steps": [
+    {
+      "step": "1 start the throwaway cluster",
+      "ok": true,
+      "seconds": 5.57
+    },
+    {
+      "step": "2 create the database and the application role (deploy/postgres/app-role.sql)",
+      "ok": true,
+      "seconds": 0.35
+    },
+    {
+      "step": "3 the application migrates the empty database (first boot)",
+      "ok": true,
+      "seconds": 66.19
+    },
+    {
+      "step": "4 load SYNTHETIC data as the application role",
+      "ok": true,
+      "seconds": 19.9
+    },
+    {
+      "step": "5 boot on the source and read through the API (4 personas)",
+      "ok": true,
+      "seconds": 78.53
+    },
+    {
+      "step": "5b API fingerprint of the source",
+      "ok": true,
+      "seconds": 61.13,
+      "anonymous_cases_status": 401,
+      "release_status": 401,
+      "manager": {
+        "login_status": 200,
+        "cases": 267,
+        "cases_digest": "6079c08e56ed95c4d089004b582b1db40ff0d996fd026fcad4f8de49ae478f7f",
+        "documents": 534,
+        "documents_digest": "34394673cb93d48e1362dee542d3c61d8cd48c0c99fa046def33affa5d73c5bd",
+        "downloaded_files": 69,
+        "download_digest": "45eccd0a1630d6820a03dabef72982ade512e05be4576c0c6f37957d62062b2e",
+        "tasks_status": 200,
+        "tasks_first_page_statuses": [
+          "CANCELLED",
+          "COMPLETED",
+          "IN_PROGRESS",
+          "LATE",
+          "NEW",
+          "WAITING_DOCUMENTS",
+          "WAITING_OTHER"
+        ]
+      },
+      "head": {
+        "login_status": 200,
+        "cases": 173,
+        "cases_digest": "61c50aca65dfbfd3e7502fc40891794ddc83eeccfae6b05cf55f298905468759",
+        "documents": 346,
+        "documents_digest": "84e11b34b3decdde898e3595951628f2595017f8b7a7890eb844f1c2c6b9425d",
+        "downloaded_files": 65,
+        "download_digest": "06725d3224fe78de739568c636e167a228f8c8ce4ae960baf822edcece764ab6",
+        "tasks_status": 200,
+        "tasks_first_page_statuses": [
+          "CANCELLED",
+          "COMPLETED",
+          "IN_PROGRESS",
+          "LATE",
+          "NEW",
+          "WAITING_DOCUMENTS",
+          "WAITING_OTHER"
+        ]
+      },
+      "staff": {
+        "login_status": 200,
+        "cases": 225,
+        "cases_digest": "77e5e55c5f80f42811a425768da6d65524b1e0db7248a4eb8062e16334888b51",
+        "documents": 450,
+        "documents_digest": "2211b3fe39c6b53d470c105a76500fcc7e6a0ef723f1cadf86d2d098b79f3e11",
+        "downloaded_files": 70,
+        "download_digest": "fc9724bdba08700c02a2ffd53388c15f35fd7f50682500d96959e437346b8f81",
+        "tasks_status": 200,
+        "tasks_first_page_statuses": [
+          "CANCELLED",
+          "COMPLETED",
+          "IN_PROGRESS",
+          "LATE",
+          "NEW",
+          "WAITING_DOCUMENTS",
+          "WAITING_OTHER"
+        ]
+      },
+      "archivist": {
+        "login_status": 200,
+        "cases": 187,
+        "cases_digest": "913dd0b124fbfdc49488b742573a4ce3e83fe8eeef804b32d4f402de35aa0e88",
+        "documents": 374,
+        "documents_digest": "aa123970b2cab2addf161677bcebafa73af19fc57c7dac630654ef8456330412",
+        "downloaded_files": 81,
+        "download_digest": "645df61cba2e93d32872b0038996f1340897352ac3544c535162cd0d9c24e7d7",
+        "tasks_status": 403
+      }
+    },
+    {
+      "step": "6 fingerprint the source database",
+      "ok": true,
+      "seconds": 34.78,
+      "tables": {
+        "access_scope": {
+          "rows": 5,
+          "digest": "876d04ab577146a36122df139786f1c8"
+        },
+        "ai_provider_config": {
+          "rows": 0,
+          "digest": ""
+        },
+        "app_release": {
+          "rows": 2,
+          "digest": "c2397038c48a26a6990c36bf8cfe792f"
+        },
+        "app_role": {
+          "rows": 7,
+          "digest": "31b0efbbe28d4fcb99bff3932b7780b7"
+        },
+        "app_user": {
+          "rows": 4,
+          "digest": "ecc10efec0c4e1ff8836b40c753240fc"
+        },
+        "archive_format": {
+          "rows": 6,
+          "digest": "b49f170b01a7463b17ca273b58d4fc37"
+        },
+        "archive_setting": {
+          "rows": 5,
+          "digest": "af32b87053620439191e5ccd4dba4250"
+        },
+        "assistant_output": {
+          "rows": 0,
+          "digest": ""
+        },
+        "assistant_query_log": {
+          "rows": 0,
+          "digest": ""
+        },
+        "assistant_session": {
+          "rows": 0,
+          "digest": ""
+        },
+        "audit_event": {
+          "rows": 3290,
+          "digest": "3fc8c6f2cec3eca52cfa6187cc1f72ec"
+        },
+        "calendar_date": {
+          "rows": 0,
+          "digest": ""
+        },
+        "case_document": {
+          "rows": 600,
+          "digest": "22b8968410b710669b3fcb87bf66368e"
+        },
+        "case_document_content": {
+          "rows": 600,
+          "digest": "4cb63c67e05879fab03675d0bee0300f"
+        },
+        "case_document_quota": {
+          "rows": 300,
+          "digest": "6b1f7d4ee441ae92c3dc52bbf462fc80"
+        },
+        "case_duplicate_hint": {
+          "rows": 0,
+          "digest": ""
+        },
+        "case_event": {
+          "rows": 900,
+          "digest": "8ff898f3c2488c39fd35aa903e6c2018"
+        },
+        "case_fact": {
+          "rows": 0,
+          "digest": ""
+        },
+        "case_grant": {
+          "rows": 60,
+          "digest": "35d0d37bdbc269822a525f2e9e274666"
+        },
+        "case_link": {
+          "rows": 0,
+          "digest": ""
+        },
+        "case_note": {
+          "rows": 100,
+          "digest": "358070d1583e876818adac79dd9eca91"
+        },
+        "case_org_involvement": {
+          "rows": 0,
+          "digest": ""
+        },
+        "case_party": {
+          "rows": 600,
+          "digest": "87f89090414861324a0d646c492e640d"
+        },
+        "case_party_counsel": {
+          "rows": 0,
+          "digest": ""
+        },
+        "case_precedent_link": {
+          "rows": 0,
+          "digest": ""
+        },
+        "case_reference_counter": {
+          "rows": 1,
+          "digest": "732147fb0d300729ad500bbb5bc2d36d"
+        },
+        "claim": {
+          "rows": 600,
+          "digest": "758451f9a9ef22bf3d6bb27177e18657"
+        },
+        "claim_result": {
+          "rows": 0,
+          "digest": ""
+        },
+        "claim_revision": {
+          "rows": 0,
+          "digest": ""
+        },
+        "court": {
+          "rows": 12,
+          "digest": "30184809af31e5a5a2441b005152e8cd"
+        },
+        "deadline": {
+          "rows": 0,
+          "digest": ""
+        },
+        "deadline_reminder_setting": {
+          "rows": 0,
+          "digest": ""
+        },
+        "deadline_rule": {
+          "rows": 0,
+          "digest": ""
+        },
+        "defense": {
+          "rows": 150,
+          "digest": "258b49d1147256948aa6c26fd77eff5c"
+        },
+        "defense_assertion": {
+          "rows": 0,
+          "digest": ""
+        },
+        "defense_position": {
+          "rows": 0,
+          "digest": ""
+        },
+        "defense_template": {
+          "rows": 0,
+          "digest": ""
+        },
+        "directive": {
+          "rows": 0,
+          "digest": ""
+        },
+        "document_deletion_log": {
+          "rows": 0,
+          "digest": ""
+        },
+        "document_link": {
+          "rows": 848,
+          "digest": "b2ea8f7ab61d0ceaa3d7b9b5d1f88490"
+        },
+        "document_text": {
+          "rows": 1200,
+          "digest": "b70b45692afd82078cf9f9c64623345d"
+        },
+        "document_version": {
+          "rows": 1200,
+          "digest": "35b52cb1b4be0611e6ffc54ba84ecf75"
+        },
+        "document_version_content": {
+          "rows": 1200,
+          "digest": "b916621ac362806636e66a3989da7761"
+        },
+        "enforcement_action": {
+          "rows": 200,
+          "digest": "fc9c7a0db7628f99d2ce7554f665bb44"
+        },
+        "enforcement_file": {
+          "rows": 100,
+          "digest": "e6bdc22a349861054ad119bea2f1020a"
+        },
+        "evidence_item": {
+          "rows": 0,
+          "digest": ""
+        },
+        "evidence_link": {
+          "rows": 0,
+          "digest": ""
+        },
+        "expert": {
+          "rows": 0,
+          "digest": ""
+        },
+        "expert_referral": {
+          "rows": 0,
+          "digest": ""
+        },
+        "expert_session": {
+          "rows": 0,
+          "digest": ""
+        },
+        "flyway_schema_history": {
+          "rows": 59,
+          "digest": "3d71e7c40eafccb63f80385042cc0f92"
+        },
+        "form_template": {
+          "rows": 0,
+          "digest": ""
+        },
+        "form_template_version": {
+          "rows": 0,
+          "digest": ""
+        },
+        "gap_followup": {
+          "rows": 0,
+          "digest": ""
+        },
+        "hearing": {
+          "rows": 150,
+          "digest": "5c03607fad6f0b9c61312361ce98c6fa"
+        },
+        "info_follow_up": {
+          "rows": 0,
+          "digest": ""
+        },
+        "info_reply": {
+          "rows": 0,
+          "digest": ""
+        },
+        "info_request": {
+          "rows": 0,
+          "digest": ""
+        },
+        "judgment": {
+          "rows": 200,
+          "digest": "385c8f386e9c206fb294b086817ac053"
+        },
+        "legal_case": {
+          "rows": 300,
+          "digest": "f956192507360367f35445e7e119123e"
+        },
+        "legal_document": {
+          "rows": 300,
+          "digest": "568b4359bb5070440ca380baa0e09bf5"
+        },
+        "legal_document_event": {
+          "rows": 300,
+          "digest": "767c136940ea17559b930bacf09577ac"
+        },
+        "library_classification": {
+          "rows": 22,
+          "digest": "bfb5010044c806daf79ed5c49a7709ac"
+        },
+        "library_judgment": {
+          "rows": 0,
+          "digest": ""
+        },
+        "library_judgment_class": {
+          "rows": 0,
+          "digest": ""
+        },
+        "library_judgment_relation": {
+          "rows": 0,
+          "digest": ""
+        },
+        "library_principle": {
+          "rows": 0,
+          "digest": ""
+        },
+        "lookup_value": {
+          "rows": 14,
+          "digest": "0db084d86f1434c9840861517a7e2274"
+        },
+        "lookup_value_history": {
+          "rows": 14,
+          "digest": "a0f3cfb1253b4dbb9b7a53af5ad30def"
+        },
+        "managed_list_value": {
+          "rows": 20,
+          "digest": "b4d2291e0d2768a12b7a6aeda5d4368c"
+        },
+        "notification": {
+          "rows": 75,
+          "digest": "87287b34ddb65e6aa92f709d61b0b51b"
+        },
+        "notification_preference": {
+          "rows": 0,
+          "digest": ""
+        },
+        "official_holiday": {
+          "rows": 0,
+          "digest": ""
+        },
+        "org_unit": {
+          "rows": 10,
+          "digest": "70b4466164c0ffbc9a156645ccd9a087"
+        },
+        "party": {
+          "rows": 200,
+          "digest": "88cae7c6da5a47d246ccb7c5823274dc"
+        },
+        "proceeding": {
+          "rows": 300,
+          "digest": "13d07155b4aa549b99c71f519c60c3f5"
+        },
+        "risk_assessment": {
+          "rows": 0,
+          "digest": ""
+        },
+        "risk_assessment_element": {
+          "rows": 0,
+          "digest": ""
+        },
+        "risk_remediation": {
+          "rows": 0,
+          "digest": ""
+        },
+        "role_permission": {
+          "rows": 257,
+          "digest": "5eab41f6cdfb282276c090f528da8875"
+        },
+        "settlement": {
+          "rows": 0,
+          "digest": ""
+        },
+        "settlement_document": {
+          "rows": 0,
+          "digest": ""
+        },
+        "settlement_history": {
+          "rows": 0,
+          "digest": ""
+        },
+        "special_decision": {
+          "rows": 0,
+          "digest": ""
+        },
+        "task": {
+          "rows": 600,
+          "digest": "50f9ab07a292ac698217fa100afc1fb0"
+        },
+        "task_history": {
+          "rows": 600,
+          "digest": "139806a83f246fe31e1822159c0e8886"
+        },
+        "task_status_map": {
+          "rows": 7,
+          "digest": "20dd0ee769ac4c68abf53c7e9045cf5c"
+        },
+        "user_role": {
+          "rows": 4,
+          "digest": "31d1ecc12b624539b44f1911058ec6a6"
+        }
+      },
+      "files": [
+        {
+          "kind": "version",
+          "files": 1200,
+          "bytes": 70971384,
+          "hash_mismatch": 0,
+          "size_mismatch": 0,
+          "digest": "0c588646fa7f878160a7e121bfd6bf92"
+        },
+        {
+          "kind": "head",
+          "files": 600,
+          "bytes": 36183372,
+          "hash_mismatch": 0,
+          "size_mismatch": 0,
+          "digest": "7b39851a63da8415beceac9546b55e77"
+        }
+      ],
+      "files_without_bytes": "0",
+      "version_history": [
+        {
+          "documents": 600,
+          "current_not_latest": 0,
+          "digest": "922b214dc4dd769be7c514ab2b1aaa7b"
+        }
+      ],
+      "foreign_keys": {
+        "count": 131,
+        "not_validated": [],
+        "orphans": {}
+      },
+      "links": {
+        "links": 848,
+        "to_claims": 300,
+        "to_defenses": 150,
+        "to_hearings": 78,
+        "to_judgments": 200,
+        "to_tasks": 120,
+        "claims_with_source": 300,
+        "defenses_with_memo": 150,
+        "enforcement_actions_with_document": 200,
+        "memos_with_file": 300,
+        "texts": 1200,
+        "texts_with_marker": 1200,
+        "links_across_cases": 0,
+        "digest": "9e96a160d522580d5982dda452b333a1"
+      },
+      "links_note": "document_link target ids and the cross-case count (must be 0)",
+      "access_rows": {
+        "case_grant": {
+          "rows": 60,
+          "digest": "35d0d37bdbc269822a525f2e9e274666"
+        },
+        "access_scope": {
+          "rows": 5,
+          "digest": "876d04ab577146a36122df139786f1c8"
+        },
+        "org_unit": {
+          "rows": 10,
+          "digest": "70b4466164c0ffbc9a156645ccd9a087"
+        },
+        "user_role": {
+          "rows": 4,
+          "digest": "31d1ecc12b624539b44f1911058ec6a6"
+        },
+        "role_permission": {
+          "rows": 257,
+          "digest": "5eab41f6cdfb282276c090f528da8875"
+        },
+        "app_role": {
+          "rows": 7,
+          "digest": "31b0efbbe28d4fcb99bff3932b7780b7"
+        }
+      },
+      "sequences": [
+        {
+          "name": "lawdesk.app_release_id_seq",
+          "last_value": 2
+        },
+        {
+          "name": "lawdesk.assistant_query_log_id_seq",
+          "last_value": null
+        },
+        {
+          "name": "lawdesk.audit_event_id_seq",
+          "last_value": 3290
+        },
+        {
+          "name": "lawdesk.case_event_seq_seq",
+          "last_value": 900
+        },
+        {
+          "name": "lawdesk.directive_no_seq",
+          "last_value": null
+        },
+        {
+          "name": "lawdesk.info_request_no_seq",
+          "last_value": null
+        }
+      ],
+      "structure": [
+        {
+          "kind": "functions",
+          "n": 25,
+          "digest": "99e7c35642d2d98179f7a6bc275a35ca"
+        },
+        {
+          "kind": "triggers",
+          "n": 27,
+          "digest": "ef4c3ee5c3cddf79e482224b43fcf125"
+        },
+        {
+          "kind": "indexes",
+          "n": 265,
+          "digest": "b30aee58b2e08f84d2ee389f41a2db13"
+        },
+        {
+          "kind": "constraints",
+          "n": 1234,
+          "digest": "1ea0bedcc5eaa9f31709bf243c9106d6"
+        }
+      ],
+      "ownership": [
+        {
+          "relkind": "S",
+          "owner": "lawdesk_app",
+          "n": 6
+        },
+        {
+          "relkind": "i",
+          "owner": "lawdesk_app",
+          "n": 265
+        },
+        {
+          "relkind": "r",
+          "owner": "lawdesk_app",
+          "n": 88
+        }
+      ],
+      "flyway": {
+        "applied": 59,
+        "failed": 0,
+        "latest": 800
+      },
+      "visibility": {
+        "manager": {
+          "viewable": 267,
+          "viewable_digest": "0a67c1786d9049f9319ef679e4184cea",
+          "viewable_by_function": 267,
+          "changeable": 267,
+          "changeable_digest": "0a67c1786d9049f9319ef679e4184cea",
+          "documents": 534,
+          "versions": 1068,
+          "tasks": 534,
+          "hearings": 126,
+          "enforcement_files": 91,
+          "memos": 267,
+          "scope": {
+            "all": true,
+            "units": "",
+            "types": "",
+            "edit": true
+          }
+        },
+        "head": {
+          "viewable": 173,
+          "viewable_digest": "53caeaafce327ca6768f39055f72c130",
+          "viewable_by_function": 173,
+          "changeable": 86,
+          "changeable_digest": "44833576f08fa4c85f351c1fe6d47cab",
+          "documents": 346,
+          "versions": 626,
+          "tasks": 346,
+          "hearings": 81,
+          "enforcement_files": 56,
+          "memos": 173,
+          "scope": {
+            "all": false,
+            "units": "10000000-0000-4000-8000-000000000002",
+            "types": "",
+            "edit": true
+          }
+        },
+        "staff": {
+          "viewable": 225,
+          "viewable_digest": "7f737b069d1f9b36c6ad5cf49536640a",
+          "viewable_by_function": 225,
+          "changeable": 54,
+          "changeable_digest": "ece9efbb69a988e6f1f1d422231f4f1f",
+          "documents": 450,
+          "versions": 900,
+          "tasks": 450,
+          "hearings": 106,
+          "enforcement_files": 73,
+          "memos": 225,
+          "scope": {
+            "all": false,
+            "units": "10000000-0000-4000-8000-000000000005",
+            "types": "LABOR",
+            "edit": false
+          }
+        },
+        "archivist": {
+          "viewable": 187,
+          "viewable_digest": "3265216aa5cd0188822ca4320213a0b5",
+          "viewable_by_function": 187,
+          "changeable": 39,
+          "changeable_digest": "a025ede23e6e5aed915cb03d57214df2",
+          "documents": 374,
+          "versions": 835,
+          "tasks": 374,
+          "hearings": 96,
+          "enforcement_files": 59,
+          "memos": 187,
+          "scope": {
+            "all": false,
+            "units": "10000000-0000-4000-8000-000000000003",
+            "types": "",
+            "edit": false
+          }
+        }
+      }
+    },
+    {
+      "step": "7 pg_dump -U postgres -d <db> -Fc",
+      "ok": true,
+      "seconds": 30.95,
+      "bytes": 123622275
+    },
+    {
+      "step": "7b EXPERIMENT: restore into a database the role script already prepared (expected to fail)",
+      "ok": true,
+      "seconds": 0.66,
+      "rc": 1,
+      "stderr": "pg_restore: error: could not execute query: ERROR:  schema \"lawdesk\" already exists\nCommand was: CREATE SCHEMA lawdesk;\n\n\n",
+      "tables_after": 0
+    },
+    {
+      "step": "8 create an empty database and pg_restore --exit-on-error (single job)",
+      "ok": true,
+      "seconds": 18.68,
+      "pg_restore_stderr": ""
+    },
+    {
+      "step": "9 re-apply deploy/postgres/app-role.sql on the restored database",
+      "ok": true,
+      "seconds": 0.37
+    },
+    {
+      "step": "10 ANALYZE (a restore carries no planner statistics)",
+      "ok": true,
+      "seconds": 0.79
+    },
+    {
+      "step": "11 fingerprint the restored database",
+      "ok": true,
+      "seconds": 33.83,
+      "tables": {
+        "access_scope": {
+          "rows": 5,
+          "digest": "876d04ab577146a36122df139786f1c8"
+        },
+        "ai_provider_config": {
+          "rows": 0,
+          "digest": ""
+        },
+        "app_release": {
+          "rows": 2,
+          "digest": "c2397038c48a26a6990c36bf8cfe792f"
+        },
+        "app_role": {
+          "rows": 7,
+          "digest": "31b0efbbe28d4fcb99bff3932b7780b7"
+        },
+        "app_user": {
+          "rows": 4,
+          "digest": "ecc10efec0c4e1ff8836b40c753240fc"
+        },
+        "archive_format": {
+          "rows": 6,
+          "digest": "b49f170b01a7463b17ca273b58d4fc37"
+        },
+        "archive_setting": {
+          "rows": 5,
+          "digest": "af32b87053620439191e5ccd4dba4250"
+        },
+        "assistant_output": {
+          "rows": 0,
+          "digest": ""
+        },
+        "assistant_query_log": {
+          "rows": 0,
+          "digest": ""
+        },
+        "assistant_session": {
+          "rows": 0,
+          "digest": ""
+        },
+        "audit_event": {
+          "rows": 3290,
+          "digest": "3fc8c6f2cec3eca52cfa6187cc1f72ec"
+        },
+        "calendar_date": {
+          "rows": 0,
+          "digest": ""
+        },
+        "case_document": {
+          "rows": 600,
+          "digest": "22b8968410b710669b3fcb87bf66368e"
+        },
+        "case_document_content": {
+          "rows": 600,
+          "digest": "4cb63c67e05879fab03675d0bee0300f"
+        },
+        "case_document_quota": {
+          "rows": 300,
+          "digest": "6b1f7d4ee441ae92c3dc52bbf462fc80"
+        },
+        "case_duplicate_hint": {
+          "rows": 0,
+          "digest": ""
+        },
+        "case_event": {
+          "rows": 900,
+          "digest": "8ff898f3c2488c39fd35aa903e6c2018"
+        },
+        "case_fact": {
+          "rows": 0,
+          "digest": ""
+        },
+        "case_grant": {
+          "rows": 60,
+          "digest": "35d0d37bdbc269822a525f2e9e274666"
+        },
+        "case_link": {
+          "rows": 0,
+          "digest": ""
+        },
+        "case_note": {
+          "rows": 100,
+          "digest": "358070d1583e876818adac79dd9eca91"
+        },
+        "case_org_involvement": {
+          "rows": 0,
+          "digest": ""
+        },
+        "case_party": {
+          "rows": 600,
+          "digest": "87f89090414861324a0d646c492e640d"
+        },
+        "case_party_counsel": {
+          "rows": 0,
+          "digest": ""
+        },
+        "case_precedent_link": {
+          "rows": 0,
+          "digest": ""
+        },
+        "case_reference_counter": {
+          "rows": 1,
+          "digest": "732147fb0d300729ad500bbb5bc2d36d"
+        },
+        "claim": {
+          "rows": 600,
+          "digest": "758451f9a9ef22bf3d6bb27177e18657"
+        },
+        "claim_result": {
+          "rows": 0,
+          "digest": ""
+        },
+        "claim_revision": {
+          "rows": 0,
+          "digest": ""
+        },
+        "court": {
+          "rows": 12,
+          "digest": "30184809af31e5a5a2441b005152e8cd"
+        },
+        "deadline": {
+          "rows": 0,
+          "digest": ""
+        },
+        "deadline_reminder_setting": {
+          "rows": 0,
+          "digest": ""
+        },
+        "deadline_rule": {
+          "rows": 0,
+          "digest": ""
+        },
+        "defense": {
+          "rows": 150,
+          "digest": "258b49d1147256948aa6c26fd77eff5c"
+        },
+        "defense_assertion": {
+          "rows": 0,
+          "digest": ""
+        },
+        "defense_position": {
+          "rows": 0,
+          "digest": ""
+        },
+        "defense_template": {
+          "rows": 0,
+          "digest": ""
+        },
+        "directive": {
+          "rows": 0,
+          "digest": ""
+        },
+        "document_deletion_log": {
+          "rows": 0,
+          "digest": ""
+        },
+        "document_link": {
+          "rows": 848,
+          "digest": "b2ea8f7ab61d0ceaa3d7b9b5d1f88490"
+        },
+        "document_text": {
+          "rows": 1200,
+          "digest": "b70b45692afd82078cf9f9c64623345d"
+        },
+        "document_version": {
+          "rows": 1200,
+          "digest": "35b52cb1b4be0611e6ffc54ba84ecf75"
+        },
+        "document_version_content": {
+          "rows": 1200,
+          "digest": "b916621ac362806636e66a3989da7761"
+        },
+        "enforcement_action": {
+          "rows": 200,
+          "digest": "fc9c7a0db7628f99d2ce7554f665bb44"
+        },
+        "enforcement_file": {
+          "rows": 100,
+          "digest": "e6bdc22a349861054ad119bea2f1020a"
+        },
+        "evidence_item": {
+          "rows": 0,
+          "digest": ""
+        },
+        "evidence_link": {
+          "rows": 0,
+          "digest": ""
+        },
+        "expert": {
+          "rows": 0,
+          "digest": ""
+        },
+        "expert_referral": {
+          "rows": 0,
+          "digest": ""
+        },
+        "expert_session": {
+          "rows": 0,
+          "digest": ""
+        },
+        "flyway_schema_history": {
+          "rows": 59,
+          "digest": "3d71e7c40eafccb63f80385042cc0f92"
+        },
+        "form_template": {
+          "rows": 0,
+          "digest": ""
+        },
+        "form_template_version": {
+          "rows": 0,
+          "digest": ""
+        },
+        "gap_followup": {
+          "rows": 0,
+          "digest": ""
+        },
+        "hearing": {
+          "rows": 150,
+          "digest": "5c03607fad6f0b9c61312361ce98c6fa"
+        },
+        "info_follow_up": {
+          "rows": 0,
+          "digest": ""
+        },
+        "info_reply": {
+          "rows": 0,
+          "digest": ""
+        },
+        "info_request": {
+          "rows": 0,
+          "digest": ""
+        },
+        "judgment": {
+          "rows": 200,
+          "digest": "385c8f386e9c206fb294b086817ac053"
+        },
+        "legal_case": {
+          "rows": 300,
+          "digest": "f956192507360367f35445e7e119123e"
+        },
+        "legal_document": {
+          "rows": 300,
+          "digest": "568b4359bb5070440ca380baa0e09bf5"
+        },
+        "legal_document_event": {
+          "rows": 300,
+          "digest": "767c136940ea17559b930bacf09577ac"
+        },
+        "library_classification": {
+          "rows": 22,
+          "digest": "bfb5010044c806daf79ed5c49a7709ac"
+        },
+        "library_judgment": {
+          "rows": 0,
+          "digest": ""
+        },
+        "library_judgment_class": {
+          "rows": 0,
+          "digest": ""
+        },
+        "library_judgment_relation": {
+          "rows": 0,
+          "digest": ""
+        },
+        "library_principle": {
+          "rows": 0,
+          "digest": ""
+        },
+        "lookup_value": {
+          "rows": 14,
+          "digest": "0db084d86f1434c9840861517a7e2274"
+        },
+        "lookup_value_history": {
+          "rows": 14,
+          "digest": "a0f3cfb1253b4dbb9b7a53af5ad30def"
+        },
+        "managed_list_value": {
+          "rows": 20,
+          "digest": "b4d2291e0d2768a12b7a6aeda5d4368c"
+        },
+        "notification": {
+          "rows": 75,
+          "digest": "87287b34ddb65e6aa92f709d61b0b51b"
+        },
+        "notification_preference": {
+          "rows": 0,
+          "digest": ""
+        },
+        "official_holiday": {
+          "rows": 0,
+          "digest": ""
+        },
+        "org_unit": {
+          "rows": 10,
+          "digest": "70b4466164c0ffbc9a156645ccd9a087"
+        },
+        "party": {
+          "rows": 200,
+          "digest": "88cae7c6da5a47d246ccb7c5823274dc"
+        },
+        "proceeding": {
+          "rows": 300,
+          "digest": "13d07155b4aa549b99c71f519c60c3f5"
+        },
+        "risk_assessment": {
+          "rows": 0,
+          "digest": ""
+        },
+        "risk_assessment_element": {
+          "rows": 0,
+          "digest": ""
+        },
+        "risk_remediation": {
+          "rows": 0,
+          "digest": ""
+        },
+        "role_permission": {
+          "rows": 257,
+          "digest": "5eab41f6cdfb282276c090f528da8875"
+        },
+        "settlement": {
+          "rows": 0,
+          "digest": ""
+        },
+        "settlement_document": {
+          "rows": 0,
+          "digest": ""
+        },
+        "settlement_history": {
+          "rows": 0,
+          "digest": ""
+        },
+        "special_decision": {
+          "rows": 0,
+          "digest": ""
+        },
+        "task": {
+          "rows": 600,
+          "digest": "50f9ab07a292ac698217fa100afc1fb0"
+        },
+        "task_history": {
+          "rows": 600,
+          "digest": "139806a83f246fe31e1822159c0e8886"
+        },
+        "task_status_map": {
+          "rows": 7,
+          "digest": "20dd0ee769ac4c68abf53c7e9045cf5c"
+        },
+        "user_role": {
+          "rows": 4,
+          "digest": "31d1ecc12b624539b44f1911058ec6a6"
+        }
+      },
+      "files": [
+        {
+          "kind": "version",
+          "files": 1200,
+          "bytes": 70971384,
+          "hash_mismatch": 0,
+          "size_mismatch": 0,
+          "digest": "0c588646fa7f878160a7e121bfd6bf92"
+        },
+        {
+          "kind": "head",
+          "files": 600,
+          "bytes": 36183372,
+          "hash_mismatch": 0,
+          "size_mismatch": 0,
+          "digest": "7b39851a63da8415beceac9546b55e77"
+        }
+      ],
+      "files_without_bytes": "0",
+      "version_history": [
+        {
+          "documents": 600,
+          "current_not_latest": 0,
+          "digest": "922b214dc4dd769be7c514ab2b1aaa7b"
+        }
+      ],
+      "foreign_keys": {
+        "count": 131,
+        "not_validated": [],
+        "orphans": {}
+      },
+      "links": {
+        "links": 848,
+        "to_claims": 300,
+        "to_defenses": 150,
+        "to_hearings": 78,
+        "to_judgments": 200,
+        "to_tasks": 120,
+        "claims_with_source": 300,
+        "defenses_with_memo": 150,
+        "enforcement_actions_with_document": 200,
+        "memos_with_file": 300,
+        "texts": 1200,
+        "texts_with_marker": 1200,
+        "links_across_cases": 0,
+        "digest": "9e96a160d522580d5982dda452b333a1"
+      },
+      "links_note": "document_link target ids and the cross-case count (must be 0)",
+      "access_rows": {
+        "case_grant": {
+          "rows": 60,
+          "digest": "35d0d37bdbc269822a525f2e9e274666"
+        },
+        "access_scope": {
+          "rows": 5,
+          "digest": "876d04ab577146a36122df139786f1c8"
+        },
+        "org_unit": {
+          "rows": 10,
+          "digest": "70b4466164c0ffbc9a156645ccd9a087"
+        },
+        "user_role": {
+          "rows": 4,
+          "digest": "31d1ecc12b624539b44f1911058ec6a6"
+        },
+        "role_permission": {
+          "rows": 257,
+          "digest": "5eab41f6cdfb282276c090f528da8875"
+        },
+        "app_role": {
+          "rows": 7,
+          "digest": "31b0efbbe28d4fcb99bff3932b7780b7"
+        }
+      },
+      "sequences": [
+        {
+          "name": "lawdesk.app_release_id_seq",
+          "last_value": 2
+        },
+        {
+          "name": "lawdesk.assistant_query_log_id_seq",
+          "last_value": null
+        },
+        {
+          "name": "lawdesk.audit_event_id_seq",
+          "last_value": 3290
+        },
+        {
+          "name": "lawdesk.case_event_seq_seq",
+          "last_value": 900
+        },
+        {
+          "name": "lawdesk.directive_no_seq",
+          "last_value": null
+        },
+        {
+          "name": "lawdesk.info_request_no_seq",
+          "last_value": null
+        }
+      ],
+      "structure": [
+        {
+          "kind": "functions",
+          "n": 25,
+          "digest": "99e7c35642d2d98179f7a6bc275a35ca"
+        },
+        {
+          "kind": "triggers",
+          "n": 27,
+          "digest": "ef4c3ee5c3cddf79e482224b43fcf125"
+        },
+        {
+          "kind": "indexes",
+          "n": 265,
+          "digest": "15e94531f83c6c99f2fe8363a6701050"
+        },
+        {
+          "kind": "constraints",
+          "n": 1234,
+          "digest": "c9d32f81ccf66c3d480cdd664b90b3ce"
+        }
+      ],
+      "ownership": [
+        {
+          "relkind": "S",
+          "owner": "lawdesk_app",
+          "n": 6
+        },
+        {
+          "relkind": "i",
+          "owner": "lawdesk_app",
+          "n": 265
+        },
+        {
+          "relkind": "r",
+          "owner": "lawdesk_app",
+          "n": 88
+        }
+      ],
+      "flyway": {
+        "applied": 59,
+        "failed": 0,
+        "latest": 800
+      },
+      "visibility": {
+        "manager": {
+          "viewable": 267,
+          "viewable_digest": "0a67c1786d9049f9319ef679e4184cea",
+          "viewable_by_function": 267,
+          "changeable": 267,
+          "changeable_digest": "0a67c1786d9049f9319ef679e4184cea",
+          "documents": 534,
+          "versions": 1068,
+          "tasks": 534,
+          "hearings": 126,
+          "enforcement_files": 91,
+          "memos": 267,
+          "scope": {
+            "all": true,
+            "units": "",
+            "types": "",
+            "edit": true
+          }
+        },
+        "head": {
+          "viewable": 173,
+          "viewable_digest": "53caeaafce327ca6768f39055f72c130",
+          "viewable_by_function": 173,
+          "changeable": 86,
+          "changeable_digest": "44833576f08fa4c85f351c1fe6d47cab",
+          "documents": 346,
+          "versions": 626,
+          "tasks": 346,
+          "hearings": 81,
+          "enforcement_files": 56,
+          "memos": 173,
+          "scope": {
+            "all": false,
+            "units": "10000000-0000-4000-8000-000000000002",
+            "types": "",
+            "edit": true
+          }
+        },
+        "staff": {
+          "viewable": 225,
+          "viewable_digest": "7f737b069d1f9b36c6ad5cf49536640a",
+          "viewable_by_function": 225,
+          "changeable": 54,
+          "changeable_digest": "ece9efbb69a988e6f1f1d422231f4f1f",
+          "documents": 450,
+          "versions": 900,
+          "tasks": 450,
+          "hearings": 106,
+          "enforcement_files": 73,
+          "memos": 225,
+          "scope": {
+            "all": false,
+            "units": "10000000-0000-4000-8000-000000000005",
+            "types": "LABOR",
+            "edit": false
+          }
+        },
+        "archivist": {
+          "viewable": 187,
+          "viewable_digest": "3265216aa5cd0188822ca4320213a0b5",
+          "viewable_by_function": 187,
+          "changeable": 39,
+          "changeable_digest": "a025ede23e6e5aed915cb03d57214df2",
+          "documents": 374,
+          "versions": 835,
+          "tasks": 374,
+          "hearings": 96,
+          "enforcement_files": 59,
+          "memos": 187,
+          "scope": {
+            "all": false,
+            "units": "10000000-0000-4000-8000-000000000003",
+            "types": "",
+            "edit": false
+          }
+        }
+      }
+    },
+    {
+      "step": "12 EXPERIMENT: pg_restore -j 4 into another empty database",
+      "ok": true,
+      "seconds": 15.13,
+      "pg_restore_stderr": ""
+    },
+    {
+      "step": "12b fingerprint of the parallel restore",
+      "ok": true,
+      "seconds": 21.42,
+      "tables": {
+        "access_scope": {
+          "rows": 5,
+          "digest": "876d04ab577146a36122df139786f1c8"
+        },
+        "ai_provider_config": {
+          "rows": 0,
+          "digest": ""
+        },
+        "app_release": {
+          "rows": 2,
+          "digest": "c2397038c48a26a6990c36bf8cfe792f"
+        },
+        "app_role": {
+          "rows": 7,
+          "digest": "31b0efbbe28d4fcb99bff3932b7780b7"
+        },
+        "app_user": {
+          "rows": 4,
+          "digest": "ecc10efec0c4e1ff8836b40c753240fc"
+        },
+        "archive_format": {
+          "rows": 6,
+          "digest": "b49f170b01a7463b17ca273b58d4fc37"
+        },
+        "archive_setting": {
+          "rows": 5,
+          "digest": "af32b87053620439191e5ccd4dba4250"
+        },
+        "assistant_output": {
+          "rows": 0,
+          "digest": ""
+        },
+        "assistant_query_log": {
+          "rows": 0,
+          "digest": ""
+        },
+        "assistant_session": {
+          "rows": 0,
+          "digest": ""
+        },
+        "audit_event": {
+          "rows": 3290,
+          "digest": "3fc8c6f2cec3eca52cfa6187cc1f72ec"
+        },
+        "calendar_date": {
+          "rows": 0,
+          "digest": ""
+        },
+        "case_document": {
+          "rows": 600,
+          "digest": "22b8968410b710669b3fcb87bf66368e"
+        },
+        "case_document_content": {
+          "rows": 600,
+          "digest": "4cb63c67e05879fab03675d0bee0300f"
+        },
+        "case_document_quota": {
+          "rows": 300,
+          "digest": "6b1f7d4ee441ae92c3dc52bbf462fc80"
+        },
+        "case_duplicate_hint": {
+          "rows": 0,
+          "digest": ""
+        },
+        "case_event": {
+          "rows": 900,
+          "digest": "8ff898f3c2488c39fd35aa903e6c2018"
+        },
+        "case_fact": {
+          "rows": 0,
+          "digest": ""
+        },
+        "case_grant": {
+          "rows": 60,
+          "digest": "35d0d37bdbc269822a525f2e9e274666"
+        },
+        "case_link": {
+          "rows": 0,
+          "digest": ""
+        },
+        "case_note": {
+          "rows": 100,
+          "digest": "358070d1583e876818adac79dd9eca91"
+        },
+        "case_org_involvement": {
+          "rows": 0,
+          "digest": ""
+        },
+        "case_party": {
+          "rows": 600,
+          "digest": "87f89090414861324a0d646c492e640d"
+        },
+        "case_party_counsel": {
+          "rows": 0,
+          "digest": ""
+        },
+        "case_precedent_link": {
+          "rows": 0,
+          "digest": ""
+        },
+        "case_reference_counter": {
+          "rows": 1,
+          "digest": "732147fb0d300729ad500bbb5bc2d36d"
+        },
+        "claim": {
+          "rows": 600,
+          "digest": "758451f9a9ef22bf3d6bb27177e18657"
+        },
+        "claim_result": {
+          "rows": 0,
+          "digest": ""
+        },
+        "claim_revision": {
+          "rows": 0,
+          "digest": ""
+        },
+        "court": {
+          "rows": 12,
+          "digest": "30184809af31e5a5a2441b005152e8cd"
+        },
+        "deadline": {
+          "rows": 0,
+          "digest": ""
+        },
+        "deadline_reminder_setting": {
+          "rows": 0,
+          "digest": ""
+        },
+        "deadline_rule": {
+          "rows": 0,
+          "digest": ""
+        },
+        "defense": {
+          "rows": 150,
+          "digest": "258b49d1147256948aa6c26fd77eff5c"
+        },
+        "defense_assertion": {
+          "rows": 0,
+          "digest": ""
+        },
+        "defense_position": {
+          "rows": 0,
+          "digest": ""
+        },
+        "defense_template": {
+          "rows": 0,
+          "digest": ""
+        },
+        "directive": {
+          "rows": 0,
+          "digest": ""
+        },
+        "document_deletion_log": {
+          "rows": 0,
+          "digest": ""
+        },
+        "document_link": {
+          "rows": 848,
+          "digest": "b2ea8f7ab61d0ceaa3d7b9b5d1f88490"
+        },
+        "document_text": {
+          "rows": 1200,
+          "digest": "b70b45692afd82078cf9f9c64623345d"
+        },
+        "document_version": {
+          "rows": 1200,
+          "digest": "35b52cb1b4be0611e6ffc54ba84ecf75"
+        },
+        "document_version_content": {
+          "rows": 1200,
+          "digest": "b916621ac362806636e66a3989da7761"
+        },
+        "enforcement_action": {
+          "rows": 200,
+          "digest": "fc9c7a0db7628f99d2ce7554f665bb44"
+        },
+        "enforcement_file": {
+          "rows": 100,
+          "digest": "e6bdc22a349861054ad119bea2f1020a"
+        },
+        "evidence_item": {
+          "rows": 0,
+          "digest": ""
+        },
+        "evidence_link": {
+          "rows": 0,
+          "digest": ""
+        },
+        "expert": {
+          "rows": 0,
+          "digest": ""
+        },
+        "expert_referral": {
+          "rows": 0,
+          "digest": ""
+        },
+        "expert_session": {
+          "rows": 0,
+          "digest": ""
+        },
+        "flyway_schema_history": {
+          "rows": 59,
+          "digest": "3d71e7c40eafccb63f80385042cc0f92"
+        },
+        "form_template": {
+          "rows": 0,
+          "digest": ""
+        },
+        "form_template_version": {
+          "rows": 0,
+          "digest": ""
+        },
+        "gap_followup": {
+          "rows": 0,
+          "digest": ""
+        },
+        "hearing": {
+          "rows": 150,
+          "digest": "5c03607fad6f0b9c61312361ce98c6fa"
+        },
+        "info_follow_up": {
+          "rows": 0,
+          "digest": ""
+        },
+        "info_reply": {
+          "rows": 0,
+          "digest": ""
+        },
+        "info_request": {
+          "rows": 0,
+          "digest": ""
+        },
+        "judgment": {
+          "rows": 200,
+          "digest": "385c8f386e9c206fb294b086817ac053"
+        },
+        "legal_case": {
+          "rows": 300,
+          "digest": "f956192507360367f35445e7e119123e"
+        },
+        "legal_document": {
+          "rows": 300,
+          "digest": "568b4359bb5070440ca380baa0e09bf5"
+        },
+        "legal_document_event": {
+          "rows": 300,
+          "digest": "767c136940ea17559b930bacf09577ac"
+        },
+        "library_classification": {
+          "rows": 22,
+          "digest": "bfb5010044c806daf79ed5c49a7709ac"
+        },
+        "library_judgment": {
+          "rows": 0,
+          "digest": ""
+        },
+        "library_judgment_class": {
+          "rows": 0,
+          "digest": ""
+        },
+        "library_judgment_relation": {
+          "rows": 0,
+          "digest": ""
+        },
+        "library_principle": {
+          "rows": 0,
+          "digest": ""
+        },
+        "lookup_value": {
+          "rows": 14,
+          "digest": "0db084d86f1434c9840861517a7e2274"
+        },
+        "lookup_value_history": {
+          "rows": 14,
+          "digest": "a0f3cfb1253b4dbb9b7a53af5ad30def"
+        },
+        "managed_list_value": {
+          "rows": 20,
+          "digest": "b4d2291e0d2768a12b7a6aeda5d4368c"
+        },
+        "notification": {
+          "rows": 75,
+          "digest": "87287b34ddb65e6aa92f709d61b0b51b"
+        },
+        "notification_preference": {
+          "rows": 0,
+          "digest": ""
+        },
+        "official_holiday": {
+          "rows": 0,
+          "digest": ""
+        },
+        "org_unit": {
+          "rows": 10,
+          "digest": "70b4466164c0ffbc9a156645ccd9a087"
+        },
+        "party": {
+          "rows": 200,
+          "digest": "88cae7c6da5a47d246ccb7c5823274dc"
+        },
+        "proceeding": {
+          "rows": 300,
+          "digest": "13d07155b4aa549b99c71f519c60c3f5"
+        },
+        "risk_assessment": {
+          "rows": 0,
+          "digest": ""
+        },
+        "risk_assessment_element": {
+          "rows": 0,
+          "digest": ""
+        },
+        "risk_remediation": {
+          "rows": 0,
+          "digest": ""
+        },
+        "role_permission": {
+          "rows": 257,
+          "digest": "5eab41f6cdfb282276c090f528da8875"
+        },
+        "settlement": {
+          "rows": 0,
+          "digest": ""
+        },
+        "settlement_document": {
+          "rows": 0,
+          "digest": ""
+        },
+        "settlement_history": {
+          "rows": 0,
+          "digest": ""
+        },
+        "special_decision": {
+          "rows": 0,
+          "digest": ""
+        },
+        "task": {
+          "rows": 600,
+          "digest": "50f9ab07a292ac698217fa100afc1fb0"
+        },
+        "task_history": {
+          "rows": 600,
+          "digest": "139806a83f246fe31e1822159c0e8886"
+        },
+        "task_status_map": {
+          "rows": 7,
+          "digest": "20dd0ee769ac4c68abf53c7e9045cf5c"
+        },
+        "user_role": {
+          "rows": 4,
+          "digest": "31d1ecc12b624539b44f1911058ec6a6"
+        }
+      },
+      "files": [
+        {
+          "kind": "version",
+          "files": 1200,
+          "bytes": 70971384,
+          "hash_mismatch": 0,
+          "size_mismatch": 0,
+          "digest": "0c588646fa7f878160a7e121bfd6bf92"
+        },
+        {
+          "kind": "head",
+          "files": 600,
+          "bytes": 36183372,
+          "hash_mismatch": 0,
+          "size_mismatch": 0,
+          "digest": "7b39851a63da8415beceac9546b55e77"
+        }
+      ],
+      "files_without_bytes": "0",
+      "version_history": [
+        {
+          "documents": 600,
+          "current_not_latest": 0,
+          "digest": "922b214dc4dd769be7c514ab2b1aaa7b"
+        }
+      ],
+      "foreign_keys": {
+        "count": 131,
+        "not_validated": [],
+        "orphans": {}
+      },
+      "links": {
+        "links": 848,
+        "to_claims": 300,
+        "to_defenses": 150,
+        "to_hearings": 78,
+        "to_judgments": 200,
+        "to_tasks": 120,
+        "claims_with_source": 300,
+        "defenses_with_memo": 150,
+        "enforcement_actions_with_document": 200,
+        "memos_with_file": 300,
+        "texts": 1200,
+        "texts_with_marker": 1200,
+        "links_across_cases": 0,
+        "digest": "9e96a160d522580d5982dda452b333a1"
+      },
+      "links_note": "document_link target ids and the cross-case count (must be 0)",
+      "access_rows": {
+        "case_grant": {
+          "rows": 60,
+          "digest": "35d0d37bdbc269822a525f2e9e274666"
+        },
+        "access_scope": {
+          "rows": 5,
+          "digest": "876d04ab577146a36122df139786f1c8"
+        },
+        "org_unit": {
+          "rows": 10,
+          "digest": "70b4466164c0ffbc9a156645ccd9a087"
+        },
+        "user_role": {
+          "rows": 4,
+          "digest": "31d1ecc12b624539b44f1911058ec6a6"
+        },
+        "role_permission": {
+          "rows": 257,
+          "digest": "5eab41f6cdfb282276c090f528da8875"
+        },
+        "app_role": {
+          "rows": 7,
+          "digest": "31b0efbbe28d4fcb99bff3932b7780b7"
+        }
+      },
+      "sequences": [
+        {
+          "name": "lawdesk.app_release_id_seq",
+          "last_value": 2
+        },
+        {
+          "name": "lawdesk.assistant_query_log_id_seq",
+          "last_value": null
+        },
+        {
+          "name": "lawdesk.audit_event_id_seq",
+          "last_value": 3290
+        },
+        {
+          "name": "lawdesk.case_event_seq_seq",
+          "last_value": 900
+        },
+        {
+          "name": "lawdesk.directive_no_seq",
+          "last_value": null
+        },
+        {
+          "name": "lawdesk.info_request_no_seq",
+          "last_value": null
+        }
+      ],
+      "structure": [
+        {
+          "kind": "functions",
+          "n": 25,
+          "digest": "99e7c35642d2d98179f7a6bc275a35ca"
+        },
+        {
+          "kind": "triggers",
+          "n": 27,
+          "digest": "ef4c3ee5c3cddf79e482224b43fcf125"
+        },
+        {
+          "kind": "indexes",
+          "n": 265,
+          "digest": "15e94531f83c6c99f2fe8363a6701050"
+        },
+        {
+          "kind": "constraints",
+          "n": 1234,
+          "digest": "c9d32f81ccf66c3d480cdd664b90b3ce"
+        }
+      ],
+      "ownership": [
+        {
+          "relkind": "S",
+          "owner": "lawdesk_app",
+          "n": 6
+        },
+        {
+          "relkind": "i",
+          "owner": "lawdesk_app",
+          "n": 265
+        },
+        {
+          "relkind": "r",
+          "owner": "lawdesk_app",
+          "n": 88
+        }
+      ],
+      "flyway": {
+        "applied": 59,
+        "failed": 0,
+        "latest": 800
+      },
+      "visibility": {
+        "manager": {
+          "viewable": 267,
+          "viewable_digest": "0a67c1786d9049f9319ef679e4184cea",
+          "viewable_by_function": 267,
+          "changeable": 267,
+          "changeable_digest": "0a67c1786d9049f9319ef679e4184cea",
+          "documents": 534,
+          "versions": 1068,
+          "tasks": 534,
+          "hearings": 126,
+          "enforcement_files": 91,
+          "memos": 267,
+          "scope": {
+            "all": true,
+            "units": "",
+            "types": "",
+            "edit": true
+          }
+        },
+        "head": {
+          "viewable": 173,
+          "viewable_digest": "53caeaafce327ca6768f39055f72c130",
+          "viewable_by_function": 173,
+          "changeable": 86,
+          "changeable_digest": "44833576f08fa4c85f351c1fe6d47cab",
+          "documents": 346,
+          "versions": 626,
+          "tasks": 346,
+          "hearings": 81,
+          "enforcement_files": 56,
+          "memos": 173,
+          "scope": {
+            "all": false,
+            "units": "10000000-0000-4000-8000-000000000002",
+            "types": "",
+            "edit": true
+          }
+        },
+        "staff": {
+          "viewable": 225,
+          "viewable_digest": "7f737b069d1f9b36c6ad5cf49536640a",
+          "viewable_by_function": 225,
+          "changeable": 54,
+          "changeable_digest": "ece9efbb69a988e6f1f1d422231f4f1f",
+          "documents": 450,
+          "versions": 900,
+          "tasks": 450,
+          "hearings": 106,
+          "enforcement_files": 73,
+          "memos": 225,
+          "scope": {
+            "all": false,
+            "units": "10000000-0000-4000-8000-000000000005",
+            "types": "LABOR",
+            "edit": false
+          }
+        },
+        "archivist": {
+          "viewable": 187,
+          "viewable_digest": "3265216aa5cd0188822ca4320213a0b5",
+          "viewable_by_function": 187,
+          "changeable": 39,
+          "changeable_digest": "a025ede23e6e5aed915cb03d57214df2",
+          "documents": 374,
+          "versions": 835,
+          "tasks": 374,
+          "hearings": 96,
+          "enforcement_files": 59,
+          "memos": 187,
+          "scope": {
+            "all": false,
+            "units": "10000000-0000-4000-8000-000000000003",
+            "types": "",
+            "edit": false
+          }
+        }
+      }
+    },
+    {
+      "step": "13 boot the application on the restored database",
+      "ok": true,
+      "seconds": 93.8
+    },
+    {
+      "step": "13b API fingerprint of the restored database",
+      "ok": true,
+      "seconds": 55.82,
+      "anonymous_cases_status": 401,
+      "release_status": 401,
+      "manager": {
+        "login_status": 200,
+        "cases": 267,
+        "cases_digest": "6079c08e56ed95c4d089004b582b1db40ff0d996fd026fcad4f8de49ae478f7f",
+        "documents": 534,
+        "documents_digest": "34394673cb93d48e1362dee542d3c61d8cd48c0c99fa046def33affa5d73c5bd",
+        "downloaded_files": 69,
+        "download_digest": "45eccd0a1630d6820a03dabef72982ade512e05be4576c0c6f37957d62062b2e",
+        "tasks_status": 200,
+        "tasks_first_page_statuses": [
+          "CANCELLED",
+          "COMPLETED",
+          "IN_PROGRESS",
+          "LATE",
+          "NEW",
+          "WAITING_DOCUMENTS",
+          "WAITING_OTHER"
+        ]
+      },
+      "head": {
+        "login_status": 200,
+        "cases": 173,
+        "cases_digest": "61c50aca65dfbfd3e7502fc40891794ddc83eeccfae6b05cf55f298905468759",
+        "documents": 346,
+        "documents_digest": "84e11b34b3decdde898e3595951628f2595017f8b7a7890eb844f1c2c6b9425d",
+        "downloaded_files": 65,
+        "download_digest": "06725d3224fe78de739568c636e167a228f8c8ce4ae960baf822edcece764ab6",
+        "tasks_status": 200,
+        "tasks_first_page_statuses": [
+          "CANCELLED",
+          "COMPLETED",
+          "IN_PROGRESS",
+          "LATE",
+          "NEW",
+          "WAITING_DOCUMENTS",
+          "WAITING_OTHER"
+        ]
+      },
+      "staff": {
+        "login_status": 200,
+        "cases": 225,
+        "cases_digest": "77e5e55c5f80f42811a425768da6d65524b1e0db7248a4eb8062e16334888b51",
+        "documents": 450,
+        "documents_digest": "2211b3fe39c6b53d470c105a76500fcc7e6a0ef723f1cadf86d2d098b79f3e11",
+        "downloaded_files": 70,
+        "download_digest": "fc9724bdba08700c02a2ffd53388c15f35fd7f50682500d96959e437346b8f81",
+        "tasks_status": 200,
+        "tasks_first_page_statuses": [
+          "CANCELLED",
+          "COMPLETED",
+          "IN_PROGRESS",
+          "LATE",
+          "NEW",
+          "WAITING_DOCUMENTS",
+          "WAITING_OTHER"
+        ]
+      },
+      "archivist": {
+        "login_status": 200,
+        "cases": 187,
+        "cases_digest": "913dd0b124fbfdc49488b742573a4ce3e83fe8eeef804b32d4f402de35aa0e88",
+        "documents": 374,
+        "documents_digest": "aa123970b2cab2addf161677bcebafa73af19fc57c7dac630654ef8456330412",
+        "downloaded_files": 81,
+        "download_digest": "645df61cba2e93d32872b0038996f1340897352ac3544c535162cd0d9c24e7d7",
+        "tasks_status": 403
+      }
+    }
+  ],
+  "finished": "2026-11-09T16:12:24+00:00",
+  "total_seconds": 545.4
+}

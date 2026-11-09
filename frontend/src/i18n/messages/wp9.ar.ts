@@ -219,6 +219,7 @@ export const wp9Ar: Record<Keys, string> = {
   'wp9.search.in.ATTENDEES': 'الحضور',
   'wp9.search.in.JUDGE': 'القاضي أو الخبير',
   'wp9.search.in.FILE_NAME': 'اسم الملف',
+  'wp9.search.in.DOCUMENT_TEXT': 'نص الملف',
   'wp9.search.in.BODY': 'النص',
   'wp9.search.in.DESCRIPTION': 'الوصف',
   'wp9.search.in.KEYWORDS': 'الكلمات المفتاحية',
