@@ -1,0 +1,611 @@
+{
+  "journey": "WP6 tasks, judicial calendar and notification centre (261109122730)",
+  "base": "https://lawdesk.167-86-90-174.sslip.io",
+  "steps": [
+    {
+      "step": "deployed release",
+      "value": {
+        "release": "87bf0e68261c67bdacabf563156fe3e097f99ce0"
+      }
+    },
+    {
+      "step": "intake registers synthetic case A6",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "intake registers synthetic case B6",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "case A",
+      "value": "LD-2026-00054"
+    },
+    {
+      "step": "case B",
+      "value": "LD-2026-00055"
+    },
+    {
+      "step": "staff schedules a hearing in two days at 10:00",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "staff creates a task on the case with a start date and instructions",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "it starts NEW with its instructions",
+      "expected": [
+        "NEW",
+        "2026-11-09",
+        true
+      ],
+      "actual": [
+        "NEW",
+        "2026-11-09",
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "the personal calendar answers",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "the hearing and the task of the case are in it",
+      "expected": [
+        "HEARING",
+        "TASK"
+      ],
+      "actual": [
+        "HEARING",
+        "TASK"
+      ],
+      "ok": true
+    },
+    {
+      "step": "days are Kuwait days",
+      "expected": "Asia/Kuwait",
+      "actual": "Asia/Kuwait",
+      "ok": true
+    },
+    {
+      "step": "the hearing is shown at 10:00 and stored as the UTC instant",
+      "expected": [
+        "10:00",
+        "2026-11-11T07:00:00Z"
+      ],
+      "actual": [
+        "10:00",
+        "2026-11-11T07:00:00Z"
+      ],
+      "ok": true
+    },
+    {
+      "step": "both are in the general calendar of the department",
+      "expected": [
+        "HEARING",
+        "TASK"
+      ],
+      "actual": [
+        "HEARING",
+        "TASK"
+      ],
+      "ok": true
+    },
+    {
+      "step": "a user with no access to the case sees none of it",
+      "expected": [],
+      "actual": [],
+      "ok": true
+    },
+    {
+      "step": "the day view holds them",
+      "expected": [
+        200,
+        "DAY",
+        2
+      ],
+      "actual": [
+        200,
+        "DAY",
+        2
+      ],
+      "ok": true
+    },
+    {
+      "step": "the week view runs Sunday to Saturday",
+      "expected": [
+        200,
+        6,
+        2
+      ],
+      "actual": [
+        200,
+        6,
+        2
+      ],
+      "ok": true
+    },
+    {
+      "step": "the month view counts the day",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the kind filter keeps the task only",
+      "expected": [
+        "TASK"
+      ],
+      "actual": [
+        "TASK"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the calendar of another member is asked by user id",
+      "expected": 2,
+      "actual": 2,
+      "ok": true
+    },
+    {
+      "step": "the period is validated",
+      "expected": 400,
+      "actual": 400,
+      "ok": true
+    },
+    {
+      "step": "the lawyer enters an appeal date by hand",
+      "expected": [
+        201,
+        true,
+        "ACTIVE"
+      ],
+      "actual": [
+        201,
+        true,
+        "ACTIVE"
+      ],
+      "ok": true
+    },
+    {
+      "step": "a far date is entered too",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "a meeting of no case is entered",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the manual dates are on the calendar",
+      "expected": [
+        "APPEAL_DEADLINE",
+        "HEARING",
+        "MEETING",
+        "TASK"
+      ],
+      "actual": [
+        "APPEAL_DEADLINE",
+        "HEARING",
+        "MEETING",
+        "TASK"
+      ],
+      "ok": true
+    },
+    {
+      "step": "a user without the right to enter dates cannot add one to the case",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "a date needs its start before its end",
+      "expected": 400,
+      "actual": 400,
+      "ok": true
+    },
+    {
+      "step": "a second hearing of the same member at the same time is scheduled",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the calendar detects the conflict",
+      "expected": [
+        200,
+        1
+      ],
+      "actual": [
+        200,
+        1
+      ],
+      "ok": true
+    },
+    {
+      "step": "it offers the alternate member of each case",
+      "expected": "{'376c020e-b416-4240-b1b1-8efeeb68c219'}",
+      "actual": "{'376c020e-b416-4240-b1b1-8efeeb68c219'}",
+      "ok": true
+    },
+    {
+      "step": "the alternate member is assigned to the second hearing",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "the conflict is gone",
+      "expected": [],
+      "actual": [],
+      "ok": true
+    },
+    {
+      "step": "the task moves to WAITING_DOCUMENTS",
+      "expected": [
+        200,
+        "WAITING_DOCUMENTS"
+      ],
+      "actual": [
+        200,
+        "WAITING_DOCUMENTS"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the task moves to WAITING_OTHER",
+      "expected": [
+        200,
+        "WAITING_OTHER"
+      ],
+      "actual": [
+        200,
+        "WAITING_OTHER"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the task moves to IN_PROGRESS",
+      "expected": [
+        200,
+        "IN_PROGRESS"
+      ],
+      "actual": [
+        200,
+        "IN_PROGRESS"
+      ],
+      "ok": true
+    },
+    {
+      "step": "late is set by the system, not chosen",
+      "expected": 422,
+      "actual": 422,
+      "ok": true
+    },
+    {
+      "step": "the reason for delay is recorded",
+      "expected": [
+        200,
+        true
+      ],
+      "actual": [
+        200,
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "before the task the read-only user cannot see the case",
+      "expected": 404,
+      "actual": 404,
+      "ok": true
+    },
+    {
+      "step": "the specialist gives a task of the case to the read-only user",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "they now see the case",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "but cannot change it",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "nor see another case",
+      "expected": 404,
+      "actual": 404,
+      "ok": true
+    },
+    {
+      "step": "nor edit the fields of their task",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "nor reassign it",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "their task is in their calendar, or the role has no calendar permission",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the specialist switches the assignment notice off for themselves",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "the manager gives the specialist a task",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the specialist is not told: their preference is respected",
+      "expected": [],
+      "actual": [],
+      "ok": true
+    },
+    {
+      "step": "the task is reassigned with a reason",
+      "expected": [
+        200,
+        "376c020e-b416-4240-b1b1-8efeeb68c219"
+      ],
+      "actual": [
+        200,
+        "376c020e-b416-4240-b1b1-8efeeb68c219"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the new assignee is told in the system",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the history says who changed what",
+      "expected": [
+        [
+          "CREATED",
+          null
+        ],
+        [
+          "STATUS",
+          "status"
+        ],
+        [
+          "STATUS",
+          "status"
+        ],
+        [
+          "STATUS",
+          "status"
+        ],
+        [
+          "DELAY_REASON",
+          "delay_reason"
+        ],
+        [
+          "REASSIGNED",
+          "assignee"
+        ]
+      ],
+      "actual": [
+        [
+          "CREATED",
+          null
+        ],
+        [
+          "STATUS",
+          "status"
+        ],
+        [
+          "STATUS",
+          "status"
+        ],
+        [
+          "STATUS",
+          "status"
+        ],
+        [
+          "DELAY_REASON",
+          "delay_reason"
+        ],
+        [
+          "REASSIGNED",
+          "assignee"
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "step": "the reassignment keeps both people and the reason",
+      "expected": [
+        "192454be-232b-469f-8051-3deea347837b",
+        "376c020e-b416-4240-b1b1-8efeeb68c219",
+        true
+      ],
+      "actual": [
+        "192454be-232b-469f-8051-3deea347837b",
+        "376c020e-b416-4240-b1b1-8efeeb68c219",
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "the old word DONE is still accepted and means COMPLETED",
+      "expected": [
+        200,
+        "COMPLETED"
+      ],
+      "actual": [
+        200,
+        "COMPLETED"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the specialist completes the side task",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "the read-only user loses the case again",
+      "expected": 404,
+      "actual": 404,
+      "ok": true
+    },
+    {
+      "step": "the follow-up run answers",
+      "expected": [
+        200,
+        true
+      ],
+      "actual": [
+        200,
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "the hearing in two days is announced once",
+      "expected": 1,
+      "actual": 1,
+      "ok": true
+    },
+    {
+      "step": "the appeal date that exists is announced once",
+      "expected": 1,
+      "actual": 1,
+      "ok": true
+    },
+    {
+      "step": "the far appeal date is not announced yet",
+      "expected": 0,
+      "actual": 0,
+      "ok": true
+    },
+    {
+      "step": "nothing is announced for a deadline nobody entered",
+      "expected": [],
+      "actual": [],
+      "ok": true
+    },
+    {
+      "step": "the conflict of dates is raised to the member",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the new case is announced to its specialist, not to the manager who registered it",
+      "expected": [
+        true,
+        false
+      ],
+      "actual": [
+        true,
+        false
+      ],
+      "ok": true
+    },
+    {
+      "step": "notifications of these cases are not shown to a user without access",
+      "expected": [],
+      "actual": [],
+      "ok": true
+    },
+    {
+      "step": "the centre knows the eleven kinds of the requirements and the system notices",
+      "expected": [
+        15,
+        11
+      ],
+      "actual": [
+        15,
+        11
+      ],
+      "ok": true
+    },
+    {
+      "step": "the list is filtered by kind",
+      "expected": "{'HEARING_UPCOMING'}",
+      "actual": "{'HEARING_UPCOMING'}",
+      "ok": true
+    },
+    {
+      "step": "an item links to its record",
+      "expected": [
+        "HEARING",
+        true
+      ],
+      "actual": [
+        "HEARING",
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "it is marked read for this user",
+      "expected": 204,
+      "actual": 204,
+      "ok": true
+    },
+    {
+      "step": "another user's copy stays unread",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "it can be marked unread again",
+      "expected": 204,
+      "actual": 204,
+      "ok": true
+    },
+    {
+      "step": "every kind is on again",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "a kind that does not exist cannot be configured",
+      "expected": 404,
+      "actual": 404,
+      "ok": true
+    }
+  ],
+  "passed": true
+}

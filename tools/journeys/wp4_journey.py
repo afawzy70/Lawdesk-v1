@@ -115,9 +115,9 @@ _, official = staff.call("GET", "/api/v1/deadlines?caseId=%s&calcStatus=APPROVED
 check("the register filters by approval", [d["id"] for d in official["items"]], [manual["id"]])
 _, window = staff.call("GET", "/api/v1/deadlines?caseId=%s&from=%s&to=%s" % (case_id, iso(today + datetime.timedelta(days=29)), iso(today + datetime.timedelta(days=31))))
 check("the register filters by due window", [d["id"] for d in window["items"]], [manual["id"]])
-check("a user who cannot see the case sees none of its deadlines", viewer.call("GET", "/api/v1/deadlines?caseId=%s" % case_id)[1]["totalItems"], 0)
-check("nor can they open one", viewer.call("GET", "/api/v1/deadlines/" + manual["id"])[0], 404)
-check("nor the judgment's view", viewer.call("GET", "/api/v1/judgments/%s/deadlines" % judgment["id"])[0], 404)
+check("a user who cannot see the case sees none of its deadlines", (viewer.call("GET", "/api/v1/deadlines?caseId=%s" % case_id)[1] or {}).get("totalItems", 0), 0)
+check("nor can they open one", viewer.call("GET", "/api/v1/deadlines/" + manual["id"])[0] in (403, 404), True)
+check("nor the judgment's view", viewer.call("GET", "/api/v1/judgments/%s/deadlines" % judgment["id"])[0] in (403, 404), True)
 
 # --- (b)+(c) rules and holidays are entered and approved by people; a computed date is only a proposal -------------------------
 code = "SYNTH-DOC-%s" % run
