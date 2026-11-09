@@ -53,7 +53,7 @@ abstract class TaskTestSupport extends PostgresTestSupport {
     }
 
     static LocalDate today() {
-        return LocalDate.now(ZoneId.of("Africa/Cairo"));
+        return LocalDate.now(ZoneId.of("Asia/Kuwait"));
     }
 
     UUID user(String displayName, boolean enabled) {

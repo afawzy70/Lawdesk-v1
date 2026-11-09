@@ -7,13 +7,13 @@ import java.time.ZoneId;
 import org.springframework.stereotype.Component;
 
 /**
- * "Today" for reports (docs/delivery/PHASE-6-ACCEPTANCE.md, common rule 7). ASSUMPTION: the firm works in Egypt, so
- * the current day and month are those of {@code Africa/Cairo}, whatever the server's own zone is.
+ * "Today" for reports (docs/delivery/PHASE-6-ACCEPTANCE.md, common rule 7). The authority works in Kuwait (owner assumption: Kuwait time for display), so
+ * the current day and month are those of {@code Asia/Kuwait}, whatever the server's own zone is.
  */
 @Component
 class ReportCalendar {
 
-    static final ZoneId ZONE = ZoneId.of("Africa/Cairo");
+    static final ZoneId ZONE = ZoneId.of("Asia/Kuwait");
 
     private final Clock clock = Clock.system(ZONE);
 

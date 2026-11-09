@@ -92,7 +92,7 @@ public class TaskReportQueries {
                 + " or (case_id is not null and " + cases.sql() + "))", params);
     }
 
-    /** "Today" for every task rule: the calendar date in Egypt. */
+    /** "Today" for every task rule: the calendar date in Kuwait (Asia/Kuwait). */
     public LocalDate today() {
         return Rules.today();
     }

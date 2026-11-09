@@ -31,7 +31,7 @@ import com.lawdesk.security.Permission;
 @Service
 class CaseFileService {
 
-    private static final ZoneId ZONE = ZoneId.of("Africa/Cairo");
+    private static final ZoneId ZONE = ZoneId.of("Asia/Kuwait");
     private static final Set<String> KINDS = Set.of("EVENT", "HEARING", "INFO_REQUEST", "INFO_REQUEST_DUE", "INFO_REPLY",
             "RISK", "JUDGMENT", "LINK", "DEADLINE");
     private static final List<String> PENDING_MODULES = List.of("CLAIMS", "DEFENSES", "EVIDENCE", "ENFORCEMENT");
@@ -248,7 +248,7 @@ class CaseFileService {
                 where l.case_id = :caseId or l.other_case_id = :caseId""".formatted(linkVisible.sql(), linkVisible.sql()));
         if (currentActor.has(Permission.HEARING_VIEW)) {
             branches.add("""
-                    select (h.hearing_date + coalesce(h.hearing_time, time '00:00')) at time zone 'Africa/Cairo', 'HEARING',
+                    select (h.hearing_date + coalesce(h.hearing_time, time '00:00')) at time zone 'Asia/Kuwait', 'HEARING',
                            h.status, coalesce(h.decision, h.purpose), 'HEARING', h.id,
                            h.status = 'SCHEDULED' and h.hearing_date >= :today,
                            h.status = 'SCHEDULED' and h.hearing_date < :today, h.created_by
@@ -256,16 +256,16 @@ class CaseFileService {
         }
         if (currentActor.has(Permission.INFO_REQUEST_VIEW)) {
             branches.add("""
-                    select coalesce(r.sent_on, r.drafted_on, (r.created_at at time zone 'Africa/Cairo')::date)::timestamp
-                           at time zone 'Africa/Cairo', 'INFO_REQUEST', r.status, r.subject, 'INFO_REQUEST', r.id, false,
+                    select coalesce(r.sent_on, r.drafted_on, (r.created_at at time zone 'Asia/Kuwait')::date)::timestamp
+                           at time zone 'Asia/Kuwait', 'INFO_REQUEST', r.status, r.subject, 'INFO_REQUEST', r.id, false,
                            false, r.created_by
                     from info_request r where r.case_id = :caseId""");
             branches.add("""
-                    select r.due_on::timestamp at time zone 'Africa/Cairo', 'INFO_REQUEST_DUE', r.status, r.subject,
+                    select r.due_on::timestamp at time zone 'Asia/Kuwait', 'INFO_REQUEST_DUE', r.status, r.subject,
                            'INFO_REQUEST', r.id, r.due_on >= :today, r.due_on < :today, r.created_by
                     from info_request r where r.case_id = :caseId and r.due_on is not null and r.status in %s""".formatted(WAITING));
             branches.add("""
-                    select p.received_on::timestamp at time zone 'Africa/Cairo', 'INFO_REPLY', p.completeness,
+                    select p.received_on::timestamp at time zone 'Asia/Kuwait', 'INFO_REPLY', p.completeness,
                            coalesce(p.summary, p.completeness), 'INFO_REQUEST', p.request_id, false, false, p.created_by
                     from info_reply p where p.case_id = :caseId""");
         }
@@ -276,14 +276,14 @@ class CaseFileService {
         }
         if (currentActor.has(Permission.JUDGMENT_VIEW)) {
             branches.add("""
-                    select j.judgment_date::timestamp at time zone 'Africa/Cairo', 'JUDGMENT', j.outcome,
+                    select j.judgment_date::timestamp at time zone 'Asia/Kuwait', 'JUDGMENT', j.outcome,
                            coalesce(j.summary, 'Judgment: ' || j.outcome), 'JUDGMENT', j.id, false, false, j.created_by
                     from judgment j join proceeding p on p.id = j.proceeding_id where p.case_id = :caseId""");
         }
         if (currentActor.has(Permission.DEADLINE_VIEW)) {
             // The due date is the moment of the entry; its state is the work state while open, the work state otherwise.
             branches.add("""
-                    select d.due_on::timestamp at time zone 'Africa/Cairo', 'DEADLINE',
+                    select d.due_on::timestamp at time zone 'Asia/Kuwait', 'DEADLINE',
                            case when d.status = 'OPEN' then d.calc_status else d.status end, d.action, 'DEADLINE', d.id,
                            d.status = 'OPEN' and d.due_on >= :today, d.status = 'OPEN' and d.due_on < :today, d.created_by
                     from deadline d where d.case_id = :caseId and d.due_on is not null""");

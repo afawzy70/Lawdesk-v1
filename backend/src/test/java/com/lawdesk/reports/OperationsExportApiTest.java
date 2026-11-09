@@ -64,7 +64,7 @@ class OperationsExportApiTest extends PostgresTestSupport {
     @BeforeEach
     void rows() {
         doReturn(LocalDate.of(2013, 5, 15)).when(calendar).today();
-        LocalDate today = LocalDate.now(ZoneId.of("Africa/Cairo"));
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Kuwait"));
         data = new ReportTestData(jdbc);
         m = data.marker();
         UUID court = data.insertCourt("FIRST_INSTANCE");

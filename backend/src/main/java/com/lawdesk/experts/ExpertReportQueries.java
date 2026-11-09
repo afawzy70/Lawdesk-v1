@@ -84,7 +84,7 @@ public class ExpertReportQueries {
         this.access = access;
     }
 
-    /** "Today" for every expert rule: the calendar date in Egypt. */
+    /** "Today" for every expert rule: the calendar date in Kuwait (Asia/Kuwait). */
     public LocalDate today() {
         return Rules.today();
     }

@@ -32,8 +32,8 @@ import com.lawdesk.security.CurrentActor;
 @Service
 class DeadlineService {
 
-    /** "Today" is the calendar date in Egypt, as for hearings and information requests. */
-    private static final ZoneId ZONE = ZoneId.of("Africa/Cairo");
+    /** "Today" is the calendar date in Kuwait (Asia/Kuwait), as for hearings and information requests. */
+    private static final ZoneId ZONE = ZoneId.of("Asia/Kuwait");
 
     private final DeadlineStore store;
     private final DeadlineSettingsStore settings;

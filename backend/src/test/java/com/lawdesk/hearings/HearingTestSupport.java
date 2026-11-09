@@ -67,7 +67,7 @@ abstract class HearingTestSupport extends PostgresTestSupport {
     }
 
     static LocalDate today() {
-        return LocalDate.now(ZoneId.of("Africa/Cairo"));
+        return LocalDate.now(ZoneId.of("Asia/Kuwait"));
     }
 
     UUID createCase(String title) throws Exception {

@@ -56,7 +56,7 @@ public abstract class Wp3TestSupport extends PostgresTestSupport {
     }
 
     public static LocalDate today() {
-        return LocalDate.now(ZoneId.of("Africa/Cairo"));
+        return LocalDate.now(ZoneId.of("Asia/Kuwait"));
     }
 
     protected UUID user(String displayName) {

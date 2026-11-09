@@ -36,7 +36,7 @@ public class DeadlineReminderRun {
     public static final String APPROACHING = "DEADLINE_APPROACHING";
     public static final String OVERDUE = "DEADLINE_OVERDUE";
 
-    private static final ZoneId ZONE = ZoneId.of("Africa/Cairo");
+    private static final ZoneId ZONE = ZoneId.of("Asia/Kuwait");
 
     private final JdbcClient jdbc;
     private final DeadlineSettingsStore settings;

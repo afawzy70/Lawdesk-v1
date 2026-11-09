@@ -8,8 +8,8 @@ import java.time.temporal.ChronoUnit;
 /** Dates, times and text as the hearing module reads them (docs/delivery/PHASE-5-ACCEPTANCE.md, common rules). */
 final class LegalDay {
 
-    /** "Today" is the calendar date in Egypt (ASSUMPTION, common rule 9). */
-    static final ZoneId ZONE = ZoneId.of("Africa/Cairo");
+    /** "Today" is the calendar date in Kuwait (Asia/Kuwait) (ASSUMPTION, common rule 9). */
+    static final ZoneId ZONE = ZoneId.of("Asia/Kuwait");
 
     private LegalDay() {
     }
