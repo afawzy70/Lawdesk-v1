@@ -19,7 +19,7 @@ import zoneinfo
 from uat import BASE, MARK, Journey, Session
 
 run = time.strftime("%y%m%d%H%M%S")
-today = datetime.datetime.now(zoneinfo.ZoneInfo("Africa/Cairo")).date()
+today = datetime.datetime.now(zoneinfo.ZoneInfo("Asia/Kuwait")).date()
 iso = lambda d: d.isoformat()
 journey = Journey("WP4 legal deadlines, rules, holidays and reminders (%s)" % run)
 manager = Session("manager").login("manager")
