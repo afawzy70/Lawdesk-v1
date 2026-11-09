@@ -80,6 +80,10 @@ EXTRA = """
 | `CASE_DELETE` مزروعة وغير مستعملة | BLOCKED | الوثيقة تمنع الحذف النهائي إلا بإجراء معتمد (السطر 186) ولا سياسة احتفاظ (D9). القرار المطلوب: هل يُسمح بحذف قضية مسجلة بالخطأ، بأي إجراء وصلاحية وتدقيق. إلى ذلك لا توجد نقطة حذف للقضايا |
 | عناصر القسم 34 (تكامل) | BLOCKED جزئيًا | انظر صفوف 34 أعلاه |
 
+## حدود اختبار الاطلاع الانعكاسي
+
+`security/CaseBoundEndpointsAccessTest` يستدعي كل نقطة نهاية فيها متغير مسار مرتبطة بقضية بمستخدم يملك كل الصلاحيات دون عضوية أو نطاق، ويتوقع 404/403، وبمستخدم ضابط يجد السجل. **عشر نقاط نهاية لا يمكن ملاحظتها بهذا الاختبار** لأن التحقق من الجسم يردّ 400 قبل فحص الاطلاع (`BODY_NOT_BUILT`): `AccessController#confidentiality`, `AccessController#grant`, `CaseController#changeStatus`, `CaseController#update`, `CasePrecedentController#link`, `DocumentLinkController#add`, `InfoRequestController#replyWithDocument`, `PartyController#addCounsel`, `PartyController#link`, `ProceedingController#create`. تغطيها اختبارات الاطلاع الأقدم (مثل `CaseVisibilityApiTest`) ولم يثبتها هذا الاختبار.
+
 الحالات هنا من المطوّر فقط: لا `VERIFIED` على UAT ولا `QA_ACCEPTED`.
 """
 out=[]
