@@ -137,3 +137,14 @@ Frontend: `Wp8Reports.test.tsx` (20) and the section list in `CaseInventoryPage.
 
 Run the journey on UAT after deployment; move the deadline and enforcement SQL into WP4/WP5 report ports; the search document (above);
 snapshot or cache for the dashboard if wanted; the exports keep the existing 10,000-row limit (family tables are aggregates and far smaller).
+
+## Defect after merge (UAT): indicators 5 and 8 answered 500
+
+Cause: the check whether the deadline and enforcement tables exist used `to_regclass('public.<table>')`. The deployed application role has its own
+schema as search path and no rights on `public` (`deploy/postgres/app-role.sql`), and resolving a name in a schema the role may not use fails with
+"permission denied" instead of answering "no". CI connects as a superuser, so it never showed. The same lookup was in the report families 11 and 12.
+Fix: the table is looked up by its plain name (search path). `IndicatorPendingModulesTest.theTableLookupWorksForTheRestrictedRoleDeploymentsUse`
+reproduces it with a restricted role and fails on the old code (`permission denied`).
+Hardening: each indicator is calculated in its own savepoint; if its query fails it is logged and reported `available: false` with
+`unavailableReason: INDICATOR_FAILED` (list and figure), and the other indicators and the dashboard still answer (a failed SQL statement aborts a PostgreSQL
+transaction, which a savepoint contains; tested with a real `1 / 0`). Malformed requests still answer 400/422.

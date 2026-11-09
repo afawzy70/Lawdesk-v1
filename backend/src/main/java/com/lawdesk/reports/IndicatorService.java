@@ -1,5 +1,8 @@
 package com.lawdesk.reports;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Savepoint;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -9,8 +12,13 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import javax.sql.DataSource;
+
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Component;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,6 +64,10 @@ public class IndicatorService {
     /** "Upcoming" is today and the six days after it, as on the dashboard since LD-030. */
     static final int WEEK_AHEAD_DAYS = 6;
     static final String MODULE_NOT_AVAILABLE = "MODULE_NOT_AVAILABLE";
+    /** An indicator whose own query failed: reported as unavailable, never allowed to fail the dashboard. */
+    static final String INDICATOR_FAILED = "INDICATOR_FAILED";
+
+    private static final Logger log = LoggerFactory.getLogger(IndicatorService.class);
     static final int MAX_GROUPS = 100;
 
     /** The statuses of the three case-state indicators (new, circulating, concluded); one definition for figure and list. */
@@ -78,10 +90,11 @@ public class IndicatorService {
     private final ReportCalendar calendar;
     private final JdbcClient jdbc;
     private final CaseAccessPolicy access;
+    private final DataSource dataSource;
 
     IndicatorService(CaseReportQueries cases, HearingReportQueries hearings, JudgmentReportQueries judgments,
             TaskReportQueries tasks, InfoRequestReportQueries requests, ReportCalendar calendar, JdbcClient jdbc,
-            CaseAccessPolicy access) {
+            CaseAccessPolicy access, DataSource dataSource) {
         this.cases = cases;
         this.hearings = hearings;
         this.judgments = judgments;
@@ -90,6 +103,7 @@ public class IndicatorService {
         this.calendar = calendar;
         this.jdbc = jdbc;
         this.access = access;
+        this.dataSource = dataSource;
     }
 
     // ---- the dashboard ---------------------------------------------------------------------------------------------
@@ -103,17 +117,62 @@ public class IndicatorService {
         // count of the list it opens (IndicatorApiTest checks it), only read once instead of six times.
         CaseReportQueries.CaseCounts caseCounts = cases.counts(CaseFilter.ALL);
         for (IndicatorCode code : IndicatorCode.values()) {
-            Source source = source(code, plain);
-            if (source == null) {
-                figures.add(new IndicatorFigure(code, code.number(), code.entity(), false, MODULE_NOT_AVAILABLE, null,
-                        null));
-            } else {
-                Long fromStatuses = statusFigure(code, caseCounts);
-                figures.add(new IndicatorFigure(code, code.number(), code.entity(), true, null,
-                        fromStatuses != null ? fromStatuses : source.count(), code.grouped() ? groups(code) : null));
-            }
+            figures.add(figure(code, plain, caseCounts));
         }
         return figures;
+    }
+
+    /** One indicator's figure; if its own queries fail it is unavailable ({@link #INDICATOR_FAILED}) and the failure is logged. */
+    private IndicatorFigure figure(IndicatorCode code, IndicatorQuery plain, CaseReportQueries.CaseCounts caseCounts) {
+        try {
+            return isolated(() -> {
+                Source source = source(code, plain);
+                if (source == null) {
+                    return new IndicatorFigure(code, code.number(), code.entity(), false, MODULE_NOT_AVAILABLE, null, null);
+                }
+                Long fromStatuses = statusFigure(code, caseCounts);
+                return new IndicatorFigure(code, code.number(), code.entity(), true, null,
+                        fromStatuses != null ? fromStatuses : source.count(), code.grouped() ? groups(code) : null);
+            });
+        } catch (RuntimeException e) {
+            log.error("indicator {} could not be calculated; reported as unavailable", code, e);
+            return new IndicatorFigure(code, code.number(), code.entity(), false, INDICATOR_FAILED, null, null);
+        }
+    }
+
+    /**
+     * Runs the work in its own savepoint: a statement that fails in PostgreSQL aborts the whole transaction, so without one the
+     * failure of a single indicator would make every later query of the request fail as well. Without a transaction (no
+     * savepoint possible) the work simply runs.
+     */
+    private <T> T isolated(java.util.function.Supplier<T> work) {
+        if (dataSource == null) {
+            return work.get();
+        }
+        Connection connection = DataSourceUtils.getConnection(dataSource);
+        Savepoint savepoint;
+        try {
+            savepoint = connection.setSavepoint();
+        } catch (SQLException e) {
+            DataSourceUtils.releaseConnection(connection, dataSource);
+            return work.get();
+        }
+        try {
+            T result = work.get();
+            connection.releaseSavepoint(savepoint);
+            return result;
+        } catch (SQLException e) {
+            throw new IllegalStateException("could not release the savepoint of an indicator", e);
+        } catch (RuntimeException e) {
+            try {
+                connection.rollback(savepoint);
+            } catch (SQLException rollbackFailure) {
+                e.addSuppressed(rollbackFailure);
+            }
+            throw e;
+        } finally {
+            DataSourceUtils.releaseConnection(connection, dataSource);
+        }
     }
 
     /** The figures that are sums of case statuses, from counts already read; null for every other indicator. */
@@ -159,8 +218,21 @@ public class IndicatorService {
     @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public IndicatorPage page(IndicatorCode code, IndicatorQuery query) {
         PeriodQuery.Period period = new PeriodQuery(query.from(), query.to()).resolve(calendar.today());
-        Source source = source(code, query);
         Paging paging = Paging.of(query.page(), query.size());
+        try {
+            return isolated(() -> pageOf(code, query, period, paging));
+        } catch (FieldErrorException | com.lawdesk.api.BusinessRuleException e) {
+            // The request itself is wrong (a malformed group, a rule): the caller is told, the indicator is not "failed".
+            throw e;
+        } catch (RuntimeException e) {
+            log.error("the list of indicator {} could not be read; reported as unavailable", code, e);
+            return new IndicatorPage(code, false, INDICATOR_FAILED, List.of(), paging.page(), paging.size(), 0, 0,
+                    period.from(), period.to());
+        }
+    }
+
+    private IndicatorPage pageOf(IndicatorCode code, IndicatorQuery query, PeriodQuery.Period period, Paging paging) {
+        Source source = source(code, query);
         if (source == null) {
             return new IndicatorPage(code, false, MODULE_NOT_AVAILABLE, List.of(), paging.page(), paging.size(), 0, 0,
                     period.from(), period.to());
@@ -181,8 +253,17 @@ public class IndicatorService {
             throw new com.lawdesk.api.BusinessRuleException(MODULE_NOT_AVAILABLE,
                     "the module that owns this indicator is not available yet");
         }
-        ReportExports.requireWithinLimit(source.count());
-        return source.page(0, ReportExports.MAX_ROWS);
+        try {
+            return isolated(() -> {
+                ReportExports.requireWithinLimit(source.count());
+                return source.page(0, ReportExports.MAX_ROWS);
+            });
+        } catch (com.lawdesk.api.BusinessRuleException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            log.error("the export of indicator {} failed", code, e);
+            throw new com.lawdesk.api.BusinessRuleException(INDICATOR_FAILED, "the indicator could not be read");
+        }
     }
 
     // ---- the definitions -------------------------------------------------------------------------------------------
@@ -353,8 +434,16 @@ public class IndicatorService {
 
     /** True when the table exists, that is when the module that owns it has been deployed. */
     boolean tableExists(String table) {
-        return Boolean.TRUE.equals(jdbc.sql("select to_regclass(:t) is not null").param("t", "public." + table)
-                .query(Boolean.class).single());
+        return tableExists(jdbc, table);
+    }
+
+    /**
+     * The table is looked up by its plain name, through the connection's search path. It must not be written {@code public.<name>}:
+     * a deployment's role has its own schema as search path and no rights on {@code public} (deploy/postgres/app-role.sql), and
+     * resolving a name in a schema the role may not use fails with "permission denied" instead of answering "no".
+     */
+    static boolean tableExists(JdbcClient jdbc, String table) {
+        return Boolean.TRUE.equals(jdbc.sql("select to_regclass(:t) is not null").param("t", table).query(Boolean.class).single());
     }
 
     /**

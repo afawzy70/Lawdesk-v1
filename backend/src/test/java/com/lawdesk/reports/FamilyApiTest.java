@@ -347,8 +347,8 @@ class FamilyApiTest extends PostgresTestSupport {
 
     @Test
     void deadlinesAndEnforcementAreMarkedUnavailableUntilTheirTablesExist() throws Exception {
-        boolean deadline = jdbc.queryForObject("select to_regclass('public.deadline') is not null", Boolean.class);
-        boolean enforcement = jdbc.queryForObject("select to_regclass('public.enforcement_file') is not null", Boolean.class);
+        boolean deadline = jdbc.queryForObject("select to_regclass('deadline') is not null", Boolean.class);
+        boolean enforcement = jdbc.queryForObject("select to_regclass('enforcement_file') is not null", Boolean.class);
         assertThat(family(reader(staff), "DEADLINES_APPEALS", "").<Boolean>read("$.available")).isEqualTo(deadline);
         assertThat(family(reader(staff), "ENFORCEMENT", "").<Boolean>read("$.available")).isEqualTo(enforcement);
     }

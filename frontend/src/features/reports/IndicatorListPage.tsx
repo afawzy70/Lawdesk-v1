@@ -105,7 +105,7 @@ function Loaded({ report, captionId, onPage }: { report: IndicatorPage; captionI
   if (!report.available) {
     return (
       <p className="rpt-note" role="status">
-        {t('wp8.indicator.unavailableHint')}
+        {t(report.unavailableReason === 'INDICATOR_FAILED' ? 'wp8.indicator.failedHint' : 'wp8.indicator.unavailableHint')}
       </p>
     );
   }
