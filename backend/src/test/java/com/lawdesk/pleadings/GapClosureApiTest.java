@@ -143,6 +143,25 @@ class GapClosureApiTest extends PleadingsTestSupport {
     }
 
     @Test
+    void archivingAfterClosingAlsoNeedsTheAcknowledgementAndDeletesNothing() throws Exception {
+        UUID caseId = newCase();
+        UUID task = task(caseId, "SYNTH-DOC open task");
+        RequestPostProcessor manager = TestActors.as(USER, "closer", Permission.CASE_VIEW, Permission.CASE_STATUS_CHANGE);
+        long version = jdbc.queryForObject("select version from legal_case where id = ?", Long.class, caseId);
+        post(manager, "/api/v1/cases/" + caseId + "/status", json("status", "CLOSED", "version", version))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.rule").value("CLOSING_OPEN_ITEMS_NOT_ACKNOWLEDGED"));
+        assertThat(jdbc.queryForObject("select status from legal_case where id = ?", String.class, caseId)).isEqualTo("OPEN");
+        assertThat(count("select count(*) from task where id = ?", task)).isEqualTo(1);
+        post(manager, "/api/v1/cases/" + caseId + "/status",
+                json("status", "CLOSED", "version", version, "acknowledgeOpenItems", true)).andExpect(status().isOk());
+        long closed = jdbc.queryForObject("select version from legal_case where id = ?", Long.class, caseId);
+        post(manager, "/api/v1/cases/" + caseId + "/status", json("status", "ARCHIVED", "version", closed))
+                .andExpect(status().isOk());
+        assertThat(count("select count(*) from task where id = ?", task)).isEqualTo(1);
+    }
+
+    @Test
     void aCaseWithNothingOpenClosesWithoutAcknowledgement() throws Exception {
         UUID caseId = newCase();
         RequestPostProcessor manager = TestActors.as(USER, "closer", Permission.CASE_VIEW, Permission.CASE_STATUS_CHANGE);

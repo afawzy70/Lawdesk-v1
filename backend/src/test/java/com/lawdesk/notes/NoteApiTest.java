@@ -185,7 +185,7 @@ class NoteApiTest extends PostgresTestSupport {
         for (String[] step : new String[][] {{"CLOSED", "0"}, {"ARCHIVED", "1"}}) {
             mvc.perform(post("/api/v1/cases/" + caseId + "/status").with(as(Permission.CASE_STATUS_CHANGE))
                     .with(csrf()).contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"status\":\"%s\",\"version\":%s}".formatted(step[0], step[1])))
+                    .content("{\"status\":\"%s\",\"version\":%s,\"acknowledgeOpenItems\":true}".formatted(step[0], step[1])))
                     .andExpect(status().isOk());
         }
         mvc.perform(postNote(caseId, author, body("After archiving")))
