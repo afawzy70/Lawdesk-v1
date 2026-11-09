@@ -56,7 +56,7 @@ class SearchService {
                 throw new FieldErrorException("types", "Pattern");
             }
         }
-        Map<String, Spec> specs = SearchSpecs.all(access);
+        Map<String, Spec> specs = SearchSpecs.all(access, currentActor.has(Permission.PARTY_ID_VIEW));
         boolean everyType = currentActor.has(Permission.SEARCH_ALL);
         List<String> searched = new ArrayList<>();
         for (String type : SearchSpecs.ORDER) {
@@ -116,6 +116,9 @@ class SearchService {
             where.append(" and ").append(spec.date()).append(" <= :dateTo");
             params.put("dateTo", query.to());
         }
+        if (spec.stored() != null) {
+            return runStored(spec, query, params, from, where.toString());
+        }
         List<Part> parts = spec.parts();
         StringBuilder columns = new StringBuilder();
         StringBuilder vector = new StringBuilder();
@@ -147,7 +150,7 @@ class SearchService {
         long[] counted = {-1};
         List<Item> items = jdbc.sql(sql).params(params).query((rs, n) -> {
             counted[0] = rs.getLong("total_n");
-            return item(rs, spec);
+            return item(rs, spec, rs.getDouble("rank"));
         }).list();
         long total = counted[0];
         if (items.isEmpty()) {
@@ -161,6 +164,65 @@ class SearchService {
         return new Group(spec.type(), total, query.pageOrDefault(), query.sizeOrDefault(), items);
     }
 
+    /**
+     * The stored-vector path (V801): candidates come from a GIN index, are restricted by the access rule and ranked, and only the
+     * page's rows are read again for their matched-in flags and snippet. Two statements per type, whatever the register's size.
+     */
+    private Group runStored(Spec spec, SearchRequests.Query query, Map<String, Object> params, String from, String where) {
+        SearchSpecs.Stored stored = spec.stored();
+        String with = "with q as (select to_tsquery('simple', cast(:tsq as text)) as tq)"
+                + (stored.with() == null ? "" : ", " + stored.with()) + " ";
+        String matching = " from " + from + stored.from() + " cross join q where " + where + " and " + spec.id() + " in ("
+                + stored.matchIds() + ") and " + stored.vector() + " @@ q.tq";
+        String pageSql = with + "select s.id, s.rank, s.total_n from (select " + spec.id() + " as id, " + spec.date()
+                + " as rec_date, ts_rank_cd(" + stored.vector() + ", q.tq) as rank, count(*) over () as total_n" + matching
+                + ") s order by s.rank desc, s.rec_date desc nulls last, s.id offset :offset limit :limit";
+        List<UUID> ids = new ArrayList<>();
+        Map<UUID, Double> ranks = new HashMap<>();
+        long[] counted = {-1};
+        jdbc.sql(pageSql).params(params).query(rs -> {
+            UUID id = rs.getObject("id", UUID.class);
+            ids.add(id);
+            ranks.put(id, rs.getDouble("rank"));
+            counted[0] = rs.getLong("total_n");
+        });
+        long total = counted[0];
+        if (ids.isEmpty()) {
+            // Nothing on this page: either nothing matches, or the page is past the end and the total is still needed.
+            total = query.pageOrDefault() == 0 ? 0
+                    : jdbc.sql(with + "select count(*)" + matching).params(params).query(Long.class).single();
+            return new Group(spec.type(), total, query.pageOrDefault(), query.sizeOrDefault(), List.of());
+        }
+        List<Part> parts = spec.parts();
+        StringBuilder columns = new StringBuilder();
+        StringBuilder flags = new StringBuilder();
+        StringBuilder snippet = new StringBuilder("case");
+        for (int i = 0; i < parts.size(); i++) {
+            columns.append(", ").append(parts.get(i).sql()).append(" as p").append(i);
+            flags.append(", to_tsvector('simple', library_normalize(b.p").append(i).append(")) @@ q.tq as m").append(i);
+            snippet.append(" when r.m").append(i).append(" then r.p").append(i);
+        }
+        snippet.append(" else r.p0 end");
+        Map<String, Object> rowParams = new HashMap<>(params);
+        rowParams.put("ids", ids.stream().map(UUID::toString).collect(java.util.stream.Collectors.joining(",", "{", "}")));
+        String rowsSql = "with q as (select to_tsquery('simple', cast(:tsq as text)) as tq), base as (select " + spec.id()
+                + " as id, " + spec.caseId() + " as case_id, " + spec.caseRef() + " as case_ref, " + spec.title() + " as title, "
+                + spec.detail() + " as detail, " + spec.date() + " as rec_date, " + spec.extra() + " as extra" + columns
+                + " from " + from + " where " + spec.id() + " in (select unnest(cast(:ids as uuid[]))) and " + where
+                + "), page as (select b.*" + flags + " from base b cross join q) select r.id, r.case_id, r.case_ref, r.title,"
+                + " r.detail, r.rec_date, r.extra, search_snippet(" + snippet + ", :q) as snippet" + matchedColumns(parts.size())
+                + " from page r";
+        Map<UUID, Item> byId = new HashMap<>();
+        jdbc.sql(rowsSql).params(rowParams).query((rs, n) -> {
+            Item item = item(rs, spec, ranks.get(rs.getObject("id", UUID.class)));
+            byId.put(item.id(), item);
+            return item;
+        }).list();
+        // The statement returned the page's rows in any order; the order of the first statement (rank, date, id) is the answer.
+        List<Item> items = ids.stream().map(byId::get).filter(java.util.Objects::nonNull).toList();
+        return new Group(spec.type(), total, query.pageOrDefault(), query.sizeOrDefault(), items);
+    }
+
     private static String matchedColumns(int count) {
         StringBuilder columns = new StringBuilder();
         for (int i = 0; i < count; i++) {
@@ -169,7 +231,7 @@ class SearchService {
         return columns.toString();
     }
 
-    private static Item item(ResultSet rs, Spec spec) throws SQLException {
+    private static Item item(ResultSet rs, Spec spec, double rank) throws SQLException {
         List<String> matched = new ArrayList<>();
         for (int i = 0; i < spec.parts().size(); i++) {
             if (rs.getBoolean("m" + i)) {
@@ -181,6 +243,6 @@ class SearchService {
         return new Item(rs.getObject("id", UUID.class), spec.type(), rs.getObject("case_id", UUID.class),
                 rs.getString("case_ref"), rs.getString("title"), rs.getString("detail"),
                 rs.getObject("rec_date", LocalDate.class), rs.getString("snippet"), matched,
-                Math.round(rs.getDouble("rank") * 1000.0) / 1000.0, caseCount);
+                Math.round(rank * 1000.0) / 1000.0, caseCount);
     }
 }
