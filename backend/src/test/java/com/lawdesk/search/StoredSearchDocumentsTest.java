@@ -1,0 +1,154 @@
+package com.lawdesk.search;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
+
+import com.lawdesk.platform.SqlStatementCounter;
+import com.lawdesk.security.Permission;
+import com.lawdesk.wp9.Wp9TestSupport;
+
+/**
+ * LD-058 round 2: the stored search documents (V800) and the guards that keep the search and the case-list text filter
+ * fast without depending on the speed of the machine: documents kept equal to a full recomputation by the triggers, the
+ * trigram prefilter never dropping a match, the number of statements per request, and the indexes being usable by the queries
+ * the application sends (checked with sequential scans disabled, since a test database is too small for the planner to prefer an
+ * index).
+ */
+@Import(SqlStatementCounter.Config.class)
+class StoredSearchDocumentsTest extends Wp9TestSupport {
+
+    private List<Map<String, Object>> documents() {
+        return jdbc.queryForList("select case_id, vec::text as vec, trigrams::text as trigrams from search_case_doc order by case_id");
+    }
+
+    private List<Map<String, Object>> linkDocuments() {
+        return jdbc.queryForList("select link_id, host_id, vec::text as vec from search_link_doc order by link_id, host_id");
+    }
+
+    @Test
+    void theDocumentsKeptByTheTriggersEqualAFullRecomputationAfterEveryKindOfWrite() {
+        UUID owner = user("Owner");
+        UUID other = user("Other Member");
+        UUID first = legalCase(owner, null);
+        UUID second = legalCase(owner, other);
+        UUID proceeding = proceeding(first, "4411");
+        jdbc.update("update legal_case set title = 'نزاع حول عقد التوريد', subject = 'مطالبة', facts = 'وقائع', chamber = 'الدائرة 5' where id = ?", first);
+        UUID party = party("شركة النور", "ORGANIZATION", null, false, null);
+        onCase(first, party, "OPPONENT");
+        UUID unit = authorityUnit("إدارة العقود");
+        jdbc.update("insert into case_org_involvement (case_id, org_unit_id, is_primary, created_by, updated_by)"
+                + " values (?, ?, true, gen_random_uuid(), gen_random_uuid())", first, unit);
+        jdbc.update("""
+                insert into case_link (case_id, other_case_id, kind, reason, status, created_by, updated_by)
+                values (?, ?, 'SUBJECT_LINK', 'نفس الموضوع', 'ACTIVE', gen_random_uuid(), gen_random_uuid())""", first, second);
+        // Every kind of write that changes what a document is made of.
+        jdbc.update("update proceeding set court_case_number = '9922' where id = ?", proceeding);
+        jdbc.update("update party set name = 'شركة الأنوار' where id = ?", party);
+        jdbc.update("update org_unit set name_ar = 'إدارة العقود والمشتريات' where id = ?", unit);
+        jdbc.update("update app_user set display_name = 'Renamed Owner' where id = ?", owner);
+        jdbc.update("update legal_case set title = 'عنوان جديد للقضية الثانية' where id = ?", second);
+        jdbc.update("update case_link set reason = 'سبب جديد' where case_id = ?", first);
+        proceeding(second, "5533");
+        jdbc.update("delete from proceeding where court_case_number = '5533'");
+
+        var before = documents();
+        var linksBefore = linkDocuments();
+        assertThat(before).hasSize(2);
+        assertThat(linksBefore).hasSize(2);
+        jdbc.queryForObject("select search_case_refresh(array(select id from legal_case))", Object.class);
+        jdbc.queryForObject("select search_link_refresh(array(select id from case_link))", Object.class);
+        assertThat(documents()).as("incremental maintenance equals a full recomputation").isEqualTo(before);
+        assertThat(linkDocuments()).isEqualTo(linksBefore);
+        // And the renamed link partner shows up in the text of the case it is linked to.
+        assertThat(jdbc.queryForObject("select count(*) from search_link_doc where host_id = ? and vec @@ to_tsquery('simple', 'جديد:*')",
+                Integer.class, first)).isEqualTo(1);
+    }
+
+    @Test
+    void theSubstringFilterOfTheCaseListFindsEverythingItDidBeforeTheTrigramPrefilter() throws Exception {
+        UUID owner = user("Owner");
+        UUID c = legalCase(owner, null);
+        jdbc.update("update legal_case set title = 'Contract Dispute_100% about التوريد', subject = 'Delivery Delay', automated_no = 'AUTO-77' where id = ?", c);
+        UUID party = party("Al-Noor Trading", "ORGANIZATION", null, false, null);
+        onCase(c, party, "OPPONENT");
+        proceeding(c, "88123");
+        RequestPostProcessor staff = outsider(owner, Permission.CASE_VIEW);
+        String reference = jdbc.queryForObject("select reference_no from legal_case where id = ?", String.class, c);
+        for (String q : List.of("contract", "CONTRACT DISP", "ispute_1", "100%", "ونيد", "التور", "Delay", "livery", "AUTO-7", "noor tra",
+                "88123", "8812", reference, reference.substring(2, 7), "wner")) {
+            var result = mvc.perform(getJson(staff, "/api/v1/cases").param("q", q)).andReturn();
+            boolean expected = jdbc.queryForObject("""
+                    select exists (select 1 from legal_case c where c.id = ? and (c.reference_no ilike ? escape '\\' or c.title ilike ?
+                    escape '\\' or c.subject ilike ? escape '\\' or c.automated_no ilike ? escape '\\'
+                    or c.id in (select cp.case_id from case_party cp join party p on p.id = cp.party_id where p.name ilike ? escape '\\')
+                    or c.id in (select pr.case_id from proceeding pr where pr.court_case_number ilike ? escape '\\')
+                    or c.primary_member_id in (select m.id from app_user m where m.display_name ilike ? escape '\\')))""",
+                    Boolean.class, c, like(q), like(q), like(q), like(q), like(q), like(q), like(q));
+            int found = com.jayway.jsonpath.JsonPath.<List<String>>read(result.getResponse().getContentAsString(), "$.items[*].id").size();
+            assertThat(found == 1).as("q=%s", q).isEqualTo(expected);
+        }
+    }
+
+    private static String like(String q) {
+        return "%" + q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
+    }
+
+    @Test
+    void aSearchNeedsAFixedNumberOfStatementsWhateverTheRegisterHolds() throws Exception {
+        UUID owner = user("Owner");
+        for (int i = 0; i < 12; i++) {
+            UUID c = legalCase(owner, null);
+            jdbc.update("update legal_case set title = ? where id = ?", "نزاع التوريد رقم " + i, c);
+        }
+        RequestPostProcessor me = outsider(owner, Permission.CASE_VIEW);
+        SqlStatementCounter.reset();
+        mvc.perform(getJson(me, "/api/v1/search").param("q", "نزاع التوريد")).andExpect(status().isOk());
+        // normalise + (page, rows) for cases + (page) for parties: not one statement per record.
+        assertThat(SqlStatementCounter.count()).isLessThanOrEqualTo(8);
+        SqlStatementCounter.reset();
+        mvc.perform(getJson(me, "/api/v1/cases").param("q", "التوريد")).andExpect(status().isOk());
+        assertThat(SqlStatementCounter.count()).isLessThanOrEqualTo(3);
+    }
+
+    @Test
+    void theIndexesAreUsableByTheQueriesTheApplicationSends() {
+        List<String> plans = plans(
+                "select x.case_id from search_case_doc x where x.vec @@ to_tsquery('simple', 'نزاع:*')",
+                "select d.case_id from search_case_doc d where d.trigrams @> lawdesk_trigrams('contract')",
+                "select x.id from party x where x.search_full @@ to_tsquery('simple', 'نور:*')",
+                "select x.id from party x where x.search_public @@ to_tsquery('simple', 'نور:*')");
+        assertThat(plans.get(0)).contains("search_case_doc_vec");
+        assertThat(plans.get(1)).contains("search_case_doc_trigrams");
+        assertThat(plans.get(2)).contains("party_search_full");
+        assertThat(plans.get(3)).contains("party_search_public");
+    }
+
+    /** The plans of the statements with sequential scans disabled, on one connection (the setting is per session). */
+    private List<String> plans(String... statements) {
+        return jdbc.execute((java.sql.Connection connection) -> {
+            List<String> out = new java.util.ArrayList<>();
+            try (java.sql.Statement st = connection.createStatement()) {
+                st.execute("set enable_seqscan = off");
+                for (String sql : statements) {
+                    StringBuilder plan = new StringBuilder();
+                    try (java.sql.ResultSet rs = st.executeQuery("explain " + sql)) {
+                        while (rs.next()) {
+                            plan.append(rs.getString(1)).append('\n');
+                        }
+                    }
+                    out.add(plan.toString());
+                }
+                st.execute("reset enable_seqscan");
+            }
+            return out;
+        });
+    }
+}

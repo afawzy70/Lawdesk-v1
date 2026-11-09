@@ -199,6 +199,8 @@ class CaseRepository {
             // involved employee and unit.
             // Each related table is read once into a hashed set (an uncorrelated IN), not once per case: with a
             // correlated EXISTS the same text search over 50 000 cases took seconds (LD-058 performance run).
+            where.append(Text.trigramPrefilter(search.q(), "c.id", "qraw"));
+            params.put("qraw", search.q());
             where.append(" and (reference_no ilike :q escape '\\' or title ilike :q escape '\\'"
                     + " or subject ilike :q escape '\\' or automated_no ilike :q escape '\\'"
                     + " or c.id in (select cp.case_id from case_party cp join party p on p.id = cp.party_id"

@@ -25,6 +25,19 @@ final class Text {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
+    /**
+     * The condition that narrows a substring search ({@code ilike '%q%'}) with the stored trigrams of the case documents (V800):
+     * every text that contains {@code q} contains all its trigrams, so the condition never drops a match and the ILIKE that follows
+     * removes the rest. A text shorter than three characters has no trigram, so the ILIKE alone decides. {@code caseId} is the
+     * case id column of the query and {@code param} the name of the bound raw text.
+     */
+    static String trigramPrefilter(String q, String caseId, String param) {
+        if (q == null || q.codePointCount(0, q.length()) < 3) {
+            return "";
+        }
+        return " and " + caseId + " in (select d.case_id from search_case_doc d where d.trigrams @> lawdesk_trigrams(:" + param + "))";
+    }
+
     /** Escapes the LIKE wildcards so a search text matches literally (with {@code escape '\'}). */
     static String escapeLike(String text) {
         return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");

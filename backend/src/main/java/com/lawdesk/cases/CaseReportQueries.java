@@ -332,6 +332,8 @@ public class CaseReportQueries {
         StringBuilder sql = new StringBuilder(" where " + visible.sql());
         Map<String, Object> params = new HashMap<>(visible.params());
         if (filter.text() != null) {
+            sql.append(Text.trigramPrefilter(filter.text(), prefix + "id", "textRaw"));
+            params.put("textRaw", filter.text());
             sql.append(" and (" + prefix + "reference_no ilike :text escape '\\' or " + prefix
                     + "title ilike :text escape '\\')");
             params.put("text", "%" + Text.escapeLike(filter.text()) + "%");
