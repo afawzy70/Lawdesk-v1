@@ -38,6 +38,19 @@ final class Text {
         return " and " + caseId + " in (select d.case_id from search_case_doc d where d.trigrams @> lawdesk_trigrams(:" + param + "))";
     }
 
+    /** More candidates than this and the related tables are better read once into hashed sets than probed per case. */
+    static final int FEW_CANDIDATES = 3000;
+
+    /** True when the trigram prefilter applies and leaves at most {@link #FEW_CANDIDATES} cases (one cheap, bounded count). */
+    static boolean fewTrigramCandidates(org.springframework.jdbc.core.simple.JdbcClient jdbc, String q) {
+        if (trigramPrefilter(q, "x", "p").isEmpty()) {
+            return false;
+        }
+        Long n = jdbc.sql("select count(*) from (select 1 from search_case_doc d where d.trigrams @> lawdesk_trigrams(:p) limit "
+                + (FEW_CANDIDATES + 1) + ") x").param("p", q).query(Long.class).single();
+        return n != null && n <= FEW_CANDIDATES;
+    }
+
     /** Escapes the LIKE wildcards so a search text matches literally (with {@code escape '\'}). */
     static String escapeLike(String text) {
         return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");

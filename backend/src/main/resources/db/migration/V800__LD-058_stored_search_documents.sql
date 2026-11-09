@@ -15,6 +15,20 @@ from (select lower(coalesce(p_text, '')) as v) t
          cross join lateral generate_series(1, greatest(length(t.v) - 2, 0)) as i
 $$;
 
+-- ---- the link documents -----------------------------------------------------------------------------------------------
+-- One row per link and side: the text a case gains from the case it is linked to (reference, title, reason). Which of these a
+-- user may use is decided per request (the other case must be visible to them); the stored vector is only the normalised text.
+create table search_link_doc (
+    link_id  uuid     not null references case_link (id) on delete cascade,
+    host_id  uuid     not null,
+    other_id uuid     not null,
+    vec      tsvector not null,
+    primary key (link_id, host_id)
+);
+create index search_link_doc_host on search_link_doc (host_id);
+create index search_link_doc_other on search_link_doc (other_id);
+create index search_link_doc_vec on search_link_doc using gin (vec);
+
 -- ---- the case document ------------------------------------------------------------------------------------------------
 -- The weighted vector of the parts of a case that do not depend on who is looking (reference, numbers, title, subject, units,
 -- members, facts, chamber). The part that depends on the viewer (the cases it is linked to, shown only when visible) is stored
@@ -24,13 +38,16 @@ create table search_case_doc (
     vec     tsvector not null,
     -- Trigrams of every text the case-list filter looks into (reference, title, subject, numbers, parties, members, units and
     -- contacts), each field apart: a necessary condition for a substring match in any of them.
-    trigrams text[]  not null default '{}'
+    trigrams text[]  not null default '{}',
+    -- True when the case has a link document: lets a query skip the look-up of linked text for the many cases that have none.
+    -- Only ever set to true by the link triggers; a stale true costs one empty look-up, a false would lose a match.
+    linked  boolean  not null default false
 );
 create index search_case_doc_vec on search_case_doc using gin (vec);
 create index search_case_doc_trigrams on search_case_doc using gin (trigrams);
 
 create function search_case_refresh(p_ids uuid[]) returns void language sql as $$
-insert into search_case_doc (case_id, vec, trigrams)
+insert into search_case_doc (case_id, vec, trigrams, linked)
 select c.id,
        setweight(to_tsvector('simple', library_normalize(c.reference_no)), 'A')
        || setweight(to_tsvector('simple', library_normalize(concat_ws(' ', c.automated_no,
@@ -56,25 +73,12 @@ select c.id,
                where m.id in (c.primary_member_id, c.alternate_member_id)),
               (select string_agg(concat_ws(chr(10), i.contact_name, i.sector_name_snapshot, i.department_name_snapshot,
                                            i.section_name_snapshot), chr(10))
-               from case_org_involvement i where i.case_id = c.id and i.removed_at is null)))
+               from case_org_involvement i where i.case_id = c.id and i.removed_at is null))),
+       exists (select 1 from search_link_doc d where d.host_id = c.id)
 from legal_case c
 where c.id = any (p_ids)
-on conflict (case_id) do update set vec = excluded.vec, trigrams = excluded.trigrams
+on conflict (case_id) do update set vec = excluded.vec, trigrams = excluded.trigrams, linked = excluded.linked
 $$;
-
--- ---- the link documents -----------------------------------------------------------------------------------------------
--- One row per link and side: the text a case gains from the case it is linked to (reference, title, reason). Which of these a
--- user may use is decided per request (the other case must be visible to them); the stored vector is only the normalised text.
-create table search_link_doc (
-    link_id  uuid     not null references case_link (id) on delete cascade,
-    host_id  uuid     not null,
-    other_id uuid     not null,
-    vec      tsvector not null,
-    primary key (link_id, host_id)
-);
-create index search_link_doc_host on search_link_doc (host_id);
-create index search_link_doc_other on search_link_doc (other_id);
-create index search_link_doc_vec on search_link_doc using gin (vec);
 
 create function search_link_refresh(p_link_ids uuid[]) returns void language sql as $$
 delete from search_link_doc where link_id = any (p_link_ids);
@@ -84,7 +88,9 @@ select l.id, s.host_id, s.other_id,
 from case_link l
          cross join lateral (values (l.case_id, l.other_case_id), (l.other_case_id, l.case_id)) as s (host_id, other_id)
          join legal_case o on o.id = s.other_id
-where l.id = any (p_link_ids)
+where l.id = any (p_link_ids);
+update search_case_doc set linked = true
+where case_id in (select host_id from search_link_doc where link_id = any (p_link_ids))
 $$;
 
 -- tsvector has no aggregate; the viewer's linked text is the concatenation of the vectors of the links they may use.

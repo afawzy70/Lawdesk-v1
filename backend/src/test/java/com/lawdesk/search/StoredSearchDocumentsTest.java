@@ -97,6 +97,22 @@ class StoredSearchDocumentsTest extends Wp9TestSupport {
         }
     }
 
+    @Test
+    void aBroadFilterUsesTheHashedFormAndFindsTheSameCasesAsTheNarrowOne() throws Exception {
+        UUID owner = user("Owner");
+        // More candidates than Text.FEW_CANDIDATES, so the related tables are read once into hashed sets.
+        jdbc.update("""
+                insert into legal_case (reference_no, title, case_type, opened_on, status, primary_member_id, created_by, updated_by)
+                select 'BULK-' || g, 'bulkword case ' || g, 'CIVIL', '2026-01-10', 'OPEN', ?, ?, ?
+                from generate_series(1, 3100) g""", owner, owner, owner);
+        UUID viaParty = legalCase(owner, null);
+        onCase(viaParty, party("Bulkword Trading Co", "ORGANIZATION", null, false, null), "OPPONENT");
+        RequestPostProcessor staff = outsider(owner, Permission.CASE_VIEW);
+        var result = mvc.perform(getJson(staff, "/api/v1/cases").param("q", "bulkword").param("size", "1")).andExpect(status().isOk())
+                .andReturn();
+        assertThat(this.<Integer>read(result, "$.totalItems")).as("3100 by title and one through its party").isEqualTo(3101);
+    }
+
     private static String like(String q) {
         return "%" + q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
     }

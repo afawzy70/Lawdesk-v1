@@ -116,9 +116,10 @@ final class SearchSpecs {
                 caseType, caseId,
                 // The case document is stored (search_case_doc); what a case gains from the cases it is linked to is added per
                 // request from the stored link texts, and only from linked cases the user may see.
-                new Stored("lk as materialized (select d.host_id, tsvector_agg(d.vec) as vec from search_link_doc d join legal_case o"
-                        + " on o.id = d.other_id where " + access.viewable("o").sql() + " group by d.host_id)",
-                        " join search_case_doc sd on sd.case_id = c.id left join lk on lk.host_id = c.id",
+                new Stored(null,
+                        " join search_case_doc sd on sd.case_id = c.id left join lateral (select tsvector_agg(d.vec) as vec from"
+                                + " search_link_doc d join legal_case o on o.id = d.other_id where sd.linked and d.host_id = c.id and "
+                                + access.viewable("o").sql() + ") lk on true",
                         "(sd.vec || coalesce(lk.vec, cast('' as tsvector)))",
                         "select x.case_id from search_case_doc x where x.vec @@ (select tq from q) union select d.host_id"
                                 + " from search_link_doc d where d.vec @@ (select tqa from q)")));
