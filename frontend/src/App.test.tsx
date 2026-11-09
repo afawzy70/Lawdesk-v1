@@ -42,6 +42,7 @@ const NAV = [
   { path: '/tasks', en: 'Tasks', ar: 'المهام' },
   { path: '/directives', en: 'Decisions and assignments', ar: 'القرارات والتكليفات' },
   { path: '/templates', en: 'Legal templates', ar: 'النماذج القانونية' },
+  { path: '/calendar', en: 'Calendar', ar: 'التقويم' },
   { path: '/reports', en: 'Reports', ar: 'التقارير' },
   { path: '/admin', en: 'Administration', ar: 'الإدارة' },
 ] as const;

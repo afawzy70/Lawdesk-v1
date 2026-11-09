@@ -185,14 +185,14 @@ class CaseFileService {
     private CaseFileViews.Tasks tasks(UUID caseId, LocalDate today) {
         List<CaseFileViews.TaskBrief> items = jdbc.sql("""
                         select id, title, due_date, status, (due_date is not null and due_date < :today) as overdue
-                        from task where case_id = :id and status in ('OPEN', 'IN_PROGRESS')
+                        from task where case_id = :id and status not in ('COMPLETED', 'CANCELLED')
                         order by due_date nulls last, created_at limit 5""").param("id", caseId).param("today", today)
                 .query((rs, n) -> new CaseFileViews.TaskBrief(rs.getObject("id", UUID.class), rs.getString("title"),
                         rs.getObject("due_date", LocalDate.class), rs.getString("status"), rs.getBoolean("overdue")))
                 .list();
         long[] counts = jdbc.sql("""
                         select count(*) as open, count(*) filter (where due_date is not null and due_date < :today) as overdue
-                        from task where case_id = :id and status in ('OPEN', 'IN_PROGRESS')""")
+                        from task where case_id = :id and status not in ('COMPLETED', 'CANCELLED')""")
                 .param("id", caseId).param("today", today)
                 .query((rs, n) -> new long[] {rs.getLong("open"), rs.getLong("overdue")}).single();
         return new CaseFileViews.Tasks(counts[0], counts[1], items);

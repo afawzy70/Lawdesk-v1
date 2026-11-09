@@ -14,7 +14,7 @@ import {
 
 /** Creates or edits one task (LD-027). The backend validates; the form shows its answers next to the fields. */
 
-const FIELDS = ['title', 'description', 'assigneeId', 'dueDate', 'priority'] as const;
+const FIELDS = ['title', 'description', 'assigneeId', 'startsOn', 'dueDate', 'priority', 'instructions'] as const;
 type TaskField = (typeof FIELDS)[number];
 
 interface Props {
@@ -33,8 +33,10 @@ export function TaskForm({ task, caseId, onSaved, onCancel }: Props) {
     title: task?.title ?? '',
     description: task?.description ?? '',
     assigneeId: task?.assigneeId ?? '',
+    startsOn: task?.startsOn ?? '',
     dueDate: task?.dueDate ?? '',
     priority: task?.priority ?? 'NORMAL',
+    instructions: task?.instructions ?? '',
   });
   const [users, setUsers] = useState<DirectoryUser[] | 'failed' | null>(null);
   const [saving, setSaving] = useState(false);
@@ -100,6 +102,11 @@ export function TaskForm({ task, caseId, onSaved, onCancel }: Props) {
           ))}
         </select>
       </Field>
+      <Field id={form.control('startsOn').id} label={t('wp6.task.startsOnOptional')} error={form.errors.startsOn}
+        errorId={form.errorId('startsOn')}>
+        <input {...form.control('startsOn')} type="date" value={values.startsOn}
+          onChange={(event) => { set('startsOn')(event.target.value); }} />
+      </Field>
       <Field id={form.control('dueDate').id} label={t('operations.task.dueOptional')} error={form.errors.dueDate}
         errorId={form.errorId('dueDate')}>
         <input {...form.control('dueDate')} type="date" value={values.dueDate}
@@ -113,6 +120,11 @@ export function TaskForm({ task, caseId, onSaved, onCancel }: Props) {
             <option key={priority} value={priority}>{t(`operations.priority.${priority}`)}</option>
           ))}
         </select>
+      </Field>
+      <Field id={form.control('instructions').id} label={t('wp6.task.instructionsOptional')}
+        error={form.errors.instructions} errorId={form.errorId('instructions')}>
+        <textarea {...form.control('instructions')} rows={3} maxLength={4000} value={values.instructions}
+          onChange={(event) => { set('instructions')(event.target.value); }} />
       </Field>
     </FormShell>
   );

@@ -63,6 +63,8 @@ export const PERMISSIONS = [
   'ENFORCEMENT_MANAGE',
   'MEMO_APPROVE',
   'DOCUMENT_ARCHIVE_ADMIN',
+  'CALENDAR_VIEW',
+  'CALENDAR_MANAGE',
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

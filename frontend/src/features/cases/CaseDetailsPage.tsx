@@ -224,7 +224,7 @@ function CaseDetails({ id }: { id: string }) {
           {/* Judicial stages belong to Workstream C; the case only hosts them (architecture/CONTRACTS.md §5). */}
           <CaseProceedings caseId={legalCase.id} automatedNo={legalCase.automatedNo ?? null} />
           <CasePleadings caseId={legalCase.id} editable={!archived} />
-          <CaseOperations caseId={legalCase.id} />
+          <CaseOperations caseId={legalCase.id} archived={archived} />
           <CaseLibrarySection caseId={legalCase.id} editable={!archived} />
           <CaseFollowUp caseId={legalCase.id} archived={archived} generation={generation} />
           <CaseWp9 caseId={legalCase.id} archived={archived} />

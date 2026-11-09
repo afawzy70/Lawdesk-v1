@@ -42,8 +42,24 @@ class Task {
     private TaskPriority priority;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 12)
+    @Column(nullable = false, length = 20)
     private TaskStatus status;
+
+    private LocalDate startsOn;
+
+    @Column(length = 4000)
+    private String instructions;
+
+    @Column(length = 2000)
+    private String delayReason;
+
+    private UUID delayReasonBy;
+
+    private Instant delayReasonAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private TaskStatus statusBeforeLate;
 
     private Instant completedAt;
 
@@ -67,15 +83,18 @@ class Task {
 
     Task(UUID caseId, ActorRef actor, Instant now) {
         this.caseId = caseId;
-        this.status = TaskStatus.OPEN;
+        this.status = TaskStatus.NEW;
         this.createdAt = now;
         this.createdBy = actor.id();
         touch(actor, now);
     }
 
-    void describe(String title, String description, UUID assigneeId, LocalDate dueDate, TaskPriority priority) {
+    void describe(String title, String description, UUID assigneeId, LocalDate dueDate, TaskPriority priority,
+            LocalDate startsOn, String instructions) {
         this.title = title;
         this.description = description;
+        this.startsOn = startsOn;
+        this.instructions = instructions;
         this.assigneeId = assigneeId;
         this.dueDate = dueDate;
         this.priority = priority;
@@ -83,7 +102,33 @@ class Task {
 
     void move(TaskStatus next, ActorRef actor, Instant now) {
         this.status = next;
-        this.completedAt = next == TaskStatus.DONE ? now : null;
+        this.statusBeforeLate = null;
+        this.completedAt = next == TaskStatus.COMPLETED ? now : null;
+        touch(actor, now);
+    }
+
+    /** The follow-up run: an open task past its due date becomes late and remembers what it was. */
+    void markLate(Instant now) {
+        this.statusBeforeLate = this.status;
+        this.status = TaskStatus.LATE;
+        this.updatedAt = now;
+    }
+
+    /** A late task whose due date moved to today or later is what it was before. */
+    void restoreFromLate() {
+        this.status = this.statusBeforeLate;
+        this.statusBeforeLate = null;
+    }
+
+    void recordDelay(String reason, ActorRef actor, Instant now) {
+        this.delayReason = reason;
+        this.delayReasonBy = actor.id();
+        this.delayReasonAt = now;
+        touch(actor, now);
+    }
+
+    void reassign(UUID assigneeId, ActorRef actor, Instant now) {
+        this.assigneeId = assigneeId;
         touch(actor, now);
     }
 
@@ -110,6 +155,26 @@ class Task {
 
     UUID getAssigneeId() {
         return assigneeId;
+    }
+
+    LocalDate getStartsOn() {
+        return startsOn;
+    }
+
+    String getInstructions() {
+        return instructions;
+    }
+
+    String getDelayReason() {
+        return delayReason;
+    }
+
+    Instant getDelayReasonAt() {
+        return delayReasonAt;
+    }
+
+    TaskStatus getStatusBeforeLate() {
+        return statusBeforeLate;
     }
 
     LocalDate getDueDate() {

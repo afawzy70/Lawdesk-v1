@@ -8,6 +8,7 @@ import { AccessDeniedPage } from '../../auth/AccessDeniedPage';
 import { casePath } from '../../cases/paths';
 import { loadError, saveError } from '../formErrors';
 import { TaskForm } from './TaskForm';
+import { TaskDetails } from './TaskDetails';
 import { TaskActions, TaskDue } from './TaskParts';
 import {
   changeTaskStatus,
@@ -27,6 +28,7 @@ import '../operations.css';
 type Result = { key: string; page: TaskPage } | { key: string; error: MessageKey };
 type Editing = null | 'new' | Task;
 
+
 /**
  * Tasks of the office (LD-027) with the signed-in user's in-app reminders (LD-028): "my tasks" or every task, filtered
  * by status and due state, with create, edit and status moves. The backend checks TASK_VIEW and TASK_MANAGE.
@@ -43,6 +45,7 @@ export function TasksPage() {
   const [editing, setEditing] = useState<Editing>(null);
   const [notice, setNotice] = useState<'saved' | MessageKey | null>(null);
   const [busy, setBusy] = useState(false);
+  const [details, setDetails] = useState<Task | null>(null);
   const requestKey = `${JSON.stringify(filter)}#${String(reload)}`;
 
   useEffect(() => {
@@ -234,6 +237,20 @@ export function TasksPage() {
         />
       )}
 
+      {details === null ? null : (
+        <TaskDetails
+          key={details.id}
+          task={details}
+          onChanged={(changed) => {
+            setDetails(changed);
+            setReload((n) => n + 1);
+          }}
+          onClose={() => {
+            setDetails(null);
+          }}
+        />
+      )}
+
       {current === null ? <p>{t('operations.loading')}</p> : null}
       {current !== null && 'error' in current ? (
         <div role="alert" className="ops-alert">
@@ -301,6 +318,7 @@ export function TasksPage() {
                         onMove={(target, next) => {
                           void move(target, next);
                         }}
+                        onDetails={setDetails}
                       />
                     </td>
                   </tr>

@@ -11,6 +11,7 @@ import { CASE, mount, page, problem, serve } from './testSupport';
 
 const note = (overrides: Partial<AppNotification> = {}): AppNotification => ({
   id: 'n1', type: 'INFO_REQUEST_OVERDUE', caseId: CASE, caseReferenceNo: 'LD-2026-00001', recordRef: 'INFO_REQUEST:r1',
+  recordType: 'INFO_REQUEST', recordId: 'r1',
   params: { requestNo: 'IR-1', caseReferenceNo: 'LD-2026-00001' }, createdAt: '2026-11-05T08:00:00Z', readAt: null, ...overrides,
 });
 
@@ -62,7 +63,7 @@ describe('notifications list', () => {
     expect(items[0]).toHaveTextContent('unread');
     expect(within(items[0] as HTMLElement).getByRole('link', { name: 'LD-2026-00001' })).toBeInTheDocument();
     expect(items[1]).toHaveTextContent('adjourned with no next date');
-    expect(items[1]).not.toHaveTextContent('unread');
+    expect(within(items[1] as HTMLElement).queryByText('unread')).not.toBeInTheDocument();
     expect(items[2]).toHaveTextContent('now has a high risk level (HIGH)');
     expect(items[3]).toHaveTextContent('was escalated to you');
     expect(items[4]).toHaveTextContent('You have a notification.');

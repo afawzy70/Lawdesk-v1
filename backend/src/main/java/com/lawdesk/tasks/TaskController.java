@@ -47,9 +47,9 @@ class TaskController {
     @GetMapping
     @PreAuthorize(Permission.Codes.TASK_VIEW)
     PageResponse<TaskRequests.Response> search(@RequestParam(required = false) String assignee,
-            @RequestParam(required = false) UUID caseId, @RequestParam(required = false) List<TaskStatus> status,
+            @RequestParam(required = false) UUID caseId, @RequestParam(required = false) List<String> status,
             @RequestParam(required = false) String due, Pageable pageable) {
-        return PageResponse.from(service.search(assignee, caseId, status == null ? Set.of() : Set.copyOf(status),
+        return PageResponse.from(service.search(assignee, caseId, statusesOf(status),
                 dueOf(due), pageable));
     }
 
@@ -76,6 +76,36 @@ class TaskController {
     TaskRequests.Response changeStatus(@PathVariable UUID id,
             @Valid @RequestBody TaskRequests.StatusChange request) {
         return service.changeStatus(id, request);
+    }
+
+    @GetMapping("/{id}/history")
+    @PreAuthorize(Permission.Codes.TASK_VIEW)
+    List<TaskRequests.HistoryEntry> history(@PathVariable UUID id) {
+        return service.history(id);
+    }
+
+    @PostMapping("/{id}/reassign")
+    @PreAuthorize(Permission.Codes.TASK_MANAGE)
+    TaskRequests.Response reassign(@PathVariable UUID id, @Valid @RequestBody TaskRequests.Reassign request) {
+        return service.reassign(id, request);
+    }
+
+    @PostMapping("/{id}/delay-reason")
+    @PreAuthorize(Permission.Codes.TASK_MANAGE)
+    TaskRequests.Response delayReason(@PathVariable UUID id, @Valid @RequestBody TaskRequests.DelayReason request) {
+        return service.recordDelay(id, request);
+    }
+
+    /** The legacy words OPEN and DONE are accepted (V720 {@code task_status_map}). */
+    private static Set<TaskStatus> statusesOf(List<String> status) {
+        if (status == null) {
+            return Set.of();
+        }
+        try {
+            return status.stream().map(TaskStatus::parse).collect(java.util.stream.Collectors.toSet());
+        } catch (IllegalArgumentException e) {
+            throw new FieldErrorException("status", "Pattern");
+        }
     }
 
     private static TaskService.Due dueOf(String due) {

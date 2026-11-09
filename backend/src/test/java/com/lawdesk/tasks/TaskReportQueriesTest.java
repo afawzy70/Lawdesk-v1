@@ -45,10 +45,10 @@ class TaskReportQueriesTest extends TaskTestSupport {
         assertThat(row.assigneeId()).isEqualTo(mona);
         assertThat(row.title()).isEqualTo("Late");
         assertThat(row.priority()).isEqualTo(TaskPriority.NORMAL);
-        assertThat(row.status()).isEqualTo(TaskStatus.OPEN);
+        assertThat(row.status()).isEqualTo(TaskStatus.NEW);
         assertThat(row.overdue()).isTrue();
 
-        assertThat(reports().count(TaskFilter.all().withStatuses(Set.of(TaskStatus.DONE)))).isEqualTo(1);
+        assertThat(reports().count(TaskFilter.all().withStatuses(Set.of(TaskStatus.COMPLETED)))).isEqualTo(1);
         assertThat(reports().find(TaskFilter.all().withAssignee(omar), 0, 100)).extracting(TaskRow::id)
                 .containsExactly(open, done);
         assertThat(reports().find(TaskFilter.all().withCase(caseId), 0, 100)).extracting(TaskRow::id)
@@ -57,7 +57,8 @@ class TaskReportQueriesTest extends TaskTestSupport {
         assertThat(reports().overdueCount()).isEqualTo(1);
         assertThat(reports().dueSoonCount()).isEqualTo(1);
         assertThat(reports().countByStatus(TaskFilter.all())).containsExactlyInAnyOrderEntriesOf(Map.of(
-                TaskStatus.OPEN, 2L, TaskStatus.IN_PROGRESS, 0L, TaskStatus.DONE, 1L, TaskStatus.CANCELLED, 0L));
+                TaskStatus.NEW, 2L, TaskStatus.IN_PROGRESS, 0L, TaskStatus.WAITING_DOCUMENTS, 0L,
+                TaskStatus.WAITING_OTHER, 0L, TaskStatus.COMPLETED, 1L, TaskStatus.LATE, 0L, TaskStatus.CANCELLED, 0L));
     }
 
     @Test

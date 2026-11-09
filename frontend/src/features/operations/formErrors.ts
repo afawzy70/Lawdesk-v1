@@ -27,6 +27,12 @@ export function fieldMessage(code: string): MessageKey {
       return 'operations.fieldError.past';
     case 'Null':
       return 'operations.fieldError.notAllowed';
+    case 'StartsBeforeDue':
+      return 'wp6.fieldError.startsBeforeDue';
+    case 'RequiresStartTime':
+      return 'wp6.fieldError.requiresStartTime';
+    case 'AfterStartTime':
+      return 'wp6.fieldError.afterStartTime';
     default:
       return 'operations.fieldError.invalid';
   }

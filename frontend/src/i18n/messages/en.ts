@@ -14,6 +14,7 @@ import { deadlinesEn } from './deadlines.en';
 import { pleadingsEn } from './pleadings.en';
 import { wp9En } from './wp9.en';
 import { wp5En } from './wp5.en';
+import { wp6En } from './wp6.en';
 
 /**
  * English message catalog. This object defines the set of message keys: every other catalog is typed as
@@ -44,6 +45,7 @@ export const en = {
   'nav.experts': 'Experts',
   'nav.documents': 'Documents',
   'nav.tasks': 'Tasks',
+  'nav.calendar': 'Calendar',
   'nav.reports': 'Reports',
   'nav.directives': 'Decisions and assignments',
   'nav.templates': 'Legal templates',
@@ -78,6 +80,7 @@ export const en = {
   ...pleadingsEn,
   ...wp9En,
   ...wp5En,
+  ...wp6En,
 };
 
 export type MessageKey = keyof typeof en;

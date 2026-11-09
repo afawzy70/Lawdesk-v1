@@ -50,7 +50,7 @@ const WORKLOAD: WorkloadReport = {
     { assigneeId: 'u9', username: null, displayName: null, enabled: null, open: 1, inProgress: 0, overdue: 1 },
   ],
   dueSoonDays: 3,
-  summary: { byStatus: { OPEN: 4, IN_PROGRESS: 1, DONE: 7, CANCELLED: 0 }, overdue: 3, dueSoon: 2 },
+  summary: { byStatus: { NEW: 4, IN_PROGRESS: 1, WAITING_DOCUMENTS: 0, WAITING_OTHER: 0, COMPLETED: 7, LATE: 0, CANCELLED: 0 }, overdue: 3, dueSoon: 2 },
 };
 
 const EXPERTS: ExpertsReport = {
@@ -178,9 +178,12 @@ describe('workload report (LD-033)', () => {
     expect(summaryOf()).toEqual([
       'Overdue tasks3',
       'Tasks due within 3 days2',
-      'Open4',
+      'New4',
       'In progress1',
-      'Done7',
+      'Waiting for documents0',
+      'Waiting for another body0',
+      'Completed7',
+      'Late0',
       'Cancelled0',
     ]);
     expect(screen.getByRole('link', { name: 'Download CSV' })).toHaveAttribute(

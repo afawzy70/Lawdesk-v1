@@ -15,6 +15,7 @@ import { deadlinesAr } from './deadlines.ar';
 import { pleadingsAr } from './pleadings.ar';
 import { wp9Ar } from './wp9.ar';
 import { wp5Ar } from './wp5.ar';
+import { wp6Ar } from './wp6.ar';
 
 /** Arabic (Modern Standard Arabic) message catalog. Keys must match `en.ts` exactly. */
 export const ar: Messages = {
@@ -42,6 +43,7 @@ export const ar: Messages = {
   'nav.experts': 'الخبراء',
   'nav.documents': 'المستندات',
   'nav.tasks': 'المهام',
+  'nav.calendar': 'التقويم',
   'nav.reports': 'التقارير',
   'nav.directives': 'القرارات والتكليفات',
   'nav.templates': 'النماذج القانونية',
@@ -75,4 +77,5 @@ export const ar: Messages = {
   ...pleadingsAr,
   ...wp9Ar,
   ...wp5Ar,
+  ...wp6Ar,
 };

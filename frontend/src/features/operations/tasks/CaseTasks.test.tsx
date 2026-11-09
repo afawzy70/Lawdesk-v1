@@ -34,7 +34,7 @@ beforeEach(() => {
 describe('case tasks', () => {
   it('lists the tasks of the case with their assignee, due state and moves', async () => {
     const { requests } = serve({
-      tasks: page([task({ overdue: true }), task({ id: 't2', title: 'Done task', status: 'DONE', dueDate: null })]),
+      tasks: page([task({ overdue: true }), task({ id: 't2', title: 'Done task', status: 'COMPLETED', dueDate: null })]),
     });
     renderOperations(`/cases/${CASE}`);
     const region = await section();
@@ -60,8 +60,8 @@ describe('case tasks', () => {
       onWrite: (r) => {
         const created = r.path === '/api/v1/tasks';
         const added = task({ id: 't2', title: 'Collect the documents' });
-        tasks = page([task(created ? {} : { status: 'DONE' }), added]);
-        return jsonResponse(created ? added : task({ status: 'DONE' }), created ? 201 : 200);
+        tasks = page([task(created ? {} : { status: 'COMPLETED' }), added]);
+        return jsonResponse(created ? added : task({ status: 'COMPLETED' }), created ? 201 : 200);
       },
     });
     renderOperations(`/cases/${CASE}`);

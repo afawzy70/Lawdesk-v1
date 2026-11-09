@@ -8,13 +8,20 @@ import { NEXT_STATUSES, type Task, type TaskStatus } from './tasksApi';
 function moveLabel(from: TaskStatus, next: TaskStatus) {
   switch (next) {
     case 'IN_PROGRESS':
-      return 'operations.task.move.start' as const;
-    case 'DONE':
+      return from === 'NEW' ? ('operations.task.move.start' as const) : ('wp6.task.move.resume' as const);
+    case 'WAITING_DOCUMENTS':
+      return 'wp6.task.move.waitingDocuments' as const;
+    case 'WAITING_OTHER':
+      return 'wp6.task.move.waitingOther' as const;
+    case 'COMPLETED':
       return 'operations.task.move.complete' as const;
     case 'CANCELLED':
       return 'operations.task.move.cancel' as const;
-    case 'OPEN':
-      return from === 'IN_PROGRESS' ? ('operations.task.move.backToOpen' as const) : ('operations.task.move.reopen' as const);
+    default:
+      // NEW: LATE is never a target (the follow-up run sets it).
+      return from === 'COMPLETED' || from === 'CANCELLED'
+        ? ('operations.task.move.reopen' as const)
+        : ('operations.task.move.backToOpen' as const);
   }
 }
 
@@ -23,10 +30,12 @@ interface ActionsProps {
   busy: boolean;
   onEdit: (task: Task) => void;
   onMove: (task: Task, next: TaskStatus) => void;
+  /** Opens the details of the task: instructions, delay reason, reassignment and history. */
+  onDetails: (task: Task) => void;
 }
 
 /** Edit, then the status moves the backend allows. Each button names the task for screen readers. */
-export function TaskActions({ task, busy, onEdit, onMove }: ActionsProps) {
+export function TaskActions({ task, busy, onEdit, onMove, onDetails }: ActionsProps) {
   const { t } = useI18n();
   const named = (label: string) => t('operations.task.actionLabel', { action: label, title: task.title });
   return (
@@ -39,6 +48,15 @@ export function TaskActions({ task, busy, onEdit, onMove }: ActionsProps) {
         }}
       >
         {t('operations.edit')}
+      </button>
+      <button
+        type="button"
+        aria-label={named(t('wp6.task.details'))}
+        onClick={() => {
+          onDetails(task);
+        }}
+      >
+        {t('wp6.task.details')}
       </button>
       {NEXT_STATUSES[task.status].map((next) => {
         const label = t(moveLabel(task.status, next));

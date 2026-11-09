@@ -100,8 +100,9 @@ class WorkloadReportApiTest extends PostgresTestSupport {
         assertThat(order.indexOf(amal.toString())).isLessThan(order.indexOf(badr.toString()));
         assertThat(order.indexOf(badr.toString())).isLessThan(order.indexOf(unknown.toString()));
 
-        for (Map.Entry<String, Long> change : Map.of("$.summary.byStatus.OPEN", 4L,
-                "$.summary.byStatus.IN_PROGRESS", 1L, "$.summary.byStatus.DONE", 1L, "$.summary.byStatus.CANCELLED", 0L,
+        for (Map.Entry<String, Long> change : Map.of("$.summary.byStatus.NEW", 4L,
+                "$.summary.byStatus.IN_PROGRESS", 1L, "$.summary.byStatus.COMPLETED", 1L, "$.summary.byStatus.CANCELLED", 0L,
+                "$.summary.byStatus.WAITING_DOCUMENTS", 0L, "$.summary.byStatus.WAITING_OTHER", 0L, "$.summary.byStatus.LATE", 0L,
                 "$.summary.overdue", 2L, "$.summary.dueSoon", 1L).entrySet()) {
             assertThat(figure(after, change.getKey()) - figure(before, change.getKey())).as(change.getKey())
                     .isEqualTo(change.getValue());

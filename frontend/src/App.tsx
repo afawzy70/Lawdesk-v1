@@ -16,6 +16,7 @@ import { CaseDetailsPage } from './features/cases/CaseDetailsPage';
 import { CaseEditPage } from './features/cases/CaseEditPage';
 import { CaseListPage } from './features/cases/CaseListPage';
 import { CASES_PATH, CASE_ROUTE, EDIT_CASE_ROUTE, NEW_CASE_PATH } from './features/cases/paths';
+import { calendarRoutes } from './features/calendar/routes';
 import { CourtsPage } from './features/courts/CourtsPage';
 import { deadlineRoutes } from './features/deadlines/routes';
 import { archiveRoutes } from './features/archive/routes';
@@ -65,6 +66,7 @@ export function AppRoutes({ locale }: LocaleProps) {
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/courts" element={<CourtsPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
+              {calendarRoutes()}
               {operationsRoutes()}
               {libraryRoutes()}
               {deadlineRoutes()}

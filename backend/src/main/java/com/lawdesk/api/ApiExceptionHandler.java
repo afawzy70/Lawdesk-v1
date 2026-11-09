@@ -14,6 +14,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -54,6 +55,14 @@ public class ApiExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     ProblemDetail mismatch(MethodArgumentTypeMismatchException e) {
         return problem(HttpStatus.BAD_REQUEST);
+    }
+
+    /** A required query parameter that is missing (LD-056: the calendar's period). */
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    ProblemDetail missingParameter(MissingServletRequestParameterException e) {
+        ProblemDetail problem = problem(HttpStatus.BAD_REQUEST);
+        problem.setProperty("errors", List.of(Map.of("field", e.getParameterName(), "code", "NotNull")));
+        return problem;
     }
 
     @ExceptionHandler(NoResourceFoundException.class)

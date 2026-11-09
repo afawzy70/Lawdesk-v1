@@ -153,4 +153,6 @@ export const adminEn = {
   'admin.permission.ENFORCEMENT_MANAGE': 'Manage judgment enforcement',
   'admin.permission.MEMO_APPROVE': 'Approve memos and letters',
   'admin.permission.DOCUMENT_ARCHIVE_ADMIN': 'Administer the archive (permanent deletion, limits)',
+  'admin.permission.CALENDAR_VIEW': 'View the judicial calendar',
+  'admin.permission.CALENDAR_MANAGE': 'Enter manual calendar dates',
 } as const;

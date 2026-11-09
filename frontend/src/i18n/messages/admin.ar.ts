@@ -155,4 +155,6 @@ export const adminAr: Record<keyof typeof adminEn, string> = {
   'admin.permission.ENFORCEMENT_MANAGE': 'إدارة تنفيذ الأحكام',
   'admin.permission.MEMO_APPROVE': 'اعتماد المذكرات والمراسلات',
   'admin.permission.DOCUMENT_ARCHIVE_ADMIN': 'إدارة الأرشيف (الحذف النهائي والحدود)',
+  'admin.permission.CALENDAR_VIEW': 'عرض التقويم القضائي',
+  'admin.permission.CALENDAR_MANAGE': 'إدخال مواعيد يدوية في التقويم',
 };

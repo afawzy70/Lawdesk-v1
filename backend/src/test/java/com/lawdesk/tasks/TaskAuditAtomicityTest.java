@@ -44,7 +44,7 @@ class TaskAuditAtomicityTest extends TaskTestSupport {
 
         mvc.perform(moveTask(id, "DONE", 0)).andExpect(status().isInternalServerError());
 
-        assertThat(statusOf(id)).isEqualTo("OPEN");
+        assertThat(statusOf(id)).isEqualTo("NEW");
         assertThat(auditCount(id)).as("no SUCCESS event for a change that rolled back").isZero();
 
         Mockito.reset(caseLookup);
@@ -60,10 +60,10 @@ class TaskAuditAtomicityTest extends TaskTestSupport {
                 begin raise exception 'refused at commit' using errcode = '23514'; end $$""");
         jdbc.execute("""
                 create constraint trigger test_refuse_done after update on task deferrable initially deferred
-                for each row when (new.status = 'DONE') execute function test_refuse_done_at_commit()""");
+                for each row when (new.status = 'COMPLETED') execute function test_refuse_done_at_commit()""");
         try {
             mvc.perform(moveTask(id, "DONE", 0)).andExpect(status().is5xxServerError());
-            assertThat(statusOf(id)).isEqualTo("OPEN");
+            assertThat(statusOf(id)).isEqualTo("NEW");
             assertThat(auditCount(id)).as("no SUCCESS event when the commit fails").isZero();
         } finally {
             jdbc.execute("drop trigger test_refuse_done on task");

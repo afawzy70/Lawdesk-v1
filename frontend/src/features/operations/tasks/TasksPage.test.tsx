@@ -83,12 +83,12 @@ describe('task list', () => {
 
     await user.click(screen.getByRole('button', { name: 'All tasks' }));
     expect(screen.getByRole('button', { name: 'All tasks' })).toHaveAttribute('aria-pressed', 'true');
-    await user.selectOptions(screen.getByLabelText('Status'), 'DONE');
+    await user.selectOptions(screen.getByLabelText('Status'), 'COMPLETED');
     await user.selectOptions(screen.getByLabelText('Due'), 'soon');
     await waitFor(() => {
       const last = taskCalls(requests).at(-1);
       expect(last?.query.has('assignee')).toBe(false);
-      expect(last?.query.get('status')).toBe('DONE');
+      expect(last?.query.get('status')).toBe('COMPLETED');
       expect(last?.query.get('due')).toBe('soon');
     });
 
@@ -161,7 +161,7 @@ describe('task list', () => {
     expect(document.documentElement).toHaveAttribute('dir', 'rtl');
     expect(await screen.findByRole('button', { name: 'متأخرة: ٢' })).toBeInTheDocument();
     const row = within(await screen.findByRole('table', { name: 'المهام' })).getAllByRole('row')[1];
-    expect(row).toHaveTextContent('مفتوحة');
+    expect(row).toHaveTextContent('جديدة');
     expect(row).toHaveTextContent('عادية');
   });
 });
@@ -185,8 +185,10 @@ describe('creating, editing and moving tasks', () => {
       title: 'Prepare the defence memo',
       description: null,
       assigneeId: 'u2',
+      startsOn: null,
       dueDate: '2025-03-05',
       priority: 'HIGH',
+      instructions: null,
       caseId: null,
     });
     expect(screen.queryByRole('form')).not.toBeInTheDocument();
@@ -240,8 +242,10 @@ describe('creating, editing and moving tasks', () => {
       title: 'File the memorandum',
       description: 'Attach the judgment copy',
       assigneeId: 'u1',
+      startsOn: null,
       dueDate: '2025-03-04',
       priority: 'NORMAL',
+      instructions: null,
       version: 0,
     });
   });
@@ -254,7 +258,7 @@ describe('creating, editing and moving tasks', () => {
         page([
           task(),
           task({ id: 't2', title: 'Started', status: 'IN_PROGRESS' }),
-          task({ id: 't3', title: 'Finished', status: 'DONE' }),
+          task({ id: 't3', title: 'Finished', status: 'COMPLETED' }),
           task({ id: 't4', title: 'Dropped', status: 'CANCELLED', version: 4 }),
         ]),
       onWrite: () => answers.shift() ?? problem(500),
@@ -266,10 +270,26 @@ describe('creating, editing and moving tasks', () => {
       within(row as HTMLElement)
         .getAllByRole('button')
         .map((b) => b.textContent);
-    expect(names(rows[0])).toEqual(['Edit', 'Start', 'Complete', 'Cancel task']);
-    expect(names(rows[1])).toEqual(['Edit', 'Complete', 'Back to open', 'Cancel task']);
-    expect(names(rows[2])).toEqual(['Edit', 'Reopen']);
-    expect(names(rows[3])).toEqual(['Edit', 'Reopen']);
+    expect(names(rows[0])).toEqual([
+      'Edit',
+      'Details',
+      'Start',
+      'Waiting for documents',
+      'Waiting for another body',
+      'Complete',
+      'Cancel task',
+    ]);
+    expect(names(rows[1])).toEqual([
+      'Edit',
+      'Details',
+      'Waiting for documents',
+      'Waiting for another body',
+      'Complete',
+      'Back to open',
+      'Cancel task',
+    ]);
+    expect(names(rows[2])).toEqual(['Edit', 'Details', 'Reopen']);
+    expect(names(rows[3])).toEqual(['Edit', 'Details', 'Reopen']);
 
     await user.click(screen.getByRole('button', { name: 'Complete: File the appeal memorandum' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(
@@ -280,9 +300,9 @@ describe('creating, editing and moving tasks', () => {
     await user.click(screen.getByRole('button', { name: 'Reopen: Dropped' }));
     expect(await screen.findByRole('status')).toHaveTextContent('The task was saved.');
     expect(requests.filter((r) => r.method === 'POST').map((r) => [r.path, r.body])).toEqual([
-      ['/api/v1/tasks/t1/status', { status: 'DONE', version: 0 }],
+      ['/api/v1/tasks/t1/status', { status: 'COMPLETED', version: 0 }],
       ['/api/v1/tasks/t1/status', { status: 'IN_PROGRESS', version: 0 }],
-      ['/api/v1/tasks/t4/status', { status: 'OPEN', version: 4 }],
+      ['/api/v1/tasks/t4/status', { status: 'NEW', version: 4 }],
     ]);
   });
 });
