@@ -30,11 +30,44 @@ final class SearchSpecs {
      * @param date      the record's date, for the date filters
      */
     record Spec(String type, Permission permission, String from, String condition, String id, String caseId, String caseRef,
-            String title, String detail, String date, String extra, List<Part> parts, String caseTypeSql, String caseIdSql) {
+            String title, String detail, String date, String extra, List<Part> parts, String caseTypeSql, String caseIdSql,
+            Stored stored) {
+
+        Spec withStored(Stored stored) {
+            return new Spec(type, permission, from, condition, id, caseId, caseRef, title, detail, date, extra, parts, caseTypeSql,
+                    caseIdSql, stored);
+        }
+
+        Spec(String type, Permission permission, String from, String condition, String id, String caseId, String caseRef,
+                String title, String detail, String date, String extra, List<Part> parts, String caseTypeSql, String caseIdSql) {
+            this(type, permission, from, condition, id, caseId, caseRef, title, detail, date, extra, parts, caseTypeSql, caseIdSql,
+                    null);
+        }
+    }
+
+    /**
+     * A type whose searchable text is stored, already normalised, in a vector that a GIN index covers (V801). The query asks the
+     * index for the candidate ids, restricts them with the access rule, and only then ranks them; the parts of {@link Spec} are
+     * evaluated for the rows of the page alone (matched-in flags and the snippet), never for the whole register.
+     *
+     * @param with     extra common table expressions (without the leading comma), or null; they may use the CTE {@code q}
+     * @param from     joins appended to the type's FROM clause, giving access to what {@code vector} needs
+     * @param vector   the full weighted tsvector of a record for the signed-in user
+     * @param matchIds a query returning the ids that may match (a superset of the matches is allowed; the vector is rechecked)
+     */
+    record Stored(String with, String from, String vector, String matchIds) {
     }
 
     private SearchSpecs() {
     }
+
+    /** Type to {table, alias in the spec} for the types with a {@code search_vec} column (V802). */
+    private static final Map<String, String[]> OWN_VECTOR = Map.ofEntries(
+            Map.entry("CLAIM", new String[] {"claim", "cl"}), Map.entry("DEFENSE", new String[] {"defense", "f"}),
+            Map.entry("HEARING", new String[] {"hearing", "h"}), Map.entry("JUDGMENT", new String[] {"judgment", "j"}),
+            Map.entry("DOCUMENT", new String[] {"case_document", "d"}), Map.entry("NOTE", new String[] {"case_note", "n"}),
+            Map.entry("TASK", new String[] {"task", "t"}), Map.entry("LIBRARY", new String[] {"library_judgment", "j"}),
+            Map.entry("SETTLEMENT", new String[] {"settlement", "s"}), Map.entry("DIRECTIVE", new String[] {"directive", "d"}));
 
     private static final String KUWAIT_DATE = "at time zone 'Asia/Kuwait')::date";
 
@@ -42,15 +75,18 @@ final class SearchSpecs {
         return new Part(key, sql, weight);
     }
 
-    static Map<String, Spec> all(CaseAccessPolicy access) {
+    static Map<String, Spec> all(CaseAccessPolicy access, boolean canId) {
         Map<String, Spec> specs = new java.util.LinkedHashMap<>();
-        for (Spec spec : build(access)) {
-            specs.put(spec.type(), spec);
+        for (Spec spec : build(access, canId)) {
+            String[] own = OWN_VECTOR.get(spec.type());
+            // Types whose text is all in one row (or kept in that row by a trigger, V802) read their stored search_vec.
+            specs.put(spec.type(), own == null ? spec : spec.withStored(new Stored(null, "", own[1] + ".search_vec",
+                    "select x.id from " + own[0] + " x where x.search_vec @@ (select tq from q)")));
         }
         return specs;
     }
 
-    private static List<Spec> build(CaseAccessPolicy access) {
+    private static List<Spec> build(CaseAccessPolicy access, boolean canId) {
         // The case is already joined as c in every type that has one, so the rule is tested on that row (cheap column tests
         // first, the database function last) instead of by a second pass over the register.
         String visC = access.viewable("c").sql();
@@ -77,7 +113,15 @@ final class SearchSpecs {
                                 + " case_link l join legal_case o on o.id = case when l.case_id = c.id then l.other_case_id"
                                 + " else l.case_id end where (l.case_id = c.id or l.other_case_id = c.id) and "
                                 + access.viewable("o").sql() + ")", 'C')),
-                caseType, caseId));
+                caseType, caseId,
+                // The case document is stored (search_case_doc); what a case gains from the cases it is linked to is added per
+                // request from the stored link texts, and only from linked cases the user may see.
+                new Stored(null,
+                        " join search_case_doc sd on sd.case_id = c.id left join lateral (select tsvector_agg(d.vec) as vec from"
+                                + " search_link_doc d join legal_case o on o.id = d.other_id where sd.linked and d.host_id = c.id and "
+                                + access.viewable("o").sql() + ") lk on true",
+                        "(sd.vec || coalesce(lk.vec, cast('' as tsvector)))",
+                        "select x.case_id from search_case_doc x where x.vec_all @@ (select tq from q)")));
 
         // A party is found through the visible cases it is on; a party of hidden cases only does not exist for the user.
         // Identity numbers and a confidential party's contact details are searched only by holders of PARTY_ID_VIEW (D4).
@@ -92,7 +136,9 @@ final class SearchSpecs {
                         p("NOTES", "p.notes", 'C'),
                         p("CONTACT", "case when :canId or not p.confidential then concat_ws(' ', p.phone, p.email, p.address) end",
                                 'D')),
-                caseType, caseId));
+                caseType, caseId,
+                new Stored(null, "", canId ? "p.search_full" : "p.search_public",
+                        "select x.id from party x where x." + (canId ? "search_full" : "search_public") + " @@ (select tq from q)")));
 
         // Requests and defences (WP2) belong to a case and follow it.
         specs.add(new Spec("CLAIM", Permission.CLAIM_VIEW, "claim cl join legal_case c on c.id = cl.case_id", visC, "cl.id", "c.id",
