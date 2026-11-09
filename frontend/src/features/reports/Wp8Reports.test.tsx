@@ -4,8 +4,8 @@ import { describe, expect, it, vi } from 'vitest';
 import type { Permission } from '../../api/permissions';
 import { jsonResponse } from '../../test/http';
 import type { DashboardReport } from './dashboardApi';
-import type { FamilyTable } from './familiesApi';
-import { INDICATOR_CODES, type IndicatorFigure, type IndicatorItem, type IndicatorPage } from './indicatorsApi';
+import { isFamilyCode, isFamilyTable, type FamilyTable } from './familiesApi';
+import { INDICATOR_CODES, indicatorHref, indicatorPath, isIndicatorPage, type IndicatorFigure, type IndicatorItem, type IndicatorPage } from './indicatorsApi';
 import { backend, problem, renderAt } from './testSupport';
 
 /** Each test renders the whole application; the first one of a file can pass the 5 s default on a busy machine. */
@@ -354,5 +354,28 @@ describe('report families', () => {
     await renderAt('/reports/families/OPEN_CLOSED_CASES?lang=ar');
     expect(await screen.findByRole('table', { name: 'القضايا المفتوحة والمغلقة' })).toBeInTheDocument();
     expect(document.documentElement.dir).toBe('rtl');
+  });
+});
+
+describe('answer guards and addresses', () => {
+  it('accepts only the shapes the screens read', () => {
+    expect(isIndicatorPage(null)).toBe(false);
+    expect(isIndicatorPage('x')).toBe(false);
+    expect(isIndicatorPage({ items: [], totalItems: 0 })).toBe(false);
+    expect(isIndicatorPage({ items: [], totalItems: 0, totalPages: 0 })).toBe(true);
+    expect(isFamilyTable(undefined)).toBe(false);
+    expect(isFamilyTable({ columns: [], rows: [] })).toBe(false);
+    expect(isFamilyTable(familyTable())).toBe(true);
+    expect(isFamilyCode(undefined)).toBe(false);
+    expect(isFamilyCode('PERFORMANCE')).toBe(true);
+  });
+
+  it('builds the address of a list and of one of its groups, with the language', () => {
+    expect(indicatorPath('TOTAL_CASES')).toBe('/reports/indicators/TOTAL_CASES');
+    expect(indicatorPath('CASES_BY_UNIT', { level: 'SECTOR', key: 'A b', label: 'A b', count: 1 })).toBe(
+      '/reports/indicators/CASES_BY_UNIT?group=A+b&level=SECTOR',
+    );
+    expect(indicatorHref('/x', 'ar')).toBe('/x?lang=ar');
+    expect(indicatorHref('/x?group=1', 'en')).toBe('/x?group=1&lang=en');
   });
 });
