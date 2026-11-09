@@ -299,6 +299,35 @@ public class CaseReportQueries {
     }
 
 
+    /**
+     * The matching visible cases grouped by the primary involvement's sector, department and section at once: the same groups
+     * {@link #groups} gives for each of the three dimensions, from one pass over the cases instead of three.
+     */
+    public Map<UnitLevel, List<Group>> unitGroups(CaseFilter filter) {
+        Where where = where(filter, "legal_case.");
+        String sql = "select grouping(x.sector, x.department, x.section) as g, x.sector, x.department, x.section, count(*) as n,"
+                + " coalesce(sum(x.claimed), 0) as claimed, coalesce(sum(x.impact), 0) as impact from ("
+                + "select nullif(btrim(pi.sector_name_snapshot), '') as sector, nullif(btrim(pi.department_name_snapshot), '') as department,"
+                + " nullif(btrim(pi.section_name_snapshot), '') as section, legal_case.claimed_amount as claimed,"
+                + " legal_case.financial_amount as impact from legal_case left join case_org_involvement pi on"
+                + " pi.case_id = legal_case.id and pi.is_primary and pi.removed_at is null" + where.sql + ") x"
+                + " group by grouping sets ((x.sector), (x.department), (x.section))"
+                + " order by g, coalesce(x.sector, x.department, x.section) nulls last";
+        Map<UnitLevel, List<Group>> out = new java.util.EnumMap<>(UnitLevel.class);
+        for (UnitLevel level : UnitLevel.values()) {
+            out.put(level, new java.util.ArrayList<>());
+        }
+        jdbc.sql(sql).params(where.params).query(rs -> {
+            // grouping() bit set = the column is NOT grouped: 3 = sector, 5 = department, 6 = section.
+            int g = rs.getInt("g");
+            UnitLevel level = g == 3 ? UnitLevel.SECTOR : g == 5 ? UnitLevel.DEPARTMENT : UnitLevel.SECTION;
+            String key = rs.getString(level == UnitLevel.SECTOR ? "sector" : level == UnitLevel.DEPARTMENT ? "department" : "section");
+            out.get(level).add(new Group(key, key, rs.getLong("n"), rs.getBigDecimal("claimed").setScale(3),
+                    rs.getBigDecimal("impact").setScale(3)));
+        });
+        return out;
+    }
+
     /** A member's cases in the filter: as primary member (of which open, by {@link StatusGroup}) and as alternate. */
     public record MemberCases(UUID memberId, long primary, long primaryOpen, long alternate) {
     }
