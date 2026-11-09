@@ -18,6 +18,7 @@ import { CaseListPage } from './features/cases/CaseListPage';
 import { CASES_PATH, CASE_ROUTE, EDIT_CASE_ROUTE, NEW_CASE_PATH } from './features/cases/paths';
 import { CourtsPage } from './features/courts/CourtsPage';
 import { deadlineRoutes } from './features/deadlines/routes';
+import { archiveRoutes } from './features/archive/routes';
 import { libraryRoutes } from './features/library/routes';
 import { NotificationsPage } from './features/followup/NotificationsPage';
 import { LookupsPage } from './features/pleadings/LookupsPage';
@@ -67,6 +68,7 @@ export function AppRoutes({ locale }: LocaleProps) {
               {operationsRoutes()}
               {libraryRoutes()}
               {deadlineRoutes()}
+              {archiveRoutes()}
               {reportsRoutes()}
               {wp9Routes()}
               <Route path="*" element={<NotFoundPage />} />

@@ -8,14 +8,24 @@ import { Field } from '../FormParts';
 import { listDocumentUsage } from '../../pleadings/api';
 import { DocumentUsageList } from '../../pleadings/DocumentUsageList';
 import { useLoad } from '../../pleadings/useLoad';
+import { DocumentArchivePanel } from '../../archive/DocumentArchivePanel';
+import { WithdrawnDocuments } from '../../archive/WithdrawnDocuments';
+import { usePermissions } from '../../archive/usePermissions';
+import {
+  acceptAttribute,
+  DEFAULT_LIMITS,
+  getArchiveSettings,
+  type ArchiveFormat,
+  type ArchiveLimits,
+} from '../../archive/api';
 import {
   attachDocument,
   contentUrl,
   fileProblem,
   formatSize,
   listCaseDocuments,
-  MAX_DOCUMENTS,
-  removeDocument,
+  withdrawDocumentWithReason,
+  type Accepted,
   type CaseDocument,
 } from './documentsApi';
 
@@ -23,18 +33,45 @@ type Result = { key: number; documents: CaseDocument[] } | { key: number; error:
 
 const CLIENT_PROBLEMS = {
   missing: 'operations.document.chooseFile',
-  notPdf: 'operations.fieldError.pdfOnly',
+  notAccepted: 'operations.fieldError.pdfOnly',
   tooLarge: 'operations.fieldError.maxSize',
 } as const;
 
+/** The formats the archive accepts (from its settings, else all it knows) as the browser-side check wants them. */
+const ALL_FORMATS: ArchiveFormat[] = [
+  { code: 'PDF', family: 'PDF', mediaType: 'application/pdf', extension: 'pdf', enabled: true },
+  {
+    code: 'DOCX',
+    family: 'WORD',
+    mediaType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    extension: 'docx',
+    enabled: true,
+  },
+  { code: 'DOC', family: 'WORD', mediaType: 'application/msword', extension: 'doc', enabled: true },
+  { code: 'PNG', family: 'IMAGE', mediaType: 'image/png', extension: 'png', enabled: true },
+  { code: 'JPEG', family: 'IMAGE', mediaType: 'image/jpeg', extension: 'jpg', enabled: true },
+  { code: 'TIFF', family: 'IMAGE', mediaType: 'image/tiff', extension: 'tif', enabled: true },
+];
+
+function acceptedOf(formats: readonly ArchiveFormat[], limits: ArchiveLimits): Accepted {
+  const enabled = formats.filter((f) => f.enabled);
+  return {
+    mediaTypes: enabled.map((f) => f.mediaType),
+    extensions: enabled.flatMap((f) => (f.code === 'JPEG' ? ['jpg', 'jpeg'] : f.code === 'TIFF' ? ['tif', 'tiff'] : [f.extension])),
+    maxBytes: limits.maxFileBytes,
+  };
+}
+
 interface FormProps {
   caseId: string;
+  accepted: Accepted;
+  accept: string;
   onAttached: () => void;
 }
 
-/** Attaches one PDF; the browser checks type and size first, the backend checks them again (LD-026). */
-function AttachForm({ caseId, onAttached }: FormProps) {
-  const { t } = useI18n();
+/** Attaches one file (PDF, Word or image); the browser checks type and size first, the backend checks them again (LD-026, LD-055). */
+function AttachForm({ caseId, accepted, accept, onAttached }: FormProps) {
+  const { t, locale } = useI18n();
   const form = useFormErrors<'file' | 'title'>();
   const fileInput = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -43,7 +80,7 @@ function AttachForm({ caseId, onAttached }: FormProps) {
   const [saving, setSaving] = useState(false);
 
   const submit = async () => {
-    const problem = fileProblem(file);
+    const problem = fileProblem(file, accepted);
     if (problem !== null || file === null) {
       setLocal(CLIENT_PROBLEMS[problem ?? 'missing']);
       return;
@@ -84,12 +121,17 @@ function AttachForm({ caseId, onAttached }: FormProps) {
       {local === null && form.formError !== null ? (
         <p className="ops-alert">{t(form.formError)}</p>
       ) : null}
-      <Field id={fileControl.id} label={t('operations.document.fileInput')} error={fileError} errorId={form.errorId('file')}>
+      <Field
+        id={fileControl.id}
+        label={t('operations.document.fileInput', { size: formatSize(accepted.maxBytes, locale) })}
+        error={fileError}
+        errorId={form.errorId('file')}
+      >
         <input
           id={fileControl.id}
           ref={fileInput}
           type="file"
-          accept="application/pdf,.pdf"
+          accept={accept}
           aria-invalid={fileError === undefined ? undefined : true}
           aria-describedby={fileError === undefined ? undefined : form.errorId('file')}
           onChange={(event) => {
@@ -127,10 +169,22 @@ interface Props {
   caseId: string;
 }
 
-/** The PDF attachments of one case (LD-026): at most ten, each downloadable, removable after confirmation. */
+/**
+ * The archive of one case (LD-026, LD-055): documents in PDF, Word and image formats up to the archive's limits, each with
+ * its versions, classification and links; a document is taken out of the case file with a reason, never deleted here.
+ */
 export function CaseDocuments({ caseId }: Props) {
   const { locale, t } = useI18n();
   const headingId = useId();
+  const granted = usePermissions();
+  const canManage = granted.has('DOCUMENT_MANAGE');
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [reason, setReason] = useState('');
+  const [withdrawals, setWithdrawals] = useState(0);
+  // The archive's limits and accepted formats; if they cannot be read the defaults it ships with are used.
+  const settings = useLoad((signal) => getArchiveSettings(signal), []);
+  const limits = settings.data?.limits ?? DEFAULT_LIMITS;
+  const formats = settings.data?.formats ?? ALL_FORMATS;
   const [reload, setReload] = useState(0);
   const [result, setResult] = useState<Result | null>(null);
   const [notice, setNotice] = useState<'attached' | 'removed' | MessageKey | null>(null);
@@ -160,8 +214,10 @@ export function CaseDocuments({ caseId }: Props) {
     setBusy(true);
     setNotice(null);
     try {
-      await removeDocument(target);
+      await withdrawDocumentWithReason(target, reason.trim());
       setNotice('removed');
+      setReason('');
+      setWithdrawals((n) => n + 1);
       setReload((n) => n + 1);
     } catch (error) {
       setNotice(saveError(error, 'operations.error.stale'));
@@ -193,13 +249,13 @@ export function CaseDocuments({ caseId }: Props) {
       );
     }
     const { documents } = current;
-    const full = documents.length >= MAX_DOCUMENTS;
+    const full = documents.length >= limits.maxDocumentsPerCase;
     return (
       <>
         <p>
           {t('operations.document.count', {
             count: formatNumber(documents.length, locale),
-            limit: formatNumber(MAX_DOCUMENTS, locale),
+            limit: formatNumber(limits.maxDocumentsPerCase, locale),
           })}
         </p>
         {documents.length === 0 ? <p>{t('operations.document.none')}</p> : null}
@@ -224,22 +280,57 @@ export function CaseDocuments({ caseId }: Props) {
                   </a>
                   <button
                     type="button"
-                    aria-label={t('operations.document.removeLabel', { title: d.title })}
+                    aria-expanded={openId === d.id}
+                    aria-label={t('wp5.doc.detailsLabel', { title: d.title })}
                     onClick={() => {
-                      setNotice(null);
-                      setConfirming(d);
+                      setOpenId(openId === d.id ? null : d.id);
                     }}
                   >
-                    {t('operations.document.remove')}
+                    {openId === d.id ? t('wp5.doc.hideDetails') : t('wp5.doc.details')}
                   </button>
+                  {canManage ? (
+                    <button
+                      type="button"
+                      aria-label={t('operations.document.removeLabel', { title: d.title })}
+                      onClick={() => {
+                        setNotice(null);
+                        setReason('');
+                        setConfirming(d);
+                      }}
+                    >
+                      {t('operations.document.remove')}
+                    </button>
+                  ) : null}
                 </div>
+                {openId === d.id ? (
+                  <DocumentArchivePanel
+                    doc={d}
+                    canManage={canManage}
+                    formats={formats}
+                    onChanged={() => {
+                      setReload((n) => n + 1);
+                    }}
+                  />
+                ) : null}
                 {confirming?.id === d.id ? (
                   <div className="ops-confirm">
                     <p>{t('operations.document.confirm', { title: d.title })}</p>
+                    <div className="case-field">
+                      <label htmlFor={`withdraw-${d.id}`}>{t('wp5.doc.withdrawReason')}</label>
+                      <input
+                        id={`withdraw-${d.id}`}
+                        type="text"
+                        maxLength={500}
+                        value={reason}
+                        onChange={(event) => {
+                          setReason(event.target.value);
+                        }}
+                      />
+                    </div>
                     <div className="ops-actions">
                       <button
                         type="button"
-                        disabled={busy}
+                        disabled={busy || reason.trim() === ''}
                         onClick={() => {
                           void remove(d);
                         }}
@@ -266,6 +357,8 @@ export function CaseDocuments({ caseId }: Props) {
         ) : (
           <AttachForm
             caseId={caseId}
+            accepted={acceptedOf(formats, limits)}
+            accept={acceptAttribute(formats)}
             onAttached={() => {
               setNotice('attached');
               setReload((n) => n + 1);
@@ -288,6 +381,16 @@ export function CaseDocuments({ caseId }: Props) {
         <p className="ops-alert">{t(notice)}</p>
       ) : null}
       {body()}
+      {canManage ? (
+        <WithdrawnDocuments
+          caseId={caseId}
+          canAdminister={granted.has('DOCUMENT_ARCHIVE_ADMIN')}
+          generation={withdrawals}
+          onRestored={() => {
+            setReload((n) => n + 1);
+          }}
+        />
+      ) : null}
     </section>
   );
 }
