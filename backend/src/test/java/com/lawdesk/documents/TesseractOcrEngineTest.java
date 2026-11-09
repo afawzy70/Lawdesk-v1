@@ -34,7 +34,11 @@ class TesseractOcrEngineTest {
         assertThat(status.detail()).contains("ara");
     }
 
-    /** Arabic and English page images generated here are read by the real engine and compared with what was drawn. */
+    /**
+     * Arabic and English page images generated here are read by the real engine and compared with what was drawn. The text is
+     * 28 px on a 1000 px canvas (about 12 pt at 170 dpi). Measured limitation (docs/evidence/DOC-OCR): glyphs far larger than that
+     * (48 px on a 1400x400 canvas) can make Tesseract drop the first line of a two-line page.
+     */
     @Test
     void readsGeneratedArabicAndEnglishPages() throws Exception {
         TesseractOcrEngine engine = new TesseractOcrEngine("tesseract", "ara+eng");
@@ -45,7 +49,7 @@ class TesseractOcrEngineTest {
         List<String> samples = List.of("صحيفة الدعوى المدنية\nمذكرة دفاع المدعى عليه", "محكمة التمييز\nحكم نهائي في الطعن", "Statement of claim\nPleading number 15");
         double worst = 1.0;
         for (String sample : samples) {
-            String read = engine.recognise(ArchiveFiles.png(sample));
+            String read = engine.recognise(ArchiveFiles.png(sample, 28, 1000, 260));
             double similarity = ArabicQuality.similarity(sample, read);
             worst = Math.min(worst, similarity);
             System.out.println("OCR quality " + String.format("%.2f", similarity) + " for: " + sample.replace('\n', '/') + " -> "

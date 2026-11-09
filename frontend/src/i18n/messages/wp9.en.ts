@@ -215,6 +215,7 @@ export const wp9En = {
   'wp9.search.in.ATTENDEES': 'attendees',
   'wp9.search.in.JUDGE': 'judge or expert',
   'wp9.search.in.FILE_NAME': 'file name',
+  'wp9.search.in.DOCUMENT_TEXT': 'file text',
   'wp9.search.in.BODY': 'text',
   'wp9.search.in.DESCRIPTION': 'description',
   'wp9.search.in.KEYWORDS': 'keywords',
