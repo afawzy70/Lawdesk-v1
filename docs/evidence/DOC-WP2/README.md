@@ -64,8 +64,8 @@ The last commit of this branch removes it; `.gitignore` already excludes the rea
 |---|---|
 | `01-red-…`, `02-red-…`, `03-red-…` | Failing runs before the code: lookups, claim results and judgment details; defences; claims, evidence and statistics (the last run with the three controllers set aside, 23 of 24 tests fail) |
 | `04-green-backend-pleadings.log` | 50 tests of `com.lawdesk.pleadings` green (statistics list the six stages since WP1d widened them) |
-| `05-backend-regression-neighbours.log` | 257 tests of the neighbouring modules (judgments, proceedings and stages, reports, visibility, hearings, documents, tasks, library, parties, migrations, permissions) green on top of the merged WP1c, WP1d and WP7 |
-| `06-frontend-suite-and-coverage.log` | 639 frontend tests green; branches 91.33 % (gate 90 %) |
+| `05-backend-regression-neighbours.log` | 322 tests of the neighbouring modules (with the 50 of this package, 372 in one run) (judgments, proceedings and stages, reports, visibility, hearings, documents, tasks, library, parties, migrations, permissions) green on top of the merged WP1c, WP1d, WP3 and WP7 |
+| `06-frontend-suite-and-coverage.log` | 690 frontend tests green; branches 91.51 % (gate 90 %) |
 | `journey-wp2-local.json` | The journey below run against the application with an embedded PostgreSQL on localhost (60 steps, all passed). **Not UAT.** |
 
 Honest note on order: the lookup / claim-result / judgment-detail and defence tests were run red first as written; the claim,
