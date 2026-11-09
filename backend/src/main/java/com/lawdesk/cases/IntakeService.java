@@ -40,10 +40,15 @@ class IntakeService {
     private final CurrentActor currentActor;
     private final AuditLog audit;
     private final String authorityName;
+    private final DuplicateCheck duplicates;
+
+    static final String DUPLICATE_SUSPECTED = "DUPLICATE_SUSPECTED";
 
     IntakeService(CaseService caseService, CaseRepository cases, PartyRepository parties, PartyService partyService,
             CaseTimeline timeline, FirstInstanceRecorder firstInstance, UserDirectory users, CurrentActor currentActor,
-            AuditLog audit, @Value("${lawdesk.authority.name:الهيئة}") String authorityName) {
+            AuditLog audit, @Value("${lawdesk.authority.name:الهيئة}") String authorityName,
+            DuplicateCheck duplicates) {
+        this.duplicates = duplicates;
         this.caseService = caseService;
         this.cases = cases;
         this.parties = parties;
@@ -78,6 +83,12 @@ class IntakeService {
         }
         Side position = Side.valueOf(request.authorityPosition());
         checkParties(request.parties());
+        IntakeRequest.FirstInstance numbers = request.firstInstance();
+        List<DuplicateCheck.Match> matches = duplicates.matches(new DuplicateCheck.Candidate(request.automatedNo(),
+                numbers.courtId(), numbers.courtCaseNumber(), numbers.courtCaseYear(), request.title()));
+        if (!matches.isEmpty() && !Boolean.TRUE.equals(request.confirmDistinct())) {
+            throw new BusinessRuleException(DUPLICATE_SUSPECTED, matches.size() + " similar case(s) exist");
+        }
 
         String referenceNo = caseService.generateReferenceNo();
         LegalCase created;
@@ -103,6 +114,13 @@ class IntakeService {
 
         caseService.checkDetails(request.details());
         cases.setDetails(caseId, request.details());
+        for (DuplicateCheck.Match match : matches) {
+            cases.recordDuplicateDecision(caseId, match, request.distinctNote(), actor.id());
+        }
+        if (!matches.isEmpty()) {
+            timeline.append(caseId, "DUPLICATE_REVIEWED", CaseTimeline.fit("Registered as a different case from "
+                    + matches.size() + " similar one(s)"), actor.id());
+        }
         cases.assignNew(caseId, request.primaryMemberId(), request.alternateMemberId());
         LegalCase registered = cases.find(caseId).orElseThrow();
         caseService.recordAssignment(registered, actor);

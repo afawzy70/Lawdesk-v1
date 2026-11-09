@@ -127,4 +127,5 @@ export const adminEn = {
   'admin.permission.CASE_EDIT_IN_SCOPE': 'Edit any case in scope',
   'admin.permission.CASE_GRANT_MANAGE': 'Manage case access and scopes',
   'admin.permission.ORG_MANAGE': 'Manage the organisation structure',
+  'admin.permission.PARTY_ID_VIEW': 'View full civil and establishment numbers',
 } as const;

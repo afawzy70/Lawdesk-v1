@@ -39,7 +39,9 @@ export function AccessScopesPage() {
 
   useEffect(() => {
     let current = true;
-    Promise.all([listScopes(), listRoles(), listOrgUnits('LEGAL', false)]).then(
+    // The scopes are the page; the role and unit lists only fill its choices, so their failure does not hide it.
+    const optional = <T,>(request: Promise<T>, fallback: T): Promise<T> => request.catch(() => fallback);
+    Promise.all([listScopes(), optional(listRoles(), []), optional(listOrgUnits('LEGAL', false), [])]).then(
       ([found, roleList, unitList]) => {
         if (!current) return;
         setScopes(found);

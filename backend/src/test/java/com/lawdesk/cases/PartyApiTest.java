@@ -52,7 +52,7 @@ class PartyApiTest extends PostgresTestSupport {
     }
 
     private ResultActions create(String json) throws Exception {
-        return mvc.perform(post(PARTIES).with(as(CLERK, "clerk", Permission.PARTY_MANAGE)).with(csrf())
+        return mvc.perform(post(PARTIES).with(as(CLERK, "clerk", Permission.PARTY_MANAGE, Permission.PARTY_ID_VIEW)).with(csrf())
                 .contentType(MediaType.APPLICATION_JSON).content(json));
     }
 
@@ -76,7 +76,7 @@ class PartyApiTest extends PostgresTestSupport {
                 .andExpect(status().isCreated()).andExpect(jsonPath("$.registrationNo").value("CR-12345"))
                 .andExpect(jsonPath("$.nationalId").doesNotExist());
 
-        mvc.perform(get(PARTIES + "/" + JsonPath.read(body, "$.id")).with(as(Permission.CASE_VIEW)))
+        mvc.perform(get(PARTIES + "/" + JsonPath.read(body, "$.id")).with(as(Permission.CASE_VIEW, Permission.PARTY_ID_VIEW)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.name").value("Ahmed Hassan"));
     }
 
@@ -125,16 +125,16 @@ class PartyApiTest extends PostgresTestSupport {
         String path = PARTIES + "/" + id;
         String json = "{\"kind\":\"PERSON\",\"name\":\"New Name\",\"phone\":\"0100\",\"version\":0}";
 
-        mvc.perform(put(path).with(as(CLERK, "clerk", Permission.PARTY_MANAGE)).with(csrf())
+        mvc.perform(put(path).with(as(CLERK, "clerk", Permission.PARTY_MANAGE, Permission.PARTY_ID_VIEW)).with(csrf())
                         .contentType(MediaType.APPLICATION_JSON).content(json))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.name").value("New Name"))
                 .andExpect(jsonPath("$.version").value(1)).andExpect(jsonPath("$.updatedBy").value(CLERK.toString()));
-        mvc.perform(put(path).with(as(Permission.PARTY_MANAGE)).with(csrf())
+        mvc.perform(put(path).with(as(Permission.PARTY_MANAGE, Permission.PARTY_ID_VIEW)).with(csrf())
                 .contentType(MediaType.APPLICATION_JSON).content(json)).andExpect(status().isConflict());
-        mvc.perform(put(path).with(as(Permission.PARTY_MANAGE)).with(csrf())
+        mvc.perform(put(path).with(as(Permission.PARTY_MANAGE, Permission.PARTY_ID_VIEW)).with(csrf())
                         .contentType(MediaType.APPLICATION_JSON).content("{\"kind\":\"PERSON\",\"name\":\"N\"}"))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.errors[0].field").value("version"));
-        mvc.perform(put(PARTIES + "/" + UUID.randomUUID()).with(as(Permission.PARTY_MANAGE)).with(csrf())
+        mvc.perform(put(PARTIES + "/" + UUID.randomUUID()).with(as(Permission.PARTY_MANAGE, Permission.PARTY_ID_VIEW)).with(csrf())
                 .contentType(MediaType.APPLICATION_JSON).content(json)).andExpect(status().isNotFound());
     }
 
@@ -144,14 +144,14 @@ class PartyApiTest extends PostgresTestSupport {
         insertParty(jdbc, "ORGANIZATION", "Nile Trading Co.", null);
         insertParty(jdbc, "PERSON", "Mona Ahmed", null);
 
-        mvc.perform(get(PARTIES).param("q", "ahmed").with(as(Permission.CASE_VIEW)))
+        mvc.perform(get(PARTIES).param("q", "ahmed").with(as(Permission.CASE_VIEW, Permission.PARTY_ID_VIEW)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[*].name", contains("Ahmed Hassan", "Mona Ahmed")))
                 .andExpect(jsonPath("$.totalItems").value(2));
-        mvc.perform(get(PARTIES).param("q", "2900101").with(as(Permission.CASE_VIEW)))
+        mvc.perform(get(PARTIES).param("q", "2900101").with(as(Permission.CASE_VIEW, Permission.PARTY_ID_VIEW)))
                 .andExpect(jsonPath("$.items[*].name", contains("Ahmed Hassan")));
-        mvc.perform(get(PARTIES).with(as(Permission.CASE_VIEW))).andExpect(jsonPath("$.totalItems").value(3));
-        mvc.perform(get(PARTIES).param("q", "q".repeat(101)).with(as(Permission.CASE_VIEW)))
+        mvc.perform(get(PARTIES).with(as(Permission.CASE_VIEW, Permission.PARTY_ID_VIEW))).andExpect(jsonPath("$.totalItems").value(3));
+        mvc.perform(get(PARTIES).param("q", "q".repeat(101)).with(as(Permission.CASE_VIEW, Permission.PARTY_ID_VIEW)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -161,8 +161,8 @@ class PartyApiTest extends PostgresTestSupport {
                 .andExpect(status().isUnauthorized());
         mvc.perform(post(PARTIES).with(as(Permission.CASE_VIEW, Permission.CASE_EDIT)).with(csrf())
                 .contentType(MediaType.APPLICATION_JSON).content(PERSON)).andExpect(status().isForbidden());
-        mvc.perform(get(PARTIES).with(as(Permission.PARTY_MANAGE))).andExpect(status().isForbidden());
-        mvc.perform(get(PARTIES + "/" + UUID.randomUUID()).with(as(Permission.CASE_VIEW)))
+        mvc.perform(get(PARTIES).with(as(Permission.PARTY_MANAGE, Permission.PARTY_ID_VIEW))).andExpect(status().isForbidden());
+        mvc.perform(get(PARTIES + "/" + UUID.randomUUID()).with(as(Permission.CASE_VIEW, Permission.PARTY_ID_VIEW)))
                 .andExpect(status().isNotFound());
         assertThat(jdbc.queryForObject("select count(*) from party", Long.class)).isZero();
     }

@@ -275,7 +275,7 @@ describe('case parties (LD-016)', () => {
     const form = await screen.findByRole('form', { name: 'New party' });
     await user.selectOptions(within(form).getByRole('combobox', { name: 'Kind' }), 'PERSON');
     await user.type(within(form).getByRole('textbox', { name: 'Name' }), 'Ahmed Hassan');
-    await user.type(within(form).getByRole('textbox', { name: 'Party automated number' }), '0012345');
+    await user.type(within(form).getByRole('textbox', { name: 'Civil number' }), '0012345');
     await user.selectOptions(within(form).getByRole('combobox', { name: 'Role' }), 'CLIENT');
     await user.click(within(form).getByRole('button', { name: 'Add party' }));
 
@@ -298,8 +298,8 @@ describe('case parties (LD-016)', () => {
     const form = await screen.findByRole('form', { name: 'New party' });
     await user.selectOptions(within(form).getByRole('combobox', { name: 'Kind' }), 'ORGANIZATION');
 
-    expect(within(form).getByRole('textbox', { name: 'Commercial registration no.' })).toBeInTheDocument();
-    expect(within(form).queryByRole('textbox', { name: 'Party automated number' })).not.toBeInTheDocument();
+    expect(within(form).getByRole('textbox', { name: 'Establishment number' })).toBeInTheDocument();
+    expect(within(form).queryByRole('textbox', { name: 'Civil number' })).not.toBeInTheDocument();
   });
 
   it('adds an existing party found by search', async () => {

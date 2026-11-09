@@ -16,6 +16,7 @@ import {
   type PartyRole,
   type Side,
 } from './api';
+import { PartyCases } from './PartyCases';
 import { isStatus, problemMessage } from './problems';
 
 function explain(error: unknown): MessageKey {
@@ -311,7 +312,10 @@ export function CasePartiesSection({ caseId, authorityPosition, generation, edit
             <tbody>
               {current.parties.map((party) => (
                 <tr key={party.partyId}>
-                  <td>{party.name}</td>
+                  <td>
+                    {party.name}
+                    {party.authority === true ? null : <PartyCases partyId={party.partyId} currentCaseId={caseId} />}
+                  </td>
                   <td>{t(`cases.kind.${party.kind}`)}</td>
                   <td>
                     {party.side == null ? t(`cases.role.${party.role}`) : t(`intake.position.${party.side}`)}

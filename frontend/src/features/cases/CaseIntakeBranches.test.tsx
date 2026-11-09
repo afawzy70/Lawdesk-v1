@@ -76,7 +76,7 @@ describe('the parties of an intake case', () => {
     const form = await screen.findByRole('form', { name: 'New party' });
     await user.type(within(form).getByRole('textbox', { name: 'Name' }), 'X');
     await user.selectOptions(within(form).getByRole('combobox', { name: 'Kind' }), 'ORGANIZATION');
-    expect(within(form).getByRole('textbox', { name: 'Commercial registration no.' })).toBeInTheDocument();
+    expect(within(form).getByRole('textbox', { name: 'Establishment number' })).toBeInTheDocument();
     await user.click(within(form).getByRole('button', { name: 'Add party' }));
     expect(await within(form).findByRole('alert')).toHaveTextContent('You do not have permission to do this.');
   });

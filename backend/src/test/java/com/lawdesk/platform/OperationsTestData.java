@@ -16,6 +16,8 @@ public final class OperationsTestData {
 
     public static void deleteAll(JdbcTemplate jdbc) {
         // LD-050: access records hang off cases, users and the organisation tree.
+        jdbc.update("delete from case_duplicate_hint");
+        jdbc.update("delete from case_party_counsel");
         jdbc.update("delete from case_org_involvement");
         jdbc.update("delete from case_grant");
         jdbc.update("delete from access_scope where subject_type = 'USER'");

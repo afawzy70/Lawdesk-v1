@@ -19,5 +19,8 @@ record Party(
         Instant updatedAt,
         UUID updatedBy,
         /** True for the authority (الهيئة), the party every intake case carries. */
-        boolean authority) {
+        boolean authority,
+        /** A confidential party's contact details are shown only to those who may see identifiers (LD-050, D4). */
+        boolean confidential,
+        String notes) {
 }

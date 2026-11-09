@@ -129,4 +129,5 @@ export const adminAr: Record<keyof typeof adminEn, string> = {
   'admin.permission.CASE_EDIT_IN_SCOPE': 'تعديل أي قضية ضمن النطاق',
   'admin.permission.CASE_GRANT_MANAGE': 'إدارة الاطلاع على القضايا والنطاقات',
   'admin.permission.ORG_MANAGE': 'إدارة الهيكل التنظيمي',
+  'admin.permission.PARTY_ID_VIEW': 'الاطلاع على الرقم المدني ورقم المنشأة كاملًا',
 };

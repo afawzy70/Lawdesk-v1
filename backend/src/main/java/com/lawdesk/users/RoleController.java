@@ -27,7 +27,8 @@ import com.lawdesk.security.Permission;
 @RequestMapping("/api/v1/roles")
 class RoleController {
 
-    private static final String READ = Permission.Codes.ROLE_VIEW + " or " + Permission.Codes.USER_MANAGE;
+    private static final String READ = Permission.Codes.ROLE_VIEW + " or " + Permission.Codes.USER_MANAGE + " or "
+            + Permission.Codes.CASE_GRANT_MANAGE;
 
     private final RoleAdministration roles;
     private final CurrentActor actor;

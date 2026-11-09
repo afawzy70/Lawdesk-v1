@@ -272,6 +272,15 @@ class CaseRepository {
                 .query(Boolean.class).single();
     }
 
+    /** Keeps the registrar's decision that a case differs from one it resembles (section 3); nothing is merged. */
+    void recordDuplicateDecision(UUID caseId, DuplicateCheck.Match match, String note, UUID actor) {
+        jdbc.sql("""
+                        insert into case_duplicate_hint (case_id, other_case_id, kind, reasons, decision, note, decided_by)
+                        values (:case, :other, :kind, :reasons, 'DISTINCT', :note, :actor)""")
+                .param("case", caseId).param("other", match.caseId()).param("kind", match.kind())
+                .param("reasons", String.join(",", match.reasons())).param("note", note).param("actor", actor).update();
+    }
+
     boolean isActiveAuthorityUnit(UUID unit) {
         return jdbc.sql("select exists (select 1 from org_unit where id = :id and tree = 'AUTHORITY' and active)")
                 .param("id", unit).query(Boolean.class).single();

@@ -14,6 +14,7 @@ import com.lawdesk.api.NotFoundException;
 import com.lawdesk.api.PageResponse;
 import com.lawdesk.security.ActorRef;
 import com.lawdesk.security.CurrentActor;
+import com.lawdesk.security.Permission;
 
 /** Legal parties and their links to cases (docs/delivery/PHASE-3-ACCEPTANCE.md, LD-016). */
 @Service
@@ -42,7 +43,7 @@ class PartyService {
         ActorRef actor = currentActor.require();
         check(request, null);
         try {
-            return parties.insert(request, actor.id());
+            return shown(parties.insert(request, actor.id()));
         } catch (DuplicateKeyException e) {
             throw new ConflictException("national id already used");
         }
@@ -51,13 +52,13 @@ class PartyService {
     @Transactional
     Party update(UUID id, PartyRequest request) {
         ActorRef actor = currentActor.require();
-        if (!parties.exists(id)) {
-            throw new NotFoundException("party");
-        }
-        check(request, id);
+        Party stored = parties.find(id).orElseThrow(() -> new NotFoundException("party"));
+        // D4: whoever may change a party but not read its identifiers cannot overwrite them with what they were shown.
+        PartyRequest effective = canSeeIdentifiers() ? request : keepingIdentifiers(request, stored);
+        check(effective, id);
         try {
-            return parties.update(id, request, actor.id())
-                    .orElseThrow(() -> new ConflictException("party " + id + " has changed"));
+            return shown(parties.update(id, effective, actor.id())
+                    .orElseThrow(() -> new ConflictException("party " + id + " has changed")));
         } catch (DuplicateKeyException e) {
             throw new ConflictException("national id already used");
         }
@@ -65,12 +66,56 @@ class PartyService {
 
     @Transactional(readOnly = true)
     Party get(UUID id) {
-        return parties.find(id).orElseThrow(() -> new NotFoundException("party"));
+        return shown(parties.find(id).orElseThrow(() -> new NotFoundException("party")));
     }
 
     @Transactional(readOnly = true)
     PageResponse<Party> search(Paging paging) {
-        return parties.search(paging);
+        PageResponse<Party> found = parties.search(paging, canSeeIdentifiers());
+        return new PageResponse<>(found.items().stream().map(this::shown).toList(), found.page(), found.size(),
+                found.totalItems(), found.totalPages());
+    }
+
+    /** The cases a party is on, among those the signed-in user may see (section 2: all the cases of one party). */
+    @Transactional(readOnly = true)
+    List<PartyRepository.PartyCase> casesOf(UUID id) {
+        if (!parties.exists(id)) {
+            throw new NotFoundException("party");
+        }
+        return parties.casesOf(id, access.viewable("c"));
+    }
+
+    private boolean canSeeIdentifiers() {
+        return currentActor.has(Permission.PARTY_ID_VIEW);
+    }
+
+    /**
+     * The party as the signed-in user may see it (owner decision D4): without PARTY_ID_VIEW the civil or establishment
+     * number shows only its last characters, and a confidential party shows no contact details at all.
+     */
+    private Party shown(Party party) {
+        if (canSeeIdentifiers()) {
+            return party;
+        }
+        return new Party(party.id(), party.kind(), party.name(), mask(party.nationalId()), mask(party.registrationNo()),
+                party.confidential() ? null : party.phone(), party.confidential() ? null : party.email(),
+                party.confidential() ? null : party.address(), party.version(), party.createdAt(), party.createdBy(),
+                party.updatedAt(), party.updatedBy(), party.authority(), party.confidential(), party.notes());
+    }
+
+    /** All but the last three characters hidden (and nothing shown of a value of three or fewer). */
+    static String mask(String value) {
+        if (value == null) {
+            return null;
+        }
+        int shown = Math.max(0, Math.min(3, value.length() - 3));
+        return "*".repeat(value.length() - shown) + value.substring(value.length() - shown);
+    }
+
+    private static PartyRequest keepingIdentifiers(PartyRequest request, Party stored) {
+        return new PartyRequest(request.kind(), request.name(), stored.nationalId(), stored.registrationNo(),
+                request.phone(), request.email(), request.address(), request.version(), request.confidential(),
+                request.notes());
     }
 
     @Transactional(readOnly = true)
