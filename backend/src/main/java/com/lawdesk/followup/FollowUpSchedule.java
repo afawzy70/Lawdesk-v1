@@ -25,8 +25,8 @@ class FollowUpSchedule {
     void tick() {
         try {
             FollowUpRun.Result result = run.run();
-            log.info("follow-up run: {} requests marked overdue, {} notifications", result.overdueRequests(),
-                    result.notifications());
+            log.info("follow-up run: {} requests marked overdue, {} tasks marked late, {} notifications",
+                    result.overdueRequests(), result.lateTasks(), result.notifications());
         } catch (RuntimeException e) {
             log.error("follow-up run failed", e);
         }

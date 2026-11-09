@@ -65,7 +65,9 @@ public enum Permission {
     ENFORCEMENT_VIEW,
     ENFORCEMENT_MANAGE,
     MEMO_APPROVE,
-    DOCUMENT_ARCHIVE_ADMIN;
+    DOCUMENT_ARCHIVE_ADMIN,
+    CALENDAR_VIEW,
+    CALENDAR_MANAGE;
 
     /** {@code @PreAuthorize} expressions, one per permission: {@code @PreAuthorize(Permission.Codes.CASE_CREATE)}. */
     public static final class Codes {
@@ -129,6 +131,8 @@ public enum Permission {
         public static final String ENFORCEMENT_MANAGE = "hasAuthority('ENFORCEMENT_MANAGE')";
         public static final String MEMO_APPROVE = "hasAuthority('MEMO_APPROVE')";
         public static final String DOCUMENT_ARCHIVE_ADMIN = "hasAuthority('DOCUMENT_ARCHIVE_ADMIN')";
+        public static final String CALENDAR_VIEW = "hasAuthority('CALENDAR_VIEW')";
+        public static final String CALENDAR_MANAGE = "hasAuthority('CALENDAR_MANAGE')";
 
         private Codes() {
         }

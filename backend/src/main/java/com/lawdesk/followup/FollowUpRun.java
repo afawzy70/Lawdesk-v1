@@ -13,27 +13,32 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.lawdesk.notifications.NotificationPublisher;
+import com.lawdesk.tasks.TaskFollowUp;
 
 /**
  * The follow-up run (requirements sections 18.3 and 32, decision D11): marks information requests whose reply is late as
- * overdue and raises the in-app notifications of what needs attention. It never closes anything, sends nothing outside the
+ * overdue, marks open tasks past their due date late, and raises the in-app notifications of what needs attention. It never closes anything, sends nothing outside the
  * system and is safe to repeat: a notification exists once per type, record and user.
  */
 @Component
 public class FollowUpRun {
 
     /** What one run did. */
-    public record Result(int overdueRequests, int notifications) {
+    public record Result(int overdueRequests, int notifications, int lateTasks) {
     }
 
     private static final ZoneId ZONE = ZoneId.of("Africa/Cairo");
 
     private final JdbcClient jdbc;
     private final NotificationPublisher notifications;
+    private final TaskFollowUp tasks;
+    private final DateReminders dates;
 
-    FollowUpRun(JdbcClient jdbc, NotificationPublisher notifications) {
+    FollowUpRun(JdbcClient jdbc, NotificationPublisher notifications, TaskFollowUp tasks, DateReminders dates) {
         this.jdbc = jdbc;
         this.notifications = notifications;
+        this.tasks = tasks;
+        this.dates = dates;
     }
 
     private record Late(UUID id, UUID caseId, String requestNo, String status, UUID responsible, UUID specialist,
@@ -78,7 +83,11 @@ public class FollowUpRun {
         for (UUID hearing : withoutDate) {
             raised += notifications.publishHearingWithoutDate(hearing, null);
         }
-        return new Result(marked, raised);
+        // LD-056 (WP6): late and due tasks, then the notifications that depend on dates and on what happened.
+        TaskFollowUp.Outcome taskOutcome = tasks.run();
+        raised += taskOutcome.notifications();
+        raised += dates.raise();
+        return new Result(marked, raised, taskOutcome.lateTasks());
     }
 
     private static Set<UUID> recipients(UUID... users) {

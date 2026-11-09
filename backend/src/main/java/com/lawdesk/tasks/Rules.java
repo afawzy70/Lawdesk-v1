@@ -14,6 +14,7 @@ final class Rules {
     static final String CASE_ARCHIVED = "CASE_ARCHIVED";
     static final String ASSIGNEE_NOT_ASSIGNABLE = "ASSIGNEE_NOT_ASSIGNABLE";
     static final String TASK_STATUS_TRANSITION = "TASK_STATUS_TRANSITION";
+    static final String ASSIGNEE_UNCHANGED = "ASSIGNEE_UNCHANGED";
 
     /** "Due soon" is due today or within the next three days (ASSUMPTION, LD-028). */
     static final int DUE_SOON_DAYS = 3;

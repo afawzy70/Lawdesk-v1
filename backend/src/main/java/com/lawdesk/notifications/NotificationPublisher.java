@@ -17,11 +17,11 @@ import tools.jackson.databind.json.JsonMapper;
 @Component
 public class NotificationPublisher {
 
-    /** Types raised by the follow-up of WP3; WP6 adds the rest of the list in the requirements. */
-    public static final String INFO_REQUEST_OVERDUE = "INFO_REQUEST_OVERDUE";
-    public static final String INFO_REQUEST_ESCALATED = "INFO_REQUEST_ESCALATED";
-    public static final String HEARING_NO_NEXT_DATE = "HEARING_NO_NEXT_DATE";
-    public static final String RISK_HIGH = "RISK_HIGH";
+    /** Kept for the callers of WP3; the full list is {@link NotificationTypes}. */
+    public static final String INFO_REQUEST_OVERDUE = NotificationTypes.INFO_REQUEST_OVERDUE;
+    public static final String INFO_REQUEST_ESCALATED = NotificationTypes.INFO_REQUEST_ESCALATED;
+    public static final String HEARING_NO_NEXT_DATE = NotificationTypes.HEARING_NO_NEXT_DATE;
+    public static final String RISK_HIGH = NotificationTypes.RISK_HIGH;
 
     private static final JsonMapper MAPPER = JsonMapper.builder().build();
 
@@ -32,21 +32,32 @@ public class NotificationPublisher {
     }
 
     /**
-     * Stores the notification for {@code userId} unless the same one exists.
+     * Stores the notification for {@code userId} unless the same one exists or the user switched this kind off.
      *
      * @param recordRef the record it is about as {@code TYPE:id}
      * @param params    values for the text of the type; strings only
      * @return true when a new notification was stored
      */
     public boolean publish(UUID userId, String type, UUID caseId, String recordRef, Map<String, String> params) {
+        return publish(userId, type, caseId, recordRef, params, null);
+    }
+
+    /**
+     * As {@link #publish(UUID, String, UUID, String, Map)} with a {@code token} that is part of the identity: the same
+     * record raises a new notification when the token changes (a hearing moved to another day, a task given a new due date).
+     */
+    public boolean publish(UUID userId, String type, UUID caseId, String recordRef, Map<String, String> params,
+            String token) {
         if (userId == null) {
             return false;
         }
-        String dedupeKey = type + ":" + recordRef + ":" + userId;
+        String dedupeKey = type + ":" + recordRef + (token == null ? "" : ":" + token) + ":" + userId;
         return jdbc.sql("""
                         insert into notification (user_id, type, case_id, record_ref, params, dedupe_key)
                         select u.id, :type, :case, :ref, cast(:params as jsonb), :dedupe
                         from app_user u where u.id = :user
+                          and not exists (select 1 from notification_preference p
+                                          where p.user_id = u.id and p.type = :type and not p.enabled)
                         on conflict (dedupe_key) do nothing""")
                 .param("user", userId).param("type", type).param("case", caseId).param("ref", recordRef)
                 .param("params", json(params)).param("dedupe", dedupeKey).update() == 1;

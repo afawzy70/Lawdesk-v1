@@ -89,6 +89,8 @@ class ActivityHistoryTest extends PostgresTestSupport {
         List<String> types = JsonPath.read(timeline.getResponse().getContentAsString(), "$.items[*].type");
         assertThat(types).containsExactly("NOTE_ADDED", "EXPERT_REFERRED", "DOCUMENT_ATTACHED", "TASK_CREATED",
                 "HEARING_SCHEDULED", "PROCEEDING_RECORDED", "CASE_CREATED");
+        // LD-056: assigning a task tells the assignee in the system, and that notice refers to the user.
+        jdbc.update("delete from notification where user_id = ?::uuid", assignee);
         jdbc.update("delete from app_user where id = ?::uuid", assignee);
     }
 }
