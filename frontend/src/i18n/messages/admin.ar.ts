@@ -136,4 +136,11 @@ export const adminAr: Record<keyof typeof adminEn, string> = {
   'admin.permission.RISK_VIEW': 'الاطلاع على تقييم المخاطر',
   'admin.permission.RISK_MANAGE': 'تقييم المخاطر وتحديثه',
   'admin.permission.CASE_LINK_MANAGE': 'ربط القضايا',
+  'admin.permission.CLAIM_VIEW': 'عرض طلبات الدعوى',
+  'admin.permission.CLAIM_MANAGE': 'إدارة طلبات الدعوى',
+  'admin.permission.DEFENSE_VIEW': 'عرض الدفوع',
+  'admin.permission.DEFENSE_MANAGE': 'إدارة الدفوع',
+  'admin.permission.EVIDENCE_VIEW': 'عرض الوقائع والأدلة',
+  'admin.permission.EVIDENCE_MANAGE': 'إدارة الوقائع والأدلة',
+  'admin.permission.LOOKUP_MANAGE': 'إدارة القوائم المعيارية',
 };

@@ -46,7 +46,14 @@ public enum Permission {
     INFO_REQUEST_ESCALATE,
     RISK_VIEW,
     RISK_MANAGE,
-    CASE_LINK_MANAGE;
+    CASE_LINK_MANAGE,
+    CLAIM_VIEW,
+    CLAIM_MANAGE,
+    DEFENSE_VIEW,
+    DEFENSE_MANAGE,
+    EVIDENCE_VIEW,
+    EVIDENCE_MANAGE,
+    LOOKUP_MANAGE;
 
     /** {@code @PreAuthorize} expressions, one per permission: {@code @PreAuthorize(Permission.Codes.CASE_CREATE)}. */
     public static final class Codes {
@@ -91,6 +98,13 @@ public enum Permission {
         public static final String RISK_VIEW = "hasAuthority('RISK_VIEW')";
         public static final String RISK_MANAGE = "hasAuthority('RISK_MANAGE')";
         public static final String CASE_LINK_MANAGE = "hasAuthority('CASE_LINK_MANAGE')";
+        public static final String CLAIM_VIEW = "hasAuthority('CLAIM_VIEW')";
+        public static final String CLAIM_MANAGE = "hasAuthority('CLAIM_MANAGE')";
+        public static final String DEFENSE_VIEW = "hasAuthority('DEFENSE_VIEW')";
+        public static final String DEFENSE_MANAGE = "hasAuthority('DEFENSE_MANAGE')";
+        public static final String EVIDENCE_VIEW = "hasAuthority('EVIDENCE_VIEW')";
+        public static final String EVIDENCE_MANAGE = "hasAuthority('EVIDENCE_MANAGE')";
+        public static final String LOOKUP_MANAGE = "hasAuthority('LOOKUP_MANAGE')";
 
         private Codes() {
         }

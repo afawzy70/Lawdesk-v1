@@ -26,6 +26,7 @@ final class CaseTestData {
         jdbc.update("delete from risk_assessment_element");
         jdbc.update("delete from risk_assessment");
         jdbc.update("delete from case_link");
+        com.lawdesk.platform.PleadingsTestData.deleteAll(jdbc);
         jdbc.update("delete from case_org_involvement");
         jdbc.update("delete from case_grant");
         jdbc.update("delete from case_party");
