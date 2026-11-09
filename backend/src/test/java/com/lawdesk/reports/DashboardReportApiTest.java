@@ -112,7 +112,7 @@ class DashboardReportApiTest extends PostgresTestSupport {
         mvc.perform(dashboard()).andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.proceedings.byStage[*].stage",
-                        contains("FIRST_INSTANCE", "APPEAL", "CASSATION")))
+                        contains("FIRST_INSTANCE", "APPEAL", "CASSATION", "CONSTITUTIONAL", "ENFORCEMENT", "GRIEVANCE")))
                 .andExpect(jsonPath("$.judgments.from").value("2031-03-01"))
                 .andExpect(jsonPath("$.judgments.to").value("2031-03-31"))
                 .andExpect(jsonPath("$.month").value("2031-03"))
