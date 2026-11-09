@@ -431,6 +431,8 @@ export function generateDraft(caseId: string, templateId: string): Promise<Draft
 export const SEARCH_TYPES = [
   'CASE',
   'PARTY',
+  'CLAIM',
+  'DEFENSE',
   'HEARING',
   'JUDGMENT',
   'DOCUMENT',

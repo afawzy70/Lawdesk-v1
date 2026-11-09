@@ -248,6 +248,39 @@ class UnifiedSearchApiTest extends Wp9TestSupport {
         assertThat(body(search(masked, "q=" + "خالد الاختبار&types=PARTY"))).doesNotContain("290010100123").doesNotContain("99887766");
     }
 
+    // ---- requests, defences and the operative part (WP2 records) ---------------------------------------------------
+
+    @Test
+    void requestsDefencesAndTheOperativePartAreSearchedThroughVisibleCasesOnly() throws Exception {
+        for (UUID c : List.of(visible, hidden)) {
+            jdbc.update("""
+                    insert into claim (case_id, seq, text, kind, created_by, updated_by)
+                    values (?, 1, 'إلزام المورد بسداد غرامة التأخير المستحقة', 'PRIMARY', gen_random_uuid(), gen_random_uuid())""", c);
+            jdbc.update("""
+                    insert into defense (case_id, seq, title, kind, argument, created_by, updated_by)
+                    values (?, 1, 'الدفع: عدم قبول الدعوى', 'FORMAL', 'لرفعها بغير الطريق القانوني', gen_random_uuid(), gen_random_uuid())""", c);
+        }
+        jdbc.update("update judgment set operative_text = 'ألزمت المحكمة المدعى عليه بالمصروفات' where proceeding_id in"
+                + " (select id from proceeding where case_id = ?)", visible);
+        RequestPostProcessor reader = outsider(owner, Permission.CASE_VIEW, Permission.SEARCH_ALL, Permission.CLAIM_VIEW,
+                Permission.DEFENSE_VIEW, Permission.JUDGMENT_VIEW);
+        MvcResult claims = search(reader, "q=" + "غرامة التأخير");
+        assertThat(this.<List<String>>read(claims, "$.groups[?(@.type == 'CLAIM')].items[*].caseId")).containsExactly(visible.toString());
+        assertThat(this.<List<Integer>>read(claims, "$.groups[?(@.type == 'CLAIM')].total")).containsExactly(1);
+        MvcResult defences = search(reader, "q=" + "عدم قبول الدعوى&types=DEFENSE");
+        assertThat(this.<Integer>read(defences, "$.total")).isEqualTo(1);
+        assertThat(this.<List<String>>read(defences, "$.groups[0].items[0].matchedIn")).contains("TITLE");
+        MvcResult operative = search(reader, "q=" + "بالمصروفات&types=JUDGMENT");
+        assertThat(this.<List<String>>read(operative, "$.groups[0].items[0].matchedIn")).containsExactly("OPERATIVE");
+        // Without the view permission of the type the group is not searched at all.
+        MvcResult none = search(outsider(owner, Permission.CASE_VIEW, Permission.SEARCH_ALL), "q=" + "غرامة التأخير");
+        assertThat(this.<List<String>>read(none, "$.searchedTypes")).doesNotContain("CLAIM", "DEFENSE");
+        // A user who sees no case finds none of them.
+        RequestPostProcessor nobody = outsider(user("Nobody"), Permission.CASE_VIEW, Permission.SEARCH_ALL, Permission.CLAIM_VIEW,
+                Permission.DEFENSE_VIEW);
+        assertThat(this.<Integer>read(search(nobody, "q=" + "غرامة التأخير"), "$.total")).isZero();
+    }
+
     // ---- filters and paging -------------------------------------------------------------------------------------
 
     @Test

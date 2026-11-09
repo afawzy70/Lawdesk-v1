@@ -235,4 +235,10 @@ export const wp9Ar: Record<Keys, string> = {
   'wp9.search.in.DETAILS': 'التفاصيل',
   'wp9.search.in.SOURCE': 'المصدر',
   'wp9.search.in.ADDRESSEE': 'المكلَّف',
+  'wp9.search.type.CLAIM': 'الطلبات',
+  'wp9.search.type.DEFENSE': 'الدفوع',
+  'wp9.search.in.TEXT': 'نص الطلب',
+  'wp9.search.in.ARGUMENT': 'الحجة',
+  'wp9.search.in.BASIS': 'السند القانوني',
+  'wp9.search.in.TEXTS': 'النصوص القانونية للدفع',
 };

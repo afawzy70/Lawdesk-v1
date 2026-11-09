@@ -231,4 +231,10 @@ export const wp9En = {
   'wp9.search.in.DETAILS': 'details',
   'wp9.search.in.SOURCE': 'source',
   'wp9.search.in.ADDRESSEE': 'addressee',
+  'wp9.search.type.CLAIM': 'Requests',
+  'wp9.search.type.DEFENSE': 'Defences',
+  'wp9.search.in.TEXT': 'text of the request',
+  'wp9.search.in.ARGUMENT': 'argument',
+  'wp9.search.in.BASIS': 'legal basis',
+  'wp9.search.in.TEXTS': 'legal texts of the defence',
 } as const;

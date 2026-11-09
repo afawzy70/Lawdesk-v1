@@ -16,7 +16,7 @@ import com.lawdesk.security.Permission;
 final class SearchSpecs {
 
     /** Canonical order of the groups in an answer. */
-    static final List<String> ORDER = List.of("CASE", "PARTY", "HEARING", "JUDGMENT", "DOCUMENT", "NOTE", "TASK", "LIBRARY",
+    static final List<String> ORDER = List.of("CASE", "PARTY", "CLAIM", "DEFENSE", "HEARING", "JUDGMENT", "DOCUMENT", "NOTE", "TASK", "LIBRARY",
             "SETTLEMENT", "DIRECTIVE");
 
     /** One searched part of a record: the code reported in {@code matchedIn}, its SQL text expression and its weight. */
@@ -92,6 +92,21 @@ final class SearchSpecs {
                                 'D')),
                 caseType, caseId));
 
+        // Requests and defences (WP2) belong to a case and follow it.
+        specs.add(new Spec("CLAIM", Permission.CLAIM_VIEW, "claim cl join legal_case c on c.id = cl.case_id", visC, "cl.id", "c.id",
+                "c.reference_no", "c.title", "cl.status", "cl.submitted_on", "null::integer",
+                List.of(p("TEXT", "cl.text", 'A'), p("NOTES", "cl.notes", 'C')), caseType, caseId));
+
+        specs.add(new Spec("DEFENSE", Permission.DEFENSE_VIEW, "defense f join legal_case c on c.id = f.case_id", visC, "f.id",
+                "c.id", "c.reference_no", "f.title", "f.kind", "f.raised_on", "null::integer", List.of(
+                        p("TITLE", "f.title", 'A'),
+                        p("ARGUMENT", "f.argument", 'A'),
+                        p("BASIS", "f.legal_basis", 'B'),
+                        p("FACTS", "f.facts", 'B'),
+                        p("TEXTS", "f.legal_texts", 'B'),
+                        p("NOTES", "f.notes", 'C')),
+                caseType, caseId));
+
         specs.add(new Spec("HEARING", Permission.HEARING_VIEW, "hearing h join legal_case c on c.id = h.case_id", visC, "h.id",
                 "c.id", "c.reference_no", "c.title", "h.purpose", "h.hearing_date", "null::integer", List.of(
                         p("SUMMARY", "h.proceedings_summary", 'A'),
@@ -108,7 +123,8 @@ final class SearchSpecs {
         specs.add(new Spec("JUDGMENT", Permission.JUDGMENT_VIEW,
                 "judgment j join proceeding pr on pr.id = j.proceeding_id join legal_case c on c.id = pr.case_id", visC, "j.id",
                 "c.id", "c.reference_no", "c.title", "j.outcome", "j.judgment_date", "null::integer",
-                List.of(p("SUMMARY", "j.summary", 'A')), caseType, caseId));
+                List.of(p("OPERATIVE", "j.operative_text", 'A'), p("SUMMARY", "j.summary", 'A'), p("REASONS", "j.reasons", 'C')),
+                caseType, caseId));
 
         specs.add(new Spec("DOCUMENT", Permission.DOCUMENT_VIEW, "case_document d join legal_case c on c.id = d.case_id", visC,
                 "d.id", "c.id", "c.reference_no", "d.title", "d.file_name", "(d.created_at " + KUWAIT_DATE, "null::integer",
