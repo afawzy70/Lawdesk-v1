@@ -60,7 +60,7 @@ public class DateReminders {
     public int raise() {
         LocalDate today = CalendarTime.today();
         return upcoming(today) + conflicts(today) + withoutResult(today) + newCases() + newJudgments()
-                + missingDocuments();
+                + missingDocuments() + evidenceGaps();
     }
 
     // ---- dates ahead -------------------------------------------------------------------------------------------
@@ -208,6 +208,37 @@ public class DateReminders {
     }
 
     /** A request whose latest reply is incomplete: the documents asked for have not all arrived. */
+    /**
+     * Evidence the case needs and does not hold (requirements sections 20 and 32): a REQUIRED item with no stored document or
+     * one recorded as UNAVAILABLE, in a case still being worked. It is the same notification kind as an incomplete reply
+     * (DOCUMENT_MISSING), about the evidence item, once per item and person. Evidence that exists but was not yet submitted to
+     * the court is a task for the member, not a missing document, and raises nothing here.
+     */
+    private int evidenceGaps() {
+        record Row(UUID id, UUID caseId, String name, String reference, Member people) {
+        }
+        List<Row> rows = jdbc.sql("""
+                select e.id, e.case_id, e.name, c.reference_no, c.primary_member_id, c.alternate_member_id
+                from evidence_item e join legal_case c on c.id = e.case_id
+                where (e.role = 'UNAVAILABLE' or (e.role = 'REQUIRED' and e.document_id is null))
+                  and c.status in ('OPEN', 'ACTIVE', 'SUSPENDED') order by e.created_at, e.id""")
+                .query((rs, n) -> new Row(rs.getObject("id", UUID.class), rs.getObject("case_id", UUID.class),
+                        rs.getString("name"), rs.getString("reference_no"), new Member(null,
+                                rs.getObject("primary_member_id", UUID.class), rs.getObject("alternate_member_id", UUID.class))))
+                .list();
+        int raised = 0;
+        for (Row row : rows) {
+            for (UUID person : row.people().all()) {
+                if (notifications.publish(person, NotificationTypes.DOCUMENT_MISSING, row.caseId(), "EVIDENCE:" + row.id(),
+                        Map.of("evidenceName", row.name().length() > 120 ? row.name().substring(0, 120) : row.name(),
+                                "caseReferenceNo", row.reference()))) {
+                    raised++;
+                }
+            }
+        }
+        return raised;
+    }
+
     private int missingDocuments() {
         record Row(UUID id, UUID caseId, String requestNo, String reference, long replies, Member people) {
         }

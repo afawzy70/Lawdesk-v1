@@ -56,6 +56,10 @@ final class HearingRequests {
             @NotNull Long version) {
     }
 
+    /** One-click reassignment of a scheduled hearing's responsible member (for example to the case's alternate on a conflict). Without a version the current one is taken: the member decides on what the calendar shows. */
+    record Reassign(@NotNull UUID memberId, Long version) {
+    }
+
     /** Only a scheduled hearing changes; case, proceeding and the hearing it continues stay. */
     record Update(
             @NotNull LocalDate hearingDate,
