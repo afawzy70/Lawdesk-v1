@@ -99,6 +99,7 @@ export const casesAr: Record<keyof typeof casesEn, string> = {
   'cases.role.OTHER': 'آخر',
 
   'cases.parties.title': 'أطراف القضية',
+  'cases.parties.table': 'جدول أطراف القضية',
   'cases.parties.empty': 'لا توجد أطراف بعد.',
   'cases.parties.name': 'الاسم',
   'cases.parties.kind': 'النوع',
