@@ -118,6 +118,8 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
         jdbc.update("delete from party");
     }
 
+    private long versionOffset;
+
     private static final UUID USER = UUID.fromString("00000000-0000-4000-8000-0000000000b1");
 
     private UUID insert(String sql, Object... args) {
@@ -275,7 +277,7 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
     }
 
     /** A minimal JSON value for a type: enough to pass bean validation in the usual cases. */
-    private static String sample(Class<?> type) {
+    private static String sample(Class<?> type, Long version) {
         if (type == String.class) {
             return "\"SYNTH-DOC\"";
         } else if (type == UUID.class) {
@@ -293,17 +295,18 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
         } else if (type.isRecord()) {
             List<String> fields = new ArrayList<>();
             for (RecordComponent c : type.getRecordComponents()) {
-                fields.add("\"" + c.getName() + "\":" + sample(c.getType()));
+                fields.add("\"" + c.getName() + "\":"
+                        + (c.getName().equals("version") && version != null ? String.valueOf(version) : sample(c.getType(), version)));
             }
             return "{" + String.join(",", fields) + "}";
         }
         return "null";
     }
 
-    private static String body(Method method) {
+    private static String body(Method method, Long version) {
         for (Parameter p : method.getParameters()) {
             if (p.isAnnotationPresent(RequestBody.class)) {
-                return sample(p.getType());
+                return sample(p.getType(), version);
             }
         }
         return "{}";
@@ -313,6 +316,17 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
 
     @Test
     void everyCaseBoundHandlerRefusesAUserWhoCannotSeeTheCase() throws Exception {
+        walk(0);
+    }
+
+    /** The same walk with a version that is wrong by a margin: an outsider must still get 404/403, never 409 (existence is not disclosed). */
+    @Test
+    void aWrongVersionNeverTellsAnOutsiderThatTheRecordExists() throws Exception {
+        walk(1000);
+    }
+
+    private void walk(long versionOffset) throws Exception {
+        this.versionOffset = versionOffset;
         List<String> unseeded = new ArrayList<>();
         Map<String, UUID> ids = seed(unseeded);
         UUID caseId = ids.get("legal_case");
@@ -339,7 +353,8 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
                 String url = resolve(pattern, ids, caseId);
                 if (url != null && entry.getKey().getMethodsCondition().getMethods()
                         .contains(org.springframework.web.bind.annotation.RequestMethod.DELETE)) {
-                    url = url + "?version=0";
+                    Long current = currentVersion(pattern, ids);
+                    url = url + "?version=" + (current == null ? 0 : current);
                 }
                 String name = entry.getValue().getBeanType().getSimpleName() + "#" + entry.getValue().getMethod().getName()
                         + " " + pattern;
@@ -363,7 +378,7 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
                         boolean hasBody = http == HttpMethod.POST || http == HttpMethod.PUT || http == HttpMethod.PATCH;
                         boolean multipart = Arrays.stream(entry.getValue().getMethod().getParameters())
                                 .anyMatch(p -> p.isAnnotationPresent(org.springframework.web.bind.annotation.RequestPart.class));
-                        String json = hasBody && !multipart ? body(entry.getValue().getMethod()) : null;
+                        String json = hasBody && !multipart ? body(entry.getValue().getMethod(), currentVersion(pattern, ids)) : null;
                         int denied = multipart ? upload(outsider, url) : status(outsider, http, url, json);
                         int control = multipart ? upload(insider, url) : status(insider, http, url, json);
                         checked++;
@@ -390,6 +405,29 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
         System.out.println("CASE_BOUND_WALK checked=" + checked + " unseeded=" + unseeded + " unresolved=" + unresolved
                 + " bodyNotBuilt=" + bodyNotBuilt);
         assertThat(new LinkedHashSet<>(unresolved)).as("unresolved handlers").hasSizeLessThan(1000);
+    }
+
+    /** The real current version of the record the last path variable names, so a 409 can only come from a real conflict. */
+    private Long currentVersion(String pattern, Map<String, UUID> ids) {
+        Matcher m = VARIABLE.matcher(pattern);
+        String table = null;
+        while (m.find()) {
+            String before = pattern.substring(0, m.start());
+            String segment = before.substring(before.lastIndexOf('/', before.length() - 2) + 1).replace("/", "");
+            String variable = m.group(1);
+            table = variable.equals("caseId") ? "legal_case" : variable.equals("documentId") ? "case_document"
+                    : variable.equals("proceedingId") ? "proceeding" : variable.equals("judgmentId") ? "judgment"
+                    : variable.equals("fileId") ? "enforcement_file" : TABLE_OF_SEGMENT.get(segment);
+        }
+        if (table == null || table.startsWith("#") || ids.get(table) == null) {
+            return null;
+        }
+        try {
+            Long version = jdbc.queryForObject("select version from " + table + " where id = ?", Long.class, ids.get(table));
+            return version == null ? null : version + versionOffset;
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 
     /** A real (tiny) PDF as the multipart "file" part, for the upload handlers. */
