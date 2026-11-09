@@ -152,6 +152,48 @@ public class ProceedingReportQueries {
         return counts;
     }
 
+
+    // ---- WP8 (LD-058): distributions the report families share ----------------------------------------------------
+
+    /**
+     * Cases at one stage or before one court (their current one, see the class comment), counted once each, with the
+     * case's own claimed amount and financial-impact amount summed separately (decision D5). A null key groups the
+     * cases that have no proceeding yet.
+     */
+    public record Distribution(String key, String nameAr, String nameEn, long cases, java.math.BigDecimal claimedAmount,
+            java.math.BigDecimal financialImpactAmount) {
+    }
+
+    /** The cases in {@code caseScope} (a condition over {@code legal_case} that includes visibility) by current stage or court. */
+    public List<Distribution> distribution(CaseAccessPolicy.Predicate caseScope, boolean byCourt) {
+        String key = byCourt ? "cur.court_id" : "cur.stage";
+        String names = byCourt ? "max(cur.name_ar) as name_ar, max(cur.name_en) as name_en"
+                : "null as name_ar, null as name_en";
+        String current = CURRENT.formatted("where p.case_id in (select legal_case.id from legal_case where "
+                + caseScope.sql() + ")", RANK);
+        List<Distribution> rows = new java.util.ArrayList<>(jdbc.sql("select cast(" + key + " as text) as k, " + names
+                + ", count(*) as n, coalesce(sum(legal_case.claimed_amount), 0) as claimed,"
+                + " coalesce(sum(legal_case.financial_amount), 0) as impact from (" + current + ") cur"
+                + " join legal_case on legal_case.id = cur.case_id group by " + key
+                + " order by " + (byCourt ? "max(cur.name_ar)" : "min(case cur.stage "
+                + Arrays.stream(Stage.values()).map(st -> "when '" + st.name() + "' then " + st.ordinal())
+                        .collect(Collectors.joining(" ")) + " end)"))
+                .params(caseScope.params())
+                .query((rs, i) -> new Distribution(rs.getString("k"), rs.getString("name_ar"), rs.getString("name_en"),
+                        rs.getLong("n"), rs.getBigDecimal("claimed").setScale(3), rs.getBigDecimal("impact").setScale(3)))
+                .list());
+        jdbc.sql("select count(*) as n, coalesce(sum(legal_case.claimed_amount), 0) as claimed,"
+                + " coalesce(sum(legal_case.financial_amount), 0) as impact from legal_case where " + caseScope.sql()
+                + " and not exists (select 1 from proceeding x where x.case_id = legal_case.id)")
+                .params(caseScope.params()).query(rs -> {
+                    if (rs.getLong("n") > 0) {
+                        rows.add(new Distribution(null, null, null, rs.getLong("n"),
+                                rs.getBigDecimal("claimed").setScale(3), rs.getBigDecimal("impact").setScale(3)));
+                    }
+                });
+        return rows;
+    }
+
     /** A proceeding as reports name it: its stage, court and number at the court. */
     public record ProceedingRef(UUID id, Stage stage, CourtRef court, String courtCaseNumber, int courtCaseYear) {
     }

@@ -27,6 +27,12 @@ final class ReportTestData {
         this.jdbc = jdbc;
     }
 
+    /** Registers a row inserted by the test itself so {@link #deleteCreated} removes it (newest rows first). */
+    UUID track(String table, UUID id) {
+        created.push(new String[] {table, id.toString()});
+        return id;
+    }
+
     /** A prefix unique to this instance, for references and court codes it creates. */
     String marker() {
         return marker;

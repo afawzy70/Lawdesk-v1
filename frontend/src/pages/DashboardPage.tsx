@@ -5,6 +5,7 @@ import { CASE_STATUSES, CASE_TYPES } from '../features/cases/api';
 import { OUTCOMES } from '../features/proceedings/proceedingsApi';
 import { getDashboard, isDashboard, type DashboardReport } from '../features/reports/dashboardApi';
 import { formatDay } from '../features/reports/format';
+import { IndicatorGrid } from '../features/reports/IndicatorGrid';
 import '../features/reports/reports.css';
 import { formatNumber } from '../i18n/format';
 import { useI18n } from '../i18n/I18nContext';
@@ -104,7 +105,7 @@ export function DashboardPage() {
       </div>
     );
   } else {
-    const { cases, proceedings, judgments, operations } = load.report;
+    const { cases, proceedings, judgments, operations, indicators } = load.report;
     body = (
       <>
         <ul className="mc-signal-strip" aria-label={t('reports.dashboard.snapshot')}>
@@ -114,6 +115,7 @@ export function DashboardPage() {
           <li><span>{t('reports.operations.expertReportsOverdue')}</span><strong>{n(operations.expertReportsOverdue)}</strong></li>
         </ul>
         <DashboardWorkspace canCases={canCases} canHearings={canHearings} />
+        {indicators === undefined ? null : <IndicatorGrid figures={indicators} />}
         <div className="rpt-dashboard">
         <Panel title={t('reports.dashboard.cases')}>
           <ul className="kpi-grid">

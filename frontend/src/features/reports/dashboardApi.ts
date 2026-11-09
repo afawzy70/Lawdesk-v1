@@ -1,6 +1,7 @@
 import { api } from '../../api/http';
 import type { CaseStatus, CaseType } from '../cases/api';
 import type { Outcome, Stage } from '../proceedings/proceedingsApi';
+import type { IndicatorFigure } from './indicatorsApi';
 
 /** `GET /api/v1/reports/dashboard` (docs/delivery/PHASE-6-ACCEPTANCE.md, LD-030); every call goes through `api()`. */
 
@@ -45,6 +46,8 @@ export interface DashboardReport {
   };
   /** Figures still waiting for a report port; empty since Phase 5 is integrated. */
   pending: PendingFigure[];
+  /** The 14 indicators of requirements section 26 (LD-058), each linking to the list that carries its figure. */
+  indicators?: IndicatorFigure[];
 }
 
 export function getDashboard(signal?: AbortSignal): Promise<DashboardReport> {
