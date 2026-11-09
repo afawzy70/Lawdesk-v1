@@ -11,6 +11,7 @@ import { reportsEn } from './reports.en';
 import { libraryEn } from './library.en';
 import { wp3En } from './wp3.en';
 import { pleadingsEn } from './pleadings.en';
+import { wp9En } from './wp9.en';
 
 /**
  * English message catalog. This object defines the set of message keys: every other catalog is typed as
@@ -29,8 +30,8 @@ export const en = {
   'shell.primaryNav': 'Primary',
   'shell.menu': 'Menu',
   'shell.switchLanguage': 'العربية',
-  'shell.caseSearch': 'Search cases by reference or title',
-  'shell.caseSearchPlaceholder': 'Case reference or title',
+  'shell.caseSearch': 'Search cases, parties, hearings, judgments, documents and more',
+  'shell.caseSearchPlaceholder': 'Words, case or party name',
   'shell.search': 'Search',
 
   'nav.dashboard': 'Dashboard',
@@ -42,6 +43,8 @@ export const en = {
   'nav.documents': 'Documents',
   'nav.tasks': 'Tasks',
   'nav.reports': 'Reports',
+  'nav.directives': 'Decisions and assignments',
+  'nav.templates': 'Legal templates',
   'nav.admin': 'Administration',
 
   'apiStatus.checking': 'Checking API…',
@@ -70,6 +73,7 @@ export const en = {
   ...libraryEn,
   ...wp3En,
   ...pleadingsEn,
+  ...wp9En,
 };
 
 export type MessageKey = keyof typeof en;

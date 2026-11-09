@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
  * V640) so that what is stored, indexed and searched for cannot disagree; this class only splits already normalised text
  * into words and builds query strings from them.
  */
-final class LibraryText {
+public final class LibraryText {
 
     /** A word of a normalised text: Latin letters, digits and the Arabic letters (hamza dropped by the normaliser). */
     private static final Pattern WORD = Pattern.compile("[a-z0-9ء-ي]+");
@@ -48,7 +48,7 @@ final class LibraryText {
     }
 
     /** The distinct words of a normalised text, in order of appearance. */
-    static List<String> words(String normalised) {
+    public static List<String> words(String normalised) {
         Set<String> found = new LinkedHashSet<>();
         if (normalised != null) {
             var matcher = WORD.matcher(normalised);
@@ -65,7 +65,7 @@ final class LibraryText {
     }
 
     /** A {@code to_tsquery('simple', ...)} string in which every word must match, each as a prefix; null when empty. */
-    static String allOfPrefixes(String normalised) {
+    public static String allOfPrefixes(String normalised) {
         List<String> words = words(normalised);
         return words.isEmpty() ? null : String.join(" & ", words.stream().map(w -> w + ":*").toList());
     }

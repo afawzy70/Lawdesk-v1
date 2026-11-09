@@ -141,4 +141,9 @@ export const adminEn = {
   'admin.permission.EVIDENCE_VIEW': 'View facts and evidence',
   'admin.permission.EVIDENCE_MANAGE': 'Manage facts and evidence',
   'admin.permission.LOOKUP_MANAGE': 'Manage managed lists',
+  'admin.permission.SETTLEMENT_MANAGE': 'Record and edit settlements',
+  'admin.permission.SETTLEMENT_APPROVE': 'Approve or reject settlements',
+  'admin.permission.DIRECTIVE_MANAGE': 'Issue and manage directives',
+  'admin.permission.TEMPLATE_MANAGE': 'Manage legal templates',
+  'admin.permission.SEARCH_ALL': 'Search across every record type',
 } as const;

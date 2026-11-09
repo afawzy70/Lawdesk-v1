@@ -12,6 +12,7 @@ import { reportsAr } from './reports.ar';
 import { libraryAr } from './library.ar';
 import { wp3Ar } from './wp3.ar';
 import { pleadingsAr } from './pleadings.ar';
+import { wp9Ar } from './wp9.ar';
 
 /** Arabic (Modern Standard Arabic) message catalog. Keys must match `en.ts` exactly. */
 export const ar: Messages = {
@@ -27,8 +28,8 @@ export const ar: Messages = {
   'shell.primaryNav': 'التنقل الرئيسي',
   'shell.menu': 'القائمة',
   'shell.switchLanguage': 'English',
-  'shell.caseSearch': 'البحث في القضايا بالرقم أو العنوان',
-  'shell.caseSearchPlaceholder': 'رقم القضية أو عنوانها',
+  'shell.caseSearch': 'البحث في القضايا والأطراف والجلسات والأحكام والمستندات وغيرها',
+  'shell.caseSearchPlaceholder': 'كلمات أو رقم قضية أو اسم طرف',
   'shell.search': 'بحث',
 
   'nav.dashboard': 'لوحة المعلومات',
@@ -40,6 +41,8 @@ export const ar: Messages = {
   'nav.documents': 'المستندات',
   'nav.tasks': 'المهام',
   'nav.reports': 'التقارير',
+  'nav.directives': 'القرارات والتكليفات',
+  'nav.templates': 'النماذج القانونية',
   'nav.admin': 'الإدارة',
 
   'apiStatus.checking': 'جارٍ التحقق من الواجهة البرمجية…',
@@ -67,4 +70,5 @@ export const ar: Messages = {
   ...libraryAr,
   ...wp3Ar,
   ...pleadingsAr,
+  ...wp9Ar,
 };

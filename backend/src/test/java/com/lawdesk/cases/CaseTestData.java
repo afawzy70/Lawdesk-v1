@@ -14,6 +14,15 @@ final class CaseTestData {
     }
 
     static void deleteAll(JdbcTemplate jdbc) {
+        // LD-057 (WP9), children before parents: settlements, directives, templates and the lists members added to.
+        jdbc.update("delete from settlement_document");
+        jdbc.update("delete from settlement_history");
+        jdbc.update("delete from settlement");
+        jdbc.update("delete from directive");
+        jdbc.update("delete from form_template_version");
+        jdbc.update("delete from form_template");
+        jdbc.update("delete from managed_list_value where origin = 'PROPOSED'");
+        jdbc.update("update managed_list_value set active = true, label_en = null where origin = 'DOCUMENT'");
         jdbc.update("delete from case_precedent_link");
         jdbc.update("delete from case_duplicate_hint");
         jdbc.update("delete from case_party_counsel");
