@@ -140,10 +140,11 @@ class ReferralService {
     /** The referral, row-locked; its version (when given) must match, its case be writable and it still open. */
     private ReferralStore.Row lockedOpen(UUID id, Long version) {
         ReferralStore.Row row = referrals.lock(id).orElseThrow(() -> new NotFoundException("expert referral"));
+        // Access first (see HearingService.lockedCurrent): the version of a record the user cannot see is not theirs to learn.
+        writableCase(row.caseId());
         if (version != null && row.version() != version) {
             throw new ConflictException("expert referral was changed by someone else");
         }
-        writableCase(row.caseId());
         if (row.status() != ReferralStatus.OPEN) {
             throw new BusinessRuleException(Rules.REFERRAL_CLOSED, "the referral is no longer open");
         }
