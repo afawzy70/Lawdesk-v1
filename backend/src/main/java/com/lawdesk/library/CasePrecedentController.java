@@ -60,13 +60,14 @@ class CasePrecedentController {
 
     @GetMapping("/similar-judgments")
     @PreAuthorize(Permission.Codes.LIBRARY_VIEW)
-    Suggestions similar(@PathVariable UUID caseId, @RequestParam(defaultValue = "10") int limit) {
+    Suggestions similar(@PathVariable UUID caseId, @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(required = false) UUID defenseId) {
         if (limit < 1) {
             throw new com.lawdesk.api.FieldErrorException("limit", "Min");
         }
         if (limit > 25) {
             throw new com.lawdesk.api.FieldErrorException("limit", "Max");
         }
-        return similar.forCase(caseId, limit);
+        return similar.forCase(caseId, limit, defenseId);
     }
 }

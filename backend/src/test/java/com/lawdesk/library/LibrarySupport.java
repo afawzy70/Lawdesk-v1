@@ -52,6 +52,7 @@ abstract class LibrarySupport extends PostgresTestSupport {
     @AfterEach
     void cleanLibrary() {
         OperationsTestData.deleteAll(jdbc);
+        jdbc.update("delete from library_judgment_file");
         jdbc.update("delete from library_judgment_class");
         jdbc.update("delete from library_judgment_relation");
         jdbc.update("delete from library_principle");

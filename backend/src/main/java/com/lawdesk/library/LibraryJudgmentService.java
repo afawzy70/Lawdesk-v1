@@ -101,11 +101,17 @@ class LibraryJudgmentService {
                 (String) r.get("requests_addressed"), (String) r.get("request_results"), (String) r.get("direction"),
                 LibraryText.keywordsFromColumn((String) r.get("keywords")), (String) r.get("finality"),
                 (String) r.get("confidentiality"), (String) r.get("source_reference"),
-                (String) r.get("verification_note"), (String) r.get("copy_reference"), (String) r.get("status"),
+                (String) r.get("verification_note"), (String) r.get("copy_reference"), hasStoredCopy(id),
+                (String) r.get("status"),
                 (String) r.get("withdrawn_reason"), (Instant) r.get("withdrawn_at"), classificationsOf(id),
                 principles.of(id), rel, relations.validity(id, (String) r.get("finality"), (String) r.get("status"), rel),
                 linkedCases(id), (Long) r.get("version"), (Instant) r.get("created_at"), (UUID) r.get("created_by"),
                 (Instant) r.get("updated_at"), (UUID) r.get("updated_by"));
+    }
+
+    private boolean hasStoredCopy(UUID id) {
+        return jdbc.sql("select exists (select 1 from library_judgment_file where judgment_id = :id and removed_at is null)")
+                .param("id", id).query(Boolean.class).single();
     }
 
     private static Map<String, Object> raw(ResultSet rs) throws SQLException {

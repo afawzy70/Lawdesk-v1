@@ -69,6 +69,9 @@ class Judgment {
 
     private UUID copyDocumentId;
 
+    /** The deadline of the register that is this judgment's appeal deadline (V843); set apart from the other details. */
+    private UUID appealDeadlineId;
+
     @Version
     private long version;
 
@@ -162,6 +165,14 @@ class Judgment {
 
     UUID getCopyDocumentId() {
         return copyDocumentId;
+    }
+
+    UUID getAppealDeadlineId() {
+        return appealDeadlineId;
+    }
+
+    void appealDeadline(UUID deadlineId) {
+        this.appealDeadlineId = deadlineId;
     }
 
     void touch(ActorRef actor, Instant now) {

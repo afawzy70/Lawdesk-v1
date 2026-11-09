@@ -56,7 +56,7 @@ final class LibraryViews {
             boolean partiesMasked, String summary, String operativeText, String reasons, String legalTexts,
             String requestsAddressed, String requestResults, String direction, List<String> keywords, String finality,
             String confidentiality, String sourceReference, String verificationNote, String copyReference,
-            String status, String withdrawnReason, Instant withdrawnAt, List<Classification> classifications,
+            boolean storedCopy, String status, String withdrawnReason, Instant withdrawnAt, List<Classification> classifications,
             List<Principle> principles, Relations relations, Validity validity, List<LinkedCase> linkedCases,
             long version, Instant createdAt, UUID createdBy, Instant updatedAt, UUID updatedBy) {
     }
@@ -75,7 +75,8 @@ final class LibraryViews {
             List<String> relationTypes, List<String> warnings, boolean alreadyLinked) {
     }
 
-    record Basis(List<String> terms, String caseType, List<String> courtLevels, boolean defensesIncluded) {
+    record Basis(List<String> terms, String caseType, List<String> courtLevels, boolean defensesIncluded,
+            boolean claimsIncluded, UUID defenseId) {
     }
 
     record Suggestions(UUID caseId, Basis basis, List<Suggestion> items, String note) {

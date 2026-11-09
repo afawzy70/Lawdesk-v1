@@ -35,7 +35,8 @@ class CasePrecedentService {
     static final String JUDGMENT_WITHDRAWN = "LIBRARY_JUDGMENT_WITHDRAWN";
 
     static final String REF_COLUMNS = "j.id as j_id, j.court_name, j.court_level, j.case_number, j.case_year,"
-            + " j.judgment_date, j.case_type, j.subject, j.finality, j.status, j.source_reference, j.copy_reference";
+            + " j.judgment_date, j.case_type, j.subject, j.finality, j.status, j.source_reference, (j.copy_reference is not null or exists (select 1 from"
+            + " library_judgment_file f where f.judgment_id = j.id and f.removed_at is null)) as has_copy";
 
     private final JdbcClient jdbc;
     private final CurrentActor currentActor;
@@ -57,7 +58,7 @@ class CasePrecedentService {
                 rs.getString("case_number"), rs.getObject("case_year") == null ? null : rs.getInt("case_year"),
                 rs.getObject("judgment_date", LocalDate.class), rs.getString("case_type"), rs.getString("subject"),
                 rs.getString("finality"), rs.getString("status"), rs.getString("source_reference"),
-                rs.getString("copy_reference") != null);
+                rs.getBoolean("has_copy"));
     }
 
     private Precedent row(ResultSet rs) throws SQLException {

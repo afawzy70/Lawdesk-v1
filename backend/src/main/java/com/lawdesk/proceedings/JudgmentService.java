@@ -88,6 +88,21 @@ class JudgmentService {
         return details.response(store(judgment), proceeding.getCaseId());
     }
 
+    /** Names the deadline of the register that is the judgment's appeal deadline, or clears it (requirements section 9). */
+    @Transactional
+    JudgmentRequests.Response setAppealDeadline(UUID id, JudgmentRequests.AppealDeadlineBody body) {
+        ActorRef actor = currentActor.require();
+        Judgment judgment = judgment(id);
+        Proceeding proceeding = records.lockedProceeding(judgment.getProceedingId());
+        details.checkAppealDeadline(body.deadlineId(), judgment);
+        judgment.appealDeadline(body.deadlineId());
+        judgment.touch(actor, JudicialRecords.now());
+        records.recordEvent(proceeding.getCaseId(), "JUDGMENT_APPEAL_DEADLINE_SET", body.deadlineId() == null
+                ? "The appeal deadline of the judgment of %s was cleared".formatted(judgment.getJudgmentDate())
+                : "A deadline was named as the appeal deadline of the judgment of %s".formatted(judgment.getJudgmentDate()));
+        return details.response(store(judgment), proceeding.getCaseId());
+    }
+
     /** The extended fields (LD-051) are replaced only when the request carries them. */
     private void describe(Judgment judgment, Proceeding proceeding, JudgmentRequests.Create request) {
         if (request.details() != null) {

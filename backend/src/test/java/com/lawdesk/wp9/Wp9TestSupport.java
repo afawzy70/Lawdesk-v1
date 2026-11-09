@@ -21,6 +21,7 @@ public abstract class Wp9TestSupport extends Wp3TestSupport {
     void removeWp9Data() {
         jdbc.update("delete from library_principle");
         jdbc.update("delete from library_judgment_relation");
+        jdbc.update("delete from library_judgment_file");
         jdbc.update("delete from library_judgment_class");
         jdbc.update("delete from library_judgment");
     }
