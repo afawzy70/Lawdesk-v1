@@ -323,7 +323,14 @@ describe('responsive navigation', () => {
   });
 });
 
-describe('coming-soon placeholders', () => {
+// Every area is a working screen now; the placeholder checks run again if an area is ever marked planned.
+describe('planned areas', () => {
+  it('has none left: each navigation area opens a working screen', () => {
+    expect(PLACEHOLDERS).toHaveLength(0);
+  });
+});
+
+describe.skipIf(PLACEHOLDERS.length === 0)('coming-soon placeholders', () => {
   it.each(PLACEHOLDERS)('$path says "$en" is not available yet (English)', async ({ path, en }) => {
     await renderAt(path);
     const main = screen.getByRole('main');
