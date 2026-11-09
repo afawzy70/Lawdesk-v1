@@ -31,6 +31,9 @@ public final class OperationsTestData {
         jdbc.update("delete from deadline_rule");
         // LD-053 (WP3), children before parents: notifications, information requests, risk assessments and case links.
         jdbc.update("delete from notification");
+        // LD-056 (WP6): calendar dates and notification preferences, task history (it goes with its task).
+        jdbc.update("delete from calendar_date");
+        jdbc.update("delete from notification_preference");
         jdbc.update("delete from info_follow_up");
         jdbc.update("delete from info_reply");
         jdbc.update("delete from info_request");

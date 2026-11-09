@@ -161,7 +161,7 @@ class ExportLimitApiTest extends PostgresTestSupport {
     @Test
     void theWorkloadExportRefusesMoreThanTheLimitBeforeAnyUserLookup() throws Exception {
         int assignees = jdbc.queryForObject(
-                "select count(distinct assignee_id) from task where status in ('OPEN', 'IN_PROGRESS')", Integer.class);
+                "select count(distinct assignee_id) from task where status not in ('COMPLETED', 'CANCELLED')", Integer.class);
         data.insertBulkAssignees(LIMIT - assignees);
 
         assertThat(csvDataRows(export("workload", "csv"))).isEqualTo(LIMIT);

@@ -56,7 +56,7 @@ class TaskApiTest extends TaskTestSupport {
                 .andExpect(jsonPath("$.assigneeName").value("Mona Saleh"))
                 .andExpect(jsonPath("$.dueDate").value(due))
                 .andExpect(jsonPath("$.priority").value("URGENT"))
-                .andExpect(jsonPath("$.status").value("OPEN"))
+                .andExpect(jsonPath("$.status").value("NEW"))
                 .andExpect(jsonPath("$.completedAt").value(Matchers.nullValue()))
                 .andExpect(jsonPath("$.overdue").value(false))
                 .andExpect(jsonPath("$.dueSoon").value(false))
@@ -121,7 +121,7 @@ class TaskApiTest extends TaskTestSupport {
                 .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
         verify(caseLookup, never()).recordTaskEvent(eq(caseId), anyString(), anyString());
         mvc.perform(moveTask(id, "DONE", 1)).andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("DONE"))
+                .andExpect(jsonPath("$.status").value("COMPLETED"))
                 .andExpect(jsonPath("$.completedAt").isString());
         verify(caseLookup).recordTaskEvent(eq(caseId), eq("TASK_COMPLETED"), contains("Collect the documents"));
         mvc.perform(moveTask(id, "IN_PROGRESS", 2)).andExpect(status().isUnprocessableContent())
@@ -142,9 +142,9 @@ class TaskApiTest extends TaskTestSupport {
     void aTaskCanBeCompletedDirectlyFromOpen() throws Exception {
         UUID id = create("Short task", null, user("Finisher", true), null);
         mvc.perform(moveTask(id, "DONE", 0)).andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("DONE"))
+                .andExpect(jsonPath("$.status").value("COMPLETED"))
                 .andExpect(jsonPath("$.completedAt").isString());
-        assertThat(statusOf(id)).isEqualTo("DONE");
+        assertThat(statusOf(id)).isEqualTo("COMPLETED");
     }
 
     @Test
@@ -305,7 +305,7 @@ class TaskApiTest extends TaskTestSupport {
             mvc.perform(get(path).with(as(Permission.CASE_VIEW, Permission.HEARING_VIEW)))
                     .andExpect(status().isForbidden());
         }
-        assertThat(statusOf(id)).isEqualTo("OPEN");
+        assertThat(statusOf(id)).isEqualTo("NEW");
         assertThat(tasks()).isEqualTo(1);
     }
 
@@ -333,7 +333,7 @@ class TaskApiTest extends TaskTestSupport {
         mvc.perform(postTask(task("Lost", caseId, assignee, null, null))).andExpect(status().isInternalServerError());
         mvc.perform(moveTask(id, "DONE", 0)).andExpect(status().isInternalServerError());
         assertThat(tasks()).isEqualTo(1);
-        assertThat(statusOf(id)).isEqualTo("OPEN");
+        assertThat(statusOf(id)).isEqualTo("NEW");
     }
 
     @Test

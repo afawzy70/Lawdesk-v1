@@ -36,6 +36,7 @@ describe('visibleNav', () => {
       '/documents': 'DOCUMENT_VIEW',
       '/tasks': 'TASK_VIEW',
       '/deadlines': 'DEADLINE_VIEW',
+      '/calendar': 'CALENDAR_VIEW',
       '/reports': 'REPORT_VIEW',
     });
   });

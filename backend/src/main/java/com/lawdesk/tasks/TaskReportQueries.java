@@ -72,7 +72,7 @@ public class TaskReportQueries {
     public record AssigneeWorkload(UUID assigneeId, long open, long inProgress, long overdue) {
     }
 
-    private static final String OPEN = "status in ('OPEN', 'IN_PROGRESS')";
+    private static final String OPEN = "status not in ('COMPLETED', 'CANCELLED')";
 
     private final NamedParameterJdbcTemplate jdbc;
     private final CaseAccessPolicy access;
@@ -141,8 +141,8 @@ public class TaskReportQueries {
     public List<AssigneeWorkload> workload() {
         CaseAccessPolicy.Predicate visible = visible();
         return jdbc.query("""
-                select assignee_id, count(*) filter (where status = 'OPEN') as open,
-                       count(*) filter (where status = 'IN_PROGRESS') as in_progress,
+                select assignee_id, count(*) filter (where status = 'NEW') as open,
+                       count(*) filter (where status <> 'NEW') as in_progress,
                        count(*) filter (where due_date < :today) as overdue
                 from task where""" + " " + OPEN + " and " + visible.sql() + " group by assignee_id order by assignee_id",
                 new MapSqlParameterSource(visible.params()).addValue("today", today()),

@@ -511,6 +511,9 @@ export interface AppNotification {
   caseId: string | null;
   caseReferenceNo: string | null;
   recordRef: string | null;
+  /** The two halves of `recordRef` (HEARING and the hearing's id; CALENDAR and a day), so the record can be opened. */
+  recordType: string | null;
+  recordId: string | null;
   params: Record<string, string>;
   createdAt: string;
   readAt: string | null;
@@ -525,13 +528,23 @@ export async function getUnreadCount(signal?: AbortSignal): Promise<number | nul
   return typeof result?.unread === 'number' ? result.unread : null;
 }
 
-export function listNotifications(page: number, signal?: AbortSignal): Promise<{
+export interface NotificationFilter {
+  type?: string | undefined;
+  /** `unread`, `read` or nothing for both. */
+  read?: 'unread' | 'read' | undefined;
+  caseId?: string | undefined;
+}
+
+export function listNotifications(page: number, signal?: AbortSignal, filter: NotificationFilter = {}): Promise<{
   items: AppNotification[];
   page: number;
   totalPages: number;
   totalItems: number;
 }> {
   const query = new URLSearchParams({ page: String(page), size: '20' });
+  if (filter.type !== undefined) query.append('type', filter.type);
+  if (filter.read !== undefined) query.set('read', String(filter.read === 'read'));
+  if (filter.caseId !== undefined) query.set('caseId', filter.caseId);
   return api(`/api/v1/notifications?${query.toString()}`, signal === undefined ? {} : { signal });
 }
 
@@ -539,6 +552,30 @@ export function markRead(id: string): Promise<void> {
   return api(`/api/v1/notifications/${encodeURIComponent(id)}/read`, { method: 'POST', body: {} });
 }
 
+export function markUnread(id: string): Promise<void> {
+  return api(`/api/v1/notifications/${encodeURIComponent(id)}/unread`, { method: 'POST', body: {} });
+}
+
 export function markAllRead(): Promise<void> {
   return api('/api/v1/notifications/read-all', { method: 'POST', body: {} });
+}
+
+/** One kind of in-app notification and whether the signed-in user receives it (requirements section 32). */
+export interface NotificationPreference {
+  type: string;
+  /** One of the eleven kinds of the requirements; the others are system notices. */
+  core: boolean;
+  position: number;
+  enabled: boolean;
+}
+
+export function getPreferences(signal?: AbortSignal): Promise<NotificationPreference[]> {
+  return api<NotificationPreference[]>('/api/v1/notifications/preferences', signal === undefined ? {} : { signal });
+}
+
+export function setPreference(type: string, enabled: boolean): Promise<NotificationPreference> {
+  return api<NotificationPreference>(`/api/v1/notifications/preferences/${encodeURIComponent(type)}`, {
+    method: 'PUT',
+    body: { enabled },
+  });
 }

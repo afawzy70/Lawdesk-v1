@@ -23,7 +23,7 @@ import com.lawdesk.security.Permission;
 /**
  * OWNER DECISION 2026-10-25 (QAD-031): a task may be completed directly from OPEN, and every status change of a task is
  * recorded in the security audit log as {@code TASK_STATUS_CHANGED} (outcome SUCCESS, the acting user, the task id as
- * target and a detail such as {@code OPEN->DONE}); refused or failed changes record nothing, and no free text (title,
+ * target and a detail such as {@code NEW->COMPLETED}); refused or failed changes record nothing, and no free text (title,
  * description, names) ever enters the audit event.
  */
 class TaskStatusAuditTest extends TaskTestSupport {
@@ -57,8 +57,8 @@ class TaskStatusAuditTest extends TaskTestSupport {
         mvc.perform(moveTask(id, "CANCELLED", 3)).andExpect(status().isOk());
 
         List<Map<String, Object>> events = auditOf(id);
-        assertThat(events).extracting(e -> e.get("reason")).containsExactly("OPEN->DONE", "DONE->OPEN",
-                "OPEN->IN_PROGRESS", "IN_PROGRESS->CANCELLED");
+        assertThat(events).extracting(e -> e.get("reason")).containsExactly("NEW->COMPLETED", "COMPLETED->NEW",
+                "NEW->IN_PROGRESS", "IN_PROGRESS->CANCELLED");
         assertThat(events).allSatisfy(event -> {
             assertThat(event.get("outcome")).isEqualTo("SUCCESS");
             assertThat(event.get("actor_id")).isEqualTo(CLERK);
@@ -72,7 +72,7 @@ class TaskStatusAuditTest extends TaskTestSupport {
     void anOfficeTaskWithoutACaseIsAuditedToo() throws Exception {
         UUID id = create("Renew the subscription", null, user("Karim", true), null);
         mvc.perform(moveTask(id, "DONE", 0)).andExpect(status().isOk());
-        assertThat(auditOf(id)).extracting(e -> e.get("reason")).containsExactly("OPEN->DONE");
+        assertThat(auditOf(id)).extracting(e -> e.get("reason")).containsExactly("NEW->COMPLETED");
     }
 
     @Test
@@ -93,7 +93,7 @@ class TaskStatusAuditTest extends TaskTestSupport {
         // An edit is not a status change.
         mvc.perform(putTask(id, edit(SECRET, user("Other", true), null, "LOW", 1))).andExpect(status().isOk());
 
-        assertThat(auditOf(id)).extracting(e -> e.get("reason")).containsExactly("OPEN->DONE");
+        assertThat(auditOf(id)).extracting(e -> e.get("reason")).containsExactly("NEW->COMPLETED");
     }
 
     @Test
@@ -103,7 +103,7 @@ class TaskStatusAuditTest extends TaskTestSupport {
         doThrow(new IllegalStateException("timeline unavailable")).when(caseLookup)
                 .recordTaskEvent(eq(caseId), anyString(), anyString());
         mvc.perform(moveTask(id, "DONE", 0)).andExpect(status().isInternalServerError());
-        assertThat(statusOf(id)).isEqualTo("OPEN");
+        assertThat(statusOf(id)).isEqualTo("NEW");
         assertThat(auditOf(id)).isEmpty();
     }
 

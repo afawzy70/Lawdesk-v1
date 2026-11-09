@@ -3,11 +3,13 @@ import type { MessageKey } from '../../../i18n/catalog';
 import { useI18n } from '../../../i18n/I18nContext';
 import { loadError, saveError } from '../formErrors';
 import { TaskForm } from './TaskForm';
+import { TaskDetails } from './TaskDetails';
 import { TaskActions, TaskDue } from './TaskParts';
 import { changeTaskStatus, listCaseTasks, type Task, type TaskStatus } from './tasksApi';
 
 type Result = { key: number; tasks: Task[] } | { key: number; error: MessageKey };
 type Editing = null | 'new' | Task;
+
 
 interface Props {
   caseId: string;
@@ -22,6 +24,7 @@ export function CaseTasks({ caseId }: Props) {
   const [editing, setEditing] = useState<Editing>(null);
   const [notice, setNotice] = useState<'saved' | MessageKey | null>(null);
   const [busy, setBusy] = useState(false);
+  const [details, setDetails] = useState<Task | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -98,6 +101,19 @@ export function CaseTasks({ caseId }: Props) {
             }}
           />
         )}
+        {details === null ? null : (
+          <TaskDetails
+            key={details.id}
+            task={details}
+            onChanged={(changed) => {
+              setDetails(changed);
+              setReload((n) => n + 1);
+            }}
+            onClose={() => {
+              setDetails(null);
+            }}
+          />
+        )}
         {current.tasks.length === 0 ? (
           <p>{t('operations.task.none')}</p>
         ) : (
@@ -127,6 +143,7 @@ export function CaseTasks({ caseId }: Props) {
                   onMove={(target, next) => {
                     void move(target, next);
                   }}
+                  onDetails={setDetails}
                 />
               </li>
             ))}
