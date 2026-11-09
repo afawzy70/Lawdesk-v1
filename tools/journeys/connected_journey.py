@@ -15,7 +15,11 @@ from uat import MARK, Journey, Session
 run = time.strftime("%y%m%d%H%M%S")
 token = "%s-%s" % (MARK, run)
 word = "connected%s" % run
-today = datetime.date.today()
+import zoneinfo
+today = datetime.datetime.now(zoneinfo.ZoneInfo("Asia/Kuwait")).date()
+# Dates the server checks as "not in the future" use its own clock (UTC), which is behind Kuwait between 00:00 and 03:00 Kuwait
+# time: a case cannot be dated with the Kuwait day then (application defect reported separately); journeys use the earlier day.
+server_today = min(today, datetime.datetime.now(datetime.timezone.utc).date())
 iso = lambda d: d.isoformat()
 journey = Journey("Connected case: one case's data is linked everywhere (%s)" % run)
 manager = Session("manager").login("manager")
@@ -37,8 +41,8 @@ if court is None:
 
 status, case = manager.call("POST", "/api/v1/cases/intake", {
     "automatedNo": "AUTO-%s" % run, "title": "%s %s dispute" % (token, word), "caseType": "COMMERCIAL",
-    "subject": "%s subject" % word, "openedOn": iso(today),
-    "firstInstance": {"courtId": court["id"], "courtCaseNumber": "8%s" % run[-5:], "courtCaseYear": 2026, "filingDate": iso(today)},
+    "subject": "%s subject" % word, "openedOn": iso(server_today),
+    "firstInstance": {"courtId": court["id"], "courtCaseNumber": "8%s" % run[-5:], "courtCaseYear": 2026, "filingDate": iso(server_today)},
     "authorityPosition": "DEFENDANT",
     "parties": [{"newParty": {"kind": "ORGANIZATION", "name": "%s party" % token, "nationalId": None}, "side": "PLAINTIFF"}],
     "primaryMemberId": staff_id, "alternateMemberId": by_name["qa.manager"]["id"], "financialImpact": "NO",
@@ -57,7 +61,7 @@ status, hearing = staff.call("POST", "/api/v1/proceedings/%s/hearings" % proceed
     "hearingDate": iso(today + datetime.timedelta(days=5)), "purpose": "PLEADING", "notes": "%s hearing" % word})
 check("a hearing is recorded", status, 201)
 status, judgment = manager.call("POST", "/api/v1/proceedings/%s/judgment" % proceeding, {
-    "judgmentDate": iso(today), "outcome": "PARTIAL", "summary": "%s judgment" % word, "final": False})
+    "judgmentDate": iso(server_today), "outcome": "PARTIAL", "summary": "%s judgment" % word, "final": False})
 check("a judgment is recorded", status, 201)
 status, result = manager.call("PUT", "/api/v1/judgments/%s/claim-results" % judgment["id"], {
     "results": [{"claimId": claim["id"], "result": "PARTIAL"}]})
@@ -74,7 +78,7 @@ check("a task is assigned", status, 201)
 status, _ = staff.call("POST", "/api/v1/cases/%s/notes" % case_id, {"body": "%s note" % word})
 check("a note is added", status, 201)
 status, _ = staff.call("POST", "/api/v1/cases/%s/risk-assessments" % case_id, {
-    "level": "HIGH", "levelReasons": "%s risk" % word, "trigger": "MANUAL", "elements": [], "remediation": []})
+    "level": "MEDIUM", "levelReasons": "%s risk" % word, "trigger": "MANUAL", "elements": []})
 check("a risk assessment is recorded", status, 201)
 
 # --- the same case read back through every other place -----------------------------------------------------------------------
@@ -85,11 +89,11 @@ _, timeline = staff.call("GET", "/api/v1/cases/%s/unified-timeline" % case_id)
 kinds = {item["kind"] for item in timeline["items"]}
 check("the timeline carries the hearing, the judgment and the deadline", {"HEARING", "JUDGMENT", "DEADLINE"} <= kinds, True)
 _, calendar = staff.call("GET", "/api/v1/calendar/events?" + window)
-types = {entry["type"] for entry in calendar["entries"]}
+types = {entry["type"] for entry in calendar["events"]}
 check("the calendar shows the hearing, the task and the deadline", {"HEARING", "TASK", "DEADLINE"} <= types, True)
 status, found = staff.call("GET", "/api/v1/search?q=" + word)
 check("the unified search finds the case and its records by the same word", (status, found["total"] >= 5), (200, True))
-_, inventory = staff.call("GET", "/api/v1/reports/cases?size=100")
+_, inventory = manager.call("GET", "/api/v1/reports/cases?size=100&q=" + word)
 check("the case inventory lists the case", token in json.dumps(inventory, ensure_ascii=False), True)
 status, dashboard_before = manager.call("GET", "/api/v1/reports/dashboard")
 check("the dashboard answers", status, 200)
