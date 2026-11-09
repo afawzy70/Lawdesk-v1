@@ -1,0 +1,218 @@
+{
+  "tested_sha": "f86acb963bccada608336779e7cc64ed56bb1934",
+  "scope": "Independent local browser against real candidate API/PostgreSQL; NOT deployed UAT",
+  "counts": {
+    "PASS": 8,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "BROWSER-LOGIN",
+      "story_ids": [
+        "LD-029"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "f73f32b7-9043-4b6d-868e-066c04aadee0",
+        "proceedingId": "5d672012-53f6-4293-8e47-f5f4efd1b82d"
+      },
+      "steps": [
+        "Open candidate",
+        "Enter local synthetic credentials",
+        "GET /me"
+      ],
+      "expected_results": "Real browser authenticated",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "NOTE-UI-CREATE-XSS",
+      "story_ids": [
+        "LD-029"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "f73f32b7-9043-4b6d-868e-066c04aadee0",
+        "proceedingId": "5d672012-53f6-4293-8e47-f5f4efd1b82d"
+      },
+      "steps": [
+        "Own case",
+        "Add legal note containing script markup",
+        "Inspect rendered text and API"
+      ],
+      "expected_results": "201; text shown literally; no script execution",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "LAYOUT-/cases/f73f32b7-9043-4b6d-868e-066c04aadee0-en-320",
+      "story_ids": [
+        "LD-029"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "f73f32b7-9043-4b6d-868e-066c04aadee0",
+        "proceedingId": "5d672012-53f6-4293-8e47-f5f4efd1b82d"
+      },
+      "steps": [
+        "Open real /cases/f73f32b7-9043-4b6d-868e-066c04aadee0 in en at320px",
+        "Check content, direction and viewport",
+        "axe"
+      ],
+      "expected_results": "Data renders; locale/direction correct; no overflow or A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "en",
+        "dir": "ltr",
+        "viewport": 320,
+        "width": 320
+      }
+    },
+    {
+      "id": "LAYOUT-/cases/f73f32b7-9043-4b6d-868e-066c04aadee0-en-375",
+      "story_ids": [
+        "LD-029"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "f73f32b7-9043-4b6d-868e-066c04aadee0",
+        "proceedingId": "5d672012-53f6-4293-8e47-f5f4efd1b82d"
+      },
+      "steps": [
+        "Open real /cases/f73f32b7-9043-4b6d-868e-066c04aadee0 in en at375px",
+        "Check content, direction and viewport",
+        "axe"
+      ],
+      "expected_results": "Data renders; locale/direction correct; no overflow or A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "en",
+        "dir": "ltr",
+        "viewport": 375,
+        "width": 375
+      }
+    },
+    {
+      "id": "LAYOUT-/cases/f73f32b7-9043-4b6d-868e-066c04aadee0-en-1366",
+      "story_ids": [
+        "LD-029"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "f73f32b7-9043-4b6d-868e-066c04aadee0",
+        "proceedingId": "5d672012-53f6-4293-8e47-f5f4efd1b82d"
+      },
+      "steps": [
+        "Open real /cases/f73f32b7-9043-4b6d-868e-066c04aadee0 in en at1366px",
+        "Check content, direction and viewport",
+        "axe"
+      ],
+      "expected_results": "Data renders; locale/direction correct; no overflow or A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "en",
+        "dir": "ltr",
+        "viewport": 1366,
+        "width": 1366
+      }
+    },
+    {
+      "id": "LAYOUT-/cases/f73f32b7-9043-4b6d-868e-066c04aadee0-ar-320",
+      "story_ids": [
+        "LD-029"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "f73f32b7-9043-4b6d-868e-066c04aadee0",
+        "proceedingId": "5d672012-53f6-4293-8e47-f5f4efd1b82d"
+      },
+      "steps": [
+        "Open real /cases/f73f32b7-9043-4b6d-868e-066c04aadee0 in ar at320px",
+        "Check content, direction and viewport",
+        "axe"
+      ],
+      "expected_results": "Data renders; locale/direction correct; no overflow or A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "ar",
+        "dir": "rtl",
+        "viewport": 320,
+        "width": 320
+      }
+    },
+    {
+      "id": "LAYOUT-/cases/f73f32b7-9043-4b6d-868e-066c04aadee0-ar-375",
+      "story_ids": [
+        "LD-029"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "f73f32b7-9043-4b6d-868e-066c04aadee0",
+        "proceedingId": "5d672012-53f6-4293-8e47-f5f4efd1b82d"
+      },
+      "steps": [
+        "Open real /cases/f73f32b7-9043-4b6d-868e-066c04aadee0 in ar at375px",
+        "Check content, direction and viewport",
+        "axe"
+      ],
+      "expected_results": "Data renders; locale/direction correct; no overflow or A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "ar",
+        "dir": "rtl",
+        "viewport": 375,
+        "width": 375
+      }
+    },
+    {
+      "id": "LAYOUT-/cases/f73f32b7-9043-4b6d-868e-066c04aadee0-ar-1366",
+      "story_ids": [
+        "LD-029"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "f73f32b7-9043-4b6d-868e-066c04aadee0",
+        "proceedingId": "5d672012-53f6-4293-8e47-f5f4efd1b82d"
+      },
+      "steps": [
+        "Open real /cases/f73f32b7-9043-4b6d-868e-066c04aadee0 in ar at1366px",
+        "Check content, direction and viewport",
+        "axe"
+      ],
+      "expected_results": "Data renders; locale/direction correct; no overflow or A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "ar",
+        "dir": "rtl",
+        "viewport": 1366,
+        "width": 1366
+      }
+    }
+  ]
+}

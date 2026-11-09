@@ -1,0 +1,928 @@
+{
+  "tested_sha": "5762bee77347e5fba3fe91316ce41faccdc1d11d",
+  "utc": "2026-10-24T18:06:42.556753+00:00",
+  "candidate": "/tmp/lawdesk-continuous2-pr41-5762bee7",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 26,
+    "FAIL": 4,
+    "BLOCKED": 1,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "367fd501-e9c2-4a45-bf30-c51afe849543",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-24T18:06:04.113627Z",
+          "updatedAt": "2026-10-24T18:06:04.113627Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "FORMAT-JUDGMENT-FIXTURE",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FORMAT-JUDGMENT-FIXTURE"
+      },
+      "steps": [
+        "POST /api/v1/proceedings/7a4f13d9-ffb9-4632-9111-dc83cbc5f5a3/judgment",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "d05beb43-e815-4f8a-a7ca-21e03da95a4d",
+          "proceedingId": "7a4f13d9-ffb9-4632-9111-dc83cbc5f5a3",
+          "caseId": "b6ae4210-2cd2-4469-8b60-87084357b744",
+          "judgmentDate": "2026-01-03",
+          "outcome": "IN_FAVOUR",
+          "summary": null,
+          "final": true,
+          "version": 0,
+          "createdAt": "2026-10-24T18:06:07.095264Z",
+          "updatedAt": "2026-10-24T18:06:07.095264Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "FORMAT-ANON-xlsx",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FORMAT-ANON-xlsx"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases/export?format=xlsx",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 401,
+        "rule": null
+      },
+      "actual": {
+        "status": 401,
+        "body": {
+          "type": "about:blank",
+          "title": "Unauthorized",
+          "status": 401
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "FORMAT-DENIED-xlsx",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FORMAT-DENIED-xlsx"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases/export?format=xlsx",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 403,
+        "rule": null
+      },
+      "actual": {
+        "status": 403,
+        "body": {
+          "type": "about:blank",
+          "title": "Forbidden",
+          "status": 403
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "FORMAT-RESPONSE-xlsx-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FORMAT-RESPONSE-xlsx-en"
+      },
+      "steps": [
+        "Export six real case fixtures"
+      ],
+      "expected_results": "200 attachment,nosniff,no-store,correct MIME",
+      "actual": {
+        "status": 200,
+        "bytes": 4342,
+        "type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "attachment": "attachment; filename=\"case-inventory-2026-10-24.xlsx\"",
+        "cache": "no-cache, no-store, max-age=0, must-revalidate"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "XLSX-DIMENSION-STREAMING-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "XLSX-DIMENSION-STREAMING-en"
+      },
+      "steps": [
+        "Compare OOXML dimension, actual rows and independent streaming reader"
+      ],
+      "expected_results": "All7 rows available; dimension bounds actual data",
+      "actual": {
+        "dimension": "A1",
+        "normal_rows": 7,
+        "streaming_rows": 1
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "XLSX-RECORDS-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "XLSX-RECORDS-en"
+      },
+      "steps": [
+        "Open workbook independently and compare fixtures"
+      ],
+      "expected_results": "Header+6rows,9columns; Arabic title exact; no formulas",
+      "actual": {
+        "rows": 7,
+        "columns": 9,
+        "titles": [
+          "QA قضية عربية (123/2026)",
+          "=1+1",
+          "+SUM(1,1)",
+          "-1+1",
+          "@SUM(1,1)",
+          "QA comma, \"quoted\" عربي"
+        ],
+        "formula_count": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "XLSX-TYPES-RTL-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "XLSX-TYPES-RTL-en"
+      },
+      "steps": [
+        "Inspect dates/count cells and sheet view"
+      ],
+      "expected_results": "Actual dates/numbers; RTL iff Arabic",
+      "actual": {
+        "date_type": "datetime",
+        "count_type": "int",
+        "rtl": null
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "XLSX-FORMULA-TEXT-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "XLSX-FORMULA-TEXT-en"
+      },
+      "steps": [
+        "Inspect formula-shaped titles as cells"
+      ],
+      "expected_results": "Exact literal string values stored as strings",
+      "actual": {
+        "cells": [
+          [
+            "=1+1",
+            "s"
+          ],
+          [
+            "+SUM(1,1)",
+            "s"
+          ],
+          [
+            "-1+1",
+            "s"
+          ],
+          [
+            "@SUM(1,1)",
+            "s"
+          ]
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "FORMAT-RESPONSE-xlsx-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FORMAT-RESPONSE-xlsx-ar"
+      },
+      "steps": [
+        "Export six real case fixtures"
+      ],
+      "expected_results": "200 attachment,nosniff,no-store,correct MIME",
+      "actual": {
+        "status": 200,
+        "bytes": 4461,
+        "type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "attachment": "attachment; filename=\"case-inventory-2026-10-24.xlsx\"",
+        "cache": "no-cache, no-store, max-age=0, must-revalidate"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "XLSX-DIMENSION-STREAMING-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "XLSX-DIMENSION-STREAMING-ar"
+      },
+      "steps": [
+        "Compare OOXML dimension, actual rows and independent streaming reader"
+      ],
+      "expected_results": "All7 rows available; dimension bounds actual data",
+      "actual": {
+        "dimension": "A1",
+        "normal_rows": 7,
+        "streaming_rows": 1
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "XLSX-RECORDS-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "XLSX-RECORDS-ar"
+      },
+      "steps": [
+        "Open workbook independently and compare fixtures"
+      ],
+      "expected_results": "Header+6rows,9columns; Arabic title exact; no formulas",
+      "actual": {
+        "rows": 7,
+        "columns": 9,
+        "titles": [
+          "QA قضية عربية (123/2026)",
+          "=1+1",
+          "+SUM(1,1)",
+          "-1+1",
+          "@SUM(1,1)",
+          "QA comma, \"quoted\" عربي"
+        ],
+        "formula_count": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "XLSX-TYPES-RTL-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "XLSX-TYPES-RTL-ar"
+      },
+      "steps": [
+        "Inspect dates/count cells and sheet view"
+      ],
+      "expected_results": "Actual dates/numbers; RTL iff Arabic",
+      "actual": {
+        "date_type": "datetime",
+        "count_type": "int",
+        "rtl": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "XLSX-FORMULA-TEXT-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "XLSX-FORMULA-TEXT-ar"
+      },
+      "steps": [
+        "Inspect formula-shaped titles as cells"
+      ],
+      "expected_results": "Exact literal string values stored as strings",
+      "actual": {
+        "cells": [
+          [
+            "=1+1",
+            "s"
+          ],
+          [
+            "+SUM(1,1)",
+            "s"
+          ],
+          [
+            "-1+1",
+            "s"
+          ],
+          [
+            "@SUM(1,1)",
+            "s"
+          ]
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "FORMAT-ANON-pdf",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FORMAT-ANON-pdf"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases/export?format=pdf",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 401,
+        "rule": null
+      },
+      "actual": {
+        "status": 401,
+        "body": {
+          "type": "about:blank",
+          "title": "Unauthorized",
+          "status": 401
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "FORMAT-DENIED-pdf",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FORMAT-DENIED-pdf"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases/export?format=pdf",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 403,
+        "rule": null
+      },
+      "actual": {
+        "status": 403,
+        "body": {
+          "type": "about:blank",
+          "title": "Forbidden",
+          "status": 403
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "FORMAT-RESPONSE-pdf-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FORMAT-RESPONSE-pdf-en"
+      },
+      "steps": [
+        "Export six real case fixtures"
+      ],
+      "expected_results": "200 attachment,nosniff,no-store,correct MIME",
+      "actual": {
+        "status": 200,
+        "bytes": 12105,
+        "type": "application/pdf",
+        "attachment": "attachment; filename=\"case-inventory-2026-10-24.pdf\"",
+        "cache": "no-cache, no-store, max-age=0, must-revalidate"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PDF-STRUCTURE-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PDF-STRUCTURE-en"
+      },
+      "steps": [
+        "Parse exported PDF and render first page"
+      ],
+      "expected_results": "Readable landscape PDF; embedded font; no active script",
+      "actual": {
+        "pages": 1,
+        "width": 841.8897705078125,
+        "height": 595.275634765625,
+        "font_names": [
+          "AAMJSH+DejaVuSans"
+        ],
+        "has_embedded_font": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PDF-IDENTIFIERS-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PDF-IDENTIFIERS-en"
+      },
+      "steps": [
+        "Inspect extracted text for Latin case reference and numeric expression"
+      ],
+      "expected_results": "Known reference present without lost data",
+      "actual": {
+        "reference_present": true,
+        "formula_present": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "FORMAT-RESPONSE-pdf-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FORMAT-RESPONSE-pdf-ar"
+      },
+      "steps": [
+        "Export six real case fixtures"
+      ],
+      "expected_results": "200 attachment,nosniff,no-store,correct MIME",
+      "actual": {
+        "status": 200,
+        "bytes": 12751,
+        "type": "application/pdf",
+        "attachment": "attachment; filename=\"case-inventory-2026-10-24.pdf\"",
+        "cache": "no-cache, no-store, max-age=0, must-revalidate"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PDF-STRUCTURE-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PDF-STRUCTURE-ar"
+      },
+      "steps": [
+        "Parse exported PDF and render first page"
+      ],
+      "expected_results": "Readable landscape PDF; embedded font; no active script",
+      "actual": {
+        "pages": 1,
+        "width": 841.8897705078125,
+        "height": 595.275634765625,
+        "font_names": [
+          "AACCVV+DejaVuSans"
+        ],
+        "has_embedded_font": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PDF-IDENTIFIERS-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PDF-IDENTIFIERS-ar"
+      },
+      "steps": [
+        "Inspect extracted text for Latin case reference and numeric expression"
+      ],
+      "expected_results": "Known reference present without lost data",
+      "actual": {
+        "reference_present": true,
+        "formula_present": false
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "FORMAT-JUDGMENT-FILTER-xlsx",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FORMAT-JUDGMENT-FILTER-xlsx"
+      },
+      "steps": [
+        "Export exact day and finality"
+      ],
+      "expected_results": "Exactly one fixture judgment",
+      "actual": {
+        "status": 200,
+        "count": 1
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "FORMAT-JUDGMENT-FILTER-pdf",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FORMAT-JUDGMENT-FILTER-pdf"
+      },
+      "steps": [
+        "Export exact day and finality"
+      ],
+      "expected_results": "Exactly one fixture judgment",
+      "actual": {
+        "status": 200,
+        "count": 1
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PDF-MULTIPAGE",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PDF-MULTIPAGE"
+      },
+      "steps": [
+        "Render66 cases with long bilingual titles"
+      ],
+      "expected_results": "Multiple nonempty pages; representative header repetition reviewed visually in separate evidence",
+      "actual": {
+        "status": 200,
+        "pages": 8,
+        "nonempty_pages": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "XLSX-LIMIT-10000",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "XLSX-LIMIT-10000"
+      },
+      "steps": [
+        "Export exactly10000 cases"
+      ],
+      "expected_results": "200 and10000data rows",
+      "actual": {
+        "status": 200,
+        "rows": 10001
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PDF-LIMIT-10000",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PDF-LIMIT-10000"
+      },
+      "steps": [
+        "Export exactly10000 records and inspect generated PDF"
+      ],
+      "expected_results": "200; PDF contains all cap fixture reference tokens",
+      "actual": {
+        "status": 200,
+        "pages": 560,
+        "cap_refs_present": 9
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "FORMAT-LIMIT-10001-xlsx",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FORMAT-LIMIT-10001-xlsx"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases/export?format=xlsx",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": "EXPORT_TOO_LARGE"
+      },
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/reports/cases/export",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "EXPORT_TOO_LARGE"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "FORMAT-LIMIT-10001-pdf",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FORMAT-LIMIT-10001-pdf"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases/export?format=pdf",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": "EXPORT_TOO_LARGE"
+      },
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/reports/cases/export",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "EXPORT_TOO_LARGE"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "EXPORT-AUDIT-FAIL-CLOSED",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "EXPORT-AUDIT-FAIL-CLOSED"
+      },
+      "steps": [
+        "Inject audit failure in disposable DB then request valid small XLSX"
+      ],
+      "expected_results": "500; no attachment body or successful audit row",
+      "actual": {
+        "status": 500,
+        "attachment": null,
+        "audit_unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PDF-ACTUAL-DEPLOYMENT-CONTAINER",
+      "story_ids": [
+        "LD-034",
+        "LD-006"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved isolated access to actual deployment image/container"
+      ],
+      "test_data": {
+        "formats": [
+          "pdf"
+        ],
+        "lang": "ar"
+      },
+      "steps": [
+        "Generate Arabic PDF through exact deployment-container API",
+        "Render artifact and compare to jar output"
+      ],
+      "expected_results": "Valid embedded/shaped PDF inside production-equivalent image",
+      "status": "BLOCKED",
+      "actual": "Local Docker socket permission denied; existing sudo -n requires password. No daemon/group/infrastructure changes attempted."
+    }
+  ]
+}

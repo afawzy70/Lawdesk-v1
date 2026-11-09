@@ -1,0 +1,6153 @@
+{
+  "tested_sha": "1e74945961a77fcf5a67fc26f3a51d0715660628",
+  "utc": "2026-10-25T15:26:48.602764+00:00",
+  "candidate": "/tmp/lawdesk-r57-candidate",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 80,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "3e5e62d2-2582-4113-9638-6653072fb9b9",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-25T15:26:28.140994Z",
+          "updatedAt": "2026-10-25T15:26:28.140994Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-0",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-0"
+      },
+      "steps": [
+        "GET /api/v1/users with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/users",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=%20%20": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=%09": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=2147483647": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=0&page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=20&size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-0",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-0"
+      },
+      "steps": [
+        "GET /api/v1/users without page/size then maximum size"
+      ],
+      "expected_results": "Default page0/size20; explicit100 accepted",
+      "actual": {
+        "path": "/api/v1/users",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-OFFSET-BOUNDARY-0",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011",
+        "LD-015",
+        "LD-016",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-OFFSET-BOUNDARY-0"
+      },
+      "steps": [
+        "GET /api/v1/users at below/exact/above32bit combined offsets, default size and repeated values"
+      ],
+      "expected_results": "Within offset bound200empty; beyond400page Max; no500",
+      "actual": {
+        "path": "/api/v1/users",
+        "responses": [
+          {
+            "query": "page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=2147483648&size=1",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Digits"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483646&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474836&size=100",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474837&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=1073741823&size=2",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=1073741824&size=2",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=107374182",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=107374183",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=0&page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-0",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-0"
+      },
+      "steps": [
+        "Malformed /api/v1/users query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/users",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-1",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-1"
+      },
+      "steps": [
+        "GET /api/v1/parties with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/parties",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=%20%20": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=%09": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=2147483647": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=0&page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=20&size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-1",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-1"
+      },
+      "steps": [
+        "GET /api/v1/parties without page/size then maximum size"
+      ],
+      "expected_results": "Default page0/size20; explicit100 accepted",
+      "actual": {
+        "path": "/api/v1/parties",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-OFFSET-BOUNDARY-1",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011",
+        "LD-015",
+        "LD-016",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-OFFSET-BOUNDARY-1"
+      },
+      "steps": [
+        "GET /api/v1/parties at below/exact/above32bit combined offsets, default size and repeated values"
+      ],
+      "expected_results": "Within offset bound200empty; beyond400page Max; no500",
+      "actual": {
+        "path": "/api/v1/parties",
+        "responses": [
+          {
+            "query": "page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=2147483648&size=1",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Digits"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483646&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474836&size=100",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474837&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=1073741823&size=2",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=1073741824&size=2",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=107374182",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=107374183",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=0&page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-1",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-1"
+      },
+      "steps": [
+        "Malformed /api/v1/parties query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/parties",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-2",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-2"
+      },
+      "steps": [
+        "GET /api/v1/audit with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/audit",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=%20%20": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=%09": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=2147483647": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=0&page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=20&size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-2",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-2"
+      },
+      "steps": [
+        "GET /api/v1/audit without page/size then maximum size"
+      ],
+      "expected_results": "Default page0/size20; explicit100 accepted",
+      "actual": {
+        "path": "/api/v1/audit",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-OFFSET-BOUNDARY-2",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011",
+        "LD-015",
+        "LD-016",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-OFFSET-BOUNDARY-2"
+      },
+      "steps": [
+        "GET /api/v1/audit at below/exact/above32bit combined offsets, default size and repeated values"
+      ],
+      "expected_results": "Within offset bound200empty; beyond400page Max; no500",
+      "actual": {
+        "path": "/api/v1/audit",
+        "responses": [
+          {
+            "query": "page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=2147483648&size=1",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Digits"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483646&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474836&size=100",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474837&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=1073741823&size=2",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=1073741824&size=2",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=107374182",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=107374183",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=0&page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-2",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-2"
+      },
+      "steps": [
+        "Malformed /api/v1/audit query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/audit",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-3",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-3"
+      },
+      "steps": [
+        "GET /api/v1/courts with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/courts",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=%20%20": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=%09": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=2147483647": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=0&page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=20&size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-3",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-3"
+      },
+      "steps": [
+        "GET /api/v1/courts without page/size then maximum size"
+      ],
+      "expected_results": "Default page0/size20; explicit100 accepted",
+      "actual": {
+        "path": "/api/v1/courts",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-OFFSET-BOUNDARY-3",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011",
+        "LD-015",
+        "LD-016",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-OFFSET-BOUNDARY-3"
+      },
+      "steps": [
+        "GET /api/v1/courts at below/exact/above32bit combined offsets, default size and repeated values"
+      ],
+      "expected_results": "Within offset bound200empty; beyond400page Max; no500",
+      "actual": {
+        "path": "/api/v1/courts",
+        "responses": [
+          {
+            "query": "page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=2147483648&size=1",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Digits"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483646&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474836&size=100",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474837&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=1073741823&size=2",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=1073741824&size=2",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=107374182",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=107374183",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=0&page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-3",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-3"
+      },
+      "steps": [
+        "Malformed /api/v1/courts query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/courts",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-4",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-4"
+      },
+      "steps": [
+        "GET /api/v1/experts with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/experts",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=%20%20": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=%09": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=2147483647": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=0&page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=20&size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-4",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-4"
+      },
+      "steps": [
+        "GET /api/v1/experts without page/size then maximum size"
+      ],
+      "expected_results": "Default page0/size20; explicit100 accepted",
+      "actual": {
+        "path": "/api/v1/experts",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-OFFSET-BOUNDARY-4",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011",
+        "LD-015",
+        "LD-016",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-OFFSET-BOUNDARY-4"
+      },
+      "steps": [
+        "GET /api/v1/experts at below/exact/above32bit combined offsets, default size and repeated values"
+      ],
+      "expected_results": "Within offset bound200empty; beyond400page Max; no500",
+      "actual": {
+        "path": "/api/v1/experts",
+        "responses": [
+          {
+            "query": "page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=2147483648&size=1",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Digits"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483646&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474836&size=100",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474837&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=1073741823&size=2",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=1073741824&size=2",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=107374182",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=107374183",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=0&page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-4",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-4"
+      },
+      "steps": [
+        "Malformed /api/v1/experts query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/experts",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-5",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-5"
+      },
+      "steps": [
+        "GET /api/v1/hearings with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/hearings",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=%20%20": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=%09": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=2147483647": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=0&page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=20&size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-5",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-5"
+      },
+      "steps": [
+        "GET /api/v1/hearings without page/size then maximum size"
+      ],
+      "expected_results": "Default page0/size20; explicit100 accepted",
+      "actual": {
+        "path": "/api/v1/hearings",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-OFFSET-BOUNDARY-5",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011",
+        "LD-015",
+        "LD-016",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-OFFSET-BOUNDARY-5"
+      },
+      "steps": [
+        "GET /api/v1/hearings at below/exact/above32bit combined offsets, default size and repeated values"
+      ],
+      "expected_results": "Within offset bound200empty; beyond400page Max; no500",
+      "actual": {
+        "path": "/api/v1/hearings",
+        "responses": [
+          {
+            "query": "page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=2147483648&size=1",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Digits"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483646&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474836&size=100",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474837&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=1073741823&size=2",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=1073741824&size=2",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=107374182",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=107374183",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=0&page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-5",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-5"
+      },
+      "steps": [
+        "Malformed /api/v1/hearings query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/hearings",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-6",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-6"
+      },
+      "steps": [
+        "GET /api/v1/documents with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/documents",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=%20%20": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=%09": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=2147483647": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=0&page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=20&size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-6",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-6"
+      },
+      "steps": [
+        "GET /api/v1/documents without page/size then maximum size"
+      ],
+      "expected_results": "Default page0/size20; explicit100 accepted",
+      "actual": {
+        "path": "/api/v1/documents",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-OFFSET-BOUNDARY-6",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011",
+        "LD-015",
+        "LD-016",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-OFFSET-BOUNDARY-6"
+      },
+      "steps": [
+        "GET /api/v1/documents at below/exact/above32bit combined offsets, default size and repeated values"
+      ],
+      "expected_results": "Within offset bound200empty; beyond400page Max; no500",
+      "actual": {
+        "path": "/api/v1/documents",
+        "responses": [
+          {
+            "query": "page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=2147483648&size=1",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Digits"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483646&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474836&size=100",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474837&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=1073741823&size=2",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=1073741824&size=2",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=107374182",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=107374183",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=0&page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-6",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-6"
+      },
+      "steps": [
+        "Malformed /api/v1/documents query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/documents",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-7",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-7"
+      },
+      "steps": [
+        "GET /api/v1/tasks with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/tasks",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=%20%20": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=%09": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=2147483647": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=0&page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=20&size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-7",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-7"
+      },
+      "steps": [
+        "GET /api/v1/tasks without page/size then maximum size"
+      ],
+      "expected_results": "Default page0/size20; explicit100 accepted",
+      "actual": {
+        "path": "/api/v1/tasks",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-OFFSET-BOUNDARY-7",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011",
+        "LD-015",
+        "LD-016",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-OFFSET-BOUNDARY-7"
+      },
+      "steps": [
+        "GET /api/v1/tasks at below/exact/above32bit combined offsets, default size and repeated values"
+      ],
+      "expected_results": "Within offset bound200empty; beyond400page Max; no500",
+      "actual": {
+        "path": "/api/v1/tasks",
+        "responses": [
+          {
+            "query": "page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=2147483648&size=1",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Digits"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483646&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474836&size=100",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474837&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=1073741823&size=2",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=1073741824&size=2",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=107374182",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=107374183",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=0&page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-7",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-7"
+      },
+      "steps": [
+        "Malformed /api/v1/tasks query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/tasks",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-8",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-8"
+      },
+      "steps": [
+        "GET /api/v1/cases with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/cases",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=%20%20": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=%09": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=2147483647": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=0&page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=20&size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-8",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-8"
+      },
+      "steps": [
+        "GET /api/v1/cases without page/size then maximum size"
+      ],
+      "expected_results": "Default page0/size20; explicit100 accepted",
+      "actual": {
+        "path": "/api/v1/cases",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-OFFSET-BOUNDARY-8",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011",
+        "LD-015",
+        "LD-016",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-OFFSET-BOUNDARY-8"
+      },
+      "steps": [
+        "GET /api/v1/cases at below/exact/above32bit combined offsets, default size and repeated values"
+      ],
+      "expected_results": "Within offset bound200empty; beyond400page Max; no500",
+      "actual": {
+        "path": "/api/v1/cases",
+        "responses": [
+          {
+            "query": "page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=2147483648&size=1",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Digits"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483646&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474836&size=100",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474837&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=1073741823&size=2",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=1073741824&size=2",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=107374182",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=107374183",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=0&page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-8",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-8"
+      },
+      "steps": [
+        "Malformed /api/v1/cases query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/cases",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-9",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-9"
+      },
+      "steps": [
+        "GET /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/hearings with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/hearings",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=%20%20": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=%09": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=2147483647": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=0&page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=20&size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-9",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-9"
+      },
+      "steps": [
+        "GET /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/hearings without page/size then maximum size"
+      ],
+      "expected_results": "Default page0/size20; explicit100 accepted",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/hearings",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-OFFSET-BOUNDARY-9",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011",
+        "LD-015",
+        "LD-016",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-OFFSET-BOUNDARY-9"
+      },
+      "steps": [
+        "GET /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/hearings at below/exact/above32bit combined offsets, default size and repeated values"
+      ],
+      "expected_results": "Within offset bound200empty; beyond400page Max; no500",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/hearings",
+        "responses": [
+          {
+            "query": "page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=2147483648&size=1",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Digits"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483646&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474836&size=100",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474837&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=1073741823&size=2",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=1073741824&size=2",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=107374182",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=107374183",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=0&page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-9",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-9"
+      },
+      "steps": [
+        "Malformed /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/hearings query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/hearings",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-10",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-10"
+      },
+      "steps": [
+        "GET /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/notes with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/notes",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=%20%20": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=%09": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=2147483647": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=0&page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=20&size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-10",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-10"
+      },
+      "steps": [
+        "GET /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/notes without page/size then maximum size"
+      ],
+      "expected_results": "Default page0/size20; explicit100 accepted",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/notes",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-OFFSET-BOUNDARY-10",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011",
+        "LD-015",
+        "LD-016",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-OFFSET-BOUNDARY-10"
+      },
+      "steps": [
+        "GET /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/notes at below/exact/above32bit combined offsets, default size and repeated values"
+      ],
+      "expected_results": "Within offset bound200empty; beyond400page Max; no500",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/notes",
+        "responses": [
+          {
+            "query": "page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=2147483648&size=1",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Digits"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483646&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474836&size=100",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474837&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=1073741823&size=2",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=1073741824&size=2",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=107374182",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=107374183",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=0&page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-10",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-10"
+      },
+      "steps": [
+        "Malformed /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/notes query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/notes",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-11",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-11"
+      },
+      "steps": [
+        "GET /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/timeline with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/timeline",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=%20%20": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=%09": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=2147483647": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=0&page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=20&size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-11",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-11"
+      },
+      "steps": [
+        "GET /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/timeline without page/size then maximum size"
+      ],
+      "expected_results": "Default page0/size20; explicit100 accepted",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/timeline",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-OFFSET-BOUNDARY-11",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011",
+        "LD-015",
+        "LD-016",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-OFFSET-BOUNDARY-11"
+      },
+      "steps": [
+        "GET /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/timeline at below/exact/above32bit combined offsets, default size and repeated values"
+      ],
+      "expected_results": "Within offset bound200empty; beyond400page Max; no500",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/timeline",
+        "responses": [
+          {
+            "query": "page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=2147483648&size=1",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Digits"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483646&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474836&size=100",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474837&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=1073741823&size=2",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=1073741824&size=2",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=107374182",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=107374183",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=0&page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-11",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-11"
+      },
+      "steps": [
+        "Malformed /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/timeline query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/timeline",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-12",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-12"
+      },
+      "steps": [
+        "GET /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/proceedings with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/proceedings",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=%20%20": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=%09": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=2147483647": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=0&page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=20&size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-12",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-12"
+      },
+      "steps": [
+        "GET /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/proceedings without page/size then maximum size"
+      ],
+      "expected_results": "Default page0/size20; explicit100 accepted",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/proceedings",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-OFFSET-BOUNDARY-12",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011",
+        "LD-015",
+        "LD-016",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-OFFSET-BOUNDARY-12"
+      },
+      "steps": [
+        "GET /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/proceedings at below/exact/above32bit combined offsets, default size and repeated values"
+      ],
+      "expected_results": "Within offset bound200empty; beyond400page Max; no500",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/proceedings",
+        "responses": [
+          {
+            "query": "page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=2147483648&size=1",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Digits"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483646&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474836&size=100",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474837&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=1073741823&size=2",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=1073741824&size=2",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=107374182",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=107374183",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=0&page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-12",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-12"
+      },
+      "steps": [
+        "Malformed /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/proceedings query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/proceedings",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-13",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-13"
+      },
+      "steps": [
+        "GET /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/judgments with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/judgments",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=%20%20": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=%09": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=2147483647": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=0&page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=20&size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-13",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-13"
+      },
+      "steps": [
+        "GET /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/judgments without page/size then maximum size"
+      ],
+      "expected_results": "Default page0/size20; explicit100 accepted",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/judgments",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-OFFSET-BOUNDARY-13",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011",
+        "LD-015",
+        "LD-016",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-OFFSET-BOUNDARY-13"
+      },
+      "steps": [
+        "GET /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/judgments at below/exact/above32bit combined offsets, default size and repeated values"
+      ],
+      "expected_results": "Within offset bound200empty; beyond400page Max; no500",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/judgments",
+        "responses": [
+          {
+            "query": "page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=2147483648&size=1",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Digits"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483646&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474836&size=100",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474837&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=1073741823&size=2",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=1073741824&size=2",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=107374182",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=107374183",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=0&page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-13",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-13"
+      },
+      "steps": [
+        "Malformed /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/judgments query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/judgments",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-14",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-14"
+      },
+      "steps": [
+        "GET /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/special-decisions with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/special-decisions",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=%20%20": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=%09": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=2147483647": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=0&page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=20&size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-14",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-14"
+      },
+      "steps": [
+        "GET /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/special-decisions without page/size then maximum size"
+      ],
+      "expected_results": "Default page0/size20; explicit100 accepted",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/special-decisions",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-OFFSET-BOUNDARY-14",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011",
+        "LD-015",
+        "LD-016",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-OFFSET-BOUNDARY-14"
+      },
+      "steps": [
+        "GET /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/special-decisions at below/exact/above32bit combined offsets, default size and repeated values"
+      ],
+      "expected_results": "Within offset bound200empty; beyond400page Max; no500",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/special-decisions",
+        "responses": [
+          {
+            "query": "page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=2147483648&size=1",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Digits"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483646&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474836&size=100",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474837&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=1073741823&size=2",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=1073741824&size=2",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=107374182",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=107374183",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=0&page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-14",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-14"
+      },
+      "steps": [
+        "Malformed /api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/special-decisions query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/cases/d6c31677-42e9-4182-b2f4-275b2d1effc2/special-decisions",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-15",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-15"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/reports/cases",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=%20%20": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=%09": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=2147483647": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=0&page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=20&size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-15",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-15"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases without page/size then maximum size"
+      ],
+      "expected_results": "Default page0/size20; explicit100 accepted",
+      "actual": {
+        "path": "/api/v1/reports/cases",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-OFFSET-BOUNDARY-15",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011",
+        "LD-015",
+        "LD-016",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-OFFSET-BOUNDARY-15"
+      },
+      "steps": [
+        "GET /api/v1/reports/cases at below/exact/above32bit combined offsets, default size and repeated values"
+      ],
+      "expected_results": "Within offset bound200empty; beyond400page Max; no500",
+      "actual": {
+        "path": "/api/v1/reports/cases",
+        "responses": [
+          {
+            "query": "page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=2147483648&size=1",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Digits"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483646&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474836&size=100",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474837&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=1073741823&size=2",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=1073741824&size=2",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=107374182",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=107374183",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=0&page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-15",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-15"
+      },
+      "steps": [
+        "Malformed /api/v1/reports/cases query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/reports/cases",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-16",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-16"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/reports/judgments",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=%20%20": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=%09": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=2147483647": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=0&page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=20&size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-16",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-16"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments without page/size then maximum size"
+      ],
+      "expected_results": "Default page0/size20; explicit100 accepted",
+      "actual": {
+        "path": "/api/v1/reports/judgments",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-OFFSET-BOUNDARY-16",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011",
+        "LD-015",
+        "LD-016",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-OFFSET-BOUNDARY-16"
+      },
+      "steps": [
+        "GET /api/v1/reports/judgments at below/exact/above32bit combined offsets, default size and repeated values"
+      ],
+      "expected_results": "Within offset bound200empty; beyond400page Max; no500",
+      "actual": {
+        "path": "/api/v1/reports/judgments",
+        "responses": [
+          {
+            "query": "page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=2147483648&size=1",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Digits"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483646&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474836&size=100",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474837&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=1073741823&size=2",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=1073741824&size=2",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=107374182",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=107374183",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=0&page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-16",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-16"
+      },
+      "steps": [
+        "Malformed /api/v1/reports/judgments query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/reports/judgments",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-INVALID-17",
+      "story_ids": [
+        "LD-009",
+        "LD-011",
+        "LD-015",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-INVALID-17"
+      },
+      "steps": [
+        "GET /api/v1/reports/hearings with each negative/zero/noninteger/overflow query"
+      ],
+      "expected_results": "Every malformed parameter400; never500",
+      "actual": {
+        "path": "/api/v1/reports/hearings",
+        "responses": {
+          "page=-1": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=0": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=-1": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=bad": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=1.5": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=2147483648": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=%20%20": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=%09": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "size=2147483647": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          },
+          "page=0&page=": {
+            "status": 400,
+            "fields": [
+              "page"
+            ]
+          },
+          "size=20&size=101": {
+            "status": 400,
+            "fields": [
+              "size"
+            ]
+          }
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-DEFAULT-CAP-17",
+      "story_ids": [
+        "LD-009",
+        "LD-015",
+        "LD-031"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-DEFAULT-CAP-17"
+      },
+      "steps": [
+        "GET /api/v1/reports/hearings without page/size then maximum size"
+      ],
+      "expected_results": "Default page0/size20; explicit100 accepted",
+      "actual": {
+        "path": "/api/v1/reports/hearings",
+        "omitted_status": 200,
+        "page": 0,
+        "size": 20,
+        "large_status": 200,
+        "large_size": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-OFFSET-BOUNDARY-17",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011",
+        "LD-015",
+        "LD-016",
+        "LD-018",
+        "LD-024",
+        "LD-025",
+        "LD-027",
+        "LD-029",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-OFFSET-BOUNDARY-17"
+      },
+      "steps": [
+        "GET /api/v1/reports/hearings at below/exact/above32bit combined offsets, default size and repeated values"
+      ],
+      "expected_results": "Within offset bound200empty; beyond400page Max; no500",
+      "actual": {
+        "path": "/api/v1/reports/hearings",
+        "responses": [
+          {
+            "query": "page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=2147483648&size=1",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Digits"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483646&size=1",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474836&size=100",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=21474837&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=1073741823&size=2",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=1073741824&size=2",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=107374182",
+            "expected": 200,
+            "status": 200,
+            "fields": [],
+            "ok": true
+          },
+          {
+            "query": "page=107374183",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=0&page=2147483647&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          },
+          {
+            "query": "page=2147483647&size=1&size=100",
+            "expected": 400,
+            "status": 400,
+            "fields": [
+              {
+                "field": "page",
+                "code": "Max"
+              }
+            ],
+            "ok": true
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PAGING-AUTH-FIRST-17",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PAGING-AUTH-FIRST-17"
+      },
+      "steps": [
+        "Malformed /api/v1/reports/hearings query as no-permission and anonymous clients"
+      ],
+      "expected_results": "403/401 before binding",
+      "actual": {
+        "path": "/api/v1/reports/hearings",
+        "denied": 403,
+        "anonymous": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-DIRECT-DONE-AUDIT",
+      "story_ids": [
+        "LD-027",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-DIRECT-DONE-AUDIT"
+      },
+      "steps": [
+        "Create OPEN task -> directly DONE -> inspect task/event/security audit"
+      ],
+      "expected_results": "200 DONE/completedAt; exactly one SUCCESS audit with actor, TASK id, OPEN->DONE and no free text",
+      "actual": {
+        "status": 200,
+        "task_status": "DONE",
+        "completed": true,
+        "audit": [
+          {
+            "id": 25,
+            "occurredAt": "2026-10-25T15:26:46.592377Z",
+            "actorId": "f833b6ad-1fab-419d-bfa5-4461c9c95df4",
+            "actorUsername": "qaadmin",
+            "action": "TASK_STATUS_CHANGED",
+            "targetType": "TASK",
+            "targetId": "b5f102de-4e5d-43f6-8cc8-f08a788120d0",
+            "outcome": "SUCCESS",
+            "reason": "OPEN->DONE",
+            "requestId": "qa-phase234"
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-REFUSED-NO-SUCCESS-AUDIT-REPEAT",
+      "story_ids": [
+        "LD-027",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-REFUSED-NO-SUCCESS-AUDIT-REPEAT"
+      },
+      "steps": [
+        "Refused REPEAT transition -> count task success events"
+      ],
+      "expected_results": "Expected refusal; only original success event",
+      "actual": {
+        "status": 422,
+        "delta": 1
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-REFUSED-NO-SUCCESS-AUDIT-STALE",
+      "story_ids": [
+        "LD-027",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-REFUSED-NO-SUCCESS-AUDIT-STALE"
+      },
+      "steps": [
+        "Refused STALE transition -> count task success events"
+      ],
+      "expected_results": "Expected refusal; only original success event",
+      "actual": {
+        "status": 409,
+        "delta": 1
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-COMMIT-ROLLBACK-AUDIT-ATOMICITY",
+      "story_ids": [
+        "LD-027",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-COMMIT-ROLLBACK-AUDIT-ATOMICITY"
+      },
+      "steps": [
+        "Install disposable deferred task trigger that fails at COMMIT -> OPEN->DONE -> query task/history/audit after rollback"
+      ],
+      "expected_results": "500; task/history unchanged; no successful status audit for rolled-back write",
+      "actual": {
+        "http_status": 500,
+        "task_history_unchanged": true,
+        "success_audit_before": "0",
+        "success_audit_after": "0"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-RETRY-EXACTLY-ONCE",
+      "story_ids": [
+        "LD-027",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-RETRY-EXACTLY-ONCE"
+      },
+      "steps": [
+        "Remove deferred fault -> retry original change -> read audit"
+      ],
+      "expected_results": "200; exactly one committed success event",
+      "actual": {
+        "status": 200,
+        "success_events": "1"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-AUDIT-WRITE-FAILURE-ROLLBACK",
+      "story_ids": [
+        "LD-027",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-AUDIT-WRITE-FAILURE-ROLLBACK"
+      },
+      "steps": [
+        "Reject only task audit insertion -> attempt status change -> inspect task/history/audit"
+      ],
+      "expected_results": "500; unchanged task/history;0events",
+      "actual": {
+        "status": 500,
+        "unchanged": true,
+        "events": "0"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TASK-RACE-ONE-AUDIT",
+      "story_ids": [
+        "LD-027",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TASK-RACE-ONE-AUDIT"
+      },
+      "steps": [
+        "Two authenticated clients complete same task version0 concurrently"
+      ],
+      "expected_results": "200/409 and exactly1audit",
+      "actual": {
+        "statuses": [
+          200,
+          409
+        ],
+        "events": "1"
+      },
+      "status": "PASS"
+    }
+  ]
+}

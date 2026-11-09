@@ -1,0 +1,692 @@
+{
+  "tested_sha": "1e5f3404a8866723f4dcd3da9ba9b3ce596ed3ad",
+  "scope": "Independent read-only live UAT dashboard reconciliation and browser checks; no developer tests",
+  "counts": {
+    "PASS": 27,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "DASHBOARD-ROLE-admin",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-ROLE-admin",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Status agrees with approved account REPORT_VIEW; exact runtime SHA",
+      "status": "PASS",
+      "actual": {
+        "http_status": 200,
+        "report_view": true,
+        "release": "1e5f3404a8866723f4dcd3da9ba9b3ce596ed3ad"
+      }
+    },
+    {
+      "id": "DASHBOARD-ROLE-manager",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-ROLE-manager",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Status agrees with approved account REPORT_VIEW; exact runtime SHA",
+      "status": "PASS",
+      "actual": {
+        "http_status": 200,
+        "report_view": true,
+        "release": "1e5f3404a8866723f4dcd3da9ba9b3ce596ed3ad"
+      }
+    },
+    {
+      "id": "DASHBOARD-ROLE-staff",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-ROLE-staff",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Status agrees with approved account REPORT_VIEW; exact runtime SHA",
+      "status": "PASS",
+      "actual": {
+        "http_status": 403,
+        "report_view": false,
+        "release": "1e5f3404a8866723f4dcd3da9ba9b3ce596ed3ad"
+      }
+    },
+    {
+      "id": "DASHBOARD-ROLE-viewer",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-ROLE-viewer",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Status agrees with approved account REPORT_VIEW; exact runtime SHA",
+      "status": "PASS",
+      "actual": {
+        "http_status": 403,
+        "report_view": false,
+        "release": "1e5f3404a8866723f4dcd3da9ba9b3ce596ed3ad"
+      }
+    },
+    {
+      "id": "DASHBOARD-CASE-TOTAL",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-CASE-TOTAL",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Dashboard total/open/closed equal persisted case records",
+      "status": "PASS",
+      "actual": {
+        "total": 90,
+        "closed": 14,
+        "open": 76
+      }
+    },
+    {
+      "id": "DASHBOARD-STATUS-OPEN",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-STATUS-OPEN",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Count matches source case status",
+      "status": "PASS",
+      "actual": {
+        "count": 48
+      }
+    },
+    {
+      "id": "DASHBOARD-STATUS-ACTIVE",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-STATUS-ACTIVE",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Count matches source case status",
+      "status": "PASS",
+      "actual": {
+        "count": 24
+      }
+    },
+    {
+      "id": "DASHBOARD-STATUS-SUSPENDED",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-STATUS-SUSPENDED",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Count matches source case status",
+      "status": "PASS",
+      "actual": {
+        "count": 4
+      }
+    },
+    {
+      "id": "DASHBOARD-STATUS-CLOSED",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-STATUS-CLOSED",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Count matches source case status",
+      "status": "PASS",
+      "actual": {
+        "count": 7
+      }
+    },
+    {
+      "id": "DASHBOARD-STATUS-ARCHIVED",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-STATUS-ARCHIVED",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Count matches source case status",
+      "status": "PASS",
+      "actual": {
+        "count": 7
+      }
+    },
+    {
+      "id": "DASHBOARD-TYPE-CIVIL",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-TYPE-CIVIL",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Count matches source case type",
+      "status": "PASS",
+      "actual": {
+        "count": 90
+      }
+    },
+    {
+      "id": "DASHBOARD-TYPE-CRIMINAL",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-TYPE-CRIMINAL",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Count matches source case type",
+      "status": "PASS",
+      "actual": {
+        "count": 0
+      }
+    },
+    {
+      "id": "DASHBOARD-TYPE-COMMERCIAL",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-TYPE-COMMERCIAL",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Count matches source case type",
+      "status": "PASS",
+      "actual": {
+        "count": 0
+      }
+    },
+    {
+      "id": "DASHBOARD-TYPE-LABOR",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-TYPE-LABOR",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Count matches source case type",
+      "status": "PASS",
+      "actual": {
+        "count": 0
+      }
+    },
+    {
+      "id": "DASHBOARD-TYPE-FAMILY",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-TYPE-FAMILY",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Count matches source case type",
+      "status": "PASS",
+      "actual": {
+        "count": 0
+      }
+    },
+    {
+      "id": "DASHBOARD-TYPE-ADMINISTRATIVE",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-TYPE-ADMINISTRATIVE",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Count matches source case type",
+      "status": "PASS",
+      "actual": {
+        "count": 0
+      }
+    },
+    {
+      "id": "DASHBOARD-STAGE-FIRST_INSTANCE",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-STAGE-FIRST_INSTANCE",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Total and awaiting judgment match persisted proceedings",
+      "status": "PASS",
+      "actual": {
+        "total": 54,
+        "awaiting": 5
+      }
+    },
+    {
+      "id": "DASHBOARD-STAGE-APPEAL",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-STAGE-APPEAL",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Total and awaiting judgment match persisted proceedings",
+      "status": "PASS",
+      "actual": {
+        "total": 31,
+        "awaiting": 7
+      }
+    },
+    {
+      "id": "DASHBOARD-STAGE-CASSATION",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-STAGE-CASSATION",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Total and awaiting judgment match persisted proceedings",
+      "status": "PASS",
+      "actual": {
+        "total": 14,
+        "awaiting": 14
+      }
+    },
+    {
+      "id": "DASHBOARD-JUDGMENTS",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-JUDGMENTS",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Period totals/finality/outcomes match persisted judgments",
+      "status": "PASS",
+      "actual": {
+        "recorded": 73,
+        "final": 0
+      }
+    },
+    {
+      "id": "DASHBOARD-UI-en-320",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-UI-en-320",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Live data, no obsolete sample claim, correct direction, contained layout and no axe A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "en",
+        "dir": "ltr",
+        "width": 320,
+        "viewport": 320
+      }
+    },
+    {
+      "id": "DASHBOARD-UI-en-375",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-UI-en-375",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Live data, no obsolete sample claim, correct direction, contained layout and no axe A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "en",
+        "dir": "ltr",
+        "width": 375,
+        "viewport": 375
+      }
+    },
+    {
+      "id": "DASHBOARD-UI-en-1366",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-UI-en-1366",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Live data, no obsolete sample claim, correct direction, contained layout and no axe A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "en",
+        "dir": "ltr",
+        "width": 1366,
+        "viewport": 1366
+      }
+    },
+    {
+      "id": "DASHBOARD-UI-ar-320",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-UI-ar-320",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Live data, no obsolete sample claim, correct direction, contained layout and no axe A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "ar",
+        "dir": "rtl",
+        "width": 320,
+        "viewport": 320
+      }
+    },
+    {
+      "id": "DASHBOARD-UI-ar-375",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-UI-ar-375",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Live data, no obsolete sample claim, correct direction, contained layout and no axe A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "ar",
+        "dir": "rtl",
+        "width": 375,
+        "viewport": 375
+      }
+    },
+    {
+      "id": "DASHBOARD-UI-ar-1366",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-UI-ar-1366",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Live data, no obsolete sample claim, correct direction, contained layout and no axe A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "ar",
+        "dir": "rtl",
+        "width": 1366,
+        "viewport": 1366
+      }
+    },
+    {
+      "id": "DASHBOARD-RELEASE-END",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved UAT accounts; independently attested release",
+        "Stable dataset while collecting aggregate reads"
+      ],
+      "test_data": {
+        "namespace": "Read-only UAT records; no record contents published"
+      },
+      "steps": [
+        "Authenticate approved account",
+        "Execute DASHBOARD-RELEASE-END",
+        "Compare persisted source records with dashboard aggregates"
+      ],
+      "expected_results": "Same runtime SHA and unchanged aggregate case total at end",
+      "status": "PASS",
+      "actual": {
+        "release": "1e5f3404a8866723f4dcd3da9ba9b3ce596ed3ad"
+      }
+    }
+  ]
+}

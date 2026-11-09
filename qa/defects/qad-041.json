@@ -1,0 +1,60 @@
+{
+  "reported_utc": "2026-10-25T13:54:17.408746+00:00",
+  "status": "FIX_VERIFIED_INDEPENDENT_LOCAL_AND_UAT",
+  "affected": [
+    "2d07a222189f82ddeacf74fdcd28165980cea85d"
+  ],
+  "owner": "Claude remediation; Codex independent verification",
+  "no_real_records_modified": true,
+  "recommendation": "APPROVE_FIX_SCOPE",
+  "id": "QAD-041",
+  "severity": "S3",
+  "priority": "P2",
+  "story_ids": [
+    "LD-018",
+    "LD-024",
+    "LD-027"
+  ],
+  "title": "Valid high page offset returns500 on JPA lists",
+  "environment": "Confirmed independently in canonical local PostgreSQL/JAR and paced authenticated UAT GETs",
+  "preconditions": [
+    "Authorized QA user for list",
+    "Owned case for case-hearing route"
+  ],
+  "test_data": {
+    "page": 2147483647,
+    "size": 100
+  },
+  "steps": [
+    "Authenticate approved QA admin and attest /api/v1/release",
+    "GET /api/v1/courts?page=2147483647&size=100",
+    "Repeat for /api/v1/hearings,/api/v1/tasks,/api/v1/cases/{ownedCaseId}/hearings"
+  ],
+  "expected": "200 empty page under declared valid range, or documented validation400 if a safe combined offset bound is introduced; never500",
+  "actual": "500 on4routes. Other14pagedroutes return200empty for same boundary. Empty/whitespace/size101rejection works onall18.",
+  "cause": "JPA PageableUtils requires page*size<=Integer.MAX_VALUE; interceptor validates each parameter independently. InvalidDataAccessApiUsageException: Page offset exceeds Integer.MAX_VALUE (2147483647).",
+  "evidence": [
+    "qa/evidence/pr54-retest-20261025/policy/results.json",
+    "qa/evidence/pr54-retest-20261025/paging-pdf-uat/results.json",
+    "qa/evidence/pr54-retest-20261025/pagination-cause.json"
+  ],
+  "retest": [
+    "All18lists invalid/default/boundaries",
+    "Combined offset boundary and next value",
+    "Authorization beforevalidation",
+    "No500or exception leakage"
+  ],
+  "independent_retests": [
+    {
+      "utc": "2026-10-25T15:44:23.101302+00:00",
+      "previous_status": "CONFIRMED_OPEN",
+      "tested_sha": "1e74945961a77fcf5a67fc26f3a51d0715660628",
+      "status": "FIX_VERIFIED_INDEPENDENT_LOCAL_AND_UAT",
+      "note": "18pagedroutes: empty/whitespace/size>100400; combined-offsetMax400, exactINTMAX accepted empty200; defaults/duplicates/authorization verified.",
+      "evidence": [
+        "qa/evidence/pr57-final-retest-20261025/policy/results.json",
+        "qa/evidence/pr57-final-retest-20261025/phase56-uat/results.json"
+      ]
+    }
+  ]
+}

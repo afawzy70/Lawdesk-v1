@@ -1,0 +1,401 @@
+{
+  "expected_deployed_sha": "bdd9d4249fa246aca6cc1f1aef4cd7b6c5a9481e",
+  "counts": {
+    "PASS": 0,
+    "FAIL": 0,
+    "BLOCKED": 8,
+    "NOT_RUN": 13
+  },
+  "tests": [
+    {
+      "id": "REMAINING-MULTIBROWSER-DEVICES",
+      "story_ids": [
+        "LD-035",
+        "LD-036"
+      ],
+      "priority": "P2",
+      "preconditions": [
+        "Firefox/WebKit and real mobile device runtimes"
+      ],
+      "test_data": "Own QA case and four roles",
+      "steps": [
+        "Repeat essential login, case and judicial journeys on each available browser/device"
+      ],
+      "expected_results": "Equivalent functionality and readable layout; current Chromium results cannot be transferred",
+      "status": "NOT_RUN",
+      "note": "Not executed in this live UAT round; no PASS inferred from prior local tests"
+    },
+    {
+      "id": "REMAINING-MANUAL-ACCESSIBILITY-LOCALIZATION",
+      "story_ids": [
+        "LD-035",
+        "LD-036",
+        "LD-037"
+      ],
+      "priority": "P2",
+      "preconditions": [
+        "Screen reader and detailed bilingual review session"
+      ],
+      "test_data": "Arabic/English forms, errors, tables, chronology labels",
+      "steps": [
+        "Review announcements, reading order, terminology and every essential control manually"
+      ],
+      "expected_results": "Accessible and correctly translated screens; axe and menu-keyboard smoke alone are insufficient",
+      "status": "NOT_RUN",
+      "note": "Not executed in this live UAT round; no PASS inferred from prior local tests"
+    },
+    {
+      "id": "REMAINING-EXHAUSTIVE-PERMISSION-PERMUTATIONS",
+      "story_ids": [
+        "LD-009",
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Isolated owned custom roles and fixtures; separate sessions"
+      ],
+      "test_data": "Every individual permission, endpoint verb, malformed identifier and grant combination",
+      "steps": [
+        "Extend focused four-role matrix to all permutations and object-boundary cases"
+      ],
+      "expected_results": "No unauthorized reads/writes or privilege escalation",
+      "status": "NOT_RUN",
+      "note": "Not executed in this live UAT round; no PASS inferred from prior local tests"
+    },
+    {
+      "id": "REMAINING-LAST-ADMIN-CONCURRENCY-ISOLATED",
+      "story_ids": [
+        "LD-009"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Disposable local database; do not change the four approved UAT accounts or seeded roles"
+      ],
+      "test_data": "Two synthetic enabled ADMIN accounts and concurrent removals",
+      "steps": [
+        "Race role removal/disable in disposable environment and inspect committed rows"
+      ],
+      "expected_results": "At least one enabled administrator remains; no mutation of UAT administrator population",
+      "status": "NOT_RUN",
+      "note": "Not executed in this live UAT round; no PASS inferred from prior local tests"
+    },
+    {
+      "id": "REMAINING-UAT-DATABASE-FAULT-INJECTION",
+      "story_ids": [
+        "LD-003",
+        "LD-012",
+        "LD-014",
+        "LD-019"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Separate disposable database at current SHA; fault injection must not target shared UAT"
+      ],
+      "test_data": "Trigger/transaction failures and constraints",
+      "steps": [
+        "Force event persistence failure and inspect database rollback",
+        "compare with live API integrity results"
+      ],
+      "expected_results": "Business data, counters and history roll back atomically; current live tests use persisted API reads, not direct DB proof",
+      "status": "NOT_RUN",
+      "note": "Not executed in this live UAT round; no PASS inferred from prior local tests"
+    },
+    {
+      "id": "REMAINING-JUDICIAL-HIGH-CARDINALITY",
+      "story_ids": [
+        "LD-018",
+        "LD-019",
+        "LD-020",
+        "LD-021",
+        "LD-022",
+        "LD-023"
+      ],
+      "priority": "P2",
+      "preconditions": [
+        "Dedicated synthetic dataset beyond100 rows without touching real records"
+      ],
+      "test_data": "101 active courts per level or101 proceedings/judgments/decisions",
+      "steps": [
+        "Verify all choices/records remain reachable beyond the first100",
+        "inspect pagination"
+      ],
+      "expected_results": "No silent omission; current frontend fetches size100 and uses items only, an unexecuted boundary risk",
+      "status": "NOT_RUN",
+      "note": "Not executed in this live UAT round; no PASS inferred from prior local tests"
+    },
+    {
+      "id": "PR32-DEPLOYED-INTEGRATION",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Candidate independently reviewed, then installed through owner-approved deployment by implementation owner"
+      ],
+      "test_data": "New unique QA records",
+      "steps": [
+        "Attest /api/v1/release against deployment SHA",
+        "Repeat feature-specific API and browser journeys against deployed integrated build"
+      ],
+      "expected_results": "Same authorized behavior and integrity on actual integrated deployment",
+      "status": "BLOCKED",
+      "reason": "Current deployed SHA does not contain this PR; local tests cannot substitute for signed-in deployed acceptance"
+    },
+    {
+      "id": "PR33-DEPLOYED-INTEGRATION",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Candidate independently reviewed, then installed through owner-approved deployment by implementation owner"
+      ],
+      "test_data": "New unique QA records",
+      "steps": [
+        "Attest /api/v1/release against deployment SHA",
+        "Repeat feature-specific API and browser journeys against deployed integrated build"
+      ],
+      "expected_results": "Same authorized behavior and integrity on actual integrated deployment",
+      "status": "BLOCKED",
+      "reason": "Current deployed SHA does not contain this PR; local tests cannot substitute for signed-in deployed acceptance"
+    },
+    {
+      "id": "PR34-DEPLOYED-INTEGRATION",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Candidate independently reviewed, then installed through owner-approved deployment by implementation owner"
+      ],
+      "test_data": "New unique QA records",
+      "steps": [
+        "Attest /api/v1/release against deployment SHA",
+        "Repeat feature-specific API and browser journeys against deployed integrated build"
+      ],
+      "expected_results": "Same authorized behavior and integrity on actual integrated deployment",
+      "status": "BLOCKED",
+      "reason": "Current deployed SHA does not contain this PR; local tests cannot substitute for signed-in deployed acceptance"
+    },
+    {
+      "id": "PR35-DEPLOYED-INTEGRATION",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Candidate independently reviewed, then installed through owner-approved deployment by implementation owner"
+      ],
+      "test_data": "New unique QA records",
+      "steps": [
+        "Attest /api/v1/release against deployment SHA",
+        "Repeat feature-specific API and browser journeys against deployed integrated build"
+      ],
+      "expected_results": "Same authorized behavior and integrity on actual integrated deployment",
+      "status": "BLOCKED",
+      "reason": "Current deployed SHA does not contain this PR; local tests cannot substitute for signed-in deployed acceptance"
+    },
+    {
+      "id": "PR36-DEPLOYED-INTEGRATION",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Candidate independently reviewed, then installed through owner-approved deployment by implementation owner"
+      ],
+      "test_data": "New unique QA records",
+      "steps": [
+        "Attest /api/v1/release against deployment SHA",
+        "Repeat feature-specific API and browser journeys against deployed integrated build"
+      ],
+      "expected_results": "Same authorized behavior and integrity on actual integrated deployment",
+      "status": "BLOCKED",
+      "reason": "Current deployed SHA does not contain this PR; local tests cannot substitute for signed-in deployed acceptance"
+    },
+    {
+      "id": "PR37-DEPLOYED-INTEGRATION",
+      "story_ids": [
+        "LD-027",
+        "LD-028"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Candidate independently reviewed, then installed through owner-approved deployment by implementation owner"
+      ],
+      "test_data": "New unique QA records",
+      "steps": [
+        "Attest /api/v1/release against deployment SHA",
+        "Repeat feature-specific API and browser journeys against deployed integrated build"
+      ],
+      "expected_results": "Same authorized behavior and integrity on actual integrated deployment",
+      "status": "BLOCKED",
+      "reason": "Current deployed SHA does not contain this PR; local tests cannot substitute for signed-in deployed acceptance"
+    },
+    {
+      "id": "PR38-DEPLOYED-INTEGRATION",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Candidate independently reviewed, then installed through owner-approved deployment by implementation owner"
+      ],
+      "test_data": "New unique QA records",
+      "steps": [
+        "Attest /api/v1/release against deployment SHA",
+        "Repeat feature-specific API and browser journeys against deployed integrated build"
+      ],
+      "expected_results": "Same authorized behavior and integrity on actual integrated deployment",
+      "status": "BLOCKED",
+      "reason": "Current deployed SHA does not contain this PR; local tests cannot substitute for signed-in deployed acceptance"
+    },
+    {
+      "id": "LD-025-FULL-JOURNEY",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Complete implementation available at known SHA"
+      ],
+      "test_data": "Synthetic QA owned records only",
+      "steps": [
+        "Execute complete approved story API/browser/integrity criteria"
+      ],
+      "expected_results": "Full story behavior verified independently",
+      "status": "NOT_RUN",
+      "note": "Full implementation absent from reviewed candidates; LD026 transport-only PR38 does not establish PDF storage/limit/download acceptance. LD034 report filters alone do not establish exports."
+    },
+    {
+      "id": "LD-026-FULL-JOURNEY",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Complete implementation available at known SHA"
+      ],
+      "test_data": "Synthetic QA owned records only",
+      "steps": [
+        "Execute complete approved story API/browser/integrity criteria"
+      ],
+      "expected_results": "Full story behavior verified independently",
+      "status": "NOT_RUN",
+      "note": "Full implementation absent from reviewed candidates; LD026 transport-only PR38 does not establish PDF storage/limit/download acceptance. LD034 report filters alone do not establish exports."
+    },
+    {
+      "id": "LD-029-FULL-JOURNEY",
+      "story_ids": [
+        "LD-029"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Complete implementation available at known SHA"
+      ],
+      "test_data": "Synthetic QA owned records only",
+      "steps": [
+        "Execute complete approved story API/browser/integrity criteria"
+      ],
+      "expected_results": "Full story behavior verified independently",
+      "status": "NOT_RUN",
+      "note": "Full implementation absent from reviewed candidates; LD026 transport-only PR38 does not establish PDF storage/limit/download acceptance. LD034 report filters alone do not establish exports."
+    },
+    {
+      "id": "LD-033-FULL-JOURNEY",
+      "story_ids": [
+        "LD-033"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Complete implementation available at known SHA"
+      ],
+      "test_data": "Synthetic QA owned records only",
+      "steps": [
+        "Execute complete approved story API/browser/integrity criteria"
+      ],
+      "expected_results": "Full story behavior verified independently",
+      "status": "NOT_RUN",
+      "note": "Full implementation absent from reviewed candidates; LD026 transport-only PR38 does not establish PDF storage/limit/download acceptance. LD034 report filters alone do not establish exports."
+    },
+    {
+      "id": "LD-034-FULL-JOURNEY",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Complete implementation available at known SHA"
+      ],
+      "test_data": "Synthetic QA owned records only",
+      "steps": [
+        "Execute complete approved story API/browser/integrity criteria"
+      ],
+      "expected_results": "Full story behavior verified independently",
+      "status": "NOT_RUN",
+      "note": "CSV executed on PR39 with real browser download and row-cap checks; full story XLSX/PDF and export audit-failure injection remain NOT_RUN."
+    },
+    {
+      "id": "TASKS-UI-SUBMISSIONS",
+      "story_ids": [
+        "LD-027"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact local candidate with isolated fixtures"
+      ],
+      "test_data": "QA fixtures",
+      "steps": [
+        "Submit each feature-specific form and verify actual API persistence/filter response"
+      ],
+      "expected_results": "Browser submissions work including errors and reloads",
+      "status": "NOT_RUN",
+      "note": "API and real-data layout checks executed; detailed interactive forms not covered by this run."
+    },
+    {
+      "id": "JUDGMENTS-UI-FILTER-SUBMISSIONS",
+      "story_ids": [
+        "LD-032"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact local candidate with isolated fixtures"
+      ],
+      "test_data": "QA fixtures",
+      "steps": [
+        "Submit each feature-specific form and verify actual API persistence/filter response"
+      ],
+      "expected_results": "Browser submissions work including errors and reloads",
+      "status": "NOT_RUN",
+      "note": "API and real-data layout checks executed; detailed interactive forms not covered by this run."
+    },
+    {
+      "id": "PR39-DEPLOYED-INTEGRATION",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Candidate independently reviewed, then installed through owner-approved deployment by implementation owner"
+      ],
+      "test_data": "New unique QA records",
+      "steps": [
+        "Attest /api/v1/release against deployment SHA",
+        "Repeat feature-specific API and browser journeys against deployed integrated build"
+      ],
+      "expected_results": "Same authorized behavior and integrity on actual integrated deployment",
+      "status": "BLOCKED",
+      "reason": "Current deployed SHA does not contain this PR; local tests cannot substitute for signed-in deployed acceptance"
+    }
+  ],
+  "historical_baseline": "qa/reports/baseline-open-findings.json is unchanged; these focused gaps do not replace all351 baseline cases",
+  "note": "Carried forward explicitly; local Phase5 fault injection does not execute these Phase2–4 UAT follow-ups."
+}

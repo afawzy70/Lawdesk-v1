@@ -1,0 +1,174 @@
+{
+  "tested_sha": "fb60c26884fc6ca25143526bc6edcf857716bf22",
+  "utc": "2026-10-24T15:22:48.251738+00:00",
+  "candidate": "/tmp/lawdesk-followup-pr33-fb60c268",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 2,
+    "FAIL": 2,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "b286bc48-751c-452b-87c0-2b1bccbd1b17",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-24T15:22:46.950148Z",
+          "updatedAt": "2026-10-24T15:22:46.950148Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-HEARING",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-HEARING"
+      },
+      "steps": [
+        "POST /api/v1/proceedings/28741dee-65af-430e-88b0-621082bfd66e/hearings",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "45a44c09-7c29-4d1c-a49d-2a91fe57afcd",
+          "caseId": "d59c3fc7-7e0a-4c8a-8d67-6ef8ceb6c43b",
+          "caseReferenceNo": "QA56-001",
+          "caseTitle": "QA phase56",
+          "proceedingId": "28741dee-65af-430e-88b0-621082bfd66e",
+          "stage": "FIRST_INSTANCE",
+          "courtId": "b286bc48-751c-452b-87c0-2b1bccbd1b17",
+          "courtCode": "QA-PH56",
+          "courtNameAr": "محكمة اختبار",
+          "courtNameEn": "QA Court",
+          "courtCaseNumber": "QA2",
+          "courtCaseYear": 2026,
+          "hearingDate": "2026-01-03",
+          "hearingTime": null,
+          "purpose": "PLEADING",
+          "notes": null,
+          "status": "SCHEDULED",
+          "decision": null,
+          "adjournedFromId": null,
+          "nextHearingId": null,
+          "awaitingResult": true,
+          "version": 0,
+          "createdAt": "2026-10-24T15:22:47.726686Z",
+          "updatedAt": "2026-10-24T15:22:47.726686Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-PARENT-EDIT",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-PARENT-EDIT"
+      },
+      "steps": [
+        "PUT /api/v1/proceedings/28741dee-65af-430e-88b0-621082bfd66e",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "id": "28741dee-65af-430e-88b0-621082bfd66e",
+          "caseId": "d59c3fc7-7e0a-4c8a-8d67-6ef8ceb6c43b",
+          "stage": "FIRST_INSTANCE",
+          "courtId": "b286bc48-751c-452b-87c0-2b1bccbd1b17",
+          "courtCode": "QA-PH56",
+          "courtNameAr": "محكمة اختبار",
+          "courtNameEn": "QA Court",
+          "courtCaseNumber": "QA2",
+          "courtCaseYear": 2026,
+          "filingDate": "2026-01-04",
+          "parentProceedingId": null,
+          "hasJudgment": false,
+          "version": 1,
+          "createdAt": "2026-10-24T15:22:47.557944Z",
+          "updatedAt": "2026-10-24T15:22:48.092186Z"
+        }
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "CHRONOLOGY-PERSISTED",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-PERSISTED"
+      },
+      "steps": [
+        "Read persisted proceeding/hearing pair after parent edit"
+      ],
+      "expected_results": "No hearing before its proceeding filing date",
+      "actual": {
+        "filingDate": "2026-01-04",
+        "hearingDate": "2026-01-03"
+      },
+      "status": "FAIL"
+    }
+  ]
+}

@@ -1,0 +1,175 @@
+{
+  "tested_sha": "32724ae88983ac72a43d49d7f3a8db3e253a989e",
+  "utc": "2026-10-23T17:56:11.684651+00:00",
+  "scope": "Independent failure injection against unchanged real shell scripts; NOT real-container or deployed rollback verification.",
+  "results": [
+    {
+      "id": "SMOKE-CONTROL",
+      "baseline_case_ids": [
+        "QA-0046",
+        "QA-0048"
+      ],
+      "preconditions": [
+        "Docker and wget are QA transport doubles; real candidate smoke shell executes unchanged."
+      ],
+      "test_data": {},
+      "steps": [
+        "Execute deploy/scripts/smoke.sh with controlled response fixture."
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "ok   /healthz\nok   /\nok   readiness UP\nok   /api/v1/cases -> 401\nok   /actuator/env -> 404\n",
+      "stderr": "",
+      "status": "PASS"
+    },
+    {
+      "id": "SMOKE-READINESS-DOWN",
+      "baseline_case_ids": [
+        "QA-0046",
+        "QA-0048"
+      ],
+      "preconditions": [
+        "Docker and wget are QA transport doubles; real candidate smoke shell executes unchanged."
+      ],
+      "test_data": {
+        "QA_READINESS": "DOWN"
+      },
+      "steps": [
+        "Execute deploy/scripts/smoke.sh with controlled response fixture."
+      ],
+      "expected_exit": "nonzero",
+      "actual_exit": 1,
+      "stdout": "ok   /healthz\nok   /\n",
+      "stderr": "FAIL readiness is not UP\n",
+      "status": "PASS"
+    },
+    {
+      "id": "SMOKE-UNAUTHORIZED-API-200",
+      "baseline_case_ids": [
+        "QA-0046",
+        "QA-0048"
+      ],
+      "preconditions": [
+        "Docker and wget are QA transport doubles; real candidate smoke shell executes unchanged."
+      ],
+      "test_data": {
+        "QA_API_STATUS": "200"
+      },
+      "steps": [
+        "Execute deploy/scripts/smoke.sh with controlled response fixture."
+      ],
+      "expected_exit": "nonzero",
+      "actual_exit": 1,
+      "stdout": "ok   /healthz\nok   /\nok   readiness UP\n",
+      "stderr": "FAIL /api/v1/cases -> 200, expected 401\n",
+      "status": "PASS"
+    },
+    {
+      "id": "REDEPLOY-CURRENT-FAILS",
+      "baseline_case_ids": [
+        "QA-0046"
+      ],
+      "preconditions": [
+        "QA-only state directory; real script; Docker calls recorded, never executed."
+      ],
+      "test_data": {
+        "current": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "previous": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "requested": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "failed_up": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "steps": [
+        "Seed current B and previous A.",
+        "Redeploy B and force its up --wait to fail.",
+        "Inspect whether previous A is started."
+      ],
+      "expected": "Exit1 after restoring healthy previous A; no lost release state.",
+      "actual": {
+        "exit": 1,
+        "current": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "rolled_back": true,
+        "stderr": "2026-10-23T17:56:11Z deploying bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb (current: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb)\n2026-10-23T17:56:11Z failed bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\n2026-10-23T17:56:11Z rolled back to aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n",
+        "docker_calls": [
+          {
+            "args": [
+              "compose",
+              "-p",
+              "lawdesk-staging",
+              "-f",
+              "/tmp/lawdesk-qa-pr7-32724ae88983/deploy/compose.yaml",
+              "pull",
+              "backend",
+              "web"
+            ],
+            "tag": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          {
+            "args": [
+              "compose",
+              "-p",
+              "lawdesk-staging",
+              "-f",
+              "/tmp/lawdesk-qa-pr7-32724ae88983/deploy/compose.yaml",
+              "up",
+              "-d",
+              "--wait",
+              "--wait-timeout",
+              "240"
+            ],
+            "tag": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          {
+            "args": [
+              "compose",
+              "-p",
+              "lawdesk-staging",
+              "-f",
+              "/tmp/lawdesk-qa-pr7-32724ae88983/deploy/compose.yaml",
+              "pull",
+              "backend",
+              "web"
+            ],
+            "tag": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          {
+            "args": [
+              "compose",
+              "-p",
+              "lawdesk-staging",
+              "-f",
+              "/tmp/lawdesk-qa-pr7-32724ae88983/deploy/compose.yaml",
+              "up",
+              "-d",
+              "--wait",
+              "--wait-timeout",
+              "240"
+            ],
+            "tag": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          {
+            "args": [
+              "compose",
+              "-p",
+              "lawdesk-staging",
+              "-f",
+              "/tmp/lawdesk-qa-pr7-32724ae88983/deploy/compose.yaml",
+              "exec",
+              "-T",
+              "web",
+              "sh",
+              "-euc",
+              "\n    base=http://127.0.0.1:8080\n    fail() { echo \"FAIL $*\" >&2; exit 1; }\n    # busybox wget prints the status in a header line and, on errors, in \"server returned error: HTTP/1.1 401 ...\".\n    status_of() { wget -q -S -O /dev/null \"$base$1\" 2>&1 | grep -o \"HTTP/1\\.[01] [0-9][0-9][0-9]\" | tail -n 1 | cut -d \" \" -f 2; }\n    expect_ok() { wget -q -O /dev/null \"$base$1\" || fail \"$1 is not reachable with a 2xx status\"; echo \"ok   $1\"; }\n    expect_status() {\n        actual=$(status_of \"$1\")\n        [ \"$actual\" = \"$2\" ] || fail \"$1 -> ${actual:-no response}, expected $2\"\n        echo \"ok   $1 -> $2\"\n    }\n    expect_ok /healthz\n    expect_ok /\n    readiness=$(wget -q -O - \"$base/actuator/health/readiness\") || fail \"readiness is not reachable with a 2xx status\"\n    case \"$readiness\" in\n        *\"\\\"status\\\":\\\"UP\\\"\"*) echo \"ok   readiness UP\" ;;\n        *) fail \"readiness is not UP\" ;;\n    esac\n    expect_status /api/v1/cases 401\n    expect_status /actuator/env 404\n"
+            ],
+            "tag": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        ]
+      },
+      "status": "PASS"
+    }
+  ],
+  "counts": {
+    "PASS": 4,
+    "FAIL": 0,
+    "BLOCKED": 0
+  }
+}

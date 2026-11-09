@@ -1,0 +1,166 @@
+{
+  "tested_sha": "c0da6910884a7e85ee17e80a78416aac51de216c",
+  "utc": "2026-10-23T15:41:35.626908+00:00",
+  "scope": "Independent failure injection against unchanged real shell scripts; NOT real-container or deployed rollback verification.",
+  "results": [
+    {
+      "id": "SMOKE-CONTROL",
+      "baseline_case_ids": [
+        "QA-0046",
+        "QA-0048"
+      ],
+      "preconditions": [
+        "Docker and wget are QA transport doubles; real candidate smoke shell executes unchanged."
+      ],
+      "test_data": {
+        "candidate_sha": "c0da6910884a7e85ee17e80a78416aac51de216c",
+        "fixture": "documented synthetic default"
+      },
+      "steps": [
+        "Execute deploy/scripts/smoke.sh with controlled response fixture."
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "ok   /healthz\nok   /\nok   readiness UP\nok   /api/v1/cases -> 401\nok   /actuator/env -> 404\n",
+      "stderr": "",
+      "status": "PASS",
+      "priority": "P0",
+      "story_ids": [
+        "LD-006"
+      ],
+      "traceability": "Proposed Phase1 LD-006",
+      "expected_results": [
+        "Assertion completes without forbidden persistence or scope change."
+      ]
+    },
+    {
+      "id": "SMOKE-READINESS-DOWN",
+      "baseline_case_ids": [
+        "QA-0046",
+        "QA-0048"
+      ],
+      "preconditions": [
+        "Docker and wget are QA transport doubles; real candidate smoke shell executes unchanged."
+      ],
+      "test_data": {
+        "QA_READINESS": "DOWN"
+      },
+      "steps": [
+        "Execute deploy/scripts/smoke.sh with controlled response fixture."
+      ],
+      "expected_exit": "nonzero",
+      "actual_exit": 0,
+      "stdout": "ok   /healthz\nok   /\nok   /api/v1/cases -> 401\nok   /actuator/env -> 404\n",
+      "stderr": "",
+      "status": "FAIL",
+      "priority": "P0",
+      "story_ids": [
+        "LD-006"
+      ],
+      "traceability": "Proposed Phase1 LD-006",
+      "expected_results": [
+        "Assertion completes without forbidden persistence or scope change."
+      ]
+    },
+    {
+      "id": "SMOKE-UNAUTHORIZED-API-200",
+      "baseline_case_ids": [
+        "QA-0046",
+        "QA-0048"
+      ],
+      "preconditions": [
+        "Docker and wget are QA transport doubles; real candidate smoke shell executes unchanged."
+      ],
+      "test_data": {
+        "QA_API_STATUS": "200"
+      },
+      "steps": [
+        "Execute deploy/scripts/smoke.sh with controlled response fixture."
+      ],
+      "expected_exit": "nonzero",
+      "actual_exit": 0,
+      "stdout": "ok   /healthz\nok   /\nok   readiness UP\nok   /actuator/env -> 404\n",
+      "stderr": "",
+      "status": "FAIL",
+      "priority": "P0",
+      "story_ids": [
+        "LD-006"
+      ],
+      "traceability": "Proposed Phase1 LD-006",
+      "expected_results": [
+        "Assertion completes without forbidden persistence or scope change."
+      ]
+    },
+    {
+      "id": "REDEPLOY-CURRENT-FAILS",
+      "baseline_case_ids": [
+        "QA-0046"
+      ],
+      "preconditions": [
+        "QA-only state directory; real script; Docker calls recorded, never executed."
+      ],
+      "test_data": {
+        "current": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "previous": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "requested": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "failed_up": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "steps": [
+        "Seed current B and previous A.",
+        "Redeploy B and force its up --wait to fail.",
+        "Inspect whether previous A is started."
+      ],
+      "expected": "Exit1 after restoring healthy previous A; no lost release state.",
+      "actual": {
+        "exit": 1,
+        "current": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "rolled_back": false,
+        "stderr": "2026-10-23T15:41:35Z deploying bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb (current: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb)\n2026-10-23T15:41:35Z failed bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\ndeploy: no previous release to roll back to; staging needs attention\n",
+        "docker_calls": [
+          {
+            "args": [
+              "compose",
+              "-p",
+              "lawdesk-staging",
+              "-f",
+              "/tmp/lawdesk-qa-pr2-c0da6910884a/deploy/compose.yaml",
+              "pull",
+              "backend",
+              "web"
+            ],
+            "tag": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          {
+            "args": [
+              "compose",
+              "-p",
+              "lawdesk-staging",
+              "-f",
+              "/tmp/lawdesk-qa-pr2-c0da6910884a/deploy/compose.yaml",
+              "up",
+              "-d",
+              "--wait",
+              "--wait-timeout",
+              "240"
+            ],
+            "tag": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        ]
+      },
+      "status": "FAIL",
+      "priority": "P1",
+      "story_ids": [
+        "LD-006"
+      ],
+      "traceability": "Proposed Phase1 LD-006",
+      "expected_results": [
+        "Exit1 after restoring healthy previous A; no lost release state."
+      ]
+    }
+  ],
+  "counts": {
+    "PASS": 1,
+    "FAIL": 3,
+    "BLOCKED": 0
+  }
+}

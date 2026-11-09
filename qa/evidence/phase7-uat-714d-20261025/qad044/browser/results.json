@@ -1,0 +1,266 @@
+{
+  "tested_sha": "714d2f3b0c3ed7239b85c79966426d5fe27d2d1d",
+  "scope": "Independent real browser with 102 synthetic active courts and 101 proceedings; local only",
+  "counts": {
+    "PASS": 0,
+    "FAIL": 8,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "JUDICIAL-COURT-CHOICE-101-en",
+      "story_ids": [
+        "LD-018",
+        "LD-019"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "102 active FIRST_INSTANCE courts in isolated DB",
+        "Real candidate frontend/API and local synthetic ADMIN"
+      ],
+      "test_data": {
+        "caseId": "64a9e0f8-6b89-4be8-9638-59baa853595b",
+        "courtId": "28d471d6-aeeb-4753-96a9-7402281e3dc1",
+        "code": "QA-EDGE-101",
+        "locale": "en"
+      },
+      "steps": [
+        "Read page1 of courts API and confirm target exists",
+        "Open owned case and Record proceeding form",
+        "Inspect all court options and any search/page control",
+        "Select QA-EDGE-101"
+      ],
+      "expected_results": "All active courts reachable; second-page court selectable",
+      "status": "FAIL",
+      "actual": {
+        "api_total": 102,
+        "api_target_present": true,
+        "rendered_court_choices": 100,
+        "target_selectable": false,
+        "form_search_controls": 0,
+        "form_buttons": [
+          "Save",
+          "Cancel"
+        ]
+      }
+    },
+    {
+      "id": "JUDICIAL-COURT-CHOICE-101-ar",
+      "story_ids": [
+        "LD-018",
+        "LD-019"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "102 active FIRST_INSTANCE courts in isolated DB",
+        "Real candidate frontend/API and local synthetic ADMIN"
+      ],
+      "test_data": {
+        "caseId": "64a9e0f8-6b89-4be8-9638-59baa853595b",
+        "courtId": "28d471d6-aeeb-4753-96a9-7402281e3dc1",
+        "code": "QA-EDGE-101",
+        "locale": "ar"
+      },
+      "steps": [
+        "Read page1 of courts API and confirm target exists",
+        "Open owned case and Record proceeding form",
+        "Inspect all court options and any search/page control",
+        "Select QA-EDGE-101"
+      ],
+      "expected_results": "All active courts reachable; second-page court selectable",
+      "status": "FAIL",
+      "actual": {
+        "api_total": 102,
+        "api_target_present": true,
+        "rendered_court_choices": 100,
+        "target_selectable": false,
+        "form_search_controls": 0,
+        "form_buttons": [
+          "حفظ",
+          "إلغاء"
+        ]
+      }
+    },
+    {
+      "id": "JUDICIAL-PROCEEDING-101-ladder-en",
+      "story_ids": [
+        "LD-019"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "101 synthetic first-instance proceedings in owned case",
+        "Real local browser/API/PostgreSQL"
+      ],
+      "test_data": {
+        "caseId": "64a9e0f8-6b89-4be8-9638-59baa853595b",
+        "locale": "en"
+      },
+      "steps": [
+        "GET page1 of owned case proceedings",
+        "Reload case screen",
+        "Read judicial ladder or open hearing/expert form",
+        "Inspect whether second-page proceeding is reachable"
+      ],
+      "expected_results": "Every stored proceeding remains reachable in the ladder and action selectors",
+      "status": "FAIL",
+      "actual": {
+        "api_total": 101,
+        "target_id": "10e155b4-d926-49c8-ba4e-e0895074d1d4",
+        "target_number": "QA-P-101",
+        "rendered_count": 100,
+        "target_reachable": false
+      }
+    },
+    {
+      "id": "JUDICIAL-PROCEEDING-101-hearing-en",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "101 synthetic first-instance proceedings in owned case",
+        "Real local browser/API/PostgreSQL"
+      ],
+      "test_data": {
+        "caseId": "64a9e0f8-6b89-4be8-9638-59baa853595b",
+        "locale": "en"
+      },
+      "steps": [
+        "GET page1 of owned case proceedings",
+        "Reload case screen",
+        "Read judicial ladder or open hearing/expert form",
+        "Inspect whether second-page proceeding is reachable"
+      ],
+      "expected_results": "Every stored proceeding remains reachable in the ladder and action selectors",
+      "status": "FAIL",
+      "actual": {
+        "api_total": 101,
+        "target_id": "10e155b4-d926-49c8-ba4e-e0895074d1d4",
+        "target_number": "QA-P-101",
+        "rendered_count": 100,
+        "target_reachable": false
+      }
+    },
+    {
+      "id": "JUDICIAL-PROCEEDING-101-expert-en",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "101 synthetic first-instance proceedings in owned case",
+        "Real local browser/API/PostgreSQL"
+      ],
+      "test_data": {
+        "caseId": "64a9e0f8-6b89-4be8-9638-59baa853595b",
+        "locale": "en"
+      },
+      "steps": [
+        "GET page1 of owned case proceedings",
+        "Reload case screen",
+        "Read judicial ladder or open hearing/expert form",
+        "Inspect whether second-page proceeding is reachable"
+      ],
+      "expected_results": "Every stored proceeding remains reachable in the ladder and action selectors",
+      "status": "FAIL",
+      "actual": {
+        "api_total": 101,
+        "target_id": "10e155b4-d926-49c8-ba4e-e0895074d1d4",
+        "target_number": "QA-P-101",
+        "rendered_count": 100,
+        "target_reachable": false
+      }
+    },
+    {
+      "id": "JUDICIAL-PROCEEDING-101-ladder-ar",
+      "story_ids": [
+        "LD-019"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "101 synthetic first-instance proceedings in owned case",
+        "Real local browser/API/PostgreSQL"
+      ],
+      "test_data": {
+        "caseId": "64a9e0f8-6b89-4be8-9638-59baa853595b",
+        "locale": "ar"
+      },
+      "steps": [
+        "GET page1 of owned case proceedings",
+        "Reload case screen",
+        "Read judicial ladder or open hearing/expert form",
+        "Inspect whether second-page proceeding is reachable"
+      ],
+      "expected_results": "Every stored proceeding remains reachable in the ladder and action selectors",
+      "status": "FAIL",
+      "actual": {
+        "api_total": 101,
+        "target_id": "10e155b4-d926-49c8-ba4e-e0895074d1d4",
+        "target_number": "QA-P-101",
+        "rendered_count": 100,
+        "target_reachable": false
+      }
+    },
+    {
+      "id": "JUDICIAL-PROCEEDING-101-hearing-ar",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "101 synthetic first-instance proceedings in owned case",
+        "Real local browser/API/PostgreSQL"
+      ],
+      "test_data": {
+        "caseId": "64a9e0f8-6b89-4be8-9638-59baa853595b",
+        "locale": "ar"
+      },
+      "steps": [
+        "GET page1 of owned case proceedings",
+        "Reload case screen",
+        "Read judicial ladder or open hearing/expert form",
+        "Inspect whether second-page proceeding is reachable"
+      ],
+      "expected_results": "Every stored proceeding remains reachable in the ladder and action selectors",
+      "status": "FAIL",
+      "actual": {
+        "api_total": 101,
+        "target_id": "10e155b4-d926-49c8-ba4e-e0895074d1d4",
+        "target_number": "QA-P-101",
+        "rendered_count": 100,
+        "target_reachable": false
+      }
+    },
+    {
+      "id": "JUDICIAL-PROCEEDING-101-expert-ar",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "101 synthetic first-instance proceedings in owned case",
+        "Real local browser/API/PostgreSQL"
+      ],
+      "test_data": {
+        "caseId": "64a9e0f8-6b89-4be8-9638-59baa853595b",
+        "locale": "ar"
+      },
+      "steps": [
+        "GET page1 of owned case proceedings",
+        "Reload case screen",
+        "Read judicial ladder or open hearing/expert form",
+        "Inspect whether second-page proceeding is reachable"
+      ],
+      "expected_results": "Every stored proceeding remains reachable in the ladder and action selectors",
+      "status": "FAIL",
+      "actual": {
+        "api_total": 101,
+        "target_id": "10e155b4-d926-49c8-ba4e-e0895074d1d4",
+        "target_number": "QA-P-101",
+        "rendered_count": 100,
+        "target_reachable": false
+      }
+    }
+  ]
+}

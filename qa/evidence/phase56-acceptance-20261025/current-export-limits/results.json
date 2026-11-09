@@ -1,0 +1,452 @@
+{
+  "tested_sha": "b849b1cabcbebd4df058e4ab989d1e8c1a562899",
+  "utc": "2026-10-25T09:39:04.340190+00:00",
+  "candidate": "/tmp/lawdesk-acceptance-20261025-phase6-current",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 13,
+    "FAIL": 3,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "01fdbbd3-1be2-48a3-bf5e-2c4f3b0d9744",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-25T09:38:41.857219Z",
+          "updatedAt": "2026-10-25T09:38:41.857219Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "NEW-EXPORT-CAP10000-hearings",
+      "story_ids": [
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "NEW-EXPORT-CAP10000-hearings"
+      },
+      "steps": [
+        "Insert exactly10000 local report rows -> requestCSV -> independently parse"
+      ],
+      "expected_results": "200 and10000data rows",
+      "actual": {
+        "status": 200,
+        "rows": 10000,
+        "elapsed_seconds": 0.301
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "NEW-EXPORT-CAP10001-hearings-csv",
+      "story_ids": [
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "NEW-EXPORT-CAP10001-hearings-csv"
+      },
+      "steps": [
+        "Add10001st record -> request csv"
+      ],
+      "expected_results": "422 EXPORT_TOO_LARGE; no attachment",
+      "actual": {
+        "status": 422,
+        "rule": "EXPORT_TOO_LARGE",
+        "attachment": null
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "NEW-EXPORT-CAP10001-hearings-xlsx",
+      "story_ids": [
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "NEW-EXPORT-CAP10001-hearings-xlsx"
+      },
+      "steps": [
+        "Add10001st record -> request xlsx"
+      ],
+      "expected_results": "422 EXPORT_TOO_LARGE; no attachment",
+      "actual": {
+        "status": 422,
+        "rule": "EXPORT_TOO_LARGE",
+        "attachment": null
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "NEW-EXPORT-CAP10001-hearings-pdf",
+      "story_ids": [
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "NEW-EXPORT-CAP10001-hearings-pdf"
+      },
+      "steps": [
+        "Add10001st record -> request pdf"
+      ],
+      "expected_results": "422 EXPORT_TOO_LARGE; no attachment",
+      "actual": {
+        "status": 422,
+        "rule": "EXPORT_TOO_LARGE",
+        "attachment": null
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "NEW-EXPORT-CAP-NO-AUDIT-hearings",
+      "story_ids": [
+        "LD-011",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "NEW-EXPORT-CAP-NO-AUDIT-hearings"
+      },
+      "steps": [
+        "Compare export audit count around three refused exports"
+      ],
+      "expected_results": "No successful-export audit on refusal",
+      "actual": {
+        "before": "1",
+        "after": "1"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "NEW-EXPORT-CAP10000-workload",
+      "story_ids": [
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "NEW-EXPORT-CAP10000-workload"
+      },
+      "steps": [
+        "Insert exactly10000 local report rows -> requestCSV -> independently parse"
+      ],
+      "expected_results": "200 and10000data rows",
+      "actual": {
+        "status": 200,
+        "rows": 10000,
+        "elapsed_seconds": 5.699
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "NEW-EXPORT-CAP10001-workload-csv",
+      "story_ids": [
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "NEW-EXPORT-CAP10001-workload-csv"
+      },
+      "steps": [
+        "Add10001st record -> request csv"
+      ],
+      "expected_results": "422 EXPORT_TOO_LARGE; no attachment",
+      "actual": {
+        "status": 422,
+        "rule": "EXPORT_TOO_LARGE",
+        "attachment": null
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "NEW-EXPORT-CAP10001-workload-xlsx",
+      "story_ids": [
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "NEW-EXPORT-CAP10001-workload-xlsx"
+      },
+      "steps": [
+        "Add10001st record -> request xlsx"
+      ],
+      "expected_results": "422 EXPORT_TOO_LARGE; no attachment",
+      "actual": {
+        "status": 422,
+        "rule": "EXPORT_TOO_LARGE",
+        "attachment": null
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "NEW-EXPORT-CAP10001-workload-pdf",
+      "story_ids": [
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "NEW-EXPORT-CAP10001-workload-pdf"
+      },
+      "steps": [
+        "Add10001st record -> request pdf"
+      ],
+      "expected_results": "422 EXPORT_TOO_LARGE; no attachment",
+      "actual": {
+        "status": 422,
+        "rule": "EXPORT_TOO_LARGE",
+        "attachment": null
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "NEW-EXPORT-CAP-NO-AUDIT-workload",
+      "story_ids": [
+        "LD-011",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "NEW-EXPORT-CAP-NO-AUDIT-workload"
+      },
+      "steps": [
+        "Compare export audit count around three refused exports"
+      ],
+      "expected_results": "No successful-export audit on refusal",
+      "actual": {
+        "before": "2",
+        "after": "2"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "NEW-EXPORT-CAP10000-experts",
+      "story_ids": [
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "NEW-EXPORT-CAP10000-experts"
+      },
+      "steps": [
+        "Insert exactly10000 local report rows -> requestCSV -> independently parse"
+      ],
+      "expected_results": "200 and10000data rows",
+      "actual": {
+        "status": 200,
+        "rows": 10000,
+        "elapsed_seconds": 0.208
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "NEW-EXPORT-CAP10001-experts-csv",
+      "story_ids": [
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "NEW-EXPORT-CAP10001-experts-csv"
+      },
+      "steps": [
+        "Add10001st record -> request csv"
+      ],
+      "expected_results": "422 EXPORT_TOO_LARGE; no attachment",
+      "actual": {
+        "status": 500,
+        "rule": null,
+        "attachment": null
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "NEW-EXPORT-CAP10001-experts-xlsx",
+      "story_ids": [
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "NEW-EXPORT-CAP10001-experts-xlsx"
+      },
+      "steps": [
+        "Add10001st record -> request xlsx"
+      ],
+      "expected_results": "422 EXPORT_TOO_LARGE; no attachment",
+      "actual": {
+        "status": 500,
+        "rule": null,
+        "attachment": null
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "NEW-EXPORT-CAP10001-experts-pdf",
+      "story_ids": [
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "NEW-EXPORT-CAP10001-experts-pdf"
+      },
+      "steps": [
+        "Add10001st record -> request pdf"
+      ],
+      "expected_results": "422 EXPORT_TOO_LARGE; no attachment",
+      "actual": {
+        "status": 500,
+        "rule": null,
+        "attachment": null
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "NEW-EXPORT-CAP-NO-AUDIT-experts",
+      "story_ids": [
+        "LD-011",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "NEW-EXPORT-CAP-NO-AUDIT-experts"
+      },
+      "steps": [
+        "Compare export audit count around three refused exports"
+      ],
+      "expected_results": "No successful-export audit on refusal",
+      "actual": {
+        "before": "3",
+        "after": "3"
+      },
+      "status": "PASS"
+    }
+  ]
+}

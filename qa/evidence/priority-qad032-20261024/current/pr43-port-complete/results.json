@@ -1,0 +1,399 @@
+{
+  "tested_sha": "1b302bc8cdf7382777b3a802fba9db5029fa3138",
+  "utc": "2026-10-24T18:33:29.608087+00:00",
+  "candidate": "/tmp/lawdesk-priority-pr43-1b302bc8",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 13,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "0876cd8d-61fc-46c5-ace8-c5e337a96236",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-24T18:33:22.916487Z",
+          "updatedAt": "2026-10-24T18:33:22.916487Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PORT-ACTIVE-FIXTURE",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/api/v1/experts",
+        "body": {
+          "name": "QA خبير %_ ' literal",
+          "specialty": "QA Engineering",
+          "office": "QA excluded office",
+          "phone": "1234567"
+        }
+      },
+      "steps": [
+        "POST /api/v1/experts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "ca4d16ee-0d3f-4092-a566-f0975251f5a9",
+          "name": "QA خبير %_ ' literal",
+          "specialty": "QA Engineering",
+          "office": "QA excluded office",
+          "phone": "1234567",
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-24T18:33:23.426587Z",
+          "updatedAt": "2026-10-24T18:33:23.426587Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PORT-INACTIVE-FIXTURE",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/api/v1/experts",
+        "body": {
+          "name": "QA inactive expert",
+          "specialty": "QA Accounting"
+        }
+      },
+      "steps": [
+        "POST /api/v1/experts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "ca12460d-5e2d-4ec2-b95f-5fd15608a412",
+          "name": "QA inactive expert",
+          "specialty": "QA Accounting",
+          "office": null,
+          "phone": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-24T18:33:23.490143Z",
+          "updatedAt": "2026-10-24T18:33:23.490143Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PORT-DEACTIVATE-FIXTURE",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "PUT",
+        "path": "/api/v1/experts/ca12460d-5e2d-4ec2-b95f-5fd15608a412",
+        "body": {
+          "name": "QA inactive expert",
+          "specialty": "QA Accounting",
+          "active": false,
+          "version": 0
+        }
+      },
+      "steps": [
+        "PUT /api/v1/experts/ca12460d-5e2d-4ec2-b95f-5fd15608a412",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "id": "ca12460d-5e2d-4ec2-b95f-5fd15608a412",
+          "name": "QA inactive expert",
+          "specialty": "QA Accounting",
+          "office": null,
+          "phone": null,
+          "active": false,
+          "version": 1,
+          "createdAt": "2026-10-24T18:33:23.490143Z",
+          "updatedAt": "2026-10-24T18:33:23.581990Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "EXPERT-PORT-EMPTY",
+      "story_ids": [
+        "LD-025",
+        "LD-033"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "EXPERT-PORT-EMPTY"
+      },
+      "steps": [
+        "Call actual candidate ExpertReportQueries.experts with isolated persisted fixtures",
+        "inspect returned projection"
+      ],
+      "expected_results": "Empty input returns empty map",
+      "actual": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "EXPERT-PORT-KNOWN-UNKNOWN",
+      "story_ids": [
+        "LD-025",
+        "LD-033"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "EXPERT-PORT-KNOWN-UNKNOWN"
+      },
+      "steps": [
+        "Call actual candidate ExpertReportQueries.experts with isolated persisted fixtures",
+        "inspect returned projection"
+      ],
+      "expected_results": "Only requested existing IDs returned",
+      "actual": 2,
+      "status": "PASS"
+    },
+    {
+      "id": "EXPERT-PORT-IDENTITY",
+      "story_ids": [
+        "LD-025",
+        "LD-033"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "EXPERT-PORT-IDENTITY"
+      },
+      "steps": [
+        "Call actual candidate ExpertReportQueries.experts with isolated persisted fixtures",
+        "inspect returned projection"
+      ],
+      "expected_results": "Exact bilingual names, specialties and active flags",
+      "actual": {
+        "active_found": true,
+        "inactive_found": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "EXPERT-PORT-DUPLICATES",
+      "story_ids": [
+        "LD-025",
+        "LD-033"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "EXPERT-PORT-DUPLICATES"
+      },
+      "steps": [
+        "Call actual candidate ExpertReportQueries.experts with isolated persisted fixtures",
+        "inspect returned projection"
+      ],
+      "expected_results": "Duplicate IDs do not duplicate entries",
+      "actual": 2,
+      "status": "PASS"
+    },
+    {
+      "id": "EXPERT-PORT-PROJECTION",
+      "story_ids": [
+        "LD-025",
+        "LD-033"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "EXPERT-PORT-PROJECTION"
+      },
+      "steps": [
+        "Call actual candidate ExpertReportQueries.experts with isolated persisted fixtures",
+        "inspect returned projection"
+      ],
+      "expected_results": "Only id/name/specialty/active; no office or phone",
+      "actual": [
+        "specialty",
+        "name",
+        "active",
+        "id"
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "EXPERT-PORT-LIMIT-10000",
+      "story_ids": [
+        "LD-025",
+        "LD-033"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "EXPERT-PORT-LIMIT-10000"
+      },
+      "steps": [
+        "Call actual candidate ExpertReportQueries.experts with isolated persisted fixtures",
+        "inspect returned projection"
+      ],
+      "expected_results": "10000 IDs accepted; exactly2 seeded entries returned",
+      "actual": 2,
+      "status": "PASS"
+    },
+    {
+      "id": "EXPERT-PORT-LIMIT-10001",
+      "story_ids": [
+        "LD-025",
+        "LD-033"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "EXPERT-PORT-LIMIT-10001"
+      },
+      "steps": [
+        "Call actual candidate ExpertReportQueries.experts with isolated persisted fixtures",
+        "inspect returned projection"
+      ],
+      "expected_results": "10001 IDs rejected",
+      "actual": true,
+      "status": "PASS"
+    },
+    {
+      "id": "EXPERT-PORT-AFTER-REFUSAL",
+      "story_ids": [
+        "LD-025",
+        "LD-033"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "EXPERT-PORT-AFTER-REFUSAL"
+      },
+      "steps": [
+        "Call actual candidate ExpertReportQueries.experts with isolated persisted fixtures",
+        "inspect returned projection"
+      ],
+      "expected_results": "Valid reads still succeed after rejected call",
+      "actual": 1,
+      "status": "PASS"
+    },
+    {
+      "id": "EXPERT-PORT-READONLY",
+      "story_ids": [
+        "LD-025",
+        "LD-033"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "EXPERT-PORT-READONLY"
+      },
+      "steps": [
+        "Compare complete expert table before/after all port calls"
+      ],
+      "expected_results": "No changed rows",
+      "actual": {
+        "unchanged": true
+      },
+      "status": "PASS"
+    }
+  ]
+}

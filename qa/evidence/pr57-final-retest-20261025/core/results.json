@@ -1,0 +1,507 @@
+{
+  "tested_sha": "1e74945961a77fcf5a67fc26f3a51d0715660628",
+  "utc": "2026-10-25T15:41:46.722919+00:00",
+  "candidate": "/tmp/lawdesk-r57-candidate",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 18,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "d7ea4a1d-686c-4233-90c2-6f8f7c0cf855",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-25T15:41:41.303681Z",
+          "updatedAt": "2026-10-25T15:41:41.303681Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-BOUNDARY-title-200",
+      "story_ids": [
+        "LD-012",
+        "LD-013"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-BOUNDARY-title-200"
+      },
+      "steps": [
+        "Create case at/above field limit",
+        "compare persisted state and event counts"
+      ],
+      "expected_results": "201; exact accepted length or no mutation",
+      "actual": {
+        "status": 201,
+        "input_length": 200,
+        "unchanged": false
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-BOUNDARY-title-201",
+      "story_ids": [
+        "LD-012",
+        "LD-013"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-BOUNDARY-title-201"
+      },
+      "steps": [
+        "Create case at/above field limit",
+        "compare persisted state and event counts"
+      ],
+      "expected_results": "400; exact accepted length or no mutation",
+      "actual": {
+        "status": 400,
+        "input_length": 201,
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-BOUNDARY-subject-4000",
+      "story_ids": [
+        "LD-012",
+        "LD-013"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-BOUNDARY-subject-4000"
+      },
+      "steps": [
+        "Create case at/above field limit",
+        "compare persisted state and event counts"
+      ],
+      "expected_results": "201; exact accepted length or no mutation",
+      "actual": {
+        "status": 201,
+        "input_length": 4000,
+        "unchanged": false
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-BOUNDARY-subject-4001",
+      "story_ids": [
+        "LD-012",
+        "LD-013"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-BOUNDARY-subject-4001"
+      },
+      "steps": [
+        "Create case at/above field limit",
+        "compare persisted state and event counts"
+      ],
+      "expected_results": "400; exact accepted length or no mutation",
+      "actual": {
+        "status": 400,
+        "input_length": 4001,
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-NOOP-NULL-NORMALIZATION",
+      "story_ids": [
+        "LD-013",
+        "LD-014"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-NOOP-NULL-NORMALIZATION"
+      },
+      "steps": [
+        "PUT identical fields with whitespace optional subject",
+        "read row/events"
+      ],
+      "expected_results": "200; null subject; same version and no extra event",
+      "actual": {
+        "status": 200,
+        "subject": null,
+        "version": 0,
+        "events": "1"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-READONLY-CLOSED",
+      "story_ids": [
+        "LD-013",
+        "LD-017"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-READONLY-CLOSED"
+      },
+      "steps": [
+        "Transition owned case to CLOSED",
+        "attempt current-version edit"
+      ],
+      "expected_results": "422; persisted fields/version and history unchanged",
+      "actual": {
+        "status": 422,
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-READONLY-ARCHIVED",
+      "story_ids": [
+        "LD-013",
+        "LD-017"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-READONLY-ARCHIVED"
+      },
+      "steps": [
+        "Transition owned case to ARCHIVED",
+        "attempt current-version edit"
+      ],
+      "expected_results": "422; persisted fields/version and history unchanged",
+      "actual": {
+        "status": 422,
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "TIMELINE-STABLE-PAGING-102",
+      "story_ids": [
+        "LD-014"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TIMELINE-STABLE-PAGING-102"
+      },
+      "steps": [
+        "Read 102 events including101 equal timestamps via pages0/1 twice",
+        "compare SQL IDs"
+      ],
+      "expected_results": "Stable order; exact union; no duplicate or lost records",
+      "actual": {
+        "totals": [
+          102,
+          102,
+          102,
+          102
+        ],
+        "sizes": [
+          100,
+          2,
+          100,
+          2
+        ],
+        "stable": true,
+        "exact_ids": true,
+        "disjoint": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-LITERAL-SEARCH-37",
+      "story_ids": [
+        "LD-015"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-LITERAL-SEARCH-37"
+      },
+      "steps": [
+        "Search literal wildcard character through real API"
+      ],
+      "expected_results": "Only literal title matched",
+      "actual": {
+        "total": 1,
+        "ids": [
+          "d23fbb0c-f860-430d-9cac-cd772043856c"
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-LITERAL-SEARCH-95",
+      "story_ids": [
+        "LD-015"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-LITERAL-SEARCH-95"
+      },
+      "steps": [
+        "Search literal wildcard character through real API"
+      ],
+      "expected_results": "Only literal title matched",
+      "actual": {
+        "total": 1,
+        "ids": [
+          "fb88a9dc-f9a4-43df-9ff8-a4b4a5c196f9"
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-SORT-TIES",
+      "story_ids": [
+        "LD-015"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-SORT-TIES"
+      },
+      "steps": [
+        "Page identical title sort keys twice"
+      ],
+      "expected_results": "Stable id tie-break; exact set",
+      "actual": {
+        "stable": true,
+        "unique": 3
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PARTY-INTEGRITY-DUPLICATE",
+      "story_ids": [
+        "LD-016"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PARTY-INTEGRITY-DUPLICATE"
+      },
+      "steps": [
+        "Attempt duplicate/mismatched party",
+        "compare stored count"
+      ],
+      "expected_results": "409; no inserted party",
+      "actual": {
+        "status": 409,
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PARTY-INTEGRITY-ORGANIZATION",
+      "story_ids": [
+        "LD-016"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PARTY-INTEGRITY-ORGANIZATION"
+      },
+      "steps": [
+        "Attempt duplicate/mismatched party",
+        "compare stored count"
+      ],
+      "expected_results": "422; no inserted party",
+      "actual": {
+        "status": 422,
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PARTY-INTEGRITY-PERSON",
+      "story_ids": [
+        "LD-016"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PARTY-INTEGRITY-PERSON"
+      },
+      "steps": [
+        "Attempt duplicate/mismatched party",
+        "compare stored count"
+      ],
+      "expected_results": "422; no inserted party",
+      "actual": {
+        "status": 422,
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "ARCHIVED-PARTY-UNLINK-ROLLBACK",
+      "story_ids": [
+        "LD-014",
+        "LD-016"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "ARCHIVED-PARTY-UNLINK-ROLLBACK"
+      },
+      "steps": [
+        "Attempt unlink from archived case",
+        "inspect relationship/history"
+      ],
+      "expected_results": "422; relationship and history retained",
+      "actual": {
+        "status": 422,
+        "relationships": 1,
+        "history_unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REOPEN-REASON-501",
+      "story_ids": [
+        "LD-017"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "REOPEN-REASON-501"
+      },
+      "steps": [
+        "Reopen CLOSED with boundary reason",
+        "read committed status/history"
+      ],
+      "expected_results": "400; reject oversized reason atomically",
+      "actual": {
+        "status": 400,
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REOPEN-REASON-500",
+      "story_ids": [
+        "LD-017"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "REOPEN-REASON-500"
+      },
+      "steps": [
+        "Reopen CLOSED with boundary reason",
+        "read committed status/history"
+      ],
+      "expected_results": "200; reject oversized reason atomically",
+      "actual": {
+        "status": 200,
+        "unchanged": false
+      },
+      "status": "PASS"
+    }
+  ]
+}

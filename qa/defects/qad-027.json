@@ -1,0 +1,129 @@
+{
+  "id": "QAD-027",
+  "title": "Case details overflow the 375px viewport in Arabic and English",
+  "priority": "P2",
+  "severity": "S2",
+  "stories": [
+    "LD-012",
+    "LD-016",
+    "LD-036"
+  ],
+  "affected": [
+    "8b0928ba10eb9b02ac3822ac33eca5b8778195b6"
+  ],
+  "status": "FIX_VERIFIED_UAT",
+  "environment": "Live UAT, Chromium build1248, 375x900, real authenticated admin",
+  "preconditions": [
+    "QA-owned case and party only",
+    "Case reference and party name within accepted field limits"
+  ],
+  "steps": [
+    "Create a QA case with reference QA261024121816D9653B and a synthetic party with name QA261024121816D9653B طرف اختبار",
+    "Link party as CLIENT",
+    "Open the own case details at viewport375x900 with lang=en, then lang=ar",
+    "Compare document.documentElement.scrollWidth with innerWidth and inspect party table/action column"
+  ],
+  "expected": "Essential content and actions fit or use a contained table scroller; the page does not overflow horizontally",
+  "actual": "At innerWidth375, documentWidth475 in both locales; party table extends beyond viewport and Remove action is outside visible area",
+  "evidence": "qa/evidence/signedin-uat-8b0928b-20261024/journeys",
+  "test_ids": [
+    "SIGNED-LAYOUT-en-375",
+    "SIGNED-LAYOUT-ar-375"
+  ],
+  "uat_policy": "Nonblocking for ordinary private Dev/UAT iteration; must resolve for mobile acceptance",
+  "fix_guidance": "Implementation fix independently verified on the stated UAT SHA; do not request repeated implementation. Reopen only with fresh regression evidence.",
+  "provenance": "Deploy workflow40089176698 reports SHA; frontend/backend source identical to81d9d03; backend runtime SHA not directly exposed",
+  "fixture_ids": {
+    "roles": [
+      "4c7d5ceb-5142-4414-a924-b0f3ea835013"
+    ],
+    "users": [
+      "867353ee-0bdc-46d1-b16e-e761214029c3"
+    ],
+    "cases": [
+      "c28d71d6-4615-4dbb-ad5b-2aa6928dc8b3"
+    ],
+    "parties": [
+      "b7362f1e-d777-4150-8730-fdc96437f762"
+    ],
+    "courts": [
+      "5defe2b9-99dd-4a23-b836-ec13fc425e0e",
+      "0ad4e039-82b5-46a5-a415-7eb5d4eabc8e",
+      "f5e1889c-658e-4114-a19f-375a6e7860da"
+    ],
+    "proceedings": [
+      "cfe82a0d-029a-45f5-bfac-3c2a9fbec0df",
+      "1f8e2568-2309-4f43-ae2a-b403db759fc2",
+      "af380178-d40a-493e-8c20-c602c5266459"
+    ],
+    "judgments": [
+      "6bf718c0-d86e-4295-8ce2-3eb73f9f56df",
+      "9022e77b-703b-44f3-ab5e-752083bc7773"
+    ],
+    "decisions": [
+      "b01b9f63-61fd-4156-b22c-34d15c037c54"
+    ]
+  },
+  "latest_confirmed_utc": "2026-10-24T12:32:36.839504+00:00",
+  "history": [
+    {
+      "status": "CONFIRMED_OPEN",
+      "sha": "8b0928ba10eb9b02ac3822ac33eca5b8778195b6",
+      "evidence": "qa/evidence/signedin-uat-8b0928b-20261024/journeys",
+      "note": "Historical reproduction retained unchanged in original evidence"
+    }
+  ],
+  "latest_verification": {
+    "utc": "2026-10-25T09:41:46.243707+00:00",
+    "previous_status": "FIX_VERIFIED_UAT",
+    "status": "FIX_VERIFIED_UAT",
+    "tested_sha": "b849b1cabcbebd4df058e4ab989d1e8c1a562899",
+    "note": "Current crossphase mobile en/ar and signed-in forms regressions pass",
+    "evidence": [
+      "qa/evidence/phase56-acceptance-20261025/current-crossphase/results.json"
+    ]
+  },
+  "retests": [
+    {
+      "utc": "2026-10-24T18:09:37.823607+00:00",
+      "evidence_root": "qa/evidence/continuous-phase56-20261024",
+      "tested_sha": "19ad5386fa586e2469ecad36a677632273712f44",
+      "status": "FIX_VERIFIED_UAT",
+      "scope": "Fresh signed-in35, roles/integrity41 and forms16 checks; exact release re-attested before/after"
+    },
+    {
+      "utc": "2026-10-24T18:34:11.989922+00:00",
+      "evidence_root": "qa/evidence/priority-qad032-20261024",
+      "status": "CLOSED_VERIFIED_UAT",
+      "tested_sha": "19ad5386fa586e2469ecad36a677632273712f44",
+      "note": "Existing129PASS UAT evidence retained without repeating journeys; fresh release attestation5PASS confirms same runtime."
+    },
+    {
+      "utc": "2026-10-25T09:41:46.243707+00:00",
+      "previous_status": "FIX_VERIFIED_UAT",
+      "status": "FIX_VERIFIED_UAT",
+      "tested_sha": "b849b1cabcbebd4df058e4ab989d1e8c1a562899",
+      "note": "Current crossphase mobile en/ar and signed-in forms regressions pass",
+      "evidence": [
+        "qa/evidence/phase56-acceptance-20261025/current-crossphase/results.json"
+      ]
+    },
+    {
+      "utc": "2026-10-25T12:38:18.543317+00:00",
+      "previous_status": "FIX_VERIFIED_UAT",
+      "status": "FIX_VERIFIED_UAT",
+      "tested_sha": "0338cac0fca07eb0ce06eb8f2b45a54dd0386f7e",
+      "note": "Current signed-in mobile English/Arabic and case screens pass",
+      "evidence": [
+        "qa/evidence/final-phase2-6-20261025/phase234-uat/results.json"
+      ]
+    }
+  ],
+  "closure": {
+    "utc": "2026-10-24T18:34:11.989922+00:00",
+    "evidence_root": "qa/evidence/priority-qad032-20261024",
+    "status": "CLOSED_VERIFIED_UAT",
+    "tested_sha": "19ad5386fa586e2469ecad36a677632273712f44",
+    "note": "Existing129PASS UAT evidence retained without repeating journeys; fresh release attestation5PASS confirms same runtime."
+  }
+}

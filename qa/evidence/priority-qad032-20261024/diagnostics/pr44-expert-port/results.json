@@ -1,0 +1,188 @@
+{
+  "tested_sha": "9879743a5c1badffc79ddc6256c28baa8bc55240",
+  "utc": "2026-10-24T18:28:59.442479+00:00",
+  "candidate": "/tmp/lawdesk-priority-pr44-9879743a",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 4,
+    "FAIL": 0,
+    "BLOCKED": 1,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "09ab424a-45aa-4fbe-ba8a-619dff091b28",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-24T18:28:55.653655Z",
+          "updatedAt": "2026-10-24T18:28:55.653655Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PORT-ACTIVE-FIXTURE",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/api/v1/experts",
+        "body": {
+          "name": "QA خبير %_ ' literal",
+          "specialty": "QA Engineering",
+          "office": "QA excluded office",
+          "phone": "1234567"
+        }
+      },
+      "steps": [
+        "POST /api/v1/experts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "3e7f85c6-b13b-41e2-b3a8-79a89b0b4566",
+          "name": "QA خبير %_ ' literal",
+          "specialty": "QA Engineering",
+          "office": "QA excluded office",
+          "phone": "1234567",
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-24T18:28:56.024782Z",
+          "updatedAt": "2026-10-24T18:28:56.024782Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PORT-INACTIVE-FIXTURE",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/api/v1/experts",
+        "body": {
+          "name": "QA inactive expert",
+          "specialty": "QA Accounting"
+        }
+      },
+      "steps": [
+        "POST /api/v1/experts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "c779d48a-93f5-4a88-a189-0679fecd6600",
+          "name": "QA inactive expert",
+          "specialty": "QA Accounting",
+          "office": null,
+          "phone": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-24T18:28:56.082145Z",
+          "updatedAt": "2026-10-24T18:28:56.082145Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PORT-DEACTIVATE-FIXTURE",
+      "story_ids": [
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "method": "PUT",
+        "path": "/api/v1/experts/c779d48a-93f5-4a88-a189-0679fecd6600",
+        "body": {
+          "name": "QA inactive expert",
+          "specialty": "QA Accounting",
+          "active": false,
+          "version": 0
+        }
+      },
+      "steps": [
+        "PUT /api/v1/experts/c779d48a-93f5-4a88-a189-0679fecd6600",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "id": "c779d48a-93f5-4a88-a189-0679fecd6600",
+          "name": "QA inactive expert",
+          "specialty": "QA Accounting",
+          "office": null,
+          "phone": null,
+          "active": false,
+          "version": 1,
+          "createdAt": "2026-10-24T18:28:56.082145Z",
+          "updatedAt": "2026-10-24T18:28:56.192929Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "FIXTURE-EXECUTION",
+      "status": "BLOCKED",
+      "reason": "Command '['/home/aiagent/tools/jdk-21.0.12.1+1/bin/javac', '-cp', '/tmp/lawdesk-qa-port-1haathnf/BOOT-INF/classes:/tmp/lawdesk-qa-port-1haathnf/BOOT-INF/lib/*', '-d', '/tmp/lawdesk-qa-port-1haathnf', '/home/aiagent/workspaces/lawdesk-codex/qa/independent/java/ExpertReadPortProbe.java']' returned non-zero exit status 1."
+    }
+  ]
+}

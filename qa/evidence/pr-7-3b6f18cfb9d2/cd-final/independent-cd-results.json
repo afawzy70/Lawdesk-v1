@@ -1,0 +1,780 @@
+{
+  "tested_sha": "3b6f18cfb9d2f47a6be4dc79803254d748c69a15",
+  "utc": "2026-10-23T20:03:48.497716+00:00",
+  "scope": "Independent local shell/API/Git failure injection only; no SSH session, real Docker, shared host or Matbakhy contacted.",
+  "results": [
+    {
+      "id": "SSH-REJECT-1",
+      "story_ids": [
+        "LD-006"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "3b6f18cfb9d2f47a6be4dc79803254d748c69a15",
+        "fixture": "SSH-REJECT-1"
+      },
+      "steps": [
+        "Run cd_review.py against the exact snapshot; inspect recorded transport and state."
+      ],
+      "expected_results": [
+        "Reject command injection/extra request before any Docker call."
+      ],
+      "actual": {
+        "request": "deploy b3b8e908a169ef543c9e98aef68b5dd5d526b4c2; status",
+        "exit": 2,
+        "trace": ""
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "SSH-REJECT-2",
+      "story_ids": [
+        "LD-006"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "3b6f18cfb9d2f47a6be4dc79803254d748c69a15",
+        "fixture": "SSH-REJECT-2"
+      },
+      "steps": [
+        "Run cd_review.py against the exact snapshot; inspect recorded transport and state."
+      ],
+      "expected_results": [
+        "Reject command injection/extra request before any Docker call."
+      ],
+      "actual": {
+        "request": "deploy b3b8e908a169ef543c9e98aef68b5dd5d526b4c2\nstatus",
+        "exit": 2,
+        "trace": ""
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "SSH-REJECT-3",
+      "story_ids": [
+        "LD-006"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "3b6f18cfb9d2f47a6be4dc79803254d748c69a15",
+        "fixture": "SSH-REJECT-3"
+      },
+      "steps": [
+        "Run cd_review.py against the exact snapshot; inspect recorded transport and state."
+      ],
+      "expected_results": [
+        "Reject command injection/extra request before any Docker call."
+      ],
+      "actual": {
+        "request": "deploy $(id)",
+        "exit": 2,
+        "trace": ""
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "SSH-REJECT-4",
+      "story_ids": [
+        "LD-006"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "3b6f18cfb9d2f47a6be4dc79803254d748c69a15",
+        "fixture": "SSH-REJECT-4"
+      },
+      "steps": [
+        "Run cd_review.py against the exact snapshot; inspect recorded transport and state."
+      ],
+      "expected_results": [
+        "Reject command injection/extra request before any Docker call."
+      ],
+      "actual": {
+        "request": "status extra",
+        "exit": 2,
+        "trace": ""
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "SSH-STATUS-CONTROL",
+      "story_ids": [
+        "LD-006"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "3b6f18cfb9d2f47a6be4dc79803254d748c69a15",
+        "fixture": "SSH-STATUS-CONTROL"
+      },
+      "steps": [
+        "Run cd_review.py against the exact snapshot; inspect recorded transport and state."
+      ],
+      "expected_results": [
+        "Read-only status succeeds with no Docker commands."
+      ],
+      "actual": {
+        "exit": 0,
+        "stdout": "current=\nprevious=\nhistory:\n"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "SSH-UNMERGED-SHA",
+      "story_ids": [
+        "LD-006"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "3b6f18cfb9d2f47a6be4dc79803254d748c69a15",
+        "fixture": "SSH-UNMERGED-SHA"
+      },
+      "steps": [
+        "Run cd_review.py against the exact snapshot; inspect recorded transport and state."
+      ],
+      "expected_results": [
+        "Reject real Git commit not on fresh origin/develop."
+      ],
+      "actual": {
+        "exit": 5,
+        "stderr": "gate: d4ab94726380a7e2775e49ca55654f423394e11d is not on develop; only merged commits are deployed\n",
+        "docker_trace": ""
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CACHED-IMAGE-WRONG-REVISION",
+      "story_ids": [
+        "LD-006"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "3b6f18cfb9d2f47a6be4dc79803254d748c69a15",
+        "fixture": "CACHED-IMAGE-WRONG-REVISION"
+      },
+      "steps": [
+        "Run cd_review.py against the exact snapshot; inspect recorded transport and state."
+      ],
+      "expected_results": [
+        "Refuse cached images labelled with another commit, or rebuild and verify correct image before deployment."
+      ],
+      "actual": {
+        "requested": "b3b8e908a169ef543c9e98aef68b5dd5d526b4c2",
+        "cached_image_revision": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "exit": 6,
+        "deploy_invoked": false,
+        "docker_calls": [
+          {
+            "tool": "docker",
+            "args": [
+              "image",
+              "inspect",
+              "-f",
+              "{{index .Config.Labels \"org.opencontainers.image.revision\"}}",
+              "lawdesk-local/backend:b3b8e908a169ef543c9e98aef68b5dd5d526b4c2"
+            ],
+            "tag": null
+          },
+          {
+            "tool": "docker",
+            "args": [
+              "build",
+              "--label",
+              "org.opencontainers.image.revision=b3b8e908a169ef543c9e98aef68b5dd5d526b4c2",
+              "-t",
+              "lawdesk-local/backend:b3b8e908a169ef543c9e98aef68b5dd5d526b4c2",
+              "-f",
+              "/tmp/lawdesk-qa-cd-cnuv69uc/lawdesk/releases/b3b8e908a169ef543c9e98aef68b5dd5d526b4c2/backend/Dockerfile",
+              "/tmp/lawdesk-qa-cd-cnuv69uc/lawdesk/releases/b3b8e908a169ef543c9e98aef68b5dd5d526b4c2/backend"
+            ],
+            "tag": null
+          },
+          {
+            "tool": "docker",
+            "args": [
+              "image",
+              "inspect",
+              "-f",
+              "{{index .Config.Labels \"org.opencontainers.image.revision\"}}",
+              "lawdesk-local/backend:b3b8e908a169ef543c9e98aef68b5dd5d526b4c2"
+            ],
+            "tag": null
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "MANUAL-DISPATCH-FAILED-CI",
+      "story_ids": [
+        "LD-006"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "3b6f18cfb9d2f47a6be4dc79803254d748c69a15",
+        "fixture": "MANUAL-DISPATCH-FAILED-CI"
+      },
+      "steps": [
+        "Run cd_review.py against the exact snapshot; inspect recorded transport and state."
+      ],
+      "expected_results": [
+        "Fail closed when requested merged SHA has no successful exact-SHA CI evidence."
+      ],
+      "actual": {
+        "fixture_ci": "FAILURE",
+        "exit": 1,
+        "api_calls": "api repos/qa/fixture/compare/b3b8e908a169ef543c9e98aef68b5dd5d526b4c2...develop --jq .status\napi repos/qa/fixture/commits/b3b8e908a169ef543c9e98aef68b5dd5d526b4c2/check-runs?per_page=100 --jq .check_runs[] | select(.app.slug == \"github-actions\" and .conclusion == \"success\") | .name\n",
+        "workflow_output": ""
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "MANUAL-DISPATCH-POSITIVE-CONTROL",
+      "story_ids": [
+        "LD-006"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "3b6f18cfb9d2f47a6be4dc79803254d748c69a15",
+        "fixture": "MANUAL-DISPATCH-POSITIVE-CONTROL"
+      },
+      "steps": [
+        "Run cd_review.py against the exact snapshot; inspect recorded transport and state."
+      ],
+      "expected_results": [
+        "All required exact-SHA gates success allows validation to complete."
+      ],
+      "actual": {
+        "exit": 0,
+        "api_calls": "api repos/qa/fixture/compare/b3b8e908a169ef543c9e98aef68b5dd5d526b4c2...develop --jq .status\napi repos/qa/fixture/commits/b3b8e908a169ef543c9e98aef68b5dd5d526b4c2/check-runs?per_page=100 --jq .check_runs[] | select(.app.slug == \"github-actions\" and .conclusion == \"success\") | .name\n",
+        "outputs": "skip=false\n",
+        "stderr": "/etc/bash.bashrc: line 7: PS1: unbound variable\n"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "AUTOMATIC-CD-GATES",
+      "story_ids": [
+        "LD-005"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "3b6f18cfb9d2f47a6be4dc79803254d748c69a15",
+        "fixture": "AUTOMATIC-CD-GATES"
+      },
+      "steps": [
+        "Run cd_review.py against the exact snapshot; inspect recorded transport and state."
+      ],
+      "expected_results": [
+        "Automatic deploy caller requires all six gates plus develop-guard and only trusted develop push."
+      ],
+      "actual": {
+        "name": "Deploy staging",
+        "needs": [
+          "policy",
+          "backend",
+          "backend-postgres-image",
+          "frontend",
+          "stack",
+          "secrets",
+          "develop-guard"
+        ],
+        "if": "github.event_name == 'push' && github.ref == 'refs/heads/develop' && github.repository == 'afawzy70/Lawdesk-v1'",
+        "permissions": {
+          "contents": "read",
+          "checks": "read"
+        },
+        "uses": "./.github/workflows/deploy-staging.yml",
+        "with": {
+          "sha": "${{ github.sha }}"
+        },
+        "secrets": "inherit"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "BOOTSTRAP-EXISTING-UNRESTRICTED-KEY",
+      "story_ids": [
+        "LD-006"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "3b6f18cfb9d2f47a6be4dc79803254d748c69a15",
+        "fixture": "BOOTSTRAP-EXISTING-UNRESTRICTED-KEY"
+      },
+      "steps": [
+        "Run cd_review.py against the exact snapshot; inspect recorded transport and state."
+      ],
+      "expected_results": [
+        "Refuse an existing unrestricted matching CI key or constrain it without leaving an unrestricted authorization."
+      ],
+      "actual": {
+        "exit": 2,
+        "authorized_keys": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE0g2bAcM3oTnmQOecz9KKH1e7K5kPJCq2FElqWxhw6X qa-ci\n",
+        "unrestricted_entry_remains": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-FAIL-CLOSED",
+      "story_ids": [
+        "LD-006"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "3b6f18cfb9d2f47a6be4dc79803254d748c69a15",
+        "fixture": "BACKUP-FAIL-CLOSED"
+      },
+      "steps": [
+        "Run cd_review.py against the exact snapshot; inspect recorded transport and state."
+      ],
+      "expected_results": [
+        "Backup failure refuses deployment, removes partial, retains running release."
+      ],
+      "actual": {
+        "exit": 1,
+        "current": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "dump_count": 0,
+        "partial_count": 0,
+        "file_modes": [],
+        "docker_calls": [
+          {
+            "tool": "docker",
+            "args": [
+              "compose",
+              "-p",
+              "lawdesk-staging",
+              "-f",
+              "/tmp/lawdesk-qa-pr7-3b6f18cfb9d2/deploy/compose.yaml",
+              "exec",
+              "-T",
+              "db",
+              "pg_dump",
+              "-U",
+              "postgres",
+              "-d",
+              "lawdesk",
+              "-Fc"
+            ],
+            "tag": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-PERMISSIONS",
+      "story_ids": [
+        "LD-006"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "3b6f18cfb9d2f47a6be4dc79803254d748c69a15",
+        "fixture": "BACKUP-PERMISSIONS"
+      },
+      "steps": [
+        "Run cd_review.py against the exact snapshot; inspect recorded transport and state."
+      ],
+      "expected_results": [
+        "Backup output written with0600 and successful dump then deployment. Not a pg_restore proof."
+      ],
+      "actual": {
+        "exit": 0,
+        "current": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "dump_count": 1,
+        "partial_count": 0,
+        "file_modes": [
+          "0o600"
+        ],
+        "docker_calls": [
+          {
+            "tool": "docker",
+            "args": [
+              "compose",
+              "-p",
+              "lawdesk-staging",
+              "-f",
+              "/tmp/lawdesk-qa-pr7-3b6f18cfb9d2/deploy/compose.yaml",
+              "exec",
+              "-T",
+              "db",
+              "pg_dump",
+              "-U",
+              "postgres",
+              "-d",
+              "lawdesk",
+              "-Fc"
+            ],
+            "tag": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          {
+            "tool": "docker",
+            "args": [
+              "compose",
+              "-p",
+              "lawdesk-staging",
+              "-f",
+              "/tmp/lawdesk-qa-pr7-3b6f18cfb9d2/deploy/compose.yaml",
+              "pull",
+              "backend",
+              "web"
+            ],
+            "tag": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          {
+            "tool": "docker",
+            "args": [
+              "compose",
+              "-p",
+              "lawdesk-staging",
+              "-f",
+              "/tmp/lawdesk-qa-pr7-3b6f18cfb9d2/deploy/compose.yaml",
+              "up",
+              "-d",
+              "--wait",
+              "--wait-timeout",
+              "240"
+            ],
+            "tag": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          {
+            "tool": "docker",
+            "args": [
+              "compose",
+              "-p",
+              "lawdesk-staging",
+              "-f",
+              "/tmp/lawdesk-qa-pr7-3b6f18cfb9d2/deploy/compose.yaml",
+              "exec",
+              "-T",
+              "web",
+              "sh",
+              "-euc",
+              "\n    base=http://127.0.0.1:8080\n    fail() { echo \"FAIL $*\" >&2; exit 1; }\n    # busybox wget prints the status in a header line and, on errors, in \"server returned error: HTTP/1.1 401 ...\".\n    status_of() { wget -q -S -O /dev/null \"$base$1\" 2>&1 | grep -o \"HTTP/1\\.[01] [0-9][0-9][0-9]\" | tail -n 1 | cut -d \" \" -f 2; }\n    expect_ok() { wget -q -O /dev/null \"$base$1\" || fail \"$1 is not reachable with a 2xx status\"; echo \"ok   $1\"; }\n    expect_status() {\n        actual=$(status_of \"$1\")\n        [ \"$actual\" = \"$2\" ] || fail \"$1 -> ${actual:-no response}, expected $2\"\n        echo \"ok   $1 -> $2\"\n    }\n    expect_ok /healthz\n    expect_ok /\n    readiness=$(wget -q -O - \"$base/actuator/health/readiness\") || fail \"readiness is not reachable with a 2xx status\"\n    case \"$readiness\" in\n        *\"\\\"status\\\":\\\"UP\\\"\"*) echo \"ok   readiness UP\" ;;\n        *) fail \"readiness is not UP\" ;;\n    esac\n    expect_status /api/v1/cases 401\n    expect_status /actuator/env 404\n"
+            ],
+            "tag": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "BACKUP-RETENTION",
+      "story_ids": [
+        "LD-006"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "3b6f18cfb9d2f47a6be4dc79803254d748c69a15",
+        "fixture": "BACKUP-RETENTION"
+      },
+      "steps": [
+        "Run cd_review.py against the exact snapshot; inspect recorded transport and state."
+      ],
+      "expected_results": [
+        "Retain newest10 dumps without deleting unrelated files."
+      ],
+      "actual": {
+        "exit": 0,
+        "current": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "dump_count": 10,
+        "partial_count": 0,
+        "file_modes": [
+          "0o664",
+          "0o600",
+          "0o664",
+          "0o664",
+          "0o664",
+          "0o664",
+          "0o664",
+          "0o664",
+          "0o664",
+          "0o664"
+        ],
+        "docker_calls": [
+          {
+            "tool": "docker",
+            "args": [
+              "compose",
+              "-p",
+              "lawdesk-staging",
+              "-f",
+              "/tmp/lawdesk-qa-pr7-3b6f18cfb9d2/deploy/compose.yaml",
+              "exec",
+              "-T",
+              "db",
+              "pg_dump",
+              "-U",
+              "postgres",
+              "-d",
+              "lawdesk",
+              "-Fc"
+            ],
+            "tag": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          {
+            "tool": "docker",
+            "args": [
+              "compose",
+              "-p",
+              "lawdesk-staging",
+              "-f",
+              "/tmp/lawdesk-qa-pr7-3b6f18cfb9d2/deploy/compose.yaml",
+              "pull",
+              "backend",
+              "web"
+            ],
+            "tag": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          {
+            "tool": "docker",
+            "args": [
+              "compose",
+              "-p",
+              "lawdesk-staging",
+              "-f",
+              "/tmp/lawdesk-qa-pr7-3b6f18cfb9d2/deploy/compose.yaml",
+              "up",
+              "-d",
+              "--wait",
+              "--wait-timeout",
+              "240"
+            ],
+            "tag": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          {
+            "tool": "docker",
+            "args": [
+              "compose",
+              "-p",
+              "lawdesk-staging",
+              "-f",
+              "/tmp/lawdesk-qa-pr7-3b6f18cfb9d2/deploy/compose.yaml",
+              "exec",
+              "-T",
+              "web",
+              "sh",
+              "-euc",
+              "\n    base=http://127.0.0.1:8080\n    fail() { echo \"FAIL $*\" >&2; exit 1; }\n    # busybox wget prints the status in a header line and, on errors, in \"server returned error: HTTP/1.1 401 ...\".\n    status_of() { wget -q -S -O /dev/null \"$base$1\" 2>&1 | grep -o \"HTTP/1\\.[01] [0-9][0-9][0-9]\" | tail -n 1 | cut -d \" \" -f 2; }\n    expect_ok() { wget -q -O /dev/null \"$base$1\" || fail \"$1 is not reachable with a 2xx status\"; echo \"ok   $1\"; }\n    expect_status() {\n        actual=$(status_of \"$1\")\n        [ \"$actual\" = \"$2\" ] || fail \"$1 -> ${actual:-no response}, expected $2\"\n        echo \"ok   $1 -> $2\"\n    }\n    expect_ok /healthz\n    expect_ok /\n    readiness=$(wget -q -O - \"$base/actuator/health/readiness\") || fail \"readiness is not reachable with a 2xx status\"\n    case \"$readiness\" in\n        *\"\\\"status\\\":\\\"UP\\\"\"*) echo \"ok   readiness UP\" ;;\n        *) fail \"readiness is not UP\" ;;\n    esac\n    expect_status /api/v1/cases 401\n    expect_status /actuator/env 404\n"
+            ],
+            "tag": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "ROLLBACK-SMOKE-TARGET-MANIFEST",
+      "story_ids": [
+        "LD-006"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "3b6f18cfb9d2f47a6be4dc79803254d748c69a15",
+        "fixture": "ROLLBACK-SMOKE-TARGET-MANIFEST"
+      },
+      "steps": [
+        "Run cd_review.py against the exact snapshot; inspect recorded transport and state."
+      ],
+      "expected_results": [
+        "Rollback up and smoke both use previous release own Compose manifest."
+      ],
+      "actual": {
+        "exit": 1,
+        "rollback_calls": [
+          {
+            "tool": "docker",
+            "args": [
+              "compose",
+              "-p",
+              "lawdesk-staging",
+              "-f",
+              "/tmp/lawdesk-qa-cd-cnuv69uc/releases/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/deploy/compose.yaml",
+              "pull",
+              "backend",
+              "web"
+            ],
+            "tag": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          {
+            "tool": "docker",
+            "args": [
+              "compose",
+              "-p",
+              "lawdesk-staging",
+              "-f",
+              "/tmp/lawdesk-qa-cd-cnuv69uc/releases/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/deploy/compose.yaml",
+              "up",
+              "-d",
+              "--wait",
+              "--wait-timeout",
+              "240"
+            ],
+            "tag": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          {
+            "tool": "docker",
+            "args": [
+              "compose",
+              "-p",
+              "lawdesk-staging",
+              "-f",
+              "/tmp/lawdesk-qa-cd-cnuv69uc/releases/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/deploy/compose.yaml",
+              "exec",
+              "-T",
+              "web",
+              "sh",
+              "-euc",
+              "\n    base=http://127.0.0.1:8080\n    fail() { echo \"FAIL $*\" >&2; exit 1; }\n    # busybox wget prints the status in a header line and, on errors, in \"server returned error: HTTP/1.1 401 ...\".\n    status_of() { wget -q -S -O /dev/null \"$base$1\" 2>&1 | grep -o \"HTTP/1\\.[01] [0-9][0-9][0-9]\" | tail -n 1 | cut -d \" \" -f 2; }\n    expect_ok() { wget -q -O /dev/null \"$base$1\" || fail \"$1 is not reachable with a 2xx status\"; echo \"ok   $1\"; }\n    expect_status() {\n        actual=$(status_of \"$1\")\n        [ \"$actual\" = \"$2\" ] || fail \"$1 -> ${actual:-no response}, expected $2\"\n        echo \"ok   $1 -> $2\"\n    }\n    expect_ok /healthz\n    expect_ok /\n    readiness=$(wget -q -O - \"$base/actuator/health/readiness\") || fail \"readiness is not reachable with a 2xx status\"\n    case \"$readiness\" in\n        *\"\\\"status\\\":\\\"UP\\\"\"*) echo \"ok   readiness UP\" ;;\n        *) fail \"readiness is not UP\" ;;\n    esac\n    expect_status /api/v1/cases 401\n    expect_status /actuator/env 404\n"
+            ],
+            "tag": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        ],
+        "wrong_manifest_calls": []
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PROXY-PERSIST-AFTER-RELOAD-FAIL",
+      "story_ids": [
+        "LD-006"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "3b6f18cfb9d2f47a6be4dc79803254d748c69a15",
+        "fixture": "PROXY-PERSIST-AFTER-RELOAD-FAIL"
+      },
+      "steps": [
+        "Run cd_review.py against the exact snapshot; inspect recorded transport and state."
+      ],
+      "expected_results": [
+        "Persistence failure after reload restores both active and on-disk original configuration."
+      ],
+      "actual": {
+        "exit": 1,
+        "active_changed": false,
+        "persisted_changed": false,
+        "original": "app.{$PREVIEW_DOMAIN} {\n respond \"QA app\"\n}\n",
+        "active": "app.{$PREVIEW_DOMAIN} {\n respond \"QA app\"\n}\n",
+        "stderr": "{\"level\":\"warn\",\"ts\":1792785825.3290448,\"logger\":\"caddyfile\",\"msg\":\"Caddyfile input is not formatted; run 'caddy fmt --overwrite' to fix inconsistencies\",\"file\":\"/tmp/lawdesk-qa-cd-cnuv69uc/PROXY-PERSIST-AFTER-RELOAD-FAIL/candidate\",\"line\":2}\nproxy: the new configuration could not be persisted; reloading the previous one\nproxy: activation failed; the proxy keeps its previous configuration\n",
+        "docker_calls": "[\"ps\", \"--filter\", \"label=com.docker.compose.project=matbakhy-preview\", \"--filter\", \"label=com.docker.compose.service=proxy\", \"--format\", \"{{.ID}}\"]\n[\"exec\", \"qa-proxy\", \"printenv\", \"PREVIEW_DOMAIN\"]\n[\"network\", \"inspect\", \"lawdesk-edge\"]\n[\"cp\", \"qa-proxy:/etc/caddy/Caddyfile\", \"/tmp/lawdesk-qa-cd-cnuv69uc/PROXY-PERSIST-AFTER-RELOAD-FAIL/backups/20261023T200344Z/Caddyfile\"]\n[\"cp\", \"/tmp/lawdesk-qa-cd-cnuv69uc/PROXY-PERSIST-AFTER-RELOAD-FAIL/backups/20261023T200344Z/Caddyfile.kept\", \"qa-proxy:/etc/caddy/Caddyfile.lawdesk-check\"]\n[\"exec\", \"qa-proxy\", \"caddy\", \"adapt\", \"--config\", \"/etc/caddy/Caddyfile\", \"--adapter\", \"caddyfile\"]\n[\"exec\", \"qa-proxy\", \"caddy\", \"adapt\", \"--config\", \"/etc/caddy/Caddyfile.lawdesk-check\", \"--adapter\", \"caddyfile\"]\n[\"cp\", \"/tmp/lawdesk-qa-cd-cnuv69uc/PROXY-PERSIST-AFTER-RELOAD-FAIL/backups/20261023T200344Z/Caddyfile.candidate\", \"qa-proxy:/etc/caddy/Caddyfile.lawdesk-candidate\"]\n[\"exec\", \"qa-proxy\", \"caddy\", \"validate\", \"--config\", \"/etc/caddy/Caddyfile.lawdesk-candidate\", \"--adapter\", \"caddyfile\"]\n[\"exec\", \"qa-proxy\", \"caddy\", \"adapt\", \"--config\", \"/etc/caddy/Caddyfile.lawdesk-candidate\", \"--adapter\", \"caddyfile\"]\n[\"inspect\", \"-f\", \"{{range $name, $_ := .NetworkSettings.Networks}}{{$name}} {{end}}\", \"qa-proxy\"]\n[\"network\", \"connect\", \"lawdesk-edge\", \"qa-proxy\"]\n[\"cp\", \"/tmp/lawdesk-qa-cd-cnuv69uc/PROXY-PERSIST-AFTER-RELOAD-FAIL/backups/20261023T200344Z/Caddyfile\", \"qa-proxy:/etc/caddy/Caddyfile.lawdesk-previous\"]\n[\"exec\", \"qa-proxy\", \"caddy\", \"reload\", \"--config\", \"/etc/caddy/Caddyfile.lawdesk-candidate\", \"--adapter\", \"caddyfile\"]\n[\"cp\", \"/tmp/lawdesk-qa-cd-cnuv69uc/PROXY-PERSIST-AFTER-RELOAD-FAIL/backups/20261023T200344Z/Caddyfile.candidate\", \"qa-proxy:/etc/caddy/Caddyfile\"]\n[\"exec\", \"qa-proxy\", \"caddy\", \"reload\", \"--config\", \"/etc/caddy/Caddyfile.lawdesk-previous\", \"--adapter\", \"caddyfile\"]\n[\"network\", \"disconnect\", \"lawdesk-edge\", \"qa-proxy\"]\n",
+        "host_probe_calls": "https://app.qa.invalid/\n"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PROXY-NOMINAL-CONTROL",
+      "story_ids": [
+        "LD-006"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "3b6f18cfb9d2f47a6be4dc79803254d748c69a15",
+        "fixture": "PROXY-NOMINAL-CONTROL"
+      },
+      "steps": [
+        "Run cd_review.py against the exact snapshot; inspect recorded transport and state."
+      ],
+      "expected_results": [
+        "Valid host baseline attaches only LawDesk and keeps active/persisted configuration equal."
+      ],
+      "actual": {
+        "exit": 0,
+        "active_changed": true,
+        "persisted_changed": true,
+        "original": "app.qa.invalid {\n respond \"QA app\"\n}\napi.qa.invalid {\n respond \"QA api\"\n}\n",
+        "active": "app.qa.invalid {\n respond \"QA app\"\n}\napi.qa.invalid {\n respond \"QA api\"\n}\n# BEGIN lawdesk-staging (managed by LawDesk deploy/proxy/attach.sh; remove with detach.sh)\nlawdesk.qa.invalid {\n\troute {\n\t\theader {\n\t\t\tStrict-Transport-Security \"max-age=31536000\"\n\t\t\tX-Robots-Tag \"noindex, nofollow\"\n\t\t\t-Server\n\t\t}\n\t\t# Only health probes of the actuator are public; the web container enforces the same.\n\t\t@lawdesk_internal {\n\t\t\tpath /actuator /actuator/*\n\t\t\tnot path /actuator/health /actuator/health/liveness /actuator/health/readiness\n\t\t}\n\t\trespond @lawdesk_internal 404\n\t\treverse_proxy lawdesk-web:8080\n\t}\n}\n# END lawdesk-staging\n",
+        "stderr": "{\"level\":\"warn\",\"ts\":1792785827.3146763,\"logger\":\"caddyfile\",\"msg\":\"Caddyfile input is not formatted; run 'caddy fmt --overwrite' to fix inconsistencies\",\"file\":\"/tmp/lawdesk-qa-cd-cnuv69uc/PROXY-NOMINAL-CONTROL/candidate\",\"line\":2}\n",
+        "docker_calls": "[\"ps\", \"--filter\", \"label=com.docker.compose.project=matbakhy-preview\", \"--filter\", \"label=com.docker.compose.service=proxy\", \"--format\", \"{{.ID}}\"]\n[\"exec\", \"qa-proxy\", \"printenv\", \"PREVIEW_DOMAIN\"]\n[\"network\", \"inspect\", \"lawdesk-edge\"]\n[\"cp\", \"qa-proxy:/etc/caddy/Caddyfile\", \"/tmp/lawdesk-qa-cd-cnuv69uc/PROXY-NOMINAL-CONTROL/backups/20261023T200346Z/Caddyfile\"]\n[\"cp\", \"/tmp/lawdesk-qa-cd-cnuv69uc/PROXY-NOMINAL-CONTROL/backups/20261023T200346Z/Caddyfile.kept\", \"qa-proxy:/etc/caddy/Caddyfile.lawdesk-check\"]\n[\"exec\", \"qa-proxy\", \"caddy\", \"adapt\", \"--config\", \"/etc/caddy/Caddyfile\", \"--adapter\", \"caddyfile\"]\n[\"exec\", \"qa-proxy\", \"caddy\", \"adapt\", \"--config\", \"/etc/caddy/Caddyfile.lawdesk-check\", \"--adapter\", \"caddyfile\"]\n[\"cp\", \"/tmp/lawdesk-qa-cd-cnuv69uc/PROXY-NOMINAL-CONTROL/backups/20261023T200346Z/Caddyfile.candidate\", \"qa-proxy:/etc/caddy/Caddyfile.lawdesk-candidate\"]\n[\"exec\", \"qa-proxy\", \"caddy\", \"validate\", \"--config\", \"/etc/caddy/Caddyfile.lawdesk-candidate\", \"--adapter\", \"caddyfile\"]\n[\"exec\", \"qa-proxy\", \"caddy\", \"adapt\", \"--config\", \"/etc/caddy/Caddyfile.lawdesk-candidate\", \"--adapter\", \"caddyfile\"]\n[\"inspect\", \"-f\", \"{{range $name, $_ := .NetworkSettings.Networks}}{{$name}} {{end}}\", \"qa-proxy\"]\n[\"network\", \"connect\", \"lawdesk-edge\", \"qa-proxy\"]\n[\"cp\", \"/tmp/lawdesk-qa-cd-cnuv69uc/PROXY-NOMINAL-CONTROL/backups/20261023T200346Z/Caddyfile\", \"qa-proxy:/etc/caddy/Caddyfile.lawdesk-previous\"]\n[\"exec\", \"qa-proxy\", \"caddy\", \"reload\", \"--config\", \"/etc/caddy/Caddyfile.lawdesk-candidate\", \"--adapter\", \"caddyfile\"]\n[\"cp\", \"/tmp/lawdesk-qa-cd-cnuv69uc/PROXY-NOMINAL-CONTROL/backups/20261023T200346Z/Caddyfile.candidate\", \"qa-proxy:/etc/caddy/Caddyfile\"]\n",
+        "host_probe_calls": "https://api.qa.invalid/\nhttps://app.qa.invalid/\nhttps://api.qa.invalid/\nhttps://app.qa.invalid/\n"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PROXY-UNBALANCED-MARKER",
+      "story_ids": [
+        "LD-006"
+      ],
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "3b6f18cfb9d2f47a6be4dc79803254d748c69a15",
+        "fixture": "PROXY-UNBALANCED-MARKER"
+      },
+      "steps": [
+        "Run cd_review.py against the exact snapshot; inspect recorded transport and state."
+      ],
+      "expected_results": [
+        "Unbalanced LawDesk markers fail closed before dropping any existing host definitions."
+      ],
+      "actual": {
+        "exit": 2,
+        "active_changed": false,
+        "persisted_changed": false,
+        "original": "app.qa.invalid {\n respond \"QA app\"\n}\n# BEGIN lawdesk-staging\napi.qa.invalid {\n respond \"QA api\"\n}\n",
+        "active": "app.qa.invalid {\n respond \"QA app\"\n}\n# BEGIN lawdesk-staging\napi.qa.invalid {\n respond \"QA api\"\n}\n",
+        "stderr": "proxy: the LawDesk markers in the live Caddyfile are malformed (found B); fix them by hand\n",
+        "docker_calls": "[\"ps\", \"--filter\", \"label=com.docker.compose.project=matbakhy-preview\", \"--filter\", \"label=com.docker.compose.service=proxy\", \"--format\", \"{{.ID}}\"]\n[\"exec\", \"qa-proxy\", \"printenv\", \"PREVIEW_DOMAIN\"]\n[\"network\", \"inspect\", \"lawdesk-edge\"]\n[\"cp\", \"qa-proxy:/etc/caddy/Caddyfile\", \"/tmp/lawdesk-qa-cd-cnuv69uc/PROXY-UNBALANCED-MARKER/backups/20261023T200348Z/Caddyfile\"]\n",
+        "host_probe_calls": ""
+      },
+      "status": "PASS"
+    }
+  ],
+  "counts": {
+    "PASS": 18,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  }
+}

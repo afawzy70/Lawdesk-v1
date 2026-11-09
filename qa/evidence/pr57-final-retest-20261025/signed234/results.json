@@ -1,0 +1,978 @@
+{
+  "started": "2026-10-25T15:30:59.659Z",
+  "updated": "2026-10-25T15:31:25.295Z",
+  "target": "https://lawdesk.167-86-90-174.sslip.io",
+  "baseline_sha": "1e74945961a77fcf5a67fc26f3a51d0715660628",
+  "backend_runtime_sha_attested": true,
+  "observed_runtime_release": "1e74945961a77fcf5a67fc26f3a51d0715660628",
+  "deployment_identity": "Authenticated /api/v1/release compared with candidate SHA; deployment-job evidence stored separately",
+  "prefix": "QA261025153059AF67B4",
+  "scope": "Independent signed-in Chromium and live HTTP; no developer tests counted",
+  "counts": {
+    "PASS": 35,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "owned_fixture_ids": {
+    "roles": [
+      "151e6e67-47dc-4c36-a829-fc1de204ee89"
+    ],
+    "users": [
+      "c95ad19f-04db-4f8e-802d-ede63bea3223"
+    ],
+    "cases": [
+      "7e7fad24-29e2-46c0-9353-e68e31204bf6"
+    ],
+    "parties": [
+      "aa8c0f9d-57b1-43c5-948a-ea32db229b55"
+    ],
+    "courts": [
+      "86c2d783-5a58-4ff5-be3a-3983dbefc89c",
+      "eb8cee86-b6d1-4590-b93d-1004b1e0adc0",
+      "173aec87-116c-47d7-b455-a8517dcffc86"
+    ],
+    "proceedings": [
+      "fd50c537-af4d-4e9f-aaf0-15b0cd61d821",
+      "d271df9b-3096-4e54-891a-0cc26eb8be7d",
+      "76726181-d8a8-4df3-bf91-fef83174166c"
+    ],
+    "judgments": [
+      "2e3af2f1-bbaf-41ba-b813-7bc0d0c4ce7c",
+      "e091fafb-7409-4e57-af5b-01d5babc0e37"
+    ],
+    "decisions": [
+      "1eb6f733-1e21-4a81-b5da-1aa2576888d9"
+    ]
+  },
+  "tests": [
+    {
+      "id": "SIGNED-LOGIN",
+      "story_ids": [
+        "LD-007"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "Open /cases/new?lang=en",
+        "Enter approved credentials",
+        "Submit",
+        "GET /me"
+      ],
+      "expected_results": "Browser authenticates; dedicated account has required test permissions; primary account is unchanged",
+      "status": "PASS",
+      "actual": {
+        "login_status": 200,
+        "required_permissions_present": true
+      }
+    },
+    {
+      "id": "SIGNED-SESSION",
+      "story_ids": [
+        "LD-007",
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "Inspect session cookie metadata",
+        "Inspect browser storage for session/password markers"
+      ],
+      "expected_results": "JSESSIONID is Secure/HttpOnly/SameSite=Lax; credentials absent from browser storage",
+      "status": "PASS",
+      "actual": {
+        "secure": true,
+        "httpOnly": true,
+        "sameSite": "Lax",
+        "storage_leak": false
+      }
+    },
+    {
+      "id": "SIGNED-ROLE-CREATE",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "POST /roles with unique QA code and CASE_VIEW permission",
+        "GET created role"
+      ],
+      "expected_results": "201 then 200; exact permission set; role is not system-owned",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-USER-CREATE",
+      "story_ids": [
+        "LD-009"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "POST /users with unique QA username/email and owned viewer role",
+        "GET created user"
+      ],
+      "expected_results": "201; enabled user requires password change; only own role assigned",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-USER-NULL-ROLE",
+      "story_ids": [
+        "LD-009"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "POST unique second QA user with roles:[null]"
+      ],
+      "expected_results": "400 rather than 500; QAD-025 retest",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-PASSWORD-UI",
+      "story_ids": [
+        "LD-007",
+        "LD-008"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "Open separate browser context",
+        "Login newly created QA user",
+        "Change forced temporary password using browser",
+        "GET /me"
+      ],
+      "expected_results": "Password change 204; forced-change flag clears; only disposable user changed",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-PASSWORD-BYTE-BOUNDARY",
+      "story_ids": [
+        "LD-008"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "On disposable QA user submit 73 ASCII bytes then 37 Arabic characters",
+        "Read /me"
+      ],
+      "expected_results": "Both return 400, never 500; QAD-022 negative boundary retest; current password remains usable",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-DENIED",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011",
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "As CASE_VIEW-only user GET users/audit",
+        "POST courts with malformed and valid body"
+      ],
+      "expected_results": "403 for every denied operation, including invalid input; QAD-026 retest",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-CSRF",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "With valid admin session submit unique QA case without X-XSRF-TOKEN"
+      ],
+      "expected_results": "403 and no created case",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-CASE-CREATE-UI",
+      "story_ids": [
+        "LD-012"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "Open /cases/new",
+        "Fill unique reference/title/type/date",
+        "Create case",
+        "GET returned ID"
+      ],
+      "expected_results": "Browser creates case with 201; details route and persisted OPEN/version0 match",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-CASE-EDIT-UI",
+      "story_ids": [
+        "LD-013"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "Open own case edit page",
+        "Update title",
+        "Save",
+        "GET own case"
+      ],
+      "expected_results": "UI saves changed title and increments version once",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-CASE-STALE",
+      "story_ids": [
+        "LD-013"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "GET own case",
+        "PUT valid fields with version -1 relative to current",
+        "GET case again"
+      ],
+      "expected_results": "409; title/version unchanged",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-CASE-SEARCH-UI",
+      "story_ids": [
+        "LD-015"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "Open /cases",
+        "Search unique reference",
+        "Inspect matching link"
+      ],
+      "expected_results": "Own case appears on mounted case list; QAD-023 retest",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-PARTY",
+      "story_ids": [
+        "LD-016"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "Create synthetic PERSON without national identifier",
+        "Link to own case as CLIENT",
+        "Repeat link",
+        "Read case parties"
+      ],
+      "expected_results": "201/201/409; exactly one link to owned party",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-STATUS-HISTORY",
+      "story_ids": [
+        "LD-014",
+        "LD-017"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "Read own case",
+        "OPEN to ACTIVE",
+        "Reject ACTIVE to ARCHIVED",
+        "Read case and timeline"
+      ],
+      "expected_results": "200/422; rejected transition preserves version; timeline includes status change",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-COURTS",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "Create three unique QA courts at FIRST_INSTANCE/APPEAL/CASSATION levels",
+        "Read each"
+      ],
+      "expected_results": "201 for each; active and correct level persisted",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-FIRST-INSTANCE",
+      "story_ids": [
+        "LD-019"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "POST first-instance proceeding for own case and court dated Jan2"
+      ],
+      "expected_results": "201; own case and court linked",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-JUDGMENT",
+      "story_ids": [
+        "LD-022"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "POST own first-instance judgment dated Jan3"
+      ],
+      "expected_results": "201; judgment tied to owned proceeding",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-APPEAL",
+      "story_ids": [
+        "LD-020"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "POST own appeal dated Jan4 against judged first-instance proceeding"
+      ],
+      "expected_results": "201; appeal points to same-case first-instance parent",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-PARENT-CHRONOLOGY",
+      "story_ids": [
+        "LD-020",
+        "LD-022"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "With existing Jan4 appeal PUT parent judgment date Jan10/version0",
+        "GET judgment"
+      ],
+      "expected_results": "422 JUDGMENT_AFTER_CHALLENGE_FILING; date/version unchanged; QAD-024 retest",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-CASSATION",
+      "story_ids": [
+        "LD-021",
+        "LD-022"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "Record appeal judgment Jan5",
+        "Create cassation Jan6 targeting appeal"
+      ],
+      "expected_results": "201/201; complete first-instance/appeal/cassation chain",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-SPECIAL-DECISION",
+      "story_ids": [
+        "LD-023"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "POST enforcement suspension Jan7 on owned appeal referencing its judgment"
+      ],
+      "expected_results": "201; decision associated with own proceeding and judgment",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-JUDICIAL-UI",
+      "story_ids": [
+        "LD-019",
+        "LD-020",
+        "LD-021",
+        "LD-022",
+        "LD-023"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "Open own case detail",
+        "Inspect proceedings section and all three unique court case numbers"
+      ],
+      "expected_results": "Real React case page renders all three persisted stages",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-USER-UPDATE",
+      "story_ids": [
+        "LD-009"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "Read owned user",
+        "Update display name using current version",
+        "Repeat stale version"
+      ],
+      "expected_results": "200 then409; details persisted",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-ROLE-REVOKE",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "Update owned role to empty permissions",
+        "GET own case through existing viewer session",
+        "Restore CASE_VIEW"
+      ],
+      "expected_results": "Existing session immediately403; restoring permission allows200",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-AUDIT",
+      "story_ids": [
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "GET audit filtered to owned viewer username/run start/action ACCESS_DENIED"
+      ],
+      "expected_results": "At least one denied event from this run; actor filter respected; no passwords/session material",
+      "status": "PASS",
+      "actual": {
+        "matching_events": 5
+      }
+    },
+    {
+      "id": "SIGNED-ASSIGN-ROLES",
+      "story_ids": [
+        "LD-009",
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "Remove roles from owned user",
+        "Read own case in existing viewer session",
+        "Restore owned role"
+      ],
+      "expected_results": "200/403/200; authority refresh takes effect without a new login",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-ROLE-UI",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "Open owned role detail page",
+        "Read code and CASE_VIEW selection"
+      ],
+      "expected_results": "Role detail UI displays exact persisted code and checked View cases permission",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-AUDIT-UI",
+      "story_ids": [
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "Open audit",
+        "Filter to owned username and ACCESS_DENIED",
+        "Verify filtered rows"
+      ],
+      "expected_results": "Filtered audit table contains own username and matching denied events; screenshot excludes unrelated rows",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-LAYOUT-en-375",
+      "story_ids": [
+        "LD-012",
+        "LD-019",
+        "LD-035",
+        "LD-036",
+        "LD-037"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "Open own case detail in en at 375px",
+        "Inspect direction/overflow",
+        "Screenshot",
+        "axe A/AA"
+      ],
+      "expected_results": "Correct language/direction; no page overflow; judicial content present; no automated A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "en",
+        "dir": "ltr",
+        "viewport": 375,
+        "documentWidth": 375,
+        "overflow": false,
+        "overflowElements": []
+      }
+    },
+    {
+      "id": "SIGNED-LAYOUT-en-1366",
+      "story_ids": [
+        "LD-012",
+        "LD-019",
+        "LD-035",
+        "LD-036",
+        "LD-037"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "Open own case detail in en at 1366px",
+        "Inspect direction/overflow",
+        "Screenshot",
+        "axe A/AA"
+      ],
+      "expected_results": "Correct language/direction; no page overflow; judicial content present; no automated A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "en",
+        "dir": "ltr",
+        "viewport": 1366,
+        "documentWidth": 1366,
+        "overflow": false,
+        "overflowElements": []
+      }
+    },
+    {
+      "id": "SIGNED-LAYOUT-ar-375",
+      "story_ids": [
+        "LD-012",
+        "LD-019",
+        "LD-035",
+        "LD-036",
+        "LD-037"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "Open own case detail in ar at 375px",
+        "Inspect direction/overflow",
+        "Screenshot",
+        "axe A/AA"
+      ],
+      "expected_results": "Correct language/direction; no page overflow; judicial content present; no automated A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "ar",
+        "dir": "rtl",
+        "viewport": 375,
+        "documentWidth": 375,
+        "overflow": false,
+        "overflowElements": []
+      }
+    },
+    {
+      "id": "SIGNED-LAYOUT-ar-1366",
+      "story_ids": [
+        "LD-012",
+        "LD-019",
+        "LD-035",
+        "LD-036",
+        "LD-037"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "Open own case detail in ar at 1366px",
+        "Inspect direction/overflow",
+        "Screenshot",
+        "axe A/AA"
+      ],
+      "expected_results": "Correct language/direction; no page overflow; judicial content present; no automated A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "ar",
+        "dir": "rtl",
+        "viewport": 1366,
+        "documentWidth": 1366,
+        "overflow": false,
+        "overflowElements": []
+      }
+    },
+    {
+      "id": "SIGNED-DISABLE",
+      "story_ids": [
+        "LD-009",
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "Disable only owned disposable user",
+        "GET /me using existing viewer session"
+      ],
+      "expected_results": "200 disable; old session401; primary account unchanged",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "SIGNED-LOGOUT-UI",
+      "story_ids": [
+        "LD-007"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact deployment identity checked separately",
+        "Approved dedicated QA account; valid HTTPS/CSRF",
+        "Mutate only resources created with this execution prefix"
+      ],
+      "test_data": {
+        "prefix": "QA261025153059AF67B4",
+        "dates": "2026-01-02 through 2026-01-10",
+        "credentials": "Generated in memory; never evidence"
+      },
+      "steps": [
+        "Switch primary browser to English own case",
+        "Click Sign out",
+        "GET /me"
+      ],
+      "expected_results": "Logout204; session401; browser returns to sign-in",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    }
+  ]
+}

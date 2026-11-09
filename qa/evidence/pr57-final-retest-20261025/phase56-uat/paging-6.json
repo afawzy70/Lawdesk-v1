@@ -1,0 +1,150 @@
+{
+  "path": "/api/v1/documents",
+  "observed": [
+    {
+      "query": "",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "query": "size=100",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "query": "page=",
+      "status": 400,
+      "expected": 400,
+      "fields": [
+        "page"
+      ]
+    },
+    {
+      "query": "size=",
+      "status": 400,
+      "expected": 400,
+      "fields": [
+        "size"
+      ]
+    },
+    {
+      "query": "page=%20%20",
+      "status": 400,
+      "expected": 400,
+      "fields": [
+        "page"
+      ]
+    },
+    {
+      "query": "size=%09",
+      "status": 400,
+      "expected": 400,
+      "fields": [
+        "size"
+      ]
+    },
+    {
+      "query": "page=-1",
+      "status": 400,
+      "expected": 400,
+      "fields": [
+        "page"
+      ]
+    },
+    {
+      "query": "size=0",
+      "status": 400,
+      "expected": 400,
+      "fields": [
+        "size"
+      ]
+    },
+    {
+      "query": "page=bad",
+      "status": 400,
+      "expected": 400,
+      "fields": [
+        "page"
+      ]
+    },
+    {
+      "query": "size=101",
+      "status": 400,
+      "expected": 400,
+      "fields": [
+        "size"
+      ]
+    },
+    {
+      "query": "size=20&size=101",
+      "status": 400,
+      "expected": 400,
+      "fields": [
+        "size"
+      ]
+    },
+    {
+      "query": "page=0&page=",
+      "status": 400,
+      "expected": 400,
+      "fields": [
+        "page"
+      ]
+    },
+    {
+      "query": "page=2147483647&size=100",
+      "status": 400,
+      "expected": 400,
+      "fields": [
+        "page"
+      ]
+    },
+    {
+      "query": "page=2147483647&size=1",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "query": "page=21474836&size=100",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "query": "page=21474837&size=100",
+      "status": 400,
+      "expected": 400,
+      "fields": [
+        "page"
+      ]
+    },
+    {
+      "query": "page=107374182",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "query": "page=107374183",
+      "status": 400,
+      "expected": 400,
+      "fields": [
+        "page"
+      ]
+    },
+    {
+      "query": "page=0&page=2147483647&size=100",
+      "status": 400,
+      "expected": 400,
+      "fields": [
+        "page"
+      ]
+    },
+    {
+      "query": "page=2147483647&size=1&size=100",
+      "status": 400,
+      "expected": 400,
+      "fields": [
+        "page"
+      ]
+    }
+  ]
+}

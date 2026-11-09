@@ -1,0 +1,1253 @@
+{
+  "started": "2026-10-24T18:05:27.152Z",
+  "updated": "2026-10-24T18:06:22.617Z",
+  "base": "https://lawdesk.167-86-90-174.sslip.io",
+  "expected_deployed_sha": "19ad5386fa586e2469ecad36a677632273712f44",
+  "backend_runtime_sha_attested": true,
+  "observed_runtime_release": "19ad5386fa586e2469ecad36a677632273712f44",
+  "prefix": "QAMVMPLTRK997BB4",
+  "scope": "Independent live browser/API; no developer tests; persistent API reads assess integrity, no direct PostgreSQL access",
+  "counts": {
+    "PASS": 41,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "fixtures": {
+    "cases": [
+      "cefd1303-0b5c-4c56-b410-1d734ac263cc",
+      "dd462735-3860-4b3c-ad48-c72f86b09288",
+      "0ff211a3-1b7c-4e9f-8256-5c055fff3e13",
+      "0f71e6f8-0e55-40fa-8156-b229bc3a030c",
+      "c0a87878-340e-40f5-a75c-37b663a3b777",
+      "e4da83ca-818f-4cf4-8e9f-3048d5042da7",
+      "0cca69e8-aeae-4788-b206-a77828d0762c",
+      "3f626d72-89d5-48b0-91f3-6343c8e4f46c",
+      "b30da29a-9501-494b-8acd-7d771516d2ab",
+      "a031122b-653c-4384-9420-5d6bb8270fea",
+      "9d1f5b4f-ddcf-40b7-8664-1a522737e332"
+    ],
+    "courts": [
+      "9adc0a49-0bc7-47ff-8a68-8eacd73b9b46",
+      "b2a3ef92-8b9d-45d0-b46d-5f7ec46a6476",
+      "946cee40-7794-4167-9d01-ab311b64acb0",
+      "417cc38e-59cf-42f2-9826-26cf375811bd",
+      "8262a2b2-96e4-4d35-b438-1fc4cbb5127d"
+    ],
+    "proceedings": [
+      "a26e33a0-6a8a-4163-ba02-22e1395caf05",
+      "dd9f1062-78ec-4a71-9b2e-32f0b45cae46",
+      "57261630-a92a-4fdb-8308-298493f37281",
+      "6620ac45-342b-4fb2-8633-aafc300027d5",
+      "b2523b1f-2846-446c-8dc1-875dca0b8328",
+      "3a14880a-d7b9-4f5f-ae4d-836c98dd0dfc",
+      "d6b789d7-8695-4bc4-8949-65a8a958d44f",
+      "6567c7b2-e023-4b60-975d-bf5032f4adbe",
+      "45cd853c-58b7-4e61-b103-fcf8e2106762",
+      "5ef2ceeb-4cd9-4b46-a56f-f3ce1158750a",
+      "581a1d2c-3cc0-4b34-a0ea-73cb5ceb7b99",
+      "b022ad17-e7f5-4a9a-bf02-84f7d6803748",
+      "838a027f-266c-48e2-942f-3dffe4fbc433",
+      "283a0839-55ca-4eb2-a8a9-6c55a0615036",
+      "015d34f2-96a3-43de-b686-88c50d7d0186",
+      "7756d7c7-e1b7-40a8-a2ee-d3705c8ec4ce",
+      "22d6bb99-8d78-470b-b399-871cf65e5cbe",
+      "6bccea4e-885f-42db-afa1-b21e2b799164"
+    ],
+    "judgments": [
+      "c228789f-8aff-4ba4-8357-c6e22bea752a",
+      "063a1828-11ae-4b07-923a-6b71d4f369ca",
+      "0ed71ad9-140b-4cb2-92f9-ba696007f912",
+      "21139fde-02bc-442c-b6e7-5fdeae1d031f",
+      "8f928bdd-8ecc-4fcc-82b9-cd269dea64d5",
+      "d723b5b0-02ba-41dd-81ac-3e67dfcf71f1",
+      "90adbcfa-3888-4f44-9cf1-074bdae9b473",
+      "0a5f135c-2501-4c90-84b9-d91455ad4f65",
+      "d95d5f64-2d5e-4712-abb1-7689c960ea8b",
+      "a0d7771a-2a21-4453-b96d-88fe7a21422b",
+      "c53eabe5-7028-4c31-8e2d-8314d1a87f25",
+      "4c586648-6a59-4c92-a2e5-b0fe9e201ace",
+      "5003a593-573d-498d-b189-0eb2581ef855"
+    ],
+    "users": [
+      "5ef052e1-9a0b-4619-8d70-88ed218bddea"
+    ]
+  },
+  "results": [
+    {
+      "id": "ROLE-LOGIN-admin",
+      "story_ids": [
+        "LD-007",
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Read approved credential internally",
+        "Browser login",
+        "GET /me"
+      ],
+      "expected_results": "200; approved identity and role; no forced password change",
+      "status": "PASS",
+      "actual": {
+        "role": "ADMIN",
+        "permissions": [
+          "AUDIT_VIEW",
+          "CASE_CREATE",
+          "CASE_DELETE",
+          "CASE_EDIT",
+          "CASE_STATUS_CHANGE",
+          "CASE_VIEW",
+          "COURT_MANAGE",
+          "COURT_VIEW",
+          "DOCUMENT_MANAGE",
+          "DOCUMENT_VIEW",
+          "EXPERT_MANAGE",
+          "EXPERT_VIEW",
+          "HEARING_MANAGE",
+          "HEARING_VIEW",
+          "JUDGMENT_MANAGE",
+          "JUDGMENT_VIEW",
+          "NOTE_MANAGE",
+          "PARTY_MANAGE",
+          "PROCEEDING_MANAGE",
+          "PROCEEDING_VIEW",
+          "REPORT_EXPORT",
+          "REPORT_VIEW",
+          "ROLE_MANAGE",
+          "ROLE_VIEW",
+          "TASK_MANAGE",
+          "TASK_VIEW",
+          "USER_MANAGE",
+          "USER_VIEW"
+        ]
+      }
+    },
+    {
+      "id": "ROLE-LOGIN-manager",
+      "story_ids": [
+        "LD-007",
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Read approved credential internally",
+        "Browser login",
+        "GET /me"
+      ],
+      "expected_results": "200; approved identity and role; no forced password change",
+      "status": "PASS",
+      "actual": {
+        "role": "LEGAL_MANAGER",
+        "permissions": [
+          "AUDIT_VIEW",
+          "CASE_CREATE",
+          "CASE_DELETE",
+          "CASE_EDIT",
+          "CASE_STATUS_CHANGE",
+          "CASE_VIEW",
+          "COURT_MANAGE",
+          "COURT_VIEW",
+          "DOCUMENT_MANAGE",
+          "DOCUMENT_VIEW",
+          "EXPERT_MANAGE",
+          "EXPERT_VIEW",
+          "HEARING_MANAGE",
+          "HEARING_VIEW",
+          "JUDGMENT_MANAGE",
+          "JUDGMENT_VIEW",
+          "NOTE_MANAGE",
+          "PARTY_MANAGE",
+          "PROCEEDING_MANAGE",
+          "PROCEEDING_VIEW",
+          "REPORT_EXPORT",
+          "REPORT_VIEW",
+          "TASK_MANAGE",
+          "TASK_VIEW",
+          "USER_VIEW"
+        ]
+      }
+    },
+    {
+      "id": "ROLE-LOGIN-staff",
+      "story_ids": [
+        "LD-007",
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Read approved credential internally",
+        "Browser login",
+        "GET /me"
+      ],
+      "expected_results": "200; approved identity and role; no forced password change",
+      "status": "PASS",
+      "actual": {
+        "role": "LEGAL_STAFF",
+        "permissions": [
+          "CASE_CREATE",
+          "CASE_EDIT",
+          "CASE_VIEW",
+          "COURT_VIEW",
+          "DOCUMENT_MANAGE",
+          "DOCUMENT_VIEW",
+          "EXPERT_VIEW",
+          "HEARING_MANAGE",
+          "HEARING_VIEW",
+          "JUDGMENT_VIEW",
+          "NOTE_MANAGE",
+          "PARTY_MANAGE",
+          "PROCEEDING_MANAGE",
+          "PROCEEDING_VIEW",
+          "TASK_MANAGE",
+          "TASK_VIEW"
+        ]
+      }
+    },
+    {
+      "id": "ROLE-LOGIN-viewer",
+      "story_ids": [
+        "LD-007",
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Read approved credential internally",
+        "Browser login",
+        "GET /me"
+      ],
+      "expected_results": "200; approved identity and role; no forced password change",
+      "status": "PASS",
+      "actual": {
+        "role": "QA_READ_ONLY",
+        "permissions": [
+          "CASE_VIEW",
+          "COURT_VIEW",
+          "JUDGMENT_VIEW",
+          "PROCEEDING_VIEW"
+        ]
+      }
+    },
+    {
+      "id": "FIXTURE-CASE-COURTS",
+      "story_ids": [
+        "LD-012",
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Create owned case",
+        "Create each owned court level"
+      ],
+      "expected_results": "Case and courts201",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "MATRIX-READ-admin",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011",
+        "LD-012",
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "GET own case/court",
+        "GET users filtered QA",
+        "GET own-run audit",
+        "GET roles"
+      ],
+      "expected_results": "Case/court200 all; users/audit200 admin+manager and403 staff+viewer; roles200 admin only",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "MATRIX-CASE-WRITE-admin",
+      "story_ids": [
+        "LD-010",
+        "LD-012",
+        "LD-013",
+        "LD-017"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Create unique own case",
+        "Edit own case",
+        "Attempt state change"
+      ],
+      "expected_results": "Create/edit allowed admin+manager+staff; viewer403; status change admin+manager only",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "MATRIX-COURT-WRITE-admin",
+      "story_ids": [
+        "LD-010",
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "POST unique valid court",
+        "For denied role repeat malformed payload"
+      ],
+      "expected_results": "201 admin+manager;403 staff+viewer regardless of payload validity",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "MATRIX-PROCEEDING-JUDGMENT-admin",
+      "story_ids": [
+        "LD-010",
+        "LD-019",
+        "LD-022"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Create proceeding on owned case",
+        "Record judgment if proceeding created"
+      ],
+      "expected_results": "Proceeding201 admin+manager+staff/403 viewer; judgment201 admin+manager/403 staff",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "MATRIX-READ-manager",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011",
+        "LD-012",
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "GET own case/court",
+        "GET users filtered QA",
+        "GET own-run audit",
+        "GET roles"
+      ],
+      "expected_results": "Case/court200 all; users/audit200 admin+manager and403 staff+viewer; roles200 admin only",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "MATRIX-CASE-WRITE-manager",
+      "story_ids": [
+        "LD-010",
+        "LD-012",
+        "LD-013",
+        "LD-017"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Create unique own case",
+        "Edit own case",
+        "Attempt state change"
+      ],
+      "expected_results": "Create/edit allowed admin+manager+staff; viewer403; status change admin+manager only",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "MATRIX-COURT-WRITE-manager",
+      "story_ids": [
+        "LD-010",
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "POST unique valid court",
+        "For denied role repeat malformed payload"
+      ],
+      "expected_results": "201 admin+manager;403 staff+viewer regardless of payload validity",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "MATRIX-PROCEEDING-JUDGMENT-manager",
+      "story_ids": [
+        "LD-010",
+        "LD-019",
+        "LD-022"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Create proceeding on owned case",
+        "Record judgment if proceeding created"
+      ],
+      "expected_results": "Proceeding201 admin+manager+staff/403 viewer; judgment201 admin+manager/403 staff",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "MATRIX-ADMIN-DENIED-manager",
+      "story_ids": [
+        "LD-009",
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "POST role",
+        "POST user with valid synthetic data"
+      ],
+      "expected_results": "403 for manager/staff/viewer; no privilege escalation",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "MATRIX-READ-staff",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011",
+        "LD-012",
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "GET own case/court",
+        "GET users filtered QA",
+        "GET own-run audit",
+        "GET roles"
+      ],
+      "expected_results": "Case/court200 all; users/audit200 admin+manager and403 staff+viewer; roles200 admin only",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "MATRIX-CASE-WRITE-staff",
+      "story_ids": [
+        "LD-010",
+        "LD-012",
+        "LD-013",
+        "LD-017"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Create unique own case",
+        "Edit own case",
+        "Attempt state change"
+      ],
+      "expected_results": "Create/edit allowed admin+manager+staff; viewer403; status change admin+manager only",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "MATRIX-COURT-WRITE-staff",
+      "story_ids": [
+        "LD-010",
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "POST unique valid court",
+        "For denied role repeat malformed payload"
+      ],
+      "expected_results": "201 admin+manager;403 staff+viewer regardless of payload validity",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "MATRIX-PROCEEDING-JUDGMENT-staff",
+      "story_ids": [
+        "LD-010",
+        "LD-019",
+        "LD-022"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Create proceeding on owned case",
+        "Record judgment if proceeding created"
+      ],
+      "expected_results": "Proceeding201 admin+manager+staff/403 viewer; judgment201 admin+manager/403 staff",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "MATRIX-ADMIN-DENIED-staff",
+      "story_ids": [
+        "LD-009",
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "POST role",
+        "POST user with valid synthetic data"
+      ],
+      "expected_results": "403 for manager/staff/viewer; no privilege escalation",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "MATRIX-READ-viewer",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011",
+        "LD-012",
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "GET own case/court",
+        "GET users filtered QA",
+        "GET own-run audit",
+        "GET roles"
+      ],
+      "expected_results": "Case/court200 all; users/audit200 admin+manager and403 staff+viewer; roles200 admin only",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "MATRIX-CASE-WRITE-viewer",
+      "story_ids": [
+        "LD-010",
+        "LD-012",
+        "LD-013",
+        "LD-017"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Create unique own case",
+        "Edit own case",
+        "Attempt state change"
+      ],
+      "expected_results": "Create/edit allowed admin+manager+staff; viewer403; status change admin+manager only",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "MATRIX-COURT-WRITE-viewer",
+      "story_ids": [
+        "LD-010",
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "POST unique valid court",
+        "For denied role repeat malformed payload"
+      ],
+      "expected_results": "201 admin+manager;403 staff+viewer regardless of payload validity",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "MATRIX-PROCEEDING-JUDGMENT-viewer",
+      "story_ids": [
+        "LD-010",
+        "LD-019",
+        "LD-022"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Create proceeding on owned case",
+        "Record judgment if proceeding created"
+      ],
+      "expected_results": "Proceeding201 admin+manager+staff/403 viewer; judgment201 admin+manager/403 staff",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "MATRIX-ADMIN-DENIED-viewer",
+      "story_ids": [
+        "LD-009",
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "POST role",
+        "POST user with valid synthetic data"
+      ],
+      "expected_results": "403 for manager/staff/viewer; no privilege escalation",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "JUDICIAL-BASE-CHAIN",
+      "story_ids": [
+        "LD-019",
+        "LD-020",
+        "LD-022"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Create owned first-instance Jan2",
+        "Judgment Jan3",
+        "Appeal Jan4",
+        "Judgment Jan5"
+      ],
+      "expected_results": "All201; chain same case",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "JUDICIAL-INVALID-ATOMIC",
+      "story_ids": [
+        "LD-019",
+        "LD-020",
+        "LD-021"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Read own proceedings/history",
+        "Wrong level, future filing, cross-case parent, challenge before judgment",
+        "Reread"
+      ],
+      "expected_results": "400/422 rejects leave proceeding/history counts unchanged",
+      "status": "PASS",
+      "actual": {
+        "proceedingsBefore": 5,
+        "proceedingsAfter": 5,
+        "historyBefore": 10,
+        "historyAfter": 10
+      }
+    },
+    {
+      "id": "CASSATION-CHRONOLOGY",
+      "story_ids": [
+        "LD-021",
+        "LD-022"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Create cassation Jan6",
+        "Move appeal judgment to Jan10",
+        "Read judgment"
+      ],
+      "expected_results": "422; original date/version retained",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "RACE-APPEAL-0",
+      "story_ids": [
+        "LD-020",
+        "LD-021",
+        "LD-022"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Create fresh owned parent judgment",
+        "Concurrently move judgment Jan10 and create challenge before Jan10",
+        "Read both"
+      ],
+      "expected_results": "Exactly one incompatible write accepted; no committed challenge predates parent judgment",
+      "status": "PASS",
+      "actual": {
+        "edit_status": 200,
+        "challenge_status": 422,
+        "parent_judgment_date": "2026-01-10",
+        "challenge_dates": []
+      }
+    },
+    {
+      "id": "RACE-APPEAL-1",
+      "story_ids": [
+        "LD-020",
+        "LD-021",
+        "LD-022"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Create fresh owned parent judgment",
+        "Concurrently move judgment Jan10 and create challenge before Jan10",
+        "Read both"
+      ],
+      "expected_results": "Exactly one incompatible write accepted; no committed challenge predates parent judgment",
+      "status": "PASS",
+      "actual": {
+        "edit_status": 200,
+        "challenge_status": 422,
+        "parent_judgment_date": "2026-01-10",
+        "challenge_dates": []
+      }
+    },
+    {
+      "id": "RACE-APPEAL-2",
+      "story_ids": [
+        "LD-020",
+        "LD-021",
+        "LD-022"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Create fresh owned parent judgment",
+        "Concurrently move judgment Jan10 and create challenge before Jan10",
+        "Read both"
+      ],
+      "expected_results": "Exactly one incompatible write accepted; no committed challenge predates parent judgment",
+      "status": "PASS",
+      "actual": {
+        "edit_status": 422,
+        "challenge_status": 201,
+        "parent_judgment_date": "2026-01-03",
+        "challenge_dates": [
+          "2026-01-04"
+        ]
+      }
+    },
+    {
+      "id": "RACE-CASSATION-0",
+      "story_ids": [
+        "LD-020",
+        "LD-021",
+        "LD-022"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Create fresh owned parent judgment",
+        "Concurrently move judgment Jan10 and create challenge before Jan10",
+        "Read both"
+      ],
+      "expected_results": "Exactly one incompatible write accepted; no committed challenge predates parent judgment",
+      "status": "PASS",
+      "actual": {
+        "edit_status": 200,
+        "challenge_status": 422,
+        "parent_judgment_date": "2026-01-10",
+        "challenge_dates": []
+      }
+    },
+    {
+      "id": "RACE-CASSATION-1",
+      "story_ids": [
+        "LD-020",
+        "LD-021",
+        "LD-022"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Create fresh owned parent judgment",
+        "Concurrently move judgment Jan10 and create challenge before Jan10",
+        "Read both"
+      ],
+      "expected_results": "Exactly one incompatible write accepted; no committed challenge predates parent judgment",
+      "status": "PASS",
+      "actual": {
+        "edit_status": 422,
+        "challenge_status": 201,
+        "parent_judgment_date": "2026-01-05",
+        "challenge_dates": [
+          "2026-01-06"
+        ]
+      }
+    },
+    {
+      "id": "RACE-CASSATION-2",
+      "story_ids": [
+        "LD-020",
+        "LD-021",
+        "LD-022"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Create fresh owned parent judgment",
+        "Concurrently move judgment Jan10 and create challenge before Jan10",
+        "Read both"
+      ],
+      "expected_results": "Exactly one incompatible write accepted; no committed challenge predates parent judgment",
+      "status": "PASS",
+      "actual": {
+        "edit_status": 422,
+        "challenge_status": 201,
+        "parent_judgment_date": "2026-01-05",
+        "challenge_dates": [
+          "2026-01-06"
+        ]
+      }
+    },
+    {
+      "id": "PASSWORD-POSITIVE-BOUNDARIES",
+      "story_ids": [
+        "LD-007",
+        "LD-008",
+        "LD-009"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Create disposable QA user",
+        "Force change",
+        "Set 72 ASCII bytes",
+        "Set36 Arabic chars",
+        "Login after each",
+        "Reset password"
+      ],
+      "expected_results": "Accepted exact boundaries authenticate; reset revokes old sessions with401 under QAD-028 revised contract",
+      "status": "PASS",
+      "actual": {
+        "ascii_bytes": 72,
+        "arabic_chars": 36,
+        "arabic_bytes": 72,
+        "old_session_protected_resource_status": 401
+      }
+    },
+    {
+      "id": "SECURITY-PRE-RESET-SESSION",
+      "story_ids": [
+        "LD-007",
+        "LD-008",
+        "LD-009"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Preserve pre-reset session A",
+        "Admin resets password",
+        "Login fresh session B with new temporary password",
+        "Complete forced change in B",
+        "Read own QA case through old session A"
+      ],
+      "expected_results": "QAD-028 revised contract: pre-reset session cannot resume access after recovery",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "CONCURRENT-SESSIONS-CHANGE",
+      "story_ids": [
+        "LD-007",
+        "LD-008"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Create sessions B/C for own disposable user",
+        "Session A changes its password",
+        "Read through A/B/C"
+      ],
+      "expected_results": "A remains authenticated; B/C401 including unsafe password change",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "DISABLE-REENABLE-SESSION",
+      "story_ids": [
+        "LD-007",
+        "LD-009"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Disable owned user",
+        "Re-enable",
+        "Replay earlier session",
+        "Fresh login"
+      ],
+      "expected_results": "Old session401 after both events; fresh login200",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "RACE-RESET-CHANGE-0",
+      "story_ids": [
+        "LD-007",
+        "LD-008",
+        "LD-009"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Reset owned user to temporary",
+        "Login session A",
+        "Race admin reset with A password change",
+        "Authenticate with reset credential"
+      ],
+      "expected_results": "Reset204; change204 or401; reset credential remains valid; A401 and forced-change flag true",
+      "status": "PASS",
+      "actual": {
+        "reset_status": 204,
+        "change_status": 401,
+        "old_session_status": 401,
+        "reset_credential_valid": true
+      }
+    },
+    {
+      "id": "RACE-RESET-CHANGE-1",
+      "story_ids": [
+        "LD-007",
+        "LD-008",
+        "LD-009"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Reset owned user to temporary",
+        "Login session A",
+        "Race admin reset with A password change",
+        "Authenticate with reset credential"
+      ],
+      "expected_results": "Reset204; change204 or401; reset credential remains valid; A401 and forced-change flag true",
+      "status": "PASS",
+      "actual": {
+        "reset_status": 204,
+        "change_status": 401,
+        "old_session_status": 401,
+        "reset_credential_valid": true
+      }
+    },
+    {
+      "id": "RACE-RESET-CHANGE-2",
+      "story_ids": [
+        "LD-007",
+        "LD-008",
+        "LD-009"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "Reset owned user to temporary",
+        "Login session A",
+        "Race admin reset with A password change",
+        "Authenticate with reset credential"
+      ],
+      "expected_results": "Reset204; change204 or401; reset credential remains valid; A401 and forced-change flag true",
+      "status": "PASS",
+      "actual": {
+        "reset_status": 204,
+        "change_status": 401,
+        "old_session_status": 401,
+        "reset_credential_valid": true
+      }
+    },
+    {
+      "id": "BACKEND-IDENTITY-DIAGNOSTIC",
+      "story_ids": [
+        "LD-002",
+        "LD-006"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA accounts, verified TLS, no real-record mutations",
+        "All write targets created by this execution"
+      ],
+      "test_data": {
+        "prefix": "QAMVMPLTRK997BB4",
+        "dates": "2026-01-02..2026-01-10"
+      },
+      "steps": [
+        "GET /api/v1/release with approved admin session",
+        "Compare safe release field"
+      ],
+      "expected_results": "Exact running backend SHA matches deployed candidate; no configuration fields",
+      "status": "PASS",
+      "actual": {
+        "status": 200,
+        "git_commit": "19ad5386fa586e2469ecad36a677632273712f44"
+      }
+    }
+  ]
+}

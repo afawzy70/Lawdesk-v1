@@ -1,0 +1,304 @@
+{
+  "tested_sha": "1e74945961a77fcf5a67fc26f3a51d0715660628",
+  "utc": "2026-10-25T15:55:26.577470+00:00",
+  "candidate": "/tmp/lawdesk-r57-candidate",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 10,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "cd724c0e-03e0-4519-bb56-82374fb9aa25",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-25T15:55:21.023539Z",
+          "updatedAt": "2026-10-25T15:55:21.023539Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "COURT-DEACTIVATED-HISTORY",
+      "story_ids": [
+        "LD-018",
+        "LD-019"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "COURT-DEACTIVATED-HISTORY"
+      },
+      "steps": [
+        "Deactivate court",
+        "read existing proceeding",
+        "reject new assignment",
+        "stale court edit"
+      ],
+      "expected_results": "Existing200; new422 COURT_INACTIVE; stale409; unchanged judicial state",
+      "actual": {
+        "existing_status": 200,
+        "new_status": 422,
+        "rule": "COURT_INACTIVE",
+        "stale_status": 409,
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PROCEEDING-EVENT-FAILURE-RETRY",
+      "story_ids": [
+        "LD-014",
+        "LD-019"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PROCEEDING-EVENT-FAILURE-RETRY"
+      },
+      "steps": [
+        "Reject proceeding timeline INSERT",
+        "create",
+        "inspect rollback",
+        "remove fault",
+        "identical retry"
+      ],
+      "expected_results": "500 with unchanged counts; retry201 and one timeline event",
+      "actual": {
+        "failure_status": 500,
+        "unchanged": true,
+        "retry": 201,
+        "events": 1
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASSATION-INVALID-WRONG-STAGE",
+      "story_ids": [
+        "LD-021"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASSATION-INVALID-WRONG-STAGE"
+      },
+      "steps": [
+        "Submit invalid cassation parent",
+        "compare rows/history"
+      ],
+      "expected_results": "422 CASSATION_PARENT_NOT_APPEAL; no mutation",
+      "actual": {
+        "status": 422,
+        "rule": "CASSATION_PARENT_NOT_APPEAL",
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASSATION-INVALID-NO-JUDGMENT",
+      "story_ids": [
+        "LD-021"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASSATION-INVALID-NO-JUDGMENT"
+      },
+      "steps": [
+        "Submit invalid cassation parent",
+        "compare rows/history"
+      ],
+      "expected_results": "422 CASSATION_REQUIRES_APPEAL_JUDGMENT; no mutation",
+      "actual": {
+        "status": 422,
+        "rule": "CASSATION_REQUIRES_APPEAL_JUDGMENT",
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASSATION-INVALID-OTHER-CASE",
+      "story_ids": [
+        "LD-021"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASSATION-INVALID-OTHER-CASE"
+      },
+      "steps": [
+        "Submit invalid cassation parent",
+        "compare rows/history"
+      ],
+      "expected_results": "422 PARENT_PROCEEDING_OTHER_CASE; no mutation",
+      "actual": {
+        "status": 422,
+        "rule": "PARENT_PROCEEDING_OTHER_CASE",
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDGMENT-CONCURRENT-DUPLICATE",
+      "story_ids": [
+        "LD-022"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDGMENT-CONCURRENT-DUPLICATE"
+      },
+      "steps": [
+        "Two sessions create same proceeding judgment concurrently",
+        "inspect uniqueness/event",
+        "invalid date edit"
+      ],
+      "expected_results": "201/409; one judgment and event; invalid edit422 and unchanged row/history",
+      "actual": {
+        "statuses": [
+          201,
+          409
+        ],
+        "judgments": 1,
+        "events": 1,
+        "edit_status": 422,
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "SUSPENSION-FOREIGN",
+      "story_ids": [
+        "LD-023"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "SUSPENSION-FOREIGN"
+      },
+      "steps": [
+        "Submit invalid decision reference/date",
+        "compare rows/events"
+      ],
+      "expected_results": "422 DECISION_JUDGMENT_OTHER_CASE; no mutation",
+      "actual": {
+        "status": 422,
+        "rule": "DECISION_JUDGMENT_OTHER_CASE",
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "SUSPENSION-BEFORE-FILING",
+      "story_ids": [
+        "LD-023"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "SUSPENSION-BEFORE-FILING"
+      },
+      "steps": [
+        "Submit invalid decision reference/date",
+        "compare rows/events"
+      ],
+      "expected_results": "422 DECISION_BEFORE_FILING; no mutation",
+      "actual": {
+        "status": 422,
+        "rule": "DECISION_BEFORE_FILING",
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "SUSPENSION-VALID-INFORMATIONAL",
+      "story_ids": [
+        "LD-023"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "SUSPENSION-VALID-INFORMATIONAL"
+      },
+      "steps": [
+        "Create valid suspension",
+        "inspect effect, judgment and case"
+      ],
+      "expected_results": "201 GRANTED; one event; case/judgment unchanged",
+      "actual": {
+        "status": 201,
+        "effect": "GRANTED",
+        "events": 1,
+        "unchanged": true
+      },
+      "status": "PASS"
+    }
+  ]
+}

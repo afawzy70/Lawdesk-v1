@@ -1,0 +1,990 @@
+{
+  "tested_sha": "0338cac0fca07eb0ce06eb8f2b45a54dd0386f7e",
+  "utc": "2026-10-25T12:18:25.161953+00:00",
+  "candidate": "/tmp/lawdesk-final-20261025-candidate",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 29,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "dbb40ea1-99c3-4a83-aa74-eeb82d61d60e",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-25T12:18:13.850338Z",
+          "updatedAt": "2026-10-25T12:18:13.850338Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-HEARING",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-HEARING"
+      },
+      "steps": [
+        "POST /api/v1/proceedings/93d91db4-0ca3-4307-a023-fafe5b4ea94a/hearings",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "29a1463f-9909-4b4b-82b6-fa81c3295db4",
+          "caseId": "4d51ed60-e3c4-4226-bb82-e36d7691eb60",
+          "caseReferenceNo": "QA56-001",
+          "caseTitle": "QA phase56",
+          "proceedingId": "93d91db4-0ca3-4307-a023-fafe5b4ea94a",
+          "stage": "FIRST_INSTANCE",
+          "courtId": "dbb40ea1-99c3-4a83-aa74-eeb82d61d60e",
+          "courtCode": "QA-PH56",
+          "courtNameAr": "محكمة اختبار",
+          "courtNameEn": "QA Court",
+          "courtCaseNumber": "QA2",
+          "courtCaseYear": 2026,
+          "hearingDate": "2026-01-03",
+          "hearingTime": null,
+          "purpose": "PLEADING",
+          "notes": null,
+          "status": "SCHEDULED",
+          "decision": null,
+          "adjournedFromId": null,
+          "nextHearingId": null,
+          "awaitingResult": true,
+          "version": 0,
+          "createdAt": "2026-10-25T12:18:16.429784Z",
+          "updatedAt": "2026-10-25T12:18:16.429784Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-PARENT-EDIT",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-PARENT-EDIT"
+      },
+      "steps": [
+        "PUT /api/v1/proceedings/93d91db4-0ca3-4307-a023-fafe5b4ea94a",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": null
+      },
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/proceedings/93d91db4-0ca3-4307-a023-fafe5b4ea94a",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "FILING_AFTER_DEPENDENT_HEARING"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-PERSISTED",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-PERSISTED"
+      },
+      "steps": [
+        "Read persisted proceeding/hearing pair after parent edit"
+      ],
+      "expected_results": "No hearing before its proceeding filing date",
+      "actual": {
+        "filingDate": "2026-01-02",
+        "hearingDate": "2026-01-03"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-REJECTION-HISTORY",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-REJECTION-HISTORY"
+      },
+      "steps": [
+        "Compare full proceeding/hearing/history snapshot before/after invalid parent edit"
+      ],
+      "expected_results": "No data or timeline change",
+      "actual": {
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-DB-FIXTURE",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-DB-FIXTURE"
+      },
+      "steps": [
+        "POST /api/v1/proceedings/d2132fd2-c82e-456e-9744-09fb3f5dea94/hearings",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "b7591936-afb2-4122-9998-0a2c8011ca22",
+          "caseId": "a6c2b7d6-8730-48ed-8db7-fa4f274b1bae",
+          "caseReferenceNo": "QA56-003",
+          "caseTitle": "QA chronology constraints",
+          "proceedingId": "d2132fd2-c82e-456e-9744-09fb3f5dea94",
+          "stage": "FIRST_INSTANCE",
+          "courtId": "dbb40ea1-99c3-4a83-aa74-eeb82d61d60e",
+          "courtCode": "QA-PH56",
+          "courtNameAr": "محكمة اختبار",
+          "courtNameEn": "QA Court",
+          "courtCaseNumber": "QA4",
+          "courtCaseYear": 2026,
+          "hearingDate": "2026-01-03",
+          "hearingTime": null,
+          "purpose": "PLEADING",
+          "notes": null,
+          "status": "SCHEDULED",
+          "decision": null,
+          "adjournedFromId": null,
+          "nextHearingId": null,
+          "awaitingResult": true,
+          "version": 0,
+          "createdAt": "2026-10-25T12:18:18.015104Z",
+          "updatedAt": "2026-10-25T12:18:18.015104Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-SQL-PARENT-DATE",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-SQL-PARENT-DATE"
+      },
+      "steps": [
+        "BEGIN; update proceeding set filing_date='2026-01-04' where id='d2132fd2-c82e-456e-9744-09fb3f5dea94'; ROLLBACK"
+      ],
+      "expected_results": "Database rejects invariant violation; privileged SQL result separate from API",
+      "actual": {
+        "rejected": true,
+        "error": "{'S': 'ERROR', 'V': 'ERROR', 'C': '23514', 'M': 'the filing date cannot be after a hearing of the proceeding', 'W': 'PL/pgSQL function proceeding_keeps_dependent_dates() line 9 at RAISE', 'n': 'proceeding_filing_not_after_hearing', 'F': 'pl_exec.c', 'L': '3923', 'R': 'exec_stmt_raise'}"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-SQL-HEARING-DATE",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-SQL-HEARING-DATE"
+      },
+      "steps": [
+        "BEGIN; update hearing set hearing_date='2026-01-01' where id='b7591936-afb2-4122-9998-0a2c8011ca22'; ROLLBACK"
+      ],
+      "expected_results": "Database rejects invariant violation; privileged SQL result separate from API",
+      "actual": {
+        "rejected": true,
+        "error": "{'S': 'ERROR', 'V': 'ERROR', 'C': '23514', 'M': 'a hearing cannot be dated before the filing of its proceeding', 'W': 'PL/pgSQL function hearing_dates_are_consistent() line 10 at RAISE', 'n': 'hearing_not_before_filing', 'F': 'pl_exec.c', 'L': '3923', 'R': 'exec_stmt_raise'}"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-SQL-PARENT-CASE",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-SQL-PARENT-CASE"
+      },
+      "steps": [
+        "BEGIN; update proceeding set case_id='ff0cc8ac-1b4b-4d13-ba1e-4e3bf67b59b2' where id='d2132fd2-c82e-456e-9744-09fb3f5dea94'; ROLLBACK"
+      ],
+      "expected_results": "Database rejects invariant violation; privileged SQL result separate from API",
+      "actual": {
+        "rejected": true,
+        "error": "{'S': 'ERROR', 'V': 'ERROR', 'C': '23514', 'M': 'a proceeding never changes its case', 'W': 'PL/pgSQL function proceeding_keeps_dependent_dates() line 4 at RAISE', 'n': 'proceeding_case_immutable', 'F': 'pl_exec.c', 'L': '3923', 'R': 'exec_stmt_raise'}"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-SQL-CHILD-CASE",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-SQL-CHILD-CASE"
+      },
+      "steps": [
+        "BEGIN; update hearing set case_id='ff0cc8ac-1b4b-4d13-ba1e-4e3bf67b59b2' where id='b7591936-afb2-4122-9998-0a2c8011ca22'; ROLLBACK"
+      ],
+      "expected_results": "Database rejects invariant violation; privileged SQL result separate from API",
+      "actual": {
+        "rejected": true,
+        "error": "{'S': 'ERROR', 'V': 'ERROR', 'C': '23514', 'M': 'hearing case does not match the case of its proceeding', 'W': 'PL/pgSQL function hearing_case_matches_proceeding() line 4 at RAISE', 'n': 'hearing_case_matches_proceeding', 'F': 'pl_exec.c', 'L': '3923', 'R': 'exec_stmt_raise'}"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-SAME-DAY-EDIT",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-SAME-DAY-EDIT"
+      },
+      "steps": [
+        "PUT /api/v1/proceedings/d2132fd2-c82e-456e-9744-09fb3f5dea94",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "id": "d2132fd2-c82e-456e-9744-09fb3f5dea94",
+          "caseId": "a6c2b7d6-8730-48ed-8db7-fa4f274b1bae",
+          "stage": "FIRST_INSTANCE",
+          "courtId": "dbb40ea1-99c3-4a83-aa74-eeb82d61d60e",
+          "courtCode": "QA-PH56",
+          "courtNameAr": "محكمة اختبار",
+          "courtNameEn": "QA Court",
+          "courtCaseNumber": "QA4",
+          "courtCaseYear": 2026,
+          "filingDate": "2026-01-03",
+          "parentProceedingId": null,
+          "hasJudgment": false,
+          "version": 1,
+          "createdAt": "2026-10-25T12:18:17.921103Z",
+          "updatedAt": "2026-10-25T12:18:18.526055Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-CHILD-BEFORE-FILING",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-CHILD-BEFORE-FILING"
+      },
+      "steps": [
+        "PUT /api/v1/hearings/b7591936-afb2-4122-9998-0a2c8011ca22",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": null
+      },
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/hearings/b7591936-afb2-4122-9998-0a2c8011ca22",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "HEARING_BEFORE_FILING"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-CHILD-ROLLBACK",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-CHILD-ROLLBACK"
+      },
+      "steps": [
+        "Compare complete state after refused hearing reschedule"
+      ],
+      "expected_results": "History and rows unchanged",
+      "actual": {
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-RACE-0",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-RACE-0"
+      },
+      "steps": [
+        "Race filing-date edit with earlier hearing scheduling; inspect committed pair"
+      ],
+      "expected_results": "One succeeds, incompatible other422; no invalid persisted chronology",
+      "actual": {
+        "parent_status": 422,
+        "hearing_status": 201,
+        "invalid_rows": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-RACE-1",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-RACE-1"
+      },
+      "steps": [
+        "Race filing-date edit with earlier hearing scheduling; inspect committed pair"
+      ],
+      "expected_results": "One succeeds, incompatible other422; no invalid persisted chronology",
+      "actual": {
+        "parent_status": 422,
+        "hearing_status": 201,
+        "invalid_rows": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-RACE-2",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-RACE-2"
+      },
+      "steps": [
+        "Race filing-date edit with earlier hearing scheduling; inspect committed pair"
+      ],
+      "expected_results": "One succeeds, incompatible other422; no invalid persisted chronology",
+      "actual": {
+        "parent_status": 200,
+        "hearing_status": 422,
+        "invalid_rows": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-RACE-3",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-RACE-3"
+      },
+      "steps": [
+        "Race filing-date edit with earlier hearing scheduling; inspect committed pair"
+      ],
+      "expected_results": "One succeeds, incompatible other422; no invalid persisted chronology",
+      "actual": {
+        "parent_status": 200,
+        "hearing_status": 422,
+        "invalid_rows": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-RACE-4",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-RACE-4"
+      },
+      "steps": [
+        "Race filing-date edit with earlier hearing scheduling; inspect committed pair"
+      ],
+      "expected_results": "One succeeds, incompatible other422; no invalid persisted chronology",
+      "actual": {
+        "parent_status": 422,
+        "hearing_status": 201,
+        "invalid_rows": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-RACE-5",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-RACE-5"
+      },
+      "steps": [
+        "Race filing-date edit with earlier hearing scheduling; inspect committed pair"
+      ],
+      "expected_results": "One succeeds, incompatible other422; no invalid persisted chronology",
+      "actual": {
+        "parent_status": 422,
+        "hearing_status": 201,
+        "invalid_rows": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-CANCELLED-FIXTURE",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-CANCELLED-FIXTURE"
+      },
+      "steps": [
+        "POST /api/v1/proceedings/60a847b5-4e5d-4158-a073-3a42cbf1ab4a/hearings",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "b409708d-4160-4f0e-9304-5f980b3a42ec",
+          "caseId": "a16eac34-3592-40bf-b5f3-fb53e2e2977f",
+          "caseReferenceNo": "QA56-018",
+          "caseTitle": "QA cancelled history",
+          "proceedingId": "60a847b5-4e5d-4158-a073-3a42cbf1ab4a",
+          "stage": "FIRST_INSTANCE",
+          "courtId": "dbb40ea1-99c3-4a83-aa74-eeb82d61d60e",
+          "courtCode": "QA-PH56",
+          "courtNameAr": "محكمة اختبار",
+          "courtNameEn": "QA Court",
+          "courtCaseNumber": "QA19",
+          "courtCaseYear": 2026,
+          "hearingDate": "2026-01-03",
+          "hearingTime": null,
+          "purpose": "PLEADING",
+          "notes": null,
+          "status": "SCHEDULED",
+          "decision": null,
+          "adjournedFromId": null,
+          "nextHearingId": null,
+          "awaitingResult": true,
+          "version": 0,
+          "createdAt": "2026-10-25T12:18:22.771190Z",
+          "updatedAt": "2026-10-25T12:18:22.771190Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-CANCELLED-RESULT",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-CANCELLED-RESULT"
+      },
+      "steps": [
+        "POST /api/v1/hearings/b409708d-4160-4f0e-9304-5f980b3a42ec/result",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "id": "b409708d-4160-4f0e-9304-5f980b3a42ec",
+          "caseId": "a16eac34-3592-40bf-b5f3-fb53e2e2977f",
+          "caseReferenceNo": "QA56-018",
+          "caseTitle": "QA cancelled history",
+          "proceedingId": "60a847b5-4e5d-4158-a073-3a42cbf1ab4a",
+          "stage": "FIRST_INSTANCE",
+          "courtId": "dbb40ea1-99c3-4a83-aa74-eeb82d61d60e",
+          "courtCode": "QA-PH56",
+          "courtNameAr": "محكمة اختبار",
+          "courtNameEn": "QA Court",
+          "courtCaseNumber": "QA19",
+          "courtCaseYear": 2026,
+          "hearingDate": "2026-01-03",
+          "hearingTime": null,
+          "purpose": "PLEADING",
+          "notes": null,
+          "status": "CANCELLED",
+          "decision": null,
+          "adjournedFromId": null,
+          "nextHearingId": null,
+          "awaitingResult": false,
+          "version": 1,
+          "createdAt": "2026-10-25T12:18:22.771190Z",
+          "updatedAt": "2026-10-25T12:18:23.047306Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-CANCELLED-PARENT",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-CANCELLED-PARENT"
+      },
+      "steps": [
+        "PUT /api/v1/proceedings/60a847b5-4e5d-4158-a073-3a42cbf1ab4a",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": null
+      },
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/proceedings/60a847b5-4e5d-4158-a073-3a42cbf1ab4a",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "FILING_AFTER_DEPENDENT_HEARING"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-CANCELLED-HISTORY",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-CANCELLED-HISTORY"
+      },
+      "steps": [
+        "Try moving filing date after cancelled hearing"
+      ],
+      "expected_results": "Cancelled row and history preserved",
+      "actual": {
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "RESCHEDULE-RACE-FIXTURE-0",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "RESCHEDULE-RACE-FIXTURE-0"
+      },
+      "steps": [
+        "POST /api/v1/proceedings/ef9a9532-8296-454d-84f9-be61070ffd24/hearings",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "370fb54c-d5ea-4d98-86ad-4fccc83dece8",
+          "caseId": "4d49ea63-c64f-471f-a60c-b1e9259fba87",
+          "caseReferenceNo": "QA56-020",
+          "caseTitle": "QA reschedule race 0",
+          "proceedingId": "ef9a9532-8296-454d-84f9-be61070ffd24",
+          "stage": "FIRST_INSTANCE",
+          "courtId": "dbb40ea1-99c3-4a83-aa74-eeb82d61d60e",
+          "courtCode": "QA-PH56",
+          "courtNameAr": "محكمة اختبار",
+          "courtNameEn": "QA Court",
+          "courtCaseNumber": "QA21",
+          "courtCaseYear": 2026,
+          "hearingDate": "2026-01-05",
+          "hearingTime": null,
+          "purpose": "PLEADING",
+          "notes": null,
+          "status": "SCHEDULED",
+          "decision": null,
+          "adjournedFromId": null,
+          "nextHearingId": null,
+          "awaitingResult": true,
+          "version": 0,
+          "createdAt": "2026-10-25T12:18:23.699178Z",
+          "updatedAt": "2026-10-25T12:18:23.699178Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-RACE-RESCHEDULE-0",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-RACE-RESCHEDULE-0"
+      },
+      "steps": [
+        "Race parent date correction and incompatible hearing reschedule"
+      ],
+      "expected_results": "200/422 in either order; chronology intact",
+      "actual": {
+        "statuses": [
+          422,
+          200
+        ],
+        "invalid_rows": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "RESCHEDULE-RACE-FIXTURE-1",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "RESCHEDULE-RACE-FIXTURE-1"
+      },
+      "steps": [
+        "POST /api/v1/proceedings/4ad64b80-33da-479d-b35e-1ecd85802c77/hearings",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "7155b296-dc8a-461b-9ca4-b8c6ff272349",
+          "caseId": "a6b6a231-5c20-4c46-9664-2ff2e7939bca",
+          "caseReferenceNo": "QA56-022",
+          "caseTitle": "QA reschedule race 1",
+          "proceedingId": "4ad64b80-33da-479d-b35e-1ecd85802c77",
+          "stage": "FIRST_INSTANCE",
+          "courtId": "dbb40ea1-99c3-4a83-aa74-eeb82d61d60e",
+          "courtCode": "QA-PH56",
+          "courtNameAr": "محكمة اختبار",
+          "courtNameEn": "QA Court",
+          "courtCaseNumber": "QA23",
+          "courtCaseYear": 2026,
+          "hearingDate": "2026-01-05",
+          "hearingTime": null,
+          "purpose": "PLEADING",
+          "notes": null,
+          "status": "SCHEDULED",
+          "decision": null,
+          "adjournedFromId": null,
+          "nextHearingId": null,
+          "awaitingResult": true,
+          "version": 0,
+          "createdAt": "2026-10-25T12:18:24.177214Z",
+          "updatedAt": "2026-10-25T12:18:24.177214Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-RACE-RESCHEDULE-1",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-RACE-RESCHEDULE-1"
+      },
+      "steps": [
+        "Race parent date correction and incompatible hearing reschedule"
+      ],
+      "expected_results": "200/422 in either order; chronology intact",
+      "actual": {
+        "statuses": [
+          200,
+          422
+        ],
+        "invalid_rows": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "RESCHEDULE-RACE-FIXTURE-2",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "RESCHEDULE-RACE-FIXTURE-2"
+      },
+      "steps": [
+        "POST /api/v1/proceedings/bb2c0b27-745f-42ea-8486-b9f3274824d0/hearings",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "f544a2fc-493d-44ed-8335-06c572ce2421",
+          "caseId": "c463fd6e-8312-4892-8cb1-7e65dc6d6f23",
+          "caseReferenceNo": "QA56-024",
+          "caseTitle": "QA reschedule race 2",
+          "proceedingId": "bb2c0b27-745f-42ea-8486-b9f3274824d0",
+          "stage": "FIRST_INSTANCE",
+          "courtId": "dbb40ea1-99c3-4a83-aa74-eeb82d61d60e",
+          "courtCode": "QA-PH56",
+          "courtNameAr": "محكمة اختبار",
+          "courtNameEn": "QA Court",
+          "courtCaseNumber": "QA25",
+          "courtCaseYear": 2026,
+          "hearingDate": "2026-01-05",
+          "hearingTime": null,
+          "purpose": "PLEADING",
+          "notes": null,
+          "status": "SCHEDULED",
+          "decision": null,
+          "adjournedFromId": null,
+          "nextHearingId": null,
+          "awaitingResult": true,
+          "version": 0,
+          "createdAt": "2026-10-25T12:18:24.758956Z",
+          "updatedAt": "2026-10-25T12:18:24.758956Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHRONOLOGY-RACE-RESCHEDULE-2",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHRONOLOGY-RACE-RESCHEDULE-2"
+      },
+      "steps": [
+        "Race parent date correction and incompatible hearing reschedule"
+      ],
+      "expected_results": "200/422 in either order; chronology intact",
+      "actual": {
+        "statuses": [
+          422,
+          200
+        ],
+        "invalid_rows": 0
+      },
+      "status": "PASS"
+    }
+  ]
+}

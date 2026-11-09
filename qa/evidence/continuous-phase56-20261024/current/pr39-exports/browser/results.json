@@ -1,0 +1,244 @@
+{
+  "tested_sha": "19b2e66087ab549b2d303f54bcc2fb9c7bdc26f1",
+  "scope": "Independent local browser against real candidate API/PostgreSQL; NOT deployed UAT",
+  "counts": {
+    "PASS": 8,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "BROWSER-LOGIN",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "f5933911-e51b-4bf6-9137-e44d4cc4f10d",
+        "proceedingId": "387d93ff-9337-4adf-8851-16d022911aab"
+      },
+      "steps": [
+        "Open candidate",
+        "Enter local synthetic credentials",
+        "GET /me"
+      ],
+      "expected_results": "Real browser authenticated",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "CSV-UI-DOWNLOAD",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "f5933911-e51b-4bf6-9137-e44d4cc4f10d",
+        "proceedingId": "387d93ff-9337-4adf-8851-16d022911aab"
+      },
+      "steps": [
+        "Open judgments with active final/date filters",
+        "Download CSV"
+      ],
+      "expected_results": "Actual browser attachment; filename CSV and filtered data",
+      "status": "PASS",
+      "actual": {
+        "filename": "judgments-2026-10-24.csv",
+        "filtered": true
+      }
+    },
+    {
+      "id": "LAYOUT-/reports/judgments-en-320",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "f5933911-e51b-4bf6-9137-e44d4cc4f10d",
+        "proceedingId": "387d93ff-9337-4adf-8851-16d022911aab"
+      },
+      "steps": [
+        "Open real /reports/judgments?from=2026-01-01&to=2026-01-31 in en at320px",
+        "Check content, direction and viewport",
+        "axe"
+      ],
+      "expected_results": "Data renders; locale/direction correct; no overflow or A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "en",
+        "dir": "ltr",
+        "viewport": 320,
+        "width": 320
+      }
+    },
+    {
+      "id": "LAYOUT-/reports/judgments-en-375",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "f5933911-e51b-4bf6-9137-e44d4cc4f10d",
+        "proceedingId": "387d93ff-9337-4adf-8851-16d022911aab"
+      },
+      "steps": [
+        "Open real /reports/judgments?from=2026-01-01&to=2026-01-31 in en at375px",
+        "Check content, direction and viewport",
+        "axe"
+      ],
+      "expected_results": "Data renders; locale/direction correct; no overflow or A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "en",
+        "dir": "ltr",
+        "viewport": 375,
+        "width": 375
+      }
+    },
+    {
+      "id": "LAYOUT-/reports/judgments-en-1366",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "f5933911-e51b-4bf6-9137-e44d4cc4f10d",
+        "proceedingId": "387d93ff-9337-4adf-8851-16d022911aab"
+      },
+      "steps": [
+        "Open real /reports/judgments?from=2026-01-01&to=2026-01-31 in en at1366px",
+        "Check content, direction and viewport",
+        "axe"
+      ],
+      "expected_results": "Data renders; locale/direction correct; no overflow or A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "en",
+        "dir": "ltr",
+        "viewport": 1366,
+        "width": 1366
+      }
+    },
+    {
+      "id": "LAYOUT-/reports/judgments-ar-320",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "f5933911-e51b-4bf6-9137-e44d4cc4f10d",
+        "proceedingId": "387d93ff-9337-4adf-8851-16d022911aab"
+      },
+      "steps": [
+        "Open real /reports/judgments?from=2026-01-01&to=2026-01-31 in ar at320px",
+        "Check content, direction and viewport",
+        "axe"
+      ],
+      "expected_results": "Data renders; locale/direction correct; no overflow or A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "ar",
+        "dir": "rtl",
+        "viewport": 320,
+        "width": 320
+      }
+    },
+    {
+      "id": "LAYOUT-/reports/judgments-ar-375",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "f5933911-e51b-4bf6-9137-e44d4cc4f10d",
+        "proceedingId": "387d93ff-9337-4adf-8851-16d022911aab"
+      },
+      "steps": [
+        "Open real /reports/judgments?from=2026-01-01&to=2026-01-31 in ar at375px",
+        "Check content, direction and viewport",
+        "axe"
+      ],
+      "expected_results": "Data renders; locale/direction correct; no overflow or A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "ar",
+        "dir": "rtl",
+        "viewport": 375,
+        "width": 375
+      }
+    },
+    {
+      "id": "LAYOUT-/reports/judgments-ar-1366",
+      "story_ids": [
+        "LD-030",
+        "LD-031",
+        "LD-032",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "f5933911-e51b-4bf6-9137-e44d4cc4f10d",
+        "proceedingId": "387d93ff-9337-4adf-8851-16d022911aab"
+      },
+      "steps": [
+        "Open real /reports/judgments?from=2026-01-01&to=2026-01-31 in ar at1366px",
+        "Check content, direction and viewport",
+        "axe"
+      ],
+      "expected_results": "Data renders; locale/direction correct; no overflow or A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "ar",
+        "dir": "rtl",
+        "viewport": 1366,
+        "width": 1366
+      }
+    }
+  ]
+}

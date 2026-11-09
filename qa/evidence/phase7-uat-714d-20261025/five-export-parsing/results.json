@@ -1,0 +1,582 @@
+{
+  "tested_sha": "714d2f3b0c3ed7239b85c79966426d5fe27d2d1d",
+  "scope": "Independent parser oracle on all five browser exports; no private report data published",
+  "counts": {
+    "PASS": 20,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "P7-EXPORT-ROWS-cases-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact attested UAT SHA",
+        "Actual authenticated browser downloads; private files outside repository"
+      ],
+      "test_data": {
+        "source": "Five reports, English and Arabic; populated owned court for judgments"
+      },
+      "steps": [
+        "Read downloaded CSV/XLSX/PDF with independent libraries",
+        "Compare CSV and workbook rows to live report API total",
+        "Check literal cell types, RTL, embedded PDF fonts and neutral text preservation"
+      ],
+      "expected_results": "CSV and normal/streaming XLSX contain exactly API count+header; no formulas; RTL iff Arabic",
+      "actual": {
+        "api_rows": 12,
+        "csv_rows": 12,
+        "xlsx_rows": 12,
+        "stream_rows": 12,
+        "formula_cells": 0,
+        "rtl": false
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "P7-EXPORT-PDF-cases-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact attested UAT SHA",
+        "Actual authenticated browser downloads; private files outside repository"
+      ],
+      "test_data": {
+        "source": "Five reports, English and Arabic; populated owned court for judgments"
+      },
+      "steps": [
+        "Read downloaded CSV/XLSX/PDF with independent libraries",
+        "Compare CSV and workbook rows to live report API total",
+        "Check literal cell types, RTL, embedded PDF fonts and neutral text preservation"
+      ],
+      "expected_results": "Parseable PDF with embedded fonts; every eligible neutral first-column identifier preserved",
+      "actual": {
+        "pages": 1,
+        "embedded_font": true,
+        "neutral_tokens_checked": 12,
+        "neutral_tokens_found": 12,
+        "pdf_sha256": "c2826df4abba57821255030dbf4fe178020d21d9b57fed8d95d6d30a4d56fd20"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "P7-EXPORT-ROWS-cases-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact attested UAT SHA",
+        "Actual authenticated browser downloads; private files outside repository"
+      ],
+      "test_data": {
+        "source": "Five reports, English and Arabic; populated owned court for judgments"
+      },
+      "steps": [
+        "Read downloaded CSV/XLSX/PDF with independent libraries",
+        "Compare CSV and workbook rows to live report API total",
+        "Check literal cell types, RTL, embedded PDF fonts and neutral text preservation"
+      ],
+      "expected_results": "CSV and normal/streaming XLSX contain exactly API count+header; no formulas; RTL iff Arabic",
+      "actual": {
+        "api_rows": 12,
+        "csv_rows": 12,
+        "xlsx_rows": 12,
+        "stream_rows": 12,
+        "formula_cells": 0,
+        "rtl": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "P7-EXPORT-PDF-cases-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact attested UAT SHA",
+        "Actual authenticated browser downloads; private files outside repository"
+      ],
+      "test_data": {
+        "source": "Five reports, English and Arabic; populated owned court for judgments"
+      },
+      "steps": [
+        "Read downloaded CSV/XLSX/PDF with independent libraries",
+        "Compare CSV and workbook rows to live report API total",
+        "Check literal cell types, RTL, embedded PDF fonts and neutral text preservation"
+      ],
+      "expected_results": "Parseable PDF with embedded fonts; every eligible neutral first-column identifier preserved",
+      "actual": {
+        "pages": 1,
+        "embedded_font": true,
+        "neutral_tokens_checked": 12,
+        "neutral_tokens_found": 12,
+        "pdf_sha256": "4fd14a054d0f13fe72bdb322ea3dace68ec64e74781d449a11f2400cdb558b35"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "P7-EXPORT-ROWS-judgments-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact attested UAT SHA",
+        "Actual authenticated browser downloads; private files outside repository"
+      ],
+      "test_data": {
+        "source": "Five reports, English and Arabic; populated owned court for judgments"
+      },
+      "steps": [
+        "Read downloaded CSV/XLSX/PDF with independent libraries",
+        "Compare CSV and workbook rows to live report API total",
+        "Check literal cell types, RTL, embedded PDF fonts and neutral text preservation"
+      ],
+      "expected_results": "CSV and normal/streaming XLSX contain exactly API count+header; no formulas; RTL iff Arabic",
+      "actual": {
+        "api_rows": 0,
+        "csv_rows": 0,
+        "xlsx_rows": 0,
+        "stream_rows": 0,
+        "formula_cells": 0,
+        "rtl": false
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "P7-EXPORT-PDF-judgments-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact attested UAT SHA",
+        "Actual authenticated browser downloads; private files outside repository"
+      ],
+      "test_data": {
+        "source": "Five reports, English and Arabic; populated owned court for judgments"
+      },
+      "steps": [
+        "Read downloaded CSV/XLSX/PDF with independent libraries",
+        "Compare CSV and workbook rows to live report API total",
+        "Check literal cell types, RTL, embedded PDF fonts and neutral text preservation"
+      ],
+      "expected_results": "Parseable PDF with embedded fonts; every eligible neutral first-column identifier preserved",
+      "actual": {
+        "pages": 1,
+        "embedded_font": true,
+        "neutral_tokens_checked": 0,
+        "neutral_tokens_found": 0,
+        "pdf_sha256": "af1cebf8b903db4e70401b019b8471cb99739f4829db3f0fadc6193439bfc8c1"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "P7-EXPORT-ROWS-judgments-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact attested UAT SHA",
+        "Actual authenticated browser downloads; private files outside repository"
+      ],
+      "test_data": {
+        "source": "Five reports, English and Arabic; populated owned court for judgments"
+      },
+      "steps": [
+        "Read downloaded CSV/XLSX/PDF with independent libraries",
+        "Compare CSV and workbook rows to live report API total",
+        "Check literal cell types, RTL, embedded PDF fonts and neutral text preservation"
+      ],
+      "expected_results": "CSV and normal/streaming XLSX contain exactly API count+header; no formulas; RTL iff Arabic",
+      "actual": {
+        "api_rows": 0,
+        "csv_rows": 0,
+        "xlsx_rows": 0,
+        "stream_rows": 0,
+        "formula_cells": 0,
+        "rtl": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "P7-EXPORT-PDF-judgments-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact attested UAT SHA",
+        "Actual authenticated browser downloads; private files outside repository"
+      ],
+      "test_data": {
+        "source": "Five reports, English and Arabic; populated owned court for judgments"
+      },
+      "steps": [
+        "Read downloaded CSV/XLSX/PDF with independent libraries",
+        "Compare CSV and workbook rows to live report API total",
+        "Check literal cell types, RTL, embedded PDF fonts and neutral text preservation"
+      ],
+      "expected_results": "Parseable PDF with embedded fonts; every eligible neutral first-column identifier preserved",
+      "actual": {
+        "pages": 1,
+        "embedded_font": true,
+        "neutral_tokens_checked": 0,
+        "neutral_tokens_found": 0,
+        "pdf_sha256": "a1ce51593cffb8c58b9f335ab9f007800d406ffccd1f0fbb88ea242329defb92"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "P7-EXPORT-ROWS-hearings-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact attested UAT SHA",
+        "Actual authenticated browser downloads; private files outside repository"
+      ],
+      "test_data": {
+        "source": "Five reports, English and Arabic; populated owned court for judgments"
+      },
+      "steps": [
+        "Read downloaded CSV/XLSX/PDF with independent libraries",
+        "Compare CSV and workbook rows to live report API total",
+        "Check literal cell types, RTL, embedded PDF fonts and neutral text preservation"
+      ],
+      "expected_results": "CSV and normal/streaming XLSX contain exactly API count+header; no formulas; RTL iff Arabic",
+      "actual": {
+        "api_rows": 19,
+        "csv_rows": 19,
+        "xlsx_rows": 19,
+        "stream_rows": 19,
+        "formula_cells": 0,
+        "rtl": false
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "P7-EXPORT-PDF-hearings-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact attested UAT SHA",
+        "Actual authenticated browser downloads; private files outside repository"
+      ],
+      "test_data": {
+        "source": "Five reports, English and Arabic; populated owned court for judgments"
+      },
+      "steps": [
+        "Read downloaded CSV/XLSX/PDF with independent libraries",
+        "Compare CSV and workbook rows to live report API total",
+        "Check literal cell types, RTL, embedded PDF fonts and neutral text preservation"
+      ],
+      "expected_results": "Parseable PDF with embedded fonts; every eligible neutral first-column identifier preserved",
+      "actual": {
+        "pages": 2,
+        "embedded_font": true,
+        "neutral_tokens_checked": 19,
+        "neutral_tokens_found": 19,
+        "pdf_sha256": "b533490b37e1b6e49840748ba0191645267602f2d129d54b775da96436c5bcab"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "P7-EXPORT-ROWS-hearings-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact attested UAT SHA",
+        "Actual authenticated browser downloads; private files outside repository"
+      ],
+      "test_data": {
+        "source": "Five reports, English and Arabic; populated owned court for judgments"
+      },
+      "steps": [
+        "Read downloaded CSV/XLSX/PDF with independent libraries",
+        "Compare CSV and workbook rows to live report API total",
+        "Check literal cell types, RTL, embedded PDF fonts and neutral text preservation"
+      ],
+      "expected_results": "CSV and normal/streaming XLSX contain exactly API count+header; no formulas; RTL iff Arabic",
+      "actual": {
+        "api_rows": 19,
+        "csv_rows": 19,
+        "xlsx_rows": 19,
+        "stream_rows": 19,
+        "formula_cells": 0,
+        "rtl": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "P7-EXPORT-PDF-hearings-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact attested UAT SHA",
+        "Actual authenticated browser downloads; private files outside repository"
+      ],
+      "test_data": {
+        "source": "Five reports, English and Arabic; populated owned court for judgments"
+      },
+      "steps": [
+        "Read downloaded CSV/XLSX/PDF with independent libraries",
+        "Compare CSV and workbook rows to live report API total",
+        "Check literal cell types, RTL, embedded PDF fonts and neutral text preservation"
+      ],
+      "expected_results": "Parseable PDF with embedded fonts; every eligible neutral first-column identifier preserved",
+      "actual": {
+        "pages": 2,
+        "embedded_font": true,
+        "neutral_tokens_checked": 19,
+        "neutral_tokens_found": 19,
+        "pdf_sha256": "12ecc018239f8b449fa5368d0fe6a1afc9df4358b316e47a30285e548b3b0670"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "P7-EXPORT-ROWS-experts-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact attested UAT SHA",
+        "Actual authenticated browser downloads; private files outside repository"
+      ],
+      "test_data": {
+        "source": "Five reports, English and Arabic; populated owned court for judgments"
+      },
+      "steps": [
+        "Read downloaded CSV/XLSX/PDF with independent libraries",
+        "Compare CSV and workbook rows to live report API total",
+        "Check literal cell types, RTL, embedded PDF fonts and neutral text preservation"
+      ],
+      "expected_results": "CSV and normal/streaming XLSX contain exactly API count+header; no formulas; RTL iff Arabic",
+      "actual": {
+        "api_rows": 3,
+        "csv_rows": 3,
+        "xlsx_rows": 3,
+        "stream_rows": 3,
+        "formula_cells": 0,
+        "rtl": false
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "P7-EXPORT-PDF-experts-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact attested UAT SHA",
+        "Actual authenticated browser downloads; private files outside repository"
+      ],
+      "test_data": {
+        "source": "Five reports, English and Arabic; populated owned court for judgments"
+      },
+      "steps": [
+        "Read downloaded CSV/XLSX/PDF with independent libraries",
+        "Compare CSV and workbook rows to live report API total",
+        "Check literal cell types, RTL, embedded PDF fonts and neutral text preservation"
+      ],
+      "expected_results": "Parseable PDF with embedded fonts; every eligible neutral first-column identifier preserved",
+      "actual": {
+        "pages": 1,
+        "embedded_font": true,
+        "neutral_tokens_checked": 0,
+        "neutral_tokens_found": 0,
+        "pdf_sha256": "bb1fe6bea8287d673bfbe54a71c8320e5f36823ee6eff9dfa43ac6dc7b7d36f7"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "P7-EXPORT-ROWS-experts-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact attested UAT SHA",
+        "Actual authenticated browser downloads; private files outside repository"
+      ],
+      "test_data": {
+        "source": "Five reports, English and Arabic; populated owned court for judgments"
+      },
+      "steps": [
+        "Read downloaded CSV/XLSX/PDF with independent libraries",
+        "Compare CSV and workbook rows to live report API total",
+        "Check literal cell types, RTL, embedded PDF fonts and neutral text preservation"
+      ],
+      "expected_results": "CSV and normal/streaming XLSX contain exactly API count+header; no formulas; RTL iff Arabic",
+      "actual": {
+        "api_rows": 3,
+        "csv_rows": 3,
+        "xlsx_rows": 3,
+        "stream_rows": 3,
+        "formula_cells": 0,
+        "rtl": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "P7-EXPORT-PDF-experts-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact attested UAT SHA",
+        "Actual authenticated browser downloads; private files outside repository"
+      ],
+      "test_data": {
+        "source": "Five reports, English and Arabic; populated owned court for judgments"
+      },
+      "steps": [
+        "Read downloaded CSV/XLSX/PDF with independent libraries",
+        "Compare CSV and workbook rows to live report API total",
+        "Check literal cell types, RTL, embedded PDF fonts and neutral text preservation"
+      ],
+      "expected_results": "Parseable PDF with embedded fonts; every eligible neutral first-column identifier preserved",
+      "actual": {
+        "pages": 1,
+        "embedded_font": true,
+        "neutral_tokens_checked": 0,
+        "neutral_tokens_found": 0,
+        "pdf_sha256": "b25eede1f5a001f378a66df1d8b87d0229d9d315d08e4763f957ca052f664471"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "P7-EXPORT-ROWS-workload-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact attested UAT SHA",
+        "Actual authenticated browser downloads; private files outside repository"
+      ],
+      "test_data": {
+        "source": "Five reports, English and Arabic; populated owned court for judgments"
+      },
+      "steps": [
+        "Read downloaded CSV/XLSX/PDF with independent libraries",
+        "Compare CSV and workbook rows to live report API total",
+        "Check literal cell types, RTL, embedded PDF fonts and neutral text preservation"
+      ],
+      "expected_results": "CSV and normal/streaming XLSX contain exactly API count+header; no formulas; RTL iff Arabic",
+      "actual": {
+        "api_rows": 1,
+        "csv_rows": 1,
+        "xlsx_rows": 1,
+        "stream_rows": 1,
+        "formula_cells": 0,
+        "rtl": false
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "P7-EXPORT-PDF-workload-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact attested UAT SHA",
+        "Actual authenticated browser downloads; private files outside repository"
+      ],
+      "test_data": {
+        "source": "Five reports, English and Arabic; populated owned court for judgments"
+      },
+      "steps": [
+        "Read downloaded CSV/XLSX/PDF with independent libraries",
+        "Compare CSV and workbook rows to live report API total",
+        "Check literal cell types, RTL, embedded PDF fonts and neutral text preservation"
+      ],
+      "expected_results": "Parseable PDF with embedded fonts; every eligible neutral first-column identifier preserved",
+      "actual": {
+        "pages": 1,
+        "embedded_font": true,
+        "neutral_tokens_checked": 0,
+        "neutral_tokens_found": 0,
+        "pdf_sha256": "e7cc5a6a88e1e70b910908a02cbbe36aa0281ff3eca476c9e41c9a570da8860d"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "P7-EXPORT-ROWS-workload-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact attested UAT SHA",
+        "Actual authenticated browser downloads; private files outside repository"
+      ],
+      "test_data": {
+        "source": "Five reports, English and Arabic; populated owned court for judgments"
+      },
+      "steps": [
+        "Read downloaded CSV/XLSX/PDF with independent libraries",
+        "Compare CSV and workbook rows to live report API total",
+        "Check literal cell types, RTL, embedded PDF fonts and neutral text preservation"
+      ],
+      "expected_results": "CSV and normal/streaming XLSX contain exactly API count+header; no formulas; RTL iff Arabic",
+      "actual": {
+        "api_rows": 1,
+        "csv_rows": 1,
+        "xlsx_rows": 1,
+        "stream_rows": 1,
+        "formula_cells": 0,
+        "rtl": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "P7-EXPORT-PDF-workload-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact attested UAT SHA",
+        "Actual authenticated browser downloads; private files outside repository"
+      ],
+      "test_data": {
+        "source": "Five reports, English and Arabic; populated owned court for judgments"
+      },
+      "steps": [
+        "Read downloaded CSV/XLSX/PDF with independent libraries",
+        "Compare CSV and workbook rows to live report API total",
+        "Check literal cell types, RTL, embedded PDF fonts and neutral text preservation"
+      ],
+      "expected_results": "Parseable PDF with embedded fonts; every eligible neutral first-column identifier preserved",
+      "actual": {
+        "pages": 1,
+        "embedded_font": true,
+        "neutral_tokens_checked": 0,
+        "neutral_tokens_found": 0,
+        "pdf_sha256": "5107e6d592a32f7da821c36b3d3976f99accd37ad119ac1b2dc8cac4e7e6761c"
+      },
+      "status": "PASS"
+    }
+  ]
+}

@@ -1,0 +1,187 @@
+{
+  "utc": "2026-10-23T18:07:41.094509+00:00",
+  "tested_sha": "32724ae88983ac72a43d49d7f3a8db3e253a989e",
+  "findings": [
+    {
+      "id": "QAD-016",
+      "status": "OPEN",
+      "severity": "High",
+      "type": "CONFIRMED_CD_VERIFICATION_DEFECT",
+      "tested_sha": "32724ae88983ac72a43d49d7f3a8db3e253a989e",
+      "pr": 7,
+      "story_ids": [
+        "LD-006"
+      ],
+      "title": "Manual dispatch lacks exact-SHA CI verification",
+      "source": ".github/workflows/deploy-staging.yml",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "32724ae88983ac72a43d49d7f3a8db3e253a989e",
+        "fixture": "MANUAL-DISPATCH-FAILED-CI"
+      },
+      "reproduction_steps": [
+        "Feed the real Validate release shell a merged SHA and an API fixture with failed CI.",
+        "The compare endpoint says identical; execute actual step without SSH/deployment.",
+        "Inspect API trace and GITHUB_OUTPUT."
+      ],
+      "expected_result": "Refuse missing/failed exact-SHA CI gates before SSH deployment; documented explicit exception requires owner decision.",
+      "actual_result": "Exit0 and skip=false; only compare\u2026develop queried; no CI status inspected.",
+      "failed_assertion_id": "MANUAL-DISPATCH-FAILED-CI",
+      "evidence": "qa/evidence/pr-7-32724ae88983/valid-key-retest/independent-cd-results.json",
+      "limits": "Local shell/API/Git failure injection only; not proof of current host exploitation or disruption."
+    },
+    {
+      "id": "QAD-017",
+      "status": "OPEN",
+      "severity": "High",
+      "type": "CONFIRMED_CD_VERIFICATION_DEFECT",
+      "tested_sha": "32724ae88983ac72a43d49d7f3a8db3e253a989e",
+      "pr": 7,
+      "story_ids": [
+        "LD-006"
+      ],
+      "title": "Cached image tag accepted despite another revision label",
+      "source": "deploy/host/lawdesk-deploy-gate",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "32724ae88983ac72a43d49d7f3a8db3e253a989e",
+        "fixture": "CACHED-IMAGE-WRONG-REVISION"
+      },
+      "reproduction_steps": [
+        "Use local real Git origin/develop with synthetic merged commit.",
+        "Return cached image inspect success with revision=b*40 for both requested tags.",
+        "Run the real gate; inspect build/deploy transport trace."
+      ],
+      "expected_result": "Refuse or rebuild and verify wrong-revision images; release state alone cannot attest running code.",
+      "actual_result": "Gate exits0, no rebuild, invokes release deploy. Conditional on stale/mistagged local images; no live image tampering performed.",
+      "failed_assertion_id": "CACHED-IMAGE-WRONG-REVISION",
+      "evidence": "qa/evidence/pr-7-32724ae88983/valid-key-retest/independent-cd-results.json",
+      "limits": "Local shell/API/Git failure injection only; not proof of current host exploitation or disruption."
+    },
+    {
+      "id": "QAD-018",
+      "status": "OPEN",
+      "severity": "High",
+      "type": "CONFIRMED_CD_VERIFICATION_DEFECT",
+      "tested_sha": "32724ae88983ac72a43d49d7f3a8db3e253a989e",
+      "pr": 7,
+      "story_ids": [
+        "LD-006"
+      ],
+      "title": "Existing matching CI key silently remains unrestricted",
+      "source": "deploy/host/bootstrap.sh",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "32724ae88983ac72a43d49d7f3a8db3e253a989e",
+        "fixture": "BOOTSTRAP-EXISTING-UNRESTRICTED-KEY"
+      },
+      "reproduction_steps": [
+        "Generate a valid synthetic Ed25519 key in temporary fixture.",
+        "Seed the child authorized_keys with that public key without options.",
+        "Run bootstrap with fake Docker and isolated HOME.",
+        "Inspect exit and matching authorization."
+      ],
+      "expected_result": "Refuse or safely constrain a preexisting unrestricted matching key; never announce gate-only setup while unrestricted entry remains.",
+      "actual_result": "Bootstrap exits0 and leaves unrestricted entry. Actual sshd session not tested; precondition is an already unrestricted reused key.",
+      "failed_assertion_id": "BOOTSTRAP-EXISTING-UNRESTRICTED-KEY",
+      "evidence": "qa/evidence/pr-7-32724ae88983/valid-key-retest/independent-cd-results.json",
+      "limits": "Local shell/API/Git failure injection only; not proof of current host exploitation or disruption."
+    },
+    {
+      "id": "QAD-019",
+      "status": "OPEN",
+      "severity": "Medium",
+      "type": "CONFIRMED_CD_VERIFICATION_DEFECT",
+      "tested_sha": "32724ae88983ac72a43d49d7f3a8db3e253a989e",
+      "pr": 7,
+      "story_ids": [
+        "LD-006"
+      ],
+      "title": "Proxy running config not restored after persistence-copy failure",
+      "source": "deploy/proxy/lib.sh; deploy/proxy/attach.sh",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "32724ae88983ac72a43d49d7f3a8db3e253a989e",
+        "fixture": "PROXY-PERSIST-AFTER-RELOAD-FAIL"
+      },
+      "reproduction_steps": [
+        "Seed a synthetic proxy with original active and persisted Caddyfiles.",
+        "Let candidate validate and Caddy reload succeed, then fail docker cp to LIVE.",
+        "Inspect active/persisted files and exit."
+      ],
+      "expected_result": "Restore both active and persisted originals when activation only partially succeeds.",
+      "actual_result": "Exit1 and claims previous configuration, but active is candidate and persisted is old.",
+      "failed_assertion_id": "PROXY-PERSIST-AFTER-RELOAD-FAIL",
+      "evidence": "qa/evidence/pr-7-32724ae88983/valid-key-retest/independent-cd-results.json",
+      "limits": "Local shell/API/Git failure injection only; not proof of current host exploitation or disruption."
+    },
+    {
+      "id": "QAD-020",
+      "status": "OPEN",
+      "severity": "High",
+      "type": "CONFIRMED_CD_VERIFICATION_DEFECT",
+      "tested_sha": "32724ae88983ac72a43d49d7f3a8db3e253a989e",
+      "pr": 7,
+      "story_ids": [
+        "LD-006"
+      ],
+      "title": "Unbalanced marker drops an existing host while safety guard passes",
+      "source": "deploy/proxy/lib.sh; deploy/proxy/attach.sh",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "32724ae88983ac72a43d49d7f3a8db3e253a989e",
+        "fixture": "PROXY-UNBALANCED-MARKER"
+      },
+      "reproduction_steps": [
+        "Seed syntactically valid original containing BEGIN without END and a later literal api.qa.invalid host.",
+        "Run real attach with completely fake Docker/curl and inspect candidate.",
+        "Independently adapt original and candidate using official checksum-verified Caddy2.10.2."
+      ],
+      "expected_result": "Reject malformed markers before mutation; preserve every non-LawDesk host; require complete nonempty health baseline.",
+      "actual_result": "Exit0; original adapts with app/api hosts, candidate adapts with app/LawDesk and no api. Literal-host discovery yields no probes. No actual shared proxy touched.",
+      "failed_assertion_id": "PROXY-UNBALANCED-MARKER",
+      "evidence": "qa/evidence/pr-7-32724ae88983/valid-key-retest/independent-cd-results.json",
+      "limits": "Local shell/API/Git failure injection only; not proof of current host exploitation or disruption."
+    },
+    {
+      "id": "QAD-021",
+      "status": "OPEN",
+      "severity": "Medium",
+      "type": "CONFIRMED_CD_VERIFICATION_DEFECT",
+      "tested_sha": "32724ae88983ac72a43d49d7f3a8db3e253a989e",
+      "pr": 7,
+      "story_ids": [
+        "LD-006"
+      ],
+      "title": "Rollback smoke uses failed release manifest",
+      "source": "deploy/scripts/deploy.sh; deploy/scripts/smoke.sh",
+      "preconditions": [
+        "Exact candidate files; all transport replaced with QA doubles; temporary files only."
+      ],
+      "test_data": {
+        "candidate_sha": "32724ae88983ac72a43d49d7f3a8db3e253a989e",
+        "fixture": "ROLLBACK-SMOKE-TARGET-MANIFEST"
+      },
+      "reproduction_steps": [
+        "Create QA release directories A/B with distinct manifests and actual scripts.",
+        "Seed current=A and force B up failure.",
+        "Inspect target=A rollback up and smoke exec -f arguments."
+      ],
+      "expected_result": "Both rollback up and smoke verification must use target A own release contract/manifest.",
+      "actual_result": "up uses A/compose.yaml but smoke exec uses B/compose.yaml with tag A. This is distinct from fixed QAD-013.",
+      "failed_assertion_id": "ROLLBACK-SMOKE-TARGET-MANIFEST",
+      "evidence": "qa/evidence/pr-7-32724ae88983/valid-key-retest/independent-cd-results.json",
+      "limits": "Local shell/API/Git failure injection only; not proof of current host exploitation or disruption."
+    }
+  ]
+}

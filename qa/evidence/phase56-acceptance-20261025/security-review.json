@@ -1,0 +1,28 @@
+{
+  "tested_sha": "b849b1cabcbebd4df058e4ab989d1e8c1a562899",
+  "scope": "Focused manual source review, safe API security testing, independent dependency/secret scans; NOT comprehensive automated SAST or penetration test",
+  "frontend_lock_sha256": "b4ab5dd04bd2375611e0d60f706a39608236f6bef0c3d3e7d873d791e6cb9933",
+  "frontend_lock_unchanged_from_initial_pr48": true,
+  "reviewed_controls": [
+    "Reports: distinct REPORT_VIEW/REPORT_EXPORT method authorization",
+    "CSV: leading =,+,-,@,tab,CR neutralization; actual parser tests",
+    "XLSX: literal string cells, typed dates/counts, corrected used range",
+    "PDF: bounded export and embedded local fonts; shaped text",
+    "Documents: bounded bytes/count, normalized filename, attachment/no-store/nosniff",
+    "Notes: owner restriction, literal rendering, private-text exclusion from timeline",
+    "SQL: bound data parameters and constrained sort fields",
+    "Compose/image: non-root backend, read-only filesystem, dropped capabilities; developer image evidence separated"
+  ],
+  "confirmed_findings": [
+    "QAD-037",
+    "QAD-038",
+    "QAD-039"
+  ],
+  "limitations": [
+    "No full automated Java/TS SAST engine executed",
+    "99 verified Maven coordinates queried; one embedded jarmode-tools JAR not identified by this method",
+    "No disruptive shared-host testing",
+    "PDF signature checks do not constitute content sanitization or malware scanning; no new acceptance criterion invented"
+  ],
+  "developer_ci_test_counts_credited_as_independent": 0
+}

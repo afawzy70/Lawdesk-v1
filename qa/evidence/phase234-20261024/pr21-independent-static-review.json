@@ -1,0 +1,83 @@
+{
+  "tested_sha": "55c16cc12954a3ba2c048db13353e0abc4b87371",
+  "utc": "2026-10-24T05:32:15.643395+00:00",
+  "scope": "Independent static test-delta review, not application runtime tests",
+  "counts": {
+    "PASS": 3,
+    "FAIL": 0
+  },
+  "results": [
+    {
+      "id": "ONLY-TEST-DELTA",
+      "story_ids": [
+        "LD-013"
+      ],
+      "priority": "P2",
+      "preconditions": [
+        "Read exact git objects for develop and PR21; no working tree implementation edits"
+      ],
+      "test_data": {
+        "path": "frontend/src/features/cases/CaseEditPage.test.tsx",
+        "base": "71007a02f8b79d0dccc0592af7d3e49b5bf4530d",
+        "head": "55c16cc12954a3ba2c048db13353e0abc4b87371"
+      },
+      "steps": [
+        "Compare exact diff and old/new test source"
+      ],
+      "expected_results": "Only CaseEditPage.test.tsx changes",
+      "actual": {
+        "changed_files": [
+          "frontend/src/features/cases/CaseEditPage.test.tsx"
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "EXPECTED-TITLE-UNCHANGED",
+      "story_ids": [
+        "LD-013"
+      ],
+      "priority": "P2",
+      "preconditions": [
+        "Read exact git objects for develop and PR21; no working tree implementation edits"
+      ],
+      "test_data": {
+        "path": "frontend/src/features/cases/CaseEditPage.test.tsx",
+        "base": "71007a02f8b79d0dccc0592af7d3e49b5bf4530d",
+        "head": "55c16cc12954a3ba2c048db13353e0abc4b87371"
+      },
+      "steps": [
+        "Compare exact diff and old/new test source"
+      ],
+      "expected_results": "Exact same case-specific title assertion remains",
+      "actual": {
+        "expected_literal": "expect(document.title).toBe('Edit case R-1 \u2014 LawDesk (Preview)');"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "AWAITED-ASSERTION-NOT-SKIPPED",
+      "story_ids": [
+        "LD-013"
+      ],
+      "priority": "P2",
+      "preconditions": [
+        "Read exact git objects for develop and PR21; no working tree implementation edits"
+      ],
+      "test_data": {
+        "path": "frontend/src/features/cases/CaseEditPage.test.tsx",
+        "base": "71007a02f8b79d0dccc0592af7d3e49b5bf4530d",
+        "head": "55c16cc12954a3ba2c048db13353e0abc4b87371"
+      },
+      "steps": [
+        "Compare exact diff and old/new test source"
+      ],
+      "expected_results": "Await existing effect; no skipped or removed test",
+      "actual": {
+        "it_count_before": 8,
+        "it_count_after": 8
+      },
+      "status": "PASS"
+    }
+  ]
+}

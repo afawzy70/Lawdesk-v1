@@ -1,0 +1,258 @@
+{
+  "tested_sha": "1e74945961a77fcf5a67fc26f3a51d0715660628",
+  "scope": "Independent parsing/rendering of actual authenticated UAT artifacts; deployment container provenance linked separately",
+  "counts": {
+    "PASS": 10,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "UAT-QAD035-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved-account UAT export, exact runtime SHA, synthetic prefix filter"
+      ],
+      "test_data": {
+        "artifact_directory": "lawdesk-r57-phase56-uat"
+      },
+      "steps": [
+        "Download authenticated filtered export from deployed backend",
+        "Parse with independent CSV/openpyxl/PyMuPDF consumer",
+        "Compare row counts, neutral identifiers, embedded fonts and RTL"
+      ],
+      "expected_results": "Normal and streaming XLSX consumers see every CSV row",
+      "actual": {
+        "csv_rows": 17,
+        "normal_rows": 17,
+        "streaming_rows": 17,
+        "dimension": "A1:I17"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "UAT-XLSX-LITERAL-RTL-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved-account UAT export, exact runtime SHA, synthetic prefix filter"
+      ],
+      "test_data": {
+        "artifact_directory": "lawdesk-r57-phase56-uat"
+      },
+      "steps": [
+        "Download authenticated filtered export from deployed backend",
+        "Parse with independent CSV/openpyxl/PyMuPDF consumer",
+        "Compare row counts, neutral identifiers, embedded fonts and RTL"
+      ],
+      "expected_results": "Literal =1+1 string; zero formulas; RTL iff Arabic",
+      "actual": {
+        "formula_count": 0,
+        "neutral_expression_present": true,
+        "rtl": false
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "UAT-CSV-FORMULA-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved-account UAT export, exact runtime SHA, synthetic prefix filter"
+      ],
+      "test_data": {
+        "artifact_directory": "lawdesk-r57-phase56-uat"
+      },
+      "steps": [
+        "Download authenticated filtered export from deployed backend",
+        "Parse with independent CSV/openpyxl/PyMuPDF consumer",
+        "Compare row counts, neutral identifiers, embedded fonts and RTL"
+      ],
+      "expected_results": "Formula-shaped title is quoted literal",
+      "actual": {
+        "neutralized": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "UAT-QAD036-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved-account UAT export, exact runtime SHA, synthetic prefix filter"
+      ],
+      "test_data": {
+        "artifact_directory": "lawdesk-r57-phase56-uat"
+      },
+      "steps": [
+        "Download authenticated filtered export from deployed backend",
+        "Parse with independent CSV/openpyxl/PyMuPDF consumer",
+        "Compare row counts, neutral identifiers, embedded fonts and RTL"
+      ],
+      "expected_results": "Neutral expression remains =1+1; synthetic case reference retained",
+      "actual": {
+        "neutral_expression_present": true,
+        "known_reference_present": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "UAT-PDF-DEPLOYED-en",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved-account UAT export, exact runtime SHA, synthetic prefix filter"
+      ],
+      "test_data": {
+        "artifact_directory": "lawdesk-r57-phase56-uat"
+      },
+      "steps": [
+        "Download authenticated filtered export from deployed backend",
+        "Parse with independent CSV/openpyxl/PyMuPDF consumer",
+        "Compare row counts, neutral identifiers, embedded fonts and RTL"
+      ],
+      "expected_results": "Parseable landscape PDF with embedded font generated through deployed API",
+      "actual": {
+        "pages": 2,
+        "embedded_font": true,
+        "landscape": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "UAT-QAD035-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved-account UAT export, exact runtime SHA, synthetic prefix filter"
+      ],
+      "test_data": {
+        "artifact_directory": "lawdesk-r57-phase56-uat"
+      },
+      "steps": [
+        "Download authenticated filtered export from deployed backend",
+        "Parse with independent CSV/openpyxl/PyMuPDF consumer",
+        "Compare row counts, neutral identifiers, embedded fonts and RTL"
+      ],
+      "expected_results": "Normal and streaming XLSX consumers see every CSV row",
+      "actual": {
+        "csv_rows": 17,
+        "normal_rows": 17,
+        "streaming_rows": 17,
+        "dimension": "A1:I17"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "UAT-XLSX-LITERAL-RTL-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved-account UAT export, exact runtime SHA, synthetic prefix filter"
+      ],
+      "test_data": {
+        "artifact_directory": "lawdesk-r57-phase56-uat"
+      },
+      "steps": [
+        "Download authenticated filtered export from deployed backend",
+        "Parse with independent CSV/openpyxl/PyMuPDF consumer",
+        "Compare row counts, neutral identifiers, embedded fonts and RTL"
+      ],
+      "expected_results": "Literal =1+1 string; zero formulas; RTL iff Arabic",
+      "actual": {
+        "formula_count": 0,
+        "neutral_expression_present": true,
+        "rtl": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "UAT-CSV-FORMULA-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved-account UAT export, exact runtime SHA, synthetic prefix filter"
+      ],
+      "test_data": {
+        "artifact_directory": "lawdesk-r57-phase56-uat"
+      },
+      "steps": [
+        "Download authenticated filtered export from deployed backend",
+        "Parse with independent CSV/openpyxl/PyMuPDF consumer",
+        "Compare row counts, neutral identifiers, embedded fonts and RTL"
+      ],
+      "expected_results": "Formula-shaped title is quoted literal",
+      "actual": {
+        "neutralized": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "UAT-QAD036-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved-account UAT export, exact runtime SHA, synthetic prefix filter"
+      ],
+      "test_data": {
+        "artifact_directory": "lawdesk-r57-phase56-uat"
+      },
+      "steps": [
+        "Download authenticated filtered export from deployed backend",
+        "Parse with independent CSV/openpyxl/PyMuPDF consumer",
+        "Compare row counts, neutral identifiers, embedded fonts and RTL"
+      ],
+      "expected_results": "Neutral expression remains =1+1; synthetic case reference retained",
+      "actual": {
+        "neutral_expression_present": true,
+        "known_reference_present": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "UAT-PDF-DEPLOYED-ar",
+      "story_ids": [
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved-account UAT export, exact runtime SHA, synthetic prefix filter"
+      ],
+      "test_data": {
+        "artifact_directory": "lawdesk-r57-phase56-uat"
+      },
+      "steps": [
+        "Download authenticated filtered export from deployed backend",
+        "Parse with independent CSV/openpyxl/PyMuPDF consumer",
+        "Compare row counts, neutral identifiers, embedded fonts and RTL"
+      ],
+      "expected_results": "Parseable landscape PDF with embedded font generated through deployed API",
+      "actual": {
+        "pages": 2,
+        "embedded_font": true,
+        "landscape": true
+      },
+      "status": "PASS"
+    }
+  ]
+}

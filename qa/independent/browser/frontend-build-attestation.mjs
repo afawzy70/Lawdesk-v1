@@ -1,0 +1,9 @@
+// Compare every deployed frontend build artifact against an independent build of the exact git archive.
+import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import {createRequire}from'node:module';
+const require=createRequire('/tmp/lawdesk-qa-browser-runtime/package.json');const {request}=require('playwright');
+const [sha,dist,out]=process.argv.slice(2),base='https://lawdesk.167-86-90-174.sslip.io';
+if(!/^[a-f0-9]{40}$/.test(sha||''))throw Error('Exact SHA required');fs.mkdirSync(out,{recursive:true});if(fs.existsSync(out+'/results.json'))throw Error('Preserve evidence');
+const ctx=await request.newContext(),results=[];const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
+const files=fs.readdirSync(dist,{recursive:true}).filter(f=>fs.statSync(path.join(dist,f)).isFile());
+try{for(const f of files){const expected=fs.readFileSync(path.join(dist,f));const r=await ctx.get(base+'/'+(f==='index.html'?'':f));const actual=await r.body();results.push({id:'FRONTEND-BUILD-'+f,story_ids:['LD-006','LD-035','LD-038'],priority:'P1',preconditions:['Exact canonical source archive; independently built dist','TLS verified UAT response'],test_data:{artifact:f},steps:['Build exact frontend source using unchanged lockfile','GET corresponding deployed asset','Compare bytes and SHA256'],expected_results:'HTTP200 and byte-identical artifact',actual:{http_status:r.status(),local_sha256:hash(expected),deployed_sha256:hash(actual),bytes:actual.length},status:r.status()===200&&expected.equals(actual)?'PASS':'FAIL'});}}
+finally{await ctx.dispose();fs.writeFileSync(out+'/results.json',JSON.stringify({tested_sha:sha,scope:'Independent build/deployed artifact comparison; no developer test credit',counts:Object.fromEntries(['PASS','FAIL','BLOCKED','NOT_RUN'].map(s=>[s,results.filter(r=>r.status===s).length])),results},null,2));process.exitCode=results.some(r=>r.status==='FAIL')?1:0;}
