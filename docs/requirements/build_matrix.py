@@ -90,6 +90,28 @@ OV = {
  34: [("دعم العربية", P, "RTL وتجاوب مُختبران"), ("نسخ احتياطية", P, "LD-041"), ("استعادة", P, "LD-041")],
 }
 
+# Delivered work packages (2026-11-09): section -> (default status, evidence, remaining gaps as (keyword, status, note)).
+# PRESENT here means: the code, the migration and passing backend/frontend suites exist on the deployed SHA, and the
+# section's acceptance journey ran green on UAT (docs/evidence/DOC-WP*/); individual rows are not yet mapped one by one
+# to a scenario step, so none is claimed VERIFIED. The final reconciliation pass does that row by row.
+DELIVERED = {
+ 1: (P, "DOC-WP1 (journey wp1-access)", []),
+ 2: (P, "DOC-WP1 (journey wp1c-parties)", []),
+ 3: (P, "DOC-WP1 (journey wp1c-parties)", []),
+ 4: (P, "DOC-WP1 (journey wp1d-stages)", []),
+ 5: (P, "DOC-WP2 (journey wp2: S1, S2, S13)", []),
+ 6: (P, "DOC-WP1 (journey wp1-access)", []),
+ 7: (P, "DOC-WP3 (journey: S9)", []),
+ 8: (P, "DOC-WP3 (journey: S10, S12)", [("ويمكن ربط", PA, "حالات الارتباط المقترحة تحتاج اعتماد المالك")]),
+ 9: (P, "DOC-WP2 (journey wp2: S1, S13)", [("الميعاد", PA, "ميعاد الطعن ينتظر WP4"), ("الصورة", PA, "تخزين الصورة ينتظر WP5")]),
+ 16: (P, "DOC-WP7 (journey wp7: S4, S5)", [("صورة", PA, "تخزين نسخة الحكم ينتظر WP5"), ("الدفوع", PA, "مقارنة الدفوع والطلبات تنتظر ربط WP2")]),
+ 17: (P, "DOC-WP2 (journey wp2: S3)", [("السوابق", PA, "ربط الدفع بالسوابق (defense_precedent) لم يُنفَّذ بعد")]),
+ 18: (P, "DOC-WP3 (journey: S6)", [("المشرف", PA, "لا نموذج 'مشرف مباشر': التصعيد يدوي إلى مستخدم مسمى")]),
+ 19: (P, "DOC-WP3 (journey: S7)", []),
+ 20: (P, "DOC-WP2 (journey wp2: S8)", [("طلب إفادة", PA, "ربط النواقص بطلب إفادة محجوز ولم يُوصَل")]),
+ 21: (P, "DOC-WP3 (journey: S12)", [("الموعد", PA, "المواعيد تنتظر WP4")]),
+}
+
 PHASE_NAME = {"0": "أساس مشترك", "1": "المرحلة الأولى", "2": "المرحلة الثانية", "3": "المرحلة الثالثة", "—": "—"}
 STATUS_AR = {V: "موجود ومتحقق منه", P: "موجود في الشيفرة (يُتحقق منه بـWP0)", PA: "موجود جزئيًا", M: "غير موجود", B: "متعطل باعتماد خارجي"}
 
@@ -135,10 +157,16 @@ def classify(lines, lo, hi, head_idx):
 
 
 def status_for(sec, text):
+    if sec in DELIVERED:
+        status, evidence, gaps = DELIVERED[sec]
+        for kw, st, note in gaps:
+            if kw in text:
+                return st, note, evidence
+        return status, "", evidence
     for kw, st, note in OV.get(sec, []):
         if kw in text:
-            return st, note
-    return SEC[sec][7], ""
+            return st, note, "—"
+    return SEC[sec][7], "", "—"
 
 
 def render(lines):
@@ -155,6 +183,8 @@ def render(lines):
         title = lines[head_idx].strip() if n else "مقدمة الوثيقة (الأسطر 1–5)"
         body.append(f"\n## LD-DOC-{n:02d} — {title}\n")
         body.append(f"- **المرحلة**: {PHASE_NAME[s[0]]} · **الأولوية**: {s[1]} · **حزمة العمل**: {s[2]} · **سيناريوهات القبول المرتبطة**: {s[6]}")
+        if n in DELIVERED:
+            body.append(f"- **التحديث (2026-11-09)**: نُفِّذ بحزمة العمل؛ الدليل: {DELIVERED[n][1]}؛ الفجوات المتبقية في عمود الملاحظة.")
         body.append(f"- **الموجود حاليًا**: {s[3]}")
         body.append(f"- **الفجوة المتبقية**: {s[4]}")
         body.append(f"- **التغييرات المطلوبة**: {s[5]}")
@@ -171,9 +201,9 @@ def render(lines):
                 continue
             seq += 1
             nreq += 1
-            st, note = status_for(n, text)
+            st, note, evidence = status_for(n, text)
             totals[st] += 1
-            body.append(f"| LD-DOC-{n:02d}-{seq:03d} | {no} | {group or '—'} | {text.replace('|', '/')} | {STATUS_AR[st]} | {note or '—'} | — |")
+            body.append(f"| LD-DOC-{n:02d}-{seq:03d} | {no} | {group or '—'} | {text.replace('|', '/')} | {STATUS_AR[st]} | {note or '—'} | {evidence} |")
         if groups:
             body.append("\n<sub>عناوين المجموعات في المصدر: " + "؛ ".join(f"{t} (س{no})" for no, t in groups) + "</sub>")
     nonblank = {i + 1 for i, l in enumerate(lines) if l.strip()}
