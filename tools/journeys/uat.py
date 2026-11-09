@@ -8,6 +8,7 @@ import json
 import os
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 
 BASE = os.environ.get("LAWDESK_BASE", "https://lawdesk.167-86-90-174.sslip.io")
@@ -30,6 +31,7 @@ class Session:
         headers = {"Content-Type": "application/json", "Accept": "application/json"}
         if method != "GET":
             headers["X-XSRF-TOKEN"] = self._xsrf()
+        path = urllib.parse.quote(path, safe="/?&=%:,+")
         request = urllib.request.Request(BASE + path, data=data, method=method, headers=headers)
         try:
             with self.opener.open(request, timeout=60) as response:
@@ -75,7 +77,7 @@ class Journey:
     def finish(self, path):
         with open(path, "w", encoding="utf-8") as out:
             json.dump({"journey": self.title, "base": BASE, "steps": self.steps, "passed": not self.failed}, out,
-                      ensure_ascii=False, indent=2)
+                      ensure_ascii=False, indent=2, default=str)
         print("%s: %s" % (self.title, "FAILED" if self.failed else "passed"))
         if self.failed:
             sys.exit(1)

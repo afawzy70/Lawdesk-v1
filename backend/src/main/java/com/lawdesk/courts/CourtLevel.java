@@ -7,5 +7,11 @@ public enum CourtLevel {
     /** Courts of appeal (محاكم الاستئناف). */
     APPEAL,
     /** The Court of Cassation (محكمة النقض). */
-    CASSATION
+    CASSATION,
+    /** The constitutional court (الدستورية). */
+    CONSTITUTIONAL,
+    /** The enforcement judge or department (التنفيذ). */
+    ENFORCEMENT,
+    /** The body hearing a grievance (التظلم). */
+    GRIEVANCE
 }

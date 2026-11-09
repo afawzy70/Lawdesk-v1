@@ -155,6 +155,10 @@ class ProceedingService {
         if (!parent.getCaseId().equals(caseId)) {
             throw new BusinessRuleException(Rules.PARENT_PROCEEDING_OTHER_CASE, "parent belongs to another case");
         }
+        if (stage != Stage.APPEAL && stage != Stage.CASSATION) {
+            // A constitutional, enforcement or grievance track: a parent of the same case is enough (owner decision D2).
+            return Optional.empty();
+        }
         Stage expected = stage == Stage.APPEAL ? Stage.FIRST_INSTANCE : Stage.APPEAL;
         if (parent.getStage() != expected) {
             throw new BusinessRuleException(stage == Stage.APPEAL ? Rules.APPEAL_PARENT_NOT_FIRST_INSTANCE
@@ -198,6 +202,9 @@ class ProceedingService {
             case FIRST_INSTANCE -> "First-instance";
             case APPEAL -> "Appeal";
             case CASSATION -> "Cassation";
+            case CONSTITUTIONAL -> "Constitutional";
+            case ENFORCEMENT -> "Enforcement";
+            case GRIEVANCE -> "Grievance";
         };
     }
 }

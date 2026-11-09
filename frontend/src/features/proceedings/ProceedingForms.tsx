@@ -132,8 +132,11 @@ export function ProceedingForm({ caseId, automatedNo = null, proceedings, onSave
   const [year, setYear] = useState('');
   const [filingDate, setFilingDate] = useState('');
   const [parentId, setParentId] = useState('');
-  const parentStage: Stage | null = stage === 'APPEAL' ? 'FIRST_INSTANCE' : stage === 'CASSATION' ? 'APPEAL' : null;
-  const parents = proceedings.filter((p) => p.stage === parentStage && p.hasJudgment);
+  // The ladder: an appeal follows a judged first instance, a cassation a judged appeal. The constitutional, enforcement
+  // and grievance tracks follow any proceeding of the case (owner decision D2).
+  const ladderParent: Stage | null = stage === 'APPEAL' ? 'FIRST_INSTANCE' : stage === 'CASSATION' ? 'APPEAL' : null;
+  const needsParent = stage !== 'FIRST_INSTANCE';
+  const parents = ladderParent === null ? proceedings : proceedings.filter((p) => p.stage === ladderParent && p.hasJudgment);
 
   const submit = () => {
     run(() =>
@@ -177,10 +180,10 @@ export function ProceedingForm({ caseId, automatedNo = null, proceedings, onSave
           ))}
         </select>
       </div>
-      {parentStage === null
+      {!needsParent
         ? null
         : parents.length === 0
-          ? <p className="judicial-hint">{t(stage === 'APPEAL' ? 'proceedings.needsParent.APPEAL' : 'proceedings.needsParent.CASSATION')}</p>
+          ? <p className="judicial-hint">{t(stage === 'APPEAL' ? 'proceedings.needsParent.APPEAL' : stage === 'CASSATION' ? 'proceedings.needsParent.CASSATION' : 'proceedings.needsParent.OTHER')}</p>
           : field(
               'parentProceedingId',
               'proceedings.field.parent',

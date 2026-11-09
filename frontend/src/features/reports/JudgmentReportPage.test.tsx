@@ -50,7 +50,7 @@ function report(items: JudgmentRow[], extra: Partial<JudgmentReport> = {}): Resp
       total: 2,
       final: 1,
       byOutcome: { IN_FAVOUR: 0, AGAINST: 1, PARTIAL: 1, DISMISSED: 0, OTHER: 0 },
-      byStage: { FIRST_INSTANCE: 1, APPEAL: 1, CASSATION: 0 },
+      byStage: { FIRST_INSTANCE: 1, APPEAL: 1, CASSATION: 0, CONSTITUTIONAL: 0, ENFORCEMENT: 0, GRIEVANCE: 0 },
     },
     ...extra,
   };
@@ -113,6 +113,9 @@ describe('judgments report (LD-032)', () => {
       'First instance1',
       'Appeal1',
       'Cassation0',
+      'Constitutional0',
+      'Enforcement0',
+      'Grievance0',
     ]);
   });
 

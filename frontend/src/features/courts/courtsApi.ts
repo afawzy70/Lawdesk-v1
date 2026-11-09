@@ -1,7 +1,7 @@
 import { api } from '../../api/http';
 
 /** Court reference data, LD-018 (`/api/v1/courts`, docs/delivery/PHASE-4-ACCEPTANCE.md). */
-export const COURT_LEVELS = ['FIRST_INSTANCE', 'APPEAL', 'CASSATION'] as const;
+export const COURT_LEVELS = ['FIRST_INSTANCE', 'APPEAL', 'CASSATION', 'CONSTITUTIONAL', 'ENFORCEMENT', 'GRIEVANCE'] as const;
 export type CourtLevel = (typeof COURT_LEVELS)[number];
 
 export interface Court {
