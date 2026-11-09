@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.lawdesk.api.PageResponse;
+import com.lawdesk.cases.CaseAccessPolicy;
 import com.lawdesk.security.Permission;
 
 /**
@@ -32,13 +33,16 @@ class AuditController {
 
     /** One recorded event, as stored; it never holds passwords, hashes, session ids or tokens. */
     record AuditEventView(long id, Instant occurredAt, UUID actorId, String actorUsername, String action,
-            String targetType, String targetId, AuditLog.Outcome outcome, String reason, String requestId) {
+            String targetType, String targetId, AuditLog.Outcome outcome, String reason, String requestId,
+            boolean masked) {
     }
 
     private final JdbcTemplate jdbc;
+    private final CaseAccessPolicy access;
 
-    AuditController(JdbcTemplate jdbc) {
+    AuditController(JdbcTemplate jdbc, CaseAccessPolicy access) {
         this.jdbc = jdbc;
+        this.access = access;
     }
 
     @GetMapping
@@ -79,7 +83,7 @@ class AuditController {
                 select id, occurred_at, actor_id, actor_username, action, target_type, target_id, outcome, reason,
                        request_id
                 from audit_event""" + where + " order by occurred_at desc, id desc limit ? offset ?",
-                (rs, row) -> view(rs), paged.toArray());
+                (rs, row) -> view(rs), paged.toArray()).stream().map(this::scoped).toList();
         return PageResponse.from(new PageImpl<>(items, page, total));
     }
 
@@ -87,6 +91,28 @@ class AuditController {
         return new AuditEventView(rs.getLong("id"), rs.getTimestamp("occurred_at").toInstant(),
                 rs.getObject("actor_id", UUID.class), rs.getString("actor_username"), rs.getString("action"),
                 rs.getString("target_type"), rs.getString("target_id"),
-                AuditLog.Outcome.valueOf(rs.getString("outcome")), rs.getString("reason"), rs.getString("request_id"));
+                AuditLog.Outcome.valueOf(rs.getString("outcome")), rs.getString("reason"), rs.getString("request_id"), false);
+    }
+
+    /**
+     * Section 5 of LD-DOC-04: the details of an event about a case (old and new values, civil numbers, settlement amounts)
+     * are shown to AUDIT_VIEW only together with the scope of that case; for other cases the event stays listed (who did
+     * what, when) and its details are masked.
+     */
+    private AuditEventView scoped(AuditEventView e) {
+        if (!"CASE".equals(e.targetType()) || e.reason() == null) {
+            return e;
+        }
+        UUID caseId;
+        try {
+            caseId = UUID.fromString(e.targetId());
+        } catch (IllegalArgumentException | NullPointerException ex) {
+            return e;
+        }
+        if (access.canView(caseId)) {
+            return e;
+        }
+        return new AuditEventView(e.id(), e.occurredAt(), e.actorId(), e.actorUsername(), e.action(), e.targetType(),
+                e.targetId(), e.outcome(), null, e.requestId(), true);
     }
 }

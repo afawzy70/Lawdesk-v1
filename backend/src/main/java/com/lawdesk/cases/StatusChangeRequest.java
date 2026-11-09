@@ -8,7 +8,8 @@ import jakarta.validation.constraints.Size;
 record StatusChangeRequest(
         @NotNull @Pattern(regexp = CaseStatus.PATTERN) String status,
         @Size(max = 500) String reason,
-        @NotNull Long version) {
+        @NotNull Long version,
+        Boolean acknowledgeOpenItems) {
 
     StatusChangeRequest {
         reason = Text.trimToNull(reason);
