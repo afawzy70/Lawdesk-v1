@@ -26,6 +26,7 @@ import { LookupsPage } from './features/pleadings/LookupsPage';
 import { operationsRoutes } from './features/operations/routes';
 import { reportsRoutes } from './features/reports/routes';
 import { wp9Routes } from './features/wp9/routes';
+import { assistantRoutes } from './features/assistant/routes';
 import { LocaleProvider } from './i18n/LocaleProvider';
 import { AppLayout } from './layout/AppLayout';
 import { PLANNED_AREAS } from './layout/navigation';
@@ -73,6 +74,7 @@ export function AppRoutes({ locale }: LocaleProps) {
               {archiveRoutes()}
               {reportsRoutes()}
               {wp9Routes()}
+              {assistantRoutes()}
               <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Routes>
