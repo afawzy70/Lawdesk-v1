@@ -6,7 +6,11 @@ import com.lawdesk.courts.CourtLevel;
 public enum Stage {
     FIRST_INSTANCE(CourtLevel.FIRST_INSTANCE),
     APPEAL(CourtLevel.APPEAL),
-    CASSATION(CourtLevel.CASSATION);
+    CASSATION(CourtLevel.CASSATION),
+    /** Tracks beside the ladder (owner decision D2): they attack or follow a proceeding of the same case. */
+    CONSTITUTIONAL(CourtLevel.CONSTITUTIONAL),
+    ENFORCEMENT(CourtLevel.ENFORCEMENT),
+    GRIEVANCE(CourtLevel.GRIEVANCE);
 
     private final CourtLevel courtLevel;
 

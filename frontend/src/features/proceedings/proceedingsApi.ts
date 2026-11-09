@@ -4,7 +4,7 @@ import type { PagedResult } from '../../components/PagedSelect';
 import type { Court } from '../courts/courtsApi';
 
 /** Proceedings, judgments and special decisions of a case (LD-019…LD-023, docs/delivery/PHASE-4-ACCEPTANCE.md). */
-export const STAGES = ['FIRST_INSTANCE', 'APPEAL', 'CASSATION'] as const;
+export const STAGES = ['FIRST_INSTANCE', 'APPEAL', 'CASSATION', 'CONSTITUTIONAL', 'ENFORCEMENT', 'GRIEVANCE'] as const;
 export type Stage = (typeof STAGES)[number];
 
 export const OUTCOMES = ['IN_FAVOUR', 'AGAINST', 'PARTIAL', 'DISMISSED', 'OTHER'] as const;

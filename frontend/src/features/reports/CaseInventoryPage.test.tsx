@@ -51,7 +51,7 @@ function report(items: InventoryRow[], extra: Partial<InventoryReport> = {}): Re
       closed: 34,
       byStatus: { OPEN: 700, ACTIVE: 450, SUSPENDED: 50, CLOSED: 30, ARCHIVED: 4 },
       byType: { CIVIL: 600, CRIMINAL: 0, COMMERCIAL: 400, LABOR: 100, FAMILY: 120, ADMINISTRATIVE: 14, CONSTITUTIONAL: 0, OTHER: 0 },
-      byStage: { FIRST_INSTANCE: 900, APPEAL: 200, CASSATION: 30, NONE: 104 },
+      byStage: { FIRST_INSTANCE: 900, APPEAL: 200, CASSATION: 30, CONSTITUTIONAL: 0, ENFORCEMENT: 0, GRIEVANCE: 0, NONE: 104 },
     },
     ...extra,
   };
@@ -125,6 +125,9 @@ describe('case inventory report (LD-031)', () => {
       'First instance900',
       'Appeal200',
       'Cassation30',
+      'Constitutional0',
+      'Enforcement0',
+      'Grievance0',
       'No proceedings104',
     ]);
   });
