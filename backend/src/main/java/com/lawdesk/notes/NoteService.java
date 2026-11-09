@@ -138,10 +138,11 @@ class NoteService {
         Row row = jdbc.query("select " + COLUMNS + " from case_note where id = :id for update",
                 new MapSqlParameterSource("id", id), (rs, n) -> row(rs)).stream().findFirst()
                 .orElseThrow(() -> new NotFoundException("note"));
+        // The case first: a user who cannot see it must learn nothing about the note, not even its version.
+        writableCase(row.caseId());
         if (row.version() != version) {
             throw new ConflictException("note was changed by someone else");
         }
-        writableCase(row.caseId());
         if (!row.createdBy().equals(actor.id())) {
             throw new BusinessRuleException(NOTE_AUTHOR_ONLY, "only the author changes a note");
         }
