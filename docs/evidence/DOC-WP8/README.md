@@ -37,14 +37,15 @@ and a user with no scope, every available figure equals the total of its list, e
 opens, and the groups add up to the figure. `definitionsCountExactlyWhatTheyShouldAndNeverTheHiddenCase` checks each definition against
 hand-built data including a restricted case. The journey repeats the check on UAT for the manager, staff and viewer accounts.
 
-## Not available yet (switch on by themselves)
+## Modules that arrived in parallel
 
-Indicators 5 (judgments being enforced) and 8 (appeal deadlines) and families 11 and 12 read `enforcement_file` and `deadline`; while
-a table is missing they are reported `available: false` (`MODULE_NOT_AVAILABLE`), never zero. `deadline` exists on develop (WP4), so
-indicator 8 and family 11 are live; WP5's `enforcement_file` is not on develop yet. Their SQL follows the WP4 and WP5 migrations; once
-WP5 merges, the integration owner should confirm indicator 5 and family 12 against its report port and journey. The overdue-task figure
-uses the tasks module's own port, so it follows WP6's status change; the member task counts use `completed_at`, `CANCELLED` and the due date,
-which keep their meaning there.
+Indicators 5 (judgments being enforced) and 8 (appeal deadlines) and families 11 and 12 read `enforcement_file` and `deadline`. They
+check that the table exists and report `available: false` (`MODULE_NOT_AVAILABLE`), never zero, when it does not. After rebasing onto develop
+(WP4, WP5 and WP6 merged) both tables exist, so these are live; `IndicatorApiTest.appealDeadlinesAndEnforcementCountTheirRowsOnceTheirModulesAreInstalled`
+counts them against real rows, hidden cases excluded. Their SQL lives in `reports` because those modules publish no report port yet; it should move
+there. The overdue-task figure uses the tasks module's own port, so it follows WP6's status change; the member task counts use `completed_at`,
+`CANCELLED` and the due date, which keep their meaning. WP6's `V720` redefines `case_visible` (open tasks are every status but the two final ones);
+the fast predicate in `CaseAccessPolicy` only asks the function when the user has any task on the case, which includes all of those.
 
 ## Performance — measured honestly
 
@@ -134,5 +135,5 @@ Frontend: `Wp8Reports.test.tsx` (20) and the section list in `CaseInventoryPage.
 
 ## What remains
 
-Switch-on check of indicator 5 / family 12 after WP5 merges; WP6's merge should be followed by a run of this journey; the search document (above);
+Run the journey on UAT after deployment; move the deadline and enforcement SQL into WP4/WP5 report ports; the search document (above);
 snapshot or cache for the dashboard if wanted; the exports keep the existing 10,000-row limit (family tables are aggregates and far smaller).

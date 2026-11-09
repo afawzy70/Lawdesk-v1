@@ -357,4 +357,41 @@ class IndicatorApiTest extends PostgresTestSupport {
         List<String> codes = new ArrayList<>();
         assertThat(codes).isEmpty();
     }
+
+    @Test
+    void appealDeadlinesAndEnforcementCountTheirRowsOnceTheirModulesAreInstalled() throws Exception {
+        boolean deadline = jdbc.queryForObject("select to_regclass('public.deadline') is not null", Boolean.class);
+        boolean enforcement = jdbc.queryForObject("select to_regclass('public.enforcement_file') is not null", Boolean.class);
+        org.junit.jupiter.api.Assumptions.assumeTrue(deadline && enforcement);
+        Map<String, Long> before = figures(department());
+        UUID court = data.insertCourt("FIRST_INSTANCE");
+        UUID visible = data.insertCase("judged", "CIVIL", "ACTIVE", TODAY.minusDays(30));
+        UUID hidden = data.insertCase("judged hidden", "CIVIL", "ACTIVE", TODAY.minusDays(30));
+        rows.restricted(hidden);
+        UUID judgment = data.insertJudgment(data.insertProceeding(visible, "FIRST_INSTANCE", court, TODAY.minusDays(29), null),
+                TODAY.minusDays(1), "AGAINST", false);
+        UUID hiddenJudgment = data.insertJudgment(data.insertProceeding(hidden, "FIRST_INSTANCE", court, TODAY.minusDays(29), null),
+                TODAY.minusDays(1), "AGAINST", false);
+        for (UUID[] pair : new UUID[][] {{visible, judgment}, {hidden, hiddenJudgment}}) {
+            data.track("deadline", jdbc.queryForObject("""
+                    insert into deadline (case_id, source_type, source_id, due_on, action, status, calc_status, created_by, updated_by)
+                    values (?, 'JUDGMENT', ?, ?, 'appeal', 'OPEN', 'MANUAL', ?, ?) returning id""", UUID.class, pair[0], pair[1],
+                    TODAY.plusDays(30), ReportTestData.CREATOR, ReportTestData.CREATOR));
+            data.track("enforcement_file", jdbc.queryForObject("""
+                    insert into enforcement_file (judgment_id, case_id, status, created_by, updated_by)
+                    values (?, ?, 'IN_PROGRESS', ?, ?) returning id""", UUID.class, pair[1], pair[0], ReportTestData.CREATOR,
+                    ReportTestData.CREATOR));
+        }
+        // a completed deadline and a not-started file are not counted
+        data.track("deadline", jdbc.queryForObject("""
+                insert into deadline (case_id, source_type, source_id, due_on, action, status, completed_on, calc_status, created_by,
+                    updated_by) values (?, 'JUDGMENT', ?, ?, 'done', 'COMPLETED', ?, 'MANUAL', ?, ?) returning id""", UUID.class,
+                visible, judgment, TODAY.plusDays(30), TODAY, ReportTestData.CREATOR, ReportTestData.CREATOR));
+        Map<String, Long> change = delta(before, figures(department()));
+        assertThat(change.get("APPEAL_DEADLINES")).isEqualTo(1);
+        assertThat(change.get("JUDGMENTS_IN_ENFORCEMENT")).isEqualTo(1);
+        DocumentContext list = json(department(), "/api/v1/reports/indicators/APPEAL_DEADLINES?size=100");
+        assertThat(list.<List<String>>read("$.items[*].caseId")).contains(visible.toString()).doesNotContain(hidden.toString());
+        assertThat(json(outsider(), "/api/v1/reports/indicators/JUDGMENTS_IN_ENFORCEMENT").<Integer>read("$.totalItems")).isZero();
+    }
 }

@@ -120,9 +120,9 @@ class CaseVisibilityPredicateEquivalenceTest extends PostgresTestSupport {
                 revoked, me, SYSTEM, SYSTEM);
         jdbc.update("insert into case_grant (case_id, user_id, level, reason, granted_by, expires_at) values (?, ?, 'VIEW', 'r', ?, ?)",
                 expired, me, SYSTEM, Timestamp.from(Instant.now().minus(1, ChronoUnit.DAYS)));
-        jdbc.update("insert into task (case_id, title, assignee_id, status, created_by, updated_by) values (?, 'eqv', ?, 'OPEN', ?, ?)",
+        jdbc.update("insert into task (case_id, title, assignee_id, status, created_by, updated_by) values (?, 'eqv', ?, 'NEW', ?, ?)",
                 withOpenTask, me, SYSTEM, SYSTEM);
-        jdbc.update("insert into task (case_id, title, assignee_id, status, completed_at, created_by, updated_by) values (?, 'eqv', ?, 'DONE', now(), ?, ?)",
+        jdbc.update("insert into task (case_id, title, assignee_id, status, completed_at, created_by, updated_by) values (?, 'eqv', ?, 'COMPLETED', now(), ?, ?)",
                 withDoneTask, me, SYSTEM, SYSTEM);
 
         List<List<String>> scopes = List.of(List.of(), List.of("ALL"), List.of("TYPE:CIVIL"), List.of("UNIT:" + top),
