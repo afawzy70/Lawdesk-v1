@@ -9,6 +9,7 @@ import { NotFoundPage } from '../../pages/NotFoundPage';
 import { AccessDeniedPage } from '../auth/AccessDeniedPage';
 import { getCase, type LegalCase } from './api';
 import { CaseOperations } from '../operations/CaseOperations';
+import { CaseLibrarySection } from '../library/CaseLibrarySection';
 import { CaseProceedings } from '../proceedings/CaseProceedings';
 import { CaseAccessSection } from '../access/CaseAccessSection';
 import { CaseCounselSection } from './CaseCounselSection';
@@ -218,6 +219,7 @@ function CaseDetails({ id }: { id: string }) {
           {/* Judicial stages belong to Workstream C; the case only hosts them (architecture/CONTRACTS.md §5). */}
           <CaseProceedings caseId={legalCase.id} automatedNo={legalCase.automatedNo ?? null} />
           <CaseOperations caseId={legalCase.id} />
+          <CaseLibrarySection caseId={legalCase.id} editable={!archived} />
         </div>
       </div>
     </>

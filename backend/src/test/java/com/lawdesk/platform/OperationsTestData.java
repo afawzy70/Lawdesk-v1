@@ -16,6 +16,8 @@ public final class OperationsTestData {
 
     public static void deleteAll(JdbcTemplate jdbc) {
         // LD-050: access records hang off cases, users and the organisation tree.
+        // LD-052: a library judgment used in a case hangs off the case.
+        jdbc.update("delete from case_precedent_link");
         jdbc.update("delete from case_duplicate_hint");
         jdbc.update("delete from case_party_counsel");
         jdbc.update("delete from case_org_involvement");

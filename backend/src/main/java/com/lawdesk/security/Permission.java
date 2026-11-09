@@ -38,7 +38,9 @@ public enum Permission {
     CASE_EDIT_IN_SCOPE,
     CASE_GRANT_MANAGE,
     ORG_MANAGE,
-    PARTY_ID_VIEW;
+    PARTY_ID_VIEW,
+    LIBRARY_VIEW,
+    LIBRARY_MANAGE;
 
     /** {@code @PreAuthorize} expressions, one per permission: {@code @PreAuthorize(Permission.Codes.CASE_CREATE)}. */
     public static final class Codes {
@@ -75,6 +77,8 @@ public enum Permission {
         public static final String CASE_GRANT_MANAGE = "hasAuthority('CASE_GRANT_MANAGE')";
         public static final String ORG_MANAGE = "hasAuthority('ORG_MANAGE')";
         public static final String PARTY_ID_VIEW = "hasAuthority('PARTY_ID_VIEW')";
+        public static final String LIBRARY_VIEW = "hasAuthority('LIBRARY_VIEW')";
+        public static final String LIBRARY_MANAGE = "hasAuthority('LIBRARY_MANAGE')";
 
         private Codes() {
         }

@@ -9,6 +9,7 @@ import { intakeAr } from './intake.ar';
 import { selectorAr } from './selector.ar';
 import { operationsAr } from './operations.ar';
 import { reportsAr } from './reports.ar';
+import { libraryAr } from './library.ar';
 
 /** Arabic (Modern Standard Arabic) message catalog. Keys must match `en.ts` exactly. */
 export const ar: Messages = {
@@ -61,4 +62,5 @@ export const ar: Messages = {
   ...selectorAr,
   ...operationsAr,
   ...reportsAr,
+  ...libraryAr,
 };

@@ -33,6 +33,7 @@ const NAV = [
   { path: '/courts', en: 'Courts', ar: 'المحاكم' },
   { path: '/hearings', en: 'Hearings', ar: 'الجلسات' },
   { path: '/judgments', en: 'Judgments', ar: 'الأحكام' },
+  { path: '/library', en: 'Judgments library', ar: 'مكتبة الأحكام' },
   { path: '/experts', en: 'Experts', ar: 'الخبراء' },
   { path: '/documents', en: 'Documents', ar: 'المستندات' },
   { path: '/tasks', en: 'Tasks', ar: 'المهام' },
