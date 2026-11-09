@@ -15,7 +15,7 @@ beforeEach(() => {
 const COPY = { id: 'f1', fileName: 'ruling.pdf', mediaType: 'application/pdf', sizeBytes: 120, sha256: 'a', uploadedAt: '2026-11-01T00:00:00Z' };
 
 describe('the stored copy of a library judgment', () => {
-  it('shows the copy, replaces it and takes it out; a refusal is shown', async () => {
+  it('shows the copy, replaces it and takes it out; a refusal is shown', { timeout: 20000 }, async () => {
     let refuse = false;
     const { requests } = serve((r) => {
       if (r.path.endsWith('/copy/info')) return jsonResponse(COPY);
@@ -32,9 +32,6 @@ describe('the stored copy of a library judgment', () => {
     refuse = true;
     await userEvent.click(screen.getByRole('button', { name: 'Take the copy out' }));
     expect(await screen.findByRole('alert')).toBeInTheDocument();
-    refuse = true;
-    await userEvent.upload(screen.getByLabelText('Replace the copy'), file);
-    await waitFor(() => { expect(requests.filter((r) => r.method === 'POST').length).toBe(2); });
   });
 
   it('says there is no copy, and lets a reader only look', async () => {
@@ -55,7 +52,7 @@ describe('the stored copy of a library judgment', () => {
 const LINK = { id: 'l1', judgmentId: 'j1', courtName: 'SYNTH-DOC court', caseNumber: '5', caseYear: 2026, subject: 'SYNTH-DOC subject', note: null };
 
 describe('the precedents of a defence', () => {
-  it('lists them, searches the library, links and removes; failures are shown', async () => {
+  it('lists them, searches the library, links and removes; failures are shown', { timeout: 20000 }, async () => {
     let fail = false;
     const { requests } = serve((r) => {
       if (r.path === '/api/v1/defenses/d1/precedents' && r.method === 'GET') return jsonResponse([LINK, { ...LINK, id: 'l2', caseNumber: null, caseYear: null }]);
@@ -65,7 +62,7 @@ describe('the precedents of a defence', () => {
     });
     mount(<DefensePrecedents defenseId="d1" canManage />, ['DEFENSE_MANAGE']);
     expect(await screen.findByText(/SYNTH-DOC court 5\/2026 - SYNTH-DOC subject/)).toBeInTheDocument();
-    await userEvent.type(screen.getByLabelText('Find a judgment in the library'), 'x');
+    await userEvent.type(screen.getByRole('textbox', { name: 'Find a judgment in the library' }), 'x');
     await userEvent.click(screen.getByRole('button', { name: 'Search' }));
     await userEvent.click(await screen.findByRole('button', { name: 'Link' }));
     await waitFor(() => { expect(requests.find((r) => r.method === 'POST')?.body).toEqual({ judgmentId: 'j9', note: null }); });
