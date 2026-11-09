@@ -14,6 +14,8 @@ import com.lawdesk.api.ConflictException;
 import com.lawdesk.api.FieldErrorException;
 import com.lawdesk.api.NotFoundException;
 import com.lawdesk.security.ActorRef;
+import com.lawdesk.security.CurrentActor;
+import com.lawdesk.security.Permission;
 
 /**
  * The defences of a case (requirements section 17; scenarios S3, S13). A defence is never deleted. Where it was raised
@@ -35,11 +37,13 @@ class DefenseService {
     private final JdbcClient jdbc;
     private final CaseRows rows;
     private final ResultService results;
+    private final CurrentActor currentActor;
 
-    DefenseService(JdbcClient jdbc, CaseRows rows, ResultService results) {
+    DefenseService(JdbcClient jdbc, CaseRows rows, ResultService results, CurrentActor currentActor) {
         this.jdbc = jdbc;
         this.rows = rows;
         this.results = results;
+        this.currentActor = currentActor;
     }
 
     @Transactional(readOnly = true)
@@ -64,7 +68,84 @@ class DefenseService {
                         rs.getString("importance") == null ? null : EvidenceImportance.valueOf(rs.getString("importance")),
                         rs.getObject("document_id", UUID.class), rs.getBoolean("submitted_to_court")))
                 .list();
-        return new DefenseRequests.Detail(find(id), assertions, positions, evidence);
+        return new DefenseRequests.Detail(find(id), assertions, positions, evidence, precedents(id));
+    }
+
+    // ---- supporting precedents (section 17: "الأحكام والسوابق القضائية المؤيدة") ----------------------------------
+
+    private static final String PRECEDENT_SELECT = """
+            select dp.id, dp.defense_id, dp.library_judgment_id, j.court_name, j.case_number, j.case_year, j.judgment_date,
+                   j.subject, j.finality, j.status, dp.principle_id, p.principle_text, dp.note, dp.created_at, dp.created_by
+            from defense_precedent dp join library_judgment j on j.id = dp.library_judgment_id
+                 left join library_principle p on p.id = dp.principle_id""";
+
+    private List<DefenseRequests.PrecedentView> precedents(UUID defenseId) {
+        return jdbc.sql(PRECEDENT_SELECT + " where dp.defense_id = :id and dp.removed_at is null order by dp.created_at, dp.id")
+                .param("id", defenseId).query(DefenseService::precedent).list();
+    }
+
+    @Transactional(readOnly = true)
+    List<DefenseRequests.PrecedentView> precedentsOf(UUID defenseId) {
+        rows.view(rows.caseOf("defense", defenseId, "defense"));
+        return precedents(defenseId);
+    }
+
+    /** Links a library judgment to the defence; the case must be changeable and the user must be able to read the library. */
+    @Transactional
+    DefenseRequests.PrecedentView linkPrecedent(UUID defenseId, DefenseRequests.PrecedentBody body) {
+        UUID caseId = rows.caseOf("defense", defenseId, "defense");
+        ActorRef actor = rows.change(caseId);
+        if (!currentActor.has(Permission.LIBRARY_VIEW)) {
+            throw new org.springframework.security.access.AccessDeniedException("the library is not open to this user");
+        }
+        String status = jdbc.sql("select status from library_judgment where id = :id").param("id", body.judgmentId())
+                .query(String.class).optional().orElseThrow(() -> new FieldErrorException("judgmentId", "Exists"));
+        if ("WITHDRAWN".equals(status)) {
+            throw new FieldErrorException("judgmentId", "Withdrawn");
+        }
+        if (body.principleId() != null && !jdbc.sql(
+                "select exists (select 1 from library_principle where id = :p and judgment_id = :j)")
+                .param("p", body.principleId()).param("j", body.judgmentId()).query(Boolean.class).single()) {
+            throw new FieldErrorException("principleId", "NotInJudgment");
+        }
+        UUID id;
+        try {
+            id = jdbc.sql("""
+                    insert into defense_precedent (defense_id, library_judgment_id, principle_id, note, created_by)
+                    values (:defense, :judgment, :principle, :note, :actor) returning id""").param("defense", defenseId)
+                    .param("judgment", body.judgmentId()).param("principle", body.principleId())
+                    .param("note", CaseRows.blankToNull(body.note())).param("actor", actor.id()).query(UUID.class).single();
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            throw new ConflictException("this judgment already supports the defence");
+        }
+        DefenseRequests.View defense = find(defenseId);
+        rows.event(caseId, "DEFENSE_PRECEDENT_LINKED", "A library judgment supports defence " + defense.seq());
+        rows.audit("DEFENSE_PRECEDENT_LINK", actor, caseId, "defense=" + defense.seq() + " judgment=" + body.judgmentId());
+        return jdbc.sql(PRECEDENT_SELECT + " where dp.id = :id").param("id", id).query(DefenseService::precedent).single();
+    }
+
+    @Transactional
+    void unlinkPrecedent(UUID defenseId, UUID linkId) {
+        UUID caseId = rows.caseOf("defense", defenseId, "defense");
+        ActorRef actor = rows.change(caseId);
+        if (jdbc.sql("""
+                update defense_precedent set removed_at = now(), removed_by = :actor
+                where id = :id and defense_id = :defense and removed_at is null""").param("actor", actor.id())
+                .param("id", linkId).param("defense", defenseId).update() == 0) {
+            throw new NotFoundException("precedent link");
+        }
+        DefenseRequests.View defense = find(defenseId);
+        rows.event(caseId, "DEFENSE_PRECEDENT_UNLINKED", "A supporting judgment was removed from defence " + defense.seq());
+        rows.audit("DEFENSE_PRECEDENT_UNLINK", actor, caseId, "defense=" + defense.seq());
+    }
+
+    private static DefenseRequests.PrecedentView precedent(ResultSet rs, int n) throws SQLException {
+        return new DefenseRequests.PrecedentView(rs.getObject("id", UUID.class), rs.getObject("defense_id", UUID.class),
+                rs.getObject("library_judgment_id", UUID.class), rs.getString("court_name"), rs.getString("case_number"),
+                rs.getObject("case_year") == null ? null : rs.getInt("case_year"),
+                rs.getObject("judgment_date", LocalDate.class), rs.getString("subject"), rs.getString("finality"),
+                rs.getString("status"), rs.getObject("principle_id", UUID.class), rs.getString("principle_text"),
+                rs.getString("note"), rs.getTimestamp("created_at").toInstant(), rs.getObject("created_by", UUID.class));
     }
 
     @Transactional
