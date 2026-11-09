@@ -27,13 +27,24 @@ class TesseractOcrEngine implements OcrEngine {
 
     private final String command;
     private final String languages;
+    private final boolean preprocess;
+    private final int pageSegmentation;
     private volatile Status cached;
     private volatile long cachedAt;
 
+    @org.springframework.beans.factory.annotation.Autowired
     TesseractOcrEngine(@Value("${lawdesk.ocr.tesseract-command:tesseract}") String command,
-            @Value("${lawdesk.ocr.languages:ara+eng}") String languages) {
+            @Value("${lawdesk.ocr.languages:ara+eng}") String languages,
+            @Value("${lawdesk.ocr.preprocess:true}") boolean preprocess,
+            @Value("${lawdesk.ocr.psm:3}") int pageSegmentation) {
         this.command = command;
+        this.pageSegmentation = pageSegmentation;
         this.languages = languages;
+        this.preprocess = preprocess;
+    }
+
+    TesseractOcrEngine(String command, String languages) {
+        this(command, languages, true, 3);
     }
 
     @Override
@@ -72,24 +83,24 @@ class TesseractOcrEngine implements OcrEngine {
         }
     }
 
+    /** Pages whose first reading has fewer lines than this are read a second time in sparse mode (see {@link #merge}). */
+    static final int SPARSE_BELOW_LINES = 8;
+
     @Override
     public String recognise(byte[] image) throws OcrException {
         Path dir = null;
         try {
             dir = Files.createTempDirectory("lawdesk-ocr");
             Path input = dir.resolve("page");
-            Files.write(input, image);
-            Process process = new ProcessBuilder(command, input.toString(), "stdout", "-l", languages)
-                    .redirectError(ProcessBuilder.Redirect.DISCARD).start();
-            byte[] out = process.getInputStream().readAllBytes();
-            if (!process.waitFor(RECOGNISE_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-                process.destroyForcibly();
-                throw new OcrException("the engine took too long", null);
+            Files.write(input, preprocess ? OcrPreprocessor.prepare(image) : image);
+            String text = run(dir, input, pageSegmentation);
+            // Measured (docs/evidence/DOC-OCR): on a page of only a few lines the automatic layout analysis can drop a whole
+            // line (a two-line Arabic page at 300 dpi lost its first line); sparse-text mode finds it. The second reading is
+            // cheap on such pages and only adds lines the first did not contain, so it can add words to the search but never remove any.
+            if (pageSegmentation != 11 && text.lines().filter(l -> !l.isBlank()).count() < SPARSE_BELOW_LINES) {
+                text = merge(text, run(dir, input, 11));
             }
-            if (process.exitValue() != 0) {
-                throw new OcrException("the engine failed on this page", null);
-            }
-            return new String(out, StandardCharsets.UTF_8);
+            return text;
         } catch (IOException e) {
             throw new OcrException("the engine could not be run", e);
         } catch (InterruptedException e) {
@@ -98,6 +109,86 @@ class TesseractOcrEngine implements OcrEngine {
         } finally {
             deleteQuietly(dir);
         }
+    }
+
+    private String run(Path dir, Path input, int psm) throws IOException, InterruptedException, OcrException {
+        Path out = dir.resolve("out-" + psm + ".txt");
+        // The output goes to a file, not a pipe: reading a pipe to its end would wait for a hung engine and the time limit would never apply.
+        Process process = new ProcessBuilder(command, input.toString(), "stdout", "-l", languages, "--psm", Integer.toString(psm))
+                .redirectError(ProcessBuilder.Redirect.DISCARD).redirectOutput(out.toFile()).start();
+        if (!process.waitFor(RECOGNISE_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+            process.destroyForcibly();
+            throw new OcrException("the engine took too long", null);
+        }
+        if (process.exitValue() != 0) {
+            throw new OcrException("the engine failed on this page", null);
+        }
+        return Files.readString(out, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * The first text plus the lines of the second that the first lacks. A line is "lacked" when it shares fewer than half of its
+     * words with every line of the first: a second reading of a line already read differs by a letter or two and is skipped, a
+     * line the first reading dropped altogether is inserted where the second reading had it (before the first-text line that
+     * follows it there, or at the end).
+     */
+    static String merge(String first, String second) {
+        List<String> base = new java.util.ArrayList<>(first.lines().filter(l -> !l.isBlank()).toList());
+        List<List<String>> baseWords = new java.util.ArrayList<>(base.stream().map(TesseractOcrEngine::words).toList());
+        List<String> other = second.lines().filter(l -> !l.isBlank()).toList();
+        int[] matched = new int[other.size()];
+        for (int i = 0; i < other.size(); i++) {
+            matched[i] = bestMatch(words(other.get(i)), baseWords);
+        }
+        // From the last line to the first, so that insertion points computed on the first text stay valid.
+        for (int i = other.size() - 1; i >= 0; i--) {
+            List<String> w = words(other.get(i));
+            if (w.isEmpty() || matched[i] >= 0) {
+                continue;
+            }
+            int at = base.size();
+            for (int j = i + 1; j < other.size(); j++) {
+                if (matched[j] >= 0) {
+                    at = matched[j];
+                    break;
+                }
+            }
+            base.add(at, other.get(i).strip());
+            baseWords.add(at, w);
+            // lines after the insertion point moved by one
+            for (int j = 0; j < matched.length; j++) {
+                if (matched[j] >= at) {
+                    matched[j]++;
+                }
+            }
+        }
+        return base.isEmpty() ? first : String.join("\n", base) + "\n";
+    }
+
+    /** The index of the line of the first text sharing at least half of this line's words, or -1. */
+    private static int bestMatch(List<String> words, List<List<String>> baseWords) {
+        if (words.isEmpty()) {
+            return 0; // noise without letters is never added
+        }
+        int best = -1;
+        double bestShare = 0;
+        for (int k = 0; k < baseWords.size(); k++) {
+            long shared = words.stream().filter(baseWords.get(k)::contains).count();
+            double share = (double) shared / words.size();
+            if (share >= 0.5 && share > bestShare) {
+                best = k;
+                bestShare = share;
+            }
+        }
+        return best;
+    }
+
+    private static List<String> words(String text) {
+        String t = java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFKC).toLowerCase()
+                .replaceAll("[\\u064B-\\u0670\\u0640\\u06D6-\\u06ED]", "")
+                .replace('أ', 'ا').replace('إ', 'ا').replace('آ', 'ا').replace('ى', 'ي').replace('ة', 'ه')
+                .replaceAll("[^\\p{L}\\p{N}]+", " ").strip();
+        return t.isEmpty() ? List.of() : Arrays.asList(t.split(" +"));
     }
 
     private static void deleteQuietly(Path dir) {

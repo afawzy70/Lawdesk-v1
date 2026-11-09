@@ -196,6 +196,15 @@ jobs:
             -t "$LAWDESK_REGISTRY/backend:$LAWDESK_TAG" backend
           docker build -f frontend/Dockerfile --label "org.opencontainers.image.revision=$LAWDESK_TAG" \
             -t "$LAWDESK_REGISTRY/web:$LAWDESK_TAG" frontend
+      - name: The backend image carries Tesseract with Arabic and English data
+        # LD-DOC-13-004: installing the engine is proved on the image that is deployed, as the non-root user it runs as.
+        run: |
+          out=$(docker run --rm --entrypoint tesseract "$LAWDESK_REGISTRY/backend:$LAWDESK_TAG" --list-langs)
+          echo "$out"
+          echo "$out" | grep -qx ara
+          echo "$out" | grep -qx eng
+          docker run --rm --entrypoint tesseract "$LAWDESK_REGISTRY/backend:$LAWDESK_TAG" --version | head -n 1
+          docker run --rm --entrypoint id "$LAWDESK_REGISTRY/backend:$LAWDESK_TAG" -u | grep -qx 10001
       - name: Prepare throwaway secrets and the edge network
         run: |
           mkdir -p deploy/secrets
