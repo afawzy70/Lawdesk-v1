@@ -1,0 +1,52 @@
+[   0.0s] START 1 start the throwaway cluster
+[   5.3s] done  1 start the throwaway cluster (5.23s)
+[   5.3s] START 2 create the database and the application role (deploy/postgres/app-role.sql)
+[   6.1s] done  2 create the database and the application role (deploy/postgres/app-role.sql) (0.85s)
+[   6.1s] START 3 the application migrates the empty database (first boot)
+[  84.4s] done  3 the application migrates the empty database (first boot) (78.24s)
+[  84.8s] START 4 load SYNTHETIC data as the application role
+[ 101.0s] done  4 load SYNTHETIC data as the application role (16.23s)
+[ 101.1s] START 5 boot on the source and read through the API (4 personas)
+[ 198.6s] done  5 boot on the source and read through the API (4 personas) (97.56s)
+[ 198.6s] START 5b API fingerprint of the source
+[ 282.0s] done  5b API fingerprint of the source (83.31s)
+[ 283.0s] START 6 fingerprint the source database
+[ 322.0s] done  6 fingerprint the source database (38.97s)
+PASS source: stored files match their SHA-256 column [{"kind": "version", "files": 1200, "bytes": 70971384}, {"kind": "head", "files": 600, "bytes": 36183372}]
+[ 322.0s] START 7 pg_dump -U postgres -d <db> -Fc
+[ 362.3s] done  7 pg_dump -U postgres -d <db> -Fc (40.32s)
+[ 363.7s] START 7b EXPERIMENT: restore into a database the role script already prepared (expected to fail)
+[ 367.2s] done  7b EXPERIMENT: restore into a database the role script already prepared (expected to fail) (3.44s)
+PASS experiment: role-script-first order is refused by pg_restore (documented as the wrong order) 
+[ 368.3s] START 8 create an empty database and pg_restore --exit-on-error (single job)
+[ 384.5s] done  8 create an empty database and pg_restore --exit-on-error (single job) (16.22s)
+PASS pg_restore printed nothing on stderr (no warnings, no ignored errors) 
+[ 384.5s] START 9 re-apply deploy/postgres/app-role.sql on the restored database
+[ 384.7s] done  9 re-apply deploy/postgres/app-role.sql on the restored database (0.18s)
+[ 384.7s] START 10 ANALYZE (a restore carries no planner statistics)
+[ 385.6s] done  10 ANALYZE (a restore carries no planner statistics) (0.92s)
+[ 385.6s] START 11 fingerprint the restored database
+[ 418.0s] done  11 fingerprint the restored database (32.39s)
+PASS restored database is identical to the source (rows, content hashes, files, FKs, links, versions, grants, scopes, sequences, structure, visibility) 
+PASS restored: every stored file matches its SHA-256 column and size 
+PASS restored: no orphan rows and every foreign key validated 131 foreign keys
+PASS restored: no document link across cases 
+PASS restored: the visibility answers of four personas are identical {"manager": 267, "head": 173, "staff": 225, "archivist": 187}
+PASS restored: the fast CaseAccessPolicy predicate equals case_visible() for every persona 
+PASS restored: the application role keeps search_path=lawdesk after the role script {search_path=lawdesk}
+[ 418.9s] START 12 EXPERIMENT: pg_restore -j 4 into another empty database
+[ 432.2s] done  12 EXPERIMENT: pg_restore -j 4 into another empty database (13.31s)
+[ 432.3s] START 12b fingerprint of the parallel restore
+[ 470.1s] done  12b fingerprint of the parallel restore (37.89s)
+PASS experiment: the -j 4 restore is identical as well 
+[ 470.2s] START 13 boot the application on the restored database
+[ 600.2s] done  13 boot the application on the restored database (130.05s)
+PASS restored: Flyway applied nothing new and the schema validated 
+[ 600.2s] START 13b API fingerprint of the restored database
+[ 652.5s] done  13b API fingerprint of the restored database (52.31s)
+PASS restored: the API answers (cases, documents, downloaded file hashes) are identical for the four personas 
+PASS restored: smoke reads worked 
+PASS restored: files downloaded through the API were hashed 
+
+DRILL PASSED in 653.2s
+exit 0

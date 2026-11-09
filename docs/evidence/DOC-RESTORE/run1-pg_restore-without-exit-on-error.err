@@ -1,0 +1,117 @@
+pg_restore: error: could not execute query: ERROR:  function library_normalize(text) does not exist
+LINE 3: from unnest(string_to_array(library_normalize(p_text), ' '))...
+                                    ^
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+QUERY:  
+select coalesce(array_agg(distinct substr('  ' || w || ' ', i, 3)), cast('{}' as text[]))
+from unnest(string_to_array(library_normalize(p_text), ' ')) as w
+         cross join lateral generate_series(1, length(w) + 1) as i
+where w <> ''
+
+CONTEXT:  SQL function "library_trigrams" during inlining
+Command was: CREATE TABLE lawdesk.library_judgment (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    court_name character varying(200) NOT NULL,
+    court_level character varying(16),
+    chamber character varying(120),
+    case_number character varying(60),
+    case_year integer,
+    judgment_date date,
+    case_type character varying(32),
+    subject character varying(1000) NOT NULL,
+    parties_description character varying(1000),
+    summary text,
+    operative_text text,
+    reasons text,
+    legal_texts text,
+    requests_addressed text,
+    request_results text,
+    direction character varying(20),
+    keywords text,
+    finality character varying(14) DEFAULT 'NOT_SPECIFIED'::character varying NOT NULL,
+    confidentiality character varying(12) DEFAULT 'NORMAL'::character varying NOT NULL,
+    source_reference character varying(1000) NOT NULL,
+    verification_note character varying(1000) NOT NULL,
+    copy_reference character varying(500),
+    status character varying(10) DEFAULT 'ACTIVE'::character varying NOT NULL,
+    withdrawn_reason character varying(500),
+    withdrawn_at timestamp with time zone,
+    withdrawn_by uuid,
+    version bigint DEFAULT 0 NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    created_by uuid NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_by uuid NOT NULL,
+    search_vector tsvector GENERATED ALWAYS AS ((((((setweight(to_tsvector('simple'::regconfig, lawdesk.library_normalize((subject)::text)), 'A'::"char") || setweight(to_tsvector('simple'::regconfig, lawdesk.library_normalize(keywords)), 'A'::"char")) || setweight(to_tsvector('simple'::regconfig, lawdesk.library_normalize(summary)), 'B'::"char")) || setweight(to_tsvector('simple'::regconfig, lawdesk.library_normalize(legal_texts)), 'B'::"char")) || setweight(to_tsvector('simple'::regconfig, lawdesk.library_normalize(operative_text)), 'C'::"char")) || setweight(to_tsvector('simple'::regconfig, lawdesk.library_normalize(reasons)), 'D'::"char"))) STORED,
+    trigrams text[] GENERATED ALWAYS AS (lawdesk.library_trigrams((((subject)::text || ' '::text) || COALESCE(keywords, ''::text)))) STORED,
+    CONSTRAINT library_judgment_case_type_known CHECK (((case_type)::text = ANY ((ARRAY['CIVIL'::character varying, 'CRIMINAL'::character varying, 'COMMERCIAL'::character varying, 'LABOR'::character varying, 'FAMILY'::character varying, 'ADMINISTRATIVE'::character varying, 'CONSTITUTIONAL'::character varying, 'OTHER'::character varying])::text[]))),
+    CONSTRAINT library_judgment_confidentiality_known CHECK (((confidentiality)::text = ANY ((ARRAY['NORMAL'::character varying, 'RESTRICTED'::character varying])::text[]))),
+    CONSTRAINT library_judgment_court_level_known CHECK (((court_level)::text = ANY ((ARRAY['FIRST_INSTANCE'::character varying, 'APPEAL'::character varying, 'CASSATION'::character varying, 'CONSTITUTIONAL'::character varying, 'OTHER'::character varying])::text[]))),
+    CONSTRAINT library_judgment_court_visible CHECK ((length(btrim((court_name)::text)) > 0)),
+    CONSTRAINT library_judgment_direction_known CHECK (((direction)::text = ANY ((ARRAY['FOR_AUTHORITY'::character varying, 'AGAINST_AUTHORITY'::character varying, 'OTHER'::character varying])::text[]))),
+    CONSTRAINT library_judgment_finality_known CHECK (((finality)::text = ANY ((ARRAY['FINAL'::character varying, 'NOT_FINAL'::character varying, 'NOT_SPECIFIED'::character varying])::text[]))),
+    CONSTRAINT library_judgment_source_visible CHECK ((length(btrim((source_reference)::text)) > 0)),
+    CONSTRAINT library_judgment_status_known CHECK (((status)::text = ANY ((ARRAY['ACTIVE'::character varying, 'WITHDRAWN'::character varying])::text[]))),
+    CONSTRAINT library_judgment_subject_visible CHECK ((length(btrim((subject)::text)) > 0)),
+    CONSTRAINT library_judgment_verification_visible CHECK ((length(btrim((verification_note)::text)) > 0)),
+    CONSTRAINT library_judgment_withdrawal_complete CHECK ((((status)::text = 'WITHDRAWN'::text) = ((withdrawn_at IS NOT NULL) AND (withdrawn_by IS NOT NULL) AND (withdrawn_reason IS NOT NULL)))),
+    CONSTRAINT library_judgment_year_range CHECK (((case_year >= 1900) AND (case_year <= 2100)))
+);
+
+
+pg_restore: error: could not execute query: ERROR:  relation "lawdesk.library_judgment" does not exist
+Command was: ALTER TABLE lawdesk.library_judgment OWNER TO lawdesk_app;
+
+pg_restore: error: could not execute query: ERROR:  relation "lawdesk.library_judgment" does not exist
+Command was: COPY lawdesk.library_judgment (id, court_name, court_level, chamber, case_number, case_year, judgment_date, case_type, subject, parties_description, summary, operative_text, reasons, legal_texts, requests_addressed, request_results, direction, keywords, finality, confidentiality, source_reference, verification_note, copy_reference, status, withdrawn_reason, withdrawn_at, withdrawn_by, version, created_at, created_by, updated_at, updated_by) FROM stdin;
+pg_restore: error: could not execute query: ERROR:  relation "lawdesk.library_judgment" does not exist
+Command was: ALTER TABLE ONLY lawdesk.library_judgment
+    ADD CONSTRAINT library_judgment_pkey PRIMARY KEY (id);
+
+
+pg_restore: error: could not execute query: ERROR:  relation "lawdesk.library_judgment" does not exist
+Command was: CREATE INDEX library_judgment_citation ON lawdesk.library_judgment USING btree (lawdesk.library_normalize((court_name)::text), case_number, case_year);
+
+
+pg_restore: error: could not execute query: ERROR:  relation "lawdesk.library_judgment" does not exist
+Command was: CREATE INDEX library_judgment_court ON lawdesk.library_judgment USING btree (lawdesk.library_normalize((court_name)::text));
+
+
+pg_restore: error: could not execute query: ERROR:  relation "lawdesk.library_judgment" does not exist
+Command was: CREATE INDEX library_judgment_date ON lawdesk.library_judgment USING btree (judgment_date DESC NULLS LAST, id);
+
+
+pg_restore: error: could not execute query: ERROR:  relation "lawdesk.library_judgment" does not exist
+Command was: CREATE INDEX library_judgment_search ON lawdesk.library_judgment USING gin (search_vector);
+
+
+pg_restore: error: could not execute query: ERROR:  relation "lawdesk.library_judgment" does not exist
+Command was: CREATE INDEX library_judgment_trigrams ON lawdesk.library_judgment USING gin (trigrams);
+
+
+pg_restore: error: could not execute query: ERROR:  relation "lawdesk.library_judgment" does not exist
+Command was: ALTER TABLE ONLY lawdesk.case_precedent_link
+    ADD CONSTRAINT case_precedent_link_library_judgment_id_fkey FOREIGN KEY (library_judgment_id) REFERENCES lawdesk.library_judgment(id);
+
+
+pg_restore: error: could not execute query: ERROR:  relation "lawdesk.library_judgment" does not exist
+Command was: ALTER TABLE ONLY lawdesk.library_judgment_class
+    ADD CONSTRAINT library_judgment_class_judgment_id_fkey FOREIGN KEY (judgment_id) REFERENCES lawdesk.library_judgment(id);
+
+
+pg_restore: error: could not execute query: ERROR:  relation "lawdesk.library_judgment" does not exist
+Command was: ALTER TABLE ONLY lawdesk.library_judgment_relation
+    ADD CONSTRAINT library_judgment_relation_judgment_id_fkey FOREIGN KEY (judgment_id) REFERENCES lawdesk.library_judgment(id);
+
+
+pg_restore: error: could not execute query: ERROR:  relation "lawdesk.library_judgment" does not exist
+Command was: ALTER TABLE ONLY lawdesk.library_judgment_relation
+    ADD CONSTRAINT library_judgment_relation_related_judgment_id_fkey FOREIGN KEY (related_judgment_id) REFERENCES lawdesk.library_judgment(id);
+
+
+pg_restore: error: could not execute query: ERROR:  relation "lawdesk.library_judgment" does not exist
+Command was: ALTER TABLE ONLY lawdesk.library_principle
+    ADD CONSTRAINT library_principle_judgment_id_fkey FOREIGN KEY (judgment_id) REFERENCES lawdesk.library_judgment(id);
+
+
+pg_restore: warning: errors ignored on restore: 14
