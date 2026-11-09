@@ -61,7 +61,11 @@ public enum Permission {
     SEARCH_ALL,
     DEADLINE_VIEW,
     DEADLINE_MANAGE,
-    DEADLINE_APPROVE;
+    DEADLINE_APPROVE,
+    ENFORCEMENT_VIEW,
+    ENFORCEMENT_MANAGE,
+    MEMO_APPROVE,
+    DOCUMENT_ARCHIVE_ADMIN;
 
     /** {@code @PreAuthorize} expressions, one per permission: {@code @PreAuthorize(Permission.Codes.CASE_CREATE)}. */
     public static final class Codes {
@@ -121,6 +125,10 @@ public enum Permission {
         public static final String DEADLINE_VIEW = "hasAuthority('DEADLINE_VIEW')";
         public static final String DEADLINE_MANAGE = "hasAuthority('DEADLINE_MANAGE')";
         public static final String DEADLINE_APPROVE = "hasAuthority('DEADLINE_APPROVE')";
+        public static final String ENFORCEMENT_VIEW = "hasAuthority('ENFORCEMENT_VIEW')";
+        public static final String ENFORCEMENT_MANAGE = "hasAuthority('ENFORCEMENT_MANAGE')";
+        public static final String MEMO_APPROVE = "hasAuthority('MEMO_APPROVE')";
+        public static final String DOCUMENT_ARCHIVE_ADMIN = "hasAuthority('DOCUMENT_ARCHIVE_ADMIN')";
 
         private Codes() {
         }

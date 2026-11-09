@@ -35,19 +35,23 @@ import com.lawdesk.api.PageResponse;
 import com.lawdesk.cases.CaseSummary;
 import com.lawdesk.security.Permission;
 
-/** Case PDF attachments, LD-026 (docs/delivery/PHASE-5-ACCEPTANCE.md, architecture/CONTRACTS.md §8.3). */
+/** Case attachments (PDF, Word, images since LD-055), LD-026 (docs/delivery/PHASE-5-ACCEPTANCE.md, architecture/CONTRACTS.md §8.3). */
 @RestController
 @RequestMapping("/api/v1")
 class DocumentController {
 
     /** Answers never carry the bytes; the file comes from {@code /content}. */
     record Response(UUID id, UUID caseId, String caseReferenceNo, String caseTitle, String title, String fileName,
-            String mediaType, int sizeBytes, String sha256, long version, Instant createdAt, UUID createdBy) {
+            String mediaType, int sizeBytes, String sha256, long version, Instant createdAt, UUID createdBy,
+            UUID categoryId, java.time.LocalDate documentDate, UUID proceedingId, String description,
+            int currentVersionNo, Instant withdrawnAt, String withdrawnReason, Instant updatedAt) {
 
         static Response of(CaseDocument d, CaseSummary legalCase) {
             return new Response(d.id(), d.caseId(), legalCase == null ? null : legalCase.referenceNo(),
                     legalCase == null ? null : legalCase.title(), d.title(), d.fileName(), d.mediaType(),
-                    d.sizeBytes(), d.sha256(), d.version(), d.createdAt(), d.createdBy());
+                    d.sizeBytes(), d.sha256(), d.version(), d.createdAt(), d.createdBy(), d.categoryId(),
+                    d.documentDate(), d.proceedingId(), d.description(), d.currentVersionNo(), d.withdrawnAt(),
+                    d.withdrawnReason(), d.updatedAt());
         }
     }
 
@@ -75,14 +79,14 @@ class DocumentController {
                 .path("/api/v1/documents/{id}").buildAndExpand(created.id()).toUri()).body(created);
     }
 
-    /** A case holds at most ten documents, so one page holds them all, newest first. */
+    /** A case holds a bounded number of documents (the archive setting), so one page holds them all, newest first. */
     @GetMapping("/cases/{caseId}/documents")
     @PreAuthorize(Permission.Codes.DOCUMENT_VIEW)
     PageResponse<Response> forCase(@PathVariable UUID caseId) {
         List<CaseDocument> documents = service.forCase(caseId);
         Map<UUID, CaseSummary> cases = service.casesOf(documents);
         var items = documents.stream().map(d -> Response.of(d, cases.get(d.caseId()))).toList();
-        return PageResponse.from(new PageImpl<>(items, PageRequest.of(0, DocumentService.MAX_PER_CASE), items.size()));
+        return PageResponse.from(new PageImpl<>(items, PageRequest.of(0, 1000), items.size()));
     }
 
     /** The latest documents of every case, newest first (the documents screen). */
@@ -100,17 +104,17 @@ class DocumentController {
         return respond(service.get(id));
     }
 
-    /** Always a download, never rendered by the browser: attachment, nosniff and no caching (§8.3). */
+    /** The current version. Always a download, never rendered by the browser: attachment, nosniff and no caching (§8.3). */
     @GetMapping("/documents/{id}/content")
     @PreAuthorize(Permission.Codes.DOCUMENT_VIEW)
     ResponseEntity<byte[]> content(@PathVariable UUID id) {
         DocumentService.Download download = service.download(id);
         return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_PDF)
+                .contentType(MediaType.parseMediaType(download.version().mediaType()))
                 .contentLength(download.content().length)
                 .cacheControl(CacheControl.noStore())
                 .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
-                        .filename(download.document().fileName(), StandardCharsets.UTF_8).build().toString())
+                        .filename(download.version().fileName(), StandardCharsets.UTF_8).build().toString())
                 .header("X-Content-Type-Options", "nosniff")
                 .body(download.content());
     }
@@ -119,6 +123,7 @@ class DocumentController {
         return Response.of(document, service.casesOf(List.of(document)).get(document.caseId()));
     }
 
+    /** Takes the document out of the case file; since LD-055 nothing is deleted (see the archive's deletion procedure). */
     @DeleteMapping("/documents/{id}")
     @PreAuthorize(Permission.Codes.DOCUMENT_MANAGE)
     ResponseEntity<Void> remove(@PathVariable UUID id, @RequestParam(required = false) Long version) {

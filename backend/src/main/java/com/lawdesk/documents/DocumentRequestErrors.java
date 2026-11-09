@@ -19,7 +19,7 @@ import org.springframework.web.multipart.MultipartException;
  * the {@code file} field ({@code MaxSize}, like the service's own size check), a broken multipart body a 400, and a
  * body that is not multipart a 415. The shared handler does not know these exceptions.
  */
-@RestControllerAdvice(assignableTypes = DocumentController.class)
+@RestControllerAdvice(assignableTypes = {DocumentController.class, ArchiveController.class})
 @Order(Ordered.HIGHEST_PRECEDENCE)
 class DocumentRequestErrors {
 

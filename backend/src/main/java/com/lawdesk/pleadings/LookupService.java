@@ -25,7 +25,7 @@ import com.lawdesk.security.CurrentActor;
 @Service
 class LookupService {
 
-    static final Set<String> LISTS = Set.of("JUDGMENT_TYPE", "JUDGMENT_NATURE");
+    static final Set<String> LISTS = Set.of("JUDGMENT_TYPE", "JUDGMENT_NATURE", "DOCUMENT_CATEGORY");
 
     private static final String SELECT = """
             select id, list_code, code, label_ar, label_en, origin, approved_at, active, version from lookup_value""";

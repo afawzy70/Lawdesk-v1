@@ -13,6 +13,7 @@ public final class PleadingsTestData {
     }
 
     public static void deleteAll(JdbcTemplate jdbc) {
+        ArchiveTestData.deleteAll(jdbc);
         jdbc.update("update judgment set copy_document_id = null where copy_document_id is not null");
         jdbc.update("delete from gap_followup");
         jdbc.update("delete from evidence_link");

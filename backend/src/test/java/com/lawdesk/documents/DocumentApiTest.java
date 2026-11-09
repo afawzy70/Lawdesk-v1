@@ -70,8 +70,7 @@ class DocumentApiTest extends PostgresTestSupport {
     @AfterEach
     void removeDocuments() {
         dropPause();
-        jdbc.update("delete from case_document");
-        jdbc.update("delete from case_document_quota");
+        com.lawdesk.platform.ArchiveTestData.deleteDocuments(jdbc);
         OperationsTestData.deleteAll(jdbc);
     }
 
@@ -207,7 +206,7 @@ class DocumentApiTest extends PostgresTestSupport {
     }
 
     @Test
-    void removesADocumentWithItsVersionAndFreesTheSlot() throws Exception {
+    void removingADocumentTakesItOutOfTheCaseFileButKeepsItAndFreesTheSlot() throws Exception {
         UUID caseId = createCase("Remove");
         UUID id = attach(caseId, "draft.pdf");
         mvc.perform(delete("/api/v1/documents/" + id).param("version", "1")
@@ -220,8 +219,14 @@ class DocumentApiTest extends PostgresTestSupport {
                         .with(as(Permission.DOCUMENT_MANAGE)).with(csrf()))
                 .andExpect(status().isNoContent());
         verify(caseLookup).recordEvent(eq(caseId), eq("DOCUMENT_REMOVED"), contains("draft.pdf"));
-        assertThat(documents()).isZero();
-        assertThat(jdbc.queryForObject("select count(*) from case_document_content", Integer.class)).isZero();
+        // LD-055: nothing is deleted. The document is withdrawn: hidden from the case file, its bytes and version kept.
+        assertThat(documents()).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select count(*) from case_document where withdrawn_at is not null", Integer.class))
+                .isEqualTo(1);
+        assertThat(jdbc.queryForObject("select count(*) from document_version_content", Integer.class)).isEqualTo(1);
+        mvc.perform(get("/api/v1/cases/" + caseId + "/documents").with(as(Permission.DOCUMENT_VIEW)))
+                .andExpect(jsonPath("$.totalItems").value(0));
+        // A user who may only read cannot fetch the file of a withdrawn document.
         mvc.perform(get("/api/v1/documents/" + id + "/content").with(as(Permission.DOCUMENT_VIEW)))
                 .andExpect(status().isNotFound());
     }
@@ -247,15 +252,15 @@ class DocumentApiTest extends PostgresTestSupport {
     // QA-0203 invalid input boundary
 
     @Test
-    void onlyPdfFilesUpToTenMebibytesAreAccepted() throws Exception {
+    void onlyRecognisedFilesUpToTenMebibytesAreAccepted() throws Exception {
         UUID caseId = createCase("Bounds");
         mvc.perform(upload(caseId, file("photo.pdf", "image/png", pdf("not really"))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors[0].field").value("file"))
-                .andExpect(jsonPath("$.errors[0].code").value("PdfOnly"));
+                .andExpect(jsonPath("$.errors[0].code").value("UnsupportedFormat"));
         mvc.perform(upload(caseId, file("fake.pdf", "application/pdf",
                         "<html>%PDF-".getBytes(StandardCharsets.ISO_8859_1))))
-                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.errors[0].code").value("PdfOnly"));
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.errors[0].code").value("UnsupportedFormat"));
         mvc.perform(upload(caseId, file("big.pdf", "application/pdf", pdfOfSize(10 * MIB + 1))))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.errors[0].code").value("MaxSize"));
         mvc.perform(upload(caseId, file("limit.pdf", "application/pdf", pdfOfSize(10 * MIB))))
@@ -280,7 +285,9 @@ class DocumentApiTest extends PostgresTestSupport {
     }
 
     @Test
-    void aCaseHoldsAtMostTenDocuments() throws Exception {
+    void aCaseHoldsAtMostTheConfiguredNumberOfDocuments() throws Exception {
+        // The limit is an archive setting (LD-055, ASSUMPTION: 100 by default); the original ten is set explicitly here.
+        jdbc.update("update archive_setting set int_value = 10 where code = 'MAX_DOCUMENTS_PER_CASE'");
         UUID caseId = createCase("Ten");
         for (int i = 1; i <= 10; i++) {
             attach(caseId, "doc" + i + ".pdf");
@@ -380,7 +387,9 @@ class DocumentApiTest extends PostgresTestSupport {
                         .with(as(Permission.DOCUMENT_MANAGE)).with(csrf()))
                 .andExpect(status().isInternalServerError());
         assertThat(documents()).isEqualTo(1);
-        assertThat(jdbc.queryForObject("select count(*) from case_document_content", Integer.class)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select count(*) from document_version_content", Integer.class)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select count(*) from case_document where withdrawn_at is not null", Integer.class))
+                .isZero();
     }
 
     @Test
@@ -398,6 +407,7 @@ class DocumentApiTest extends PostgresTestSupport {
 
     @Test
     void twoConcurrentUploadsToACaseHoldingNineStoreExactlyOne() throws Exception {
+        jdbc.update("update archive_setting set int_value = 10 where code = 'MAX_DOCUMENTS_PER_CASE'");
         UUID caseId = createCase("Race");
         for (int i = 1; i <= 9; i++) {
             attach(caseId, "doc" + i + ".pdf");

@@ -31,6 +31,17 @@ public class DocumentArchive {
         return service.attach(caseId, file, title).id();
     }
 
+    /**
+     * Stores a new version of an archived document in the caller's transaction and as the signed-in user; earlier versions are
+     * kept. Refused when the document is the copy of an approved, sent or archived memo or letter.
+     *
+     * @return the number of the new version
+     */
+    @Transactional
+    public int addVersion(UUID documentId, MultipartFile file, String note) {
+        return service.addVersion(documentId, file, note).versionNo();
+    }
+
     /** True when the document exists and belongs to this case. */
     @Transactional(readOnly = true)
     public boolean belongsToCase(UUID documentId, UUID caseId) {
