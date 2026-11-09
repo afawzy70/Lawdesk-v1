@@ -28,7 +28,7 @@ export function IndicatorGrid({ figures }: { figures: readonly IndicatorFigure[]
               <div className="wp8-indicator-pending">
                 <span className="wp8-indicator-value">—</span>
                 <span className="wp8-indicator-name">{t(`wp8.indicator.${figure.code}`)}</span>
-                <span>{t('wp8.indicator.unavailable')}</span>
+                <span>{t(figure.unavailableReason === 'INDICATOR_FAILED' ? 'wp8.indicator.failed' : 'wp8.indicator.unavailable')}</span>
               </div>
             )}
             {figure.groups === null || figure.groups.length === 0 ? null : <Groups figure={figure} groups={figure.groups} />}

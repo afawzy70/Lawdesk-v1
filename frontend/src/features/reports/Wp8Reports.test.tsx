@@ -33,6 +33,7 @@ function figure(code: (typeof INDICATOR_CODES)[number], count: number | null, ex
 
 const FIGURES: IndicatorFigure[] = INDICATOR_CODES.map((code, index) => {
   if (code === 'APPEAL_DEADLINES') return figure(code, null, { entity: 'DEADLINE' });
+  if (code === 'JUDGMENTS_IN_ENFORCEMENT') return figure(code, null, { entity: 'JUDGMENT', unavailableReason: 'INDICATOR_FAILED' });
   if (code === 'CASES_BY_UNIT') {
     return figure(code, 5, {
       groups: [
@@ -134,13 +135,15 @@ describe('dashboard indicators', () => {
     const links = within(grid).getAllByRole('link');
     const hrefs = links.map((link) => bare(link.getAttribute('href')));
     // 15 figures with a count; sixteen codes minus the unavailable one, each with a distinct address
-    expect(hrefs.filter((href) => href.startsWith('/reports/indicators/') && !href.includes('?'))).toHaveLength(15);
+    expect(hrefs.filter((href) => href.startsWith('/reports/indicators/') && !href.includes('?'))).toHaveLength(14);
     expect(hrefs).toContain('/reports/indicators/TOTAL_CASES');
     expect(hrefs).toContain('/reports/indicators/CASES_BY_UNIT?group=Sector+One&level=SECTOR');
     expect(hrefs).toContain('/reports/indicators/CASES_BY_UNIT?group=_none&level=SECTOR');
     expect(hrefs).toContain('/reports/indicators/CASES_BY_MEMBER?group=u-1');
     expect(within(grid).getByText('Appeal deadlines').closest('li')).toHaveTextContent('Not available yet');
     expect(within(grid).queryByRole('link', { name: /Appeal deadlines/ })).toBeNull();
+    // an indicator whose query failed says so; the others are untouched
+    expect(within(grid).getByText('Judgments being enforced').closest('li')).toHaveTextContent('Could not be calculated now');
     // groups: named, "Not specified", and an unknown member
     expect(within(grid).getByRole('link', { name: 'Amal Hassan' })).toBeInTheDocument();
     expect(within(grid).getByRole('link', { name: 'Unknown member' })).toBeInTheDocument();
@@ -225,6 +228,15 @@ describe('indicator list', () => {
     });
     await renderAt('/reports/indicators/APPEAL_DEADLINES');
     expect(await screen.findByText(/module that holds this data is not installed/)).toBeInTheDocument();
+  });
+
+  it('says a failed indicator could not be calculated, not that its module is missing', async () => {
+    backend(VIEWER, {
+      '/api/v1/reports/indicators/APPEAL_DEADLINES': () =>
+        page([], { code: 'APPEAL_DEADLINES', available: false, unavailableReason: 'INDICATOR_FAILED' }),
+    });
+    await renderAt('/reports/indicators/APPEAL_DEADLINES');
+    expect(await screen.findByText(/could not be calculated just now/)).toBeInTheDocument();
   });
 
   it('handles an unknown indicator, a refused request and a failed one', async () => {

@@ -409,8 +409,7 @@ public class ReportFamilies {
     // ---- 11-12: modules delivered by parallel work packages ----------------------------------------------------------
 
     private boolean exists(String table) {
-        return Boolean.TRUE.equals(jdbc.sql("select to_regclass(:t) is not null").param("t", "public." + table)
-                .query(Boolean.class).single());
+        return IndicatorService.tableExists(jdbc, table);
     }
 
     private ReportTable deadlines(Info info, CaseAccessPolicy.Predicate scope, WpLabels labels) {

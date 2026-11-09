@@ -309,8 +309,8 @@ class IndicatorApiTest extends PostgresTestSupport {
 
     @Test
     void indicatorsOfModulesNotInstalledAreMarkedUnavailableNotZero() throws Exception {
-        boolean deadline = jdbc.queryForObject("select to_regclass('public.deadline') is not null", Boolean.class);
-        boolean enforcement = jdbc.queryForObject("select to_regclass('public.enforcement_file') is not null", Boolean.class);
+        boolean deadline = jdbc.queryForObject("select to_regclass('deadline') is not null", Boolean.class);
+        boolean enforcement = jdbc.queryForObject("select to_regclass('enforcement_file') is not null", Boolean.class);
         DocumentContext figures = json(department(), "/api/v1/reports/indicators");
         List<Boolean> appeal = figures.read("$[?(@.code == 'APPEAL_DEADLINES')].available");
         List<Boolean> enforced = figures.read("$[?(@.code == 'JUDGMENTS_IN_ENFORCEMENT')].available");
@@ -360,8 +360,8 @@ class IndicatorApiTest extends PostgresTestSupport {
 
     @Test
     void appealDeadlinesAndEnforcementCountTheirRowsOnceTheirModulesAreInstalled() throws Exception {
-        boolean deadline = jdbc.queryForObject("select to_regclass('public.deadline') is not null", Boolean.class);
-        boolean enforcement = jdbc.queryForObject("select to_regclass('public.enforcement_file') is not null", Boolean.class);
+        boolean deadline = jdbc.queryForObject("select to_regclass('deadline') is not null", Boolean.class);
+        boolean enforcement = jdbc.queryForObject("select to_regclass('enforcement_file') is not null", Boolean.class);
         org.junit.jupiter.api.Assumptions.assumeTrue(deadline && enforcement);
         Map<String, Long> before = figures(department());
         UUID court = data.insertCourt("FIRST_INSTANCE");

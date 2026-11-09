@@ -24,6 +24,8 @@ export const wp8Ar: Record<Keys, string> = {
   'wp8.indicator.LINKED_CASES': 'القضايا المرتبطة',
   'wp8.indicator.unavailable': 'غير متاح بعد',
   'wp8.indicator.unavailableHint': 'الوحدة التي تحمل هذه البيانات غير مثبتة بعد في النظام، لذلك لا يُعرض رقم.',
+  'wp8.indicator.failed': 'تعذّر احتسابه الآن',
+  'wp8.indicator.failedHint': 'تعذّر احتساب هذا المؤشر الآن، ولا تتأثر المؤشرات الأخرى. حاول لاحقًا.',
   'wp8.indicator.open': 'فتح القائمة',
   'wp8.indicator.groups': 'المجموعات',
   'wp8.level.SECTOR': 'القطاع',

@@ -142,6 +142,7 @@ final class ReportTestData {
                 insert into legal_case (reference_no, title, case_type, opened_on, status, created_by, updated_by)
                 select ? || '-BULK-' || n, 'Bulk case ' || n, 'CIVIL', date '2020-01-01', 'OPEN', ?, ?
                 from generate_series(1, ?) as n""", marker, CREATOR, CREATOR, count);
+        analyzeAfterBulkLoad();
     }
 
     /** Statements that remove bulk rows (they reference single rows, so they run before those are deleted). */
@@ -184,6 +185,7 @@ final class ReportTestData {
                 from legal_case where reference_no like ?""", courtId, marker, filingDate.getYear(), filingDate,
                 CREATOR, CREATOR, marker + "-BULK-%");
         bulkCleanup.addFirst("delete from proceeding where court_case_number like '" + marker + "P%'");
+        analyzeAfterBulkLoad();
     }
 
     /** A judgment for every proceeding made by {@link #insertBulkProceedings}, all dated {@code judgmentDate}. */
@@ -194,6 +196,7 @@ final class ReportTestData {
                 CREATOR, CREATOR, marker + "P%");
         bulkCleanup.addFirst("delete from judgment where proceeding_id in (select id from proceeding "
                 + "where court_case_number like '" + marker + "P%')");
+        analyzeAfterBulkLoad();
     }
 
     /** A cancelled hearing for every proceeding made by {@link #insertBulkProceedings}, all on {@code date}. */
@@ -205,6 +208,7 @@ final class ReportTestData {
                 where court_case_number like ?""", date, CREATOR, CREATOR, CREATOR, marker + "P%");
         bulkCleanup.addFirst("delete from hearing where proceeding_id in (select id from proceeding "
                 + "where court_case_number like '" + marker + "P%')");
+        analyzeAfterBulkLoad();
     }
 
     private int bulkProceedings;
@@ -230,6 +234,18 @@ final class ReportTestData {
                     + marker + "J%'");
             bulkCleanup.addFirst(statement);
         }
+    }
+
+    /**
+     * Refreshes the planner's statistics after a bulk load, as autovacuum does on a running system a minute later. Without it the
+     * planner believes the freshly loaded tables are tiny and may pick a plan that compares every row with every row; the timing
+     * tests below would then measure that accident, not the query.
+     */
+    private void analyzeAfterBulkLoad() {
+        jdbc.execute("analyze legal_case");
+        jdbc.execute("analyze proceeding");
+        jdbc.execute("analyze judgment");
+        jdbc.execute("analyze hearing");
     }
 
     /** Deletes what this instance inserted, in reverse order of creation, so references are removed first. */

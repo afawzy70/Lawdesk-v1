@@ -20,6 +20,8 @@ export const wp8En = {
   'wp8.indicator.LINKED_CASES': 'Linked cases',
   'wp8.indicator.unavailable': 'Not available yet',
   'wp8.indicator.unavailableHint': 'The module that holds this data is not installed on this system yet, so no figure is shown.',
+  'wp8.indicator.failed': 'Could not be calculated now',
+  'wp8.indicator.failedHint': 'This indicator could not be calculated just now. The other indicators are not affected. Try again later.',
   'wp8.indicator.open': 'Open the list',
   'wp8.indicator.groups': 'Groups',
   'wp8.level.SECTOR': 'Sector',
