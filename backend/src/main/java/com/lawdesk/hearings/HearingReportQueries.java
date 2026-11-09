@@ -36,12 +36,23 @@ public class HearingReportQueries {
      * a {@code null} case or proceeding means every one.
      */
     public record HearingFilter(LocalDate from, LocalDate to, Set<HearingStatus> statuses, UUID caseId,
-            UUID proceedingId) {
+            UUID proceedingId, Set<HearingKind> kinds) {
 
         public HearingFilter {
             Objects.requireNonNull(from, "from");
             Objects.requireNonNull(to, "to");
             statuses = statuses == null || statuses.isEmpty() ? Set.of() : Set.copyOf(statuses);
+            kinds = kinds == null || kinds.isEmpty() ? Set.of() : Set.copyOf(kinds);
+        }
+
+        public HearingFilter(LocalDate from, LocalDate to, Set<HearingStatus> statuses, UUID caseId,
+                UUID proceedingId) {
+            this(from, to, statuses, caseId, proceedingId, Set.of());
+        }
+
+        /** Only hearings of these kinds (court, expert, investigation, other); empty means every kind. */
+        public HearingFilter withKinds(Set<HearingKind> only) {
+            return new HearingFilter(from, to, statuses, caseId, proceedingId, only);
         }
 
         public static HearingFilter between(LocalDate from, LocalDate to) {
@@ -49,15 +60,15 @@ public class HearingReportQueries {
         }
 
         public HearingFilter withStatuses(Set<HearingStatus> only) {
-            return new HearingFilter(from, to, only, caseId, proceedingId);
+            return new HearingFilter(from, to, only, caseId, proceedingId, kinds);
         }
 
         public HearingFilter withCase(UUID onlyCase) {
-            return new HearingFilter(from, to, statuses, onlyCase, proceedingId);
+            return new HearingFilter(from, to, statuses, onlyCase, proceedingId, kinds);
         }
 
         public HearingFilter withProceeding(UUID onlyProceeding) {
-            return new HearingFilter(from, to, statuses, caseId, onlyProceeding);
+            return new HearingFilter(from, to, statuses, caseId, onlyProceeding, kinds);
         }
     }
 
@@ -131,6 +142,69 @@ public class HearingReportQueries {
         return count == null ? 0 : count;
     }
 
+
+    // ---- WP8 (LD-058): conditions and groupings the dashboard indicators and report families share -------------------
+
+    /**
+     * Cases reserved for judgment (القضايا المحجوزة للحكم), as a condition over {@code legal_case}: a proceeding with no
+     * judgment recorded yet that has a hearing for the pronouncement of judgment which was not cancelled. ASSUMPTION:
+     * the system has no separate "reserved" status, so the pronouncement hearing is the record of the reservation.
+     */
+    public static CaseAccessPolicy.Predicate reservedForJudgment() {
+        return new CaseAccessPolicy.Predicate("legal_case.id in (select rp.case_id from proceeding rp"
+                + " join hearing rh on rh.proceeding_id = rp.id where rh.purpose = 'JUDGMENT' and rh.status <> 'CANCELLED'"
+                + " and not exists (select 1 from judgment rj where rj.proceeding_id = rp.id))", Map.of());
+    }
+
+    /** One reason the court gave for adjourning, as recorded; hearings with none recorded are grouped with a null reason. */
+    public record AdjournmentReason(String reason, long hearings, long cases) {
+    }
+
+    /**
+     * Adjourned hearings of the cases in {@code caseScope} (a condition over {@code legal_case}, see
+     * {@code CaseReportQueries#scope}) grouped by the recorded adjournment reason, ignoring case and surrounding spaces.
+     */
+    public List<AdjournmentReason> adjournmentReasons(CaseAccessPolicy.Predicate caseScope) {
+        return jdbc.query("select min(btrim(h.adjournment_reason)) as reason, count(*) as hearings,"
+                + " count(distinct h.case_id) as cases from hearing h join legal_case on legal_case.id = h.case_id"
+                + " where h.status = 'ADJOURNED' and " + caseScope.sql()
+                + " group by lower(nullif(btrim(h.adjournment_reason), '')) order by hearings desc, reason nulls last",
+                new MapSqlParameterSource(caseScope.params()),
+                (rs, n) -> new AdjournmentReason(rs.getString("reason"), rs.getLong("hearings"), rs.getLong("cases")));
+    }
+
+    /** The hearings of the cases in {@code caseScope} of one kind, counted per status (every status, zeros included). */
+    public Map<HearingStatus, Long> countByStatus(CaseAccessPolicy.Predicate caseScope, HearingKind kind) {
+        Map<HearingStatus, Long> counts = new EnumMap<>(HearingStatus.class);
+        for (HearingStatus status : HearingStatus.values()) {
+            counts.put(status, 0L);
+        }
+        jdbc.query("select h.status, count(*) as n from hearing h join legal_case on legal_case.id = h.case_id where h.kind = :kind"
+                + " and " + caseScope.sql() + " group by h.status",
+                new MapSqlParameterSource(caseScope.params()).addValue("kind", kind.name()),
+                rs -> {
+                    counts.put(HearingStatus.valueOf(rs.getString("status")), rs.getLong("n"));
+                });
+        return counts;
+    }
+
+    /** What a member is recorded as responsible for in a period: hearings by state, objective counts only. */
+    public record MemberHearings(UUID memberId, long scheduled, long held, long awaitingResult) {
+    }
+
+    /** Hearings dated in the period, per responsible member, over the cases in {@code caseScope}. */
+    public List<MemberHearings> byResponsibleMember(CaseAccessPolicy.Predicate caseScope, LocalDate from, LocalDate to) {
+        return jdbc.query("select h.responsible_member_id as member, count(*) filter (where h.status = 'SCHEDULED') as scheduled,"
+                + " count(*) filter (where h.status = 'HELD') as held,"
+                + " count(*) filter (where h.status = 'SCHEDULED' and h.hearing_date < :today) as awaiting"
+                + " from hearing h join legal_case on legal_case.id = h.case_id where h.responsible_member_id is not null"
+                + " and h.hearing_date between :from and :to and " + caseScope.sql() + " group by h.responsible_member_id",
+                new MapSqlParameterSource(caseScope.params()).addValue("from", from).addValue("to", to)
+                        .addValue("today", today()),
+                (rs, n) -> new MemberHearings(rs.getObject("member", UUID.class), rs.getLong("scheduled"),
+                        rs.getLong("held"), rs.getLong("awaiting")));
+    }
+
     private String where(HearingFilter filter) {
         StringBuilder sql = new StringBuilder(" where hearing_date between :from and :to and "
                 + access.visibleCaseIds("case_id").sql());
@@ -143,13 +217,17 @@ public class HearingReportQueries {
         if (filter.proceedingId() != null) {
             sql.append(" and proceeding_id = :proceedingId");
         }
+        if (!filter.kinds().isEmpty()) {
+            sql.append(" and kind in (:kinds)");
+        }
         return sql.toString();
     }
 
     private MapSqlParameterSource params(HearingFilter filter) {
         return new MapSqlParameterSource(access.visibleCaseIds("case_id").params()).addValue("from", filter.from()).addValue("to", filter.to())
                 .addValue("statuses", filter.statuses().stream().map(Enum::name).toList())
-                .addValue("caseId", filter.caseId()).addValue("proceedingId", filter.proceedingId());
+                .addValue("caseId", filter.caseId()).addValue("proceedingId", filter.proceedingId())
+                .addValue("kinds", filter.kinds().stream().map(Enum::name).toList());
     }
 
     private static HearingRow row(ResultSet rs) throws SQLException {

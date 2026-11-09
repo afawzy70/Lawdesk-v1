@@ -51,7 +51,9 @@ final class SearchSpecs {
     }
 
     private static List<Spec> build(CaseAccessPolicy access) {
-        String visC = access.visibleCaseIds("c.id").sql();
+        // The case is already joined as c in every type that has one, so the rule is tested on that row (cheap column tests
+        // first, the database function last) instead of by a second pass over the register.
+        String visC = access.viewable("c").sql();
         String caseType = "c.case_type = :caseType";
         String caseId = "c.id = :caseId";
         List<Spec> specs = new ArrayList<>();
@@ -74,7 +76,7 @@ final class SearchSpecs {
                         p("LINKED_CASES", "(select string_agg(concat_ws(' ', o.reference_no, o.title, l.reason), ' ') from"
                                 + " case_link l join legal_case o on o.id = case when l.case_id = c.id then l.other_case_id"
                                 + " else l.case_id end where (l.case_id = c.id or l.other_case_id = c.id) and "
-                                + access.visibleCaseIds("o.id").sql() + ")", 'C')),
+                                + access.viewable("o").sql() + ")", 'C')),
                 caseType, caseId));
 
         // A party is found through the visible cases it is on; a party of hidden cases only does not exist for the user.
@@ -136,7 +138,7 @@ final class SearchSpecs {
 
         // A task of a case follows the case; a task of no case is found by its assignee and its creator only.
         specs.add(new Spec("TASK", Permission.TASK_VIEW, "task t left join legal_case c on c.id = t.case_id",
-                "((t.case_id is not null and " + access.visibleCaseIds("t.case_id").sql() + ") or (t.case_id is null and"
+                "((t.case_id is not null and " + visC + ") or (t.case_id is null and"
                         + " (t.assignee_id = :av_me or t.created_by = :av_me)))",
                 "t.id", "t.case_id", "c.reference_no", "t.title", "t.status", "coalesce(t.due_date, (t.created_at "
                         + KUWAIT_DATE + ")", "null::integer",

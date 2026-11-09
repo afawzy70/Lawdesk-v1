@@ -67,6 +67,16 @@ public final class TestActors {
                                 new SimpleGrantedAuthority(Permission.CASE_EDIT_IN_SCOPE.name()))));
     }
 
+    /** As {@link #signIn(UUID)} with exactly the given scope tokens and permissions (for tests of visibility in queries). */
+    public static void signInScoped(UUID id, Collection<String> scopes, Permission... permissions) {
+        ActorPrincipal principal = new TestPrincipal(id, "scoped.user");
+        var authorities = Stream.concat(Arrays.stream(permissions).map(Permission::name),
+                scopes.stream().map(scope -> LawdeskUser.SCOPE_PREFIX + scope))
+                .map(SimpleGrantedAuthority::new).toList();
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(
+                UsernamePasswordAuthenticationToken.authenticated(principal, null, authorities));
+    }
+
     public static void signOut() {
         org.springframework.security.core.context.SecurityContextHolder.clearContext();
     }

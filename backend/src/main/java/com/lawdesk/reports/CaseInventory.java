@@ -1,6 +1,5 @@
 package com.lawdesk.reports;
 
-import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -53,33 +52,24 @@ class CaseInventory {
 
         CaseCounts counts = cases.counts(filter);
         List<CaseRow> rows = cases.list(filter, order.field(), order.descending(), paging.offset(), paging.size());
-        Map<Stage, Long> stages = currentStageCounts(cases.ids(filter));
+        // The cases' current stages in one query over the same visible, filtered cases, not by shipping their ids back.
         Map<String, Long> byStage = new LinkedHashMap<>();
-        stages.forEach((stage, n) -> byStage.put(stage.name(), n));
-        byStage.put("NONE", counts.total() - stages.values().stream().mapToLong(Long::longValue).sum());
+        for (Stage stage : Stage.values()) {
+            byStage.put(stage.name(), 0L);
+        }
+        long placed = 0;
+        for (ProceedingReportQueries.Distribution d : proceedings.distribution(cases.scope(filter), false)) {
+            if (d.key() != null) {
+                byStage.put(d.key(), d.cases());
+                placed += d.cases();
+            }
+        }
+        byStage.put("NONE", counts.total() - placed);
 
         return new CaseInventoryReport(rows(rows), paging.page(), paging.size(), counts.total(),
                 paging.totalPages(counts.total()),
                 new CaseInventoryReport.Summary(counts.total(), counts.count(StatusGroup.OPEN),
                         counts.count(StatusGroup.CLOSED), counts.byStatus(), counts.byType(), byStage));
-    }
-
-    /**
-     * The current stage of every matching case, counted. The registry may hold more cases than one port call takes
-     * (QAD-039 audit), so the ids go in chunks of {@link ProceedingReportQueries#MAX_IDS} and the counts add up; the
-     * ids are distinct, so no case is counted twice.
-     */
-    private Map<Stage, Long> currentStageCounts(List<UUID> caseIds) {
-        Map<Stage, Long> total = new EnumMap<>(Stage.class);
-        for (Stage stage : Stage.values()) {
-            total.put(stage, 0L);
-        }
-        for (int from = 0; from < caseIds.size(); from += ProceedingReportQueries.MAX_IDS) {
-            proceedings.currentStageCounts(
-                    caseIds.subList(from, Math.min(caseIds.size(), from + ProceedingReportQueries.MAX_IDS)))
-                    .forEach((stage, n) -> total.merge(stage, n, Long::sum));
-        }
-        return total;
     }
 
     /** The rows of these cases, with their current stage and court. */

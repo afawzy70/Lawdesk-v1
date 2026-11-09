@@ -56,6 +56,9 @@ final class Xlsx {
                     if (cell instanceof LocalDate date) {
                         sheet.value(r, column, date);
                         sheet.style(r, column).format("yyyy-mm-dd").set();
+                    } else if (cell instanceof java.math.BigDecimal money) {
+                        sheet.value(r, column, money.setScale(3, java.math.RoundingMode.HALF_UP));
+                        sheet.style(r, column).format("#,##0.000").set();
                     } else if (cell instanceof Number number) {
                         sheet.value(r, column, number);
                     } else if (cell != null) {

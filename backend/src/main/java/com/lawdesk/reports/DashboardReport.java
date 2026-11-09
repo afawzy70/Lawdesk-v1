@@ -12,7 +12,7 @@ import com.lawdesk.proceedings.ProceedingReportQueries.StageCount;
 
 /** {@code GET /api/v1/reports/dashboard} (docs/delivery/PHASE-6-ACCEPTANCE.md, LD-030 criterion 1). */
 record DashboardReport(String month, Cases cases, Proceedings proceedings, Judgments judgments,
-        Operations operations, List<PendingFigure> pending) {
+        Operations operations, List<PendingFigure> pending, List<IndicatorFigure> indicators) {
 
     record Cases(long total, long open, long closed, long newThisMonth, Map<CaseStatus, Long> byStatus,
             Map<CaseType, Long> byType) {

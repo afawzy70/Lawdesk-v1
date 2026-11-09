@@ -156,7 +156,7 @@ class ReportExports {
         return Arrays.stream(keys).map(labels::word).toList();
     }
 
-    private ExportFile file(String report, String name, ExportQuery export, ExportTable table) {
+    ExportFile file(String report, String name, ExportQuery export, ExportTable table) {
         LocalDate today = calendar.today();
         String base = name + "-" + today;
         return switch (export.format()) {

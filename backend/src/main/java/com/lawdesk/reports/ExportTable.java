@@ -19,6 +19,10 @@ record ExportTable(String title, String subtitle, ReportLabels labels, List<Stri
         if (cell instanceof LocalDate date) {
             return date.toString();
         }
+        if (cell instanceof java.math.BigDecimal money) {
+            // Money is KWD with three decimals, always (decision D5).
+            return money.setScale(3, java.math.RoundingMode.HALF_UP).toPlainString();
+        }
         return cell.toString();
     }
 

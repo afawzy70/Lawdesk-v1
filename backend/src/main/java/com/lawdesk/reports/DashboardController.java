@@ -41,13 +41,14 @@ class DashboardController {
     private final HearingReportQueries hearings;
     private final ExpertReportQueries experts;
     private final TaskReportQueries tasks;
+    private final IndicatorService indicators;
 
     /** "This week" on the dashboard: today and the six days after it (ASSUMPTION). */
     static final int WEEK_AHEAD_DAYS = 6;
 
     DashboardController(CaseReportQueries cases, ProceedingReportQueries proceedings, JudgmentReportQueries judgments,
             ReportCalendar calendar, HearingReportQueries hearings, ExpertReportQueries experts,
-            TaskReportQueries tasks) {
+            TaskReportQueries tasks, IndicatorService indicators) {
         this.cases = cases;
         this.proceedings = proceedings;
         this.judgments = judgments;
@@ -55,6 +56,7 @@ class DashboardController {
         this.hearings = hearings;
         this.experts = experts;
         this.tasks = tasks;
+        this.indicators = indicators;
     }
 
     @GetMapping
@@ -79,6 +81,6 @@ class DashboardController {
                         judged.byOutcome()),
                 new DashboardReport.Operations(hearings.upcomingCount(WEEK_AHEAD_DAYS), hearings.awaitingResultCount(),
                         experts.overdueReportCount(), tasks.overdueCount(), tasks.dueSoonCount()),
-                List.of());
+                List.of(), indicators.figures(IndicatorQuery.period(query.from(), query.to())));
     }
 }

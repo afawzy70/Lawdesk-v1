@@ -126,6 +126,26 @@ public class JudgmentReportQueries {
                 .list();
     }
 
+
+    /** Judgments of one outcome in the cases of a scope: how many and how many were recorded as final. */
+    public record OutcomeRow(Outcome outcome, long judgments, long finalJudgments) {
+    }
+
+    /**
+     * Every outcome, zeros included, over the judgments of the cases in {@code caseScope} (a condition over
+     * {@code legal_case} that includes visibility); each judgment is counted once.
+     */
+    public List<OutcomeRow> outcomes(CaseAccessPolicy.Predicate caseScope) {
+        Map<Outcome, OutcomeRow> found = new EnumMap<>(Outcome.class);
+        jdbc.sql("select j.outcome, count(*) as n, count(*) filter (where j.final) as final_n from judgment j"
+                + " join proceeding p on p.id = j.proceeding_id join legal_case on legal_case.id = p.case_id where "
+                + caseScope.sql() + " group by j.outcome").params(caseScope.params()).query(rs -> {
+                    Outcome outcome = Outcome.valueOf(rs.getString("outcome"));
+                    found.put(outcome, new OutcomeRow(outcome, rs.getLong("n"), rs.getLong("final_n")));
+                });
+        return Arrays.stream(Outcome.values()).map(o -> found.getOrDefault(o, new OutcomeRow(o, 0, 0))).toList();
+    }
+
     private record Where(String sql, Map<String, Object> params) {
     }
 

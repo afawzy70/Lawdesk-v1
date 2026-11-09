@@ -131,7 +131,7 @@ public class CaseAccessPolicy {
 
     /** The cases of {@code alias} (an alias of {@code legal_case}) the signed-in user may see. */
     public Predicate viewable(String alias) {
-        return visible(alias + ".id");
+        return new Predicate(fastVisible(alias), args(scope()));
     }
 
     /** The cases of {@code alias} the signed-in user may change. */
@@ -144,15 +144,32 @@ public class CaseAccessPolicy {
     }
 
     /**
-     * {@code case_visible(column, ...)}: the restriction every query over rows that belong to cases adds, such as
-     * hearings, documents, tasks and report lists. {@code column} is an expression the caller controls.
+     * The restriction every query over rows that belong to cases adds, such as hearings, documents, tasks and report
+     * lists. {@code column} is an expression the caller controls. The rule is evaluated once per <em>case</em> (a hashed
+     * semi-join), not once per row of the child table: a table with ten rows per case would otherwise run the database
+     * function ten times as often.
      */
     public Predicate visibleCaseIds(String column) {
-        return visible(column);
+        return new Predicate(column + " in (select vc.id from legal_case vc where " + fastVisible("vc") + ")",
+                args(scope()));
     }
 
-    private Predicate visible(String column) {
-        return new Predicate("case_visible(" + column + ", :av_me, :av_all, :av_units, :av_types)", args(scope()));
+    /**
+     * {@code case_visible} written for speed, selecting exactly the same cases (CaseVisibilityPredicateEquivalenceTest). The
+     * function stays the one definition of the rule; this only puts, before it, tests that are implied by it and cost a
+     * column comparison: the user is the primary or alternate member or the creator, or the department-wide or case-type
+     * scope covers a case that is not restricted. The function itself runs only for cases the user could still reach
+     * through a unit scope, a grant or a task, so a member with few cases no longer pays it for every case in the
+     * register. The grant and task tests here are deliberately broader than the rule (any grant, any task of the user): they
+     * only decide whether to ask the function, never that a case is visible.
+     */
+    private static String fastVisible(String a) {
+        return "(" + a + ".primary_member_id = :av_me or " + a + ".alternate_member_id = :av_me or " + a
+                + ".created_by = :av_me or (:av_all and " + a + ".confidentiality <> 'RESTRICTED') or (:av_types <> ''"
+                + " and " + a + ".confidentiality <> 'RESTRICTED' and " + a + ".case_type = any (string_to_array(:av_types, ',')))"
+                + " or ((:av_units <> '' or " + a + ".id in (select cg.case_id from case_grant cg where cg.user_id = :av_me and cg.revoked_at is null)"
+                + " or " + a + ".id in (select ct.case_id from task ct where ct.assignee_id = :av_me and ct.case_id is not null))"
+                + " and case_visible(" + a + ".id, :av_me, :av_all, :av_units, :av_types)))";
     }
 
     private static Map<String, Object> args(Scope scope) {

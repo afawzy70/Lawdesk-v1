@@ -58,7 +58,7 @@ public class CaseReportQueries {
      * @param text a text the reference or the title contains, ignoring case; {@code %} and {@code _} are literal
      */
     public record CaseFilter(String text, Set<CaseStatus> statuses, Set<CaseType> types, LocalDate openedFrom,
-            LocalDate openedTo, Set<UUID> onlyCases) {
+            LocalDate openedTo, Set<UUID> onlyCases, List<CaseAccessPolicy.Predicate> extra) {
 
         public static final CaseFilter ALL = new CaseFilter(null, Set.of(), Set.of(), null, null, null);
 
@@ -67,6 +67,22 @@ public class CaseReportQueries {
             statuses = statuses == null ? Set.of() : Set.copyOf(statuses);
             types = types == null ? Set.of() : Set.copyOf(types);
             onlyCases = onlyCases == null ? null : Set.copyOf(onlyCases);
+            extra = extra == null ? List.of() : List.copyOf(extra);
+        }
+
+        public CaseFilter(String text, Set<CaseStatus> statuses, Set<CaseType> types, LocalDate openedFrom,
+                LocalDate openedTo, Set<UUID> onlyCases) {
+            this(text, statuses, types, openedFrom, openedTo, onlyCases, List.of());
+        }
+
+        /**
+         * The same filter narrowed by a condition over {@code legal_case} (columns qualified {@code legal_case.}) that
+         * the module owning the rule published, for example "has a high risk". Parameter names must be unique.
+         */
+        public CaseFilter and(CaseAccessPolicy.Predicate condition) {
+            List<CaseAccessPolicy.Predicate> all = new java.util.ArrayList<>(extra);
+            all.add(condition);
+            return new CaseFilter(text, statuses, types, openedFrom, openedTo, onlyCases, all);
         }
     }
 
@@ -175,36 +191,174 @@ public class CaseReportQueries {
                 .params(visible.params()).param("from", from).param("to", to).query(Long.class).single();
     }
 
+
+    // ---- conditions the dashboard indicators and the report families share (WP8, LD-058) -----------------------------
+
+    /**
+     * The cases the signed-in user may see that match the filter, as one condition over {@code legal_case} (columns
+     * qualified {@code legal_case.}): what another module's report joins to when it counts rows of visible, matching
+     * cases only. The visibility rule is {@link CaseAccessPolicy}'s and cannot be left out.
+     */
+    public CaseAccessPolicy.Predicate scope(CaseFilter filter) {
+        Where where = where(filter, "legal_case.");
+        return new CaseAccessPolicy.Predicate(where.sql.substring(" where ".length()), where.params);
+    }
+
+    private static final java.util.concurrent.atomic.AtomicInteger NAMES = new java.util.concurrent.atomic.AtomicInteger();
+
+    private static String unique(String base) {
+        return base + NAMES.incrementAndGet();
+    }
+
+    /** Cases whose primary member is this user. */
+    public static CaseAccessPolicy.Predicate primaryMember(UUID member) {
+        String name = unique("cm");
+        return new CaseAccessPolicy.Predicate("legal_case.primary_member_id = :" + name, Map.of(name, member));
+    }
+
+    /** Cases with no primary member recorded ("not specified" is a value, never a guess). */
+    public static CaseAccessPolicy.Predicate noPrimaryMember() {
+        return new CaseAccessPolicy.Predicate("legal_case.primary_member_id is null", Map.of());
+    }
+
+    /** The level of the authority's structure a case is grouped by. */
+    public enum UnitLevel {
+        SECTOR("sector_name_snapshot"),
+        DEPARTMENT("department_name_snapshot"),
+        SECTION("section_name_snapshot");
+
+        private final String column;
+
+        UnitLevel(String column) {
+            this.column = column;
+        }
+    }
+
+    /**
+     * Cases whose primary involvement names this sector, department or section (the names copied when the unit was
+     * recorded); a null {@code name} selects the cases with no name at that level. A case has at most one primary
+     * involvement, so it falls in exactly one group per level.
+     */
+    public static CaseAccessPolicy.Predicate authorityUnit(UnitLevel level, String name) {
+        String column = "i." + level.column;
+        if (name == null) {
+            return new CaseAccessPolicy.Predicate("not exists (select 1 from case_org_involvement i where i.case_id = legal_case.id"
+                    + " and i.is_primary and i.removed_at is null and " + column + " is not null and length(btrim(" + column
+                    + ")) > 0)", Map.of());
+        }
+        String param = unique("cu");
+        return new CaseAccessPolicy.Predicate("exists (select 1 from case_org_involvement i where i.case_id = legal_case.id"
+                + " and i.is_primary and i.removed_at is null and btrim(" + column + ") = :" + param + ")",
+                Map.of(param, name));
+    }
+
+    /** What cases are grouped by. */
+    public enum Dimension {
+        CASE_TYPE,
+        STATUS,
+        MEMBER,
+        SECTOR,
+        DEPARTMENT,
+        SECTION
+    }
+
+    /**
+     * One group of cases. {@code key} is null for the cases that have no value; the two amounts are separate sums of the
+     * case's own claimed amount and financial-impact amount, each case counted once (decision D5: kinds never mix).
+     */
+    public record Group(String key, String label, long cases, java.math.BigDecimal claimedAmount,
+            java.math.BigDecimal financialImpactAmount) {
+    }
+
+    /** The matching visible cases grouped by one dimension; every case falls in exactly one group. */
+    public List<Group> groups(CaseFilter filter, Dimension dimension) {
+        Where where = where(filter, "legal_case.");
+        String key;
+        String join = "";
+        switch (dimension) {
+            case CASE_TYPE -> key = "legal_case.case_type";
+            case STATUS -> key = "legal_case.status";
+            case MEMBER -> {
+                key = "cast(legal_case.primary_member_id as text)";
+                join = " left join app_user u on u.id = legal_case.primary_member_id";
+            }
+            default -> {
+                UnitLevel level = UnitLevel.valueOf(dimension.name());
+                key = "nullif(btrim(pi." + level.column + "), '')";
+                join = " left join case_org_involvement pi on pi.case_id = legal_case.id and pi.is_primary"
+                        + " and pi.removed_at is null";
+            }
+        }
+        String label = dimension == Dimension.MEMBER ? "max(u.display_name)" : "max(" + key + ")";
+        String sql = "select " + key + " as k, " + label + " as label, count(*) as n,"
+                + " coalesce(sum(legal_case.claimed_amount), 0) as claimed,"
+                + " coalesce(sum(legal_case.financial_amount), 0) as impact from legal_case" + join
+                + where.sql + " group by " + key + " order by label nulls last, k nulls last";
+        return jdbc.sql(sql).params(where.params).query((rs, i) -> new Group(rs.getString("k"), rs.getString("label"),
+                rs.getLong("n"), rs.getBigDecimal("claimed").setScale(3), rs.getBigDecimal("impact").setScale(3))).list();
+    }
+
+
+    /** A member's cases in the filter: as primary member (of which open, by {@link StatusGroup}) and as alternate. */
+    public record MemberCases(UUID memberId, long primary, long primaryOpen, long alternate) {
+    }
+
+    /** The matching visible cases per member; objective counts of assignment, nothing about their outcome. */
+    public List<MemberCases> memberCases(CaseFilter filter) {
+        Where where = where(filter, "legal_case.");
+        Map<String, Object> params = new HashMap<>(where.params);
+        params.put("openStatuses", StatusGroup.OPEN.statuses().stream().map(Enum::name).toList());
+        String selected = "select %s as member, %s as p, %s as o, %s as a from legal_case" + where.sql + " and %s is not null";
+        String sql = "select member, sum(p) as primary_n, sum(o) as open_n, sum(a) as alt_n from ("
+                + selected.formatted("legal_case.primary_member_id", "1", "(case when legal_case.status in (:openStatuses) then 1 else 0 end)",
+                        "0", "legal_case.primary_member_id")
+                + " union all "
+                + selected.formatted("legal_case.alternate_member_id", "0", "0", "1", "legal_case.alternate_member_id")
+                + ") x group by member";
+        return jdbc.sql(sql).params(params).query((rs, i) -> new MemberCases(rs.getObject("member", UUID.class),
+                rs.getLong("primary_n"), rs.getLong("open_n"), rs.getLong("alt_n"))).list();
+    }
+
     private record Where(String sql, Map<String, Object> params) {
     }
 
     private Where where(CaseFilter filter) {
+        return where(filter, "");
+    }
+
+    /** The conditions of the filter; {@code prefix} (such as {@code "legal_case."}) qualifies every case column. */
+    private Where where(CaseFilter filter, String prefix) {
         CaseAccessPolicy.Predicate visible = access.viewable("legal_case");
         StringBuilder sql = new StringBuilder(" where " + visible.sql());
         Map<String, Object> params = new HashMap<>(visible.params());
         if (filter.text() != null) {
-            sql.append(" and (reference_no ilike :text escape '\\' or title ilike :text escape '\\')");
+            sql.append(" and (" + prefix + "reference_no ilike :text escape '\\' or " + prefix
+                    + "title ilike :text escape '\\')");
             params.put("text", "%" + Text.escapeLike(filter.text()) + "%");
         }
         if (!filter.statuses().isEmpty()) {
-            sql.append(" and status in (:statuses)");
+            sql.append(" and " + prefix + "status in (:statuses)");
             params.put("statuses", filter.statuses().stream().map(Enum::name).toList());
         }
         if (!filter.types().isEmpty()) {
-            sql.append(" and case_type in (:types)");
+            sql.append(" and " + prefix + "case_type in (:types)");
             params.put("types", filter.types().stream().map(Enum::name).toList());
         }
         if (filter.openedFrom() != null) {
-            sql.append(" and opened_on >= :openedFrom");
+            sql.append(" and " + prefix + "opened_on >= :openedFrom");
             params.put("openedFrom", filter.openedFrom());
         }
         if (filter.openedTo() != null) {
-            sql.append(" and opened_on <= :openedTo");
+            sql.append(" and " + prefix + "opened_on <= :openedTo");
             params.put("openedTo", filter.openedTo());
         }
         if (filter.onlyCases() != null) {
-            sql.append(" and id in (select unnest(cast(:onlyCases as uuid[])))");
+            sql.append(" and " + prefix + "id in (select unnest(cast(:onlyCases as uuid[])))");
             params.put("onlyCases", uuidArray(filter.onlyCases()));
+        }
+        for (CaseAccessPolicy.Predicate condition : filter.extra()) {
+            sql.append(" and (").append(condition.sql()).append(')');
+            params.putAll(condition.params());
         }
         return new Where(sql.toString(), params);
     }

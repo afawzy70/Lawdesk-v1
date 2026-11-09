@@ -22,3 +22,5 @@ export function failureMessage(error: unknown): MessageKey {
 export function isForbidden(error: unknown): boolean {
   return error instanceof ApiError && error.status === 403;
 }
+export const FAMILIES_PATH = '/reports/families';
+export const PERFORMANCE_PATH = '/reports/performance';

@@ -27,6 +27,12 @@ final class ReportTestData {
         this.jdbc = jdbc;
     }
 
+    /** Registers a row inserted by the test itself so {@link #deleteCreated} removes it (newest rows first). */
+    UUID track(String table, UUID id) {
+        created.push(new String[] {table, id.toString()});
+        return id;
+    }
+
     /** A prefix unique to this instance, for references and court codes it creates. */
     String marker() {
         return marker;
@@ -88,11 +94,13 @@ final class ReportTestData {
     }
 
     /** A task assigned to {@code assignee}; a done task has its completion time. */
-    UUID insertTask(UUID caseId, UUID assignee, String title, LocalDate due, String status) {
+    UUID insertTask(UUID caseId, UUID assignee, String title, LocalDate due, String legacyStatus) {
+        // WP6 renamed the statuses (OPEN became NEW, DONE became COMPLETED); the tests keep their short names.
+        String status = "OPEN".equals(legacyStatus) ? "NEW" : "DONE".equals(legacyStatus) ? "COMPLETED" : legacyStatus;
         UUID id = jdbc.queryForObject("""
                 insert into task (case_id, title, assignee_id, due_date, status, completed_at, created_by, updated_by)
                 values (?, ?, ?, ?, ?, ?, ?, ?) returning id""", UUID.class, caseId, title, assignee, due, status,
-                "DONE".equals(status) ? java.sql.Timestamp.from(java.time.Instant.now()) : null, CREATOR, CREATOR);
+                "COMPLETED".equals(status) ? java.sql.Timestamp.from(java.time.Instant.now()) : null, CREATOR, CREATOR);
         created.push(new String[] {"task", id.toString()});
         return id;
     }
