@@ -67,7 +67,7 @@ export function UsersPage() {
       {failure === 'error' && <p role="alert">{t('admin.error.unexpected')}</p>}
       {result !== null && result.items.length === 0 && <p>{t('admin.users.none')}</p>}
       {result !== null && result.items.length > 0 && (
-        <div className="table-scroll">
+        <div className="table-scroll" role="region" tabIndex={0} aria-label={t('admin.users.title')}>
           <table>
             <caption>{t('admin.users.title')}</caption>
             <thead>
