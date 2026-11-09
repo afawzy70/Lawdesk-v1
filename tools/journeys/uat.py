@@ -36,7 +36,10 @@ class Session:
         try:
             with self.opener.open(request, timeout=60) as response:
                 raw = response.read()
-                return response.status, (json.loads(raw) if raw else None)
+                try:
+                    return response.status, (json.loads(raw) if raw else None)
+                except ValueError:
+                    return response.status, raw  # a file download
         except urllib.error.HTTPError as error:
             raw = error.read()
             try:
