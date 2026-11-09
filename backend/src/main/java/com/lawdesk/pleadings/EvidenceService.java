@@ -227,17 +227,23 @@ class EvidenceService {
     EvidenceRequests.FollowupView follow(UUID evidenceId, EvidenceRequests.FollowupBody body) {
         UUID caseId = rows.caseOf("evidence_item", evidenceId, "evidence");
         ActorRef actor = rows.change(caseId);
+        if ((body.taskId() == null) == (body.infoRequestId() == null)) {
+            throw new FieldErrorException(body.taskId() == null ? "taskId" : "infoRequestId", "OneOf");
+        }
         rows.sameCase("task", body.taskId(), caseId, "taskId");
+        rows.sameCase("info_request", body.infoRequestId(), caseId, "infoRequestId");
         UUID id;
         try {
             id = jdbc.sql("""
-                    insert into gap_followup (evidence_id, task_id, created_by) values (:evidence, :task, :actor)
-                    returning id""").param("evidence", evidenceId).param("task", body.taskId()).param("actor", actor.id())
+                    insert into gap_followup (evidence_id, task_id, info_request_id, created_by)
+                    values (:evidence, :task, :request, :actor) returning id""").param("evidence", evidenceId)
+                    .param("task", body.taskId()).param("request", body.infoRequestId()).param("actor", actor.id())
                     .query(UUID.class).single();
         } catch (DuplicateKeyException e) {
-            throw new ConflictException("the task follows this evidence already");
+            throw new ConflictException("this follows the evidence up already");
         }
-        rows.event(caseId, "EVIDENCE_FOLLOWUP_LINKED", "A task follows up missing evidence");
+        rows.event(caseId, "EVIDENCE_FOLLOWUP_LINKED", body.taskId() != null ? "A task follows up missing evidence"
+                : "An information request follows up missing evidence");
         rows.audit("EVIDENCE_FOLLOWUP", actor, caseId, "evidence=" + evidenceId);
         return followups(evidenceId).stream().filter(f -> f.id().equals(id)).findFirst().orElseThrow();
     }
@@ -350,11 +356,14 @@ class EvidenceService {
 
     private List<EvidenceRequests.FollowupView> followups(UUID evidenceId) {
         return jdbc.sql("""
-                select g.id, g.task_id, t.title, t.status, g.created_at from gap_followup g left join task t on t.id = g.task_id
+                select g.id, g.task_id, t.title, t.status, g.info_request_id, r.request_no, r.status as request_status,
+                       g.created_at
+                from gap_followup g left join task t on t.id = g.task_id left join info_request r on r.id = g.info_request_id
                 where g.evidence_id = :id order by g.created_at, g.id""").param("id", evidenceId)
                 .query((rs, n) -> new EvidenceRequests.FollowupView(rs.getObject("id", UUID.class),
                         rs.getObject("task_id", UUID.class), rs.getString("title"), rs.getString("status"),
-                        rs.getTimestamp("created_at").toInstant()))
+                        rs.getObject("info_request_id", UUID.class), rs.getString("request_no"),
+                        rs.getString("request_status"), rs.getTimestamp("created_at").toInstant()))
                 .list();
     }
 

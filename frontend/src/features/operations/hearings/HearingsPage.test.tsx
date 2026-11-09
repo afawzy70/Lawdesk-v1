@@ -6,7 +6,7 @@ import { hearing, page, problem, renderOperations, scriptedFetch, type Request }
 
 /** LD-024 hearing calendar (docs/delivery/PHASE-5-ACCEPTANCE.md, QA-0192). */
 
-// 22:30 UTC on 1 March is already 2 March in Cairo: the calendar starts on the Egyptian date.
+// 22:30 UTC on 1 March is already 2 March in Kuwait: the calendar starts on the Kuwaiti date.
 const NOW = new Date('2025-03-01T22:30:00Z');
 
 beforeEach(() => {

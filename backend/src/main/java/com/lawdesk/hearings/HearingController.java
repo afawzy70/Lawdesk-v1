@@ -74,6 +74,12 @@ class HearingController {
         return service.update(id, request);
     }
 
+    @PostMapping("/hearings/{id}/reassign")
+    @PreAuthorize(Permission.Codes.HEARING_MANAGE)
+    HearingRequests.Response reassign(@PathVariable UUID id, @Valid @RequestBody HearingRequests.Reassign request) {
+        return service.reassign(id, request);
+    }
+
     @PostMapping("/hearings/{id}/next-hearing")
     @PreAuthorize(Permission.Codes.HEARING_MANAGE)
     ResponseEntity<HearingRequests.Response> nextHearing(@PathVariable UUID id,

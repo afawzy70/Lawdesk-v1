@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { addDays, formatDay, formatTime, legalToday } from './days';
 
-/** Calendar days in Egypt (docs/delivery/PHASE-5-ACCEPTANCE.md, common rule 9). */
+/** Calendar days in Kuwait (docs/delivery/PHASE-5-ACCEPTANCE.md, common rule 9). */
 describe('legal days', () => {
-  it('takes today from the Egyptian clock, not the browser', () => {
-    expect(legalToday(new Date('2025-03-01T21:59:00Z'))).toBe('2025-03-01');
-    expect(legalToday(new Date('2025-03-01T22:00:00Z'))).toBe('2025-03-02');
+  it('takes today from the Kuwait clock, not the browser', () => {
+    expect(legalToday(new Date('2025-03-01T20:59:00Z'))).toBe('2025-03-01');
+    expect(legalToday(new Date('2025-03-01T21:00:00Z'))).toBe('2025-03-02');
   });
 
   it('adds calendar days across months and leap years', () => {

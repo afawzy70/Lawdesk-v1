@@ -34,8 +34,8 @@ import com.lawdesk.security.Permission;
 @Service
 class InfoRequestService {
 
-    /** "Today" is the calendar date in Egypt, as for hearings (ASSUMPTION of the hearing module, common rule 9). */
-    private static final ZoneId ZONE = ZoneId.of("Africa/Cairo");
+    /** "Today" is the calendar date in Kuwait (Asia/Kuwait), as for hearings (ASSUMPTION of the hearing module, common rule 9). */
+    private static final ZoneId ZONE = ZoneId.of("Asia/Kuwait");
 
     /** Which statuses a user may move a request to, from each status. A late request is only moved by its replies. */
     private static final Map<InfoRequestStatus, Set<InfoRequestStatus>> TRANSITIONS = Map.of(

@@ -27,7 +27,7 @@ public class FollowUpRun {
     public record Result(int overdueRequests, int notifications, int lateTasks) {
     }
 
-    private static final ZoneId ZONE = ZoneId.of("Africa/Cairo");
+    private static final ZoneId ZONE = ZoneId.of("Asia/Kuwait");
 
     private final JdbcClient jdbc;
     private final NotificationPublisher notifications;

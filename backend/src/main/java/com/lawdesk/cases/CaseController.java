@@ -42,6 +42,12 @@ class CaseController {
         return service.search(search);
     }
 
+    @GetMapping("/{id}/closing-check")
+    @PreAuthorize(Permission.Codes.CASE_VIEW)
+    CaseClosingCheck.Result closingCheck(@PathVariable String id) {
+        return service.closingCheck(Text.id(id, "case"));
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize(Permission.Codes.CASE_VIEW)
     LegalCase get(@PathVariable String id) {

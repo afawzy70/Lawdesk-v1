@@ -69,7 +69,16 @@ final class DefenseRequests {
 
     /** The defence with what happened to it: its assertion in each stage, the court's position in each judgment, its evidence. */
     record Detail(View defense, List<AssertionView> assertions, List<ResultRequests.CaseDefensePosition> positions,
-            List<LinkedEvidence> evidence) {
+            List<LinkedEvidence> evidence, List<PrecedentView> precedents) {
+    }
+
+    /** A library judgment (and optionally one of its principles) that supports a defence; {@code note} says why. */
+    record PrecedentBody(@NotNull UUID judgmentId, UUID principleId, @Size(max = 2000) String note) {
+    }
+
+    record PrecedentView(UUID id, UUID defenseId, UUID judgmentId, String courtName, String caseNumber, Integer caseYear,
+            LocalDate judgmentDate, String subject, String finality, String judgmentStatus, UUID principleId,
+            String principleText, String note, Instant createdAt, UUID createdBy) {
     }
 
     record TemplateBody(@NotBlank @Size(max = 300) String title, @NotNull DefenseKind kind, @Size(max = 100000) String text,

@@ -76,7 +76,7 @@ class WorkloadReportApiTest extends PostgresTestSupport {
 
     @Test
     void reportsTheOpenWorkOfEveryAssigneeWithTheirNamesAndTheTaskTotals() throws Exception {
-        LocalDate today = LocalDate.now(ZoneId.of("Africa/Cairo"));
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Kuwait"));
         UUID caseId = data.insertCase("workload", "CIVIL", "ACTIVE", today.minusYears(1));
         DocumentContext before = read();
 

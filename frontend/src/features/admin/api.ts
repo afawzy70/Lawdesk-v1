@@ -89,6 +89,8 @@ export interface AuditEvent {
   outcome: 'SUCCESS' | 'FAILURE' | 'DENIED';
   reason: string | null;
   requestId: string | null;
+  /** The details of a case event are hidden from a reader without the scope of that case (LD-DOC-04 section 5). */
+  masked?: boolean;
 }
 
 export interface AuditFilter {

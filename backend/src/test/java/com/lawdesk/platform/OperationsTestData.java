@@ -28,6 +28,7 @@ public final class OperationsTestData {
         jdbc.update("delete from managed_list_value where origin = 'PROPOSED'");
         jdbc.update("update managed_list_value set active = true, label_en = null where origin = 'DOCUMENT'");
         // LD-054 (WP4): deadlines hang off cases and documents; the test-only rules, holidays and lead times go too.
+        jdbc.update("update judgment set appeal_deadline_id = null where appeal_deadline_id is not null");
         jdbc.update("delete from deadline");
         jdbc.update("delete from deadline_reminder_setting");
         jdbc.update("delete from official_holiday");
@@ -39,6 +40,7 @@ public final class OperationsTestData {
         jdbc.update("delete from notification_preference");
         jdbc.update("delete from info_follow_up");
         jdbc.update("delete from info_reply");
+        jdbc.update("delete from gap_followup");
         jdbc.update("delete from info_request");
         jdbc.update("delete from risk_remediation");
         jdbc.update("delete from risk_assessment_element");

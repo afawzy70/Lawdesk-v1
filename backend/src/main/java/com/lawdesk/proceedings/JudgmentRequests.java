@@ -82,13 +82,22 @@ final class JudgmentRequests {
             LocalDate notifiedOn, JudgmentStatus status, UUID copyDocumentId) {
     }
 
-    record Response(UUID id, UUID proceedingId, UUID caseId, LocalDate judgmentDate, Outcome outcome, String summary,
-            @JsonProperty("final") boolean finalJudgment, DetailsView details, long version, Instant createdAt,
-            Instant updatedAt) {
+    /** The deadline of the register that the judgment names as its appeal deadline; its period is never stated by the system. */
+    record AppealDeadlineView(UUID id, LocalDate dueOn, String status, String calcStatus, String action) {
+    }
 
-        static Response of(Judgment j, UUID caseId, DetailsView details) {
+    /** Names (or, with a null id, clears) the judgment's appeal deadline; the deadline must run from this judgment. */
+    record AppealDeadlineBody(UUID deadlineId) {
+    }
+
+    record Response(UUID id, UUID proceedingId, UUID caseId, LocalDate judgmentDate, Outcome outcome, String summary,
+            @JsonProperty("final") boolean finalJudgment, DetailsView details, AppealDeadlineView appealDeadline,
+            long version, Instant createdAt, Instant updatedAt) {
+
+        static Response of(Judgment j, UUID caseId, DetailsView details, AppealDeadlineView appealDeadline) {
             return new Response(j.getId(), j.getProceedingId(), caseId, j.getJudgmentDate(), j.getOutcome(),
-                    j.getSummary(), j.isFinal(), details, j.getVersion(), j.getCreatedAt(), j.getUpdatedAt());
+                    j.getSummary(), j.isFinal(), details, appealDeadline, j.getVersion(), j.getCreatedAt(),
+                    j.getUpdatedAt());
         }
     }
 }

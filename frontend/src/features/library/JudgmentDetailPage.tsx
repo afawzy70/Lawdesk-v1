@@ -10,6 +10,7 @@ import { NotFoundPage } from '../../pages/NotFoundPage';
 import { formatDate } from '../cases/format';
 import { AccessDeniedPage } from '../auth/AccessDeniedPage';
 import { AuthContext } from '../auth/AuthContext';
+import { LibraryCopySection } from '../gaps/LibraryCopySection';
 import { getJudgment, reinstateJudgment, withdrawJudgment, type Judgment } from './api';
 import { citation, classificationLabel, courtLevelKey, directionKey, finalityKey, listSeparator } from './labels';
 import { PrinciplesSection } from './PrinciplesSection';
@@ -237,6 +238,7 @@ export function JudgmentDetailPage() {
         </dl>
       </section>
 
+      <LibraryCopySection judgmentId={j.id} canManage={manage} />
       <PrinciplesSection judgmentId={j.id} principles={j.principles} canManage={manage} onChanged={refresh} />
       <RelationsSection judgment={j} canManage={manage} onChanged={refresh} />
 

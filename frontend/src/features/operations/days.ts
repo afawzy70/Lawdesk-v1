@@ -3,11 +3,11 @@ import type { Locale } from '../../i18n/locale';
 
 /**
  * Calendar days of the legal operations screens (docs/delivery/PHASE-5-ACCEPTANCE.md, common rule 9): "today" is the
- * date in Egypt, and dates (`YYYY-MM-DD`) are shown without shifting them through the browser's time zone.
+ * date in Kuwait, and dates (`YYYY-MM-DD`) are shown without shifting them through the browser's time zone.
  */
-export const LEGAL_TIME_ZONE = 'Africa/Cairo';
+export const LEGAL_TIME_ZONE = 'Asia/Kuwait';
 
-/** Today's date in Egypt as `YYYY-MM-DD`. */
+/** Today's date in Kuwait as `YYYY-MM-DD`. */
 export function legalToday(now: Date = new Date()): string {
   // en-CA writes dates as YYYY-MM-DD.
   return new Intl.DateTimeFormat('en-CA', { timeZone: LEGAL_TIME_ZONE }).format(now);

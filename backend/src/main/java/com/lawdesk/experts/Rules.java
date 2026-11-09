@@ -17,8 +17,8 @@ final class Rules {
     static final String SESSION_BEFORE_REFERRAL = "SESSION_BEFORE_REFERRAL";
     static final String REFERRAL_CLOSED = "REFERRAL_CLOSED";
 
-    /** "Today" is the calendar date in Egypt (ASSUMPTION, common rule 9). */
-    static final ZoneId ZONE = ZoneId.of("Africa/Cairo");
+    /** "Today" is the calendar date in Kuwait (Asia/Kuwait) (ASSUMPTION, common rule 9). */
+    static final ZoneId ZONE = ZoneId.of("Asia/Kuwait");
 
     private Rules() {
     }

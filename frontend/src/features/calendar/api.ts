@@ -171,3 +171,8 @@ export function changeManualDateStatus(id: string, status: ManualDate['status'],
     body: { status, version },
   });
 }
+
+/** Hands a scheduled hearing to another member without moving it (the one-click answer to a conflict: the case's alternate). */
+export function reassignHearing(hearingId: string, memberId: string): Promise<unknown> {
+  return api(`/api/v1/hearings/${encodeURIComponent(hearingId)}/reassign`, { method: 'POST', body: { memberId } });
+}

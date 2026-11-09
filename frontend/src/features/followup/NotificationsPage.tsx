@@ -39,7 +39,8 @@ const NOTIFICATION_TYPES = [
   'HEARING_NO_NEXT_DATE',
 ] as const;
 
-function textKey(type: string): MessageKey {
+function textKey(type: string, params: Record<string, string> = {}): MessageKey {
+  if (type === 'DOCUMENT_MISSING' && 'evidenceName' in params) return 'wp6.notification.DOCUMENT_MISSING_EVIDENCE';
   for (const prefix of ['wp6.notification.', 'wp3.notification.']) {
     const key = `${prefix}${type}`;
     if (key in en) return key as MessageKey;
@@ -208,7 +209,7 @@ export function NotificationsPage() {
               return (
                 <li key={n.id} className="wp3-card" data-unread={n.readAt === null}>
                   <p>
-                    {t(textKey(n.type), { time: '', caseReferenceNo: '', title: '', ...n.params })}
+                    {t(textKey(n.type, n.params), { time: '', caseReferenceNo: '', title: '', ...n.params })}
                     {n.readAt === null ? <span className="wp3-badge" data-status="OVERDUE">{t('wp3.notifications.unread')}</span> : null}
                   </p>
                   <p className="case-field-hint">

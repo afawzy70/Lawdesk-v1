@@ -87,7 +87,7 @@ public class HearingReportQueries {
         this.access = access;
     }
 
-    /** "Today" for every hearing rule: the calendar date in Egypt. */
+    /** "Today" for every hearing rule: the calendar date in Kuwait (Asia/Kuwait). */
     public LocalDate today() {
         return LegalDay.today();
     }

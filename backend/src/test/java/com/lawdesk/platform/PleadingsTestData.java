@@ -19,6 +19,7 @@ public final class PleadingsTestData {
         jdbc.update("delete from evidence_link");
         jdbc.update("delete from evidence_item");
         jdbc.update("delete from case_fact");
+        jdbc.update("delete from defense_precedent");
         jdbc.update("delete from defense_position");
         jdbc.update("delete from defense_assertion");
         jdbc.update("delete from defense");

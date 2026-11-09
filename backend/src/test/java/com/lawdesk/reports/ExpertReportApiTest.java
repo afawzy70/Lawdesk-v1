@@ -49,7 +49,7 @@ class ExpertReportApiTest extends PostgresTestSupport {
     @BeforeEach
     void caseWithProceeding() {
         data = new ReportTestData(jdbc);
-        LocalDate today = LocalDate.now(ZoneId.of("Africa/Cairo"));
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Kuwait"));
         caseId = data.insertCase("experts", "CIVIL", "ACTIVE", today.minusYears(1));
         UUID court = data.insertCourt("FIRST_INSTANCE");
         proceeding = data.insertProceeding(caseId, "FIRST_INSTANCE", court, today.minusYears(1), null);
@@ -73,7 +73,7 @@ class ExpertReportApiTest extends PostgresTestSupport {
 
     @Test
     void reportsEveryExpertWithOpenAndOverdueReferralsAndTheReferralTotals() throws Exception {
-        LocalDate today = LocalDate.now(ZoneId.of("Africa/Cairo"));
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Kuwait"));
         DocumentContext before = read();
         UUID alia = data.insertExpert("Alia " + data.marker(), "Accounting");
         UUID basma = data.insertExpert("Basma " + data.marker(), "Engineering");

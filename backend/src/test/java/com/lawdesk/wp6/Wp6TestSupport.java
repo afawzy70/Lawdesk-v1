@@ -59,7 +59,7 @@ public abstract class Wp6TestSupport extends PostgresTestSupport {
     }
 
     protected static LocalDate today() {
-        return LocalDate.now(ZoneId.of("Africa/Cairo"));
+        return LocalDate.now(ZoneId.of("Asia/Kuwait"));
     }
 
     protected UUID user(String displayName) {

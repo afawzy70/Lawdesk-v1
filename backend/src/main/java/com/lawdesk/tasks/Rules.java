@@ -19,8 +19,8 @@ final class Rules {
     /** "Due soon" is due today or within the next three days (ASSUMPTION, LD-028). */
     static final int DUE_SOON_DAYS = 3;
 
-    /** "Today" is the calendar date in Egypt (ASSUMPTION, common rule 9). */
-    static final ZoneId ZONE = ZoneId.of("Africa/Cairo");
+    /** "Today" is the calendar date in Kuwait (Asia/Kuwait) (ASSUMPTION, common rule 9). */
+    static final ZoneId ZONE = ZoneId.of("Asia/Kuwait");
 
     private Rules() {
     }

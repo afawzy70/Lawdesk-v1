@@ -27,7 +27,7 @@ public class CaseFileReadPort {
     public record Fact(String type, UUID id, String title, LocalDate date, List<Field> fields) {
     }
 
-    private static final ZoneId ZONE = ZoneId.of("Africa/Cairo");
+    private static final ZoneId ZONE = ZoneId.of("Asia/Kuwait");
 
     private final CaseFileService service;
 

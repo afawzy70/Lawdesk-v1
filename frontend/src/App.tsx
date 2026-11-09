@@ -30,6 +30,7 @@ import { assistantRoutes } from './features/assistant/routes';
 import { LocaleProvider } from './i18n/LocaleProvider';
 import { AppLayout } from './layout/AppLayout';
 import { PLANNED_AREAS } from './layout/navigation';
+import { gapRoutes } from './features/gaps/routes';
 import { ComingSoonPage } from './pages/ComingSoonPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -75,6 +76,7 @@ export function AppRoutes({ locale }: LocaleProps) {
               {reportsRoutes()}
               {wp9Routes()}
               {assistantRoutes()}
+              {gapRoutes()}
               <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Routes>

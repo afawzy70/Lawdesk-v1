@@ -148,6 +148,31 @@ class HearingService {
         return lookups.respond(stored, legalCase, proceeding, lookups.nextOf(stored.getId()), today);
     }
 
+    /** Hands a scheduled hearing to another member without touching its date (the one-click answer to a calendar conflict). */
+    @Transactional
+    HearingRequests.Response reassign(UUID id, HearingRequests.Reassign request) {
+        ActorRef actor = currentActor.require();
+        Hearing hearing = request.version() == null
+                ? hearings.lockById(id).orElseThrow(() -> new NotFoundException("hearing"))
+                : lockedCurrent(id, request.version());
+        CaseSummary legalCase = writableCase(hearing.getCaseId());
+        requireScheduled(hearing);
+        if (users.find(request.memberId()).isEmpty()) {
+            throw new FieldErrorException("memberId", "Invalid");
+        }
+        if (request.memberId().equals(hearing.getResponsibleMemberId())) {
+            throw new BusinessRuleException("HEARING_ALREADY_ASSIGNED", "the member is already responsible for the hearing");
+        }
+        ProceedingSummary proceeding = lockedProceeding(hearing.getProceedingId());
+        hearing.reassignTo(request.memberId());
+        hearing.touch(actor, LegalDay.now());
+        Hearing stored = store(hearing);
+        cases.recordEvent(hearing.getCaseId(), "HEARING_REASSIGNED", "Hearing of %s in proceeding %s reassigned"
+                .formatted(stored.getHearingDate(), numberOf(proceeding)));
+        Lookups lookups = new Lookups();
+        return lookups.respond(stored, legalCase, proceeding, lookups.nextOf(stored.getId()), LegalDay.today());
+    }
+
     @Transactional
     HearingRequests.Response recordResult(UUID id, HearingRequests.Result request) {
         ActorRef actor = currentActor.require();

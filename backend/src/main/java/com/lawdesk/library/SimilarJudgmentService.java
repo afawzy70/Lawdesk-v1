@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.lawdesk.cases.CaseAccessPolicy;
+import com.lawdesk.security.CurrentActor;
+import com.lawdesk.security.Permission;
 import com.lawdesk.library.LibraryViews.Basis;
 import com.lawdesk.library.LibraryViews.Difference;
 import com.lawdesk.library.LibraryViews.JudgmentRef;
@@ -30,7 +32,9 @@ import com.lawdesk.library.LibraryViews.Suggestions;
  * <p>Scores: same type of case 20, same court level 10, each shared classification 15 (at most three), each shared
  * keyword 10 (at most four), each shared word 5 (at most eight), each word shared with a principle 5 (at most four),
  * subject similarity up to 50. A type or a level alone never makes a suggestion: some shared content is required.
- * The defences of the case (work package 2) are not among the sources yet; {@code basis.defensesIncluded} says so.
+ * The sources are the case's title, subject and facts, its standing claims and its defences (as far as the user may read
+ * them: CLAIM_VIEW and DEFENSE_VIEW); {@code basis} says which were used. With a {@code defenseId} the comparison runs on
+ * that one defence only, which is what a member preparing its memo asks for (requirements section 16, "إعداد مذكرة دفاع").
  */
 @Service
 class SimilarJudgmentService {
@@ -49,9 +53,12 @@ class SimilarJudgmentService {
     private final JdbcClient jdbc;
     private final CaseAccessPolicy access;
 
-    SimilarJudgmentService(JdbcClient jdbc, CaseAccessPolicy access) {
+    private final CurrentActor currentActor;
+
+    SimilarJudgmentService(JdbcClient jdbc, CaseAccessPolicy access, CurrentActor currentActor) {
         this.jdbc = jdbc;
         this.access = access;
+        this.currentActor = currentActor;
     }
 
     private record Candidate(JudgmentRef ref, String courtLevel, String caseType, String docText, List<String> keywords,
@@ -60,22 +67,49 @@ class SimilarJudgmentService {
 
     @Transactional(readOnly = true)
     Suggestions forCase(UUID caseId, int limit) {
+        return forCase(caseId, limit, null);
+    }
+
+    @Transactional(readOnly = true)
+    Suggestions forCase(UUID caseId, int limit, UUID defenseId) {
         access.requireView(caseId);
+        boolean readClaims = currentActor.has(Permission.CLAIM_VIEW);
+        boolean readDefenses = currentActor.has(Permission.DEFENSE_VIEW);
+        if (defenseId != null && !readDefenses) {
+            throw new org.springframework.security.access.AccessDeniedException("defences are not open to this user");
+        }
+        if (defenseId != null && !jdbc.sql("select exists (select 1 from defense where id = :d and case_id = :c)")
+                .param("d", defenseId).param("c", caseId).query(Boolean.class).single()) {
+            throw new com.lawdesk.api.NotFoundException("defense");
+        }
+        // The text of the case; with a defence chosen, that defence alone speaks for the case's content.
+        String claimsText = defenseId != null || !readClaims ? "" : jdbc.sql("select coalesce(string_agg(text, ' ' order by seq),"
+                + " '') from claim where case_id = :id and status in ('STANDING', 'AMENDED')").param("id", caseId)
+                .query(String.class).single();
+        String defenseSql = "select coalesce(string_agg(title || ' ' || coalesce(argument, '') || ' ' || coalesce(legal_basis, '')"
+                + " || ' ' || coalesce(legal_texts, '') || ' ' || coalesce(facts, ''), ' ' order by seq), '') from defense"
+                + " where case_id = :id" + (defenseId == null ? "" : " and id = :defense");
+        var defenseQuery = jdbc.sql(defenseSql).param("id", caseId);
+        if (defenseId != null) {
+            defenseQuery = defenseQuery.param("defense", defenseId);
+        }
+        String defensesText = readDefenses ? defenseQuery.query(String.class).single() : "";
+        boolean caseContent = defenseId == null;
         Map<String, Object> profile = jdbc.sql("select case_type, library_normalize(title) as t, library_normalize(subject)"
-                        + " as s, library_normalize(facts) as f, library_normalize(title || ' ' || coalesce(subject, '')"
-                        + " || ' ' || coalesce(facts, '')) as whole from legal_case where id = :id")
+                        + " as s, library_normalize(facts) as f from legal_case where id = :id")
                 .param("id", caseId).query((rs, n) -> Map.<String, Object>of("caseType", rs.getString("case_type"),
-                        "t", rs.getString("t"), "s", rs.getString("s"), "f", rs.getString("f"),
-                        "whole", rs.getString("whole"))).single();
-        String whole = (String) profile.get("whole");
+                        "t", rs.getString("t"), "s", rs.getString("s"), "f", rs.getString("f"))).single();
+        String caseText = caseContent ? profile.get("t") + " " + profile.get("s") + " " + profile.get("f") : "";
+        String whole = jdbc.sql("select library_normalize(:text)").param("text", String.join(" ", caseText, claimsText,
+                defensesText)).query(String.class).single();
         String caseType = (String) profile.get("caseType");
-        List<String> terms = LibraryText.terms(profile.get("t") + " " + profile.get("s") + " " + profile.get("f"),
-                MAX_PROFILE_TERMS);
+        List<String> terms = LibraryText.terms(whole, MAX_PROFILE_TERMS);
         List<String> levels = jdbc.sql("select distinct c.level from proceeding p join court c on c.id = p.court_id"
                 + " where p.case_id = :id order by 1").param("id", caseId).query(String.class).list();
         Set<UUID> linked = new HashSet<>(jdbc.sql("select library_judgment_id from case_precedent_link where case_id = :id"
                 + " and removed_at is null").param("id", caseId).query(UUID.class).list());
-        Basis basis = new Basis(terms, caseType, levels, false);
+        Basis basis = new Basis(terms, caseType, levels, readDefenses && !defensesText.isBlank(),
+                readClaims && !claimsText.isBlank(), defenseId);
         if (whole.isEmpty()) {
             return new Suggestions(caseId, basis, List.of(), NOTE);
         }

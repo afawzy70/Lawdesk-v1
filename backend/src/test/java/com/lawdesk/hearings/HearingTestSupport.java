@@ -67,7 +67,7 @@ abstract class HearingTestSupport extends PostgresTestSupport {
     }
 
     static LocalDate today() {
-        return LocalDate.now(ZoneId.of("Africa/Cairo"));
+        return LocalDate.now(ZoneId.of("Asia/Kuwait"));
     }
 
     UUID createCase(String title) throws Exception {
@@ -107,7 +107,7 @@ abstract class HearingTestSupport extends PostgresTestSupport {
             mvc.perform(post("/api/v1/cases/" + caseId + "/status").with(as(Permission.CASE_STATUS_CHANGE))
                             .with(csrf()).contentType(MediaType.APPLICATION_JSON)
                             .content("""
-                                    {"status":"%s","version":%s}""".formatted(step[0], step[1])))
+                                    {"status":"%s","version":%s,"acknowledgeOpenItems":true}""".formatted(step[0], step[1])))
                     .andExpect(status().isOk());
         }
     }

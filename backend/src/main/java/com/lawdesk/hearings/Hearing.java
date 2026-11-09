@@ -143,6 +143,10 @@ class Hearing {
         this.requiredAction = requiredAction;
     }
 
+    void reassignTo(UUID memberId) {
+        this.responsibleMemberId = memberId;
+    }
+
     /** What happened at the hearing, recorded with the result; a value that is not given keeps what was planned. */
     void recordProceedings(String attendees, String proceedingsSummary, String opponentsRequests, String requiredAction) {
         this.attendees = attendees == null ? this.attendees : attendees;

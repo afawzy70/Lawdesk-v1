@@ -1,7 +1,7 @@
 import { useId, useState, type SyntheticEvent } from 'react';
 import type { MessageKey } from '../../i18n/catalog';
 import { useI18n } from '../../i18n/I18nContext';
-import { changeStatus, NEXT_STATUSES, type CaseStatus, type LegalCase } from './api';
+import { changeStatus, getClosingCheck, NEXT_STATUSES, type CaseStatus, type ClosingFinding, type LegalCase } from './api';
 import { isStatus, problemMessage } from './problems';
 
 interface Props {
@@ -26,16 +26,25 @@ export function CaseStatusForm({ legalCase, onChanged, onReload }: Props) {
   const [reason, setReason] = useState('');
   const [failure, setFailure] = useState<MessageKey | null>(null);
   const [saving, setSaving] = useState(false);
+  const [open, setOpen] = useState<ClosingFinding[] | null>(null);
 
-  const submit = async (event: SyntheticEvent) => {
-    event.preventDefault();
+  const submit = async (event: SyntheticEvent | null, acknowledge = false) => {
+    event?.preventDefault();
     setSaving(true);
     setFailure(null);
     try {
-      await changeStatus(legalCase.id, status, reason, legalCase.version);
+      await changeStatus(legalCase.id, status, reason, legalCase.version, acknowledge);
       onChanged();
     } catch (error) {
-      setFailure(explain(error));
+      if (isStatus(error, 422, 'CLOSING_OPEN_ITEMS_NOT_ACKNOWLEDGED')) {
+        try {
+          setOpen((await getClosingCheck(legalCase.id)).findings);
+        } catch (inner) {
+          setFailure(explain(inner));
+        }
+      } else {
+        setFailure(explain(error));
+      }
     } finally {
       setSaving(false);
     }
@@ -51,6 +60,25 @@ export function CaseStatusForm({ legalCase, onChanged, onReload }: Props) {
               {t('cases.edit.reload')}
             </button>
           ) : null}
+        </div>
+      )}
+      {open === null ? null : (
+        <div className="case-alert" role="alert" aria-label={t('gap.closing.title')}>
+          <p>{t('gap.closing.title')}</p>
+          <ul>
+            {open.map((finding) => (
+              <li key={finding.code}>{t(`gap.closing.${finding.code}` as MessageKey, { count: String(finding.count) })}</li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            disabled={saving}
+            onClick={() => {
+              void submit(null, true);
+            }}
+          >
+            {t('gap.closing.confirm')}
+          </button>
         </div>
       )}
       <div className="case-field">

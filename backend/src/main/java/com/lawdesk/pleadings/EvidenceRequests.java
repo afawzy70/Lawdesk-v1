@@ -55,10 +55,12 @@ final class EvidenceRequests {
     record LinkView(UUID id, String kind, UUID targetId, String label) {
     }
 
-    record FollowupBody(@NotNull UUID taskId) {
+    /** A task or an information request of the same case that follows the missing evidence up: exactly one of the two. */
+    record FollowupBody(UUID taskId, UUID infoRequestId) {
     }
 
-    record FollowupView(UUID id, UUID taskId, String taskTitle, String taskStatus, Instant createdAt) {
+    record FollowupView(UUID id, UUID taskId, String taskTitle, String taskStatus, UUID infoRequestId, String requestNo,
+            String requestStatus, Instant createdAt) {
     }
 
     record ItemView(UUID id, UUID caseId, UUID documentId, String documentTitle, String name, String docType,

@@ -12,6 +12,7 @@ import {
   ENTRY_TYPES,
   loadCalendar,
   periodOf,
+  reassignHearing,
   shift,
   type CalendarEntry,
   type CalendarFilter,
@@ -119,9 +120,21 @@ function MonthGrid({ view, onOpen }: { view: CalendarView; onOpen: (date: string
   );
 }
 
-function ConflictList({ conflicts }: { conflicts: Conflict[] }) {
+function ConflictList({ conflicts, canReassign, onChanged }: { conflicts: Conflict[]; canReassign: boolean; onChanged: () => void }) {
   const { locale, t } = useI18n();
+  const [failed, setFailed] = useState(false);
   if (conflicts.length === 0) return null;
+  const reassign = (hearingId: string, memberId: string) => {
+    reassignHearing(hearingId, memberId).then(
+      () => {
+        setFailed(false);
+        onChanged();
+      },
+      () => {
+        setFailed(true);
+      },
+    );
+  };
   return (
     <section className="case-notice wp6-conflicts" aria-label={t('wp6.calendar.conflicts')}>
       <h3>{t('wp6.calendar.conflicts')}</h3>
@@ -140,12 +153,26 @@ function ConflictList({ conflicts }: { conflicts: Conflict[] }) {
                   {e.alternateMemberName === null
                     ? ` · ${t('wp6.calendar.noAlternate')}`
                     : ` · ${t('wp6.calendar.alternate', { name: e.alternateMemberName })}`}
+                  {canReassign && e.refType === 'HEARING' && e.alternateMemberId !== null && e.ownerId !== e.alternateMemberId ? (
+                    <>
+                      {' '}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          reassign(e.refId, e.alternateMemberId ?? '');
+                        }}
+                      >
+                        {t('gap.calendar.reassign', { name: e.alternateMemberName ?? '' })}
+                      </button>
+                    </>
+                  ) : null}
                 </li>
               ))}
             </ul>
           </li>
         ))}
       </ul>
+      {failed ? <p role="alert">{t('gap.failed')}</p> : null}
     </section>
   );
 }
@@ -161,6 +188,7 @@ export function CalendarPage() {
   const filterId = useId();
   const state = useContext(AuthContext)?.state;
   const canManage = state?.status === 'signedIn' && state.me.permissions.includes('CALENDAR_MANAGE');
+  const canReassign = state?.status === 'signedIn' && state.me.permissions.includes('HEARING_MANAGE');
   // A link from a notification opens a given day: /calendar?date=2027-03-10&mode=DAY.
   const [search] = useSearchParams();
   const linkedDate = search.get('date');
@@ -289,7 +317,13 @@ export function CalendarPage() {
       {current !== null && 'view' in current ? (
         <>
           {current.view.truncated ? <p className="ops-alert" role="status">{t('wp6.calendar.truncated')}</p> : null}
-          <ConflictList conflicts={current.view.conflicts} />
+          <ConflictList
+            conflicts={current.view.conflicts}
+            canReassign={canReassign}
+            onChanged={() => {
+              setReload((n) => n + 1);
+            }}
+          />
           {filter.mode === 'MONTH' ? (
             <MonthGrid
               view={current.view}

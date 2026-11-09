@@ -33,6 +33,7 @@ class CaseService implements CaseLookup {
     static final String DATE_RANGE_INVALID = "DATE_RANGE_INVALID";
     static final String STATUS_TRANSITION_NOT_ALLOWED = "STATUS_TRANSITION_NOT_ALLOWED";
     static final String REASON_REQUIRED = "REASON_REQUIRED";
+    static final String CLOSING_OPEN_ITEMS = "CLOSING_OPEN_ITEMS_NOT_ACKNOWLEDGED";
     static final String MEMBER_NOT_ELIGIBLE = "MEMBER_NOT_ELIGIBLE";
 
     /** Supplied numbers may not look generated, so a generated number can never collide with one. */
@@ -44,9 +45,11 @@ class CaseService implements CaseLookup {
     private final CaseAccessPolicy access;
     private final AuditLog audit;
     private final UserDirectory users;
+    private final CaseClosingCheck closing;
 
     CaseService(CaseRepository cases, CaseTimeline timeline, CurrentActor currentActor, CaseAccessPolicy access,
-            AuditLog audit, UserDirectory users) {
+            AuditLog audit, UserDirectory users, CaseClosingCheck closing) {
+        this.closing = closing;
         this.cases = cases;
         this.timeline = timeline;
         this.currentActor = currentActor;
@@ -234,11 +237,33 @@ class CaseService implements CaseLookup {
         if (current.status() == CaseStatus.CLOSED && target == CaseStatus.ACTIVE && request.reason() == null) {
             throw new BusinessRuleException(REASON_REQUIRED, "reopening a closed case needs a reason");
         }
+        // Closing keeps everything and stays a manual decision (section 33): open items are shown and acknowledged.
+        String acknowledged = "";
+        if (target == CaseStatus.CLOSED) {
+            CaseClosingCheck.Result open = closing.of(id);
+            if (open.hasWarnings()) {
+                if (!Boolean.TRUE.equals(request.acknowledgeOpenItems())) {
+                    throw new BusinessRuleException(CLOSING_OPEN_ITEMS, "the case still has open items: "
+                            + open.findings().stream().map(CaseClosingCheck.Finding::code).toList());
+                }
+                acknowledged = " [open items acknowledged: " + String.join(", ",
+                        open.findings().stream().map(f -> f.code() + "=" + f.count()).toList()) + "]";
+            }
+        }
         LegalCase changed = cases.changeStatus(id, request.version(), current.status(), target, actor.id())
                 .orElseThrow(() -> new ConflictException("case " + id + " has changed concurrently"));
-        String summary = current.status() + " -> " + target + (request.reason() == null ? "" : ": " + request.reason());
+        String summary = current.status() + " -> " + target + (request.reason() == null ? "" : ": " + request.reason())
+                + acknowledged;
         timeline.append(id, CaseTimeline.CASE_STATUS_CHANGED, CaseTimeline.fit(summary), actor.id());
         return changed;
+    }
+
+    /** What would still be open if the case were closed now (a warning list, never a block). */
+    @Transactional(readOnly = true)
+    CaseClosingCheck.Result closingCheck(UUID id) {
+        access.requireView(id);
+        cases.find(id).orElseThrow(() -> new NotFoundException("case"));
+        return closing.of(id);
     }
 
     @Transactional(readOnly = true)

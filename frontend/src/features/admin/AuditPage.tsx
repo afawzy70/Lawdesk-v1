@@ -138,7 +138,7 @@ export function AuditPage() {
                   <td>{codeLabel('admin.audit.action', event.action, t)}</td>
                   <td dir="ltr">{event.targetId ?? event.targetType ?? ''}</td>
                   <td>{codeLabel('admin.audit.outcome', event.outcome, t)}</td>
-                  <td>{event.reason === null ? '' : codeLabel('admin.audit.reason', event.reason, t)}</td>
+                  <td>{event.masked === true ? t('gap.masked') : event.reason === null ? '' : codeLabel('admin.audit.reason', event.reason, t)}</td>
                   <td dir="ltr">{event.requestId ?? ''}</td>
                 </tr>
               ))}

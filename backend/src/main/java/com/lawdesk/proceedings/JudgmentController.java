@@ -56,4 +56,10 @@ class JudgmentController {
     JudgmentRequests.Response update(@PathVariable UUID id, @Valid @RequestBody JudgmentRequests.Update request) {
         return service.update(id, request);
     }
+
+    @PutMapping("/judgments/{id}/appeal-deadline")
+    @PreAuthorize(Permission.Codes.JUDGMENT_MANAGE)
+    JudgmentRequests.Response appealDeadline(@PathVariable UUID id, @Valid @RequestBody JudgmentRequests.AppealDeadlineBody body) {
+        return service.setAppealDeadline(id, body);
+    }
 }

@@ -213,7 +213,7 @@ class DashboardReportApiTest extends PostgresTestSupport {
      */
     @Test
     void countsUpcomingHearingsOverdueExpertReportsAndOverdueTasksFromThePhase5Ports() throws Exception {
-        LocalDate today = LocalDate.now(java.time.ZoneId.of("Africa/Cairo"));
+        LocalDate today = LocalDate.now(java.time.ZoneId.of("Asia/Kuwait"));
         UUID caseId = data.insertCase("operations", "CIVIL", "ACTIVE", today.minusYears(1));
         UUID court = data.insertCourt("FIRST_INSTANCE");
         UUID proceeding = data.insertProceeding(caseId, "FIRST_INSTANCE", court, today.minusYears(1), null);

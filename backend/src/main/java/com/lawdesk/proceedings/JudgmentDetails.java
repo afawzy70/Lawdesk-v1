@@ -51,13 +51,47 @@ class JudgmentDetails {
     }
 
     JudgmentRequests.Response response(Judgment j, UUID caseId) {
-        return JudgmentRequests.Response.of(j, caseId, view(j, labels(idsOf(j))));
+        return JudgmentRequests.Response.of(j, caseId, view(j, labels(idsOf(j))), appealDeadlines(java.util.List.of(j))
+                .get(j.getId()));
     }
 
     /** Several judgments of one case with one label query. */
     java.util.List<JudgmentRequests.Response> responses(Collection<Judgment> judgments, UUID caseId) {
         Map<UUID, Label> labels = labels(judgments.stream().flatMap(j -> idsOf(j).stream()).toList());
-        return judgments.stream().map(j -> JudgmentRequests.Response.of(j, caseId, view(j, labels))).toList();
+        Map<UUID, JudgmentRequests.AppealDeadlineView> deadlines = appealDeadlines(judgments);
+        return judgments.stream().map(j -> JudgmentRequests.Response.of(j, caseId, view(j, labels), deadlines.get(j.getId())))
+                .toList();
+    }
+
+    /** The appeal deadline each judgment names (judgment id to the deadline), read in one query. */
+    private Map<UUID, JudgmentRequests.AppealDeadlineView> appealDeadlines(Collection<Judgment> judgments) {
+        Map<UUID, JudgmentRequests.AppealDeadlineView> found = new HashMap<>();
+        java.util.List<UUID> ids = judgments.stream().map(Judgment::getAppealDeadlineId).filter(Objects::nonNull).toList();
+        if (ids.isEmpty()) {
+            return found;
+        }
+        Map<UUID, JudgmentRequests.AppealDeadlineView> byDeadline = new HashMap<>();
+        jdbc.sql("select id, due_on, status, calc_status, action from deadline where id in (:ids)").param("ids", ids)
+                .query(rs -> {
+                    byDeadline.put(rs.getObject("id", UUID.class), new JudgmentRequests.AppealDeadlineView(
+                            rs.getObject("id", UUID.class), rs.getObject("due_on", java.time.LocalDate.class),
+                            rs.getString("status"), rs.getString("calc_status"), rs.getString("action")));
+                });
+        for (Judgment j : judgments) {
+            if (j.getAppealDeadlineId() != null) {
+                found.put(j.getId(), byDeadline.get(j.getAppealDeadlineId()));
+            }
+        }
+        return found;
+    }
+
+    /** Refuses a deadline that does not run from this judgment (or is not in its case). */
+    void checkAppealDeadline(UUID deadlineId, Judgment judgment) {
+        if (deadlineId != null && !jdbc.sql("""
+                select exists (select 1 from deadline where id = :d and source_type = 'JUDGMENT' and source_id = :j)""")
+                .param("d", deadlineId).param("j", judgment.getId()).query(Boolean.class).single()) {
+            throw new FieldErrorException("deadlineId", "NotFromJudgment");
+        }
     }
 
     private static java.util.List<UUID> idsOf(Judgment j) {

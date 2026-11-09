@@ -2,6 +2,7 @@ import { useId, useState, type SyntheticEvent } from 'react';
 import type { MessageKey } from '../../i18n/catalog';
 import { useI18n } from '../../i18n/I18nContext';
 import { formatDate } from '../cases/format';
+import { DefensePrecedents } from '../gaps/DefensePrecedents';
 import { numberOf } from '../proceedings/dates';
 import {
   ASSERTION_STATUSES,
@@ -223,6 +224,7 @@ export function CaseDefenses({ caseId, canManage }: Props) {
             <dt>{t('pl.defenses.preparedBy')}</dt>
             <dd>{current.defense.preparedByName ?? t('pl.notSpecified')}</dd>
           </dl>
+          <DefensePrecedents defenseId={current.defense.id} canManage={canManage} />
           <h4>{t('pl.defenses.stages')}</h4>
           <p className="case-field-hint">{t('pl.defenses.stagesHint')}</p>
           <table className="case-table">

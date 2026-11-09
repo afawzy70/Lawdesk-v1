@@ -67,7 +67,7 @@ abstract class ExpertTestSupport extends PostgresTestSupport {
     }
 
     static LocalDate today() {
-        return LocalDate.now(ZoneId.of("Africa/Cairo"));
+        return LocalDate.now(ZoneId.of("Asia/Kuwait"));
     }
 
     static String quote(Object value) {
