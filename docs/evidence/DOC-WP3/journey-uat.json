@@ -1,0 +1,627 @@
+{
+  "journey": "WP3 hearings, linked cases, information requests, risk and summary (261109063429)",
+  "base": "https://lawdesk.167-86-90-174.sslip.io",
+  "steps": [
+    {
+      "step": "deployed release",
+      "value": {
+        "release": "95023f064b79be61bb43a8bc13c001a9bccd2f89"
+      }
+    },
+    {
+      "step": "manager creates the authority unit the requests go to",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "intake registers synthetic case A1",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "intake registers synthetic case B1",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "case A",
+      "value": "LD-2026-00028"
+    },
+    {
+      "step": "case B",
+      "value": "LD-2026-00029"
+    },
+    {
+      "step": "staff schedules a hearing with the extended record",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the kind and chamber are kept",
+      "expected": [
+        "COURT",
+        "الدائرة الثالثة (SYNTH-DOC)"
+      ],
+      "actual": [
+        "COURT",
+        "الدائرة الثالثة (SYNTH-DOC)"
+      ],
+      "ok": true
+    },
+    {
+      "step": "staff adjourns it to a next hearing",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "the adjournment reason is stored",
+      "expected": "لإعلان الخصم بالمذكرة",
+      "actual": "لإعلان الخصم بالمذكرة",
+      "ok": true
+    },
+    {
+      "step": "both hearings are in the file: the previous one is kept",
+      "expected": 2,
+      "actual": 2,
+      "ok": true
+    },
+    {
+      "step": "the previous hearing is adjourned, not replaced",
+      "expected": [
+        "ADJOURNED",
+        "2026-11-09"
+      ],
+      "actual": [
+        "ADJOURNED",
+        "2026-11-09"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the next hearing is a separate scheduled record chained to it",
+      "expected": [
+        "SCHEDULED",
+        "2685755b-9a90-4c11-bd54-7f05cb20089b",
+        "الدائرة الثالثة (SYNTH-DOC)"
+      ],
+      "actual": [
+        "SCHEDULED",
+        "2685755b-9a90-4c11-bd54-7f05cb20089b",
+        "الدائرة الثالثة (SYNTH-DOC)"
+      ],
+      "ok": true
+    },
+    {
+      "step": "an adjournment with no next date is recorded",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "it creates no hearing and joins the follow-up list",
+      "expected": [
+        true,
+        null
+      ],
+      "actual": [
+        true,
+        null
+      ],
+      "ok": true
+    },
+    {
+      "step": "the follow-up list holds it",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "a read-only user without a scope sees no follow-up of it",
+      "expected": false,
+      "actual": false,
+      "ok": true
+    },
+    {
+      "step": "the specialist is alerted in the system",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "a later next hearing ends the follow-up",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the case leaves the follow-up list",
+      "expected": false,
+      "actual": false,
+      "ok": true
+    },
+    {
+      "step": "staff links the two cases",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "a request to join starts as requested, not decided",
+      "expected": [
+        "JOINDER_REQUEST",
+        "REQUESTED",
+        false
+      ],
+      "actual": [
+        "JOINDER_REQUEST",
+        "REQUESTED",
+        false
+      ],
+      "ok": true
+    },
+    {
+      "step": "the link shows in the file of case A",
+      "expected": [
+        "60f95f75-ba92-4b7b-a610-91eee8becd82"
+      ],
+      "actual": [
+        "60f95f75-ba92-4b7b-a610-91eee8becd82"
+      ],
+      "ok": true
+    },
+    {
+      "step": "and in the file of case B",
+      "expected": [
+        "9909269e-079e-4982-b4fb-418f6ed47cd1"
+      ],
+      "actual": [
+        "9909269e-079e-4982-b4fb-418f6ed47cd1"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the court's decision is recorded on the link",
+      "expected": [
+        200,
+        true
+      ],
+      "actual": [
+        200,
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "a user with no access to the cases cannot read their links",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "a case cannot be linked to itself",
+      "expected": 422,
+      "actual": 422,
+      "ok": true
+    },
+    {
+      "step": "staff registers a request to the unit as a draft",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the system generated the number",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "request number",
+      "value": "IR-2026-00001"
+    },
+    {
+      "step": "request moves to PENDING_APPROVAL",
+      "expected": [
+        200,
+        "PENDING_APPROVAL"
+      ],
+      "actual": [
+        200,
+        "PENDING_APPROVAL"
+      ],
+      "ok": true
+    },
+    {
+      "step": "request moves to SENT",
+      "expected": [
+        200,
+        "SENT"
+      ],
+      "actual": [
+        200,
+        "SENT"
+      ],
+      "ok": true
+    },
+    {
+      "step": "a partial reply is recorded",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "a second reply with a document is recorded",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the document is archived in the case file",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the archived reply is among the case documents",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "every reply is kept and the state follows the latest",
+      "expected": [
+        2,
+        "INCOMPLETE"
+      ],
+      "actual": [
+        2,
+        "INCOMPLETE"
+      ],
+      "ok": true
+    },
+    {
+      "step": "a request past its date is overdue as soon as it is read",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the follow-up run marks late requests",
+      "expected": [
+        200,
+        true
+      ],
+      "actual": [
+        200,
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "the late request is marked overdue and is not closed",
+      "expected": "OVERDUE",
+      "actual": "OVERDUE",
+      "ok": true
+    },
+    {
+      "step": "the specialist has one in-app alert about it",
+      "expected": 1,
+      "actual": 1,
+      "ok": true
+    },
+    {
+      "step": "running again never duplicates the alert",
+      "expected": 1,
+      "actual": 1,
+      "ok": true
+    },
+    {
+      "step": "a reminder is recorded",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "a new letter to the unit is recorded",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "escalation is refused without the escalation permission",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "a holder of the permission escalates",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the follow-up history is kept in order",
+      "expected": [
+        "REMINDER",
+        "RE_ADDRESS",
+        "ESCALATION"
+      ],
+      "actual": [
+        "REMINDER",
+        "RE_ADDRESS",
+        "ESCALATION"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the late request is in the overdue list",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the reason for the delay is recorded with a new date",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "it is no longer overdue and returns to its earlier state",
+      "expected": [
+        false,
+        "SENT"
+      ],
+      "actual": [
+        false,
+        "SENT"
+      ],
+      "ok": true
+    },
+    {
+      "step": "a user with no access to the case cannot see its requests",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the responsiveness report counts requests per unit",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "a high risk without a plan is refused",
+      "expected": [
+        422,
+        "REMEDIATION_REQUIRED"
+      ],
+      "actual": [
+        422,
+        "REMEDIATION_REQUIRED"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the first assessment is version 1, with ten elements and its own loss amount",
+      "expected": [
+        201,
+        1,
+        10,
+        "75000.500"
+      ],
+      "actual": [
+        201,
+        1,
+        10,
+        "75000.500"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the high-risk report lists the case with its plan",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "a new document leads to a new version",
+      "expected": [
+        201,
+        2,
+        "NEW_DOCUMENT"
+      ],
+      "actual": [
+        201,
+        2,
+        "NEW_DOCUMENT"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the history keeps both versions, newest first",
+      "expected": [
+        2,
+        1
+      ],
+      "actual": [
+        2,
+        1
+      ],
+      "ok": true
+    },
+    {
+      "step": "the earlier version is unchanged",
+      "expected": [
+        "HIGH",
+        "75000.500"
+      ],
+      "actual": [
+        "HIGH",
+        "75000.500"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the lowered case leaves the high-risk report",
+      "expected": false,
+      "actual": false,
+      "ok": true
+    },
+    {
+      "step": "a user with no access cannot see the assessments",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the summary is assembled from the stored data",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "it names the hearings, the next one, the risk and the pending requests",
+      "expected": [
+        2,
+        1,
+        true,
+        "LOW",
+        true
+      ],
+      "actual": [
+        2,
+        1,
+        true,
+        "LOW",
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "the modules not built yet are named, not invented",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the timeline joins hearings, requests, replies, risk and links",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the upcoming hearing is marked as future and links to its record",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "it filters by type",
+      "expected": "{'RISK'}",
+      "actual": "{'RISK'}",
+      "ok": true
+    },
+    {
+      "step": "a user with no access cannot see the summary or timeline",
+      "expected": [
+        true,
+        true
+      ],
+      "actual": [
+        true,
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "the case is closed",
+      "expected": [
+        200,
+        "CLOSED"
+      ],
+      "actual": [
+        200,
+        "CLOSED"
+      ],
+      "ok": true
+    },
+    {
+      "step": "closing it did not close the linked case",
+      "expected": "OPEN",
+      "actual": "OPEN",
+      "ok": true
+    },
+    {
+      "step": "the link remains in the other case's file",
+      "expected": [
+        "CLOSED"
+      ],
+      "actual": [
+        "CLOSED"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the hearings of the closed case remain",
+      "expected": 2,
+      "actual": 2,
+      "ok": true
+    },
+    {
+      "step": "the summary of the closed case still shows its history",
+      "expected": [
+        200,
+        "CLOSED",
+        2
+      ],
+      "actual": [
+        200,
+        "CLOSED",
+        2
+      ],
+      "ok": true
+    },
+    {
+      "step": "the closing is in the timeline",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the specialist has unread notifications",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "one notification is marked read",
+      "expected": 204,
+      "actual": 204,
+      "ok": true
+    },
+    {
+      "step": "another user cannot mark it",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the read-only user sees none of these cases' notifications",
+      "expected": [],
+      "actual": [],
+      "ok": true
+    },
+    {
+      "step": "all are marked read",
+      "expected": 204,
+      "actual": 204,
+      "ok": true
+    }
+  ],
+  "passed": true
+}

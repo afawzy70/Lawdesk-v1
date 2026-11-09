@@ -40,6 +40,7 @@ public record CaseDetails(
     }
 
     /** True when no value is specified. */
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public boolean isEmpty() {
         return this.equals(EMPTY);
     }
