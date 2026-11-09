@@ -291,6 +291,8 @@ class HearingService {
 
     private Hearing lockedCurrent(UUID id, long version) {
         Hearing hearing = hearings.lockById(id).orElseThrow(() -> new NotFoundException("hearing"));
+        // Access first: a user who cannot see the case must learn nothing about the hearing, not even that its version differs.
+        writableCase(hearing.getCaseId());
         if (hearing.getVersion() != version) {
             throw new ConflictException("hearing was changed by someone else");
         }
