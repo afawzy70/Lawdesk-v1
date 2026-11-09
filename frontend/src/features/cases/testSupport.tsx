@@ -53,6 +53,11 @@ export function scriptedFetch(
     // The structure lists of LD-050 (units a case concerns, the authority's units) are not what these tests script.
     if (request.method === 'GET' && /\/duplicate-check\?/.test(url)) return Promise.resolve(jsonResponse(duplicates));
     if (request.method === 'GET' && /\/involvements$|\/parties\/counsel$|\/api\/v1\/org-units/.test(url)) return Promise.resolve(jsonResponse([]));
+    // LD-053 (WP3): the sections these tests do not script answer "nothing there" instead of being recorded as requests.
+    if (request.method === 'GET' && /\/links$|\/info-requests\?|\/risk-assessments$|\/unified-timeline|\/notifications/.test(url)) {
+      return Promise.resolve(jsonResponse({ items: [], hiddenCount: 0, page: 0, size: 20, totalItems: 0, totalPages: 0 }));
+    }
+    if (request.method === 'GET' && /\/summary$/.test(url)) return Promise.resolve(problem(404));
     requests.push(request);
     return Promise.resolve(respond(request));
   });

@@ -15,6 +15,15 @@ public final class OperationsTestData {
     }
 
     public static void deleteAll(JdbcTemplate jdbc) {
+        // LD-053 (WP3), children before parents: notifications, information requests, risk assessments and case links.
+        jdbc.update("delete from notification");
+        jdbc.update("delete from info_follow_up");
+        jdbc.update("delete from info_reply");
+        jdbc.update("delete from info_request");
+        jdbc.update("delete from risk_remediation");
+        jdbc.update("delete from risk_assessment_element");
+        jdbc.update("delete from risk_assessment");
+        jdbc.update("delete from case_link");
         // LD-050: access records hang off cases, users and the organisation tree.
         // LD-052: a library judgment used in a case hangs off the case.
         jdbc.update("delete from case_precedent_link");

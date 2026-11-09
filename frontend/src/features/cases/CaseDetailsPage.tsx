@@ -18,6 +18,8 @@ import { CaseInvolvementsSection } from './CaseInvolvementsSection';
 import { CaseAssignmentSection } from './intake/CaseAssignmentSection';
 import { CasePartiesSection } from './CasePartiesSection';
 import { CaseStatusForm } from './CaseStatusForm';
+import { CaseFollowUp } from '../followup/CaseFollowUp';
+import { CaseSummaryPanel } from '../followup/CaseSummaryPanel';
 import { CaseTimelineList } from './CaseTimelineList';
 import type { CreatedState } from './CaseCreatePage';
 import { formatDate } from './format';
@@ -169,6 +171,7 @@ function CaseDetails({ id }: { id: string }) {
           </p>
         )}
       </div>
+      <CaseSummaryPanel caseId={legalCase.id} generation={generation} />
       <CaseDetailsView details={legalCase.details} />
       <div className="case-workspace">
         <div className="case-workspace-index">
@@ -220,6 +223,7 @@ function CaseDetails({ id }: { id: string }) {
           <CaseProceedings caseId={legalCase.id} automatedNo={legalCase.automatedNo ?? null} />
           <CaseOperations caseId={legalCase.id} />
           <CaseLibrarySection caseId={legalCase.id} editable={!archived} />
+          <CaseFollowUp caseId={legalCase.id} archived={archived} generation={generation} />
         </div>
       </div>
     </>

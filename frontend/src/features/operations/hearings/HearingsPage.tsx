@@ -10,6 +10,7 @@ import { casePath } from '../../cases/paths';
 import { numberOf } from '../../proceedings/dates';
 import { addDays, formatDay, formatTime, legalToday } from '../days';
 import { loadError } from '../formErrors';
+import { HearingFollowUp } from './HearingFollowUp';
 import { HearingResultForm, RescheduleHearingForm } from './HearingForms';
 import {
   HEARING_STATUSES,
@@ -207,6 +208,8 @@ export function HearingsPage() {
           }}
         />
       ) : null}
+
+      <HearingFollowUp refresh={reload} />
 
       {current === null ? <p>{t('operations.loading')}</p> : null}
 

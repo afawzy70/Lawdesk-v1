@@ -1,0 +1,112 @@
+/* LD-053 (WP3): sections of the case page, the notifications bell and list. Logical properties, so RTL needs no overrides. */
+.wp3-section {
+  margin-block: 1.5rem;
+}
+
+.wp3-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.wp3-card,
+.wp3-list > li {
+  border: 1px solid var(--color-border, #d6dae0);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  overflow-wrap: anywhere;
+}
+
+.wp3-hidden {
+  font-style: italic;
+}
+
+.wp3-badge {
+  display: inline-block;
+  margin-inline-start: 0.35rem;
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-size: 0.8em;
+}
+
+.wp3-badge[data-status='OVERDUE'],
+.wp3-badge[data-level='HIGH'],
+.wp3-badge[data-level='VERY_HIGH'] {
+  font-weight: 600;
+}
+
+.wp3-disclaimer {
+  margin-block: 0.5rem;
+}
+
+.wp3-table {
+  width: 100%;
+  border-collapse: collapse;
+  display: block;
+  overflow-x: auto;
+}
+
+.wp3-table th,
+.wp3-table td {
+  border: 1px solid var(--color-border, #d6dae0);
+  padding: 0.35rem 0.5rem;
+  text-align: start;
+  vertical-align: top;
+}
+
+.wp3-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.wp3-timeline li {
+  border-inline-start: 3px solid var(--color-border, #d6dae0);
+  padding-inline-start: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.wp3-timeline li[data-future='true'] {
+  border-inline-start-style: dashed;
+}
+
+.wp3-filters label {
+  display: inline-block;
+  margin-inline-end: 1rem;
+}
+
+.wp3-bell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  justify-content: center;
+  color: inherit;
+}
+
+.wp3-bell-count {
+  position: absolute;
+  inset-block-start: 0.1rem;
+  inset-inline-end: 0.1rem;
+  min-width: 1.1rem;
+  padding: 0 0.25rem;
+  border-radius: 999px;
+  background: #b3261e;
+  color: #fff;
+  font-size: 0.7rem;
+  line-height: 1.1rem;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .wp3-card,
+  .wp3-list > li {
+    padding: 0.6rem 0.75rem;
+  }
+}

@@ -44,7 +44,7 @@ describe('case hearings', () => {
     expect(await screen.findByRole('heading', { level: 2, name: 'Legal operations' })).toBeInTheDocument();
     const region = await section();
     const items = await within(region).findAllByRole('listitem');
-    expect(items[0]).toHaveTextContent('Sun, 2 Mar 2025 · Pleading');
+    expect(items[0]).toHaveTextContent('Sun, 2 Mar 2025 · Court · Pleading');
     expect(items[0]).toHaveTextContent('First instance no. 1234/2025, Sample First-Instance Court');
     expect(items[0]).toHaveTextContent('Held');
     expect(items[0]).toHaveTextContent('Reserved for judgment');
@@ -89,7 +89,18 @@ describe('case hearings', () => {
     expect(await within(region).findByRole('status')).toHaveTextContent('The hearing was saved.');
     const post = requests.find((r) => r.method === 'POST');
     expect(post?.path).toBe('/api/v1/proceedings/p2/hearings');
-    expect(post?.body).toEqual({ hearingDate: '2025-03-02', hearingTime: '09:30', purpose: 'FIRST_SESSION', notes: null });
+    expect(post?.body).toEqual({
+      hearingDate: '2025-03-02',
+      hearingTime: '09:30',
+      purpose: 'FIRST_SESSION',
+      notes: null,
+      chamber: null,
+      kind: 'COURT',
+      judgeOrExpert: null,
+      responsibleMemberId: null,
+      attendees: null,
+      requiredAction: null,
+    });
     expect(await within(region).findAllByRole('listitem')).toHaveLength(1);
   });
 
@@ -186,7 +197,7 @@ describe('case hearings', () => {
     expect(await within(region).findByText('تعذّر تحميل البيانات. تحقّق من الاتصال وأعد المحاولة.')).toBeVisible();
     hearings = page([hearing()]);
     await user.click(within(region).getByRole('button', { name: 'أعد المحاولة' }));
-    expect(await within(region).findByRole('listitem')).toHaveTextContent('الأحد، ٢ مارس ٢٠٢٥ · ٠٩:٣٠ · مرافعة');
+    expect(await within(region).findByRole('listitem')).toHaveTextContent('الأحد، ٢ مارس ٢٠٢٥ · ٠٩:٣٠ · محكمة · مرافعة');
   });
 
   it('reports a missing case', async () => {

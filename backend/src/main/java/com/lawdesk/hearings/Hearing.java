@@ -57,6 +57,42 @@ class Hearing {
 
     private Instant resultRecordedAt;
 
+    @Column(length = 200)
+    private String chamber;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 14)
+    private HearingKind kind = HearingKind.COURT;
+
+    @Column(length = 200)
+    private String judgeOrExpert;
+
+    private UUID responsibleMemberId;
+
+    @Column(length = 2000)
+    private String attendees;
+
+    @Column(length = 4000)
+    private String proceedingsSummary;
+
+    @Column(length = 4000)
+    private String opponentsRequests;
+
+    @Column(length = 2000)
+    private String requiredAction;
+
+    @Column(length = 2000)
+    private String adjournmentReason;
+
+    @Column(nullable = false)
+    private boolean noNextDate;
+
+    @Column(length = 2000)
+    private String noNextDateReason;
+
+    @Column(nullable = false)
+    private boolean followUpFlag;
+
     private UUID resultRecordedBy;
 
     @Version
@@ -92,6 +128,40 @@ class Hearing {
         this.hearingTime = hearingTime;
         this.purpose = purpose;
         this.notes = notes;
+    }
+
+    /** The descriptive fields of the record (requirements section 7); null clears one. */
+    void describe(String chamber, HearingKind kind, String judgeOrExpert, UUID responsibleMemberId, String attendees,
+            String proceedingsSummary, String opponentsRequests, String requiredAction) {
+        this.chamber = chamber;
+        this.kind = kind == null ? HearingKind.COURT : kind;
+        this.judgeOrExpert = judgeOrExpert;
+        this.responsibleMemberId = responsibleMemberId;
+        this.attendees = attendees;
+        this.proceedingsSummary = proceedingsSummary;
+        this.opponentsRequests = opponentsRequests;
+        this.requiredAction = requiredAction;
+    }
+
+    /** What happened at the hearing, recorded with the result; a value that is not given keeps what was planned. */
+    void recordProceedings(String attendees, String proceedingsSummary, String opponentsRequests, String requiredAction) {
+        this.attendees = attendees == null ? this.attendees : attendees;
+        this.proceedingsSummary = proceedingsSummary == null ? this.proceedingsSummary : proceedingsSummary;
+        this.opponentsRequests = opponentsRequests == null ? this.opponentsRequests : opponentsRequests;
+        this.requiredAction = requiredAction == null ? this.requiredAction : requiredAction;
+    }
+
+    void adjournment(String reason, boolean noNextDate, String noNextDateReason) {
+        this.adjournmentReason = reason;
+        this.noNextDate = noNextDate;
+        this.noNextDateReason = noNextDate ? noNextDateReason : null;
+        this.followUpFlag = noNextDate;
+    }
+
+    /** A next hearing was scheduled for a hearing that had none: the follow-up ends, the record of "no date" stays. */
+    void endFollowUp(ActorRef actor, Instant now) {
+        this.followUpFlag = false;
+        touch(actor, now);
     }
 
     void recordResult(HearingStatus status, String decision, ActorRef actor, Instant now) {
@@ -145,6 +215,54 @@ class Hearing {
 
     UUID getAdjournedFromId() {
         return adjournedFromId;
+    }
+
+    String getChamber() {
+        return chamber;
+    }
+
+    HearingKind getKind() {
+        return kind;
+    }
+
+    String getJudgeOrExpert() {
+        return judgeOrExpert;
+    }
+
+    UUID getResponsibleMemberId() {
+        return responsibleMemberId;
+    }
+
+    String getAttendees() {
+        return attendees;
+    }
+
+    String getProceedingsSummary() {
+        return proceedingsSummary;
+    }
+
+    String getOpponentsRequests() {
+        return opponentsRequests;
+    }
+
+    String getRequiredAction() {
+        return requiredAction;
+    }
+
+    String getAdjournmentReason() {
+        return adjournmentReason;
+    }
+
+    boolean isNoNextDate() {
+        return noNextDate;
+    }
+
+    String getNoNextDateReason() {
+        return noNextDateReason;
+    }
+
+    boolean isFollowUpFlag() {
+        return followUpFlag;
     }
 
     long getVersion() {

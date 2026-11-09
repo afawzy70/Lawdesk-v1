@@ -10,6 +10,7 @@ import { selectorAr } from './selector.ar';
 import { operationsAr } from './operations.ar';
 import { reportsAr } from './reports.ar';
 import { libraryAr } from './library.ar';
+import { wp3Ar } from './wp3.ar';
 
 /** Arabic (Modern Standard Arabic) message catalog. Keys must match `en.ts` exactly. */
 export const ar: Messages = {
@@ -63,4 +64,5 @@ export const ar: Messages = {
   ...operationsAr,
   ...reportsAr,
   ...libraryAr,
+  ...wp3Ar,
 };

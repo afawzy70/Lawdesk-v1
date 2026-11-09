@@ -27,10 +27,12 @@ import com.lawdesk.cases.CaseLookup;
 import com.lawdesk.cases.CaseSummary;
 import com.lawdesk.courts.Court;
 import com.lawdesk.courts.CourtService;
+import com.lawdesk.notifications.NotificationPublisher;
 import com.lawdesk.proceedings.ProceedingLookup;
 import com.lawdesk.proceedings.ProceedingLookup.ProceedingSummary;
 import com.lawdesk.security.ActorRef;
 import com.lawdesk.security.CurrentActor;
+import com.lawdesk.users.UserDirectory;
 
 /**
  * Hearings of a proceeding (LD-024, docs/delivery/PHASE-5-ACCEPTANCE.md): scheduling, rescheduling, the result of a
@@ -56,9 +58,13 @@ class HearingService {
     private final ProceedingLookup proceedings;
     private final CourtService courts;
     private final CurrentActor currentActor;
+    private final UserDirectory users;
+    private final NotificationPublisher notifications;
 
     HearingService(HearingRepository hearings, CaseLookup cases, CaseAccessPolicy access, ProceedingLookup proceedings,
-            CourtService courts, CurrentActor currentActor) {
+            CourtService courts, CurrentActor currentActor, UserDirectory users, NotificationPublisher notifications) {
+        this.users = users;
+        this.notifications = notifications;
         this.hearings = hearings;
         this.cases = cases;
         this.access = access;
@@ -78,6 +84,9 @@ class HearingService {
 
         Hearing hearing = new Hearing(proceeding.caseId(), proceedingId, null, actor, LegalDay.now());
         hearing.plan(request.hearingDate(), request.hearingTime(), request.purpose(), request.notes());
+        requireMember(request.responsibleMemberId());
+        hearing.describe(request.chamber(), request.kind(), request.judgeOrExpert(), request.responsibleMemberId(),
+                request.attendees(), request.proceedingsSummary(), request.opponentsRequests(), request.requiredAction());
         Hearing stored = store(hearing);
         cases.recordEvent(proceeding.caseId(), HEARING_SCHEDULED, "Hearing scheduled for %s (%s) in proceeding %s"
                 .formatted(stored.getHearingDate(), stored.getPurpose(), numberOf(proceeding)));
@@ -126,6 +135,9 @@ class HearingService {
         boolean moved = !request.hearingDate().equals(hearing.getHearingDate())
                 || !Objects.equals(request.hearingTime(), hearing.getHearingTime());
         hearing.plan(request.hearingDate(), request.hearingTime(), request.purpose(), request.notes());
+        requireMember(request.responsibleMemberId());
+        hearing.describe(request.chamber(), request.kind(), request.judgeOrExpert(), request.responsibleMemberId(),
+                request.attendees(), request.proceedingsSummary(), request.opponentsRequests(), request.requiredAction());
         hearing.touch(actor, LegalDay.now());
         Hearing stored = store(hearing);
         if (moved) {
@@ -145,13 +157,32 @@ class HearingService {
         ProceedingSummary proceeding = lockedProceeding(hearing.getProceedingId());
         HearingStatus outcome = request.status().hearingStatus();
         LocalDate today = LegalDay.today();
+        boolean noDate = request.noDate();
         if (outcome != HearingStatus.ADJOURNED) {
             refuseNextHearing(request);
+            if (noDate) {
+                throw new FieldErrorException("noNextDate", "Null");
+            }
+            if (request.adjournmentReason() != null) {
+                throw new FieldErrorException("adjournmentReason", "Null");
+            }
+            if (request.noNextDateReason() != null) {
+                throw new FieldErrorException("noNextDateReason", "Null");
+            }
         }
         if (outcome != HearingStatus.CANCELLED && hearing.getHearingDate().isAfter(today)) {
             throw new BusinessRuleException(Rules.HEARING_NOT_YET_HELD, "the hearing day has not come yet");
         }
-        if (outcome == HearingStatus.ADJOURNED) {
+        if (outcome == HearingStatus.ADJOURNED && noDate) {
+            // The court set no date: it is recorded with its reason and the case goes to the follow-up list. No date is guessed.
+            if (request.noNextDateReason() == null) {
+                throw new FieldErrorException("noNextDateReason", "NotNull");
+            }
+            refuseNextHearing(request);
+        } else if (outcome == HearingStatus.ADJOURNED) {
+            if (request.noNextDateReason() != null) {
+                throw new FieldErrorException("noNextDateReason", "Null");
+            }
             if (request.nextHearingDate() == null) {
                 throw new FieldErrorException("nextHearingDate", "NotNull");
             }
@@ -161,14 +192,20 @@ class HearingService {
         }
 
         hearing.recordResult(outcome, request.decision(), actor, LegalDay.now());
+        hearing.recordProceedings(request.attendees(), request.proceedingsSummary(), request.opponentsRequests(),
+                request.requiredAction());
+        if (outcome == HearingStatus.ADJOURNED) {
+            hearing.adjournment(request.adjournmentReason(), noDate, request.noNextDateReason());
+        }
         Hearing stored = store(hearing);
         String held = "Hearing of %s in proceeding %s".formatted(stored.getHearingDate(), numberOf(proceeding));
         UUID nextId = null;
-        if (outcome == HearingStatus.ADJOURNED) {
-            Hearing next = new Hearing(hearing.getCaseId(), hearing.getProceedingId(), hearing.getId(), actor,
-                    LegalDay.now());
-            next.plan(request.nextHearingDate(), request.nextHearingTime(),
-                    request.nextHearingPurpose() == null ? hearing.getPurpose() : request.nextHearingPurpose(), null);
+        if (outcome == HearingStatus.ADJOURNED && noDate) {
+            cases.recordEvent(hearing.getCaseId(), "HEARING_ADJOURNED", held + " adjourned without a next date");
+            notifications.publishHearingWithoutDate(stored.getId(), actor.id());
+        } else if (outcome == HearingStatus.ADJOURNED) {
+            Hearing next = continuation(hearing, request.nextHearingDate(), request.nextHearingTime(),
+                    request.nextHearingPurpose(), actor);
             nextId = store(next).getId();
             cases.recordEvent(hearing.getCaseId(), "HEARING_ADJOURNED", held + " adjourned to "
                     + request.nextHearingDate() + timeSuffix(request.nextHearingTime()));
@@ -177,6 +214,54 @@ class HearingService {
                     + outcome.name().toLowerCase(Locale.ROOT));
         }
         return new Lookups().respond(stored, legalCase, proceeding, nextId, today);
+    }
+
+    /** Adjourned hearings the court gave no next date, of the cases the user sees (the follow-up list). */
+    @Transactional(readOnly = true)
+    Page<HearingRequests.Response> followUp(Pageable pageable) {
+        return respond(hearings.findFollowUp(access.scope(), unsorted(pageable)));
+    }
+
+    /** Schedules the next hearing of an adjourned hearing that had no date; the follow-up ends, nothing recorded is rewritten. */
+    @Transactional
+    HearingRequests.Response scheduleNext(UUID id, HearingRequests.NextHearing request) {
+        ActorRef actor = currentActor.require();
+        Hearing hearing = hearings.lockById(id).orElseThrow(() -> new NotFoundException("hearing"));
+        CaseSummary legalCase = writableCase(hearing.getCaseId());
+        if (hearing.getVersion() != request.version()) {
+            throw new ConflictException("hearing was changed by someone else");
+        }
+        if (!hearing.isFollowUpFlag() || hearings.findByAdjournedFromId(id).isPresent()) {
+            throw new BusinessRuleException(Rules.HEARING_NOT_AWAITING_DATE, "the hearing is not waiting for a next date");
+        }
+        LocalDate today = LegalDay.today();
+        ProceedingSummary proceeding = lockedProceeding(hearing.getProceedingId());
+        requireWithinReach("hearingDate", request.hearingDate(), today);
+        requireLater(hearing, request.hearingDate());
+        requireAfterFiling(proceeding, request.hearingDate());
+        Hearing next = continuation(hearing, request.hearingDate(), request.hearingTime(), request.purpose(), actor);
+        Hearing stored = store(next);
+        hearing.endFollowUp(actor, LegalDay.now());
+        store(hearing);
+        cases.recordEvent(hearing.getCaseId(), "HEARING_NEXT_SET", "Next hearing of %s set for %s%s".formatted(
+                hearing.getHearingDate(), stored.getHearingDate(), timeSuffix(stored.getHearingTime())));
+        return new Lookups().respond(stored, legalCase, proceeding, null, today);
+    }
+
+    /** The separate record of the hearing an adjournment leads to; it carries the setting of the one it continues. */
+    private static Hearing continuation(Hearing previous, LocalDate date, LocalTime time, HearingPurpose purpose,
+            ActorRef actor) {
+        Hearing next = new Hearing(previous.getCaseId(), previous.getProceedingId(), previous.getId(), actor, LegalDay.now());
+        next.plan(date, time, purpose == null ? previous.getPurpose() : purpose, null);
+        next.describe(previous.getChamber(), previous.getKind(), previous.getJudgeOrExpert(),
+                previous.getResponsibleMemberId(), null, null, null, null);
+        return next;
+    }
+
+    private void requireMember(UUID userId) {
+        if (userId != null && users.find(userId).isEmpty()) {
+            throw new FieldErrorException("responsibleMemberId", "Invalid");
+        }
     }
 
     private Hearing lockedCurrent(UUID id, long version) {
@@ -280,6 +365,12 @@ class HearingService {
         private final Map<UUID, CaseSummary> legalCases = new HashMap<>();
         private final Map<UUID, ProceedingSummary> proceedingSummaries = new HashMap<>();
         private final Map<UUID, Court> courtRecords = new HashMap<>();
+        private final Map<UUID, String> memberNames = new HashMap<>();
+
+        String memberName(UUID id) {
+            return id == null ? null : memberNames.computeIfAbsent(id,
+                    key -> users.find(key).map(UserDirectory.UserSummary::displayName).orElse(null));
+        }
 
         CaseSummary legalCase(UUID id) {
             return legalCases.computeIfAbsent(id, key -> cases.find(key).orElseThrow(() -> new NotFoundException("case")));
@@ -302,7 +393,8 @@ class HearingService {
                 UUID nextHearingId, LocalDate today) {
             Court court = courtRecords.computeIfAbsent(proceeding.courtId(),
                     key -> courts.find(key).orElseThrow(() -> new NotFoundException("court")));
-            return HearingRequests.Response.of(hearing, legalCase, proceeding, court, nextHearingId, today);
+            return HearingRequests.Response.of(hearing, legalCase, proceeding, court, nextHearingId, today,
+                    memberName(hearing.getResponsibleMemberId()));
         }
     }
 }

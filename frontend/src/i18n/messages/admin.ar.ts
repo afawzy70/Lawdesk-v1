@@ -130,4 +130,10 @@ export const adminAr: Record<keyof typeof adminEn, string> = {
   'admin.permission.CASE_GRANT_MANAGE': 'إدارة الاطلاع على القضايا والنطاقات',
   'admin.permission.ORG_MANAGE': 'إدارة الهيكل التنظيمي',
   'admin.permission.PARTY_ID_VIEW': 'الاطلاع على الرقم المدني ورقم المنشأة كاملًا',
+  'admin.permission.INFO_REQUEST_VIEW': 'الاطلاع على طلبات الإفادة',
+  'admin.permission.INFO_REQUEST_MANAGE': 'إدارة طلبات الإفادة',
+  'admin.permission.INFO_REQUEST_ESCALATE': 'تصعيد طلبات الإفادة',
+  'admin.permission.RISK_VIEW': 'الاطلاع على تقييم المخاطر',
+  'admin.permission.RISK_MANAGE': 'تقييم المخاطر وتحديثه',
+  'admin.permission.CASE_LINK_MANAGE': 'ربط القضايا',
 };
