@@ -49,15 +49,23 @@ member, a department-wide viewer, an outsider and missing permissions. New permi
 * 20-023 / 20-025 requests to the departments: `gap_followup.info_request_id` is reserved without a foreign key until WP3 adds
   `info_request`; for now a gap links to a task.
 * Search of the defence library is a simple text match (the unified Arabic search is WP9).
+* WP7 (library of judgments) has its own managed classification lists (`library_classification`); WP2's `lookup_value` serves
+  the judgment type and nature. The two follow the same rule (DOCUMENT / PROPOSED, no deletion, history) and could be merged later.
+* `SimilarJudgmentService` (WP7) does not yet read claims and defences as comparison sources; this package does not change it.
+
+## Repository hygiene
+
+`frontend/node_modules` was committed to `develop` as a symlink to a sibling worktree (commit 26625b3, the library screens).
+The last commit of this branch removes it; `.gitignore` already excludes the real directory.
 
 ## Evidence in this folder
 
 | File | |
 |---|---|
 | `01-red-…`, `02-red-…`, `03-red-…` | Failing runs before the code: lookups, claim results and judgment details; defences; claims, evidence and statistics (the last run with the three controllers set aside, 23 of 24 tests fail) |
-| `04-green-backend-pleadings.log` | 50 tests of `com.lawdesk.pleadings` green |
-| `05-backend-regression-neighbours.log` | 141 tests of the neighbouring modules (judgments, reports, visibility, hearings, documents, tasks, migrations, permissions) green |
-| `06-frontend-suite-and-coverage.log` | 584 frontend tests green; branches 91.41 % (gate 90 %) |
+| `04-green-backend-pleadings.log` | 50 tests of `com.lawdesk.pleadings` green (statistics list the six stages since WP1d widened them) |
+| `05-backend-regression-neighbours.log` | 257 tests of the neighbouring modules (judgments, proceedings and stages, reports, visibility, hearings, documents, tasks, library, parties, migrations, permissions) green on top of the merged WP1c, WP1d and WP7 |
+| `06-frontend-suite-and-coverage.log` | 639 frontend tests green; branches 91.33 % (gate 90 %) |
 | `journey-wp2-local.json` | The journey below run against the application with an embedded PostgreSQL on localhost (60 steps, all passed). **Not UAT.** |
 
 Honest note on order: the lookup / claim-result / judgment-detail and defence tests were run red first as written; the claim,
