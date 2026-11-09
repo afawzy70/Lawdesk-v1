@@ -8,6 +8,7 @@ import { intakeEn } from './intake.en';
 import { selectorEn } from './selector.en';
 import { operationsEn } from './operations.en';
 import { reportsEn } from './reports.en';
+import { libraryEn } from './library.en';
 
 /**
  * English message catalog. This object defines the set of message keys: every other catalog is typed as
@@ -64,6 +65,7 @@ export const en = {
   ...selectorEn,
   ...operationsEn,
   ...reportsEn,
+  ...libraryEn,
 };
 
 export type MessageKey = keyof typeof en;

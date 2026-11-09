@@ -20,6 +20,7 @@ export const PLANNED_AREAS: readonly NavItem[] = [
   { path: '/courts', label: 'nav.courts', requires: 'COURT_VIEW', status: 'ready' },
   { path: '/hearings', label: 'nav.hearings', requires: 'HEARING_VIEW', status: 'ready' },
   { path: '/judgments', label: 'nav.judgments', requires: 'JUDGMENT_VIEW', status: 'planned' },
+  { path: '/library', label: 'nav.library', requires: 'LIBRARY_VIEW', status: 'ready' },
   { path: '/experts', label: 'nav.experts', requires: 'EXPERT_VIEW', status: 'ready' },
   { path: '/documents', label: 'nav.documents', requires: 'DOCUMENT_VIEW', status: 'ready' },
   { path: '/tasks', label: 'nav.tasks', requires: 'TASK_VIEW', status: 'ready' },
