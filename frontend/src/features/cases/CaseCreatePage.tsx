@@ -8,8 +8,9 @@ import { withLang } from '../../i18n/locale';
 import { usePageTitle } from '../../i18n/usePageTitle';
 import { listCourtsPage } from '../proceedings/proceedingsApi';
 import type { Court } from '../courts/courtsApi';
-import { CASE_TYPES, claimedAmountValid, EMPTY_DETAILS, registerCase, type IntakeInput, type Side } from './api';
+import { CASE_TYPES, checkDuplicates, claimedAmountValid, type DuplicateResult, EMPTY_DETAILS, registerCase, type IntakeInput, type Side } from './api';
 import { CaseDetailsFields } from './intake/CaseDetailsFields';
+import { DuplicateWarning } from './DuplicateWarning';
 import { FinancialImpactFields, type FinancialValue } from './intake/FinancialImpactFields';
 import { IntakePartiesSection, type DraftParty } from './intake/IntakePartiesSection';
 import { MemberFields } from './intake/MemberFields';
@@ -76,6 +77,7 @@ function explain(error: unknown): Failure {
 }
 
 const intakeRuleKeys: Partial<Record<MessageKey, true>> = {
+  'intake.rule.DUPLICATE_SUSPECTED': true,
   'intake.rule.COURT_INACTIVE': true,
   'intake.rule.COURT_LEVEL_MISMATCH': true,
   'intake.rule.MEMBER_NOT_ELIGIBLE': true,
@@ -130,6 +132,10 @@ export function CaseCreatePage() {
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState<MessageKey | null>(null);
   const [saving, setSaving] = useState(false);
+  const [duplicates, setDuplicates] = useState<DuplicateResult | null>(null);
+  const [distinct, setDistinct] = useState(false);
+  const [distinctNote, setDistinctNote] = useState('');
+  const [needConfirm, setNeedConfirm] = useState(false);
 
   const set = (field: keyof IntakeInput) => (value: string) => {
     setValues((current) => ({ ...current, [field]: value }));
@@ -163,8 +169,18 @@ export function CaseCreatePage() {
     }
     setSaving(true);
     setFormError(null);
+    setNeedConfirm(false);
     try {
-      const created = await registerCase(input);
+      // Section 3: a case that resembles another is warned about first; the registrar decides, nothing is blocked.
+      if (!distinct) {
+        const found = await checkDuplicates(input);
+        if (found.visible.length > 0 || found.hidden > 0) {
+          setDuplicates(found);
+          setNeedConfirm(true);
+          return;
+        }
+      }
+      const created = await registerCase(distinct ? { ...input, confirmDistinct: true, distinctNote } : input);
       const state: CreatedState = { created: created.referenceNo };
       await navigate(withLang(casePath(created.id), locale), { state });
     } catch (error) {
@@ -306,6 +322,16 @@ export function CaseCreatePage() {
             amountError={errors.financialAmount}
           />
         ))}
+        {duplicates === null ? null : (
+          <DuplicateWarning
+            result={duplicates}
+            confirmed={distinct}
+            note={distinctNote}
+            needConfirmation={needConfirm}
+            onConfirmed={setDistinct}
+            onNote={setDistinctNote}
+          />
+        )}
         <CaseDetailsFields
           value={values.details}
           onChange={(next) => { setValues((c) => ({ ...c, details: next })); }}

@@ -29,6 +29,15 @@ const KNOWN_EVENTS: Record<string, MessageKey> = {
   EXPERT_REFERRAL_CANCELLED: 'cases.event.EXPERT_REFERRAL_CANCELLED',
   NOTE_ADDED: 'cases.event.NOTE_ADDED',
   NOTE_REMOVED: 'cases.event.NOTE_REMOVED',
+  INVOLVED_UNIT_ADDED: 'cases.event.INVOLVED_UNIT_ADDED',
+  INVOLVED_UNIT_CHANGED: 'cases.event.INVOLVED_UNIT_CHANGED',
+  INVOLVED_UNIT_REMOVED: 'cases.event.INVOLVED_UNIT_REMOVED',
+  CASE_ACCESS_GRANTED: 'cases.event.CASE_ACCESS_GRANTED',
+  CASE_ACCESS_REVOKED: 'cases.event.CASE_ACCESS_REVOKED',
+  CASE_CONFIDENTIALITY_CHANGED: 'cases.event.CASE_CONFIDENTIALITY_CHANGED',
+  COUNSEL_ADDED: 'cases.event.COUNSEL_ADDED',
+  COUNSEL_REMOVED: 'cases.event.COUNSEL_REMOVED',
+  DUPLICATE_REVIEWED: 'cases.event.DUPLICATE_REVIEWED',
 };
 
 /** The message naming a timeline event type; types this screen does not know read "Other event". */

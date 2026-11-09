@@ -24,7 +24,7 @@ const PARTIES = [{ id: REGISTERED, kind: 'ORGANIZATION', name: 'Nile Trading Co.
 
 const page = (items: unknown[]) => jsonResponse({ items, page: 0, size: 20, totalItems: items.length, totalPages: 1 });
 
-function serve(onIntake?: (request: Request) => Response) {
+function serve(onIntake?: (request: Request) => Response, duplicates?: { visible: unknown[]; hidden: number }) {
   const created = aCase();
   return scriptedFetch((request) => {
     const url = new URL(request.url, 'http://localhost');
@@ -37,7 +37,7 @@ function serve(onIntake?: (request: Request) => Response) {
     if (url.pathname.endsWith('/parties') || url.pathname.endsWith('/timeline')) return page([]);
     if (url.pathname.startsWith('/api/v1/cases/')) return jsonResponse(created);
     return problem(404);
-  });
+  }, duplicates);
 }
 
 type User = ReturnType<typeof userEvent.setup>;
@@ -68,6 +68,34 @@ const intakeBody = (requests: Request[]) =>
 
 beforeEach(() => {
   document.cookie = 'XSRF-TOKEN=test-token';
+});
+
+describe('the duplicate warning', () => {
+  const similar = {
+    visible: [{ caseId: 'c9', referenceNo: 'LD-2026-00009', title: 'Ministry v. Nile Trading', kind: 'SIMILAR', reasons: ['AUTOMATED_NO'] }],
+    hidden: 1,
+  };
+
+  it('warns before registering a case that resembles another and registers it once the registrar confirms', async () => {
+    const user = userEvent.setup();
+    const { requests } = serve(undefined, similar);
+    renderCases('/cases/new');
+    await fillRequired(user);
+
+    await user.click(submit());
+    expect(await screen.findByRole('alert', { name: 'This case may be registered already' })).toHaveTextContent('LD-2026-00009');
+    expect(intakeBody(requests)).toBeUndefined();
+
+    await user.click(submit());
+    expect(await screen.findByText('Confirm that the case is a different one to register it.')).toBeInTheDocument();
+    expect(intakeBody(requests)).toBeUndefined();
+
+    await user.click(screen.getByRole('checkbox', { name: /This is a different case/ }));
+    await user.type(screen.getByLabelText('Why it is different (kept with the registration)'), 'new stage');
+    await user.click(submit());
+    expect(await screen.findByText('Case LD-2026-00001 created.')).toBeInTheDocument();
+    expect(intakeBody(requests)).toMatchObject({ confirmDistinct: true, distinctNote: 'new stage' });
+  });
 });
 
 describe('the registration screen', () => {
@@ -158,7 +186,7 @@ describe('the registration screen', () => {
       const group = screen.getByRole('group', { name: 'Add a party' });
       await user.selectOptions(within(group).getByLabelText('Side'), side);
       await user.type(within(group).getByLabelText('Name'), name);
-      if (number !== '') await user.type(within(group).getByLabelText('Party automated number'), number);
+      if (number !== '') await user.type(within(group).getByLabelText('Civil number'), number);
       await user.click(within(group).getByRole('button', { name: 'Add to the case' }));
     };
     await addParty('PLAINTIFF', 'Co-plaintiff Agency', '000123');

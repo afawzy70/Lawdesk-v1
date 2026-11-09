@@ -13,6 +13,8 @@ manager = Session("manager").login("manager")
 staff = Session("staff").login("staff")
 viewer = Session("viewer").login("viewer")
 check = journey.check
+status, release = manager.call("GET", "/api/v1/release")
+journey.note("deployed release", release if status == 200 else status)
 
 
 def ids(session, path):
@@ -86,8 +88,11 @@ check("the alternate member (also the manager) sees it", manager.call("GET", "/a
 check("a read-only user without a scope does not see it", viewer.call("GET", "/api/v1/cases/" + case_id)[0], 404)
 check("nor in the viewer's list", count_cases(viewer), 0)
 check("the specialist finds it by its subject", staff.call("GET", "/api/v1/cases?q=" + MARK + "-" + run)[1]["totalItems"], 1)
-for path in ("/timeline", "/parties", "/proceedings", "/hearings", "/documents", "/notes", "/judgments"):
+for path in ("/timeline", "/parties", "/proceedings", "/notes", "/judgments"):
     check("viewer is refused %s" % path, viewer.call("GET", "/api/v1/cases/%s%s" % (case_id, path))[0], 404)
+for path in ("/hearings", "/documents"):
+    # The read-only account holds no permission for these areas at all: refused by permission before the case is looked at.
+    check("viewer is refused %s" % path, viewer.call("GET", "/api/v1/cases/%s%s" % (case_id, path))[0] in (403, 404), True)
 
 # --- the units the case concerns, with frozen names ------------------------------------------------------------------
 status, involvement = staff.call("POST", "/api/v1/cases/%s/involvements" % case_id, {

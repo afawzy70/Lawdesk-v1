@@ -383,6 +383,9 @@ export interface IntakeInput {
   financialImpact: FinancialImpact | '';
   financialAmount: string;
   details: DetailsInput;
+  /** The registrar saw the duplicate warning and says this is a different case. */
+  confirmDistinct?: boolean;
+  distinctNote?: string;
 }
 
 /** Registers a case with its first stage, parties, members and financial impact in one request. */
@@ -409,6 +412,9 @@ export function registerCase(input: IntakeInput): Promise<LegalCase> {
       financialImpact: input.financialImpact === '' ? null : input.financialImpact,
       ...(input.financialImpact === 'YES' ? { financialAmount: empty(input.financialAmount) } : {}),
       details: detailsBody(input.details),
+      ...(input.confirmDistinct === true
+        ? { confirmDistinct: true, distinctNote: empty(input.distinctNote ?? '') }
+        : {}),
     },
   });
 }
@@ -469,3 +475,70 @@ export function addInvolvement(caseId: string, value: NewInvolvement): Promise<I
 export function removeInvolvement(caseId: string, id: string): Promise<void> {
   return api(`${BASE}/${encodeURIComponent(caseId)}/involvements/${encodeURIComponent(id)}`, { method: 'DELETE' });
 }
+
+/** A case that may be the same as the one being registered (section 3). */
+export interface DuplicateHit {
+  caseId: string;
+  referenceNo: string;
+  title: string;
+  kind: 'EXACT' | 'SIMILAR';
+  reasons: string[];
+}
+
+/** The hits the asker may see, and how many more exist that they may not. */
+export interface DuplicateResult {
+  visible: DuplicateHit[];
+  hidden: number;
+}
+
+export function checkDuplicates(input: IntakeInput, signal?: AbortSignal): Promise<DuplicateResult> {
+  const params = new URLSearchParams();
+  if (input.automatedNo.trim() !== '') params.set('automatedNo', input.automatedNo.trim());
+  if (input.courtId !== '') params.set('courtId', input.courtId);
+  if (input.courtCaseNumber.trim() !== '') params.set('courtCaseNumber', input.courtCaseNumber.trim());
+  if (input.courtCaseYear.trim() !== '') params.set('courtCaseYear', input.courtCaseYear.trim());
+  if (input.title.trim() !== '') params.set('title', input.title.trim());
+  return api(`${BASE}/duplicate-check?${params.toString()}`, signal === undefined ? {} : { signal });
+}
+
+/** The lawyer or agent of a party on one case (section 2). */
+export interface Counsel {
+  id: string;
+  partyId: string;
+  kind: 'LAWYER' | 'AGENT';
+  name: string;
+  phone: string | null;
+  email: string | null;
+  notes: string | null;
+}
+
+export const listCounsel = (caseId: string, signal?: AbortSignal): Promise<Counsel[]> =>
+  api(`${BASE}/${encodeURIComponent(caseId)}/parties/counsel`, signal === undefined ? {} : { signal });
+
+export function addCounsel(
+  caseId: string,
+  partyId: string,
+  value: { kind: 'LAWYER' | 'AGENT'; name: string; phone: string; email: string; notes: string },
+): Promise<Counsel> {
+  const empty = (text: string) => (text.trim() === '' ? null : text.trim());
+  return api(`${BASE}/${encodeURIComponent(caseId)}/parties/${encodeURIComponent(partyId)}/counsel`, {
+    method: 'POST',
+    body: { kind: value.kind, name: value.name, phone: empty(value.phone), email: empty(value.email), notes: empty(value.notes) },
+  });
+}
+
+export const removeCounsel = (caseId: string, id: string): Promise<void> =>
+  api(`${BASE}/${encodeURIComponent(caseId)}/parties/counsel/${encodeURIComponent(id)}`, { method: 'DELETE' });
+
+/** A case a party is on, as the party's page lists it (only cases the viewer may see). */
+export interface PartyCase {
+  caseId: string;
+  referenceNo: string;
+  title: string;
+  status: CaseStatus;
+  role: PartyRole;
+  side: Side | null;
+}
+
+export const listPartyCases = (partyId: string, signal?: AbortSignal): Promise<PartyCase[]> =>
+  api(`/api/v1/parties/${encodeURIComponent(partyId)}/cases`, signal === undefined ? {} : { signal });

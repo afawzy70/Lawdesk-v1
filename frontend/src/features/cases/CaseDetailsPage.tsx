@@ -11,6 +11,7 @@ import { getCase, type LegalCase } from './api';
 import { CaseOperations } from '../operations/CaseOperations';
 import { CaseProceedings } from '../proceedings/CaseProceedings';
 import { CaseAccessSection } from '../access/CaseAccessSection';
+import { CaseCounselSection } from './CaseCounselSection';
 import { CaseDetailsView } from './CaseDetailsView';
 import { CaseInvolvementsSection } from './CaseInvolvementsSection';
 import { CaseAssignmentSection } from './intake/CaseAssignmentSection';
@@ -210,6 +211,7 @@ function CaseDetails({ id }: { id: string }) {
               refresh(null);
             }}
           />
+          <CaseCounselSection caseId={legalCase.id} editable={!archived} generation={generation} />
           <CaseTimelineList caseId={legalCase.id} generation={generation} />
         </div>
         <div className="case-workspace-content">
