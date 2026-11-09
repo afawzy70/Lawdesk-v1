@@ -148,3 +148,8 @@ reproduces it with a restricted role and fails on the old code (`permission deni
 Hardening: each indicator is calculated in its own savepoint; if its query fails it is logged and reported `available: false` with
 `unavailableReason: INDICATOR_FAILED` (list and figure), and the other indicators and the dashboard still answer (a failed SQL statement aborts a PostgreSQL
 transaction, which a savepoint contains; tested with a real `1 / 0`). Malformed requests still answer 400/422.
+
+Planner statistics. `visibleCaseIds` (and the stage distribution) rely on the planner knowing the size of `legal_case`; on tables just bulk-loaded and not yet analysed the
+planner can pick a plan that compares every row with every row (a 10 000-case timing test then took 44-54 s instead of seconds). Autovacuum analyses a changed table
+within about a minute on a running system; the bulk test helpers now `analyze` after loading, and the stage distribution drives from the case set through the
+`proceeding(case_id)` index so it does not depend on the estimate. After a very large import, run `analyze` before relying on report timings.

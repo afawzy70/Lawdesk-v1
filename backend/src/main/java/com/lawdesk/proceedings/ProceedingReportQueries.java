@@ -169,12 +169,19 @@ public class ProceedingReportQueries {
         String key = byCourt ? "cur.court_id" : "cur.stage";
         String names = byCourt ? "max(cur.name_ar) as name_ar, max(cur.name_en) as name_en"
                 : "null as name_ar, null as name_en";
-        String current = CURRENT.formatted("where p.case_id in (select legal_case.id from legal_case where "
-                + caseScope.sql() + ")", RANK);
-        List<Distribution> rows = new java.util.ArrayList<>(jdbc.sql("select cast(" + key + " as text) as k, " + names
-                + ", count(*) as n, coalesce(sum(legal_case.claimed_amount), 0) as claimed,"
-                + " coalesce(sum(legal_case.financial_amount), 0) as impact from (" + current + ") cur"
-                + " join legal_case on legal_case.id = cur.case_id group by " + key
+        // The cases of the scope are read once, into a materialised set: the scope can carry a list of 10 000 ids and the
+        // visibility rule, and repeating it inside each subquery made a stage-filtered inventory take minutes.
+        String scoped = "with scoped as materialized (select legal_case.id, legal_case.claimed_amount, legal_case.financial_amount"
+                + " from legal_case where " + caseScope.sql() + ") ";
+        // Each case of the set looks its current proceeding up through the index on proceeding(case_id): the plan does not
+        // depend on the planner's estimate of the set (a semi-join to a set it believed tiny compared every proceeding with
+        // every case), so it is as fast on a freshly loaded table as on an analysed one.
+        String current = "select p.stage, p.court_id, c.name_ar, c.name_en from proceeding p join court c on c.id = p.court_id"
+                + " where p.case_id = scoped.id order by " + RANK + " desc, p.filing_date desc, p.created_at desc, p.id desc limit 1";
+        List<Distribution> rows = new java.util.ArrayList<>(jdbc.sql(scoped + "select cast(" + key + " as text) as k, " + names
+                + ", count(*) as n, coalesce(sum(scoped.claimed_amount), 0) as claimed,"
+                + " coalesce(sum(scoped.financial_amount), 0) as impact from scoped cross join lateral (" + current + ") cur"
+                + " group by " + key
                 + " order by " + (byCourt ? "max(cur.name_ar)" : "min(case cur.stage "
                 + Arrays.stream(Stage.values()).map(st -> "when '" + st.name() + "' then " + st.ordinal())
                         .collect(Collectors.joining(" ")) + " end)"))
@@ -182,9 +189,9 @@ public class ProceedingReportQueries {
                 .query((rs, i) -> new Distribution(rs.getString("k"), rs.getString("name_ar"), rs.getString("name_en"),
                         rs.getLong("n"), rs.getBigDecimal("claimed").setScale(3), rs.getBigDecimal("impact").setScale(3)))
                 .list());
-        jdbc.sql("select count(*) as n, coalesce(sum(legal_case.claimed_amount), 0) as claimed,"
-                + " coalesce(sum(legal_case.financial_amount), 0) as impact from legal_case where " + caseScope.sql()
-                + " and not exists (select 1 from proceeding x where x.case_id = legal_case.id)")
+        jdbc.sql(scoped + "select count(*) as n, coalesce(sum(claimed_amount), 0) as claimed,"
+                + " coalesce(sum(financial_amount), 0) as impact from scoped"
+                + " where not exists (select 1 from proceeding x where x.case_id = scoped.id)")
                 .params(caseScope.params()).query(rs -> {
                     if (rs.getLong("n") > 0) {
                         rows.add(new Distribution(null, null, null, rs.getLong("n"),
