@@ -22,7 +22,6 @@ import com.lawdesk.security.ActorRef;
 @Service
 class ResultService {
 
-    private static final String STAGE_ORDER = "case p.stage when 'FIRST_INSTANCE' then 0 when 'APPEAL' then 1 else 2 end";
 
     private final JdbcClient jdbc;
     private final CaseRows rows;
@@ -83,7 +82,7 @@ class ResultService {
                        r.result, r.operative, r.reasons, r.awarded_amount, r.notes
                 from claim_result r join judgment j on j.id = r.judgment_id join proceeding p on p.id = j.proceeding_id
                      join claim c on c.id = r.claim_id
-                where p.case_id = :case order by\s""" + STAGE_ORDER + ", j.judgment_date, j.created_at, c.seq")
+                where p.case_id = :case order by\s""" + CaseRows.STAGE_ORDER + ", j.judgment_date, j.created_at, c.seq")
                 .param("case", caseId)
                 .query((rs, n) -> new ResultRequests.CaseClaimResult(rs.getObject("judgment_id", UUID.class),
                         rs.getObject("proceeding_id", UUID.class), rs.getString("stage"),
@@ -161,7 +160,7 @@ class ResultService {
                        r.position, r.reasons, r.operative
                 from defense_position r join judgment j on j.id = r.judgment_id join proceeding p on p.id = j.proceeding_id
                      join defense d on d.id = r.defense_id
-                where p.case_id = :case order by\s""" + STAGE_ORDER + ", j.judgment_date, j.created_at, d.seq")
+                where p.case_id = :case order by\s""" + CaseRows.STAGE_ORDER + ", j.judgment_date, j.created_at, d.seq")
                 .param("case", caseId)
                 .query((rs, n) -> new ResultRequests.CaseDefensePosition(rs.getObject("judgment_id", UUID.class),
                         rs.getObject("proceeding_id", UUID.class), rs.getString("stage"),

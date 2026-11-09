@@ -1,4 +1,5 @@
 import { api } from '../../api/http';
+import { STAGES, type Stage } from '../proceedings/proceedingsApi';
 
 /** Claims, judgments' results, defences, facts and evidence of a case (LD-051, requirements sections 5, 9, 17, 20). */
 
@@ -33,8 +34,8 @@ export const EVIDENCE_IMPORTANCE = ['LOW', 'MEDIUM', 'HIGH', 'DECISIVE'] as cons
 export type EvidenceImportance = (typeof EVIDENCE_IMPORTANCE)[number];
 export const JUDGMENT_STATUSES = ['ISSUED', 'NOTIFIED', 'CHALLENGED', 'OTHER'] as const;
 export type JudgmentStatus = (typeof JUDGMENT_STATUSES)[number];
-export const STAGES = ['FIRST_INSTANCE', 'APPEAL', 'CASSATION'] as const;
-export type StageCode = (typeof STAGES)[number];
+export { STAGES };
+export type StageCode = Stage;
 
 const casePath = (caseId: string, what: string) => `/api/v1/cases/${encodeURIComponent(caseId)}/${what}`;
 const enc = encodeURIComponent;

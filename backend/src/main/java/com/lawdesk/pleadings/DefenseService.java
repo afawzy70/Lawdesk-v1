@@ -31,7 +31,6 @@ class DefenseService {
                    (select count(*) from evidence_link l where l.defense_id = d.id) as evidence_count
             from defense d left join case_document m on m.id = d.memo_document_id
                  left join app_user u on u.id = d.prepared_by""";
-    private static final String STAGE_ORDER = "case p.stage when 'FIRST_INSTANCE' then 0 when 'APPEAL' then 1 else 2 end";
 
     private final JdbcClient jdbc;
     private final CaseRows rows;
@@ -158,7 +157,7 @@ class DefenseService {
                        m.title as memo_title
                 from defense_assertion a join defense d on d.id = a.defense_id join proceeding p on p.id = a.proceeding_id
                      left join case_document m on m.id = a.memo_document_id
-                where d.case_id = :case order by\s""" + STAGE_ORDER + ", p.filing_date, d.seq").param("case", caseId)
+                where d.case_id = :case order by\s""" + CaseRows.STAGE_ORDER + ", p.filing_date, d.seq").param("case", caseId)
                 .query((rs, n) -> new DefenseRequests.AssertionView(rs.getObject("defense_id", UUID.class), rs.getInt("seq"),
                         rs.getObject("proceeding_id", UUID.class), rs.getString("stage"),
                         AssertionStatus.valueOf(rs.getString("status")), rs.getObject("on_date", LocalDate.class),

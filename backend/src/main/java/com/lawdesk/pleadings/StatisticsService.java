@@ -80,8 +80,7 @@ class StatisticsService {
         Map<String, Long> stages = new HashMap<>();
         List<StatisticsRequests.ByStageAndResult> cross = new ArrayList<>();
         jdbc.sql("select p.stage, r.result, count(*) as n, coalesce(sum(r.awarded_amount), 0) as total " + FROM + f.where()
-                + " group by p.stage, r.result order by case p.stage when 'FIRST_INSTANCE' then 0 when 'APPEAL' then 1 else 2 end,"
-                + " r.result").params(f.params()).query(rs -> {
+                + " group by p.stage, r.result order by " + CaseRows.STAGE_ORDER + ", r.result").params(f.params()).query(rs -> {
             ClaimResult result = ClaimResult.valueOf(rs.getString("result"));
             long n = rs.getLong("n");
             counts.computeIfAbsent(result, k -> new long[1])[0] += n;

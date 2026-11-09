@@ -22,6 +22,10 @@ import com.lawdesk.security.CurrentActor;
 @Component
 class CaseRows {
 
+    /** Stages in the order of the judicial ladder, then the tracks beside it (the order of {@code Stage}); {@code p} is the proceeding. */
+    static final String STAGE_ORDER = "case p.stage when 'FIRST_INSTANCE' then 0 when 'APPEAL' then 1 when 'CASSATION' then 2"
+            + " when 'CONSTITUTIONAL' then 3 when 'ENFORCEMENT' then 4 else 5 end";
+
     private static final int EVENT_MAX = 500;
 
     private final JdbcClient jdbc;

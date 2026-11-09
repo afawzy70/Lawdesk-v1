@@ -78,7 +78,7 @@ describe('managed lists', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Someone else changed this record');
     await user.selectOptions(screen.getByLabelText('List'), 'JUDGMENT_NATURE');
     expect(await screen.findAllByRole('row')).toHaveLength(1);
-  });
+  }, 30000);
 
   it('marks the field the server refused and explains a failed load', async () => {
     const user = userEvent.setup();

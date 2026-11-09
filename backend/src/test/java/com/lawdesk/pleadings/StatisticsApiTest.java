@@ -52,7 +52,7 @@ class StatisticsApiTest extends PleadingsTestSupport {
                 .andExpect(jsonPath("$.byResult[?(@.result=='ACCEPTED')].awardedTotal").value(Matchers.contains("201.000")))
                 .andExpect(jsonPath("$.byResult[?(@.result=='PARTIAL')].count").value(Matchers.contains(0)))
                 .andExpect(jsonPath("$.byResult[?(@.result=='PARTIAL')].awardedTotal").value(Matchers.contains("0.000")))
-                .andExpect(jsonPath("$.byStage.length()").value(3))
+                .andExpect(jsonPath("$.byStage.length()").value(6))
                 .andExpect(jsonPath("$.byStage[?(@.stage=='FIRST_INSTANCE')].count").value(Matchers.contains(2)))
                 .andExpect(jsonPath("$.byStage[?(@.stage=='CASSATION')].count").value(Matchers.contains(0)))
                 .andExpect(jsonPath("$.byStageAndResult.length()").value(2))
