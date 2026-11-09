@@ -6,6 +6,8 @@ import { PreviewBanner } from '../components/PreviewBanner';
 import { useI18n } from '../i18n/I18nContext';
 import { withLang } from '../i18n/locale';
 import { useAuth } from '../features/auth/AuthContext';
+import { NotificationsBell } from '../features/followup/NotificationsBell';
+import '../features/followup/followup.css';
 import { visibleNav } from './navigation';
 
 const NAV_ID = 'primary-nav';
@@ -85,6 +87,7 @@ export function AppLayout() {
               <button type="submit">{t('shell.search')}</button>
             </form>
           )}
+          {me?.permissions.includes('CASE_VIEW') ? <NotificationsBell /> : null}
           <ApiStatus />
           <LocaleToggle />
           {me !== null && (

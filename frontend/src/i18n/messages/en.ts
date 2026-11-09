@@ -9,6 +9,7 @@ import { selectorEn } from './selector.en';
 import { operationsEn } from './operations.en';
 import { reportsEn } from './reports.en';
 import { libraryEn } from './library.en';
+import { wp3En } from './wp3.en';
 
 /**
  * English message catalog. This object defines the set of message keys: every other catalog is typed as
@@ -66,6 +67,7 @@ export const en = {
   ...operationsEn,
   ...reportsEn,
   ...libraryEn,
+  ...wp3En,
 };
 
 export type MessageKey = keyof typeof en;

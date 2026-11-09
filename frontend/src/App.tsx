@@ -18,6 +18,7 @@ import { CaseListPage } from './features/cases/CaseListPage';
 import { CASES_PATH, CASE_ROUTE, EDIT_CASE_ROUTE, NEW_CASE_PATH } from './features/cases/paths';
 import { CourtsPage } from './features/courts/CourtsPage';
 import { libraryRoutes } from './features/library/routes';
+import { NotificationsPage } from './features/followup/NotificationsPage';
 import { operationsRoutes } from './features/operations/routes';
 import { reportsRoutes } from './features/reports/routes';
 import { LocaleProvider } from './i18n/LocaleProvider';
@@ -58,6 +59,7 @@ export function AppRoutes({ locale }: LocaleProps) {
               <Route path="/admin/access" element={<AccessScopesPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/courts" element={<CourtsPage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
               {operationsRoutes()}
               {libraryRoutes()}
               {reportsRoutes()}

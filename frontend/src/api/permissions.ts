@@ -38,6 +38,12 @@ export const PERMISSIONS = [
   'PARTY_ID_VIEW',
   'LIBRARY_VIEW',
   'LIBRARY_MANAGE',
+  'INFO_REQUEST_VIEW',
+  'INFO_REQUEST_MANAGE',
+  'INFO_REQUEST_ESCALATE',
+  'RISK_VIEW',
+  'RISK_MANAGE',
+  'CASE_LINK_MANAGE',
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

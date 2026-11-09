@@ -200,6 +200,13 @@ describe('recording results from the calendar', () => {
       nextHearingDate: null,
       nextHearingTime: null,
       nextHearingPurpose: null,
+      adjournmentReason: null,
+      noNextDate: null,
+      noNextDateReason: null,
+      attendees: null,
+      proceedingsSummary: null,
+      opponentsRequests: null,
+      requiredAction: null,
       version: 0,
     });
     expect(calendarCalls(requests)).toHaveLength(2);
@@ -250,6 +257,13 @@ describe('recording results from the calendar', () => {
       nextHearingDate: '2025-04-06',
       nextHearingTime: '10:00',
       nextHearingPurpose: 'EVIDENCE',
+      adjournmentReason: null,
+      noNextDate: null,
+      noNextDateReason: null,
+      attendees: null,
+      proceedingsSummary: null,
+      opponentsRequests: null,
+      requiredAction: null,
       version: 0,
     });
   });
@@ -306,6 +320,12 @@ describe('recording results from the calendar', () => {
       hearingTime: null,
       purpose: 'PLEADING',
       notes: 'Bring the lease',
+      chamber: null,
+      kind: 'COURT',
+      judgeOrExpert: null,
+      responsibleMemberId: null,
+      attendees: null,
+      requiredAction: null,
       version: 0,
     });
   });

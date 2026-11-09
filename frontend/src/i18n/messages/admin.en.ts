@@ -128,4 +128,10 @@ export const adminEn = {
   'admin.permission.CASE_GRANT_MANAGE': 'Manage case access and scopes',
   'admin.permission.ORG_MANAGE': 'Manage the organisation structure',
   'admin.permission.PARTY_ID_VIEW': 'View full civil and establishment numbers',
+  'admin.permission.INFO_REQUEST_VIEW': 'View information requests',
+  'admin.permission.INFO_REQUEST_MANAGE': 'Manage information requests',
+  'admin.permission.INFO_REQUEST_ESCALATE': 'Escalate information requests',
+  'admin.permission.RISK_VIEW': 'View risk assessments',
+  'admin.permission.RISK_MANAGE': 'Assess and update risk',
+  'admin.permission.CASE_LINK_MANAGE': 'Link cases',
 } as const;

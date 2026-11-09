@@ -6,7 +6,7 @@ import { numberOf } from '../../proceedings/dates';
 import { listProceedings, type Proceeding } from '../../proceedings/proceedingsApi';
 import { formatDay, formatTime } from '../days';
 import { loadError } from '../formErrors';
-import { HearingResultForm, RescheduleHearingForm, ScheduleHearingForm } from './HearingForms';
+import { HearingResultForm, NextHearingForm, RescheduleHearingForm, ScheduleHearingForm } from './HearingForms';
 import { listCaseHearings, type Hearing } from './hearingsApi';
 
 interface Loaded {
@@ -16,7 +16,7 @@ interface Loaded {
 }
 
 type Result = { key: number; loaded: Loaded } | { key: number; error: MessageKey };
-type Open = null | { kind: 'schedule' } | { kind: 'result' | 'reschedule'; hearing: Hearing };
+type Open = null | { kind: 'schedule' } | { kind: 'result' | 'reschedule' | 'next'; hearing: Hearing };
 
 function withoutForbidden<T>(request: Promise<T>): Promise<T | null> {
   return request.catch((error: unknown) => {
@@ -116,18 +116,28 @@ export function CaseHearings({ caseId }: Props) {
         {open?.kind === 'reschedule' ? (
           <RescheduleHearingForm key={open.hearing.id} hearing={open.hearing} onSaved={onSaved} onCancel={onCancel} />
         ) : null}
+        {open?.kind === 'next' ? (
+          <NextHearingForm key={open.hearing.id} hearing={open.hearing} onSaved={onSaved} onCancel={onCancel} />
+        ) : null}
         {hearings.length === 0 ? (
           <p>{t('operations.hearing.none')}</p>
         ) : (
           <ul className="ops-list">
             {hearings.map((h) => (
-              <li key={h.id} className="ops-item">
+              <li key={h.id} id={`wp3-ref-HEARING-${h.id}`} className="ops-item">
                 <p>
                   <strong>{formatDay(h.hearingDate, locale)}</strong>
                   {h.hearingTime === null ? null : ` · ${formatTime(h.hearingTime, locale)}`}
                   {' · '}
+                  {t(`wp3.hearing.kind.${h.kind}`)}
+                  {' · '}
                   {t(`operations.purpose.${h.purpose}`)}
                 </p>
+                {h.chamber === null && h.judgeOrExpert === null && h.responsibleMemberName === null ? null : (
+                  <p className="ops-hint">
+                    {[h.chamber, h.judgeOrExpert, h.responsibleMemberName].filter((v) => v !== null).join(' · ')}
+                  </p>
+                )}
                 <p className="ops-wrap">
                   {t('operations.hearing.inProceeding', {
                     stage: t(`proceedings.stage.${h.stage}`),
@@ -142,7 +152,37 @@ export function CaseHearings({ caseId }: Props) {
                   ) : null}
                 </p>
                 {h.decision === null ? null : <p className="ops-wrap">{h.decision}</p>}
+                {h.proceedingsSummary === null ? null : <p className="ops-wrap">{h.proceedingsSummary}</p>}
+                {h.opponentsRequests === null ? null : (
+                  <p className="ops-wrap">{t('wp3.hearing.opponentsRequestsShown', { text: h.opponentsRequests })}</p>
+                )}
+                {h.requiredAction === null ? null : (
+                  <p className="ops-wrap">{t('wp3.hearing.requiredActionShown', { text: h.requiredAction })}</p>
+                )}
+                {h.adjournmentReason === null ? null : (
+                  <p className="ops-wrap">{t('wp3.hearing.adjournmentReasonShown', { text: h.adjournmentReason })}</p>
+                )}
+                {!h.noNextDate ? null : (
+                  <p className="ops-wrap">
+                    <span className="ops-badge ops-badge-warn">
+                      {t(h.followUp ? 'wp3.hearing.followUpBadge' : 'wp3.hearing.hadNoNextDate')}
+                    </span>{' '}
+                    {h.noNextDateReason}
+                  </p>
+                )}
                 {h.notes === null ? null : <p className="ops-wrap ops-hint">{h.notes}</p>}
+                {h.followUp ? (
+                  <div className="ops-actions">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        show({ kind: 'next', hearing: h });
+                      }}
+                    >
+                      {t('wp3.hearing.setNext')}
+                    </button>
+                  </div>
+                ) : null}
                 {h.status === 'SCHEDULED' ? (
                   <div className="ops-actions">
                     <button
