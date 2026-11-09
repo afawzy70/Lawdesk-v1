@@ -14,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  * information request's date or a manual date appears here from its own record, so there is nothing to keep in step.
  *
  * @param id        {@code refType:refId}, unique in a response
- * @param type      what it is on the calendar: HEARING, EXPERT_SESSION, INVESTIGATION, TASK, MEETING, INFO_REQUEST_DUE,
+ * @param type      what it is on the calendar: HEARING, EXPERT_SESSION, INVESTIGATION, TASK, DEADLINE, MEETING, INFO_REQUEST_DUE,
  *                  MEMO_DUE, APPEAL_DEADLINE, ENFORCEMENT or OTHER
  * @param detail    a refinement a screen may show (the hearing's purpose, the task's priority, the manual date's kind)
  * @param stage     the stage of the proceeding of a hearing (FIRST_INSTANCE, APPEAL, CASSATION ...), else null
@@ -30,7 +30,7 @@ public record CalendarEntry(String id, String type, String refType, UUID refId, 
         @JsonIgnore List<UUID> recipients) {
 
     /** The types an entry can have, in the order a screen lists them. */
-    public static final List<String> TYPES = List.of("HEARING", "EXPERT_SESSION", "INVESTIGATION", "TASK", "MEETING",
+    public static final List<String> TYPES = List.of("HEARING", "EXPERT_SESSION", "INVESTIGATION", "TASK", "DEADLINE", "MEETING",
             "INFO_REQUEST_DUE", "MEMO_DUE", "APPEAL_DEADLINE", "ENFORCEMENT", "OTHER");
 
     /** Status values after which an entry no longer takes the member's time. */

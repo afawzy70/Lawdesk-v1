@@ -7,6 +7,7 @@ export const ENTRY_TYPES = [
   'EXPERT_SESSION',
   'INVESTIGATION',
   'TASK',
+  'DEADLINE',
   'MEETING',
   'INFO_REQUEST_DUE',
   'MEMO_DUE',

@@ -156,6 +156,7 @@ describe('week, day and list views', () => {
                 task({ status: 'LATE' }),
                 entry({ id: 'CALENDAR_DATE:d1', type: 'APPEAL_DEADLINE', refType: 'CALENDAR_DATE', title: 'Appeal date', startTime: null, allDay: true, status: 'CANCELLED', caseId: null, caseReferenceNo: null, ownerName: null }),
                 entry({ id: 'EXPERT_SESSION:e1', type: 'EXPERT_SESSION', status: 'DONE' }),
+                entry({ id: 'DEADLINE:d9', type: 'DEADLINE', refType: 'DEADLINE', title: 'File the appeal', startTime: null, allDay: true, status: 'MISSED' }),
               ],
               {},
               r,
@@ -166,7 +167,7 @@ describe('week, day and list views', () => {
     mount(<CalendarPage />, VIEW, '/calendar?date=2027-03-10&mode=DAY');
     const section = await screen.findByRole('region', { name: '10 Mar 2027' });
     const items = within(section).getAllByRole('listitem');
-    expect(items).toHaveLength(4);
+    expect(items).toHaveLength(5);
     expect(items[0]).toHaveTextContent('09:30–10:30');
     expect(items[0]).toHaveTextContent('Hearing');
     expect(items[0]).toHaveTextContent('Rent dispute');
@@ -182,6 +183,9 @@ describe('week, day and list views', () => {
     expect(items[2]).toHaveTextContent('Cancelled');
     expect(within(items[2] as HTMLElement).queryByRole('link')).not.toBeInTheDocument();
     expect(items[3]).toHaveTextContent('Done');
+    expect(items[4]).toHaveTextContent('Legal deadline');
+    expect(items[4]).toHaveTextContent('File the appeal');
+    expect(items[4]).toHaveTextContent('Missed');
   });
 
   it('lists the period by date, and says when nothing is on the calendar', async () => {

@@ -197,6 +197,61 @@ class CalendarApiTest extends Wp6TestSupport {
                 .andExpect(jsonPath("$.events[1].alternateMemberName").value("Alternate Member"));
     }
 
+    // ---- deadlines of WP4 plug in through the same interface -----------------------------------------------------------
+
+    private UUID deadline(UUID forCase, String action, LocalDate due, String status, String calcStatus, UUID owner) {
+        return jdbc.queryForObject("""
+                insert into deadline (case_id, source_type, source_text, due_on, action, owner_id, status, completed_on,
+                                      calc_status, approved_by, approved_at, created_by, updated_by)
+                values (?, 'TEXT', 'Judgment of the court', ?, ?, ?, ?, case when ? = 'COMPLETED' then current_date end, ?,
+                        case when ? = 'APPROVED' then gen_random_uuid() end, case when ? = 'APPROVED' then now() end,
+                        gen_random_uuid(), gen_random_uuid()) returning id""", UUID.class, forCase, due, action, owner, status,
+                status, calcStatus, calcStatus, calcStatus);
+    }
+
+    @Test
+    void legalDeadlinesAppearOnTheirDueDateOnceApprovedOrEnteredByHand() throws Exception {
+        UUID open = deadline(caseId, "File the appeal", day, "OPEN", "MANUAL", lead);
+        deadline(caseId, "Approved one", day, "OPEN", "APPROVED", null);
+        deadline(caseId, "Done one", day, "COMPLETED", "MANUAL", lead);
+        deadline(caseId, "Missed one", day, "MISSED", "MANUAL", lead);
+        // A proposal nobody approved is not a date: nothing is shown for it (decision D6).
+        jdbc.update("""
+                insert into deadline_rule (code, label, period_days, count_method, counts_start_day, roll_forward, closed_weekdays,
+                                           legal_source, effective_from, status, approved_by, approved_at, created_by, updated_by)
+                values ('W6', 'Rule', 30, 'CALENDAR', false, false, '', 'Source', '2026-01-01', 'APPROVED', gen_random_uuid(), now(),
+                        gen_random_uuid(), gen_random_uuid())""");
+        UUID rule = jdbc.queryForObject("select id from deadline_rule where code = 'W6'", UUID.class);
+        jdbc.update("""
+                insert into deadline (case_id, source_type, source_text, due_on, action, rule_id, calculation, status, calc_status,
+                                      created_by, updated_by)
+                values (?, 'TEXT', 'x', ?, 'Proposed only', ?, '{}'::jsonb, 'OPEN', 'PROPOSED', gen_random_uuid(), gen_random_uuid())""",
+                caseId, day, rule);
+        String json = events(leadActor, "from=" + day + "&to=" + day + "&type=DEADLINE");
+        assertThat(types(json)).hasSize(4).containsOnly("DEADLINE");
+        List<String> titles = com.jayway.jsonpath.JsonPath.read(json, "$.events[*].title");
+        assertThat(titles).containsExactlyInAnyOrder("File the appeal", "Approved one", "Done one", "Missed one");
+        mvc.perform(getJson(leadActor, "/api/v1/calendar/events?from=" + day + "&to=" + day + "&type=DEADLINE"))
+                .andExpect(jsonPath("$.events[?(@.refId=='" + open + "')].refType").value(Matchers.contains("DEADLINE")))
+                .andExpect(jsonPath("$.events[?(@.refId=='" + open + "')].ownerId").value(Matchers.contains(lead.toString())))
+                .andExpect(jsonPath("$.events[?(@.title=='Missed one')].status").value(Matchers.contains("MISSED")))
+                .andExpect(jsonPath("$.events[?(@.title=='Approved one')].ownerId").value(Matchers.contains(lead.toString())));
+        // No notification is raised from it here: the deadlines have their own reminders (WP4).
+        assertThat(types(events(leadActor, "from=" + day + "&to=" + day))).contains("DEADLINE");
+    }
+
+    @Test
+    void deadlinesFollowTheCaseAccessRulesAndTheirPermission() throws Exception {
+        deadline(caseId, "File the appeal", day, "OPEN", "MANUAL", lead);
+        Permission[] all = {Permission.CASE_VIEW, Permission.CALENDAR_VIEW, Permission.DEADLINE_VIEW};
+        String range = "from=" + day + "&to=" + day;
+        assertThat(types(events(outsider(colleague, all), range))).isEmpty();
+        assertThat(types(events(viewer(colleague, all), range))).containsExactly("DEADLINE");
+        assertThat(types(events(staff(lead, Permission.CASE_VIEW, Permission.CALENDAR_VIEW), range))).isEmpty();
+        jdbc.update("update legal_case set confidentiality = 'RESTRICTED' where id = ?", caseId);
+        assertThat(types(events(viewer(colleague, all), range))).isEmpty();
+    }
+
     // ---- access (decision D3) ---------------------------------------------------------------------------------------
 
     @Test

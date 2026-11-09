@@ -40,7 +40,7 @@ public abstract class Wp6TestSupport extends PostgresTestSupport {
     /** What a legal member of staff holds. */
     protected static final Permission[] STAFF = {Permission.CASE_VIEW, Permission.TASK_VIEW, Permission.TASK_MANAGE,
         Permission.HEARING_VIEW, Permission.HEARING_MANAGE, Permission.CALENDAR_VIEW, Permission.CALENDAR_MANAGE,
-        Permission.EXPERT_VIEW, Permission.INFO_REQUEST_VIEW};
+        Permission.EXPERT_VIEW, Permission.INFO_REQUEST_VIEW, Permission.DEADLINE_VIEW};
 
     @Autowired
     protected MockMvc mvc;

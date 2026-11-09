@@ -12,7 +12,7 @@ function timeLabel(entry: CalendarEntry, allDay: string): string {
 /** One dated entry of the calendar: time, kind, what it is, its case, its owner and what needs attention. */
 export function EntryRow({ entry }: { entry: CalendarEntry }) {
   const { locale, t } = useI18n();
-  const heading = entry.type === 'TASK' || entry.type === 'INFO_REQUEST_DUE' || entry.refType === 'CALENDAR_DATE'
+  const heading = entry.type === 'TASK' || entry.type === 'DEADLINE' || entry.type === 'INFO_REQUEST_DUE' || entry.refType === 'CALENDAR_DATE'
     ? entry.title
     : (entry.caseTitle ?? entry.title);
   return (
@@ -33,7 +33,7 @@ export function EntryRow({ entry }: { entry: CalendarEntry }) {
         {entry.ownerName === null ? null : <span className="wp6-entry-owner"> · {entry.ownerName}</span>}
         {entry.conflict ? <span className="ops-badge ops-badge-danger">{t('wp6.calendar.conflict')}</span> : null}
         {entry.closedCaseFuture ? <span className="ops-badge ops-badge-warn">{t('wp6.calendar.closedCase')}</span> : null}
-        {entry.status === 'CANCELLED' || entry.status === 'LATE' || entry.status === 'DONE' ? (
+        {entry.status === 'CANCELLED' || entry.status === 'LATE' || entry.status === 'DONE' || entry.status === 'MISSED' ? (
           <span className="ops-badge">{t(`wp6.calendar.status.${entry.status}`)}</span>
         ) : null}
       </span>
