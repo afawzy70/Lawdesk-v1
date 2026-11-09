@@ -12,6 +12,7 @@ import {
   type Proceeding,
   type SpecialDecision,
 } from './proceedingsApi';
+import { JudgmentDeadlines } from '../deadlines/JudgmentDeadlines';
 import { JudgmentDetailsView } from '../pleadings/JudgmentDetailsView';
 import './proceedings.css';
 
@@ -182,6 +183,7 @@ export function CaseProceedings({ caseId, automatedNo = null }: Props) {
                       </p>
                       {judgment.summary === null ? null : <p>{judgment.summary}</p>}
                       <JudgmentDetailsView details={judgment.details} />
+                      <JudgmentDeadlines judgmentId={judgment.id} />
                       <button
                         type="button"
                         onClick={() => {

@@ -57,6 +57,13 @@ final class CaseFileViews {
     record Links(long count, long hiddenCount) {
     }
 
+    record DeadlineBrief(UUID id, String action, LocalDate dueOn, String calcStatus, boolean overdue) {
+    }
+
+    /** Open legal deadlines of the case; {@code unapproved} are manual or proposed dates nobody has approved yet. */
+    record Deadlines(long open, long overdue, long unapproved, List<DeadlineBrief> items) {
+    }
+
     /**
      * The summary, assembled from stored data at the moment of the request; nothing is generated or cached. A section is
      * absent (null) when the user may not open that area; {@code pendingModules} names what has no stored data yet.
@@ -66,7 +73,7 @@ final class CaseFileViews {
             @JsonFormat(shape = JsonFormat.Shape.STRING) BigDecimal claimedAmount, MemberRef primaryMember,
             MemberRef alternateMember, List<Party> parties, List<Unit> involvedUnits, Procedure lastProcedure,
             Hearings hearings, JudgmentBrief lastJudgment, RiskBrief risk, InfoRequests infoRequests, Tasks tasks,
-            Links links, List<String> pendingModules) {
+            Links links, List<String> pendingModules, Deadlines deadlines) {
     }
 
     /** One entry of the unified timeline; {@code refType}/{@code refId} name the record it comes from. */

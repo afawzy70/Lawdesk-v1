@@ -24,6 +24,11 @@ public final class OperationsTestData {
         jdbc.update("delete from form_template");
         jdbc.update("delete from managed_list_value where origin = 'PROPOSED'");
         jdbc.update("update managed_list_value set active = true, label_en = null where origin = 'DOCUMENT'");
+        // LD-054 (WP4): deadlines hang off cases and documents; the test-only rules, holidays and lead times go too.
+        jdbc.update("delete from deadline");
+        jdbc.update("delete from deadline_reminder_setting");
+        jdbc.update("delete from official_holiday");
+        jdbc.update("delete from deadline_rule");
         // LD-053 (WP3), children before parents: notifications, information requests, risk assessments and case links.
         jdbc.update("delete from notification");
         jdbc.update("delete from info_follow_up");

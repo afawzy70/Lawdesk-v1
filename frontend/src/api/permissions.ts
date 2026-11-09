@@ -56,6 +56,9 @@ export const PERMISSIONS = [
   'DIRECTIVE_MANAGE',
   'TEMPLATE_MANAGE',
   'SEARCH_ALL',
+  'DEADLINE_VIEW',
+  'DEADLINE_MANAGE',
+  'DEADLINE_APPROVE',
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

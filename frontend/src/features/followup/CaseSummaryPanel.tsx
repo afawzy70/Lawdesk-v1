@@ -154,6 +154,28 @@ export function CaseSummaryPanel({ caseId, generation }: Props) {
                 </dd>
               </>
             )}
+            {data.deadlines === undefined || data.deadlines === null ? null : (
+              <>
+                <dt>{t('wp4.summary.deadlines')}</dt>
+                <dd>
+                  {t('wp4.summary.counts', {
+                    open: String(data.deadlines.open),
+                    overdue: String(data.deadlines.overdue),
+                    unapproved: String(data.deadlines.unapproved),
+                  })}
+                  {data.deadlines.items.length === 0 ? null : (
+                    <ul>
+                      {data.deadlines.items.map((d) => (
+                        <li key={d.id}>
+                          {d.action}
+                          {d.dueOn === null ? '' : ` (${formatDate(d.dueOn, locale)})`}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </dd>
+              </>
+            )}
             <dt>{t('wp3.summary.links')}</dt>
             <dd>
               {t('wp3.summary.linkCounts', { count: String(data.links.count), hidden: String(data.links.hiddenCount) })}
