@@ -29,13 +29,17 @@ final class Text {
      * The condition that narrows a substring search ({@code ilike '%q%'}) with the stored trigrams of the case documents (V801):
      * every text that contains {@code q} contains all its trigrams, so the condition never drops a match and the ILIKE that follows
      * removes the rest. A text shorter than three characters has no trigram, so the ILIKE alone decides. {@code caseId} is the
-     * case id column of the query and {@code param} the name of the bound raw text.
+     * case id column of the query and {@code param} the name of the bound raw text. It is written as an array evaluated once
+     * ({@code = any (array(select ...))}), not as {@code in (select ...)}: the planner cannot estimate how many cases an array
+     * containment test leaves, and with an {@code in} subquery it chose a nested loop that re-read the candidates for every id of a
+     * 10 000-id stage filter (35 s in the export-limit test).
      */
     static String trigramPrefilter(String q, String caseId, String param) {
         if (q == null || q.codePointCount(0, q.length()) < 3) {
             return "";
         }
-        return " and " + caseId + " in (select d.case_id from search_case_doc d where d.trigrams @> lawdesk_trigrams(:" + param + "))";
+        return " and " + caseId + " = any (array(select d.case_id from search_case_doc d where d.trigrams @> lawdesk_trigrams(:" + param
+                + ")))";
     }
 
     /** More candidates than this and the related tables are better read once into hashed sets than probed per case. */

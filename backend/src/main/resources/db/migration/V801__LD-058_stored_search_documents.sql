@@ -15,6 +15,13 @@ from (select lower(coalesce(p_text, '')) as v) t
          cross join lateral generate_series(1, greatest(length(t.v) - 2, 0)) as i
 $$;
 
+-- One weighted part of a document. A part with no text (most are empty) skips the normaliser, which is a chain of regular
+-- expressions: writing a row of a table with many optional text columns would otherwise cost milliseconds.
+create function search_part(p_text text, p_weight "char") returns tsvector language sql immutable parallel safe as $$
+select case when p_text is null or btrim(p_text) = '' then cast('' as tsvector)
+            else setweight(to_tsvector('simple', library_normalize(p_text)), p_weight) end
+$$;
+
 -- ---- the link documents -----------------------------------------------------------------------------------------------
 -- One row per link and side: the text a case gains from the case it is linked to (reference, title, reason). Which of these a
 -- user may use is decided per request (the other case must be visible to them); the stored vector is only the normalised text.
@@ -56,22 +63,22 @@ create function search_case_refresh(p_ids uuid[]) returns void language sql as $
 insert into search_case_doc (case_id, vec, vec_all, trigrams, linked)
 select c.id, o.vec, o.vec || coalesce((select tsvector_agg(d.vec) from search_link_doc d where d.host_id = c.id), cast('' as tsvector)), o.trigrams, o.linked
 from legal_case c cross join lateral (select
-       setweight(to_tsvector('simple', library_normalize(c.reference_no)), 'A')
-       || setweight(to_tsvector('simple', library_normalize(concat_ws(' ', c.automated_no,
+       search_part(c.reference_no, 'A')
+       || search_part(concat_ws(' ', c.automated_no,
               (select string_agg(pr.court_case_number || ' ' || pr.court_case_year, ' ') from proceeding pr
-               where pr.case_id = c.id)))), 'A')
-       || setweight(to_tsvector('simple', library_normalize(c.title)), 'A')
-       || setweight(to_tsvector('simple', library_normalize(c.subject)), 'B')
-       || setweight(to_tsvector('simple', library_normalize(
+               where pr.case_id = c.id)), 'A')
+       || search_part(c.title, 'A')
+       || search_part(c.subject, 'B')
+       || search_part(
               (select string_agg(concat_ws(' ', i.sector_name_snapshot, i.department_name_snapshot, i.section_name_snapshot,
                                            u.name_ar), ' ')
                from case_org_involvement i left join org_unit u on u.id = i.org_unit_id
-               where i.case_id = c.id and i.removed_at is null))), 'B')
-       || setweight(to_tsvector('simple', library_normalize(
+               where i.case_id = c.id and i.removed_at is null), 'B')
+       || search_part(
               (select string_agg(m.display_name, ' ') from app_user m
-               where m.id in (c.primary_member_id, c.alternate_member_id)))), 'B')
-       || setweight(to_tsvector('simple', library_normalize(c.facts)), 'C')
-       || setweight(to_tsvector('simple', library_normalize(c.chamber)), 'C') as vec,
+               where m.id in (c.primary_member_id, c.alternate_member_id)), 'B')
+       || search_part(c.facts, 'C')
+       || search_part(c.chamber, 'C') as vec,
        -- Trigrams are taken field by field (a text of 100 000 characters, such as a case with thousands of proceedings joined into one,
        -- would make the windowing quadratic) and united.
        (select coalesce(array_agg(distinct x.t), cast('{}' as text[])) from (
@@ -94,7 +101,7 @@ create function search_link_refresh(p_link_ids uuid[]) returns void language sql
 delete from search_link_doc where link_id = any (p_link_ids);
 insert into search_link_doc (link_id, host_id, other_id, vec)
 select l.id, s.host_id, s.other_id,
-       setweight(to_tsvector('simple', library_normalize(concat_ws(' ', o.reference_no, o.title, l.reason))), 'C')
+       search_part(concat_ws(' ', o.reference_no, o.title, l.reason), 'C')
 from case_link l
          cross join lateral (values (l.case_id, l.other_case_id), (l.other_case_id, l.case_id)) as s (host_id, other_id)
          join legal_case o on o.id = s.other_id
@@ -205,14 +212,14 @@ alter table party add column search_public tsvector, add column search_full tsve
 
 create function search_party_vectors() returns trigger language plpgsql as $$
 begin
-    new.search_public := setweight(to_tsvector('simple', library_normalize(new.name)), 'A')
-        || setweight(to_tsvector('simple', library_normalize(new.notes)), 'C')
-        || setweight(to_tsvector('simple', library_normalize(case when not new.confidential
-               then concat_ws(' ', new.phone, new.email, new.address) end)), 'D');
-    new.search_full := setweight(to_tsvector('simple', library_normalize(new.name)), 'A')
-        || setweight(to_tsvector('simple', library_normalize(concat_ws(' ', new.national_id, new.registration_no))), 'B')
-        || setweight(to_tsvector('simple', library_normalize(new.notes)), 'C')
-        || setweight(to_tsvector('simple', library_normalize(concat_ws(' ', new.phone, new.email, new.address))), 'D');
+    new.search_public := search_part(new.name, 'A')
+        || search_part(new.notes, 'C')
+        || search_part(case when not new.confidential
+               then concat_ws(' ', new.phone, new.email, new.address) end, 'D');
+    new.search_full := search_part(new.name, 'A')
+        || search_part(concat_ws(' ', new.national_id, new.registration_no), 'B')
+        || search_part(new.notes, 'C')
+        || search_part(concat_ws(' ', new.phone, new.email, new.address), 'D');
     return new;
 end $$;
 create trigger search_party_vectors before insert or update on party
