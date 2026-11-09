@@ -13,6 +13,7 @@ import { wp3En } from './wp3.en';
 import { deadlinesEn } from './deadlines.en';
 import { pleadingsEn } from './pleadings.en';
 import { wp9En } from './wp9.en';
+import { gapsEn } from './gaps.en';
 import { wp5En } from './wp5.en';
 import { wp6En } from './wp6.en';
 import { wp8En } from './wp8.en';
@@ -81,6 +82,7 @@ export const en = {
   ...deadlinesEn,
   ...pleadingsEn,
   ...wp9En,
+  ...gapsEn,
   ...wp5En,
   ...wp6En,
   ...wp8En,

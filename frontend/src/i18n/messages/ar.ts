@@ -14,6 +14,7 @@ import { wp3Ar } from './wp3.ar';
 import { deadlinesAr } from './deadlines.ar';
 import { pleadingsAr } from './pleadings.ar';
 import { wp9Ar } from './wp9.ar';
+import { gapsAr } from './gaps.ar';
 import { wp5Ar } from './wp5.ar';
 import { wp6Ar } from './wp6.ar';
 import { wp8Ar } from './wp8.ar';
@@ -78,6 +79,7 @@ export const ar: Messages = {
   ...deadlinesAr,
   ...pleadingsAr,
   ...wp9Ar,
+  ...gapsAr,
   ...wp5Ar,
   ...wp6Ar,
   ...wp8Ar,

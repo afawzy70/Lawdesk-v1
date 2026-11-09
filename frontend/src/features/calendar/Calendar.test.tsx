@@ -251,6 +251,42 @@ describe('conflicts', () => {
   });
 });
 
+describe('one-click reassignment on a conflict', () => {
+  const conflict: Conflict = {
+    ownerId: 'u1',
+    ownerName: 'Mona Saleh',
+    date: '2027-03-10',
+    startsAt: '2027-03-10T06:30:00Z',
+    entries: [entry({ conflict: true }), entry({ id: 'HEARING:h2', refId: 'h2', conflict: true, alternateMemberId: null, alternateMemberName: null })],
+  };
+
+  it('hands the hearing to the alternate member and reloads; a refusal is shown', async () => {
+    const user = userEvent.setup();
+    let refuse = false;
+    const { requests } = serve((r) => {
+      if (r.path.endsWith('/reassign')) return refuse ? problem(409) : jsonResponse({});
+      return r.path === '/api/v1/calendar/events' ? jsonResponse(view(conflict.entries, { conflicts: [conflict] }, r)) : undefined;
+    });
+    mount(<CalendarPage />, [...VIEW, 'HEARING_MANAGE'], '/calendar?date=2027-03-10');
+    const panel = await screen.findByRole('region', { name: 'Conflicting dates' });
+    expect(within(panel).getAllByRole('button')).toHaveLength(1);
+    refuse = true;
+    await user.click(within(panel).getByRole('button', { name: 'Hand to Omar Adel' }));
+    expect(await within(panel).findByRole('alert')).toBeInTheDocument();
+    refuse = false;
+    await user.click(within(panel).getByRole('button', { name: 'Hand to Omar Adel' }));
+    await waitFor(() => { expect(requests.filter((r) => r.path.endsWith('/reassign') && r.method === 'POST').length).toBe(2); });
+    expect(requests.find((r) => r.path.endsWith('/reassign'))?.body).toEqual({ memberId: expect.any(String) });
+  });
+
+  it('offers no button without the right to manage hearings', async () => {
+    serve((r) => (r.path === '/api/v1/calendar/events' ? jsonResponse(view(conflict.entries, { conflicts: [conflict] }, r)) : undefined));
+    mount(<CalendarPage />, VIEW, '/calendar?date=2027-03-10');
+    const panel = await screen.findByRole('region', { name: 'Conflicting dates' });
+    expect(within(panel).queryByRole('button')).not.toBeInTheDocument();
+  });
+});
+
 describe('manual dates', () => {
   it('adds a date of the office and reloads', async () => {
     const user = userEvent.setup();

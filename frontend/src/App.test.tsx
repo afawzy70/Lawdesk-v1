@@ -42,6 +42,8 @@ const NAV = [
   { path: '/tasks', en: 'Tasks', ar: 'المهام' },
   { path: '/directives', en: 'Decisions and assignments', ar: 'القرارات والتكليفات' },
   { path: '/templates', en: 'Legal templates', ar: 'النماذج القانونية' },
+  { path: '/defense-wording', en: 'Defence wording', ar: 'صياغات الدفوع' },
+  { path: '/info-requests/report', en: 'Responsiveness report', ar: 'تقرير الاستجابة' },
   { path: '/calendar', en: 'Calendar', ar: 'التقويم' },
   { path: '/assistant', en: 'Legal assistant', ar: 'المساعد القانوني' },
   { path: '/reports', en: 'Reports', ar: 'التقارير' },

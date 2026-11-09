@@ -282,11 +282,27 @@ export function getCaseParties(id: string, signal?: AbortSignal): Promise<CasePa
   return api(`${BASE}/${encodeURIComponent(id)}/parties`, signal === undefined ? {} : { signal });
 }
 
-export function changeStatus(id: string, status: CaseStatus | '', reason: string, version: number): Promise<LegalCase> {
+export function changeStatus(
+  id: string,
+  status: CaseStatus | '',
+  reason: string,
+  version: number,
+  acknowledgeOpenItems = false,
+): Promise<LegalCase> {
   return api(`${BASE}/${encodeURIComponent(id)}/status`, {
     method: 'POST',
-    body: { status: status === '' ? null : status, reason: blankToNull(reason), version },
+    body: { status: status === '' ? null : status, reason: blankToNull(reason), version, ...(acknowledgeOpenItems ? { acknowledgeOpenItems: true } : {}) },
   });
+}
+
+/** What is still open in the case (section 33): counts by kind; a warning list, never a block. */
+export interface ClosingFinding {
+  code: string;
+  count: number;
+}
+
+export function getClosingCheck(id: string): Promise<{ findings: ClosingFinding[] }> {
+  return api(`${BASE}/${encodeURIComponent(id)}/closing-check`);
 }
 
 export function searchParties(q: string): Promise<PageResponse<Party>> {

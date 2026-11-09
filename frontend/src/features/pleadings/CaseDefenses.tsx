@@ -223,6 +223,7 @@ export function CaseDefenses({ caseId, canManage }: Props) {
             <dt>{t('pl.defenses.preparedBy')}</dt>
             <dd>{current.defense.preparedByName ?? t('pl.notSpecified')}</dd>
           </dl>
+          <DefensePrecedents defenseId={current.defense.id} canManage={canManage} />
           <h4>{t('pl.defenses.stages')}</h4>
           <p className="case-field-hint">{t('pl.defenses.stagesHint')}</p>
           <table className="case-table">
