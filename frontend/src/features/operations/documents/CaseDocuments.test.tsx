@@ -18,6 +18,8 @@ function serve(backend: Backend = {}) {
   const { fetchMock, requests } = scriptedFetch((r) => {
     if (r.method !== 'GET') return backend.onWrite?.(r, undefined);
     if (r.path === DOCUMENTS) return (backend.documents ?? page([])).clone();
+    // Where each document is used in the case file (LD-051) is a plain list, not a page.
+    if (r.path === `/api/v1/cases/${CASE}/document-usage`) return jsonResponse([]);
     if (r.path.startsWith(`/api/v1/cases/${CASE}/`) || r.path === '/api/v1/tasks') return page([]);
     return undefined;
   });

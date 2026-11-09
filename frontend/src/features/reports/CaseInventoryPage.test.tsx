@@ -289,6 +289,7 @@ describe('case inventory report (LD-031)', () => {
       'Hearings',
       'Workload',
       'Experts',
+      'Claim results',
     ]);
     expect(sections).not.toHaveTextContent('not available');
   });
