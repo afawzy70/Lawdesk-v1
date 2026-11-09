@@ -59,10 +59,10 @@ class ArchiveVisibilityApiTest extends ArchiveTestSupport {
     }
 
     private int answer(RequestPostProcessor user, Call call) throws Exception {
-        var request = switch (call.method()) {
-            case GET -> MockMvcRequestBuilders.get(call.path());
-            case DELETE -> MockMvcRequestBuilders.delete(call.path());
-            case PUT -> MockMvcRequestBuilders.put(call.path());
+        var request = switch (call.method().name()) {
+            case "GET" -> MockMvcRequestBuilders.get(call.path());
+            case "DELETE" -> MockMvcRequestBuilders.delete(call.path());
+            case "PUT" -> MockMvcRequestBuilders.put(call.path());
             default -> MockMvcRequestBuilders.post(call.path());
         };
         request.with(user).with(csrf());

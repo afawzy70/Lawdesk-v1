@@ -12,7 +12,6 @@ alter table case_document
     add constraint case_document_media_known check (media_type in ('application/pdf',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword',
         'image/png', 'image/jpeg', 'image/tiff'));
-alter table case_document alter column media_type drop default;
 
 -- case_document keeps the metadata of the current version, so every existing query and report stays valid.
 alter table case_document

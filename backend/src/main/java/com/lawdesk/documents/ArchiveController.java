@@ -30,7 +30,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.lawdesk.api.PageResponse;
 import com.lawdesk.audit.AuditLog;
-import com.lawdesk.cases.CaseSummary;
 import com.lawdesk.security.CurrentActor;
 import com.lawdesk.security.Permission;
 

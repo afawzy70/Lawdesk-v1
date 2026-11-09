@@ -1,0 +1,77 @@
+# First runs of the WP5 tests on the new code: what failed before it was fixed (summary lines of the Maven logs)
+# Commands: ./mvnw -o test -Dtest=<classes>; the failures below are real and were fixed in the same work package.
+
+## t2.log
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.958 s -- in com.lawdesk.documents.TextExtractorTest
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0
+
+## t3.log
+[ERROR] Tests run: 9, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 52.40 s <<< FAILURE! -- in com.lawdesk.documents.ArchiveFormatsAndSettingsApiTest
+expected: 1
+[INFO] Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 33.08 s -- in com.lawdesk.documents.DocumentApiTest
+[ERROR] Tests run: 10, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 3.841 s <<< FAILURE! -- in com.lawdesk.documents.ArchiveVersionsApiTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 15.91 s -- in com.lawdesk.pleadings.LookupApiTest
+[ERROR]   ArchiveFormatsAndSettingsApiTest.anArchiveAdministratorCanSwitchAFormatOff:86 
+expected: 1
+[ERROR]   ArchiveVersionsApiTest.versionsAreAsVisibleAsTheirCase:113->ArchiveTestSupport.newCase:134 » DataIntegrityViolation PreparedStatementCallback; SQL [insert into legal_case (reference_no, title, case_type, opened_on, status, primary_member_id, created_by,
+[ERROR] Tests run: 39, Failures: 1, Errors: 1, Skipped: 0
+
+## t4.log
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 61.05 s -- in com.lawdesk.security.EndpointAuthorizationTest
+[ERROR] Tests run: 13, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 30.66 s <<< FAILURE! -- in com.lawdesk.legaldocs.LegalDocumentApiTest
+java.lang.AssertionError: Status expected:<200> but was:<422>
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.397 s -- in com.lawdesk.documents.DocumentLinkApiTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.780 s -- in com.lawdesk.documents.ArchiveFormatsAndSettingsApiTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.859 s -- in com.lawdesk.documents.ArchiveDeletionApiTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.202 s -- in com.lawdesk.documents.ArchiveVersionsApiTest
+[ERROR] Tests run: 17, Failures: 14, Errors: 0, Skipped: 0, Time elapsed: 6.666 s <<< FAILURE! -- in com.lawdesk.documents.ArchiveTextSearchApiTest
+java.lang.AssertionError: Status expected:<200> but was:<500>
+java.lang.AssertionError: Status expected:<200> but was:<500>
+java.lang.AssertionError: Status expected:<400> but was:<500>
+java.lang.AssertionError: Status expected:<200> but was:<500>
+[ERROR] Tests run: 11, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 3.490 s <<< FAILURE! -- in com.lawdesk.enforcement.EnforcementApiTest
+[ERROR]   ArchiveTextSearchApiTest.aRestrictedCaseIsHiddenFromADepartmentWideUserWithoutAGrant:114 No value at JSON path "$.totalItems"
+[ERROR]   ArchiveTextSearchApiTest.aScannedPdfIsReadPageByPageWithinThePageLimit:195 No value at JSON path "$.totalItems"
+[ERROR]   ArchiveTextSearchApiTest.aUserWhoCannotSeeTheCaseGetsNeitherTheDocumentNorAPieceOfItsText:99 Status expected:<200> but was:<500>
+[ERROR]   ArchiveTextSearchApiTest.aWithdrawnDocumentIsNoLongerFound:122 No value at JSON path "$.totalItems"
+[ERROR]   ArchiveTextSearchApiTest.anEngineInstalledLaterCanReadWhatWasStoredBefore:227 No value at JSON path "$.totalItems"
+[ERROR]   ArchiveTextSearchApiTest.anImageWaitsForTheEngineAndThenBecomesSearchable:177 No value at JSON path "$.totalItems"
+[ERROR]   ArchiveTextSearchApiTest.arabicSpellingVariantsDoNotHideADocument:52 No value at JSON path "$.totalItems"
+[ERROR]   ArchiveTextSearchApiTest.filtersByCaseAndCategory:84 No value at JSON path "$.totalItems"
+[ERROR]   ArchiveTextSearchApiTest.findsADocumentByTheTextOfItsFileAndShowsTheMatchingLine:40 Status expected:<200> but was:<500>
+[ERROR]   ArchiveTextSearchApiTest.onlyTheCurrentVersionIsSearchedButEveryVersionKeepsItsText:129 No value at JSON path "$.totalItems"
+[ERROR]   ArchiveTextSearchApiTest.searchesWordDocumentsAndKeepsLatinAndDigits:61 No value at JSON path "$.items[0].documentId"
+[ERROR]   ArchiveTextSearchApiTest.shortOrEmptyQueriesAreRefused:72 Status expected:<400> but was:<500>
+[ERROR]   ArchiveTextSearchApiTest.textThatLooksLikeInstructionsIsStoredAndShownAsDataAndDoesNothing:148 Status expected:<200> but was:<500>
+[ERROR]   ArchiveTextSearchApiTest.withoutAnEngineAScanIsStoredAndSaysThatNothingWasRead:169 No value at JSON path "$.totalItems"
+[ERROR]   EnforcementApiTest.theListShowsJudgmentsNotExecutedAndTheLateOnes:175 Expected an empty value at JSON path "$.items[?(@.judgmentId=='cef22881-ac09-4d83-98df-fc6ec6fab5c9')].status" but found: [null]
+[ERROR]   LegalDocumentApiTest.onlyADraftIsEditedAndItsFileReplaced:153 Status expected:<200> but was:<422>
+[ERROR] Tests run: 79, Failures: 16, Errors: 0, Skipped: 0
+
+## t5.log
+[ERROR] Tests run: 3, Failures: 0, Errors: 3, Skipped: 0, Time elapsed: 53.13 s <<< FAILURE! -- in com.lawdesk.platform.ArchiveMigrationTest
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 21.30 s -- in com.lawdesk.legaldocs.LegalDocumentApiTest
+[ERROR] Tests run: 17, Failures: 7, Errors: 0, Skipped: 0, Time elapsed: 7.790 s <<< FAILURE! -- in com.lawdesk.documents.ArchiveTextSearchApiTest
+java.lang.AssertionError: JSON path "$.totalItems" expected:<1> but was:<0>
+java.lang.AssertionError: Status expected:<400> but was:<200>
+java.lang.AssertionError: JSON path "$.totalItems" expected:<2> but was:<0>
+java.lang.AssertionError: JSON path "$.totalItems" expected:<1> but was:<0>
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.004 s -- in com.lawdesk.enforcement.EnforcementApiTest
+[ERROR]   ArchiveTextSearchApiTest.anImageWaitsForTheEngineAndThenBecomesSearchable:184 No value at JSON path "$.items[0].documentId"
+[ERROR]   ArchiveTextSearchApiTest.arabicSpellingVariantsDoNotHideADocument:52 JSON path "$.totalItems" expected:<1> but was:<0>
+[ERROR]   ArchiveTextSearchApiTest.filtersByCaseAndCategory:84 JSON path "$.totalItems" expected:<2> but was:<0>
+[ERROR]   ArchiveTextSearchApiTest.findsADocumentByTheTextOfItsFileAndShowsTheMatchingLine:41 JSON path "$.totalItems" expected:<1> but was:<0>
+[ERROR]   ArchiveTextSearchApiTest.searchesWordDocumentsAndKeepsLatinAndDigits:63 No value at JSON path "$.items[0].snippet"
+[ERROR]   ArchiveTextSearchApiTest.shortOrEmptyQueriesAreRefused:72 Status expected:<400> but was:<200>
+[ERROR]   ArchiveTextSearchApiTest.textThatLooksLikeInstructionsIsStoredAndShownAsDataAndDoesNothing:151 JSON path "$.items[0].snippet"
+[ERROR]   ArchiveMigrationTest.anArchiveWithNoDocumentsMigratesCleanly:134 » Flyway No migration with a target version 699 could be found. Ensure target is specified correctly and the migration exists.
+[ERROR]   ArchiveMigrationTest.archivedContentSurvivesALogicalDumpAndRestoreWithTheSameHashes:153 » Flyway No migration with a target version 699 could be found. Ensure target is specified correctly and the migration exists.
+[ERROR]   ArchiveMigrationTest.everyExistingDocumentGetsVersionOneWithTheSameIdAndContentAndNothingIsLost:86 » Flyway No migration with a target version 699 could be found. Ensure target is specified correctly and the migration exists.
+[ERROR] Tests run: 44, Failures: 7, Errors: 3, Skipped: 0
+
+## t7.log
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 122.4 s -- in com.lawdesk.platform.ArchiveMigrationTest
+[ERROR] Tests run: 17, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 49.39 s <<< FAILURE! -- in com.lawdesk.documents.ArchiveTextSearchApiTest
+[ERROR]   ArchiveTextSearchApiTest.arabicSpellingVariantsDoNotHideADocument:53 No value at JSON path "$.totalItems"
+[ERROR]   ArchiveTextSearchApiTest.textThatLooksLikeInstructionsIsStoredAndShownAsDataAndDoesNothing:152 JSON path "$.items[0].snippet"
+[ERROR] Tests run: 20, Failures: 2, Errors: 0, Skipped: 0

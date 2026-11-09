@@ -42,8 +42,9 @@ class PleadingsPermissionsTest extends PleadingsTestSupport {
             "defense_position", "defense_template", "case_fact", "evidence_item", "evidence_link", "gap_followup"}) {
             assertThat(count("select count(*) from " + table)).as(table).isZero();
         }
-        // Nothing is generated from the document: every seeded list value is a proposal.
-        assertThat(count("select count(*) from lookup_value where origin = 'DOCUMENT'")).isZero();
-        assertThat(count("select count(*) from lookup_value where approved_at is not null")).isZero();
+        // Nothing is generated from the document: every judgment list value is a proposal (the source names none). Later
+        // work packages add lists whose values the source does name (LD-055: the kinds of memos, as DOCUMENT).
+        assertThat(count("select count(*) from lookup_value where origin = 'DOCUMENT' and list_code like 'JUDGMENT%'")).isZero();
+        assertThat(count("select count(*) from lookup_value where approved_at is not null and list_code like 'JUDGMENT%'")).isZero();
     }
 }
