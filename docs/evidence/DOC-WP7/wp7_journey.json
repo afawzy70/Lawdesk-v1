@@ -1,0 +1,1078 @@
+{
+  "journey": "WP7 judgments library: S4 search, S5 similar judgments (261109055715)",
+  "base": "https://lawdesk.167-86-90-174.sslip.io",
+  "steps": [
+    {
+      "step": "deployed release",
+      "value": {
+        "release": "60f5368534f43fdc21737843356a3066c6935c91"
+      }
+    },
+    {
+      "step": "a reader sees the twelve judicial results of the requirements text",
+      "expected": [
+        200,
+        12
+      ],
+      "actual": [
+        200,
+        12
+      ],
+      "ok": true
+    },
+    {
+      "step": "the reader's lists mark them as the document's own",
+      "expected": "{'DOCUMENT'}",
+      "actual": "{'DOCUMENT'}",
+      "ok": true
+    },
+    {
+      "step": "a reader cannot add to a list",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "the specialist proposes a legal topic",
+      "expected": [
+        201,
+        "PROPOSED"
+      ],
+      "actual": [
+        201,
+        "PROPOSED"
+      ],
+      "ok": true
+    },
+    {
+      "step": "a reader cannot register a judgment",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "the source is mandatory",
+      "expected": 400,
+      "actual": 400,
+      "ok": true
+    },
+    {
+      "step": "a judgment cannot be dated in the future",
+      "expected": 422,
+      "actual": 422,
+      "ok": true
+    },
+    {
+      "step": "the specialist registers the judgment",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "it records who entered it",
+      "expected": "192454be-232b-469f-8051-3deea347837b",
+      "actual": "192454be-232b-469f-8051-3deea347837b",
+      "ok": true
+    },
+    {
+      "step": "a second entry of the same citation is refused until confirmed",
+      "expected": 422,
+      "actual": 422,
+      "ok": true
+    },
+    {
+      "step": "the specialist extracts a principle apart from the judgment",
+      "expected": [
+        201,
+        "DRAFT"
+      ],
+      "actual": [
+        201,
+        "DRAFT"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the manager reviews the principle",
+      "expected": [
+        200,
+        "REVIEWED"
+      ],
+      "actual": [
+        200,
+        "REVIEWED"
+      ],
+      "ok": true
+    },
+    {
+      "step": "a reader finds the judgment by the token",
+      "expected": [
+        200,
+        true
+      ],
+      "actual": [
+        200,
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "a reader finds the judgment by spelling variants of the subject",
+      "expected": [
+        200,
+        true
+      ],
+      "actual": [
+        200,
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "a reader finds the judgment by words found only in the principle",
+      "expected": [
+        200,
+        true
+      ],
+      "actual": [
+        200,
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "a reader finds the judgment by the legal basis with Arabic-Indic digits",
+      "expected": [
+        200,
+        true
+      ],
+      "actual": [
+        200,
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "a reader finds the judgment by a keyword",
+      "expected": [
+        200,
+        true
+      ],
+      "actual": [
+        200,
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "the answer says the match was in the principle",
+      "expected": "PRINCIPLE",
+      "actual": "PRINCIPLE",
+      "ok": true
+    },
+    {
+      "step": "filtering by the classification keeps it",
+      "expected": [
+        "67c34b40-4aec-4ee9-9237-95690446c46a"
+      ],
+      "actual": [
+        "67c34b40-4aec-4ee9-9237-95690446c46a"
+      ],
+      "ok": true
+    },
+    {
+      "step": "filtering by another court level drops it",
+      "expected": [],
+      "actual": [],
+      "ok": true
+    },
+    {
+      "step": "words that are not there do not narrow to this judgment as an exact match",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "no later event: no later-relation warning",
+      "expected": false,
+      "actual": false,
+      "ok": true
+    },
+    {
+      "step": "a later event is recorded with its source",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the library now warns that a later event exists",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "and still does not decide the legal validity",
+      "expected": false,
+      "actual": false,
+      "ok": true
+    },
+    {
+      "step": "intake registers the synthetic case",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the specialist is offered similar judgments",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "the registered judgment is among them",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "each suggestion explains itself with words and points",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the reasons include the shared words and the type of dispute",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the total is the sum of the reasons' points",
+      "expected": 139,
+      "actual": 139,
+      "ok": true
+    },
+    {
+      "step": "the citation shows source, date and number",
+      "expected": [
+        true,
+        "2022-02-01",
+        "755715"
+      ],
+      "actual": [
+        true,
+        "2022-02-01",
+        "755715"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the later event is flagged on the suggestion",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "score and reasons",
+      "value": [
+        139,
+        [
+          "KEYWORD_MATCH",
+          "PRINCIPLE_MATCH",
+          "SAME_CASE_TYPE",
+          "SUBJECT_SIMILARITY",
+          "TEXT_MATCH"
+        ]
+      ]
+    },
+    {
+      "step": "the answer is the same when asked again",
+      "expected": {
+        "caseId": "9fe9ccc1-8443-4417-ae79-40a52a3b74d1",
+        "basis": {
+          "terms": [
+            "synth",
+            "doc",
+            "261109055715",
+            "مطالبه",
+            "بتعويض",
+            "فصل",
+            "تعويض",
+            "انها",
+            "خدمه",
+            "موظف",
+            "بغير",
+            "سبب",
+            "مشروع",
+            "وهو",
+            "يطلب",
+            "تعسفي"
+          ],
+          "caseType": "LABOR",
+          "courtLevels": [
+            "FIRST_INSTANCE"
+          ],
+          "defensesIncluded": false
+        },
+        "items": [
+          {
+            "judgment": {
+              "id": "67c34b40-4aec-4ee9-9237-95690446c46a",
+              "courtName": "محكمة التمييز (SYNTH-DOC)",
+              "courtLevel": "CASSATION",
+              "caseNumber": "755715",
+              "caseYear": 2021,
+              "judgmentDate": "2022-02-01",
+              "caseType": "LABOR",
+              "subject": "SYNTH-DOC-261109055715 تعويض عن إنهاء خدمة موظف بغير سبب مشروع",
+              "finality": "FINAL",
+              "status": "ACTIVE",
+              "sourceReference": "مجموعة أحكام اختبارية SYNTH-DOC",
+              "hasCopy": false
+            },
+            "score": 139,
+            "reasons": [
+              {
+                "code": "KEYWORD_MATCH",
+                "points": 20,
+                "terms": [
+                  "فصل تعسفي",
+                  "synth doc 261109055715"
+                ]
+              },
+              {
+                "code": "TEXT_MATCH",
+                "points": 40,
+                "terms": [
+                  "synth",
+                  "doc",
+                  "261109055715",
+                  "فصل",
+                  "تعويض",
+                  "انها",
+                  "خدمه",
+                  "موظف"
+                ]
+              },
+              {
+                "code": "PRINCIPLE_MATCH",
+                "points": 20,
+                "terms": [
+                  "synth",
+                  "doc",
+                  "261109055715",
+                  "فصل"
+                ]
+              },
+              {
+                "code": "SUBJECT_SIMILARITY",
+                "points": 39,
+                "terms": [
+                  "0.78"
+                ]
+              },
+              {
+                "code": "SAME_CASE_TYPE",
+                "points": 20,
+                "terms": [
+                  "LABOR"
+                ]
+              }
+            ],
+            "differences": [
+              {
+                "code": "DIFFERENT_COURT_LEVEL",
+                "detail": "CASSATION"
+              }
+            ],
+            "relationTypes": [
+              "MODIFIED"
+            ],
+            "warnings": [
+              "LATER_RELATION_EXISTS"
+            ],
+            "alreadyLinked": false
+          },
+          {
+            "judgment": {
+              "id": "30bc001e-ee10-4387-9bc9-d9b29693af8e",
+              "courtName": "محكمة التمييز (SYNTH-DOC)",
+              "courtLevel": "CASSATION",
+              "caseNumber": "755635",
+              "caseYear": 2021,
+              "judgmentDate": "2022-02-01",
+              "caseType": "LABOR",
+              "subject": "SYNTH-DOC-261109055635 تعويض عن إنهاء خدمة موظف بغير سبب مشروع",
+              "finality": "FINAL",
+              "status": "ACTIVE",
+              "sourceReference": "مجموعة أحكام اختبارية SYNTH-DOC",
+              "hasCopy": false
+            },
+            "score": 125,
+            "reasons": [
+              {
+                "code": "KEYWORD_MATCH",
+                "points": 10,
+                "terms": [
+                  "فصل تعسفي"
+                ]
+              },
+              {
+                "code": "TEXT_MATCH",
+                "points": 40,
+                "terms": [
+                  "synth",
+                  "doc",
+                  "فصل",
+                  "تعويض",
+                  "انها",
+                  "خدمه",
+                  "موظف",
+                  "بغير"
+                ]
+              },
+              {
+                "code": "PRINCIPLE_MATCH",
+                "points": 20,
+                "terms": [
+                  "synth",
+                  "doc",
+                  "فصل",
+                  "تعويض"
+                ]
+              },
+              {
+                "code": "SUBJECT_SIMILARITY",
+                "points": 35,
+                "terms": [
+                  "0.71"
+                ]
+              },
+              {
+                "code": "SAME_CASE_TYPE",
+                "points": 20,
+                "terms": [
+                  "LABOR"
+                ]
+              }
+            ],
+            "differences": [
+              {
+                "code": "DIFFERENT_COURT_LEVEL",
+                "detail": "CASSATION"
+              }
+            ],
+            "relationTypes": [],
+            "warnings": [],
+            "alreadyLinked": false
+          },
+          {
+            "judgment": {
+              "id": "4b96b68d-d279-4b83-b945-e8db5c491e7f",
+              "courtName": "محكمة التمييز (SYNTH-DOC)",
+              "courtLevel": "CASSATION",
+              "caseNumber": "755623",
+              "caseYear": 2021,
+              "judgmentDate": "2022-02-01",
+              "caseType": "LABOR",
+              "subject": "SYNTH-DOC-261109055623 تعويض عن إنهاء خدمة موظف بغير سبب مشروع",
+              "finality": "FINAL",
+              "status": "ACTIVE",
+              "sourceReference": "مجموعة أحكام اختبارية SYNTH-DOC",
+              "hasCopy": false
+            },
+            "score": 125,
+            "reasons": [
+              {
+                "code": "KEYWORD_MATCH",
+                "points": 10,
+                "terms": [
+                  "فصل تعسفي"
+                ]
+              },
+              {
+                "code": "TEXT_MATCH",
+                "points": 40,
+                "terms": [
+                  "synth",
+                  "doc",
+                  "فصل",
+                  "تعويض",
+                  "انها",
+                  "خدمه",
+                  "موظف",
+                  "بغير"
+                ]
+              },
+              {
+                "code": "PRINCIPLE_MATCH",
+                "points": 20,
+                "terms": [
+                  "synth",
+                  "doc",
+                  "فصل",
+                  "تعويض"
+                ]
+              },
+              {
+                "code": "SUBJECT_SIMILARITY",
+                "points": 35,
+                "terms": [
+                  "0.71"
+                ]
+              },
+              {
+                "code": "SAME_CASE_TYPE",
+                "points": 20,
+                "terms": [
+                  "LABOR"
+                ]
+              }
+            ],
+            "differences": [
+              {
+                "code": "DIFFERENT_COURT_LEVEL",
+                "detail": "CASSATION"
+              }
+            ],
+            "relationTypes": [],
+            "warnings": [],
+            "alreadyLinked": false
+          },
+          {
+            "judgment": {
+              "id": "628a88d5-7624-48d0-b244-7da3d629095f",
+              "courtName": "محكمة التمييز (SYNTH-DOC)",
+              "courtLevel": "CASSATION",
+              "caseNumber": "755605",
+              "caseYear": 2021,
+              "judgmentDate": "2022-02-01",
+              "caseType": "LABOR",
+              "subject": "SYNTH-DOC-261109055605 تعويض عن إنهاء خدمة موظف بغير سبب مشروع",
+              "finality": "FINAL",
+              "status": "ACTIVE",
+              "sourceReference": "مجموعة أحكام اختبارية SYNTH-DOC",
+              "hasCopy": false
+            },
+            "score": 125,
+            "reasons": [
+              {
+                "code": "KEYWORD_MATCH",
+                "points": 10,
+                "terms": [
+                  "فصل تعسفي"
+                ]
+              },
+              {
+                "code": "TEXT_MATCH",
+                "points": 40,
+                "terms": [
+                  "synth",
+                  "doc",
+                  "فصل",
+                  "تعويض",
+                  "انها",
+                  "خدمه",
+                  "موظف",
+                  "بغير"
+                ]
+              },
+              {
+                "code": "PRINCIPLE_MATCH",
+                "points": 20,
+                "terms": [
+                  "synth",
+                  "doc",
+                  "فصل",
+                  "تعويض"
+                ]
+              },
+              {
+                "code": "SUBJECT_SIMILARITY",
+                "points": 35,
+                "terms": [
+                  "0.71"
+                ]
+              },
+              {
+                "code": "SAME_CASE_TYPE",
+                "points": 20,
+                "terms": [
+                  "LABOR"
+                ]
+              }
+            ],
+            "differences": [
+              {
+                "code": "DIFFERENT_COURT_LEVEL",
+                "detail": "CASSATION"
+              }
+            ],
+            "relationTypes": [],
+            "warnings": [],
+            "alreadyLinked": false
+          }
+        ],
+        "note": "Suggestions are found by a fixed comparison of words, classifications and court levels, not by judgment of meaning. Read the judgment itself before relying on it."
+      },
+      "actual": {
+        "caseId": "9fe9ccc1-8443-4417-ae79-40a52a3b74d1",
+        "basis": {
+          "terms": [
+            "synth",
+            "doc",
+            "261109055715",
+            "مطالبه",
+            "بتعويض",
+            "فصل",
+            "تعويض",
+            "انها",
+            "خدمه",
+            "موظف",
+            "بغير",
+            "سبب",
+            "مشروع",
+            "وهو",
+            "يطلب",
+            "تعسفي"
+          ],
+          "caseType": "LABOR",
+          "courtLevels": [
+            "FIRST_INSTANCE"
+          ],
+          "defensesIncluded": false
+        },
+        "items": [
+          {
+            "judgment": {
+              "id": "67c34b40-4aec-4ee9-9237-95690446c46a",
+              "courtName": "محكمة التمييز (SYNTH-DOC)",
+              "courtLevel": "CASSATION",
+              "caseNumber": "755715",
+              "caseYear": 2021,
+              "judgmentDate": "2022-02-01",
+              "caseType": "LABOR",
+              "subject": "SYNTH-DOC-261109055715 تعويض عن إنهاء خدمة موظف بغير سبب مشروع",
+              "finality": "FINAL",
+              "status": "ACTIVE",
+              "sourceReference": "مجموعة أحكام اختبارية SYNTH-DOC",
+              "hasCopy": false
+            },
+            "score": 139,
+            "reasons": [
+              {
+                "code": "KEYWORD_MATCH",
+                "points": 20,
+                "terms": [
+                  "فصل تعسفي",
+                  "synth doc 261109055715"
+                ]
+              },
+              {
+                "code": "TEXT_MATCH",
+                "points": 40,
+                "terms": [
+                  "synth",
+                  "doc",
+                  "261109055715",
+                  "فصل",
+                  "تعويض",
+                  "انها",
+                  "خدمه",
+                  "موظف"
+                ]
+              },
+              {
+                "code": "PRINCIPLE_MATCH",
+                "points": 20,
+                "terms": [
+                  "synth",
+                  "doc",
+                  "261109055715",
+                  "فصل"
+                ]
+              },
+              {
+                "code": "SUBJECT_SIMILARITY",
+                "points": 39,
+                "terms": [
+                  "0.78"
+                ]
+              },
+              {
+                "code": "SAME_CASE_TYPE",
+                "points": 20,
+                "terms": [
+                  "LABOR"
+                ]
+              }
+            ],
+            "differences": [
+              {
+                "code": "DIFFERENT_COURT_LEVEL",
+                "detail": "CASSATION"
+              }
+            ],
+            "relationTypes": [
+              "MODIFIED"
+            ],
+            "warnings": [
+              "LATER_RELATION_EXISTS"
+            ],
+            "alreadyLinked": false
+          },
+          {
+            "judgment": {
+              "id": "30bc001e-ee10-4387-9bc9-d9b29693af8e",
+              "courtName": "محكمة التمييز (SYNTH-DOC)",
+              "courtLevel": "CASSATION",
+              "caseNumber": "755635",
+              "caseYear": 2021,
+              "judgmentDate": "2022-02-01",
+              "caseType": "LABOR",
+              "subject": "SYNTH-DOC-261109055635 تعويض عن إنهاء خدمة موظف بغير سبب مشروع",
+              "finality": "FINAL",
+              "status": "ACTIVE",
+              "sourceReference": "مجموعة أحكام اختبارية SYNTH-DOC",
+              "hasCopy": false
+            },
+            "score": 125,
+            "reasons": [
+              {
+                "code": "KEYWORD_MATCH",
+                "points": 10,
+                "terms": [
+                  "فصل تعسفي"
+                ]
+              },
+              {
+                "code": "TEXT_MATCH",
+                "points": 40,
+                "terms": [
+                  "synth",
+                  "doc",
+                  "فصل",
+                  "تعويض",
+                  "انها",
+                  "خدمه",
+                  "موظف",
+                  "بغير"
+                ]
+              },
+              {
+                "code": "PRINCIPLE_MATCH",
+                "points": 20,
+                "terms": [
+                  "synth",
+                  "doc",
+                  "فصل",
+                  "تعويض"
+                ]
+              },
+              {
+                "code": "SUBJECT_SIMILARITY",
+                "points": 35,
+                "terms": [
+                  "0.71"
+                ]
+              },
+              {
+                "code": "SAME_CASE_TYPE",
+                "points": 20,
+                "terms": [
+                  "LABOR"
+                ]
+              }
+            ],
+            "differences": [
+              {
+                "code": "DIFFERENT_COURT_LEVEL",
+                "detail": "CASSATION"
+              }
+            ],
+            "relationTypes": [],
+            "warnings": [],
+            "alreadyLinked": false
+          },
+          {
+            "judgment": {
+              "id": "4b96b68d-d279-4b83-b945-e8db5c491e7f",
+              "courtName": "محكمة التمييز (SYNTH-DOC)",
+              "courtLevel": "CASSATION",
+              "caseNumber": "755623",
+              "caseYear": 2021,
+              "judgmentDate": "2022-02-01",
+              "caseType": "LABOR",
+              "subject": "SYNTH-DOC-261109055623 تعويض عن إنهاء خدمة موظف بغير سبب مشروع",
+              "finality": "FINAL",
+              "status": "ACTIVE",
+              "sourceReference": "مجموعة أحكام اختبارية SYNTH-DOC",
+              "hasCopy": false
+            },
+            "score": 125,
+            "reasons": [
+              {
+                "code": "KEYWORD_MATCH",
+                "points": 10,
+                "terms": [
+                  "فصل تعسفي"
+                ]
+              },
+              {
+                "code": "TEXT_MATCH",
+                "points": 40,
+                "terms": [
+                  "synth",
+                  "doc",
+                  "فصل",
+                  "تعويض",
+                  "انها",
+                  "خدمه",
+                  "موظف",
+                  "بغير"
+                ]
+              },
+              {
+                "code": "PRINCIPLE_MATCH",
+                "points": 20,
+                "terms": [
+                  "synth",
+                  "doc",
+                  "فصل",
+                  "تعويض"
+                ]
+              },
+              {
+                "code": "SUBJECT_SIMILARITY",
+                "points": 35,
+                "terms": [
+                  "0.71"
+                ]
+              },
+              {
+                "code": "SAME_CASE_TYPE",
+                "points": 20,
+                "terms": [
+                  "LABOR"
+                ]
+              }
+            ],
+            "differences": [
+              {
+                "code": "DIFFERENT_COURT_LEVEL",
+                "detail": "CASSATION"
+              }
+            ],
+            "relationTypes": [],
+            "warnings": [],
+            "alreadyLinked": false
+          },
+          {
+            "judgment": {
+              "id": "628a88d5-7624-48d0-b244-7da3d629095f",
+              "courtName": "محكمة التمييز (SYNTH-DOC)",
+              "courtLevel": "CASSATION",
+              "caseNumber": "755605",
+              "caseYear": 2021,
+              "judgmentDate": "2022-02-01",
+              "caseType": "LABOR",
+              "subject": "SYNTH-DOC-261109055605 تعويض عن إنهاء خدمة موظف بغير سبب مشروع",
+              "finality": "FINAL",
+              "status": "ACTIVE",
+              "sourceReference": "مجموعة أحكام اختبارية SYNTH-DOC",
+              "hasCopy": false
+            },
+            "score": 125,
+            "reasons": [
+              {
+                "code": "KEYWORD_MATCH",
+                "points": 10,
+                "terms": [
+                  "فصل تعسفي"
+                ]
+              },
+              {
+                "code": "TEXT_MATCH",
+                "points": 40,
+                "terms": [
+                  "synth",
+                  "doc",
+                  "فصل",
+                  "تعويض",
+                  "انها",
+                  "خدمه",
+                  "موظف",
+                  "بغير"
+                ]
+              },
+              {
+                "code": "PRINCIPLE_MATCH",
+                "points": 20,
+                "terms": [
+                  "synth",
+                  "doc",
+                  "فصل",
+                  "تعويض"
+                ]
+              },
+              {
+                "code": "SUBJECT_SIMILARITY",
+                "points": 35,
+                "terms": [
+                  "0.71"
+                ]
+              },
+              {
+                "code": "SAME_CASE_TYPE",
+                "points": 20,
+                "terms": [
+                  "LABOR"
+                ]
+              }
+            ],
+            "differences": [
+              {
+                "code": "DIFFERENT_COURT_LEVEL",
+                "detail": "CASSATION"
+              }
+            ],
+            "relationTypes": [],
+            "warnings": [],
+            "alreadyLinked": false
+          }
+        ],
+        "note": "Suggestions are found by a fixed comparison of words, classifications and court levels, not by judgment of meaning. Read the judgment itself before relying on it."
+      },
+      "ok": true
+    },
+    {
+      "step": "nothing was linked by the suggestion alone",
+      "expected": [],
+      "actual": [],
+      "ok": true
+    },
+    {
+      "step": "a reader without scope gets 404 for the case's suggestions",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "and for its precedents",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "and cannot link to it",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "a reason is required to link",
+      "expected": 400,
+      "actual": 400,
+      "ok": true
+    },
+    {
+      "step": "the specialist decides to link the judgment, giving the reason",
+      "expected": [
+        201,
+        "SUGGESTION"
+      ],
+      "actual": [
+        201,
+        "SUGGESTION"
+      ],
+      "ok": true
+    },
+    {
+      "step": "linking it twice is a conflict",
+      "expected": 409,
+      "actual": 409,
+      "ok": true
+    },
+    {
+      "step": "the suggestion is now marked linked",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the manager (department scope) sees the case among the judgment's linked cases",
+      "expected": [
+        "9fe9ccc1-8443-4417-ae79-40a52a3b74d1"
+      ],
+      "actual": [
+        "9fe9ccc1-8443-4417-ae79-40a52a3b74d1"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the specialist sees the judgment and the case it is linked to",
+      "expected": [
+        200,
+        [
+          "9fe9ccc1-8443-4417-ae79-40a52a3b74d1"
+        ]
+      ],
+      "actual": [
+        200,
+        [
+          "9fe9ccc1-8443-4417-ae79-40a52a3b74d1"
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "step": "the case timeline records the link",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "a reader sees the library report",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "the report counts the judgment under its classification",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the report names the principle's legal question with counts, not a verdict",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the synthetic judgment is withdrawn",
+      "expected": [
+        200,
+        "WITHDRAWN"
+      ],
+      "actual": [
+        200,
+        "WITHDRAWN"
+      ],
+      "ok": true
+    },
+    {
+      "step": "a withdrawn judgment is out of the default search",
+      "expected": false,
+      "actual": false,
+      "ok": true
+    },
+    {
+      "step": "and out of the suggestions",
+      "expected": false,
+      "actual": false,
+      "ok": true
+    }
+  ],
+  "passed": true
+}
