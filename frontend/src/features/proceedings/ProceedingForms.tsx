@@ -5,6 +5,8 @@ import { PagedSelect } from '../../components/PagedSelect';
 import type { Court } from '../courts/courtsApi';
 import { formatDate, numberOf } from './dates';
 import { useFormErrors } from './formErrors';
+import { JudgmentExtras } from '../pleadings/JudgmentExtras';
+import { detailsOf, detailsPayload, useExtras } from '../pleadings/judgmentState';
 import {
   createJudgment,
   createProceeding,
@@ -20,6 +22,7 @@ import {
   type Outcome,
   type Proceeding,
   type Stage,
+  updateJudgment,
 } from './proceedingsApi';
 
 /** Forms of the judicial stages (LD-019…LD-023). The backend validates; the forms show its answer. */
@@ -264,35 +267,54 @@ const JUDGMENT_FIELDS = ['judgmentDate', 'outcome', 'summary'] as const;
 
 interface JudgmentFormProps {
   proceeding: Proceeding;
+  /** Given, the form completes or corrects this judgment (extended fields and results) instead of recording a new one. */
+  judgment?: Judgment;
   onSaved: () => void;
   onCancel: () => void;
 }
 
-/** Records the judgment that ends a proceeding (LD-022). */
-export function JudgmentForm({ proceeding, onSaved, onCancel }: JudgmentFormProps) {
+/**
+ * Records the judgment that ends a proceeding (LD-022) with its extended fields (section 9), the court's result on every
+ * registered claim (section 5) and its position on every defence (section 17); or completes a judgment already recorded.
+ */
+export function JudgmentForm({ proceeding, judgment, onSaved, onCancel }: JudgmentFormProps) {
   const { t } = useI18n();
   const form = useFormErrors<(typeof JUDGMENT_FIELDS)[number]>();
   const { saving, run } = useSave(
     onSaved,
     (error) => {
-      form.fail(error, 'proceedings.alreadyJudged', JUDGMENT_FIELDS);
+      form.fail(error, judgment === undefined ? 'proceedings.alreadyJudged' : 'pl.error.stale', JUDGMENT_FIELDS);
     },
     form.reset,
   );
-  const [date, setDate] = useState('');
-  const [outcome, setOutcome] = useState<Outcome | ''>('');
-  const [isFinal, setFinal] = useState(false);
-  const [summary, setSummary] = useState('');
+  const [date, setDate] = useState(judgment?.judgmentDate ?? '');
+  const [outcome, setOutcome] = useState<Outcome | ''>(judgment?.outcome ?? '');
+  const [isFinal, setFinal] = useState(judgment?.final ?? false);
+  const [summary, setSummary] = useState(judgment?.summary ?? '');
+  // Once the judgment is stored, a retry after a failed results save must not record it a second time.
+  const [storedId, setStoredId] = useState<string | null>(judgment?.id ?? null);
+  // Recorded results are loaded for a judgment that existed before the form opened, never for the one it just stored.
+  const extras = useExtras(detailsOf(judgment), judgment?.id ?? null);
 
   const submit = () => {
-    run(() =>
-      createJudgment(proceeding.id, {
+    run(async () => {
+      const input = {
         judgmentDate: blankToNull(date),
         outcome: outcome === '' ? null : outcome,
         final: isFinal,
         summary: blankToNull(summary),
-      }),
-    );
+      };
+      const details = detailsPayload(extras.details, judgment !== undefined);
+      const body = details === undefined ? input : { ...input, details };
+      let id = storedId;
+      if (judgment !== undefined) {
+        await updateJudgment(judgment.id, { ...body, version: judgment.version });
+      } else if (id === null) {
+        id = (await createJudgment(proceeding.id, body)).id;
+        setStoredId(id);
+      }
+      if (id !== null) await extras.save(id);
+    });
   };
 
   const field = (name: (typeof JUDGMENT_FIELDS)[number], label: MessageKey, control: ReactNode) => (
@@ -360,6 +382,7 @@ export function JudgmentForm({ proceeding, onSaved, onCancel }: JudgmentFormProp
           }}
         />,
       )}
+      <JudgmentExtras caseId={proceeding.caseId} extras={extras} summary={judgment === undefined ? null : blankToNull(summary)} />
     </FormShell>
   );
 }

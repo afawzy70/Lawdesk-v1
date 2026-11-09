@@ -8,6 +8,7 @@ export const JUDGMENTS_PATH = '/reports/judgments';
 export const HEARINGS_PATH = '/reports/hearings';
 export const WORKLOAD_PATH = '/reports/workload';
 export const EXPERTS_PATH = '/reports/experts';
+export const CLAIM_RESULTS_PATH = '/reports/claim-results';
 
 /** The message for a failed report request; never shows what the server sent. */
 export function failureMessage(error: unknown): MessageKey {

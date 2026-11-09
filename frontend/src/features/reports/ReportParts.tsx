@@ -5,7 +5,7 @@ import { formatNumber } from '../../i18n/format';
 import { useI18n } from '../../i18n/I18nContext';
 import { withLang } from '../../i18n/locale';
 import { useAuth } from '../auth/AuthContext';
-import { EXPERTS_PATH, HEARINGS_PATH, JUDGMENTS_PATH, REPORTS_PATH, WORKLOAD_PATH } from './common';
+import { CLAIM_RESULTS_PATH, EXPERTS_PATH, HEARINGS_PATH, JUDGMENTS_PATH, REPORTS_PATH, WORKLOAD_PATH } from './common';
 
 /** Shared parts of the report screens (docs/delivery/PHASE-6-ACCEPTANCE.md, common rule 8). */
 
@@ -18,6 +18,7 @@ export function ReportSections() {
     [HEARINGS_PATH, 'reports.section.hearings'],
     [WORKLOAD_PATH, 'reports.section.workload'],
     [EXPERTS_PATH, 'reports.section.experts'],
+    [CLAIM_RESULTS_PATH, 'reports.section.claimResults'],
   ];
   return (
     <nav aria-label={t('reports.sections')} className="rpt-sections">

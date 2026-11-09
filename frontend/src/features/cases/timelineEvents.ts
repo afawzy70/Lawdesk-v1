@@ -40,6 +40,21 @@ const KNOWN_EVENTS: Record<string, MessageKey> = {
   DUPLICATE_REVIEWED: 'cases.event.DUPLICATE_REVIEWED',
   PRECEDENT_LINKED: 'cases.event.PRECEDENT_LINKED',
   PRECEDENT_UNLINKED: 'cases.event.PRECEDENT_UNLINKED',
+  // LD-051: claims, defences, facts and evidence.
+  CLAIM_ADDED: 'cases.event.CLAIM_ADDED',
+  CLAIM_AMENDED: 'cases.event.CLAIM_AMENDED',
+  CLAIM_RESULTS_RECORDED: 'cases.event.CLAIM_RESULTS_RECORDED',
+  DEFENSE_ADDED: 'cases.event.DEFENSE_ADDED',
+  DEFENSE_CHANGED: 'cases.event.DEFENSE_CHANGED',
+  DEFENSE_ASSERTION_RECORDED: 'cases.event.DEFENSE_ASSERTION_RECORDED',
+  DEFENSE_POSITIONS_RECORDED: 'cases.event.DEFENSE_POSITIONS_RECORDED',
+  FACT_ADDED: 'cases.event.FACT_ADDED',
+  FACT_CHANGED: 'cases.event.FACT_CHANGED',
+  EVIDENCE_ADDED: 'cases.event.EVIDENCE_ADDED',
+  EVIDENCE_CHANGED: 'cases.event.EVIDENCE_CHANGED',
+  EVIDENCE_LINKED: 'cases.event.EVIDENCE_LINKED',
+  EVIDENCE_UNLINKED: 'cases.event.EVIDENCE_UNLINKED',
+  EVIDENCE_FOLLOWUP_LINKED: 'cases.event.EVIDENCE_FOLLOWUP_LINKED',
 };
 
 /** The message naming a timeline event type; types this screen does not know read "Other event". */

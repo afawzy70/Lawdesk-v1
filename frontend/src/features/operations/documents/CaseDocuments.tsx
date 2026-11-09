@@ -5,6 +5,9 @@ import { useI18n } from '../../../i18n/I18nContext';
 import { ApiError } from '../../../api/http';
 import { loadError, saveError, useFormErrors } from '../formErrors';
 import { Field } from '../FormParts';
+import { listDocumentUsage } from '../../pleadings/api';
+import { DocumentUsageList } from '../../pleadings/DocumentUsageList';
+import { useLoad } from '../../pleadings/useLoad';
 import {
   attachDocument,
   contentUrl,
@@ -133,6 +136,8 @@ export function CaseDocuments({ caseId }: Props) {
   const [notice, setNotice] = useState<'attached' | 'removed' | MessageKey | null>(null);
   const [confirming, setConfirming] = useState<CaseDocument | null>(null);
   const [busy, setBusy] = useState(false);
+  // Where each document is used in the case file (evidence, a claim's source, a defence memo, a judgment copy; LD-051).
+  const usage = useLoad((signal) => listDocumentUsage(caseId, signal), [caseId, reload]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -212,6 +217,7 @@ export function CaseDocuments({ caseId }: Props) {
                   {' · '}
                   {formatDateTime(d.createdAt, locale)}
                 </p>
+                <DocumentUsageList uses={(usage.data ?? []).filter((u) => u.documentId === d.id)} />
                 <div className="ops-actions">
                   <a href={contentUrl(d.id)} download aria-label={t('operations.document.downloadLabel', { title: d.title })}>
                     {t('operations.document.download')}

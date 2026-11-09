@@ -11,6 +11,7 @@ import { getCase, type LegalCase } from './api';
 import { CaseOperations } from '../operations/CaseOperations';
 import { CaseLibrarySection } from '../library/CaseLibrarySection';
 import { CaseProceedings } from '../proceedings/CaseProceedings';
+import { CasePleadings } from '../pleadings/CasePleadings';
 import { CaseAccessSection } from '../access/CaseAccessSection';
 import { CaseCounselSection } from './CaseCounselSection';
 import { CaseDetailsView } from './CaseDetailsView';
@@ -221,6 +222,7 @@ function CaseDetails({ id }: { id: string }) {
         <div className="case-workspace-content">
           {/* Judicial stages belong to Workstream C; the case only hosts them (architecture/CONTRACTS.md §5). */}
           <CaseProceedings caseId={legalCase.id} automatedNo={legalCase.automatedNo ?? null} />
+          <CasePleadings caseId={legalCase.id} editable={!archived} />
           <CaseOperations caseId={legalCase.id} />
           <CaseLibrarySection caseId={legalCase.id} editable={!archived} />
           <CaseFollowUp caseId={legalCase.id} archived={archived} generation={generation} />
