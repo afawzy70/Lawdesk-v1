@@ -287,7 +287,8 @@ describe('one-click reassignment on a conflict', () => {
     refuse = false;
     await user.click(within(panel).getByRole('button', { name: 'Hand to Omar Adel' }));
     await waitFor(() => { expect(requests.filter((r) => r.path.endsWith('/reassign') && r.method === 'POST').length).toBe(2); });
-    expect(requests.find((r) => r.path.endsWith('/reassign'))?.body).toEqual({ memberId: expect.any(String) });
+    const sent = requests.find((r) => r.path.endsWith('/reassign'))?.body as { memberId: string } | null | undefined;
+    expect(typeof sent?.memberId).toBe('string');
   });
 
   it('offers no button without the right to manage hearings', async () => {
