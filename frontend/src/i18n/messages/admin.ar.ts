@@ -151,4 +151,8 @@ export const adminAr: Record<keyof typeof adminEn, string> = {
   'admin.permission.DEADLINE_VIEW': 'الاطلاع على المواعيد القانونية',
   'admin.permission.DEADLINE_MANAGE': 'تسجيل المواعيد القانونية وقواعدها وعطلاتها وتعديلها',
   'admin.permission.DEADLINE_APPROVE': 'اعتماد المواعيد القانونية وقواعدها وعطلاتها',
+  'admin.permission.ENFORCEMENT_VIEW': 'الاطلاع على تنفيذ الأحكام',
+  'admin.permission.ENFORCEMENT_MANAGE': 'إدارة تنفيذ الأحكام',
+  'admin.permission.MEMO_APPROVE': 'اعتماد المذكرات والمراسلات',
+  'admin.permission.DOCUMENT_ARCHIVE_ADMIN': 'إدارة الأرشيف (الحذف النهائي والحدود)',
 };

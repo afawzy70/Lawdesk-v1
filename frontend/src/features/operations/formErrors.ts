@@ -19,6 +19,7 @@ export function fieldMessage(code: string): MessageKey {
     case 'Range':
       return 'operations.fieldError.range';
     case 'PdfOnly':
+    case 'UnsupportedFormat':
       return 'operations.fieldError.pdfOnly';
     case 'MaxSize':
       return 'operations.fieldError.maxSize';

@@ -26,7 +26,7 @@ class LookupApiTest extends PleadingsTestSupport {
                 .andExpect(jsonPath("$[*].needsApproval").value(Matchers.everyItem(Matchers.is(true))))
                 .andExpect(jsonPath("$[0].labelAr").isString());
         get(with(Permission.CASE_VIEW), "/api/v1/lookups/JUDGMENT_NATURE").andExpect(jsonPath("$.length()").value(2));
-        assertThat(count("select count(*) from lookup_value where origin = 'DOCUMENT'")).isZero();
+        assertThat(count("select count(*) from lookup_value where origin = 'DOCUMENT' and list_code like 'JUDGMENT%'")).isZero();
         get(with(Permission.CASE_VIEW), "/api/v1/lookups/NO_SUCH_LIST").andExpect(status().isNotFound());
         get(with(Permission.TASK_VIEW), "/api/v1/lookups/JUDGMENT_TYPE").andExpect(status().isForbidden());
     }

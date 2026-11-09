@@ -99,7 +99,7 @@ class DocumentUploadOverHttpTest extends PostgresTestSupport {
         assertThat((String) JsonPath.read(big.body(), "$.errors[0].code")).isEqualTo("MaxSize");
         assertThat(jdbc.queryForObject("select count(*) from case_document where case_id = ?::uuid", Integer.class,
                 caseId)).isEqualTo(1);
-        jdbc.update("delete from case_document where case_id = ?::uuid", caseId);
+        com.lawdesk.platform.ArchiveTestData.deleteDocuments(jdbc);
     }
 
     @Test

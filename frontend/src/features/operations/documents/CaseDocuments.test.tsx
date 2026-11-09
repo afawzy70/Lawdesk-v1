@@ -50,7 +50,7 @@ describe('case documents', () => {
     serve({ documents: page([caseDocument(), caseDocument({ id: 'd2', title: 'Judgment', sizeBytes: 2.5 * 1024 * 1024 })]) });
     renderOperations(`/cases/${CASE}`);
     const region = await section();
-    expect(await within(region).findByText('2 of 10 documents')).toBeVisible();
+    expect(await within(region).findByText('2 of 100 documents')).toBeVisible();
     const items = within(region).getAllByRole('listitem');
     expect(items[0]).toHaveTextContent('Statement of claim');
     expect(items[0]).toHaveTextContent('statement-of-claim.pdf');
@@ -62,7 +62,7 @@ describe('case documents', () => {
     );
   });
 
-  it('attaches a PDF as multipart form data with its title', async () => {
+  it('attaches a file as multipart form data with its title', async () => {
     const user = userEvent.setup();
     let documents = page([]);
     const { fetchMock } = serve({
@@ -77,8 +77,8 @@ describe('case documents', () => {
     renderOperations(`/cases/${CASE}`);
     const region = await section();
     expect(await within(region).findByText('No documents attached yet.')).toBeVisible();
-    const form = within(region).getByRole('form', { name: 'Attach a PDF' });
-    await user.upload(within(form).getByLabelText('PDF file (at most 10 MB)'), pdfFile());
+    const form = within(region).getByRole('form', { name: 'Attach a file' });
+    await user.upload(within(form).getByLabelText('File: PDF, Word or image (at most 10 MB)'), pdfFile());
     await user.type(within(form).getByLabelText('Title (optional)'), 'Statement of claim');
     await user.click(within(form).getByRole('button', { name: 'Attach' }));
 
@@ -88,26 +88,26 @@ describe('case documents', () => {
     expect((sent?.get('file') as File).name).toBe('claim.pdf');
     const call = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST');
     expect(call?.[0]).toBe(DOCUMENTS);
-    expect(await within(region).findByText('1 of 10 documents')).toBeVisible();
+    expect(await within(region).findByText('1 of 100 documents')).toBeVisible();
   });
 
   it('checks the file in the browser before sending it', async () => {
     const user = userEvent.setup({ applyAccept: false });
     const { fetchMock } = serve();
     renderOperations(`/cases/${CASE}`);
-    const form = within(await section()).getByRole('form', { name: 'Attach a PDF' });
-    const input = within(form).getByLabelText('PDF file (at most 10 MB)');
+    const form = within(await section()).getByRole('form', { name: 'Attach a file' });
+    const input = within(form).getByLabelText('File: PDF, Word or image (at most 10 MB)');
     const attach = within(form).getByRole('button', { name: 'Attach' });
 
     await user.click(attach);
-    expect(await within(form).findByText('Choose a PDF file.')).toBeVisible();
+    expect(await within(form).findByText('Choose a file.')).toBeVisible();
     expect(input).toHaveAttribute('aria-invalid', 'true');
-    await user.upload(input, pdfFile('photo.png', 100, 'image/png'));
+    await user.upload(input, pdfFile('notes.txt', 100, 'text/plain'));
     await user.click(attach);
-    expect(await within(form).findByText('Only PDF files can be attached.')).toBeVisible();
+    expect(await within(form).findByText('Only PDF, Word and image files can be attached.')).toBeVisible();
     fireEvent.change(input, { target: { files: [pdfFile('big.pdf', 10 * 1024 * 1024 + 1)] } });
     await user.click(attach);
-    expect(await within(form).findByText('The file is larger than 10 MB.')).toBeVisible();
+    expect(await within(form).findByText('The file is larger than the archive allows.')).toBeVisible();
     expect(sentForms(fetchMock)).toHaveLength(0);
   });
 
@@ -123,54 +123,60 @@ describe('case documents', () => {
     ];
     serve({ onWrite: () => answers.shift() ?? problem(500) });
     renderOperations(`/cases/${CASE}`);
-    const form = within(await section()).getByRole('form', { name: 'Attach a PDF' });
-    await user.upload(within(form).getByLabelText('PDF file (at most 10 MB)'), pdfFile());
+    const form = within(await section()).getByRole('form', { name: 'Attach a file' });
+    await user.upload(within(form).getByLabelText('File: PDF, Word or image (at most 10 MB)'), pdfFile());
     const attach = within(form).getByRole('button', { name: 'Attach' });
     await user.click(attach);
-    expect(await within(form).findByText('Only PDF files can be attached.')).toBeVisible();
+    expect(await within(form).findByText('Only PDF, Word and image files can be attached.')).toBeVisible();
     await user.click(attach);
-    expect(await within(form).findByText('The file is larger than 10 MB.')).toBeVisible();
+    expect(await within(form).findByText('The file is larger than the archive allows.')).toBeVisible();
     await user.click(attach);
     expect(
-      await within(form).findByText('This case already holds 10 documents. Remove one to attach another.'),
+      await within(form).findByText('This case already holds the most documents the archive allows. Remove one to attach another.'),
     ).toBeVisible();
     await user.click(attach);
-    expect(await within(form).findByText('The file is larger than 10 MB.')).toBeVisible();
+    expect(await within(form).findByText('The file is larger than the archive allows.')).toBeVisible();
     await user.click(attach);
     expect(await within(form).findByText('You are not permitted to make this change.')).toBeVisible();
   });
 
-  it('removes a document after confirmation and explains a stale one', async () => {
+  it('takes a document out of the case file with a reason and explains a stale one', async () => {
     const user = userEvent.setup();
     const answers = [problem(409), new Response(null, { status: 204 })];
     const { requests } = serve({ documents: page([caseDocument()]), onWrite: () => answers.shift() ?? problem(500) });
     renderOperations(`/cases/${CASE}`);
     const region = await section();
     await user.click(await within(region).findByRole('button', { name: 'Remove Statement of claim' }));
-    expect(within(region).getByText('Remove “Statement of claim”? The file is deleted.')).toBeVisible();
+    expect(
+      within(region).getByText('Take “Statement of claim” out of the case file? It is kept and can be restored.'),
+    ).toBeVisible();
+    expect(within(region).getByRole('button', { name: 'Take the document out' })).toBeDisabled();
     await user.click(within(region).getByRole('button', { name: 'Keep it' }));
-    expect(within(region).queryByText(/The file is deleted/)).not.toBeInTheDocument();
+    expect(within(region).queryByText(/It is kept and can be restored/)).not.toBeInTheDocument();
 
     await user.click(within(region).getByRole('button', { name: 'Remove Statement of claim' }));
-    await user.click(within(region).getByRole('button', { name: 'Remove the document' }));
+    await user.type(within(region).getByLabelText('Reason'), 'filed in the wrong case');
+    await user.click(within(region).getByRole('button', { name: 'Take the document out' }));
     expect(
       await within(region).findByText('Someone else changed this record meanwhile. Reload and try again.'),
     ).toBeVisible();
     await user.click(within(region).getByRole('button', { name: 'Remove Statement of claim' }));
-    await user.click(within(region).getByRole('button', { name: 'Remove the document' }));
-    expect(await within(region).findByRole('status')).toHaveTextContent('The document was removed.');
-    const removal = requests.filter((r) => r.method === 'DELETE').at(-1);
-    expect(removal?.path).toBe('/api/v1/documents/d1');
-    expect(removal?.query.get('version')).toBe('0');
+    await user.type(within(region).getByLabelText('Reason'), 'filed in the wrong case');
+    await user.click(within(region).getByRole('button', { name: 'Take the document out' }));
+    expect(await within(region).findByRole('status')).toHaveTextContent('The document was taken out of the case file.');
+    const withdrawal = requests.filter((r) => r.method === 'POST').at(-1);
+    expect(withdrawal?.path).toBe('/api/v1/documents/d1/withdraw');
+    expect(withdrawal?.body).toEqual({ reason: 'filed in the wrong case', version: 0 });
+    expect(requests.some((r) => r.method === 'DELETE')).toBe(false);
   });
 
   it('hides the form when the case is full and explains a refused or failed list', async () => {
-    const full = Array.from({ length: 10 }, (_, i) => caseDocument({ id: `d${String(i)}`, title: `Doc ${String(i)}` }));
+    const full = Array.from({ length: 100 }, (_, i) => caseDocument({ id: `d${String(i)}`, title: `Doc ${String(i)}` }));
     serve({ documents: page(full) });
     const first = renderOperations(`/cases/${CASE}`);
     const region = await section();
     expect(
-      await within(region).findByText('This case already holds 10 documents. Remove one to attach another.'),
+      await within(region).findByText('This case already holds the most documents the archive allows. Remove one to attach another.'),
     ).toBeVisible();
     expect(within(region).queryByRole('form')).not.toBeInTheDocument();
     first.unmount();
@@ -194,6 +200,6 @@ describe('case documents', () => {
     expect(await within(arabic).findByText('تعذّر تحميل البيانات. تحقّق من الاتصال وأعد المحاولة.')).toBeVisible();
     documents = page([caseDocument()]);
     await user.click(within(arabic).getByRole('button', { name: 'أعد المحاولة' }));
-    expect(await within(arabic).findByText('المستندات: ١ من ١٠')).toBeVisible();
+    expect(await within(arabic).findByText('المستندات: ١ من ١٠٠')).toBeVisible();
   });
 });

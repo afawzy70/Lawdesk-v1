@@ -2,7 +2,9 @@ import { render } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { Outlet, RouterProvider, createMemoryRouter } from 'react-router';
 import { vi } from 'vitest';
+import { PERMISSIONS } from '../../api/permissions';
 import { LocaleProvider } from '../../i18n/LocaleProvider';
+import { AuthContext } from '../auth/AuthContext';
 import { jsonResponse } from '../../test/http';
 import type { Proceeding } from '../proceedings/proceedingsApi';
 import { CaseOperations } from './CaseOperations';
@@ -17,6 +19,26 @@ import type { Task } from './tasks/tasksApi';
 
 export const CASE = 'c0000000-0000-4000-8000-000000000001';
 
+/** A signed-in user holding every permission: the backend, not the screen, decides what is refused (LD-010.4). */
+const allPermissions = {
+  state: {
+    status: 'signedIn' as const,
+    me: {
+      id: '00000000-0000-4000-8000-000000000001',
+      username: 'maha',
+      displayName: 'Maha',
+      email: 'maha@example.invalid',
+      locale: 'en' as const,
+      roles: [],
+      permissions: [...PERMISSIONS],
+      mustChangePassword: false,
+    },
+  },
+  signIn: () => Promise.resolve(true),
+  signOut: () => Promise.resolve(),
+  refresh: () => Promise.resolve(),
+};
+
 /** The operations routes inside the locale provider, as App.tsx mounts them, plus a case page with CaseOperations. */
 export function renderOperations(path: string) {
   const router = createMemoryRouter(
@@ -24,7 +46,9 @@ export function renderOperations(path: string) {
       {
         element: (
           <LocaleProvider>
-            <Outlet />
+            <AuthContext.Provider value={allPermissions}>
+              <Outlet />
+            </AuthContext.Provider>
           </LocaleProvider>
         ),
         children: [
