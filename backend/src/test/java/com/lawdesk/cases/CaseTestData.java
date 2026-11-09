@@ -14,6 +14,9 @@ final class CaseTestData {
     }
 
     static void deleteAll(JdbcTemplate jdbc) {
+        // LD-059 (WP10): the assistant's drafts and sessions hang off users and cases. Its query log is append-only and keeps no foreign keys.
+        jdbc.update("delete from assistant_output");
+        jdbc.update("delete from assistant_session");
         // LD-057 (WP9), children before parents: settlements, directives, templates and the lists members added to.
         jdbc.update("delete from settlement_document");
         jdbc.update("delete from settlement_history");

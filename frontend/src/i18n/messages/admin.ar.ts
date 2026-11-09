@@ -157,4 +157,5 @@ export const adminAr: Record<keyof typeof adminEn, string> = {
   'admin.permission.DOCUMENT_ARCHIVE_ADMIN': 'إدارة الأرشيف (الحذف النهائي والحدود)',
   'admin.permission.CALENDAR_VIEW': 'عرض التقويم القضائي',
   'admin.permission.CALENDAR_MANAGE': 'إدخال مواعيد يدوية في التقويم',
+  'admin.permission.ASSISTANT_USE': 'استخدام المساعد القانوني (وضع الاختبار غير التشغيلي)',
 };

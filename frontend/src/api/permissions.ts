@@ -65,6 +65,7 @@ export const PERMISSIONS = [
   'DOCUMENT_ARCHIVE_ADMIN',
   'CALENDAR_VIEW',
   'CALENDAR_MANAGE',
+  'ASSISTANT_USE',
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

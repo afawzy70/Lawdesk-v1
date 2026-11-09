@@ -1,0 +1,151 @@
+openapi: 3.0.3
+info:
+  title: LawDesk future integration contracts (section 34) - DOCUMENT ONLY
+  version: 0.1.0-draft
+  description: >
+    Interface contracts for systems that may be integrated later, subject to approvals. Nothing here is served or
+    connected: every adapter is DISABLED, has no endpoint and no credential, and refuses calls with INTEGRATION_DISABLED.
+    Names are stable codes; the external systems' real addresses and schemas are NOT known and are not invented here.
+x-lawdesk-status: DISABLED
+servers: []
+paths:
+  /correspondence/incoming:
+    post:
+      operationId: registerIncomingLetter
+      x-lawdesk-adapter: CORRESPONDENCE
+      x-lawdesk-status: DISABLED
+      summary: Register a letter received from the correspondence system against a case reference.
+      requestBody:
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/Letter'}
+      responses:
+        '202': {description: Accepted for registration (never automatic merging into a case).}
+        '422': {description: INTEGRATION_DISABLED}
+  /correspondence/outgoing:
+    post:
+      operationId: registerOutgoingLetter
+      x-lawdesk-adapter: CORRESPONDENCE
+      x-lawdesk-status: DISABLED
+      summary: Send the reference of an outgoing letter prepared in LawDesk to the correspondence system.
+      requestBody:
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/Letter'}
+      responses:
+        '202': {description: Accepted.}
+        '422': {description: INTEGRATION_DISABLED}
+  /correspondence/{letterId}/status:
+    get:
+      operationId: getLetterStatus
+      x-lawdesk-adapter: CORRESPONDENCE
+      x-lawdesk-status: DISABLED
+      parameters:
+        - {name: letterId, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Status of the letter as the other system reports it.}
+        '422': {description: INTEGRATION_DISABLED}
+  /hr/employees/{employeeRef}:
+    get:
+      operationId: getEmployee
+      x-lawdesk-adapter: HUMAN_RESOURCES
+      x-lawdesk-status: DISABLED
+      summary: Name, unit and employment status of a member, to confirm assignments. Read-only.
+      parameters:
+        - {name: employeeRef, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Employee reference data.}
+        '422': {description: INTEGRATION_DISABLED}
+  /hr/organisation-units:
+    get:
+      operationId: listOrganisationUnits
+      x-lawdesk-adapter: HUMAN_RESOURCES
+      x-lawdesk-status: DISABLED
+      summary: The authority's organisation tree, for comparison with the units kept in LawDesk. Read-only.
+      responses:
+        '200': {description: Units.}
+        '422': {description: INTEGRATION_DISABLED}
+  /archiving/transfers:
+    post:
+      operationId: transferDocument
+      x-lawdesk-adapter: ARCHIVING
+      x-lawdesk-status: DISABLED
+      summary: Hand a document and its metadata to the archiving system (LawDesk keeps its own copy and history).
+      requestBody:
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/Transfer'}
+      responses:
+        '202': {description: Accepted.}
+        '422': {description: INTEGRATION_DISABLED}
+  /archiving/transfers/{transferId}:
+    get:
+      operationId: getTransferStatus
+      x-lawdesk-adapter: ARCHIVING
+      x-lawdesk-status: DISABLED
+      parameters:
+        - {name: transferId, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Transfer status.}
+        '422': {description: INTEGRATION_DISABLED}
+  /email/messages:
+    get:
+      operationId: listReceivedMessages
+      x-lawdesk-adapter: EMAIL
+      x-lawdesk-status: DISABLED
+      summary: Received messages addressed to a case mailbox. INBOUND ONLY - no sending (owner decision D11).
+      responses:
+        '200': {description: Messages.}
+        '422': {description: INTEGRATION_DISABLED}
+  /email/messages/{messageId}:
+    get:
+      operationId: getReceivedMessage
+      x-lawdesk-adapter: EMAIL
+      x-lawdesk-status: DISABLED
+      parameters:
+        - {name: messageId, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: One received message.}
+        '422': {description: INTEGRATION_DISABLED}
+  /government/case-status:
+    get:
+      operationId: lookupCaseStatus
+      x-lawdesk-adapter: GOVERNMENT_SYSTEMS
+      x-lawdesk-status: DISABLED
+      summary: Status of a case in a related government system, by its court case number. Read-only.
+      parameters:
+        - {name: courtCaseNumber, in: query, required: true, schema: {type: string}}
+        - {name: courtCaseYear, in: query, required: true, schema: {type: integer}}
+      responses:
+        '200': {description: Status as the other system reports it (never overwrites LawDesk records).}
+        '422': {description: INTEGRATION_DISABLED}
+  /government/filings:
+    post:
+      operationId: submitFiling
+      x-lawdesk-adapter: GOVERNMENT_SYSTEMS
+      x-lawdesk-status: DISABLED
+      summary: Submit a filing prepared and approved by the competent member. Needs explicit owner approval per system.
+      requestBody:
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/Transfer'}
+      responses:
+        '202': {description: Accepted.}
+        '422': {description: INTEGRATION_DISABLED}
+components:
+  schemas:
+    Letter:
+      type: object
+      required: [reference]
+      properties:
+        reference: {type: string}
+        subject: {type: string}
+        date: {type: string, format: date}
+        caseReferenceNo: {type: string, description: LawDesk reference number; the case must be visible to the requesting user.}
+    Transfer:
+      type: object
+      required: [documentId]
+      properties:
+        documentId: {type: string, format: uuid}
+        caseReferenceNo: {type: string}
+        sha256: {type: string}

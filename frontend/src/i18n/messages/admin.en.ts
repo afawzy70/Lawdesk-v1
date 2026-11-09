@@ -155,4 +155,5 @@ export const adminEn = {
   'admin.permission.DOCUMENT_ARCHIVE_ADMIN': 'Administer the archive (permanent deletion, limits)',
   'admin.permission.CALENDAR_VIEW': 'View the judicial calendar',
   'admin.permission.CALENDAR_MANAGE': 'Enter manual calendar dates',
+  'admin.permission.ASSISTANT_USE': 'Use the legal assistant (non-production test mode)',
 } as const;

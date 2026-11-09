@@ -21,6 +21,7 @@ import { CasePartiesSection } from './CasePartiesSection';
 import { CaseStatusForm } from './CaseStatusForm';
 import { CaseFollowUp } from '../followup/CaseFollowUp';
 import { CaseWp9 } from '../wp9/CaseWp9';
+import { CaseAssistantPanel } from '../assistant/CaseAssistantPanel';
 import { CaseSummaryPanel } from '../followup/CaseSummaryPanel';
 import { CaseTimelineList } from './CaseTimelineList';
 import type { CreatedState } from './CaseCreatePage';
@@ -228,6 +229,7 @@ function CaseDetails({ id }: { id: string }) {
           <CaseLibrarySection caseId={legalCase.id} editable={!archived} />
           <CaseFollowUp caseId={legalCase.id} archived={archived} generation={generation} />
           <CaseWp9 caseId={legalCase.id} archived={archived} />
+          <CaseAssistantPanel caseId={legalCase.id} />
         </div>
       </div>
     </>
