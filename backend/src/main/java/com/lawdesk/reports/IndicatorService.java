@@ -195,8 +195,10 @@ public class IndicatorService {
         if (code == IndicatorCode.CASES_BY_MEMBER) {
             addGroups(out, null, cases.groups(CaseFilter.ALL, Dimension.MEMBER));
         } else {
+            // The three levels in one pass over the cases (the same groups, in the same order, as one query per level).
+            Map<UnitLevel, List<CaseReportQueries.Group>> byLevel = cases.unitGroups(CaseFilter.ALL);
             for (UnitLevel level : UnitLevel.values()) {
-                addGroups(out, level.name(), cases.groups(CaseFilter.ALL, Dimension.valueOf(level.name())));
+                addGroups(out, level.name(), byLevel.get(level));
             }
         }
         return out;
