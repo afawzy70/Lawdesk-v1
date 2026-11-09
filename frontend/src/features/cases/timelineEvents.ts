@@ -38,6 +38,8 @@ const KNOWN_EVENTS: Record<string, MessageKey> = {
   COUNSEL_ADDED: 'cases.event.COUNSEL_ADDED',
   COUNSEL_REMOVED: 'cases.event.COUNSEL_REMOVED',
   DUPLICATE_REVIEWED: 'cases.event.DUPLICATE_REVIEWED',
+  PRECEDENT_LINKED: 'cases.event.PRECEDENT_LINKED',
+  PRECEDENT_UNLINKED: 'cases.event.PRECEDENT_UNLINKED',
 };
 
 /** The message naming a timeline event type; types this screen does not know read "Other event". */

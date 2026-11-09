@@ -36,6 +36,8 @@ export const PERMISSIONS = [
   'CASE_GRANT_MANAGE',
   'ORG_MANAGE',
   'PARTY_ID_VIEW',
+  'LIBRARY_VIEW',
+  'LIBRARY_MANAGE',
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
