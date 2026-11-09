@@ -12,7 +12,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
+import com.lawdesk.cases.CaseAccessPolicy;
 import com.lawdesk.security.Permission;
+import com.lawdesk.security.TestActors;
 import com.lawdesk.wp9.Wp9TestSupport;
 
 /**
@@ -25,6 +27,9 @@ class UnifiedSearchApiTest extends Wp9TestSupport {
 
     private static final Permission[] ALL_TYPES = {Permission.CASE_VIEW, Permission.SEARCH_ALL, Permission.HEARING_VIEW,
         Permission.JUDGMENT_VIEW, Permission.DOCUMENT_VIEW, Permission.TASK_VIEW, Permission.LIBRARY_VIEW};
+
+    @org.springframework.beans.factory.annotation.Autowired
+    CaseAccessPolicy access;
 
     private UUID owner;
     private UUID stranger;
@@ -330,5 +335,39 @@ class UnifiedSearchApiTest extends Wp9TestSupport {
             mvc.perform(getJson(searcher, "/api/v1/search").param("q", q)).andExpect(status().isOk());
         }
         assertThat(count("select count(*) from legal_case")).isEqualTo(2);
+    }
+
+    /**
+     * Guard against the regression of UAT 3937a50: a part added to a searched type that its stored vector does not hold makes a record
+     * found only through that part invisible to the search. For every type read from a stored vector (cases and parties are covered by
+     * StoredSearchDocumentsTest), the vector built from the spec's own parts must equal the stored one for every row.
+     */
+    @Test
+    void everyPartOfASearchedTypeIsInItsStoredVector() {
+        UUID doc = document(visible, "وثيقة", "scan.png");
+        jdbc.update("""
+                insert into document_version (id, document_id, version_no, file_name, media_type, size_bytes, sha256, uploaded_by)
+                values (?, ?, 1, 'scan.png', 'image/png', 10, repeat('a', 64), gen_random_uuid())""", doc, doc);
+        jdbc.update("insert into document_text (version_id, document_id, status, method, text) values (?, ?, 'OCR_DONE', 'OCR', ?)",
+                doc, doc, "نص مقروء بالتعرف الضوئي");
+        TestActors.signIn(owner);
+        for (SearchSpecs.Spec spec : SearchSpecs.all(access, true).values()) {
+            if (spec.stored() == null || spec.stored().with() != null || "PARTY".equals(spec.type()) || "CASE".equals(spec.type())) {
+                continue;
+            }
+            StringBuilder built = new StringBuilder();
+            for (SearchSpecs.Part part : spec.parts()) {
+                built.append(built.length() == 0 ? "" : " || ").append("setweight(to_tsvector('simple', library_normalize(")
+                        .append(part.sql()).append(")), '").append(part.weight()).append("')");
+            }
+            String from = spec.from().replace("%CASE_FILTERS%", "");
+            int rows = count("select count(*) from " + from);
+            int wrong = count("select count(*) from " + from + " where (" + built + ")::text is distinct from "
+                    + spec.stored().vector() + "::text");
+            if ("DOCUMENT".equals(spec.type())) {
+                assertThat(rows).as("fixture rows of DOCUMENT").isPositive();
+            }
+            assertThat(wrong).as("rows of %s whose stored vector differs from its parts", spec.type()).isZero();
+        }
     }
 }
