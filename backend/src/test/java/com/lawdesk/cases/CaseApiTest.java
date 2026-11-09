@@ -131,7 +131,7 @@ class CaseApiTest extends PostgresTestSupport {
 
     @Test
     void acceptsASuppliedReferenceNumberAndTrimsTextInput() throws Exception {
-        create(body("  123/2026-Cairo ", "  Title  ", "CIVIL", "   ", LocalDate.now().toString()))
+        create(body("  123/2026-Cairo ", "  Title  ", "CIVIL", "   ", LocalDate.now(java.time.ZoneId.of("Asia/Kuwait")).toString()))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.referenceNo").value("123/2026-Cairo"))
                 .andExpect(jsonPath("$.title").value("Title"))
@@ -225,11 +225,11 @@ class CaseApiTest extends PostgresTestSupport {
 
     @Test
     void openedOnMayBeTodayButNotInTheFuture() throws Exception {
-        create(body(null, "T", "CIVIL", null, LocalDate.now().plusDays(1).toString()))
+        create(body(null, "T", "CIVIL", null, LocalDate.now(java.time.ZoneId.of("Asia/Kuwait")).plusDays(1).toString()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors[0].field").value("openedOn"))
                 .andExpect(jsonPath("$.errors[0].code").value("PastOrPresent"));
-        create(body(null, "T", "CIVIL", null, LocalDate.now().toString())).andExpect(status().isCreated());
+        create(body(null, "T", "CIVIL", null, LocalDate.now(java.time.ZoneId.of("Asia/Kuwait")).toString())).andExpect(status().isCreated());
     }
 
     @Test

@@ -179,11 +179,11 @@ class CaseEditApiTest extends PostgresTestSupport {
 
     @Test
     void theCreationRulesApplyToEveryField() throws Exception {
-        edit(id, body("t".repeat(201), "TAX", "s".repeat(4001), LocalDate.now().plusDays(1).toString(), 0L))
+        edit(id, body("t".repeat(201), "TAX", "s".repeat(4001), LocalDate.now(java.time.ZoneId.of("Asia/Kuwait")).plusDays(1).toString(), 0L))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors[*].code", containsInAnyOrder("Size", "Pattern", "Size",
                         "PastOrPresent")));
-        edit(id, body("t".repeat(200), "CIVIL", "s".repeat(4000), LocalDate.now().toString(), 0L))
+        edit(id, body("t".repeat(200), "CIVIL", "s".repeat(4000), LocalDate.now(java.time.ZoneId.of("Asia/Kuwait")).toString(), 0L))
                 .andExpect(status().isOk());
     }
 

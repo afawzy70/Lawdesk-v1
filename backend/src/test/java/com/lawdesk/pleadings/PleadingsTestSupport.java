@@ -216,7 +216,7 @@ abstract class PleadingsTestSupport extends PostgresTestSupport {
     }
 
     static LocalDate today() {
-        return LocalDate.now();
+        return LocalDate.now(java.time.ZoneId.of("Asia/Kuwait"));
     }
 
     static List<Permission> permissionsExcept(Permission... removed) {

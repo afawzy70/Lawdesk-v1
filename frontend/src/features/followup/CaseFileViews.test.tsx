@@ -50,6 +50,13 @@ describe('executive summary', () => {
     expect(screen.getByText('claims، legal deadlines')).toBeInTheDocument();
   });
 
+  it('shows no pending-modules row when every module is built', async () => {
+    serve(() => jsonResponse(summary({ pendingModules: [] })));
+    mount(<CaseSummaryPanel caseId={CASE} generation={0} />);
+    expect(await screen.findByText(/High · potential loss/)).toBeInTheDocument();
+    expect(screen.queryByText('Not yet recorded in the system')).not.toBeInTheDocument();
+  });
+
   it('summarises the open deadlines when the user may open them', async () => {
     serve(() => jsonResponse(summary({
       pendingModules: ['CLAIMS'],

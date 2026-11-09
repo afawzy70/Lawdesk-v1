@@ -102,8 +102,7 @@ class CaseFileApiTest extends Wp3TestSupport {
                 .andExpect(jsonPath("$.tasks.open").value(1))
                 .andExpect(jsonPath("$.tasks.overdue").value(1))
                 .andExpect(jsonPath("$.links.count").value(0))
-                .andExpect(jsonPath("$.pendingModules", Matchers.hasItems("CLAIMS", "DEFENSES", "EVIDENCE",
-                        "ENFORCEMENT")));
+                .andExpect(jsonPath("$.pendingModules", Matchers.hasSize(0)));
     }
 
     @Test
