@@ -225,8 +225,8 @@ class ExportLimitApiTest extends PostgresTestSupport {
     }
 
     /**
-     * The inventory counts the current stage of every matching case: the ids go to the proceedings port in bounded
-     * chunks, and the counts of the chunks add up (no case lost or counted twice at the chunk boundary).
+     * The inventory counts the current stage of every matching case, above the 10 000 export limit too, in one query (no
+     * case lost or counted twice).
      */
     @Test
     void theCaseInventoryCountsStagesOfMoreThanTenThousandCasesInBoundedChunks() throws Exception {
@@ -241,11 +241,8 @@ class ExportLimitApiTest extends PostgresTestSupport {
         assertThat(report.read("$.summary.byStage.NONE", Integer.class)).isZero();
         assertThat(report.read("$.items[0].currentStage", String.class)).isEqualTo("FIRST_INSTANCE");
 
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<Collection<UUID>> ids = ArgumentCaptor.forClass(Collection.class);
-        verify(proceedingPort, atLeastOnce()).currentStageCounts(ids.capture());
-        assertThat(ids.getAllValues()).allSatisfy(call -> assertThat(call.size()).isLessThanOrEqualTo(LIMIT));
-        assertThat(ids.getAllValues().stream().mapToInt(Collection::size).sum()).isEqualTo(LIMIT + 1);
+        // LD-058: the stages come from one query over the matching cases, so no id travels in chunks any more.
+        verify(proceedingPort, never()).currentStageCounts(anyCollection());
 
         // A stage filter hands the cases port every matching case id as its filter; it still answers above 10 000.
         DocumentContext filtered = body(mvc.perform(read("cases").param("q", data.marker()).param("stage",

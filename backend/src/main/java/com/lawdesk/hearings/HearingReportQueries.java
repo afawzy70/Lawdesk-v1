@@ -151,8 +151,8 @@ public class HearingReportQueries {
      * the system has no separate "reserved" status, so the pronouncement hearing is the record of the reservation.
      */
     public static CaseAccessPolicy.Predicate reservedForJudgment() {
-        return new CaseAccessPolicy.Predicate("exists (select 1 from proceeding rp join hearing rh on rh.proceeding_id = rp.id"
-                + " where rp.case_id = legal_case.id and rh.purpose = 'JUDGMENT' and rh.status <> 'CANCELLED'"
+        return new CaseAccessPolicy.Predicate("legal_case.id in (select rp.case_id from proceeding rp"
+                + " join hearing rh on rh.proceeding_id = rp.id where rh.purpose = 'JUDGMENT' and rh.status <> 'CANCELLED'"
                 + " and not exists (select 1 from judgment rj where rj.proceeding_id = rp.id))", Map.of());
     }
 

@@ -25,8 +25,10 @@ public class CaseLinkReportQueries {
 
     /** Cases with an active link on either side, as a condition over {@code legal_case}. */
     public static CaseAccessPolicy.Predicate linked() {
-        return new CaseAccessPolicy.Predicate("exists (select 1 from case_link cl where cl.status = 'ACTIVE'"
-                + " and (cl.case_id = legal_case.id or cl.other_case_id = legal_case.id))", Map.of());
+        // Both sides of every active link are read once into a set; a correlated EXISTS with an OR over the two columns
+        // cannot use an index and read the whole link table for every case (LD-058 performance run).
+        return new CaseAccessPolicy.Predicate("legal_case.id in (select cl.case_id from case_link cl where cl.status = 'ACTIVE'"
+                + " union select cl.other_case_id from case_link cl where cl.status = 'ACTIVE')", Map.of());
     }
 
     /** Links of one kind and state, each counted once, and how many of them are court decisions. */

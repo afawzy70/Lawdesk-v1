@@ -129,11 +129,6 @@ class SearchService {
                 + " as extra" + columns + " from " + from + " where " + where;
         String scored = "with base as materialized (" + base + "), scored as materialized (select b.*, " + vector
                 + " as vec from base b), q as (select to_tsquery('simple', cast(:tsq as text)) as tq) ";
-        long total = jdbc.sql(scored + "select count(*) from scored s cross join q where s.vec @@ q.tq").params(params)
-                .query(Long.class).single();
-        if (total == 0) {
-            return new Group(spec.type(), 0, query.pageOrDefault(), query.sizeOrDefault(), List.of());
-        }
         StringBuilder flags = new StringBuilder();
         StringBuilder snippet = new StringBuilder("case");
         for (int i = 0; i < parts.size(); i++) {
@@ -141,12 +136,28 @@ class SearchService {
             snippet.append(" when r.m").append(i).append(" then r.p").append(i);
         }
         snippet.append(" else r.p0 end");
-        String page = ", page as (select s.*, ts_rank_cd(s.vec, q.tq) as rank" + flags + " from scored s cross join q"
-                + " where s.vec @@ q.tq order by rank desc, s.rec_date desc nulls last, s.id offset :offset limit :limit) ";
+        // One pass: the page and the total of all matches (count(*) over () is computed before offset and limit). Scoring
+        // every visible record is the expensive part, so it is done once, not once for the count and again for the page.
+        String page = ", page as (select s.*, ts_rank_cd(s.vec, q.tq) as rank, count(*) over () as total_n" + flags
+                + " from scored s cross join q where s.vec @@ q.tq order by rank desc, s.rec_date desc nulls last, s.id"
+                + " offset :offset limit :limit) ";
         String sql = scored.substring(0, scored.length() - 1) + page + "select r.id, r.case_id, r.case_ref, r.title, r.detail,"
-                + " r.rec_date, r.extra, r.rank, search_snippet(" + snippet + ", :q) as snippet" + matchedColumns(parts.size())
-                + " from page r order by r.rank desc, r.rec_date desc nulls last, r.id";
-        List<Item> items = jdbc.sql(sql).params(params).query((rs, n) -> item(rs, spec)).list();
+                + " r.rec_date, r.extra, r.rank, r.total_n, search_snippet(" + snippet + ", :q) as snippet"
+                + matchedColumns(parts.size()) + " from page r order by r.rank desc, r.rec_date desc nulls last, r.id";
+        long[] counted = {-1};
+        List<Item> items = jdbc.sql(sql).params(params).query((rs, n) -> {
+            counted[0] = rs.getLong("total_n");
+            return item(rs, spec);
+        }).list();
+        long total = counted[0];
+        if (items.isEmpty()) {
+            // Nothing on this page: either nothing matches, or the page is past the end and the total is still needed.
+            total = query.pageOrDefault() == 0 ? 0 : jdbc.sql(scored + "select count(*) from scored s cross join q where s.vec @@ q.tq")
+                    .params(params).query(Long.class).single();
+        }
+        if (total == 0) {
+            return new Group(spec.type(), 0, query.pageOrDefault(), query.sizeOrDefault(), List.of());
+        }
         return new Group(spec.type(), total, query.pageOrDefault(), query.sizeOrDefault(), items);
     }
 

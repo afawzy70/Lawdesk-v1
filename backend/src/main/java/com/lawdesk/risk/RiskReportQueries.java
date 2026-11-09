@@ -26,8 +26,8 @@ public class RiskReportQueries {
 
     /** Cases whose latest assessment is HIGH or VERY_HIGH, as a condition over {@code legal_case}. */
     public static CaseAccessPolicy.Predicate highRisk() {
-        return new CaseAccessPolicy.Predicate("exists (select 1 from risk_assessment ra where ra.case_id = legal_case.id"
-                + " and ra.level in ('HIGH', 'VERY_HIGH') and ra.version_no = (select max(m.version_no)"
+        return new CaseAccessPolicy.Predicate("legal_case.id in (select ra.case_id from risk_assessment ra"
+                + " where ra.level in ('HIGH', 'VERY_HIGH') and ra.version_no = (select max(m.version_no)"
                 + " from risk_assessment m where m.case_id = ra.case_id))", Map.of());
     }
 

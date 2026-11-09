@@ -227,25 +227,31 @@ class CaseRepository {
             where.append(" and opened_on <= :openedTo");
             params.put("openedTo", search.openedTo());
         }
-        long total = jdbc.sql("select count(*) from legal_case c" + where).params(params).query(Long.class).single();
-
         int page = search.pageOrDefault();
         int size = search.sizeOrDefault();
         params.put("limit", size);
         params.put("offset", (long) page * size);
+        // The page and the total come from one pass over the register (count(*) over ()); a second pass for the count
+        // doubled the time of every list (LD-058 performance run). Only a page past the end needs the count on its own.
+        long[] counted = {-1};
         List<CaseListItem> items = jdbc.sql("""
-                        select id, reference_no, title, case_type, status, opened_on, updated_at
+                        select id, reference_no, title, case_type, status, opened_on, updated_at, count(*) over () as total
                         from legal_case c""" + where + orderBy(search.sort()) + " limit :limit offset :offset")
                 .params(params)
-                .query((rs, rowNum) -> new CaseListItem(
+                .query((rs, rowNum) -> {
+                    counted[0] = rs.getLong("total");
+                    return new CaseListItem(
                         rs.getObject("id", UUID.class),
                         rs.getString("reference_no"),
                         rs.getString("title"),
                         CaseType.valueOf(rs.getString("case_type")),
                         CaseStatus.valueOf(rs.getString("status")),
                         rs.getObject("opened_on", LocalDate.class),
-                        rs.getObject("updated_at", OffsetDateTime.class).toInstant()))
+                        rs.getObject("updated_at", OffsetDateTime.class).toInstant());
+                })
                 .list();
+        long total = counted[0] >= 0 ? counted[0]
+                : jdbc.sql("select count(*) from legal_case c" + where).params(params).query(Long.class).single();
         return new PageResponse<>(items, page, size, total, (int) ((total + size - 1) / size));
     }
 
