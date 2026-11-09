@@ -6,11 +6,14 @@ group label (sub-headings and lead-ins that end in a colon), or a section headin
     python3 -I build_matrix.py [--check]
 --check fails when the committed matrix is stale or a source line is not covered (coverage both ways, LD-DOC-00-001).
 """
+import json
 import re
 import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import register_data as RD  # noqa: E402
 SOURCE = HERE / "lawdesk-comprehensive-source.txt"
 OUT = HERE / "lawdesk-comprehensive-requirements-matrix.md"
 
@@ -191,29 +194,183 @@ def status_for(sec, text):
     return SEC[sec][7], "", "—"
 
 
+ROOT = HERE.parent.parent
+EXPECTED_ROWS = 650
+COLUMNS = ["المعرّف", "السطر", "المجموعة", "المتطلب (نص المصدر)", "IMPLEMENTED", "VERIFIED_BY_DEVELOPER", "QA_ACCEPTED", "سبب العائق", "ملاحظة (ما تبقى / لماذا لم يُتحقق)"]
+IMPL_VALUES = ("YES", "PARTIAL", "NO", "BLOCKED")
+SUMMARY = HERE / "TESTED-STATUS-SUMMARY.md"
+YES_NOW = {"LD-DOC-13-001", "LD-DOC-13-004", "LD-DOC-28-010", "LD-DOC-28-013"}  # delivered after the round-2 gap list (OCR, #89, #95)
+
+
+def gap_status():
+    out = {}
+    for line in (HERE / "gap-closure.md").read_text(encoding="utf8").split("\n"):
+        c = [x.strip() for x in line.strip().strip("|").split("|")]
+        if len(c) >= 6 and c[0].startswith("LD-DOC-"):
+            out[c[0]] = c[2]
+    return out
+
+
+_cache = {}
+
+
+def _tests():
+    if "t" not in _cache:
+        _cache["t"] = {p.stem: p for p in (ROOT / "backend/src/test").rglob("*.java")}
+        _cache["f"] = {p.name: p for p in (ROOT / "frontend/src").rglob("*.test.*")}
+    return _cache["t"], _cache["f"]
+
+
+def _journey(alias):
+    if alias not in _cache:
+        d = json.loads((ROOT / "docs/evidence" / RD.J[alias]).read_text(encoding="utf8"))
+        rel = next((s["value"]["release"] for s in d["steps"] if s["step"].startswith("deployed release")), "?")
+        _cache[alias] = ([s["step"] for s in d["steps"]], rel[:7])
+    return _cache[alias]
+
+
+def check_bundle(key):
+    """Fail loudly when a named test, method, frontend file, evidence file or journey step does not exist."""
+    b = RD.EVIDENCE[key]
+    tests, fronts = _tests()
+    for t in b.get("t", []):
+        cls, _, m = t.partition("#")
+        if cls not in tests:
+            raise SystemExit(f"evidence {key}: backend test class {cls} not found")
+        if m and f"void {m}(" not in tests[cls].read_text(encoding="utf8"):
+            raise SystemExit(f"evidence {key}: method {cls}#{m} not found")
+    for f in b.get("f", []):
+        if f not in fronts:
+            raise SystemExit(f"evidence {key}: frontend test {f} not found")
+    for x in b.get("x", []):
+        if not (ROOT / x).exists():
+            raise SystemExit(f"evidence {key}: file {x} not found")
+    for alias, steps in b.get("j", []):
+        have, _ = _journey(alias)
+        for st in steps:
+            if not any(h.startswith(st) for h in have):
+                raise SystemExit(f"evidence {key}: journey {alias} has no step starting with {st!r}")
+
+
+def evidence_text(key):
+    b = RD.EVIDENCE[key]
+    parts = []
+    if b.get("t"):
+        parts.append("T: " + ", ".join(b["t"]) + f" (CI green {RD.TEST_SHA})")
+    if b.get("f"):
+        parts.append("F: " + ", ".join(b["f"]) + f" (CI green {RD.TEST_SHA})")
+    for alias, steps in b.get("j", []):
+        parts.append(f"J: {alias} \u00ab{'; '.join(steps[:2])}\u00bb (UAT {_journey(alias)[1]})")
+    if b.get("x"):
+        parts.append("E: " + ", ".join(Path(x).name for x in b["x"]) + (f" ({b['at']})" if b.get("at") else ""))
+    return "<br>".join(parts) + f" [{key}]"
+
+
+def bundle_for(sec, seq):
+    if sec == 0:
+        return "CONNECTED", ""
+    if sec == 35:
+        return (RD.V35[seq], "") if seq in RD.V35 else (None, "")
+    if sec == 37:
+        return (RD.V37[seq], "") if seq in RD.V37 else (None, "")
+    for seqs, key, why in RD.V.get(sec, []):
+        if seqs is None or seq in seqs:
+            return key, why
+    return None, ""
+
+
+def rid_parts(rid):
+    _, _, s, q = rid.split("-")
+    return int(s), int(q)
+
+
+def decide(rows):
+    """rows: list of dict(id, sec, seq, base). Returns per row dict with impl, cause, dep, note, key."""
+    gaps = gap_status()
+    res = {}
+    for r in rows:
+        rid, sec, seq, base = r["id"], r["sec"], r["seq"], r["base"]
+        impl, cause, dep, note = None, "NONE", "", ""
+        if rid in RD.OV:
+            impl, cause, dep, note, _b = RD.OV[rid]
+        elif rid in YES_NOW:
+            impl = "YES"
+        elif sec == 22:
+            if seq in RD.A22_RULES:
+                impl, cause, dep = "PARTIAL", "EXTERNAL_PROVIDER", "D8: the real model's behaviour cannot be tested before a provider is approved"
+                note = "The rule is enforced by code and tested with a deterministic non-production provider (AssistantBoundariesTest, AssistantAskApiTest, journey wp10: refusal without sources, 404 for a case the account cannot see, drafts stay DRAFT, every query logged). Not verifiable on a real model."
+            elif seq in RD.A22_LIBRARY:
+                impl, cause, dep = "PARTIAL", "EXTERNAL_PROVIDER", "D8 for the assistant wording; the library function itself needs no provider"
+                note = "Independent part DONE and verified in the library: similar-judgment suggestions with their reasons and a citation (source, date, number) - SimilarJudgmentApiTest, journey wp7. The assistant on top of it is not operational."
+            else:
+                impl, cause, dep = "BLOCKED", "EXTERNAL_PROVIDER", "D8: owner approves an AI provider and what may be sent to it (LD-DOC-09)"
+                note = "Not operational by design: no provider approved, nothing leaves the system. The retrieval, citation, refusal and logging parts exist and are tested with a deterministic provider (see PARTIAL rows of section 22)."
+        elif sec == 35 and seq == 14:
+            impl, cause, dep = "PARTIAL", "LEGAL_INPUT", "D6: no approved legal deadline rules or holidays"
+            note = "Journey wp4 ran green on UAT with SYNTHETIC rules and manual approved deadlines; reminders ran. Scenario with real legal rules cannot be run."
+        elif sec == 35 and seq == 16:
+            impl, cause, dep = "PARTIAL", "EXTERNAL_PROVIDER", "D8"
+            note = "Journey wp10 ran with a non-production deterministic provider (sources shown, refusal, no invented citation). Operational assistant is disabled."
+        elif sec == 35:
+            impl = "YES"
+        elif sec == 37 and seq in (15,):
+            impl, cause, dep = "PARTIAL", "EXTERNAL_PROVIDER", "D8"
+            note = "Drafts stay DRAFT and are never final in the test provider path; no operational assistant."
+        elif sec == 37 and seq in (17,):
+            impl, cause, dep = "PARTIAL", "OWNER_DECISION", "Owner visual approval of the design package (docs/design/PHASE-7-OWNER-VISUAL-REVIEW.md)"
+            note = "Designs were delivered as documents and prototypes; approval is the owner's."
+        elif sec == 37 and seq in (20, 21):
+            impl, cause, dep = "PARTIAL", "NONE", "All BLOCKED/PARTIAL rows above, QA acceptance"
+            note = "The project is not complete: open rows remain and nothing is QA_ACCEPTED."
+        elif sec == 37 and seq in (1, 16, 18, 19) or (sec == 37 and seq in RD.V37):
+            impl = "YES"
+            if seq == 16:
+                note = "Deliverable (docs/design/LD-DOC-03-data-model.md); not a testable behaviour."
+            if seq == 18:
+                note = "UAT is published; not a testable behaviour."
+            if seq == 19:
+                note = "Handbook delivered (PR #83); not a testable behaviour."
+        elif sec == 36:
+            impl = None  # second pass
+        elif gaps.get(rid) in ("IMPLEMENTED", "SATISFIED_BY_EXISTING", "PRESENT"):
+            impl = "YES"
+        elif base in ("VERIFIED", "PRESENT"):
+            impl = "YES"
+        elif base == "MISSING":
+            impl = "NO"
+        else:
+            raise SystemExit(f"row {rid} has no classification (base {base}, gap {gaps.get(rid)})")
+        res[rid] = dict(impl=impl, cause=cause, dep=dep, note=note)
+    # section 36 roll-up
+    for r in rows:
+        if r["sec"] != 36:
+            continue
+        mapped = []
+        for sec, lo, hi in RD.ROLL36[r["seq"]]:
+            mapped += [x["id"] for x in rows if x["sec"] == sec and lo <= x["seq"] <= hi]
+        st = [res[m]["impl"] for m in mapped]
+        impl = "YES" if all(s == "YES" for s in st) else ("BLOCKED" if all(s == "BLOCKED" for s in st) else "PARTIAL")
+        n_not = sum(1 for s in st if s != "YES")
+        causes = sorted({res[m]["cause"] for m in mapped if res[m]["impl"] != "YES" and res[m]["cause"] != "NONE"})
+        res[r["id"]] = dict(impl=impl, cause=",".join(causes) or "NONE", dep="see the rolled-up rows",
+                            note=f"Umbrella, rolled up from {len(mapped)} detailed rows ({n_not} not YES). Not tested on its own.")
+    return res
+
+
 def render(lines):
     heads, secs = parse(lines)
-    out = []
-    totals = {V: 0, P: 0, PA: 0, M: 0, B: 0}
     seen = set()
-    nreq = 0
     body = []
+    rows = []
+    sec_blocks = []
     for n in range(0, 38):
         lo, hi = secs[n]
         s = SEC[n]
         head_idx = heads.get(n, -1)
         title = lines[head_idx].strip() if n else "مقدمة الوثيقة (الأسطر 1–5)"
-        body.append(f"\n## LD-DOC-{n:02d} — {title}\n")
-        body.append(f"- **المرحلة**: {PHASE_NAME[s[0]]} · **الأولوية**: {s[1]} · **حزمة العمل**: {s[2]} · **سيناريوهات القبول المرتبطة**: {s[6]}")
-        if n in DELIVERED:
-            body.append(f"- **التحديث (2026-11-09)**: نُفِّذ بحزمة العمل؛ الدليل: {DELIVERED[n][1]}؛ الفجوات المتبقية في عمود الملاحظة.")
-        body.append(f"- **الموجود حاليًا**: {s[3]}")
-        body.append(f"- **الفجوة المتبقية**: {s[4]}")
-        body.append(f"- **التغييرات المطلوبة**: {s[5]}")
-        body.append("\n| المعرّف | السطر | المجموعة | المتطلب (نص المصدر) | الحالة | ملاحظة الفجوة | الدليل |")
-        body.append("|---|---|---|---|---|---|---|")
         seq = 0
         groups = []
+        items = []
         for kind, no, text, group in classify(lines, lo, hi, head_idx):
             seen.add(no)
             if kind == "head":
@@ -222,42 +379,163 @@ def render(lines):
                 groups.append((no, text))
                 continue
             seq += 1
-            nreq += 1
-            st, note, evidence = status_for(n, text)
-            totals[st] += 1
-            body.append(f"| LD-DOC-{n:02d}-{seq:03d} | {no} | {group or '—'} | {text.replace('|', '/')} | {STATUS_AR[st]} | {note or '—'} | {evidence} |")
+            st, _note, _ev = status_for(n, text)
+            rows.append(dict(id=f"LD-DOC-{n:02d}-{seq:03d}", sec=n, seq=seq, base=st))
+            items.append((f"LD-DOC-{n:02d}-{seq:03d}", no, group, text))
+        sec_blocks.append((n, title, s, groups, items))
+    dec = decide(rows)
+    used = set()
+    totals = {k: 0 for k in IMPL_VALUES}
+    verified = 0
+    causes = {}
+    for n, title, s, groups, items in sec_blocks:
+        body.append(f"\n## LD-DOC-{n:02d} \u2014 {title}\n")
+        body.append(f"- **المرحلة**: {PHASE_NAME[s[0]]} · **الأولوية**: {s[1]} · **حزمة العمل**: {s[2]} · **سيناريوهات القبول المرتبطة**: {s[6]}")
+        if n in DELIVERED:
+            body.append(f"- **التحديث (2026-11-09)**: نُفِّذ بحزمة العمل؛ الدليل: {DELIVERED[n][1]}.")
+        body.append("\n| " + " | ".join(COLUMNS) + " |")
+        body.append("|" + "---|" * len(COLUMNS))
+        for rid, no, group, text in items:
+            sec, seq = rid_parts(rid)
+            d = dec[rid]
+            key, why = bundle_for(sec, seq)
+            impl = d["impl"]
+            ver = ""
+            note = d["note"]
+            if impl == "YES" and key:
+                if key not in used:
+                    check_bundle(key)
+                    used.add(key)
+                ver = evidence_text(key)
+                verified += 1
+            elif impl == "YES":
+                note = (note + " " if note else "") + (why or "no test or journey step found that exercises this row")
+            elif key and impl != "YES" and not d["note"]:
+                note = why or ""
+            if impl != "YES":
+                causes[d["cause"]] = causes.get(d["cause"], 0) + (1 if impl in ("BLOCKED", "PARTIAL", "NO") else 0)
+            totals[impl] += 1
+            cause = d["cause"] if impl != "YES" else ""
+            dep = d["dep"]
+            note_full = (note + (f" Dependency: {dep}." if dep and impl != "YES" else "")).strip() or "\u2014"
+            body.append(f"| {rid} | {no} | {group or '\u2014'} | {text.replace('|', '/')} | {impl} | {ver or ''} | | {cause or '\u2014'} | {note_full.replace('|', '/')} |")
         if groups:
             body.append("\n<sub>عناوين المجموعات في المصدر: " + "؛ ".join(f"{t} (س{no})" for no, t in groups) + "</sub>")
     nonblank = {i + 1 for i, l in enumerate(lines) if l.strip()}
     missing = sorted(nonblank - seen)
-    out.append("# سجل تتبع المتطلبات — وثيقة LawDesk الشاملة\n")
-    out.append("مولَّد آليًا من `lawdesk-comprehensive-source.txt` بواسطة `build_matrix.py` (لا يُعدَّل يدويًا). المصدر وبصمته في `SOURCE.md`.\n")
-    out.append("## مفتاح الحالات\n")
-    for k in (V, P, PA, M, B):
-        out.append(f"- **{STATUS_AR[k]}** (`{k}`): " + {
-            V: "سيناريو قبول مرتبط بالبند نجح على النسخة المنشورة، مع رابط الدليل.",
-            P: "الشيفرة والمخطط فيهما البند (فحص هذه الجلسة)، وحزم الاختبار الحالية خضراء على SHA الحالي، لكن لم يُربط بسيناريو قبول الوثيقة بعد.",
-            PA: "بعضه موجود والباقي في عمود الفجوة.",
-            M: "لا أثر له في الشيفرة أو المخطط.",
-            B: "لا يمكن تحقيقه تشغيليًا قبل اعتماد خارجي (مزود، بيانات أنظمة، قرار مالك)."}[k])
-    out.append(f"\n## ملخص\n\n- أسطر المصدر غير الفارغة: {len(nonblank)}، كلها مغطاة: {'نعم' if not missing else 'لا — ' + str(missing)}")
+    nreq = sum(totals.values())
+    blocked_causes = {}
+    for r in rows:
+        d = dec[r["id"]]
+        if d["impl"] == "BLOCKED":
+            blocked_causes[d["cause"]] = blocked_causes.get(d["cause"], 0) + 1
+    remaining = {}
+    for r in rows:
+        d = dec[r["id"]]
+        if d["impl"] == "PARTIAL":
+            for c in d["cause"].split(","):
+                remaining[c] = remaining.get(c, 0) + 1
+    stats = dict(rows=nreq, impl=totals, verified=verified, unverified=nreq - verified, blocked_causes=blocked_causes,
+                 partial_causes=remaining, no_rows=[r["id"] for r in rows if dec[r["id"]]["impl"] == "NO"], nonblank=len(nonblank), missing=missing)
+    out = ["# سجل تتبع المتطلبات \u2014 وثيقة LawDesk الشاملة (R3)\n"]
+    out.append("مولَّد آليًا من `lawdesk-comprehensive-source.txt` بواسطة `build_matrix.py` و`register_data.py` (لا يُعدَّل يدويًا). المصدر وبصمته في `SOURCE.md`.\n")
+    out.append("## ثلاثة أعمدة منفصلة\n")
+    out.append("- **IMPLEMENTED** (`YES` / `PARTIAL` / `NO` / `BLOCKED`): هل الوظيفة موجودة في الشيفرة المنشورة. `PARTIAL` يعني أن جزءًا مستقلًا منفذ والباقي مذكور في الملاحظة؛ `BLOCKED` لا جزء مستقلًا منفذًا منه.")
+    out.append(f"- **VERIFIED_BY_DEVELOPER**: فارغ، أو الدليل الدقيق: صنف اختبار (أو `Class#method`) وSHA الذي أخضر عليه CI (`{RD.TEST_SHA}`)، أو رحلة UAT واسم الخطوة وSHA النشر المسجل داخل ملف الدليل. لا يُملأ إلا لصف `YES`، وكل اسم يُفحص وجوده في المستودع عند التوليد. التحقق على مستوى الميزة: الاختبار/الخطوة يُنشئ السجل ويقرؤه أو يمارس القاعدة، ولا يُدّعى أن كل حقل فُحص منفردًا.")
+    out.append("- **QA_ACCEPTED**: فارغ دائمًا. لا يملؤه إلا مراجعة Codex المستقلة. لا شيء مقبول بعد.\n")
+    out.append("الرحلات المرجعية أُجريت على إصدارات UAT أقدم من `cac8d73` (الإصدار في كل ملف دليل)؛ إعادة تشغيلها على الإصدار الحالي مطلوبة قبل أن يعتمد Codex الأدلة. انظر `RETEST-PACKAGE-FOR-CODEX.md`.\n")
+    out.append("## الملخص (من المصفوفة المولَّدة)\n")
+    out.append(f"- أسطر المصدر غير الفارغة: {len(nonblank)}، كلها مغطاة: {'نعم' if not missing else 'لا \u2014 ' + str(missing)}")
     out.append(f"- متطلبات ذرية (صفوف): {nreq}")
-    out.append("- توزيع الحالات: " + "، ".join(f"{STATUS_AR[k]}: {totals[k]}" for k in (V, P, PA, M, B)))
-    out.append("- التغطية العكسية (متطلب منفذ له مصدر أو قرار تصميم): لا متطلب منفذ بعد خارج المصدر؛ قرارات التصميم الإضافية موثقة في `docs/design/LD-DOC-07-owner-decisions.md` بمعرّفات D1–D12 وتُسجَّل هنا كصفوف `LD-DOC-D*` عند اعتمادها.")
+    out.append("- توزيع IMPLEMENTED: " + "، ".join(f"{k}: {totals[k]}" for k in IMPL_VALUES))
+    out.append(f"- توزيع VERIFIED_BY_DEVELOPER: بدليل: {verified}، فارغ: {nreq - verified}")
+    out.append(f"- توزيع QA_ACCEPTED: مقبول: 0، فارغ: {nreq}")
+    out.append("- BLOCKED حسب السبب: " + "، ".join(f"{k}: {v}" for k, v in sorted(blocked_causes.items())))
+    out.append("- PARTIAL حسب سبب ما تبقى: " + "، ".join(f"{k}: {v}" for k, v in sorted(remaining.items())))
+    out.append("- صفوف NO: " + (", ".join(stats["no_rows"]) or "لا شيء"))
+    out.append("\nالصفان اللذان كانا «غير موجود» في الجولة الأولى: `LD-DOC-00-001` و`LD-DOC-00-002` (الترابط بين الوحدات). أُغلقا في PR #86 باختبار `ConnectedCaseApiTest` ورحلة `connected_journey.py`؛ لا يلزم كود جديد.\n")
+    out.append("## الصفوف المجزأة (ليست ضمن الـ650)\n")
+    out.append("| الصف | الجزء | IMPLEMENTED | الدليل / السبب |")
+    out.append("|---|---|---|---|")
+    for k in ("DEADLINE_ENGINE", "ASSISTANT_SUMMARY", "UX_ENGINES"):
+        check_bundle(k)
+    for rid in ("LD-DOC-10-011", "LD-DOC-10-012"):
+        out.append(f"| {rid} | محرك الاحتساب والاعتماد (قواعد اصطناعية) | YES | {evidence_text('DEADLINE_ENGINE')} |")
+        out.append(f"| {rid} | قواعد المدد القانونية والعطلات الرسمية | BLOCKED (LEGAL_INPUT, D6) | لا قاعدة ولا عطلة مُدخلة؛ لا اختراع |")
+    out.append("| LD-DOC-22-003 | تلخيص استخراجي بمصادر | YES | " + evidence_text("ASSISTANT_SUMMARY") + " |")
+    out.append("| LD-DOC-22-003 | تلخيص توليدي بنموذج حقيقي | BLOCKED (EXTERNAL_PROVIDER, D8) | لا مزود معتمد |")
+    out.append("| LD-DOC-34-014 | Chromium وFirefox | YES | " + evidence_text("UX_ENGINES") + " |")
+    out.append("| LD-DOC-34-014 | WebKit | BLOCKED (INFRA) | لا صورة Docker ولا render node للمستخدم |")
+    out.append("\n## ملحق: حزم الأدلة\n")
+    out.append("كل رمز بين قوسين في عمود VERIFIED_BY_DEVELOPER يشير إلى حزمة هنا بخطواتها الكاملة.\n")
+    for key in sorted(used):
+        b = RD.EVIDENCE[key]
+        out.append(f"- **{key}**")
+        for t in b.get("t", []):
+            out.append(f"  - اختبار خلفي: `{t}` (CI أخضر {RD.TEST_SHA})")
+        for f in b.get("f", []):
+            out.append(f"  - اختبار واجهة: `{f}` (CI أخضر {RD.TEST_SHA})")
+        for alias, steps in b.get("j", []):
+            out.append(f"  - رحلة `{RD.J[alias]}` (إصدار UAT {_journey(alias)[1]}): " + "؛ ".join(f"«{x}»" for x in steps))
+        for x in b.get("x", []):
+            out.append(f"  - ملف دليل: `{x}`")
     out.extend(body)
-    return "\n".join(out) + "\n", missing
+    return "\n".join(out) + "\n", missing, stats
+
+
+def summary_text(stats):
+    t = stats["impl"]
+    n = stats["rows"]
+    L = ["# TESTED-STATUS-SUMMARY (generated, do not edit)", "",
+         "Source of every number: `lawdesk-comprehensive-requirements-matrix.md`, generated by `build_matrix.py`. "
+         "Nothing here is QA_ACCEPTED, and the project is not complete.", "",
+         f"Atomic requirement rows: **{n}**", "",
+         "| Column | Value | Count |", "|---|---|---|"]
+    for k in IMPL_VALUES:
+        L.append(f"| IMPLEMENTED | {k} | {t[k]} |")
+    L.append(f"| VERIFIED_BY_DEVELOPER | with named test/journey evidence | {stats['verified']} |")
+    L.append(f"| VERIFIED_BY_DEVELOPER | empty | {stats['unverified']} |")
+    L.append(f"| QA_ACCEPTED | accepted by Codex | 0 |")
+    L.append(f"| QA_ACCEPTED | empty | {n} |")
+    L += ["", "BLOCKED rows by real cause: " + ", ".join(f"{k} {v}" for k, v in sorted(stats["blocked_causes"].items())) + ".",
+          "PARTIAL rows by cause of what remains: " + ", ".join(f"{k} {v}" for k, v in sorted(stats["partial_causes"].items())) + ".",
+          "NO rows: " + (", ".join(stats["no_rows"]) or "none") + ".", "",
+          "Former MISSING rows: LD-DOC-00-001 and LD-DOC-00-002 (connected system). Closed in PR #86 (ConnectedCaseApiTest, connected_journey.py); no new code needed.", "",
+          "VERIFIED_BY_DEVELOPER is feature-level evidence (a named test class or journey step on a stated SHA), not a claim that every field was asserted. "
+          "Journey evidence files were recorded on older UAT releases than the current develop head; rerun is part of the retest package.", ""]
+    return "\n".join(L)
 
 
 def main():
     lines = SOURCE.read_text(encoding="utf8").split("\n")
-    text, missing = render(lines)
+    text, missing, stats = render(lines)
+    summ = summary_text(stats)
     if "--check" in sys.argv:
-        if missing or not OUT.exists() or OUT.read_text(encoding="utf8") != text:
-            print("matrix is stale or incomplete", missing, file=sys.stderr)
+        bad = []
+        if missing:
+            bad.append(f"uncovered source lines {missing}")
+        if stats["rows"] != EXPECTED_ROWS:
+            bad.append(f"row count {stats['rows']} != {EXPECTED_ROWS}")
+        if not OUT.exists() or OUT.read_text(encoding="utf8") != text:
+            bad.append("matrix is stale")
+        else:
+            hdr = [l for l in text.split("\n") if l.startswith("| " + COLUMNS[0])]
+            if any(h != "| " + " | ".join(COLUMNS) + " |" for h in hdr):
+                bad.append("column header drift")
+            for l in text.split("\n"):
+                c = [x.strip() for x in l.strip().strip("|").split("|")]
+                if l.startswith("| LD-DOC-") and len(c) >= 9:
+                    if len(c) != len(COLUMNS) or c[4] not in IMPL_VALUES or c[6] != "" or (c[5] and c[4] != "YES"):
+                        bad.append(f"row {c[0]}: invalid IMPLEMENTED/VERIFIED/QA_ACCEPTED combination")
+        if not SUMMARY.exists() or SUMMARY.read_text(encoding="utf8") != summ:
+            bad.append("TESTED-STATUS-SUMMARY.md is stale")
+        if bad:
+            print("; ".join(bad), file=sys.stderr)
             return 1
         return 0
     OUT.write_text(text, encoding="utf8")
-    print("rows written; uncovered lines:", missing)
+    SUMMARY.write_text(summ, encoding="utf8")
+    print("rows written; uncovered lines:", missing, stats["impl"], "verified", stats["verified"])
     return 0
 
 
