@@ -16,7 +16,7 @@ import com.lawdesk.security.Permission;
 import com.lawdesk.wp9.Wp9TestSupport;
 
 /**
- * LD-058 round 2: the stored search documents (V800) and the guards that keep the search and the case-list text filter
+ * LD-058 round 2: the stored search documents (V801) and the guards that keep the search and the case-list text filter
  * fast without depending on the speed of the machine: documents kept equal to a full recomputation by the triggers, the
  * trigram prefilter never dropping a match, the number of statements per request, and the indexes being usable by the queries
  * the application sends (checked with sequential scans disabled, since a test database is too small for the planner to prefer an
@@ -111,6 +111,32 @@ class StoredSearchDocumentsTest extends Wp9TestSupport {
         var result = mvc.perform(getJson(staff, "/api/v1/cases").param("q", "bulkword").param("size", "1")).andExpect(status().isOk())
                 .andReturn();
         assertThat(this.<Integer>read(result, "$.totalItems")).as("3100 by title and one through its party").isEqualTo(3101);
+    }
+
+    @Test
+    void theStoredCasePositionFollowsEveryWriteToProceedingsAndRanksStagesLikeTheLadder() throws Exception {
+        UUID owner = user("Owner");
+        UUID a = legalCase(owner, null);
+        UUID b = legalCase(owner, null);
+        legalCase(owner, null);
+        UUID p1 = proceeding(a, "1");
+        proceeding(a, "2");
+        proceeding(a, "3");
+        proceeding(b, "9");
+        assertThat(jdbc.queryForList("select case_id from case_position")).hasSize(2);
+        assertThat(jdbc.queryForObject("select proceeding_count from case_position where case_id = ?", Integer.class, a)).isEqualTo(3);
+        jdbc.update("delete from proceeding where id = ?", p1);
+        assertThat(jdbc.queryForObject("select proceeding_count from case_position where case_id = ?", Integer.class, a)).isEqualTo(2);
+        jdbc.update("delete from proceeding where case_id = ?", b);
+        assertThat(jdbc.queryForList("select case_id from case_position")).as("a case with no proceeding has no position").hasSize(1);
+        // The ladder written into the trigger is the order of the Stage enum, which the reports use.
+        String sql = new String(getClass().getResourceAsStream("/db/migration/V803__LD-058_case_position.sql").readAllBytes(),
+                java.nio.charset.StandardCharsets.UTF_8);
+        StringBuilder ladder = new StringBuilder("case p.stage");
+        for (com.lawdesk.proceedings.Stage stage : com.lawdesk.proceedings.Stage.values()) {
+            ladder.append(" when '").append(stage.name()).append("' then ").append(stage.ordinal());
+        }
+        assertThat(sql.replaceAll("\\s+", " ")).contains(ladder.toString() + " end desc");
     }
 
     private static String like(String q) {
