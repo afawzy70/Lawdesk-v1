@@ -1,0 +1,33 @@
+[   0.0s] START 1 start the throwaway cluster
+[   5.5s] done  1 start the throwaway cluster (5.44s)
+[   5.5s] START 2 create the database and the application role (deploy/postgres/app-role.sql)
+[   6.0s] done  2 create the database and the application role (deploy/postgres/app-role.sql) (0.55s)
+[   6.0s] START 3 the application migrates the empty database (first boot)
+[  71.4s] done  3 the application migrates the empty database (first boot) (65.38s)
+[  72.3s] START 4 load SYNTHETIC data as the application role
+[  89.3s] done  4 load SYNTHETIC data as the application role (17.02s)
+[  89.4s] START 5 boot on the source and read through the API (4 personas)
+[ 209.8s] done  5 boot on the source and read through the API (4 personas) (120.43s)
+[ 209.8s] START 5b API fingerprint of the source
+[ 273.4s] done  5b API fingerprint of the source (63.52s)
+[ 274.2s] START 6 fingerprint the source database
+[ 304.8s] done  6 fingerprint the source database (30.59s)
+PASS source: stored files match their SHA-256 column [{"kind": "version", "files": 1200, "bytes": 70971384}, {"kind": "head", "files": 600, "bytes": 36183372}]
+[ 304.8s] START 7 pg_dump -U postgres -d <db> -Fc
+[ 338.6s] done  7 pg_dump -U postgres -d <db> -Fc (33.84s)
+[ 339.5s] START 7b EXPERIMENT: restore into a database the role script already prepared (expected to fail)
+[ 340.4s] done  7b EXPERIMENT: restore into a database the role script already prepared (expected to fail) (0.89s)
+PASS experiment: role-script-first order is refused by pg_restore (documented as the wrong order) 
+[ 340.8s] START 8 create an empty database and pg_restore --exit-on-error (single job)
+[ 342.8s] FAIL  8 create an empty database and pg_restore --exit-on-error (single job): pg_restore exited 1:   CONSTRAINT library_judgment_subject_visible CHECK ((length(btrim((subject)::text)) > 0)),
+    CONSTRAINT library_judgment_verification_visible CHECK ((length(btrim((verification_note)::text)) > 0)),
+    CONSTRAINT library_judgment_withdrawal_complete CHECK ((((status)::text = 
+DRILL STEP FAILED: pg_restore exited 1:   CONSTRAINT library_judgment_subject_visible CHECK ((length(btrim((subject)::text)) > 0)),
+    CONSTRAINT library_judgment_verification_visible CHECK ((length(btrim((verification_note)::text)) > 0)),
+    CONSTRAINT library_judgment_withdrawal_complete CHECK ((((status)::text = 'WITHDRAWN'::text) = ((withdrawn_at IS NOT NULL) AND (withdrawn_by IS NOT NULL) AND (withdrawn_reason IS NOT NULL)))),
+    CONSTRAINT library_judgment_year_range CHECK (((case_year >= 1900) AND (case_year <= 2100)))
+);
+
+
+
+exit 3

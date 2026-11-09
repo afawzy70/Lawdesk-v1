@@ -1,0 +1,11 @@
+-- LD-DOC restore drill (docs/evidence/DOC-RESTORE): a pg_dump -Fc of this schema could not be restored. pg_restore (like pg_dump)
+-- empties the search path, and library_trigrams (V640) is a SQL function whose body calls library_normalize by its plain name. The
+-- generated column library_judgment.trigrams uses library_trigrams, PostgreSQL inlines the body while it creates the table, and with an
+-- empty search path "function library_normalize(text) does not exist" aborted CREATE TABLE library_judgment: the table, its data, its
+-- indexes and the foreign keys to it were all missing after the restore, while pg_restore without --exit-on-error went on and reported
+-- only the number of errors. The same empty path is used by PostgreSQL 17+ for VACUUM, ANALYZE, REINDEX and CLUSTER, so an index or a
+-- statistics run over the column could fail the same way.
+--
+-- The function now carries its own search path, the one of the connection that applies this migration (the application's schema), so
+-- its body resolves the same names whoever calls it and it is no longer inlined. Behaviour and results are unchanged; V640 is not edited.
+alter function library_trigrams(text) set search_path from current;

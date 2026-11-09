@@ -46,7 +46,7 @@ final class SearchSpecs {
     }
 
     /**
-     * A type whose searchable text is stored, already normalised, in a vector that a GIN index covers (V800). The query asks the
+     * A type whose searchable text is stored, already normalised, in a vector that a GIN index covers (V801). The query asks the
      * index for the candidate ids, restricts them with the access rule, and only then ranks them; the parts of {@link Spec} are
      * evaluated for the rows of the page alone (matched-in flags and the snippet), never for the whole register.
      *
@@ -61,7 +61,7 @@ final class SearchSpecs {
     private SearchSpecs() {
     }
 
-    /** Type to {table, alias in the spec} for the types with a {@code search_vec} column (V801). */
+    /** Type to {table, alias in the spec} for the types with a {@code search_vec} column (V802). */
     private static final Map<String, String[]> OWN_VECTOR = Map.ofEntries(
             Map.entry("CLAIM", new String[] {"claim", "cl"}), Map.entry("DEFENSE", new String[] {"defense", "f"}),
             Map.entry("HEARING", new String[] {"hearing", "h"}), Map.entry("JUDGMENT", new String[] {"judgment", "j"}),
@@ -79,7 +79,7 @@ final class SearchSpecs {
         Map<String, Spec> specs = new java.util.LinkedHashMap<>();
         for (Spec spec : build(access, canId)) {
             String[] own = OWN_VECTOR.get(spec.type());
-            // Types whose text is all in one row (or kept in that row by a trigger, V801) read their stored search_vec.
+            // Types whose text is all in one row (or kept in that row by a trigger, V802) read their stored search_vec.
             specs.put(spec.type(), own == null ? spec : spec.withStored(new Stored(null, "", own[1] + ".search_vec",
                     "select x.id from " + own[0] + " x where x.search_vec @@ (select tq from q)")));
         }

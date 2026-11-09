@@ -56,8 +56,8 @@ function backend() {
 
 describe('case details on a narrow screen (QAD-027)', () => {
   it.each([
-    { lang: 'en', dir: 'ltr', parties: 'Parties', timeline: 'Timeline', stages: 'Judicial stages', remove: 'Remove' },
-    { lang: 'ar', dir: 'rtl', parties: 'أطراف القضية', timeline: 'السجل الزمني', stages: 'درجات التقاضي', remove: 'إزالة' },
+    { lang: 'en', dir: 'ltr', parties: 'Parties', table: 'Parties table', timeline: 'Timeline', stages: 'Judicial stages', remove: 'Remove' },
+    { lang: 'ar', dir: 'rtl', parties: 'أطراف القضية', table: 'جدول أطراف القضية', timeline: 'السجل الزمني', stages: 'درجات التقاضي', remove: 'إزالة' },
   ])('contains the parties table in a named, focusable scroll region ($lang)', async (c) => {
     backend();
     renderCases(`/cases/${CASE.id}?lang=${c.lang}`);
@@ -66,9 +66,10 @@ describe('case details on a narrow screen (QAD-027)', () => {
     expect(document.documentElement).toHaveAttribute('dir', c.dir);
     expect(document.documentElement).toHaveAttribute('lang', c.lang);
 
-    // The section and its scroll region are both named by the section heading.
-    const region = screen.getAllByRole('region', { name: c.parties }).find((r) => r.classList.contains('table-scroll'));
-    if (region === undefined) throw new Error('no scroll region');
+    // The section is named by its heading; the scroll region has its own name, because two landmarks of one role may
+    // not share a name (axe landmark-unique).
+    const region = screen.getByRole('region', { name: c.table });
+    expect(region).toHaveClass('table-scroll');
     expect(region).toHaveAttribute('tabindex', '0');
     expect(region).toContainElement(table);
     // The long name sits in the first column, the one allowed to break anywhere; the row action stays in the region.

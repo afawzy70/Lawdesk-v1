@@ -78,6 +78,17 @@ beforeEach(() => {
 });
 
 describe('month view', () => {
+  it('lays the month out as rows of seven cells so the grid has the structure its role requires', async () => {
+    serve((r) => (r.path === '/api/v1/calendar/events' ? jsonResponse(view([entry(), task()], {}, r)) : undefined));
+    mount(<CalendarPage />, VIEW, '/calendar?date=2027-03-10');
+    await screen.findByRole('gridcell', { name: '10 Mar 2027: 2 entries' });
+    const grid = screen.getByRole('grid');
+    const rows = within(grid).getAllByRole('row');
+    // One header row plus the weeks of March 2027 (it starts on a Monday), each padded to seven cells.
+    expect(rows).toHaveLength(6);
+    for (const row of rows.slice(1)) expect(within(row).getAllByRole('gridcell')).toHaveLength(7);
+  });
+
   it('asks for the month of the user and shows how many entries each day holds', async () => {
     const { requests } = serve((r) => (r.path === '/api/v1/calendar/events' ? jsonResponse(view([entry(), task()], {}, r)) : undefined));
     mount(<CalendarPage />, VIEW, '/calendar?date=2027-03-10');

@@ -22,7 +22,7 @@
 | الموضوع | الموضع |
 |---------|--------|
 | حزمة التصميم المعتمدة وقرارات المالك D1–D12 | `docs/design/LD-DOC-00-README.md` … `LD-DOC-10-integration-contracts.md` |
-| مصفوفة المتطلبات (651 متطلبًا ذريًا) | `docs/requirements/lawdesk-comprehensive-requirements-matrix.md` |
+| مصفوفة المتطلبات (650 متطلبًا ذريًا) | `docs/requirements/lawdesk-comprehensive-requirements-matrix.md` |
 | أدلة الحزم (ما بُني، الاختبارات، المتبقي) | `docs/evidence/DOC-WP1` … `DOC-WP10` (بعضها بالإنجليزية) |
 | تقرير المرحلتين الأولى والثانية | `docs/reports/PHASE-1-REPORT-ar.md`، `PHASE-2-REPORT-ar.md` |
 | تشغيل بيئة التجربة والنشر | `deploy/README.md`، `docs/operations/STAGING-RUNBOOK.md`، `docs/operations/CI-RUNNER.md` |

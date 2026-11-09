@@ -1,4 +1,4 @@
--- LD-058 (round 2, performance), part 2: stored search vectors for the other record types of the unified search. Same idea as V800:
+-- LD-058 (round 2, performance), part 2: stored search vectors for the other record types of the unified search. Same idea as V801:
 -- the text is normalised and weighted once, when the record is written (a BEFORE row trigger fills search_vec), and a GIN index
 -- finds the candidates; access to the case (case_visible) is still tested at query time. A record whose document includes another
 -- table's text (a library judgment's principles, a settlement's offering party, a directive's addressee) is touched by a trigger on

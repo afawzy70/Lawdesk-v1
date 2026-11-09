@@ -197,7 +197,7 @@ class CaseRepository {
         if (search.q() != null) {
             // Section 1: by case number (internal, judicial automated or court number), subject, opponent, member or
             // involved employee and unit.
-            // The trigram prefilter (V800) narrows the cases first. When it leaves few, the related tables are tested for those
+            // The trigram prefilter (V801) narrows the cases first. When it leaves few, the related tables are tested for those
             // cases only (a correlated EXISTS on an indexed case_id); when it leaves many, each related table is read once into a
             // hashed set (an uncorrelated IN), which was what made the same search over 50 000 cases take seconds before
             // (LD-058 performance run). Both forms select exactly the same cases.

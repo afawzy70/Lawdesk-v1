@@ -167,7 +167,7 @@ class SearchService {
     }
 
     /**
-     * The stored-vector path (V800): candidates come from a GIN index, are restricted by the access rule and ranked, and only the
+     * The stored-vector path (V801): candidates come from a GIN index, are restricted by the access rule and ranked, and only the
      * page's rows are read again for their matched-in flags and snippet. Two statements per type, whatever the register's size.
      */
     private Group runStored(Spec spec, SearchRequests.Query query, Map<String, Object> params, String from, String where) {
