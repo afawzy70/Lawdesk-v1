@@ -2,6 +2,7 @@ import { useId, useState, type SyntheticEvent } from 'react';
 import type { MessageKey } from '../../i18n/catalog';
 import { useI18n } from '../../i18n/I18nContext';
 import { formatDate } from '../cases/format';
+import { DefensePrecedents } from '../gaps/DefensePrecedents';
 import { numberOf } from '../proceedings/dates';
 import {
   ASSERTION_STATUSES,
