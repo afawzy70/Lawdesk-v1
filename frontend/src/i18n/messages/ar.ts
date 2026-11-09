@@ -14,6 +14,7 @@ import { wp3Ar } from './wp3.ar';
 import { deadlinesAr } from './deadlines.ar';
 import { pleadingsAr } from './pleadings.ar';
 import { wp9Ar } from './wp9.ar';
+import { wp5Ar } from './wp5.ar';
 
 /** Arabic (Modern Standard Arabic) message catalog. Keys must match `en.ts` exactly. */
 export const ar: Messages = {
@@ -73,4 +74,5 @@ export const ar: Messages = {
   ...deadlinesAr,
   ...pleadingsAr,
   ...wp9Ar,
+  ...wp5Ar,
 };

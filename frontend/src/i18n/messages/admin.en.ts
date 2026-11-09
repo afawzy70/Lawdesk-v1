@@ -149,4 +149,8 @@ export const adminEn = {
   'admin.permission.DEADLINE_VIEW': 'View legal deadlines',
   'admin.permission.DEADLINE_MANAGE': 'Record and edit legal deadlines, rules and holidays',
   'admin.permission.DEADLINE_APPROVE': 'Approve legal deadlines, rules and holidays',
+  'admin.permission.ENFORCEMENT_VIEW': 'View judgment enforcement',
+  'admin.permission.ENFORCEMENT_MANAGE': 'Manage judgment enforcement',
+  'admin.permission.MEMO_APPROVE': 'Approve memos and letters',
+  'admin.permission.DOCUMENT_ARCHIVE_ADMIN': 'Administer the archive (permanent deletion, limits)',
 } as const;

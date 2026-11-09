@@ -13,6 +13,7 @@ import {
   type SpecialDecision,
 } from './proceedingsApi';
 import { JudgmentDeadlines } from '../deadlines/JudgmentDeadlines';
+import { JudgmentEnforcement } from '../archive/JudgmentEnforcement';
 import { JudgmentDetailsView } from '../pleadings/JudgmentDetailsView';
 import './proceedings.css';
 
@@ -184,6 +185,7 @@ export function CaseProceedings({ caseId, automatedNo = null }: Props) {
                       {judgment.summary === null ? null : <p>{judgment.summary}</p>}
                       <JudgmentDetailsView details={judgment.details} />
                       <JudgmentDeadlines judgmentId={judgment.id} />
+                      <JudgmentEnforcement judgmentId={judgment.id} caseId={caseId} editable />
                       <button
                         type="button"
                         onClick={() => {

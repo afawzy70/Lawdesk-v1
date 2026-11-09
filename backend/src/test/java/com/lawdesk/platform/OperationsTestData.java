@@ -49,8 +49,7 @@ public final class OperationsTestData {
         jdbc.update("delete from access_scope where subject_type = 'USER'");
         // Phase 5, children before parents.
         jdbc.update("delete from case_note");
-        jdbc.update("delete from case_document");
-        jdbc.update("delete from case_document_quota");
+        ArchiveTestData.deleteDocuments(jdbc);
         jdbc.update("delete from task");
         jdbc.update("delete from expert_session");
         jdbc.update("delete from expert_referral");

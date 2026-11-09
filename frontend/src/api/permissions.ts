@@ -59,6 +59,10 @@ export const PERMISSIONS = [
   'DEADLINE_VIEW',
   'DEADLINE_MANAGE',
   'DEADLINE_APPROVE',
+  'ENFORCEMENT_VIEW',
+  'ENFORCEMENT_MANAGE',
+  'MEMO_APPROVE',
+  'DOCUMENT_ARCHIVE_ADMIN',
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

@@ -37,6 +37,8 @@ public abstract class PostgresTestSupport {
         registry.add("spring.datasource.hikari.minimum-idle", () -> 0);
         // LD-053: tests call the follow-up run themselves; a timer must not change their data underneath them.
         registry.add("lawdesk.followup.schedule-enabled", () -> false);
+        // LD-055: tests run the recognition worker themselves, with their own engine.
+        registry.add("lawdesk.ocr.schedule-enabled", () -> false);
     }
 
     /** A new, empty database (no migrations applied) on the same server, for tests that drive Flyway themselves. */
