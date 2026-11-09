@@ -26,7 +26,7 @@ final class Text {
     }
 
     /**
-     * The condition that narrows a substring search ({@code ilike '%q%'}) with the stored trigrams of the case documents (V800):
+     * The condition that narrows a substring search ({@code ilike '%q%'}) with the stored trigrams of the case documents (V801):
      * every text that contains {@code q} contains all its trigrams, so the condition never drops a match and the ILIKE that follows
      * removes the rest. A text shorter than three characters has no trigram, so the ILIKE alone decides. {@code caseId} is the
      * case id column of the query and {@code param} the name of the bound raw text.

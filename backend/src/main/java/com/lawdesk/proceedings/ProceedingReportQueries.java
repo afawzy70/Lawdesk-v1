@@ -167,7 +167,7 @@ public class ProceedingReportQueries {
     /**
      * The cases in {@code caseScope} (a condition over {@code legal_case} that includes visibility) by current stage or court,
      * and one more group, with a null key, for the cases that have no proceeding. The current proceeding of each case is
-     * stored (case_position, kept by triggers; V802), so this is one pass and one hash join however many cases the scope holds.
+     * stored (case_position, kept by triggers; V803), so this is one pass and one hash join however many cases the scope holds.
      */
     public List<Distribution> distribution(CaseAccessPolicy.Predicate caseScope, boolean byCourt) {
         String key = byCourt ? "cast(cp.court_id as text)" : "cp.stage";
