@@ -73,7 +73,7 @@ class SearchService {
         if (tsQuery == null) {
             return new SearchRequests.Result(query.q(), 0, searched, List.of());
         }
-        Map<String, Object> params = new HashMap<>(access.visibleCaseIds("c.id").params());
+        Map<String, Object> params = new HashMap<>(access.viewable("c").params());
         params.put("tsq", tsQuery);
         params.put("q", query.q());
         params.put("canId", currentActor.has(Permission.PARTY_ID_VIEW));

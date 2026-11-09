@@ -197,15 +197,16 @@ class CaseRepository {
         if (search.q() != null) {
             // Section 1: by case number (internal, judicial automated or court number), subject, opponent, member or
             // involved employee and unit.
+            // Each related table is read once into a hashed set (an uncorrelated IN), not once per case: with a
+            // correlated EXISTS the same text search over 50 000 cases took seconds (LD-058 performance run).
             where.append(" and (reference_no ilike :q escape '\\' or title ilike :q escape '\\'"
                     + " or subject ilike :q escape '\\' or automated_no ilike :q escape '\\'"
-                    + " or exists (select 1 from case_party cp join party p on p.id = cp.party_id"
-                    + " where cp.case_id = c.id and p.name ilike :q escape '\\')"
-                    + " or exists (select 1 from proceeding pr where pr.case_id = c.id"
-                    + " and pr.court_case_number ilike :q escape '\\')"
-                    + " or exists (select 1 from app_user m where m.id in (c.primary_member_id, c.alternate_member_id)"
-                    + " and m.display_name ilike :q escape '\\')"
-                    + " or exists (select 1 from case_org_involvement i where i.case_id = c.id and i.removed_at is null"
+                    + " or c.id in (select cp.case_id from case_party cp join party p on p.id = cp.party_id"
+                    + " where p.name ilike :q escape '\\')"
+                    + " or c.id in (select pr.case_id from proceeding pr where pr.court_case_number ilike :q escape '\\')"
+                    + " or c.primary_member_id in (select m.id from app_user m where m.display_name ilike :q escape '\\')"
+                    + " or c.alternate_member_id in (select m.id from app_user m where m.display_name ilike :q escape '\\')"
+                    + " or c.id in (select i.case_id from case_org_involvement i where i.removed_at is null"
                     + " and (i.contact_name ilike :q escape '\\' or i.sector_name_snapshot ilike :q escape '\\'"
                     + " or i.department_name_snapshot ilike :q escape '\\' or i.section_name_snapshot ilike :q escape '\\')))");
             params.put("q", "%" + Text.escapeLike(search.q()) + "%");

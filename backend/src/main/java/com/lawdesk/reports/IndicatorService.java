@@ -58,6 +58,11 @@ public class IndicatorService {
     static final String MODULE_NOT_AVAILABLE = "MODULE_NOT_AVAILABLE";
     static final int MAX_GROUPS = 100;
 
+    /** The statuses of the three case-state indicators (new, circulating, concluded); one definition for figure and list. */
+    static final Set<CaseStatus> NEW = EnumSet.of(CaseStatus.OPEN);
+    static final Set<CaseStatus> ONGOING = EnumSet.of(CaseStatus.ACTIVE, CaseStatus.SUSPENDED);
+    static final Set<CaseStatus> CONCLUDED = EnumSet.of(CaseStatus.CLOSED, CaseStatus.ARCHIVED);
+
     /** What an indicator is: how many rows, and a page of them. */
     interface Source {
         long count();
@@ -94,17 +99,36 @@ public class IndicatorService {
     public List<IndicatorFigure> figures(IndicatorQuery query) {
         List<IndicatorFigure> figures = new ArrayList<>();
         IndicatorQuery plain = IndicatorQuery.period(query.from(), query.to());
+        // One pass over the register answers the six figures that are only a sum of case statuses; each is still the
+        // count of the list it opens (IndicatorApiTest checks it), only read once instead of six times.
+        CaseReportQueries.CaseCounts caseCounts = cases.counts(CaseFilter.ALL);
         for (IndicatorCode code : IndicatorCode.values()) {
             Source source = source(code, plain);
             if (source == null) {
                 figures.add(new IndicatorFigure(code, code.number(), code.entity(), false, MODULE_NOT_AVAILABLE, null,
                         null));
             } else {
-                figures.add(new IndicatorFigure(code, code.number(), code.entity(), true, null, source.count(),
-                        code.grouped() ? groups(code) : null));
+                Long fromStatuses = statusFigure(code, caseCounts);
+                figures.add(new IndicatorFigure(code, code.number(), code.entity(), true, null,
+                        fromStatuses != null ? fromStatuses : source.count(), code.grouped() ? groups(code) : null));
             }
         }
         return figures;
+    }
+
+    /** The figures that are sums of case statuses, from counts already read; null for every other indicator. */
+    private static Long statusFigure(IndicatorCode code, CaseReportQueries.CaseCounts counts) {
+        return switch (code) {
+            case TOTAL_CASES, CASES_BY_UNIT, CASES_BY_MEMBER -> counts.total();
+            case CASES_NEW -> sum(counts, NEW);
+            case CASES_ONGOING -> sum(counts, ONGOING);
+            case CASES_CONCLUDED -> sum(counts, CONCLUDED);
+            default -> null;
+        };
+    }
+
+    private static long sum(CaseReportQueries.CaseCounts counts, Set<CaseStatus> statuses) {
+        return statuses.stream().mapToLong(counts.byStatus()::get).sum();
     }
 
     private List<IndicatorFigure.Group> groups(IndicatorCode code) {
@@ -168,9 +192,9 @@ public class IndicatorService {
         LocalDate today = calendar.today();
         return switch (code) {
             case TOTAL_CASES -> caseSource(CaseFilter.ALL);
-            case CASES_NEW -> caseSource(withStatuses(EnumSet.of(CaseStatus.OPEN)));
-            case CASES_ONGOING -> caseSource(withStatuses(EnumSet.of(CaseStatus.ACTIVE, CaseStatus.SUSPENDED)));
-            case CASES_CONCLUDED -> caseSource(withStatuses(EnumSet.of(CaseStatus.CLOSED, CaseStatus.ARCHIVED)));
+            case CASES_NEW -> caseSource(withStatuses(NEW));
+            case CASES_ONGOING -> caseSource(withStatuses(ONGOING));
+            case CASES_CONCLUDED -> caseSource(withStatuses(CONCLUDED));
             case RESERVED_FOR_JUDGMENT -> caseSource(CaseFilter.ALL.and(HearingReportQueries.reservedForJudgment()));
             case HIGH_RISK_CASES -> caseSource(CaseFilter.ALL.and(RiskReportQueries.highRisk()));
             case LINKED_CASES -> caseSource(CaseFilter.ALL.and(CaseLinkReportQueries.linked()));

@@ -167,7 +167,7 @@ public class CaseAccessPolicy {
         return "(" + a + ".primary_member_id = :av_me or " + a + ".alternate_member_id = :av_me or " + a
                 + ".created_by = :av_me or (:av_all and " + a + ".confidentiality <> 'RESTRICTED') or (:av_types <> ''"
                 + " and " + a + ".confidentiality <> 'RESTRICTED' and " + a + ".case_type = any (string_to_array(:av_types, ',')))"
-                + " or ((:av_units <> '' or " + a + ".id in (select cg.case_id from case_grant cg where cg.user_id = :av_me)"
+                + " or ((:av_units <> '' or " + a + ".id in (select cg.case_id from case_grant cg where cg.user_id = :av_me and cg.revoked_at is null)"
                 + " or " + a + ".id in (select ct.case_id from task ct where ct.assignee_id = :av_me and ct.case_id is not null))"
                 + " and case_visible(" + a + ".id, :av_me, :av_all, :av_units, :av_types)))";
     }
