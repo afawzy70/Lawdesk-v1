@@ -3,13 +3,9 @@ Run: python3 docs/requirements/build_gap_closure.py. The matrix itself is never 
 import pathlib
 HERE=pathlib.Path(__file__).resolve().parent
 M=str(HERE/'lawdesk-comprehensive-requirements-matrix.md')
-rows=[]
-for line in open(M,encoding='utf-8'):
-    if 'موجود جزئيًا' in line or 'غير موجود' in line.split('|')[5:6][0:1] if False else False: pass
-for line in open(M,encoding='utf-8'):
-    c=[x.strip() for x in line.strip().strip('|').split('|')]
-    if len(c)>=7 and c[0].startswith('LD-DOC-') and c[4] in ('موجود جزئيًا','غير موجود'):
-        rows.append(c)
+import json
+# The 104 rows of the round-2 gap closure (id, source line); frozen so this historical record does not depend on the matrix status column.
+rows=[[i,n,'','','',''] for i,n in json.load(open(str(HERE/'gap_rows.json'),encoding='utf-8'))]
 IMPL='IMPLEMENTED'; BLK='BLOCKED'; SAT='SATISFIED_BY_EXISTING'; UMB='UMBRELLA'
 spec={
 'LD-DOC-00-001':(IMPL,'الوثيقة تطلب منظومة مترابطة لا شاشات منفصلة؛ لم يكن هناك اختبار يثبت الترابط.','`wp9/ConnectedCaseApiTest` (قضية واحدة بطلب ودفع وجلسة وحكم ومستند وميعاد ومخاطر ومهمة وملاحظة تظهر في الملخص والخط الزمني والتقويم والبحث والتقارير واللوحة، وتغيير مهمة يظهر في الباقي، وغير المطلع لا يرى شيئًا) + رحلة `tools/journeys/connected_journey.py` (لم تُشغَّل على UAT).',''),
@@ -90,6 +86,7 @@ out=[]
 out.append('# إغلاق الصفوف «موجود جزئيًا» و«غير موجود» — سجل الفجوات (الجولة الثانية)\n')
 out.append('يسرد لكل صف من المصفوفة (104 صفًا: 102 جزئي + 2 غير موجود) ما كان ناقصًا، وما نُفِّذ (الاختبار/الفرع)، أو العائق الدقيق والقرار المطلوب. **لا يُعدَّل** ملف المصفوفة؛ تُعاد توليدته من هذا الملف.\n')
 out.append('الحالات هنا: `IMPLEMENTED` (نُفِّذ في الشيفرة ومعه اختبار)، `SATISFIED_BY_EXISTING` (لا فجوة فعلية)، `BLOCKED` (يحتاج قرارًا أو تبعية خارجية)، `UMBRELLA` (بند جامع يتبع صفوفًا أخرى). **لا يُعلن أي صف `VERIFIED` ولا `QA_ACCEPTED`**: التحقق على UAT برحلة وSHA منشور من شأن مالك التكامل، والقبول من Codex وحده.\n')
+out.append('> **ملاحظة R3**: هذا سجل تاريخي للجولة الثانية. الحالة الحالية لكل صف (IMPLEMENTED / VERIFIED_BY_DEVELOPER / QA_ACCEPTED) في المصفوفة نفسها؛ تغيرت أمور منذ كُتب (OCR، البحث، فحوص المتصفحات، تدريب الاستعادة).\n')
 out.append('## الجدول\n')
 out.append('| الصف | السطر | الحالة | ما كان ناقصًا | ما نُفِّذ / الدليل | العائق والقرار المطلوب |')
 out.append('|---|---|---|---|---|---|')
