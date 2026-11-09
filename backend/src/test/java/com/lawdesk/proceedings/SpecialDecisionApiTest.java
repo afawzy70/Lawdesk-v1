@@ -159,7 +159,7 @@ class SpecialDecisionApiTest extends JudicialApiTestSupport {
                 .andExpect(jsonPath("$.errors[?(@.field == 'decisionType')].code").value(Matchers.hasItem("NotNull")))
                 .andExpect(jsonPath("$.errors[?(@.field == 'decisionDate')].code").value(Matchers.hasItem("NotNull")))
                 .andExpect(jsonPath("$.errors[?(@.field == 'effect')].code").value(Matchers.hasItem("NotNull")));
-        mvc.perform(postDecision(a.appeal(), decision("OTHER", LocalDate.now().plusDays(2).toString(), "GRANTED",
+        mvc.perform(postDecision(a.appeal(), decision("OTHER", LocalDate.now(java.time.ZoneId.of("Asia/Kuwait")).plusDays(2).toString(), "GRANTED",
                         "s".repeat(4001), null)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors[?(@.field == 'decisionDate')].code")

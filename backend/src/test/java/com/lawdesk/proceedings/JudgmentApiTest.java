@@ -130,7 +130,7 @@ class JudgmentApiTest extends JudicialApiTestSupport {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors[?(@.field == 'judgmentDate')].code").value(Matchers.hasItem("NotNull")))
                 .andExpect(jsonPath("$.errors[?(@.field == 'outcome')].code").value(Matchers.hasItem("NotNull")));
-        mvc.perform(postJudgment(proceeding, judgment(LocalDate.now().plusDays(2).toString(), "AGAINST",
+        mvc.perform(postJudgment(proceeding, judgment(LocalDate.now(java.time.ZoneId.of("Asia/Kuwait")).plusDays(2).toString(), "AGAINST",
                         "s".repeat(4001), false)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors[?(@.field == 'judgmentDate')].code")

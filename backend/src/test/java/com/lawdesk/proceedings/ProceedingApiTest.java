@@ -160,7 +160,7 @@ class ProceedingApiTest extends JudicialApiTestSupport {
     void boundariesOfNumberYearAndFilingDate() throws Exception {
         UUID caseId = createCase("Bounds");
         UUID court = createCourt("FI-6", "FIRST_INSTANCE");
-        String tomorrow = LocalDate.now().plusDays(2).toString();
+        String tomorrow = LocalDate.now(java.time.ZoneId.of("Asia/Kuwait")).plusDays(2).toString();
         mvc.perform(postProceeding(caseId, proceeding("FIRST_INSTANCE", court, "9".repeat(33), 1899, tomorrow, null)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors[?(@.field == 'courtCaseNumber')].code").value(Matchers.hasItem("Size")))
@@ -181,7 +181,7 @@ class ProceedingApiTest extends JudicialApiTestSupport {
         assertThat(rows("proceeding")).isZero();
 
         mvc.perform(postProceeding(caseId, proceeding("FIRST_INSTANCE", court, "9".repeat(32), 1900,
-                        LocalDate.now().toString(), null)))
+                        LocalDate.now(java.time.ZoneId.of("Asia/Kuwait")).toString(), null)))
                 .andExpect(status().isCreated());
         mvc.perform(postProceeding(caseId, proceeding("FIRST_INSTANCE", court, "8", 2100, "2025-01-01", null)))
                 .andExpect(status().isCreated());

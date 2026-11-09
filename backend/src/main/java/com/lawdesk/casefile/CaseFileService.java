@@ -34,7 +34,8 @@ class CaseFileService {
     private static final ZoneId ZONE = ZoneId.of("Asia/Kuwait");
     private static final Set<String> KINDS = Set.of("EVENT", "HEARING", "INFO_REQUEST", "INFO_REQUEST_DUE", "INFO_REPLY",
             "RISK", "JUDGMENT", "LINK", "DEADLINE");
-    private static final List<String> PENDING_MODULES = List.of("CLAIMS", "DEFENSES", "EVIDENCE", "ENFORCEMENT");
+    /** Modules of the case file that have no stored data yet. Claims, defences, evidence and enforcement exist since WP2 and WP5, so none is pending; a module is listed here only while it is really unbuilt. */
+    private static final List<String> PENDING_MODULES = List.of();
     private static final String WAITING = "('SENT', 'AWAITING', 'PARTIAL', 'INCOMPLETE', 'OVERDUE')";
 
     private final JdbcClient jdbc;

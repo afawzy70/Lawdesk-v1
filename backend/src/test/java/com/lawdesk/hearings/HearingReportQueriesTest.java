@@ -97,7 +97,7 @@ class HearingReportQueriesTest extends HearingTestSupport {
     @Test
     void refusesUnboundedQueries() {
         HearingFilter filter = HearingFilter.between(LocalDate.parse("2025-01-01"), LocalDate.parse("2025-01-31"));
-        assertThatThrownBy(() -> HearingFilter.between(null, LocalDate.now()))
+        assertThatThrownBy(() -> HearingFilter.between(null, LocalDate.now(java.time.ZoneId.of("Asia/Kuwait"))))
                 .isInstanceOf(NullPointerException.class);
         assertThatThrownBy(() -> reports().find(filter, 0, 10_001)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> reports().find(filter, -1, 10)).isInstanceOf(IllegalArgumentException.class);

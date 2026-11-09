@@ -180,8 +180,12 @@ export function CaseSummaryPanel({ caseId, generation }: Props) {
             <dd>
               {t('wp3.summary.linkCounts', { count: String(data.links.count), hidden: String(data.links.hiddenCount) })}
             </dd>
-            <dt>{t('wp3.summary.pending')}</dt>
-            <dd>{data.pendingModules.map((m) => t(`wp3.summary.module.${m as 'CLAIMS'}`)).join('، ')}</dd>
+            {data.pendingModules.length === 0 ? null : (
+              <>
+                <dt>{t('wp3.summary.pending')}</dt>
+                <dd>{data.pendingModules.map((m) => t(`wp3.summary.module.${m as 'CLAIMS'}`)).join('، ')}</dd>
+              </>
+            )}
           </dl>
           {data.hearings === null || data.hearings.followUp === 0 ? null : (
             <p className="case-notice">
