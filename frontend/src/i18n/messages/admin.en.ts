@@ -141,4 +141,12 @@ export const adminEn = {
   'admin.permission.EVIDENCE_VIEW': 'View facts and evidence',
   'admin.permission.EVIDENCE_MANAGE': 'Manage facts and evidence',
   'admin.permission.LOOKUP_MANAGE': 'Manage managed lists',
+  'admin.permission.SETTLEMENT_MANAGE': 'Record and edit settlements',
+  'admin.permission.SETTLEMENT_APPROVE': 'Approve or reject settlements',
+  'admin.permission.DIRECTIVE_MANAGE': 'Issue and manage directives',
+  'admin.permission.TEMPLATE_MANAGE': 'Manage legal templates',
+  'admin.permission.SEARCH_ALL': 'Search across every record type',
+  'admin.permission.DEADLINE_VIEW': 'View legal deadlines',
+  'admin.permission.DEADLINE_MANAGE': 'Record and edit legal deadlines, rules and holidays',
+  'admin.permission.DEADLINE_APPROVE': 'Approve legal deadlines, rules and holidays',
 } as const;

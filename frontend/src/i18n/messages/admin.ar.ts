@@ -143,4 +143,12 @@ export const adminAr: Record<keyof typeof adminEn, string> = {
   'admin.permission.EVIDENCE_VIEW': 'عرض الوقائع والأدلة',
   'admin.permission.EVIDENCE_MANAGE': 'إدارة الوقائع والأدلة',
   'admin.permission.LOOKUP_MANAGE': 'إدارة القوائم المعيارية',
+  'admin.permission.SETTLEMENT_MANAGE': 'تسجيل التسويات وتعديلها',
+  'admin.permission.SETTLEMENT_APPROVE': 'اعتماد التسويات أو رفضها',
+  'admin.permission.DIRECTIVE_MANAGE': 'إصدار التكليفات وإدارتها',
+  'admin.permission.TEMPLATE_MANAGE': 'إدارة النماذج القانونية',
+  'admin.permission.SEARCH_ALL': 'البحث في كل أنواع السجلات',
+  'admin.permission.DEADLINE_VIEW': 'الاطلاع على المواعيد القانونية',
+  'admin.permission.DEADLINE_MANAGE': 'تسجيل المواعيد القانونية وقواعدها وعطلاتها وتعديلها',
+  'admin.permission.DEADLINE_APPROVE': 'اعتماد المواعيد القانونية وقواعدها وعطلاتها',
 };

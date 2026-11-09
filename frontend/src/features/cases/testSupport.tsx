@@ -57,6 +57,10 @@ export function scriptedFetch(
     if (request.method === 'GET' && /\/links$|\/info-requests\?|\/risk-assessments$|\/unified-timeline|\/notifications/.test(url)) {
       return Promise.resolve(jsonResponse({ items: [], hiddenCount: 0, page: 0, size: 20, totalItems: 0, totalPages: 0 }));
     }
+    // LD-057 (WP9): settlements and the template library answer "nothing there" in tests that do not script them.
+    if (request.method === 'GET' && /\/settlements$|\/api\/v1\/templates|\/api\/v1\/lists\//.test(url)) {
+      return Promise.resolve(jsonResponse([]));
+    }
     if (request.method === 'GET' && /\/summary$/.test(url)) return Promise.resolve(problem(404));
     requests.push(request);
     return Promise.resolve(respond(request));

@@ -444,6 +444,13 @@ export interface CaseSummaryData {
   tasks: { open: number; overdue: number; items: { id: string; title: string; dueDate: string | null }[] } | null;
   links: { count: number; hiddenCount: number };
   pendingModules: string[];
+  /** Absent when the user holds no deadline permission. */
+  deadlines?: {
+    open: number;
+    overdue: number;
+    unapproved: number;
+    items: { id: string; action: string; dueOn: string | null; calcStatus: string; overdue: boolean }[];
+  } | null;
 }
 
 export function getSummary(caseId: string, signal?: AbortSignal): Promise<CaseSummaryData> {
@@ -459,6 +466,7 @@ export const TIMELINE_KINDS = [
   'RISK',
   'JUDGMENT',
   'LINK',
+  'DEADLINE',
 ] as const;
 export type TimelineKind = (typeof TIMELINE_KINDS)[number];
 

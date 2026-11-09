@@ -53,7 +53,15 @@ public enum Permission {
     DEFENSE_MANAGE,
     EVIDENCE_VIEW,
     EVIDENCE_MANAGE,
-    LOOKUP_MANAGE;
+    LOOKUP_MANAGE,
+    SETTLEMENT_MANAGE,
+    SETTLEMENT_APPROVE,
+    DIRECTIVE_MANAGE,
+    TEMPLATE_MANAGE,
+    SEARCH_ALL,
+    DEADLINE_VIEW,
+    DEADLINE_MANAGE,
+    DEADLINE_APPROVE;
 
     /** {@code @PreAuthorize} expressions, one per permission: {@code @PreAuthorize(Permission.Codes.CASE_CREATE)}. */
     public static final class Codes {
@@ -105,6 +113,14 @@ public enum Permission {
         public static final String EVIDENCE_VIEW = "hasAuthority('EVIDENCE_VIEW')";
         public static final String EVIDENCE_MANAGE = "hasAuthority('EVIDENCE_MANAGE')";
         public static final String LOOKUP_MANAGE = "hasAuthority('LOOKUP_MANAGE')";
+        public static final String SETTLEMENT_MANAGE = "hasAuthority('SETTLEMENT_MANAGE')";
+        public static final String SETTLEMENT_APPROVE = "hasAuthority('SETTLEMENT_APPROVE')";
+        public static final String DIRECTIVE_MANAGE = "hasAuthority('DIRECTIVE_MANAGE')";
+        public static final String TEMPLATE_MANAGE = "hasAuthority('TEMPLATE_MANAGE')";
+        public static final String SEARCH_ALL = "hasAuthority('SEARCH_ALL')";
+        public static final String DEADLINE_VIEW = "hasAuthority('DEADLINE_VIEW')";
+        public static final String DEADLINE_MANAGE = "hasAuthority('DEADLINE_MANAGE')";
+        public static final String DEADLINE_APPROVE = "hasAuthority('DEADLINE_APPROVE')";
 
         private Codes() {
         }
