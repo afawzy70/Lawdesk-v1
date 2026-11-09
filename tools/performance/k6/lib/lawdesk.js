@@ -6,6 +6,27 @@
 // given in CREDENTIALS_FILE; they are never logged.
 import http from 'k6/http';
 import { check, fail } from 'k6';
+import { Trend } from 'k6/metrics';
+
+const responseBytes = new Trend('response_body_bytes');
+
+function bodyBytes(body) {
+  if (body === null || body === undefined) return 0;
+  if (typeof body !== 'string') return body.byteLength || 0;
+  let bytes = 0;
+  for (let i = 0; i < body.length; i++) {
+    const c = body.charCodeAt(i);
+    if (c < 0x80) bytes++;
+    else if (c < 0x800) bytes += 2;
+    else if (c >= 0xD800 && c <= 0xDBFF && i + 1 < body.length) { bytes += 4; i++; }
+    else bytes += 3;
+  }
+  return bytes;
+}
+
+function recordSize(response, name, endpointClass) {
+  responseBytes.add(bodyBytes(response.body), { name, endpoint_class: endpointClass });
+}
 
 // Hosts that must never receive load: the shared UAT host (sslip.io names of 167.86.90.174) and Matbakhy.
 const FORBIDDEN = [/167[-.]86[-.]90[-.]174/, /sslip\.io/i, /matbakhy/i];
@@ -17,6 +38,9 @@ export function target() {
   }
   if (FORBIDDEN.some((pattern) => pattern.test(base))) {
     fail(`refusing ${base}: shared UAT and Matbakhy hosts never receive load tests (PERFORMANCE-BASELINE §6)`);
+  }
+  if (!/^http:\/\/(web:8080|(127\.0\.0\.1|localhost):18080)$/.test(base)) {
+    fail('load target must be the isolated Compose web:8080 or loopback:18080, with no path or query');
   }
   if (__ENV.LAWDESK_K6_ISOLATED !== 'yes') {
     fail('set LAWDESK_K6_ISOLATED=yes only for an isolated, resource-bounded target with synthetic data');
@@ -43,7 +67,8 @@ function xsrf(base) {
 
 // A signed-in session for this VU; k6 keeps one cookie jar per VU, so JSESSIONID and XSRF-TOKEN persist.
 export function signIn(base, account) {
-  http.get(`${base}/api/v1/auth/csrf`, { tags: { name: 'auth csrf', endpoint_class: 'auth' } });
+  const csrf = http.get(`${base}/api/v1/auth/csrf`, { tags: { name: 'auth csrf', endpoint_class: 'auth' } });
+  recordSize(csrf, 'auth csrf', 'auth');
   const response = http.post(`${base}/api/v1/auth/login`,
     JSON.stringify({ login: account.username, password: account.password }),
     {
@@ -53,15 +78,19 @@ export function signIn(base, account) {
   if (!check(response, { 'signed in': (r) => r.status === 200 })) {
     fail(`sign-in refused for a synthetic account (status ${response.status})`);
   }
+  recordSize(response, 'auth login', 'auth');
   // The token rotates at sign-in; fetch the new one for later writes.
-  http.get(`${base}/api/v1/auth/csrf`, { tags: { name: 'auth csrf', endpoint_class: 'auth' } });
+  const fresh = http.get(`${base}/api/v1/auth/csrf`, { tags: { name: 'auth csrf', endpoint_class: 'auth' } });
+  recordSize(fresh, 'auth csrf', 'auth');
 }
 
 export function get(base, path, name, endpointClass) {
   const response = http.get(`${base}${path}`, {
-    headers: { Accept: 'application/json' },
+    headers: { Accept: ['documents', 'exports'].includes(endpointClass) ? '*/*' : 'application/json' },
+    responseType: endpointClass === 'documents' && path.endsWith('/content') ? 'binary' : 'text',
     tags: { name, endpoint_class: endpointClass },
   });
+  recordSize(response, name, endpointClass);
   check(response, { [`${name} 2xx`]: (r) => r.status >= 200 && r.status < 300 });
   return response;
 }
@@ -71,6 +100,7 @@ export function send(base, method, path, body, name, endpointClass) {
     headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-XSRF-TOKEN': xsrf(base) || '' },
     tags: { name, endpoint_class: endpointClass },
   });
+  recordSize(response, name, endpointClass);
   check(response, { [`${name} 2xx`]: (r) => r.status >= 200 && r.status < 300 });
   return response;
 }
@@ -83,6 +113,7 @@ export function upload(base, path, fileName, bytes, name) {
     headers: { 'X-XSRF-TOKEN': xsrf(base) || '' },
     tags: { name, endpoint_class: 'documents' },
   });
+  recordSize(response, name, 'documents');
   check(response, { [`${name} 2xx`]: (r) => r.status >= 200 && r.status < 300 });
   return response;
 }
@@ -110,6 +141,7 @@ export const TARGETS = {
   case_details: [300, 600],
   proceedings: [300, 600],
   hearings: [400, 800],
+  tasks: [400, 800],
   documents: [1500, 3000],
   reports: [1500, 3000],
   exports: [5000, 10000],

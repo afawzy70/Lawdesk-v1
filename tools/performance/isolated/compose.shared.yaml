@@ -1,0 +1,15 @@
+# Tighter caps for a verified shared Contabo host. Always combine after compose.yaml.
+# No build occurs on the shared host: start with docker compose up --no-build.
+services:
+  db:
+    cpus: 0.75
+    mem_limit: 512m
+  backend:
+    cpus: 0.75
+    mem_limit: 768m
+  web:
+    cpus: 0.25
+    mem_limit: 96m
+  k6:
+    cpus: 0.5
+    mem_limit: 384m
