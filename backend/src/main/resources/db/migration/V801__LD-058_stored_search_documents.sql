@@ -36,6 +36,9 @@ create index search_link_doc_vec on search_link_doc using gin (vec);
 create table search_case_doc (
     case_id uuid     primary key references legal_case (id) on delete cascade,
     vec     tsvector not null,
+    -- vec plus the text of every link of the case, whoever may see it: the index candidates (a viewer sees at most this much text,
+    -- so a query that does not match here cannot match for anyone). The exact test per viewer composes vec with the visible links.
+    vec_all tsvector not null,
     -- Trigrams of every text the case-list filter looks into (reference, title, subject, numbers, parties, members, units and
     -- contacts), each field apart: a necessary condition for a substring match in any of them.
     trigrams text[]  not null default '{}',
@@ -43,12 +46,16 @@ create table search_case_doc (
     -- Only ever set to true by the link triggers; a stale true costs one empty look-up, a false would lose a match.
     linked  boolean  not null default false
 );
-create index search_case_doc_vec on search_case_doc using gin (vec);
+create index search_case_doc_vec_all on search_case_doc using gin (vec_all);
 create index search_case_doc_trigrams on search_case_doc using gin (trigrams);
 
+-- tsvector has no aggregate; the viewer's linked text is the concatenation of the vectors of the links they may use.
+create aggregate tsvector_agg (tsvector) (sfunc = tsvector_concat, stype = tsvector);
+
 create function search_case_refresh(p_ids uuid[]) returns void language sql as $$
-insert into search_case_doc (case_id, vec, trigrams, linked)
-select c.id,
+insert into search_case_doc (case_id, vec, vec_all, trigrams, linked)
+select c.id, o.vec, o.vec || coalesce((select tsvector_agg(d.vec) from search_link_doc d where d.host_id = c.id), cast('' as tsvector)), o.trigrams, o.linked
+from legal_case c cross join lateral (select
        setweight(to_tsvector('simple', library_normalize(c.reference_no)), 'A')
        || setweight(to_tsvector('simple', library_normalize(concat_ws(' ', c.automated_no,
               (select string_agg(pr.court_case_number || ' ' || pr.court_case_year, ' ') from proceeding pr
@@ -64,20 +71,23 @@ select c.id,
               (select string_agg(m.display_name, ' ') from app_user m
                where m.id in (c.primary_member_id, c.alternate_member_id)))), 'B')
        || setweight(to_tsvector('simple', library_normalize(c.facts)), 'C')
-       || setweight(to_tsvector('simple', library_normalize(c.chamber)), 'C'),
-       lawdesk_trigrams(concat_ws(chr(10), c.reference_no, c.title, c.subject, c.automated_no,
-              (select string_agg(py.name, chr(10)) from case_party cp join party py on py.id = cp.party_id
-               where cp.case_id = c.id),
-              (select string_agg(pr.court_case_number, chr(10)) from proceeding pr where pr.case_id = c.id),
-              (select string_agg(m.display_name, chr(10)) from app_user m
-               where m.id in (c.primary_member_id, c.alternate_member_id)),
-              (select string_agg(concat_ws(chr(10), i.contact_name, i.sector_name_snapshot, i.department_name_snapshot,
-                                           i.section_name_snapshot), chr(10))
-               from case_org_involvement i where i.case_id = c.id and i.removed_at is null))),
-       exists (select 1 from search_link_doc d where d.host_id = c.id)
-from legal_case c
+       || setweight(to_tsvector('simple', library_normalize(c.chamber)), 'C') as vec,
+       -- Trigrams are taken field by field (a text of 100 000 characters, such as a case with thousands of proceedings joined into one,
+       -- would make the windowing quadratic) and united.
+       (select coalesce(array_agg(distinct x.t), cast('{}' as text[])) from (
+            select unnest(lawdesk_trigrams(concat_ws(chr(10), c.reference_no, c.title, c.subject, c.automated_no))) as t
+            union all select unnest(lawdesk_trigrams(py.name)) from case_party cp join party py on py.id = cp.party_id
+                      where cp.case_id = c.id
+            union all select unnest(lawdesk_trigrams(pr.court_case_number)) from proceeding pr where pr.case_id = c.id
+            union all select unnest(lawdesk_trigrams(m.display_name)) from app_user m
+                      where m.id in (c.primary_member_id, c.alternate_member_id)
+            union all select unnest(lawdesk_trigrams(concat_ws(chr(10), i.contact_name, i.sector_name_snapshot,
+                                                               i.department_name_snapshot, i.section_name_snapshot)))
+                      from case_org_involvement i where i.case_id = c.id and i.removed_at is null) x) as trigrams,
+       exists (select 1 from search_link_doc d where d.host_id = c.id) as linked) o
 where c.id = any (p_ids)
-on conflict (case_id) do update set vec = excluded.vec, trigrams = excluded.trigrams, linked = excluded.linked
+on conflict (case_id) do update set vec = excluded.vec, vec_all = excluded.vec_all, trigrams = excluded.trigrams,
+                                    linked = excluded.linked
 $$;
 
 create function search_link_refresh(p_link_ids uuid[]) returns void language sql as $$
@@ -89,12 +99,9 @@ from case_link l
          cross join lateral (values (l.case_id, l.other_case_id), (l.other_case_id, l.case_id)) as s (host_id, other_id)
          join legal_case o on o.id = s.other_id
 where l.id = any (p_link_ids);
-update search_case_doc set linked = true
-where case_id in (select host_id from search_link_doc where link_id = any (p_link_ids))
+-- The hosts' documents gain (or lose) the text of these links.
+select search_case_refresh(array(select host_id from search_link_doc where link_id = any (p_link_ids)))
 $$;
-
--- tsvector has no aggregate; the viewer's linked text is the concatenation of the vectors of the links they may use.
-create aggregate tsvector_agg (tsvector) (sfunc = tsvector_concat, stype = tsvector);
 
 -- ---- triggers (statement level, on transition tables: a bulk load refreshes once, not once per row) ---------------------
 create function search_trg_case() returns trigger language plpgsql as $$

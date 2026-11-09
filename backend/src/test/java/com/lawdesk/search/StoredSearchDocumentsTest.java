@@ -163,11 +163,11 @@ class StoredSearchDocumentsTest extends Wp9TestSupport {
     @Test
     void theIndexesAreUsableByTheQueriesTheApplicationSends() {
         List<String> plans = plans(
-                "select x.case_id from search_case_doc x where x.vec @@ to_tsquery('simple', 'نزاع:*')",
+                "select x.case_id from search_case_doc x where x.vec_all @@ to_tsquery('simple', 'نزاع:*')",
                 "select d.case_id from search_case_doc d where d.trigrams @> lawdesk_trigrams('contract')",
                 "select x.id from party x where x.search_full @@ to_tsquery('simple', 'نور:*')",
                 "select x.id from party x where x.search_public @@ to_tsquery('simple', 'نور:*')");
-        assertThat(plans.get(0)).contains("search_case_doc_vec");
+        assertThat(plans.get(0)).contains("search_case_doc_vec_all");
         assertThat(plans.get(1)).contains("search_case_doc_trigrams");
         assertThat(plans.get(2)).contains("party_search_full");
         assertThat(plans.get(3)).contains("party_search_public");

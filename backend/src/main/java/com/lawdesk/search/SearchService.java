@@ -75,8 +75,6 @@ class SearchService {
         }
         Map<String, Object> params = new HashMap<>(access.viewable("c").params());
         params.put("tsq", tsQuery);
-        // Any one word (for the links' texts, which are only a candidate filter; the exact test keeps every word).
-        params.put("tsqAny", tsQuery.replace(" & ", " | "));
         params.put("q", query.q());
         params.put("canId", currentActor.has(Permission.PARTY_ID_VIEW));
         params.put("limit", query.sizeOrDefault());
@@ -172,8 +170,7 @@ class SearchService {
      */
     private Group runStored(Spec spec, SearchRequests.Query query, Map<String, Object> params, String from, String where) {
         SearchSpecs.Stored stored = spec.stored();
-        String with = "with q as (select to_tsquery('simple', cast(:tsq as text)) as tq,"
-                + " to_tsquery('simple', cast(:tsqAny as text)) as tqa)"
+        String with = "with q as (select to_tsquery('simple', cast(:tsq as text)) as tq)"
                 + (stored.with() == null ? "" : ", " + stored.with()) + " ";
         String matching = " from " + from + stored.from() + " cross join q where " + where + " and " + spec.id() + " in ("
                 + stored.matchIds() + ") and " + stored.vector() + " @@ q.tq";

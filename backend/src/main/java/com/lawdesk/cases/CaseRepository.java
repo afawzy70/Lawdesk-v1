@@ -197,13 +197,15 @@ class CaseRepository {
         if (search.q() != null) {
             // Section 1: by case number (internal, judicial automated or court number), subject, opponent, member or
             // involved employee and unit.
-            // The trigram prefilter (V801) narrows the cases first. When it leaves few, the related tables are tested for those
+            // The trigram prefilter (V801) narrows the cases first, but only when it is selective (a broad text is just as well read in one pass). When it leaves few, the related tables are tested for those
             // cases only (a correlated EXISTS on an indexed case_id); when it leaves many, each related table is read once into a
             // hashed set (an uncorrelated IN), which was what made the same search over 50 000 cases take seconds before
             // (LD-058 performance run). Both forms select exactly the same cases.
             boolean fewCandidates = Text.fewTrigramCandidates(jdbc, search.q());
-            where.append(Text.trigramPrefilter(search.q(), "c.id", "qraw"));
-            params.put("qraw", search.q());
+            if (fewCandidates) {
+                where.append(Text.trigramPrefilter(search.q(), "c.id", "qraw"));
+                params.put("qraw", search.q());
+            }
             String related = fewCandidates
                     ? " or exists (select 1 from case_party cp join party p on p.id = cp.party_id where cp.case_id = c.id"
                             + " and p.name ilike :q escape '\\')"

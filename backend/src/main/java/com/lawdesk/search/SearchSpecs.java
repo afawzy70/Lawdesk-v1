@@ -121,8 +121,7 @@ final class SearchSpecs {
                                 + " search_link_doc d join legal_case o on o.id = d.other_id where sd.linked and d.host_id = c.id and "
                                 + access.viewable("o").sql() + ") lk on true",
                         "(sd.vec || coalesce(lk.vec, cast('' as tsvector)))",
-                        "select x.case_id from search_case_doc x where x.vec @@ (select tq from q) union select d.host_id"
-                                + " from search_link_doc d where d.vec @@ (select tqa from q)")));
+                        "select x.case_id from search_case_doc x where x.vec_all @@ (select tq from q)")));
 
         // A party is found through the visible cases it is on; a party of hidden cases only does not exist for the user.
         // Identity numbers and a confidential party's contact details are searched only by holders of PARTY_ID_VIEW (D4).
