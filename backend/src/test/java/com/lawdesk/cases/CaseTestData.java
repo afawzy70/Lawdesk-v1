@@ -14,6 +14,7 @@ final class CaseTestData {
     }
 
     static void deleteAll(JdbcTemplate jdbc) {
+        jdbc.update("delete from case_precedent_link");
         jdbc.update("delete from case_duplicate_hint");
         jdbc.update("delete from case_party_counsel");
         jdbc.update("delete from case_org_involvement");
