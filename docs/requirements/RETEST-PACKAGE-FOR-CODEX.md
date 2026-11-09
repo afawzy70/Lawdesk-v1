@@ -13,11 +13,15 @@ Counts are in `TESTED-STATUS-SUMMARY.md`. Do not take the developer evidence as 
   session confirms the deployed SHA with `GET /api/v1/release` after login, and the SHA found there is the one that counts.
 - CI on `cac8d73`: Backend (embedded PostgreSQL 18.6), Backend against postgres:18.6 image, Frontend, Staging stack,
   Repository policy, Develop guard and Secret scan were green when checked.
-- The integration session reports that the journeys last ran against release `113e06e`. **No evidence file for that run is
-  committed.** The committed journey evidence in `docs/evidence/DOC-*` was recorded on older releases (the release is the
-  first step of every file: WP1 `8d7c847`/`30fa134`/`c898321`, WP2 `4220ccf`, WP3 follow-up `3937a50`, WP4 `82c3285`, WP5
-  `2bcd2dc`, WP6 `87bf0e6`, WP7 `60f5368`, WP8 `3937a50`, WP9 `f69bd76`, WP10 `64e5416`, connected `3937a50`, OCR `1b502c1`).
-  Rerun them on the deployed SHA; treat the register's VERIFIED text as a claim to check.
+- The deploy of `cac8d73` completed and `GET /api/v1/release` on UAT returned `cac8d7305800e11ad90e1f715fc8051bbcc55347`
+  (read by the integration session after login on 2026-11-09). The 14 journeys then ran against that release: access 32,
+  parties 16, stages 8, WP2 59, WP3 follow-up 74, WP4 57, WP5 65, WP6 67, WP7 51, WP8 48, WP9 36, WP10 31, OCR 44, connected
+  case 23 steps, all passing, 0 failures. Evidence: `docs/evidence/DOC-RETEST/*-cac8d73.json` and `SUMMARY-cac8d73.txt`.
+  The older per-work-package evidence files (`docs/evidence/DOC-WP*`) were recorded on earlier releases; the register cites
+  those for the step names, and the files above are the rerun on the current release. This is developer verification only;
+  rerun the journeys yourself, and treat the register's VERIFIED text as a claim to check.
+- The Kuwait-day window check (intake dated with the Kuwait day between 00:00 and 03:00 Kuwait time) was covered by a unit
+  test with the clock pinned to 21:30 UTC; it has NOT been exercised on UAT inside that window.
 
 ## 2. Pull requests merged this round (verified with `gh pr view N --json mergeCommit,title`)
 
