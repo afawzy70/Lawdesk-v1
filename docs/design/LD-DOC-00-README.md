@@ -5,7 +5,7 @@
 
 | # | الملف | المحتوى |
 |---|-------|---------|
-| — | `docs/requirements/lawdesk-comprehensive-requirements-matrix.md` | 651 متطلبًا ذريًا بمعرّفاته (+38 معرّف قسم)؛ كل سطر مصدر مغطى (يتحقق منه `build_matrix.py --check`) |
+| — | `docs/requirements/lawdesk-comprehensive-requirements-matrix.md` | 650 متطلبًا ذريًا بمعرّفاته (+38 معرّف قسم)؛ كل سطر مصدر مغطى (يتحقق منه `build_matrix.py --check`) |
 | 01 | `LD-DOC-01-gap-and-reconciliation.md` | تحليل الفجوات وسجل التوفيق مع LD-045 |
 | 02 | `LD-DOC-02-glossary.md` | قاموس مصطلحات المجال |
 | 03 | `LD-DOC-03-data-model.md` | مخطط البيانات والعلاقات والترحيل والنسخ الاحتياطي |
