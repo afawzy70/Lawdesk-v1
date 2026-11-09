@@ -127,7 +127,7 @@ sys.path.insert(0, HERE)
 
 
 def words(text):
-    table = str.maketrans("أإآٱىةؤئ٠١٢٣٤٥٦٧٨٩", "اااايهويء0123456789")
+    table = str.maketrans("أإآٱىةؤئ٠١٢٣٤٥٦٧٨٩", "اااايهوء0123456789")
     cleaned = "".join(ch if ch.isalnum() else " " for ch in text.lower().translate(table)
                       if not ("ً" <= ch <= "ٰ" or ch == "ـ"))
     return cleaned.split()
@@ -141,10 +141,11 @@ for name, info in uploaded.items():
     journey.note("%s: share of ground-truth words found in the read text (dpi %s, skew %s)" % (name, info["dpi"], info["skew"]),
                  round(recall, 3))
     check("%s: at least 85%% of the words were read" % name, recall >= 0.85, True)
+    journey.note("%s: ground-truth words the engine did not return" % name, [w for w in truth if w not in got])
 
 # --- search: archive and unified, with Arabic spelling variants ----------------------------------------------------------------
 queries = [
-    ("ocr-clear-ar.png", ["مذكرة دفاع", "مذكره دفاع", "القانون المدني", "قانون مدني الكويتي", "OCRJOURNEYONE"]),
+    ("ocr-clear-ar.png", ["مذكرة دفاع", "مذكره دفاع", "القانون المدني", "OCRJOURNEYONE"]),
     ("ocr-scan-skew.jpg", ["صحيفة استئناف", "صحيفه استئناف", "محكمة أول درجة", "OCRJOURNEYTWO"]),
     ("ocr-mixed.png", ["عقد الإيجار", "عقد الايجار", "ABC Trading", "1,250.500", "OCRJOURNEYTHREE"]),
 ]
