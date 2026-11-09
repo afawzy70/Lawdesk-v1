@@ -57,6 +57,7 @@ abstract class ExpertTestSupport extends PostgresTestSupport {
         jdbc.update("delete from hearing where adjourned_from_id is not null");
         jdbc.update("delete from hearing");
         jdbc.update("delete from special_decision");
+        com.lawdesk.platform.PleadingsTestData.deleteAll(jdbc);
         jdbc.update("delete from judgment");
         jdbc.update("delete from proceeding where stage = 'CASSATION'");
         jdbc.update("delete from proceeding where stage = 'APPEAL'");

@@ -1,7 +1,8 @@
 import type { ReactElement } from 'react';
 import { Route } from 'react-router';
 import { CaseInventoryPage } from './CaseInventoryPage';
-import { EXPERTS_PATH, HEARINGS_PATH, JUDGMENTS_PATH, REPORTS_PATH, WORKLOAD_PATH } from './common';
+import { ClaimStatisticsPage } from '../pleadings/ClaimStatisticsPage';
+import { CLAIM_RESULTS_PATH, EXPERTS_PATH, HEARINGS_PATH, JUDGMENTS_PATH, REPORTS_PATH, WORKLOAD_PATH } from './common';
 import { JudgmentReportPage } from './JudgmentReportPage';
 import { ExpertReportPage, HearingReportPage, WorkloadReportPage } from './OperationsReportPages';
 
@@ -16,5 +17,6 @@ export function reportsRoutes(): ReactElement[] {
     <Route key="hearings" path={HEARINGS_PATH} element={<HearingReportPage />} />,
     <Route key="workload" path={WORKLOAD_PATH} element={<WorkloadReportPage />} />,
     <Route key="experts" path={EXPERTS_PATH} element={<ExpertReportPage />} />,
+    <Route key="claim-results" path={CLAIM_RESULTS_PATH} element={<ClaimStatisticsPage />} />,
   ];
 }

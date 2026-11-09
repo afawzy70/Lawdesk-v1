@@ -2,6 +2,7 @@ import { api } from '../../api/http';
 import { LIST_PAGE_SIZE, listAll } from '../../api/pagedList';
 import type { PagedResult } from '../../components/PagedSelect';
 import type { Court } from '../courts/courtsApi';
+import type { JudgmentDetailsInput } from '../pleadings/api';
 
 /** Proceedings, judgments and special decisions of a case (LD-019…LD-023, docs/delivery/PHASE-4-ACCEPTANCE.md). */
 export const STAGES = ['FIRST_INSTANCE', 'APPEAL', 'CASSATION', 'CONSTITUTIONAL', 'ENFORCEMENT', 'GRIEVANCE'] as const;
@@ -34,6 +35,25 @@ export interface Proceeding {
   updatedAt: string;
 }
 
+/** The extended judgment of LD-051 (section 9); every field is null until recorded. */
+export interface JudgmentDetails {
+  chamber: string | null;
+  judgmentTypeId: string | null;
+  judgmentTypeLabelAr: string | null;
+  judgmentTypeLabelEn: string | null;
+  natureId: string | null;
+  natureLabelAr: string | null;
+  natureLabelEn: string | null;
+  operativeText: string | null;
+  reasons: string | null;
+  costsAmount: string | null;
+  lawyerFeesAmount: string | null;
+  appealable: boolean | null;
+  notifiedOn: string | null;
+  status: 'ISSUED' | 'NOTIFIED' | 'CHALLENGED' | 'OTHER' | null;
+  copyDocumentId: string | null;
+}
+
 export interface Judgment {
   id: string;
   proceedingId: string;
@@ -42,6 +62,8 @@ export interface Judgment {
   outcome: Outcome;
   summary: string | null;
   final: boolean;
+  /** Absent in answers of servers older than LD-051. */
+  details?: JudgmentDetails;
   version: number;
   createdAt: string;
   updatedAt: string;
@@ -102,6 +124,13 @@ export interface JudgmentInput {
   outcome: Outcome | null;
   final: boolean;
   summary: string | null;
+  /** Left out, the extended fields are untouched; given, it replaces all of them. */
+  details?: JudgmentDetailsInput;
+  version?: number;
+}
+
+export function updateJudgment(id: string, input: JudgmentInput): Promise<Judgment> {
+  return api<Judgment>(`/api/v1/judgments/${encodeURIComponent(id)}`, { method: 'PUT', body: input });
 }
 
 export function createJudgment(proceedingId: string, input: JudgmentInput): Promise<Judgment> {

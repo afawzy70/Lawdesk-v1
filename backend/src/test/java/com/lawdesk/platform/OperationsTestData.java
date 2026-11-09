@@ -29,6 +29,7 @@ public final class OperationsTestData {
         jdbc.update("delete from case_precedent_link");
         jdbc.update("delete from case_duplicate_hint");
         jdbc.update("delete from case_party_counsel");
+        PleadingsTestData.deleteAll(jdbc);
         jdbc.update("delete from case_org_involvement");
         jdbc.update("delete from case_grant");
         jdbc.update("delete from access_scope where subject_type = 'USER'");

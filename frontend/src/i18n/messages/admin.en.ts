@@ -134,4 +134,11 @@ export const adminEn = {
   'admin.permission.RISK_VIEW': 'View risk assessments',
   'admin.permission.RISK_MANAGE': 'Assess and update risk',
   'admin.permission.CASE_LINK_MANAGE': 'Link cases',
+  'admin.permission.CLAIM_VIEW': 'View case claims',
+  'admin.permission.CLAIM_MANAGE': 'Manage case claims',
+  'admin.permission.DEFENSE_VIEW': 'View defences',
+  'admin.permission.DEFENSE_MANAGE': 'Manage defences',
+  'admin.permission.EVIDENCE_VIEW': 'View facts and evidence',
+  'admin.permission.EVIDENCE_MANAGE': 'Manage facts and evidence',
+  'admin.permission.LOOKUP_MANAGE': 'Manage managed lists',
 } as const;

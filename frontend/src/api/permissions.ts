@@ -44,6 +44,13 @@ export const PERMISSIONS = [
   'RISK_VIEW',
   'RISK_MANAGE',
   'CASE_LINK_MANAGE',
+  'CLAIM_VIEW',
+  'CLAIM_MANAGE',
+  'DEFENSE_VIEW',
+  'DEFENSE_MANAGE',
+  'EVIDENCE_VIEW',
+  'EVIDENCE_MANAGE',
+  'LOOKUP_MANAGE',
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

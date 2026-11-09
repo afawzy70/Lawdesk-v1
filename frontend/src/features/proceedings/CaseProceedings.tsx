@@ -12,6 +12,7 @@ import {
   type Proceeding,
   type SpecialDecision,
 } from './proceedingsApi';
+import { JudgmentDetailsView } from '../pleadings/JudgmentDetailsView';
 import './proceedings.css';
 
 interface Stages {
@@ -24,7 +25,7 @@ interface Stages {
 type Result = { key: number; stages: Stages } | { key: number; error: MessageKey };
 
 /** Which form is open. */
-type Open = null | { kind: 'proceeding' } | { kind: 'judgment' | 'decision'; proceedingId: string };
+type Open = null | { kind: 'proceeding' } | { kind: 'judgment' | 'decision' | 'complete'; proceedingId: string };
 
 function loadError(error: unknown): MessageKey {
   if (error instanceof ApiError) {
@@ -180,10 +181,22 @@ export function CaseProceedings({ caseId, automatedNo = null }: Props) {
                         </span>
                       </p>
                       {judgment.summary === null ? null : <p>{judgment.summary}</p>}
+                      <JudgmentDetailsView details={judgment.details} />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          show({ kind: 'complete', proceedingId: p.id });
+                        }}
+                      >
+                        {t('pl.judgment.complete')}
+                      </button>
                     </div>
                   )}
                   {open?.kind === 'judgment' && open.proceedingId === p.id ? (
                     <JudgmentForm proceeding={p} onSaved={onSaved} onCancel={onCancel} />
+                  ) : null}
+                  {open?.kind === 'complete' && open.proceedingId === p.id && judgment !== undefined ? (
+                    <JudgmentForm key={judgment.version} proceeding={p} judgment={judgment} onSaved={onSaved} onCancel={onCancel} />
                   ) : null}
 
                   {visible && own.length > 0 ? (

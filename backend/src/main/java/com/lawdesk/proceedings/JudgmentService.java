@@ -25,27 +25,30 @@ class JudgmentService {
     private final JudicialRecords records;
     private final JudgmentRepository judgments;
     private final CurrentActor currentActor;
+    private final JudgmentDetails details;
 
-    JudgmentService(JudicialRecords records, JudgmentRepository judgments, CurrentActor currentActor) {
+    JudgmentService(JudicialRecords records, JudgmentRepository judgments, CurrentActor currentActor,
+            JudgmentDetails details) {
         this.records = records;
         this.judgments = judgments;
         this.currentActor = currentActor;
+        this.details = details;
     }
 
     @Transactional(readOnly = true)
     Page<JudgmentRequests.Response> list(UUID caseId, Pageable pageable) {
         records.requireCase(caseId);
         List<UUID> ids = records.proceedingsOf(caseId).stream().map(Proceeding::getId).toList();
-        List<JudgmentRequests.Response> ordered = judgments.findByProceedingIdIn(ids).stream()
+        List<JudgmentRequests.Response> ordered = details.responses(judgments.findByProceedingIdIn(ids).stream()
                 .sorted(Comparator.comparing(Judgment::getJudgmentDate).thenComparing(Judgment::getCreatedAt))
-                .map(j -> JudgmentRequests.Response.of(j, caseId)).toList();
+                .toList(), caseId);
         return JudicialRecords.page(ordered, pageable);
     }
 
     @Transactional(readOnly = true)
     JudgmentRequests.Response get(UUID id) {
         Judgment judgment = judgment(id);
-        return JudgmentRequests.Response.of(judgment, records.proceeding(judgment.getProceedingId()).getCaseId());
+        return details.response(judgment, records.proceeding(judgment.getProceedingId()).getCaseId());
     }
 
     @Transactional
@@ -57,10 +60,11 @@ class JudgmentService {
         }
         Judgment judgment = new Judgment(proceedingId, actor, JudicialRecords.now());
         decide(judgment, proceeding, request);
+        describe(judgment, proceeding, request);
         Judgment stored = store(judgment);
         records.recordEvent(proceeding.getCaseId(), JUDGMENT_RECORDED, "Judgment of %s (%s) in proceeding %s"
                 .formatted(stored.getJudgmentDate(), stored.getOutcome(), proceeding.numberAndYear()));
-        return JudgmentRequests.Response.of(stored, proceeding.getCaseId());
+        return details.response(stored, proceeding.getCaseId());
     }
 
     @Transactional
@@ -79,8 +83,17 @@ class JudgmentService {
                             "the judgment would come after the appeal or cassation filed against it on " + filed);
                 });
         decide(judgment, proceeding, request.decision());
+        describe(judgment, proceeding, request.decision());
         judgment.touch(actor, JudicialRecords.now());
-        return JudgmentRequests.Response.of(store(judgment), proceeding.getCaseId());
+        return details.response(store(judgment), proceeding.getCaseId());
+    }
+
+    /** The extended fields (LD-051) are replaced only when the request carries them. */
+    private void describe(Judgment judgment, Proceeding proceeding, JudgmentRequests.Create request) {
+        if (request.details() != null) {
+            details.check(request.details(), proceeding.getCaseId(), judgment);
+            judgment.describe(request.details());
+        }
     }
 
     private Judgment judgment(UUID id) {
