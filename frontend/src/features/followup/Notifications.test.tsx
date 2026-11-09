@@ -69,6 +69,17 @@ describe('notifications list', () => {
     expect(screen.getByText(/nothing is sent by e-mail or SMS/)).toBeInTheDocument();
   });
 
+  it('words the reminders of approaching and overdue legal deadlines', async () => {
+    serve(() => page([
+      note({ id: 'n6', type: 'DEADLINE_APPROACHING', params: { action: 'File the appeal', caseReferenceNo: 'LD-2026-00001', dueOn: '2026-12-01', daysRemaining: '3' } }),
+      note({ id: 'n7', type: 'DEADLINE_OVERDUE', params: { action: 'Reply', caseReferenceNo: 'LD-2026-00001', dueOn: '2026-11-01' } }),
+    ]));
+    mount(<NotificationsPage />);
+    const items = await screen.findAllByRole('listitem');
+    expect(items[0]).toHaveTextContent('The deadline "File the appeal" (case LD-2026-00001) is due on 2026-12-01, in 3 days.');
+    expect(items[1]).toHaveTextContent('The deadline "Reply" (case LD-2026-00001) was due on 2026-11-01 and is still open.');
+  });
+
   it('marks one or all as read and reloads', async () => {
     const user = userEvent.setup();
     const { requests } = serve((r) => (r.method === 'POST' ? new Response(null, { status: 204 }) : page([note()])));

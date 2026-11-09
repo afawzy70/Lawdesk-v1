@@ -36,6 +36,7 @@ const NAV = [
   { path: '/library', en: 'Judgments library', ar: 'مكتبة الأحكام' },
   { path: '/experts', en: 'Experts', ar: 'الخبراء' },
   { path: '/documents', en: 'Documents', ar: 'المستندات' },
+  { path: '/deadlines', en: 'Legal deadlines', ar: 'المواعيد القانونية' },
   { path: '/tasks', en: 'Tasks', ar: 'المهام' },
   { path: '/directives', en: 'Decisions and assignments', ar: 'القرارات والتكليفات' },
   { path: '/templates', en: 'Legal templates', ar: 'النماذج القانونية' },

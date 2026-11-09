@@ -1,5 +1,6 @@
 import { useContext } from 'react';
 import { AuthContext } from '../auth/AuthContext';
+import { CaseDeadlinesSection } from '../deadlines/CaseDeadlinesSection';
 import { CaseLinksSection } from './CaseLinksSection';
 import { CaseTimelinePanel } from './CaseTimelinePanel';
 import { InfoRequestsSection } from './InfoRequestsSection';
@@ -31,6 +32,13 @@ export function CaseFollowUp({ caseId, archived, generation }: Props) {
         />
       )}
       {!granted.has('RISK_VIEW') ? null : <RiskSection caseId={caseId} editable={!archived && granted.has('RISK_MANAGE')} />}
+      {!granted.has('DEADLINE_VIEW') ? null : (
+        <CaseDeadlinesSection
+          caseId={caseId}
+          editable={!archived && granted.has('DEADLINE_MANAGE')}
+          canApprove={granted.has('DEADLINE_APPROVE')}
+        />
+      )}
       <CaseTimelinePanel caseId={caseId} generation={generation} />
     </>
   );

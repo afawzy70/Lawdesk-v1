@@ -22,6 +22,7 @@ function statusLabel(entry: TimelineEntry, t: (key: MessageKey) => string): stri
       INFO_REPLY: `wp3.requests.completeness.${entry.status}`,
       RISK: `wp3.risk.level.${entry.status}`,
       LINK: `wp3.links.status.${entry.status}`,
+      DEADLINE: `wp4.timelineStatus.${entry.status}`,
       JUDGMENT: `proceedings.outcome.${entry.status}`,
       EVENT: '',
     } satisfies Record<TimelineKind, string>
@@ -30,7 +31,7 @@ function statusLabel(entry: TimelineEntry, t: (key: MessageKey) => string): stri
 }
 
 /** The records an entry can lead to on the case page (each carries the anchor `wp3-ref-<type>-<id>`). */
-const LINKED = new Set(['HEARING', 'INFO_REQUEST', 'RISK_ASSESSMENT', 'CASE_LINK']);
+const LINKED = new Set(['HEARING', 'INFO_REQUEST', 'RISK_ASSESSMENT', 'CASE_LINK', 'DEADLINE']);
 
 /** Section 21.2/21.3: past and future events of the case in one list, filterable, each leading to its source record. */
 export function CaseTimelinePanel({ caseId, generation }: Props) {
@@ -38,6 +39,7 @@ export function CaseTimelinePanel({ caseId, generation }: Props) {
   const id = useId();
   const [types, setTypes] = useState<TimelineKind[]>([]);
   const [entries, setEntries] = useState<{ key: string; items: TimelineEntry[]; page: number; totalPages: number } | null>(null);
+  const [available, setAvailable] = useState(false);
   const [failure, setFailure] = useState<{ key: string; message: MessageKey } | null>(null);
   const key = `${caseId}#${String(generation)}#${types.join(',')}`;
 
@@ -45,7 +47,9 @@ export function CaseTimelinePanel({ caseId, generation }: Props) {
     const controller = new AbortController();
     getTimeline(caseId, { types, page: 0 }, controller.signal).then(
       (page) => {
-        if (!controller.signal.aborted) setEntries({ key, items: page.items, page: 0, totalPages: page.totalPages });
+        if (controller.signal.aborted) return;
+        setAvailable(page.deadlinesAvailable);
+        setEntries({ key, items: page.items, page: 0, totalPages: page.totalPages });
       },
       (error: unknown) => {
         if (!controller.signal.aborted) setFailure({ key, message: failureKey(error) });
@@ -107,7 +111,7 @@ export function CaseTimelinePanel({ caseId, generation }: Props) {
           </label>
         ))}
       </fieldset>
-      <p className="case-field-hint">{t('wp3.timeline.deadlines')}</p>
+      {available ? null : <p className="case-field-hint">{t('wp3.timeline.deadlines')}</p>}
       {failure?.key === key ? <p className="case-alert" role="alert">{t(failure.message)}</p> : null}
       {current === null ? null : current.items.length === 0 ? (
         <p>{t('wp3.timeline.none')}</p>

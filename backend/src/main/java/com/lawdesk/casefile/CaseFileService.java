@@ -33,8 +33,8 @@ class CaseFileService {
 
     private static final ZoneId ZONE = ZoneId.of("Africa/Cairo");
     private static final Set<String> KINDS = Set.of("EVENT", "HEARING", "INFO_REQUEST", "INFO_REQUEST_DUE", "INFO_REPLY",
-            "RISK", "JUDGMENT", "LINK");
-    private static final List<String> PENDING_MODULES = List.of("CLAIMS", "DEFENSES", "EVIDENCE", "DEADLINES", "ENFORCEMENT");
+            "RISK", "JUDGMENT", "LINK", "DEADLINE");
+    private static final List<String> PENDING_MODULES = List.of("CLAIMS", "DEFENSES", "EVIDENCE", "ENFORCEMENT");
     private static final String WAITING = "('SENT', 'AWAITING', 'PARTIAL', 'INCOMPLETE', 'OVERDUE')";
 
     private final JdbcClient jdbc;
@@ -96,7 +96,8 @@ class CaseFileService {
                 currentActor.has(Permission.JUDGMENT_VIEW) ? lastJudgment(caseId) : null,
                 currentActor.has(Permission.RISK_VIEW) ? risk(caseId) : null,
                 currentActor.has(Permission.INFO_REQUEST_VIEW) ? infoRequests(caseId, today) : null,
-                currentActor.has(Permission.TASK_VIEW) ? tasks(caseId, today) : null, links(caseId), PENDING_MODULES);
+                currentActor.has(Permission.TASK_VIEW) ? tasks(caseId, today) : null, links(caseId), PENDING_MODULES,
+                currentActor.has(Permission.DEADLINE_VIEW) ? deadlines(caseId, today) : null);
     }
 
     private static MemberRef member(UUID id, String name) {
@@ -197,6 +198,24 @@ class CaseFileService {
         return new CaseFileViews.Tasks(counts[0], counts[1], items);
     }
 
+    /** Open deadlines of the case: how many, how many are late, how many wait for approval, and the next few. */
+    private CaseFileViews.Deadlines deadlines(UUID caseId, LocalDate today) {
+        List<CaseFileViews.DeadlineBrief> next = jdbc.sql("""
+                        select id, action, due_on, calc_status, (due_on is not null and due_on < :today) as overdue
+                        from deadline where case_id = :id and status = 'OPEN'
+                        order by due_on nulls last, created_at limit 5""").param("id", caseId).param("today", today)
+                .query((rs, n) -> new CaseFileViews.DeadlineBrief(rs.getObject("id", UUID.class), rs.getString("action"),
+                        rs.getObject("due_on", LocalDate.class), rs.getString("calc_status"), rs.getBoolean("overdue")))
+                .list();
+        long[] counts = jdbc.sql("""
+                        select count(*) as open, count(*) filter (where due_on is not null and due_on < :today) as overdue,
+                               count(*) filter (where calc_status <> 'APPROVED') as unapproved
+                        from deadline where case_id = :id and status = 'OPEN'""")
+                .param("id", caseId).param("today", today)
+                .query((rs, n) -> new long[] {rs.getLong("open"), rs.getLong("overdue"), rs.getLong("unapproved")}).single();
+        return new CaseFileViews.Deadlines(counts[0], counts[1], counts[2], next);
+    }
+
     private CaseFileViews.Links links(UUID caseId) {
         List<UUID> others = jdbc.sql("""
                         select case when case_id = :id then other_case_id else case_id end from case_link
@@ -261,6 +280,14 @@ class CaseFileService {
                            coalesce(j.summary, 'Judgment: ' || j.outcome), 'JUDGMENT', j.id, false, false, j.created_by
                     from judgment j join proceeding p on p.id = j.proceeding_id where p.case_id = :caseId""");
         }
+        if (currentActor.has(Permission.DEADLINE_VIEW)) {
+            // The due date is the moment of the entry; its state is the work state while open, the work state otherwise.
+            branches.add("""
+                    select d.due_on::timestamp at time zone 'Africa/Cairo', 'DEADLINE',
+                           case when d.status = 'OPEN' then d.calc_status else d.status end, d.action, 'DEADLINE', d.id,
+                           d.status = 'OPEN' and d.due_on >= :today, d.status = 'OPEN' and d.due_on < :today, d.created_by
+                    from deadline d where d.case_id = :caseId and d.due_on is not null""");
+        }
         String union = String.join("\nunion all\n", branches);
         Map<String, Object> params = new HashMap<>(linkVisible.params());
         params.put("caseId", caseId);
@@ -285,6 +312,7 @@ class CaseFileService {
                         rs.getObject("actor_id", UUID.class), rs.getString("display_name")))
                 .list();
         int size = pageable.getPageSize();
-        return new CaseFileViews.Timeline(items, pageable.getPageNumber(), size, total, (int) ((total + size - 1) / size), false);
+        return new CaseFileViews.Timeline(items, pageable.getPageNumber(), size, total, (int) ((total + size - 1) / size),
+                currentActor.has(Permission.DEADLINE_VIEW));
     }
 }

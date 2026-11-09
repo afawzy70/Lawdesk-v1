@@ -148,4 +148,7 @@ export const adminAr: Record<keyof typeof adminEn, string> = {
   'admin.permission.DIRECTIVE_MANAGE': 'إصدار التكليفات وإدارتها',
   'admin.permission.TEMPLATE_MANAGE': 'إدارة النماذج القانونية',
   'admin.permission.SEARCH_ALL': 'البحث في كل أنواع السجلات',
+  'admin.permission.DEADLINE_VIEW': 'الاطلاع على المواعيد القانونية',
+  'admin.permission.DEADLINE_MANAGE': 'تسجيل المواعيد القانونية وقواعدها وعطلاتها وتعديلها',
+  'admin.permission.DEADLINE_APPROVE': 'اعتماد المواعيد القانونية وقواعدها وعطلاتها',
 };

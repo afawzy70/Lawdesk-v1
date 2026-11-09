@@ -50,6 +50,23 @@ describe('executive summary', () => {
     expect(screen.getByText('claims، legal deadlines')).toBeInTheDocument();
   });
 
+  it('summarises the open deadlines when the user may open them', async () => {
+    serve(() => jsonResponse(summary({
+      pendingModules: ['CLAIMS'],
+      deadlines: {
+        open: 3, overdue: 1, unapproved: 2,
+        items: [
+          { id: 'd1', action: 'File the appeal', dueOn: '2026-12-01', calcStatus: 'APPROVED', overdue: false },
+          { id: 'd2', action: 'Reply later', dueOn: null, calcStatus: 'MANUAL', overdue: false },
+        ],
+      },
+    })));
+    mount(<CaseSummaryPanel caseId={CASE} generation={0} />);
+    expect(await screen.findByText(/3 open, 1 overdue, 2 awaiting approval/)).toBeInTheDocument();
+    expect(screen.getByText(/File the appeal \(01\/12\/2026\)/)).toBeInTheDocument();
+    expect(screen.getByText('Reply later')).toBeInTheDocument();
+  });
+
   it('writes "not recorded yet" for empty data and leaves out the areas the user may not open', async () => {
     serve(() => jsonResponse(summary({
       parties: [], involvedUnits: [], authorityPosition: null, claimedAmount: null, lastProcedure: null, lastJudgment: null,
@@ -102,6 +119,28 @@ describe('unified timeline', () => {
     expect(screen.getByText('Action not completed')).toBeInTheDocument();
     expect(screen.getByText('(Mona)')).toBeInTheDocument();
     expect(screen.getByText('Legal deadlines will appear here once they are recorded.')).toBeInTheDocument();
+  });
+
+  it('shows legal deadlines in the timeline with their state, hides the "will appear" hint, and links to the deadline', async () => {
+    serve(() => pageOf([
+      entry({ kind: 'DEADLINE', refType: 'DEADLINE', refId: 'd1', status: 'APPROVED', summary: 'File the appeal', isFuture: true }),
+      entry({ kind: 'DEADLINE', refType: 'DEADLINE', refId: 'd2', status: 'MANUAL', summary: 'Reply', isFuture: false, needsAction: true, at: '2026-11-01T09:00:00Z' }),
+      entry({ kind: 'DEADLINE', refType: 'DEADLINE', refId: 'd3', status: 'COMPLETED', summary: 'Done', isFuture: false, at: '2026-10-01T09:00:00Z' }),
+    ], { deadlinesAvailable: true }));
+    mount(<CaseTimelinePanel caseId={CASE} generation={0} />);
+    await screen.findByText(/File the appeal/);
+    expect(screen.getAllByText('Legal deadline')).toHaveLength(4);
+    const rows = Array.from(document.querySelectorAll('ul.wp3-timeline li'));
+    expect(rows.map((r) => r.textContent)).toEqual([
+      expect.stringContaining('approved — File the appeal'),
+      expect.stringContaining('manual, awaiting approval — Reply'),
+      expect.stringContaining('completed — Done'),
+    ]);
+    expect(screen.getByText('Action not completed')).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: 'Open the record' }).map((l) => l.getAttribute('href'))).toEqual([
+      '#wp3-ref-DEADLINE-d1', '#wp3-ref-DEADLINE-d2', '#wp3-ref-DEADLINE-d3',
+    ]);
+    expect(screen.queryByText('Legal deadlines will appear here once they are recorded.')).not.toBeInTheDocument();
   });
 
   it('filters by type and reads again', async () => {

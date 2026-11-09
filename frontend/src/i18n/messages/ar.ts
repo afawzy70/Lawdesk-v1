@@ -11,6 +11,7 @@ import { operationsAr } from './operations.ar';
 import { reportsAr } from './reports.ar';
 import { libraryAr } from './library.ar';
 import { wp3Ar } from './wp3.ar';
+import { deadlinesAr } from './deadlines.ar';
 import { pleadingsAr } from './pleadings.ar';
 import { wp9Ar } from './wp9.ar';
 
@@ -69,6 +70,7 @@ export const ar: Messages = {
   ...reportsAr,
   ...libraryAr,
   ...wp3Ar,
+  ...deadlinesAr,
   ...pleadingsAr,
   ...wp9Ar,
 };

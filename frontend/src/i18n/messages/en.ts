@@ -10,6 +10,7 @@ import { operationsEn } from './operations.en';
 import { reportsEn } from './reports.en';
 import { libraryEn } from './library.en';
 import { wp3En } from './wp3.en';
+import { deadlinesEn } from './deadlines.en';
 import { pleadingsEn } from './pleadings.en';
 import { wp9En } from './wp9.en';
 
@@ -72,6 +73,7 @@ export const en = {
   ...reportsEn,
   ...libraryEn,
   ...wp3En,
+  ...deadlinesEn,
   ...pleadingsEn,
   ...wp9En,
 };
