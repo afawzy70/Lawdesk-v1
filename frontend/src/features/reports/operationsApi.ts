@@ -11,7 +11,15 @@ import type { CourtRef } from './inventoryApi';
 export const HEARING_STATUSES = ['SCHEDULED', 'HELD', 'ADJOURNED', 'CANCELLED'] as const;
 export type HearingStatus = (typeof HEARING_STATUSES)[number];
 export type HearingPurpose = 'FIRST_SESSION' | 'PLEADING' | 'EVIDENCE' | 'EXPERT_REPORT' | 'JUDGMENT' | 'OTHER';
-export const TASK_STATUSES = ['OPEN', 'IN_PROGRESS', 'DONE', 'CANCELLED'] as const;
+export const TASK_STATUSES = [
+  'NEW',
+  'IN_PROGRESS',
+  'WAITING_DOCUMENTS',
+  'WAITING_OTHER',
+  'COMPLETED',
+  'LATE',
+  'CANCELLED',
+] as const;
 export type TaskStatus = (typeof TASK_STATUSES)[number];
 export const REFERRAL_STATUSES = ['OPEN', 'REPORT_SUBMITTED', 'CANCELLED'] as const;
 export type ReferralStatus = (typeof REFERRAL_STATUSES)[number];

@@ -3,7 +3,15 @@ import { listAll } from '../../../api/pagedList';
 import { blankToNull } from '../formErrors';
 
 /** Tasks, assignments and deadline reminders (LD-027, LD-028, docs/delivery/PHASE-5-ACCEPTANCE.md). */
-export const TASK_STATUSES = ['OPEN', 'IN_PROGRESS', 'DONE', 'CANCELLED'] as const;
+export const TASK_STATUSES = [
+  'NEW',
+  'IN_PROGRESS',
+  'WAITING_DOCUMENTS',
+  'WAITING_OTHER',
+  'COMPLETED',
+  'LATE',
+  'CANCELLED',
+] as const;
 export type TaskStatus = (typeof TASK_STATUSES)[number];
 
 export const TASK_PRIORITIES = ['LOW', 'NORMAL', 'HIGH', 'URGENT'] as const;
@@ -12,12 +20,18 @@ export type TaskPriority = (typeof TASK_PRIORITIES)[number];
 export const DUE_FILTERS = ['overdue', 'soon'] as const;
 export type DueFilter = (typeof DUE_FILTERS)[number];
 
-/** The moves the backend allows from each status (ASSUMPTION, PHASE-5-ACCEPTANCE LD-027). */
+/**
+ * The moves the backend allows from each status (requirements section 14). LATE is set by the follow-up run, never chosen;
+ * a late task is moved on, or gets a new due date.
+ */
 export const NEXT_STATUSES: Record<TaskStatus, readonly TaskStatus[]> = {
-  OPEN: ['IN_PROGRESS', 'DONE', 'CANCELLED'],
-  IN_PROGRESS: ['DONE', 'OPEN', 'CANCELLED'],
-  DONE: ['OPEN'],
-  CANCELLED: ['OPEN'],
+  NEW: ['IN_PROGRESS', 'WAITING_DOCUMENTS', 'WAITING_OTHER', 'COMPLETED', 'CANCELLED'],
+  IN_PROGRESS: ['WAITING_DOCUMENTS', 'WAITING_OTHER', 'COMPLETED', 'NEW', 'CANCELLED'],
+  WAITING_DOCUMENTS: ['IN_PROGRESS', 'WAITING_OTHER', 'COMPLETED', 'NEW', 'CANCELLED'],
+  WAITING_OTHER: ['IN_PROGRESS', 'WAITING_DOCUMENTS', 'COMPLETED', 'NEW', 'CANCELLED'],
+  LATE: ['IN_PROGRESS', 'WAITING_DOCUMENTS', 'WAITING_OTHER', 'COMPLETED', 'CANCELLED'],
+  COMPLETED: ['NEW'],
+  CANCELLED: ['NEW'],
 };
 
 export interface Task {
@@ -29,12 +43,16 @@ export interface Task {
   description: string | null;
   assigneeId: string;
   assigneeName: string | null;
+  startsOn: string | null;
   dueDate: string | null;
   priority: TaskPriority;
   status: TaskStatus;
   completedAt: string | null;
   overdue: boolean;
   dueSoon: boolean;
+  instructions: string | null;
+  delayReason: string | null;
+  delayReasonAt: string | null;
   version: number;
   createdAt: string;
   createdBy: string;
@@ -77,8 +95,23 @@ export interface TaskInput {
   title: string;
   description: string;
   assigneeId: string;
+  startsOn: string;
   dueDate: string;
   priority: TaskPriority;
+  instructions: string;
+}
+
+/** One line of the history of a task: who changed what (V720 task_history). */
+export interface TaskHistoryEntry {
+  id: string;
+  changedAt: string;
+  actorId: string | null;
+  actorName: string | null;
+  action: 'CREATED' | 'UPDATED' | 'STATUS' | 'REASSIGNED' | 'DELAY_REASON' | 'SYSTEM_LATE' | 'SYSTEM_RESTORED';
+  field: string | null;
+  oldValue: string | null;
+  newValue: string | null;
+  reason: string | null;
 }
 
 export const TASK_PAGE_SIZE = 20;
@@ -112,8 +145,10 @@ function body(input: TaskInput) {
     title: input.title,
     description: blankToNull(input.description),
     assigneeId: input.assigneeId === '' ? null : input.assigneeId,
+    startsOn: blankToNull(input.startsOn),
     dueDate: blankToNull(input.dueDate),
     priority: input.priority,
+    instructions: blankToNull(input.instructions),
   };
 }
 
@@ -127,4 +162,16 @@ export function updateTask(id: string, input: TaskInput, version: number): Promi
 
 export function changeTaskStatus(id: string, status: TaskStatus, version: number): Promise<Task> {
   return api<Task>(taskPath(id, '/status'), { method: 'POST', body: { status, version } });
+}
+
+export function getTaskHistory(id: string, signal?: AbortSignal): Promise<TaskHistoryEntry[]> {
+  return api<TaskHistoryEntry[]>(taskPath(id, '/history'), signal === undefined ? {} : { signal });
+}
+
+export function reassignTask(id: string, assigneeId: string, reason: string, version: number): Promise<Task> {
+  return api<Task>(taskPath(id, '/reassign'), { method: 'POST', body: { assigneeId, reason: blankToNull(reason), version } });
+}
+
+export function recordDelayReason(id: string, reason: string, version: number): Promise<Task> {
+  return api<Task>(taskPath(id, '/delay-reason'), { method: 'POST', body: { reason, version } });
 }
