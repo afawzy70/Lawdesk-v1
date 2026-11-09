@@ -58,3 +58,11 @@ two), (2) the build links `libjxl.so.0.8`, which Ubuntu 24.04 does not package (
 needs an EGL display and there is no `/dev/dri` render node, so it aborts with "Could not create WPE EGL display".
 Fix: run the WebKit step on a host or CI runner with the official Playwright image (`mcr.microsoft.com/playwright`, which
 ships the WebKit dependencies and software GL) or install `libjxl0.8`, `mesa` and a render node on this host with root.
+
+## Firefox without root
+
+If Playwright reports missing GTK libraries: run `npx playwright install firefox` from this folder (the engine revision must
+match this package's Playwright, not another checkout's), unpack `libgtk-3-0t64`, `libpango-1.0-0`, `libpangocairo-1.0-0`,
+`libcairo2`, `libcairo-gobject2`, `libgdk-pixbuf-2.0-0`, `libxcursor1` and their neighbours with `apt-get download` and
+`dpkg -x` into a directory, and run with `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1` and that directory (plus the Chromium
+library directory) on `LD_LIBRARY_PATH`. Evidence of a full run: `docs/evidence/DOC-UX/SUMMARY.md`.
