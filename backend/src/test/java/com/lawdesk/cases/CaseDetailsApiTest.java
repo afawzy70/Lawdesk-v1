@@ -73,7 +73,8 @@ class CaseDetailsApiTest extends GovernmentIntakeTestSupport {
         UUID id = registered(clerk, intake(court, specialist, null));
         mvc.perform(getCase(as(Permission.CASE_VIEW), id)).andExpect(jsonPath("$.details.chamber").doesNotExist())
                 .andExpect(jsonPath("$.details.claimedAmount").doesNotExist())
-                .andExpect(jsonPath("$.details.importance").doesNotExist());
+                .andExpect(jsonPath("$.details.importance").doesNotExist())
+                .andExpect(jsonPath("$.details.empty").doesNotExist());
     }
 
     @Test
