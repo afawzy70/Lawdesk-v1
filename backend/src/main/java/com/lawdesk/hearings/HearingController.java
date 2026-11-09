@@ -49,6 +49,13 @@ class HearingController {
         return PageResponse.from(service.calendar(from, to, status, pageable));
     }
 
+    /** The follow-up list: adjourned hearings the court gave no next date (requirements section 7). */
+    @GetMapping("/hearings/follow-up")
+    @PreAuthorize(Permission.Codes.HEARING_VIEW)
+    PageResponse<HearingRequests.Response> followUp(Pageable pageable) {
+        return PageResponse.from(service.followUp(pageable));
+    }
+
     @GetMapping("/cases/{caseId}/hearings")
     @PreAuthorize(Permission.Codes.HEARING_VIEW)
     PageResponse<HearingRequests.Response> forCase(@PathVariable UUID caseId, Pageable pageable) {
@@ -65,6 +72,15 @@ class HearingController {
     @PreAuthorize(Permission.Codes.HEARING_MANAGE)
     HearingRequests.Response update(@PathVariable UUID id, @Valid @RequestBody HearingRequests.Update request) {
         return service.update(id, request);
+    }
+
+    @PostMapping("/hearings/{id}/next-hearing")
+    @PreAuthorize(Permission.Codes.HEARING_MANAGE)
+    ResponseEntity<HearingRequests.Response> nextHearing(@PathVariable UUID id,
+            @Valid @RequestBody HearingRequests.NextHearing request) {
+        HearingRequests.Response created = service.scheduleNext(id, request);
+        return ResponseEntity.created(ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/v1/hearings/{id}").buildAndExpand(created.id()).toUri()).body(created);
     }
 
     @PostMapping("/hearings/{id}/result")

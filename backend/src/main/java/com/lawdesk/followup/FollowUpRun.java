@@ -1,0 +1,93 @@
+package com.lawdesk.followup;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.lawdesk.notifications.NotificationPublisher;
+
+/**
+ * The follow-up run (requirements sections 18.3 and 32, decision D11): marks information requests whose reply is late as
+ * overdue and raises the in-app notifications of what needs attention. It never closes anything, sends nothing outside the
+ * system and is safe to repeat: a notification exists once per type, record and user.
+ */
+@Component
+public class FollowUpRun {
+
+    /** What one run did. */
+    public record Result(int overdueRequests, int notifications) {
+    }
+
+    private static final ZoneId ZONE = ZoneId.of("Africa/Cairo");
+
+    private final JdbcClient jdbc;
+    private final NotificationPublisher notifications;
+
+    FollowUpRun(JdbcClient jdbc, NotificationPublisher notifications) {
+        this.jdbc = jdbc;
+        this.notifications = notifications;
+    }
+
+    private record Late(UUID id, UUID caseId, String requestNo, String status, UUID responsible, UUID specialist,
+            String caseReferenceNo) {
+    }
+
+    @Transactional
+    public Result run() {
+        LocalDate today = LocalDate.now(ZONE);
+        int marked = 0;
+        int raised = 0;
+        List<Late> late = jdbc.sql("""
+                        select r.id, r.case_id, r.request_no, r.status, r.responsible_member_id, c.primary_member_id,
+                               c.reference_no
+                        from info_request r join legal_case c on c.id = r.case_id
+                        where r.due_on < :today and r.status in ('SENT', 'AWAITING', 'PARTIAL', 'INCOMPLETE', 'OVERDUE')
+                        order by r.due_on, r.id""")
+                .param("today", today)
+                .query((rs, n) -> new Late(rs.getObject("id", UUID.class), rs.getObject("case_id", UUID.class),
+                        rs.getString("request_no"), rs.getString("status"),
+                        rs.getObject("responsible_member_id", UUID.class), rs.getObject("primary_member_id", UUID.class),
+                        rs.getString("reference_no")))
+                .list();
+        for (Late request : late) {
+            if (request.status().equals("SENT") || request.status().equals("AWAITING")) {
+                marked += jdbc.sql("""
+                                update info_request set status_before_overdue = status, status = 'OVERDUE',
+                                    version = version + 1, updated_at = now() where id = :id
+                                    and status in ('SENT', 'AWAITING')""")
+                        .param("id", request.id()).update();
+            }
+            for (UUID user : recipients(request.responsible(), request.specialist())) {
+                if (notifications.publish(user, NotificationPublisher.INFO_REQUEST_OVERDUE, request.caseId(),
+                        "INFO_REQUEST:" + request.id(),
+                        Map.of("requestNo", request.requestNo(), "caseReferenceNo", request.caseReferenceNo()))) {
+                    raised++;
+                }
+            }
+        }
+        List<UUID> withoutDate = jdbc.sql("select id from hearing where follow_up_flag order by hearing_date, id")
+                .query(UUID.class).list();
+        for (UUID hearing : withoutDate) {
+            raised += notifications.publishHearingWithoutDate(hearing, null);
+        }
+        return new Result(marked, raised);
+    }
+
+    private static Set<UUID> recipients(UUID... users) {
+        Set<UUID> out = new LinkedHashSet<>();
+        for (UUID user : users) {
+            if (user != null) {
+                out.add(user);
+            }
+        }
+        return out;
+    }
+}

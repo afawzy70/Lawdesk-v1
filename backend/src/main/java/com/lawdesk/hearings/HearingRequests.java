@@ -27,11 +27,33 @@ final class HearingRequests {
             @NotNull LocalDate hearingDate,
             @JsonFormat(pattern = TIME) LocalTime hearingTime,
             @NotNull HearingPurpose purpose,
-            @Size(max = 2000) String notes) {
+            @Size(max = 2000) String notes,
+            @Size(max = 200) String chamber,
+            HearingKind kind,
+            @Size(max = 200) String judgeOrExpert,
+            UUID responsibleMemberId,
+            @Size(max = 2000) String attendees,
+            @Size(max = 4000) String proceedingsSummary,
+            @Size(max = 4000) String opponentsRequests,
+            @Size(max = 2000) String requiredAction) {
 
         Create {
             notes = LegalDay.trimToNull(notes);
+            chamber = LegalDay.trimToNull(chamber);
+            judgeOrExpert = LegalDay.trimToNull(judgeOrExpert);
+            attendees = LegalDay.trimToNull(attendees);
+            proceedingsSummary = LegalDay.trimToNull(proceedingsSummary);
+            opponentsRequests = LegalDay.trimToNull(opponentsRequests);
+            requiredAction = LegalDay.trimToNull(requiredAction);
         }
+    }
+
+    /** Scheduling the next hearing of an adjourned hearing that had no date (the follow-up list). */
+    record NextHearing(
+            @NotNull LocalDate hearingDate,
+            @JsonFormat(pattern = TIME) LocalTime hearingTime,
+            HearingPurpose purpose,
+            @NotNull Long version) {
     }
 
     /** Only a scheduled hearing changes; case, proceeding and the hearing it continues stay. */
@@ -40,10 +62,24 @@ final class HearingRequests {
             @JsonFormat(pattern = TIME) LocalTime hearingTime,
             @NotNull HearingPurpose purpose,
             @Size(max = 2000) String notes,
+            @Size(max = 200) String chamber,
+            HearingKind kind,
+            @Size(max = 200) String judgeOrExpert,
+            UUID responsibleMemberId,
+            @Size(max = 2000) String attendees,
+            @Size(max = 4000) String proceedingsSummary,
+            @Size(max = 4000) String opponentsRequests,
+            @Size(max = 2000) String requiredAction,
             @NotNull Long version) {
 
         Update {
             notes = LegalDay.trimToNull(notes);
+            chamber = LegalDay.trimToNull(chamber);
+            judgeOrExpert = LegalDay.trimToNull(judgeOrExpert);
+            attendees = LegalDay.trimToNull(attendees);
+            proceedingsSummary = LegalDay.trimToNull(proceedingsSummary);
+            opponentsRequests = LegalDay.trimToNull(opponentsRequests);
+            requiredAction = LegalDay.trimToNull(requiredAction);
         }
     }
 
@@ -54,10 +90,27 @@ final class HearingRequests {
             LocalDate nextHearingDate,
             @JsonFormat(pattern = TIME) LocalTime nextHearingTime,
             HearingPurpose nextHearingPurpose,
+            @Size(max = 2000) String adjournmentReason,
+            Boolean noNextDate,
+            @Size(max = 2000) String noNextDateReason,
+            @Size(max = 2000) String attendees,
+            @Size(max = 4000) String proceedingsSummary,
+            @Size(max = 4000) String opponentsRequests,
+            @Size(max = 2000) String requiredAction,
             @NotNull Long version) {
 
         Result {
             decision = LegalDay.trimToNull(decision);
+            adjournmentReason = LegalDay.trimToNull(adjournmentReason);
+            noNextDateReason = LegalDay.trimToNull(noNextDateReason);
+            attendees = LegalDay.trimToNull(attendees);
+            proceedingsSummary = LegalDay.trimToNull(proceedingsSummary);
+            opponentsRequests = LegalDay.trimToNull(opponentsRequests);
+            requiredAction = LegalDay.trimToNull(requiredAction);
+        }
+
+        boolean noDate() {
+            return Boolean.TRUE.equals(noNextDate);
         }
     }
 
@@ -74,16 +127,23 @@ final class HearingRequests {
             UUID courtId, String courtCode, String courtNameAr, String courtNameEn, String courtCaseNumber,
             int courtCaseYear, LocalDate hearingDate, @JsonFormat(pattern = TIME) LocalTime hearingTime,
             HearingPurpose purpose, String notes, HearingStatus status, String decision, UUID adjournedFromId,
-            UUID nextHearingId, boolean awaitingResult, long version, Instant createdAt, Instant updatedAt) {
+            UUID nextHearingId, boolean awaitingResult, long version, Instant createdAt, Instant updatedAt,
+            String chamber, HearingKind kind, String judgeOrExpert, UUID responsibleMemberId,
+            String responsibleMemberName, String attendees, String proceedingsSummary, String opponentsRequests,
+            String requiredAction, String adjournmentReason, boolean noNextDate, String noNextDateReason,
+            boolean followUp) {
 
         static Response of(Hearing h, CaseSummary legalCase, ProceedingSummary proceeding, Court court,
-                UUID nextHearingId, LocalDate today) {
+                UUID nextHearingId, LocalDate today, String responsibleMemberName) {
             return new Response(h.getId(), h.getCaseId(), legalCase.referenceNo(), legalCase.title(),
                     h.getProceedingId(), proceeding.stage(), court.getId(), court.getCode(), court.getNameAr(),
                     court.getNameEn(), proceeding.courtCaseNumber(), proceeding.courtCaseYear(), h.getHearingDate(),
                     h.getHearingTime(), h.getPurpose(), h.getNotes(), h.getStatus(), h.getDecision(),
                     h.getAdjournedFromId(), nextHearingId, h.awaitingResult(today), h.getVersion(), h.getCreatedAt(),
-                    h.getUpdatedAt());
+                    h.getUpdatedAt(), h.getChamber(), h.getKind(), h.getJudgeOrExpert(), h.getResponsibleMemberId(),
+                    responsibleMemberName, h.getAttendees(), h.getProceedingsSummary(), h.getOpponentsRequests(),
+                    h.getRequiredAction(), h.getAdjournmentReason(), h.isNoNextDate(), h.getNoNextDateReason(),
+                    h.isFollowUpFlag());
         }
     }
 }

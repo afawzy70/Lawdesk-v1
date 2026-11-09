@@ -40,7 +40,13 @@ public enum Permission {
     ORG_MANAGE,
     PARTY_ID_VIEW,
     LIBRARY_VIEW,
-    LIBRARY_MANAGE;
+    LIBRARY_MANAGE,
+    INFO_REQUEST_VIEW,
+    INFO_REQUEST_MANAGE,
+    INFO_REQUEST_ESCALATE,
+    RISK_VIEW,
+    RISK_MANAGE,
+    CASE_LINK_MANAGE;
 
     /** {@code @PreAuthorize} expressions, one per permission: {@code @PreAuthorize(Permission.Codes.CASE_CREATE)}. */
     public static final class Codes {
@@ -79,6 +85,12 @@ public enum Permission {
         public static final String PARTY_ID_VIEW = "hasAuthority('PARTY_ID_VIEW')";
         public static final String LIBRARY_VIEW = "hasAuthority('LIBRARY_VIEW')";
         public static final String LIBRARY_MANAGE = "hasAuthority('LIBRARY_MANAGE')";
+        public static final String INFO_REQUEST_VIEW = "hasAuthority('INFO_REQUEST_VIEW')";
+        public static final String INFO_REQUEST_MANAGE = "hasAuthority('INFO_REQUEST_MANAGE')";
+        public static final String INFO_REQUEST_ESCALATE = "hasAuthority('INFO_REQUEST_ESCALATE')";
+        public static final String RISK_VIEW = "hasAuthority('RISK_VIEW')";
+        public static final String RISK_MANAGE = "hasAuthority('RISK_MANAGE')";
+        public static final String CASE_LINK_MANAGE = "hasAuthority('CASE_LINK_MANAGE')";
 
         private Codes() {
         }

@@ -17,6 +17,15 @@ final class CaseTestData {
         jdbc.update("delete from case_precedent_link");
         jdbc.update("delete from case_duplicate_hint");
         jdbc.update("delete from case_party_counsel");
+        // LD-053 (WP3): records that hang off cases, children before parents.
+        jdbc.update("delete from notification");
+        jdbc.update("delete from info_follow_up");
+        jdbc.update("delete from info_reply");
+        jdbc.update("delete from info_request");
+        jdbc.update("delete from risk_remediation");
+        jdbc.update("delete from risk_assessment_element");
+        jdbc.update("delete from risk_assessment");
+        jdbc.update("delete from case_link");
         jdbc.update("delete from case_org_involvement");
         jdbc.update("delete from case_grant");
         jdbc.update("delete from case_party");

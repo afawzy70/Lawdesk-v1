@@ -45,6 +45,21 @@ interface HearingRepository extends JpaRepository<Hearing, UUID> {
     Page<Hearing> findBetween(LocalDate from, LocalDate to, HearingStatus status,
             @org.springframework.data.repository.query.Param("scope") CaseAccessPolicy.Scope scope, Pageable pageable);
 
+    /** The follow-up list: adjourned hearings the court gave no next date, of the cases the user sees. */
+    @Query(value = """
+            select h from Hearing h
+            where h.followUpFlag = true
+              and function('case_visible', h.caseId, :#{#scope.me}, :#{#scope.all}, :#{#scope.units},
+                           :#{#scope.types}) = true
+            order by h.hearingDate, h.createdAt, h.id""",
+            countQuery = """
+                    select count(h) from Hearing h
+                    where h.followUpFlag = true
+                      and function('case_visible', h.caseId, :#{#scope.me}, :#{#scope.all}, :#{#scope.units},
+                                   :#{#scope.types}) = true""")
+    Page<Hearing> findFollowUp(
+            @org.springframework.data.repository.query.Param("scope") CaseAccessPolicy.Scope scope, Pageable pageable);
+
     Optional<Hearing> findByAdjournedFromId(UUID adjournedFromId);
 
     List<Hearing> findByAdjournedFromIdIn(Collection<UUID> adjournedFromIds);
