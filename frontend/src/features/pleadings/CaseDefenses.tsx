@@ -17,6 +17,7 @@ import {
   type Defense,
   type DefenseInput,
 } from './api';
+import { DefenseSimilarJudgments } from './DefenseSimilarJudgments';
 import { documentOptions, stageOptions, usePickers } from './pickers';
 import { AreaField, ChoiceField, Notice, TextField } from './ui';
 import { flaggedFields, orNull, saveMessage, useLoad } from './useLoad';
@@ -212,6 +213,8 @@ export function CaseDefenses({ caseId, canManage }: Props) {
           </tbody>
         </table>
       )}
+
+      <DefenseSimilarJudgments caseId={caseId} defenses={defenses.data ?? []} />
 
       {current === null || openId === null ? null : (
         <div className="case-fieldset" aria-label={t('pl.defenses.detailsOf', { number: String(current.defense.seq) })} role="group">
