@@ -124,6 +124,8 @@ export const wp5Ar: Record<Keys, string> = {
   'wp5.text.FAILED': 'تعذّرت قراءة الملف',
   'wp5.text.searchable': 'قابل للبحث',
   'wp5.text.notSearchable': 'غير قابل للبحث بمحتواه',
+  'wp5.text.uncertain': 'التعرف غير مؤكد: قد تكون {count} كلمة مقروءة خطأ، لذا قد لا يجدها البحث.',
+  'wp5.search.alternate': 'وُجد في قراءة بديلة غير مؤكدة للمسح الضوئي ({words}): قد يختلف نص الصفحة.',
   'wp5.text.truncated': 'لم يُحفظ إلا جزء من النص.',
   'wp5.text.pages': '{count} صفحة',
   'wp5.text.reprocess': 'اقرأ الملف من جديد',
