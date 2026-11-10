@@ -46,6 +46,8 @@ public class WriteCost {
 
         measure("case registered (case+involvement+proceeding+claim)", ops, i -> register(member, court.get(i % 30), "W" + i));
         measure("case update (title)", ops, i -> update("update legal_case set title = title || ' x', updated_at = now() where id = ?", cases.get(i)));
+        measure("case update (amount, no searchable column)", ops, i -> update(
+                "update legal_case set claimed_amount = coalesce(claimed_amount, 0) + 1, updated_at = now() where id = ?", cases.get(i)));
         measure("document upload + OCR job queued", ops, i -> upload(cases.get(i), member));
         measure("OCR text stored (document_text update)", ops, i -> storeText(i));
         measure("hearing update (date)", Math.min(ops, hearings.size()),
