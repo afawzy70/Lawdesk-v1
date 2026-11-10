@@ -6,7 +6,9 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -100,9 +102,16 @@ public class ApiExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    ProblemDetail unexpected(Exception e) {
+    ResponseEntity<ProblemDetail> unexpected(Exception e) {
+        if (DatabaseUnavailable.causes(e)) {
+            // The pool could not give a connection in time (or the database is away): the request may be retried.
+            log.error("database connection unavailable; answering 503", e);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .header(HttpHeaders.RETRY_AFTER, DatabaseUnavailable.RETRY_AFTER_SECONDS)
+                    .body(problem(HttpStatus.SERVICE_UNAVAILABLE));
+        }
         log.error("unexpected error", e);
-        return problem(HttpStatus.INTERNAL_SERVER_ERROR);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problem(HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
     private static ProblemDetail problem(HttpStatus status) {
