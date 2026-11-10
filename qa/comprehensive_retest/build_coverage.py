@@ -151,6 +151,10 @@ def result_for(c):
             if len(browser) == 32 and all(x.get("applicationShaBefore") == APP_SHA
                                           and x.get("applicationShaAfter") == APP_SHA for x in browser):
                 violations = sum(len(x.get("axeViolations", [])) for x in browser)
+                errors500 = sum(e.get("status") == 500 for x in browser for e in x.get("networkErrors", []))
+                if errors500:
+                    return "FAIL", browser_path.name, APP_SHA, \
+                        f"صفحة القضية أعادت {errors500} ردًا HTTP 500 في 32 فحص Chromium؛ QA-RT-011"
                 return "PARTIAL", browser_path.name, APP_SHA, \
                     f"32 فحص Chromium للهاتف والحاسب؛ اللوحي وFirefox/WebKit غير مفحوصة، ومخالفات axe={violations}"
     if rid in ACCEPT:

@@ -1,6 +1,6 @@
 # Handoff for the UAT QA administrator account
 
-Observed on deployed `3522775` and again on `aea33fa` and `514c481`: `qa.admin` login 401; manager's read-only user query on the first SHA says enabled, unlocked, `mustChangePassword=true`, but roles `LEGAL_STAFF` and a QA view role. The other three QA account files authenticate on all three SHAs. No account was changed by QA.
+Observed on deployed `3522775` and again on `aea33fa` , `514c481` and `03ff08e`: `qa.admin` login 401; manager's read-only user query on the first SHA says enabled, unlocked, `mustChangePassword=true`, but roles `LEGAL_STAFF` and a QA view role. The other three QA account files authenticate on all four SHAs. No account was changed by QA.
 
 The script `deploy/qa/qa_accounts.py` exists in this isolated QA worktree and its `provision`, `receive`, `verify` arguments and pipe safeguards were read. `origin/develop` commit `31e9bef` added the exact operator procedure in `docs/operations/QA-ACCOUNTS.md` after the tested UAT SHA. The command below uses the QA worktree copy, so it does not read or change Claude's workspace. It has **not been executed by QA** because it needs the UAT administrator secret and would rotate all four QA passwords, disrupting concurrent runs. The operator must coordinate a quiet QA window.
 
