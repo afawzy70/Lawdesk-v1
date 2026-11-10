@@ -74,21 +74,6 @@ class Wp8PerformanceHarness extends PostgresTestSupport {
     private record Actor(String name, RequestPostProcessor post, boolean searchOnly) {
     }
 
-    /**
-     * LD-DOC-R3: {@code -Dlawdesk.perf.db=<name>} measures an already seeded database of the server named by
-     * {@code LAWDESK_TEST_DB_URL} (a throw-away copy made with CREATE DATABASE ... TEMPLATE) instead of seeding a new one.
-     * Flyway still runs, so migrations added after the copy was made are applied on top of the data, as in an upgrade.
-     */
-    @org.springframework.test.context.DynamicPropertySource
-    static void seededDatabase(org.springframework.test.context.DynamicPropertyRegistry registry) {
-        String name = System.getProperty("lawdesk.perf.db");
-        String url = System.getenv("LAWDESK_TEST_DB_URL");
-        if (name != null && url != null) {
-            String jdbc = url.substring(0, url.lastIndexOf('/') + 1) + name;
-            registry.add("spring.datasource.url", () -> jdbc);
-        }
-    }
-
     @Test
     void measure() throws Exception {
         int cases = Integer.getInteger("lawdesk.perf.cases", 50_000);

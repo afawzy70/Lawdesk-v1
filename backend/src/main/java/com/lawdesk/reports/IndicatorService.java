@@ -111,6 +111,21 @@ public class IndicatorService {
     /** Every indicator's figure, in the order of the requirements. */
     @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public List<IndicatorFigure> figures(IndicatorQuery query) {
+        return withCaseCounts(query).figures();
+    }
+
+    /** The figures and the per-status/per-type case counts they were computed from (the dashboard reuses both). */
+    public record Figures(List<IndicatorFigure> figures, CaseReportQueries.CaseCounts caseCounts) {
+
+        /** The figure of one indicator when it is available, else null. */
+        public Long countOf(IndicatorCode code) {
+            return figures.stream().filter(f -> f.code() == code && f.available()).map(IndicatorFigure::count)
+                    .findFirst().orElse(null);
+        }
+    }
+
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
+    public Figures withCaseCounts(IndicatorQuery query) {
         List<IndicatorFigure> figures = new ArrayList<>();
         IndicatorQuery plain = IndicatorQuery.period(query.from(), query.to());
         // One pass over the register answers the six figures that are only a sum of case statuses; each is still the
@@ -119,7 +134,7 @@ public class IndicatorService {
         for (IndicatorCode code : IndicatorCode.values()) {
             figures.add(figure(code, plain, caseCounts));
         }
-        return figures;
+        return new Figures(figures, caseCounts);
     }
 
     /** One indicator's figure; if its own queries fail it is unavailable ({@link #INDICATOR_FAILED}) and the failure is logged. */

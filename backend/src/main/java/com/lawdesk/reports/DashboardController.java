@@ -68,7 +68,13 @@ class DashboardController {
         PeriodQuery.Period period = query.resolve(today);
         YearMonth month = YearMonth.from(today);
 
-        CaseCounts caseCounts = cases.counts();
+        // The indicator figures first: they read the case counts, the upcoming hearings and the overdue tasks, which the
+        // dashboard shows too under the same definitions (the same ports and filters), so those are not read a second time.
+        // An indicator that failed or is unavailable falls back to its own port, as before.
+        IndicatorService.Figures computed = indicators.withCaseCounts(IndicatorQuery.period(query.from(), query.to()));
+        CaseCounts caseCounts = computed.caseCounts();
+        Long upcoming = computed.countOf(IndicatorCode.UPCOMING_HEARINGS);
+        Long overdueTasks = computed.countOf(IndicatorCode.OVERDUE_TASKS);
         List<StageCount> stages = proceedings.byStage();
         JudgmentCounts judged = judgments.between(period.from(), period.to());
         return new DashboardReport(month.toString(),
@@ -79,8 +85,8 @@ class DashboardController {
                 new DashboardReport.Proceedings(stages.stream().mapToLong(StageCount::awaitingJudgment).sum(), stages),
                 new DashboardReport.Judgments(period.from(), period.to(), judged.recorded(), judged.finalJudgments(),
                         judged.byOutcome()),
-                new DashboardReport.Operations(hearings.upcomingCount(WEEK_AHEAD_DAYS), hearings.awaitingResultCount(),
-                        experts.overdueReportCount(), tasks.overdueCount(), tasks.dueSoonCount()),
-                List.of(), indicators.figures(IndicatorQuery.period(query.from(), query.to())));
+                new DashboardReport.Operations(upcoming != null ? upcoming : hearings.upcomingCount(WEEK_AHEAD_DAYS), hearings.awaitingResultCount(),
+                        experts.overdueReportCount(), overdueTasks != null ? overdueTasks : tasks.overdueCount(), tasks.dueSoonCount()),
+                List.of(), computed.figures());
     }
 }
