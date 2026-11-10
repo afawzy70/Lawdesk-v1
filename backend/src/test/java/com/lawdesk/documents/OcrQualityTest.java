@@ -20,11 +20,6 @@ import org.junit.jupiter.api.Test;
 class OcrQualityTest {
 
     private static final String LOW_RESOLUTION = "clear-ar-50dpi,clear-ar-72dpi";
-    /**
-     * EXCLUDED, measured on Tesseract 5.5.2 (the image's engine; the thresholds were recorded on 5.3.4): every pass drops the first
-     * line of this two-line page (search recall 0.57). A failing case, listed in docs/evidence/DOC-R3-OCR/README.md.
-     */
-    private static final String FIRST_LINE_DROPPED_ON_5_5 = "short-2-lines-ar-300dpi";
 
     @Test
     void measuredAccuracyOnTheCorpusStaysAboveTheRecordedThresholds() throws Exception {
@@ -41,14 +36,11 @@ class OcrQualityTest {
             byte[] bytes = OcrCorpus.encode(image, "png");
             String rawText = report != null ? raw.recognise(bytes) : "";
             long t0 = System.nanoTime();
-            OcrEngine.Reading reading = prepared.read(bytes);
-            String text = reading.text();
-            // what the archive search reads: the main reading plus the confident words of the other passes
-            String searchable = text + "\n" + reading.alternates();
+            String text = prepared.recognise(bytes);
             long ms = (System.nanoTime() - t0) / 1_000_000;
             double ch = OcrCorpus.characterAccuracy(c.truth(), text);
             double wd = OcrCorpus.wordAccuracy(c.truth(), text);
-            double se = OcrCorpus.searchRecall(c.truth(), searchable);
+            double se = OcrCorpus.searchRecall(c.truth(), text);
             table.append(String.format("%s\t%s\t%d\t%.1f\t%.2f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%d%n", c.name(), c.group(),
                     c.dpi(), c.angleDegrees(), OcrPreprocessor.skew(image),
                     OcrCorpus.characterAccuracy(c.truth(), rawText), OcrCorpus.wordAccuracy(c.truth(), rawText),
@@ -66,7 +58,7 @@ class OcrQualityTest {
 
     /** The threshold of a case's group, or null when the case meets it (or belongs to a group that has none by design). */
     static String violation(OcrCorpus.Case c, double characters, double search) {
-        if (LOW_RESOLUTION.contains(c.name()) || FIRST_LINE_DROPPED_ON_5_5.equals(c.name()) || "diacritics".equals(c.group())) {
+        if (LOW_RESOLUTION.contains(c.name()) || "diacritics".equals(c.group())) {
             return null; // recorded as limitations, not as a promise
         }
         boolean strict = "clear".equals(c.group()) || "skew".equals(c.group())

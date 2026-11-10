@@ -122,6 +122,7 @@ export const wp5En = {
   'wp5.text.FAILED': 'The file could not be read',
   'wp5.text.searchable': 'Searchable',
   'wp5.text.notSearchable': 'Not searchable by content',
+  'wp5.search.alternate': 'Found in an uncertain alternate reading of the scan ({words}): the page text may read differently.',
   'wp5.text.truncated': 'Only part of the text is stored.',
   'wp5.text.uncertain': 'Recognition uncertain: {count} word(s) may be misread, so a search can miss them.',
   'wp5.text.pages': '{count} pages',

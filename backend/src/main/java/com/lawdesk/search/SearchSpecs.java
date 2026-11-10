@@ -178,7 +178,7 @@ final class SearchSpecs {
                 "d.id", "c.id", "c.reference_no", "d.title", "d.file_name", "(d.created_at " + KUWAIT_DATE, "null::integer",
                 List.of(p("TITLE", "d.title", 'A'), p("FILE_NAME", "d.file_name", 'B'),
                         // The text of the current version, read from the file or by OCR (a version whose text was not read has none).
-                        p("DOCUMENT_TEXT", "(select concat_ws(' ', t.text, t.alt_text) from document_version v join document_text t on t.version_id = v.id"
+                        p("DOCUMENT_TEXT", "(select t.text from document_version v join document_text t on t.version_id = v.id"
                                 + " and t.status in ('EXTRACTED', 'OCR_DONE') where v.document_id = d.id"
                                 + " and v.version_no = d.current_version_no)", 'C')), caseType, caseId));
 

@@ -56,7 +56,7 @@ class OcrExactTermsTest {
             long t0 = System.nanoTime();
             OcrEngine.Reading reading = after.read(bytes);
             long ms = (System.nanoTime() - t0) / 1_000_000;
-            String searchable = reading.text() + "\n" + reading.alternates();
+            String searchable = reading.text() + "\n" + reading.alternateText();
             List<String> missed = page.terms().stream().filter(t -> !OcrExactCorpus.contains(searchable, t)).toList();
             List<String> listed = STILL_MISSED.getOrDefault(page.file(), List.of());
             for (String t : missed) {
@@ -69,7 +69,7 @@ class OcrExactTermsTest {
                     unexpected.add(page.file() + ": «" + t + "» is listed as missed but was found; remove it from STILL_MISSED");
                 }
             }
-            if (reading.words() == 0 || !reading.alternates().isBlank() || !missed.isEmpty()) {
+            if (reading.words() == 0 || !reading.alternates().isEmpty() || !missed.isEmpty()) {
                 // doubt is never silent: a page whose main reading was empty, disagreed with another pass, or lost a term says so
                 if (reading.uncertainWords() == 0) {
                     unexpected.add(page.file() + ": the reading was empty, disagreed or missed a term but reports no uncertain words");
@@ -99,7 +99,7 @@ class OcrExactTermsTest {
         assumeTrue(status.available(), "BLOCKED: no Tesseract with Arabic data on this machine (" + status.detail() + ")");
         OcrEngine.Reading clear = engine.read(Files.readAllBytes(root().resolve(OcrExactCorpus.JOURNEY_DIR).resolve("ocr-clear-ar.png")));
         OcrEngine.Reading mixed = engine.read(Files.readAllBytes(root().resolve(OcrExactCorpus.JOURNEY_DIR).resolve("ocr-mixed.png")));
-        assertThat(OcrExactCorpus.contains(clear.text() + "\n" + clear.alternates(), "الكويتي")).as("الكويتي").isTrue();
-        assertThat(OcrExactCorpus.contains(mixed.text() + "\n" + mixed.alternates(), "LD-2026/045")).as("LD-2026/045").isTrue();
+        assertThat(OcrExactCorpus.contains(clear.text() + "\n" + clear.alternateText(), "الكويتي")).as("الكويتي").isTrue();
+        assertThat(OcrExactCorpus.contains(mixed.text() + "\n" + mixed.alternateText(), "LD-2026/045")).as("LD-2026/045").isTrue();
     }
 }

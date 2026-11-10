@@ -101,7 +101,7 @@ class TesseractOcrEngine implements OcrEngine {
     record Pass(String name, String text, List<Word> words) {
     }
 
-    record Word(String text, double confidence) {
+    record Word(String text, double confidence, int line) {
     }
 
     @Override
@@ -157,13 +157,13 @@ class TesseractOcrEngine implements OcrEngine {
             for (String line : text.split("\\R")) {
                 known.append(String.join(" ", words(line))).append("  ");
             }
-            Set<String> alternates = new java.util.LinkedHashSet<>();
+            List<Alternate> alternates = new java.util.ArrayList<>();
             for (Pass pass : others) {
                 for (Word w : pass.words()) {
                     String key = String.join(" ", words(w.text()));
                     if (w.confidence() >= ALTERNATE_MIN && !key.isEmpty() && !known.toString().contains(" " + key + " ")) {
                         known.append(key).append("  ");
-                        alternates.add(w.text());
+                        alternates.add(new Alternate(w.text(), pass.name(), w.line(), w.confidence()));
                     }
                 }
             }
@@ -171,7 +171,7 @@ class TesseractOcrEngine implements OcrEngine {
                     .map(Word::text).filter(t -> !words(t).isEmpty()).toList();
             // Words the main reading was unsure of, plus words only another reading found: the passes disagree about them, so
             // the page is "uncertain" even when the main reading was sure of what it did read (or read nothing at all).
-            return new Reading(text, String.join(" ", alternates), main.words().size(), doubtful.size() + alternates.size(), doubtful,
+            return new Reading(text, alternates, main.words().size(), doubtful.size() + alternates.size(), doubtful,
                     1 + others.size());
         } catch (IOException e) {
             throw new OcrException("the engine could not be run", e);
@@ -223,11 +223,18 @@ class TesseractOcrEngine implements OcrEngine {
         if (!Files.exists(tsv)) {
             return words;
         }
+        String lastLine = null;
+        int line = 0;
         for (String row : Files.readAllLines(tsv, StandardCharsets.UTF_8)) {
             String[] c = row.split("\t", 12);
             if (c.length == 12 && "5".equals(c[0]) && !c[11].isBlank()) {
                 try {
-                    words.add(new Word(c[11].strip(), Double.parseDouble(c[10])));
+                    String key = c[2] + "-" + c[3] + "-" + c[4];
+                    if (!key.equals(lastLine)) {
+                        line++;
+                        lastLine = key;
+                    }
+                    words.add(new Word(c[11].strip(), Double.parseDouble(c[10]), line));
                 } catch (NumberFormatException ignored) {
                     // the header row
                 }

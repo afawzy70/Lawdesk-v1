@@ -75,8 +75,8 @@ export interface TextState {
   pageCount: number | null;
   truncated: boolean;
   text: string | null;
-  /** Words other recognition passes were sure of and the page text lacks (searched, not shown as the page). */
-  alternateReadings?: string | null;
+  /** Words other recognition passes were sure of and the page text lacks (searched, never part of the page text). */
+  alternates?: { word: string; page: number; line: number; pass: string; confidence: number }[];
   wordsRead?: number | null;
   /** Words the engine was unsure of; above zero a search may miss a word and the text may hold a misreading. */
   wordsUncertain?: number | null;
@@ -172,6 +172,9 @@ export interface SearchHit {
   categoryId: string | null;
   status: TextStatus;
   snippet: string | null;
+  /** PRIMARY: the words are in the page text. ALTERNATE: at least one word is only in another reading of the page (may be a misreading). */
+  source?: 'PRIMARY' | 'ALTERNATE';
+  alternateMatches?: { term: string; word: string; page: number; line: number; pass: string; confidence: number }[];
 }
 
 export interface SearchPage {

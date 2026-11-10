@@ -51,12 +51,6 @@ class TesseractOcrEngineTest {
         for (String sample : samples) {
             String read = engine.recognise(ArchiveFiles.png(sample, 28, 1000, 260));
             double similarity = ArabicQuality.similarity(sample, read);
-            // EXCLUDED, measured on Tesseract 5.5.2 (the image's engine): every pass (stored picture, thresholded, sparse layout)
-            // drops the first line of this large-glyph two-line page; the threshold was recorded on 5.3.4. Listed in
-            // docs/evidence/DOC-R3-OCR/README.md as a failing case, not as a pass.
-            if (sample.startsWith("محكمة التمييز")) {
-                continue;
-            }
             worst = Math.min(worst, similarity);
             System.out.println("OCR quality " + String.format("%.2f", similarity) + " for: " + sample.replace('\n', '/') + " -> "
                     + read.strip().replace('\n', '/'));
