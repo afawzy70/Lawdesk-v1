@@ -1,7 +1,5 @@
 package com.lawdesk.users;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
@@ -12,7 +10,9 @@ import java.util.UUID;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /** Reads and changes the account data that authentication needs (LD-007, LD-008). */
 @Repository
@@ -31,8 +31,13 @@ public class UserAccounts {
 
     private final JdbcTemplate jdbc;
 
-    UserAccounts(JdbcTemplate jdbc) {
+    /** The account reads of one call share a single connection and snapshot. */
+    private final TransactionTemplate reads;
+
+    UserAccounts(JdbcTemplate jdbc, PlatformTransactionManager transactions) {
         this.jdbc = jdbc;
+        this.reads = new TransactionTemplate(transactions);
+        this.reads.setReadOnly(true);
     }
 
     /** By username or email, ignoring case. Usernames cannot contain '@' and emails must, so at most one matches. */
@@ -95,23 +100,37 @@ public class UserAccounts {
     }
 
     private Optional<Account> one(String sql, Object... args) {
-        List<Account> found = jdbc.query(sql, (rs, row) -> account(rs), args);
-        return found.stream().findFirst();
+        // QA-RT-011: read the rows first and only then load roles, permissions and scopes. Running those queries inside
+        // the row mapper held the result set's connection while asking the pool for another one, so N concurrent
+        // requests used up a pool of N and each waited for the timeout (a 500). The reads also run in one read-only
+        // transaction, so they share a single connection.
+        return reads.execute(status -> {
+            List<AccountRow> rows = jdbc.query(sql, (rs, row) -> new AccountRow(rs.getObject("id", UUID.class),
+                    rs.getString("username"), rs.getString("email"), rs.getString("display_name"),
+                    rs.getString("locale"), rs.getString("password_hash"), rs.getBoolean("enabled"),
+                    rs.getBoolean("must_change_password"), rs.getTimestamp("locked_until"),
+                    rs.getLong("credential_version"), rs.getObject("org_unit_id", UUID.class)), args);
+            return rows.stream().findFirst().map(this::account);
+        });
     }
 
-    private Account account(ResultSet rs) throws SQLException {
-        UUID id = rs.getObject("id", UUID.class);
-        Timestamp locked = rs.getTimestamp("locked_until");
+    private record AccountRow(UUID id, String username, String email, String displayName, String locale,
+            String passwordHash, boolean enabled, boolean mustChangePassword, Timestamp lockedUntil,
+            long credentialVersion, UUID orgUnit) {
+    }
+
+    private Account account(AccountRow row) {
+        UUID id = row.id();
+        Timestamp locked = row.lockedUntil();
         Set<String> roles = new TreeSet<>(jdbc.queryForList(
                 "select r.code from user_role ur join app_role r on r.id = ur.role_id where ur.user_id = ?",
                 String.class, id));
         Set<String> permissions = new TreeSet<>(jdbc.queryForList("""
                 select distinct rp.permission from user_role ur join role_permission rp on rp.role_id = ur.role_id
                 where ur.user_id = ?""", String.class, id));
-        return new Account(id, rs.getString("username"), rs.getString("email"), rs.getString("display_name"),
-                rs.getString("locale"), rs.getString("password_hash"), rs.getBoolean("enabled"),
-                rs.getBoolean("must_change_password"), locked == null ? null : locked.toInstant(), roles, permissions,
-                rs.getLong("credential_version"), scopes(id, roles, rs.getObject("org_unit_id", UUID.class)));
+        return new Account(id, row.username(), row.email(), row.displayName(), row.locale(), row.passwordHash(),
+                row.enabled(), row.mustChangePassword(), locked == null ? null : locked.toInstant(), roles, permissions,
+                row.credentialVersion(), scopes(id, roles, row.orgUnit()));
     }
 
     /**

@@ -1,0 +1,62 @@
+[   0.0s] START 1 start the throwaway cluster
+[   4.2s] done  1 start the throwaway cluster (4.15s)
+[   4.2s] START 2 create the database and the application role
+[   4.5s] done  2 create the database and the application role (0.28s)
+[   4.5s] START 3 the application migrates the empty database only up to V781 (the old state)
+[  38.5s] done  3 the application migrates the empty database only up to V781 (the old state) (34.01s)
+PASS the source is in the pre-V800 state: no migration above V781 and library_trigrams has no search_path setting latest=781 applied=58 proconfig=None
+[  38.8s] START 4 load SYNTHETIC data as the application role (seed.sql)
+[  53.7s] done  4 load SYNTHETIC data as the application role (seed.sql) (14.96s)
+[  53.7s] START 4b load SYNTHETIC library judgments (the table the old dump cannot restore)
+[  53.8s] done  4b load SYNTHETIC library judgments (the table the old dump cannot restore) (0.05s)
+[  53.8s] START 5 fingerprint the OLD source database
+[  73.6s] done  5 fingerprint the OLD source database (19.78s)
+PASS source: stored files match their SHA-256 column [{"kind": "version", "files": 1200, "bytes": 70971384}, {"kind": "head", "files": 600, "bytes": 36183372}]
+[  73.6s] START 6 pg_dump -U postgres -d <db> -Fc of the OLD state
+[  92.1s] done  6 pg_dump -U postgres -d <db> -Fc of the OLD state (18.56s)
+PASS the old dump carries library_trigrams without a search_path setting 
+[  96.9s] START 7a pg_restore --exit-on-error of the old dump AS IT IS (expected to fail)
+[  97.6s] done  7a pg_restore --exit-on-error of the old dump AS IT IS (expected to fail) (0.75s)
+PASS (a) as-is with --exit-on-error: stops with 'function library_normalize(text) does not exist' pg_restore: error: could not execute query: ERROR:  function library_normalize(text) does not exist
+LINE 3: from unnest(string_to_array(library_normalize(p_text
+[  97.6s] START 7b pg_restore WITHOUT --exit-on-error of the old dump as it is (degrades silently)
+[ 107.5s] done  7b pg_restore WITHOUT --exit-on-error of the old dump as it is (degrades silently) (9.90s)
+PASS (a) as-is without --exit-on-error: exit 1, errors ignored, library_judgment missing errors ignored: 14, tables restored: 87
+[ 107.7s] START 7c EXPERIMENT: database-level search_path set before pg_restore (no repair of the dump)
+[ 108.2s] done  7c EXPERIMENT: database-level search_path set before pg_restore (no repair of the dump) (0.57s)
+PASS experiment: setting search_path on the database does not help (pg_restore overrides it per session) drawn_by IS NOT NULL) AND (withdrawn_reason IS NOT NULL)))),
+    CONSTRAINT library_judgment_year_range CHECK (((case_year >= 1900) AND (case_year <= 2100)))
+);
+[ 108.2s] START 8 repair: pg_restore -f - | sed | psql ON_ERROR_STOP into an empty database
+[ 120.3s] done  8 repair: pg_restore -f - | sed | psql ON_ERROR_STOP into an empty database (12.08s)
+PASS (b) the repaired script restores with exit code 0 and an empty stderr 
+[ 120.3s] START 9 re-apply deploy/postgres/app-role.sql on the restored database
+[ 120.4s] done  9 re-apply deploy/postgres/app-role.sql on the restored database (0.15s)
+[ 120.4s] START 10 ANALYZE
+[ 120.8s] done  10 ANALYZE (0.39s)
+[ 120.8s] START 11 fingerprint the restored database (still pre-V800)
+[ 134.8s] done  11 fingerprint the restored database (still pre-V800) (13.97s)
+PASS restored database is identical to the source (rows, content hashes, files, FKs, links, versions, grants, scopes, sequences, visibility); the only allowed difference is the repaired function text structure.0.digest: before="9a280a12a45f29313193e9d1e9530aea" after="99e7c35642d2d98179f7a6bc275a35ca"
+PASS restored: every stored file matches its SHA-256 column and size 
+PASS restored: no orphan rows and every foreign key validated 131 foreign keys
+PASS restored: no document link across cases 
+PASS restored: the visibility answers of four personas are identical {"manager": 267, "head": 173, "staff": 225, "archivist": 187}
+PASS restored: the fast CaseAccessPolicy predicate equals case_visible() for every persona 
+PASS restored: the application role keeps search_path=lawdesk after the role script {search_path=lawdesk}
+PASS restored: library_judgment is back with all 40 synthetic rows (the table the old dump lost) 40 rows
+[ 134.9s] START 12 boot the application on the restored database (Flyway applies V800 and later)
+[ 174.3s] done  12 boot the application on the restored database (Flyway applies V800 and later) (39.41s)
+[ 174.3s] START 12b API fingerprint of the restored and migrated database
+[ 197.7s] done  12b API fingerprint of the restored and migrated database (23.38s)
+[ 198.1s] START 13 reference: boot the application on the OLD SOURCE database (the same forward migration)
+[ 237.3s] done  13 reference: boot the application on the OLD SOURCE database (the same forward migration) (39.23s)
+[ 237.3s] START 13b API fingerprint of the migrated source
+[ 263.5s] done  13b API fingerprint of the migrated source (26.24s)
+PASS restored: Flyway applied V800 and the later migrations, the schema validated and the application is healthy restored applied 9, reference applied 9
+PASS after Flyway the restored library_trigrams carries the search_path setting (V800 applied on top of the repair) {search_path=lawdesk}
+PASS restored: the API answers (cases, documents, downloaded file hashes) are identical for the four personas 
+PASS restored: smoke reads worked 
+PASS restored: files downloaded through the API were hashed 
+PASS after Flyway the restored database equals the migrated reference in everything fingerprinted (rows and content hashes of every table, files, FKs, links, versions, grants, structure incl. functions; the digests of the three tables every boot rewrites are excluded, their row counts are compared and the Flyway history is compared by version, description and checksum) 
+
+OLD-BACKUP DRILL PASSED in 293.4s (21 checks)

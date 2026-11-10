@@ -17,6 +17,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.lawdesk.api.DatabaseUnavailable;
+
 /**
  * Gives every request a correlation id (the caller's {@code X-Request-Id} when well formed, otherwise a new UUID),
  * exposes it in the MDC for structured logs and in the response, and logs one line per completed request. Only the
@@ -41,6 +43,23 @@ public class RequestCorrelationFilter extends OncePerRequestFilter {
         response.setHeader(HEADER, requestId);
         try {
             chain.doFilter(request, response);
+        } catch (ServletException | IOException | RuntimeException e) {
+            // Failures outside MVC (security filters, session and account loading) never reach ApiExceptionHandler.
+            if (!DatabaseUnavailable.causes(e) || response.isCommitted()) {
+                // Tomcat logs this after the MDC is cleared and then answers through /error (Spring Boot's default
+                // JSON), so log the cause here, once, with the request id (QA-RT-011).
+                log.error("request failed outside MVC; the container will answer 500 through /error", e);
+                throw e;
+            }
+            log.error("database connection unavailable outside MVC; answering 503", e);
+            response.reset();
+            response.setHeader(HEADER, requestId);
+            response.setHeader("Retry-After", DatabaseUnavailable.RETRY_AFTER_SECONDS);
+            response.setHeader("Cache-Control", "no-store");
+            response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+            response.setContentType("application/problem+json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write("{\"type\":\"about:blank\",\"title\":\"Service Unavailable\",\"status\":503}");
         } finally {
             log.atInfo()
                     .addKeyValue("http.request.method", request.getMethod())

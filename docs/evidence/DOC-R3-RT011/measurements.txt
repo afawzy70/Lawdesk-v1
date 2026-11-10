@@ -1,0 +1,6 @@
+# BEFORE (develop 03ff08e UserAccounts, new test)
+CASE-PAGE-CONCURRENCY protocol=HTTP_2 requests=450 failures=176 samples=767 hikari.maxActive=10/10 hikari.maxThreadsAwaiting=64 pg.maxByState={active=3, idle=10, idle in transaction=6} pg.maxIdleInTransaction=6 pg.maxUngrantedLocks=0 pg.waitEventsMax={-=3, Client:ClientRead=10}
+CASE-PAGE-CONCURRENCY protocol=HTTP_1_1 requests=450 failures=215 samples=621 hikari.maxActive=10/10 hikari.maxThreadsAwaiting=89 pg.maxByState={active=4, idle=10, idle in transaction=3} pg.maxIdleInTransaction=3 pg.maxUngrantedLocks=0 pg.waitEventsMax={-=4, Client:ClientRead=10}
+# AFTER (final code)
+CASE-PAGE-CONCURRENCY protocol=HTTP_2 requests=450 failures=0 maxLatencyMs=982 samples=119 hikari.maxActive=10/10 hikari.maxThreadsAwaiting=30 pg.maxByState={active=4, idle=10, idle in transaction=9, none=1} pg.maxIdleInTransaction=9 pg.maxUngrantedLocks=0 pg.waitEventsMax={-=4, Client:ClientRead=10}
+CASE-PAGE-CONCURRENCY protocol=HTTP_1_1 requests=450 failures=0 maxLatencyMs=372 samples=79 hikari.maxActive=10/10 hikari.maxThreadsAwaiting=46 pg.maxByState={active=5, idle=10, idle in transaction=9} pg.maxIdleInTransaction=9 pg.maxUngrantedLocks=0 pg.waitEventsMax={-=5, Client:ClientRead=10}

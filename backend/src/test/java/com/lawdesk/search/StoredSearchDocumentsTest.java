@@ -58,6 +58,18 @@ class StoredSearchDocumentsTest extends Wp9TestSupport {
         jdbc.update("update case_link set reason = 'سبب جديد' where case_id = ?", first);
         proceeding(second, "5533");
         jdbc.update("delete from proceeding where court_case_number = '5533'");
+        // LD-DOC-R3 (V845): an update refreshes only when a searchable column changed. Each searchable column of the case, of
+        // the proceeding and of the involvement is changed on its own, and a write that changes none of them is made too.
+        jdbc.update("update legal_case set status = 'ACTIVE', claimed_amount = 5 where id = ?", first);
+        jdbc.update("update legal_case set reference_no = 'LD-R3-REF-1' where id = ?", first);
+        jdbc.update("update legal_case set automated_no = 'R3AUTO9' where id = ?", first);
+        jdbc.update("update legal_case set alternate_member_id = ? where id = ?", other, first);
+        jdbc.update("update legal_case set alternate_member_id = null where id = ?", second);
+        jdbc.update("update legal_case set primary_member_id = ? where id = ?", other, second);
+        jdbc.update("update proceeding set court_case_year = 2031, filing_date = filing_date + 1 where id = ?", proceeding);
+        jdbc.update("update case_org_involvement set sector_name_snapshot = 'R3 sector', contact_name = 'R3 contact' where case_id = ?", first);
+        jdbc.update("update case_org_involvement set removed_at = now(), removed_by = gen_random_uuid(), is_primary = false where case_id = ?", first);
+        jdbc.update("update case_org_involvement set removed_at = null, removed_by = null, is_primary = true where case_id = ?", first);
 
         var before = documents();
         var linksBefore = linkDocuments();

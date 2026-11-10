@@ -174,7 +174,67 @@ class IndicatorApiTest extends PostgresTestSupport {
     @Test
     void everyIndicatorFigureEqualsTheTotalOfItsListForManagerStaffAndAnOutsider() throws Exception {
         seed();
-        for (RequestPostProcessor user : List.of(department(), member(staff), outsider())) {
+        assertFiguresEqualLists(List.of(department(), member(staff), outsider()));
+    }
+
+    /**
+     * LD-DOC-R3: the same promise for the other ways a case becomes visible (case-type scope, organisational-unit scope,
+     * an explicit grant on a RESTRICTED case, a task on a case, the creator, the alternate member) and for the cases a
+     * scope must never add (RESTRICTED ones). Figures, dashboard and lists are read through the same query code, so a
+     * scope on which they disagree shows here.
+     */
+    @Test
+    void figuresAndDashboardEqualTheirListsForTypeUnitGrantTaskCreatorAndAlternateScopes() throws Exception {
+        UUID grantee = data.insertUser("Grantee");
+        UUID alternate = data.insertUser("Alternate");
+        UUID creator = data.insertUser("Creator");
+        UUID unit = data.track("org_unit", jdbc.queryForObject("""
+                insert into org_unit (tree, parent_id, level, name_ar, created_by, updated_by)
+                values ('LEGAL', null, 'DEPARTMENT', 'LD-DOC-R3 unit', gen_random_uuid(), gen_random_uuid()) returning id""",
+                UUID.class));
+        Map<String, UUID> ids = seed();
+        jdbc.update("update legal_case set owning_unit_id = ? where id in (?, ?)", unit, ids.get("fresh"), ids.get("closed"));
+        data.track("case_grant", jdbc.queryForObject("insert into case_grant (case_id, user_id, level, reason, granted_by)"
+                + " values (?, ?, 'VIEW', 'second opinion', gen_random_uuid()) returning id", UUID.class, ids.get("hidden"), grantee));
+        rows.alternateMember(ids.get("closed"), alternate);
+        jdbc.update("update legal_case set created_by = ? where id = ?", creator, ids.get("archived"));
+        Permission[] p = {Permission.REPORT_VIEW, Permission.REPORT_EXPORT, Permission.CASE_VIEW};
+        List<RequestPostProcessor> users = List.of(
+                scoped(UUID.randomUUID(), "typeScope", List.of("TYPE:CIVIL"), p),
+                scoped(UUID.randomUUID(), "unitScope", List.of("UNIT:" + unit), p),
+                scoped(grantee, "grantee", List.of(), p),
+                scoped(staff, "taskAssignee", List.of(), p),
+                scoped(creator, "creator", List.of(), p),
+                scoped(alternate, "alternate", List.of(), p),
+                scoped(manager, "restrictedMember", List.of(), p),
+                scoped(UUID.randomUUID(), "all", List.of("ALL"), p));
+        assertFiguresEqualLists(users);
+        for (RequestPostProcessor user : users) {
+            DocumentContext dashboard = json(user, "/api/v1/reports/dashboard");
+            Map<String, Long> figures = figures(user);
+            assertThat(dashboard.<Number>read("$.cases.total").longValue()).isEqualTo(figures.get("TOTAL_CASES"));
+            assertThat(dashboard.<Number>read("$.operations.hearingsThisWeek").longValue())
+                    .isEqualTo(figures.get("UPCOMING_HEARINGS"));
+            assertThat(dashboard.<Number>read("$.operations.overdueTasks").longValue()).isEqualTo(figures.get("OVERDUE_TASKS"));
+            assertThat(json(user, "/api/v1/reports/indicators/UPCOMING_HEARINGS").<Number>read("$.totalItems").longValue())
+                    .isEqualTo(figures.get("UPCOMING_HEARINGS"));
+            assertThat(json(user, "/api/v1/reports/indicators/OVERDUE_TASKS").<Number>read("$.totalItems").longValue())
+                    .isEqualTo(figures.get("OVERDUE_TASKS"));
+            assertThat(json(user, "/api/v1/cases?size=1").<Number>read("$.totalItems").longValue())
+                    .isEqualTo(figures.get("TOTAL_CASES"));
+        }
+        // the RESTRICTED case reaches its member and its grantee only, never a scope
+        for (int i : List.of(2, 6)) {
+            assertThat(json(users.get(i), "/api/v1/cases?size=50").<List<String>>read("$.items[*].title")).contains("hidden");
+        }
+        for (int i : List.of(0, 1, 7)) {
+            assertThat(json(users.get(i), "/api/v1/cases?size=50").<List<String>>read("$.items[*].title"))
+                    .doesNotContain("hidden");
+        }
+    }
+
+    private void assertFiguresEqualLists(List<RequestPostProcessor> users) throws Exception {
+        for (RequestPostProcessor user : users) {
             DocumentContext figures = json(user, "/api/v1/reports/indicators");
             List<Map<String, Object>> list = figures.read("$");
             assertThat(list).hasSize(16);

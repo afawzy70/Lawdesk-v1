@@ -27,16 +27,15 @@ export function NotificationsBell() {
     };
   }, [pathname]);
 
-  const label =
-    unread === null || unread === 0
-      ? t('wp3.notifications.bell')
-      : t('wp3.notifications.bellUnread', { count: formatNumber(unread, locale) });
+  // The visible badge and the accessible name use the same text (WCAG 2.5.3 label in name): '99+' stays '99+'.
+  const shown = unread === null || unread === 0 ? null : unread > 99 ? '99+' : formatNumber(unread, locale);
+  const label = shown === null ? t('wp3.notifications.bell') : t('wp3.notifications.bellUnread', { count: shown });
   return (
     <Link className="wp3-bell" to={withLang('/notifications', locale)} aria-label={label} title={label}>
       <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
         <path d="M12 3a6 6 0 0 0-6 6v4l-2 3h16l-2-3V9a6 6 0 0 0-6-6Zm-2 15a2 2 0 0 0 4 0" fill="none" stroke="currentColor" strokeWidth="1.6" />
       </svg>
-      {unread === null || unread === 0 ? null : <span className="wp3-bell-count">{unread > 99 ? '99+' : formatNumber(unread, locale)}</span>}
+      {shown === null ? null : <span className="wp3-bell-count">{shown}</span>}
     </Link>
   );
 }

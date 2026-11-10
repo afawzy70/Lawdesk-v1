@@ -7,6 +7,7 @@ import { usePageTitle } from '../../i18n/usePageTitle';
 import { AccessDeniedPage } from '../auth/AccessDeniedPage';
 import { AuthContext } from '../auth/AuthContext';
 import { loadError } from '../operations/formErrors';
+import { legalToday } from '../operations/days';
 import { formatDate } from '../proceedings/dates';
 import {
   ENTRY_TYPES,
@@ -29,9 +30,9 @@ type Result = { key: string; view: CalendarView } | { key: string; error: Messag
 
 const MODES: readonly CalendarMode[] = ['MONTH', 'WEEK', 'DAY', 'LIST'];
 
-/** Today's date as the user's browser reads it; the server's days are Kuwait days, so the first view is a week wide. */
+/** Today's date in Kuwait, the zone of the server's days, whatever zone the browser is in. */
 function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
+  return legalToday();
 }
 
 function Day({ date, entries }: { date: string; entries: CalendarEntry[] }) {

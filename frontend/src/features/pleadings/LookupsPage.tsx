@@ -71,6 +71,7 @@ export function LookupsPage() {
       />
       {message === null ? null : <Notice failed={message.failed}>{t(message.key)}</Notice>}
       {values.status !== null ? <Notice failed>{t('pl.error.load')}</Notice> : null}
+      <div className="table-scroll" role="region" tabIndex={0} aria-label={t('pl.lookups.title')}>
       <table className="case-table">
         <thead>
           <tr>
@@ -127,6 +128,7 @@ export function LookupsPage() {
           ))}
         </tbody>
       </table>
+      </div>
       {shown === null ? null : (
         <ul className="pleadings-list" aria-label={t('pl.lookups.historyNamed', { name: label(shown) })}>
           {(history.data ?? []).map((h) => (

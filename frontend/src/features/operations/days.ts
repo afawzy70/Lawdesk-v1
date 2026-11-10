@@ -1,11 +1,11 @@
-import { intlLocale } from '../../i18n/format';
+import { intlLocale, LEGAL_TIME_ZONE } from '../../i18n/format';
 import type { Locale } from '../../i18n/locale';
 
 /**
  * Calendar days of the legal operations screens (docs/delivery/PHASE-5-ACCEPTANCE.md, common rule 9): "today" is the
  * date in Kuwait, and dates (`YYYY-MM-DD`) are shown without shifting them through the browser's time zone.
  */
-export const LEGAL_TIME_ZONE = 'Asia/Kuwait';
+export { LEGAL_TIME_ZONE };
 
 /** Today's date in Kuwait as `YYYY-MM-DD`. */
 export function legalToday(now: Date = new Date()): string {

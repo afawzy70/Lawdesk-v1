@@ -15,7 +15,10 @@ const locales = (process.env.UX_LOCALES ?? 'ar,en').split(',');
 const shots = (process.env.UX_SHOTS ?? '').split(',').filter(Boolean);
 fs.mkdirSync(out, { recursive: true });
 
-const widths = [['phone', 390, 844], ['desktop', 1366, 900]];
+// phone 390 and desktop 1366 were the r2 matrix; r3 adds tablet portrait 768x1024 and tablet landscape/small laptop 1024x768.
+const ALL_WIDTHS = [['phone', 390, 844], ['tablet', 768, 1024], ['tablet-l', 1024, 768], ['desktop', 1366, 900]];
+const wanted = (process.env.UX_WIDTHS ?? ALL_WIDTHS.map((w) => w[0]).join(',')).split(',');
+const widths = ALL_WIDTHS.filter((w) => wanted.includes(w[0]));
 const screens = [
   ['dashboard', '/'], ['cases', '/cases'], ['intake', '/cases/new'], ['case', `/cases/${caseId}`], ['case-edit', `/cases/${caseId}/edit`],
   ['library', '/library'], ['library-new', '/library/new'], ['library-reports', '/library/reports'], ['library-classifications', '/library/classifications'],
@@ -55,12 +58,58 @@ async function measure(page) {
         clipped.push(`${el.tagName.toLowerCase()}:"${(el.textContent ?? '').trim().slice(0, 40)}"`);
       }
     }
+    // An action (link/button/field) whose box lies partly outside an ancestor that clips its overflow (overflow hidden/clip): it is
+    // cut off and cannot be reached, unlike a scroll region (auto/scroll) where it can be scrolled to.
+    const clippedActions = [];
+    for (const el of document.body.querySelectorAll('a[href],button,input:not([type=hidden]),select,textarea,[role=button]')) {
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0 || getComputedStyle(el).visibility === 'hidden') continue;
+      if (r.width <= 1 && r.height <= 1) continue; // visually hidden (skip link label, sr-only)
+      for (let p = el.parentElement; p && p !== document.documentElement; p = p.parentElement) {
+        const cs = getComputedStyle(p);
+        if (cs.overflowX === 'hidden' || cs.overflowX === 'clip' || cs.overflowY === 'hidden' || cs.overflowY === 'clip') {
+          const pr = p.getBoundingClientRect();
+          if (pr.width > 0 && (r.right > pr.right + 1 || r.left < pr.left - 1) && (cs.overflowX === 'hidden' || cs.overflowX === 'clip')) {
+            clippedActions.push(`${el.tagName.toLowerCase()}:"${(el.textContent ?? el.getAttribute('aria-label') ?? '').trim().slice(0, 30)}" in ${p.tagName.toLowerCase()}.${String(p.className).split(' ')[0]}`);
+            break;
+          }
+        }
+      }
+    }
+    // A word broken across lines inside a cell, header, link or button (r3, found by eye on the tablet screenshots: the case register
+    // squeezed its reference and type columns until "LD-2026-00024" and "نوع القضية" broke mid-word). Checked from tablet width up, where
+    // table layouts apply; the phone card layout breaks long references on purpose.
+    const brokenWords = [];
+    if (vw >= 768) {
+      let inspected = 0;
+      for (const el of document.body.querySelectorAll('th,td,a,button,label,dt,dd')) {
+        if (inspected > 1500 || brokenWords.length >= 8) break;
+        const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+          const text = node.textContent ?? '';
+          const re = /[^\s]{4,}/g;
+          for (let m = re.exec(text); m; m = re.exec(text)) {
+            inspected += 1;
+            const range = document.createRange();
+            range.setStart(node, m.index);
+            range.setEnd(node, m.index + m[0].length);
+            const rects = [...range.getClientRects()].filter((r) => r.width > 0);
+            const tops = new Set(rects.map((r) => Math.round(r.top / 4)));
+            if (/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(m[0])) continue; // opaque identifiers (UUIDs) may wrap
+            if (m[0].includes('-') && /\s/.test(text.trim())) continue; // a hyphenated word inside a sentence may wrap at its hyphen ("SYNTH-DOC court")
+            if (tops.size > 1 && getComputedStyle(el).visibility !== 'hidden' && el.getBoundingClientRect().width > 1) {
+              brokenWords.push(`${el.tagName.toLowerCase()}:"${m[0].slice(0, 30)}"`);
+            }
+          }
+        }
+      }
+    }
     const tiny = [];
     for (const el of document.body.querySelectorAll('a,button,input,select,textarea,[role=button]')) {
       const r = el.getBoundingClientRect();
       if (r.width > 0 && r.height > 0 && (r.height < 24 || r.width < 24) && getComputedStyle(el).visibility !== 'hidden') tiny.push(`${el.tagName.toLowerCase()}:"${(el.textContent ?? el.getAttribute('aria-label') ?? '').trim().slice(0, 30)}"`);
     }
-    return { overflowX, wide: [...new Set(wide)].slice(0, 8), clipped: [...new Set(clipped)].slice(0, 8), tiny: [...new Set(tiny)].slice(0, 8),
+    return { overflowX, wide: [...new Set(wide)].slice(0, 8), clipped: [...new Set(clipped)].slice(0, 8), clippedActions: [...new Set(clippedActions)].slice(0, 8), brokenWords: [...new Set(brokenWords)].slice(0, 8), tiny: [...new Set(tiny)].slice(0, 8),
       dir: document.documentElement.dir, lang: document.documentElement.lang, h1: document.querySelectorAll('h1').length };
   });
 }
@@ -90,7 +139,7 @@ for (const engineName of engines) {
           await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => undefined);
           await page.waitForTimeout(300);
           Object.assign(rec, await measure(page));
-          if (engineName === 'chromium' || process.env.UX_AXE_ALL === '1') {
+          if (engineName === 'chromium' || process.env.UX_AXE_ALL !== '0') { // r3: axe on every engine by default (UX_AXE_ALL=0: Chromium only)
             const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice']).analyze();
             rec.axe = axe.violations.map((v) => ({ id: v.id, impact: v.impact, nodes: v.nodes.length, sample: v.nodes[0]?.target?.join(' ').slice(0, 120) ?? '' }));
           }
@@ -109,5 +158,5 @@ for (const engineName of engines) {
   await browser.close();
 }
 fs.writeFileSync(path.join(out, 'results.json'), JSON.stringify(results, null, 1));
-const bad = (r) => r.fatal || r.errors?.length || r.overflowX > 1 || r.wide?.length || r.axe?.length;
+const bad = (r) => r.fatal || r.errors?.length || r.overflowX > 1 || r.wide?.length || r.clippedActions?.length || r.brokenWords?.length || r.axe?.length;
 console.log(`rows=${results.length} withFindings=${results.filter(bad).length}`);
