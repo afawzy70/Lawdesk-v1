@@ -6,6 +6,14 @@
 .case-status[data-status='SUSPENDED'] { background: #f8eee0; border-color: #cfb184; color: #6d4b22; }
 .case-status[data-status='CLOSED'], .case-status[data-status='ARCHIVED'] { background: #eeece7; border-color: #c9c4ba; color: #545750; }
 
+/* Tablet widths (768px and up) keep the register a table, and with the side navigation open it has little room: the reference, type and
+   headers must not break inside a word ("LD-2026-00024", "نوع القضية"), so the title column gives way and the table scrolls when it must. */
+@media (min-width: 768px) {
+  .app-main .case-register th { overflow-wrap: normal; white-space: nowrap; }
+  .app-main .case-register td:nth-child(1), .app-main .case-register td:nth-child(3) { overflow-wrap: normal; white-space: nowrap; }
+  .app-main .case-register td:nth-child(2) { min-inline-size: 11rem; }
+}
+
 /* The dossier follows the 5:7 index/proceedings proportion in the approved Stitch reference. */
 .case-workspace { display: grid; grid-template-columns: minmax(18rem, 5fr) minmax(0, 7fr); gap: 1.5rem; align-items: start; }
 .case-workspace-index, .case-workspace-content { display: grid; gap: 1rem; align-content: start; min-inline-size: 0; }

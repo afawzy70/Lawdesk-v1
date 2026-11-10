@@ -52,12 +52,13 @@ UX_CREDS_FILE=/tmp/ux-run/creds.json UX_OUT=/tmp/ux-run/out node journeys.mjs
 `PLAYWRIGHT_BROWSERS_PATH=/tmp/ux-pw/browsers npx playwright install chromium firefox` works without root. Firefox needs no
 extra system libraries here. Chromium headless shell needs the libraries from `/tmp/lawdesk-qa-browser-libs`.
 
-WebKit does not run on this host. The download works, but (1) Playwright's WebKit build needs about 50 system libraries
-that are not installed (they can be unpacked without root with `apt-get download` + `dpkg -x`; done for all but the next
-two), (2) the build links `libjxl.so.0.8`, which Ubuntu 24.04 does not package (only 0.7), and (3) headless WebKit (WPE)
-needs an EGL display and there is no `/dev/dri` render node, so it aborts with "Could not create WPE EGL display".
-Fix: run the WebKit step on a host or CI runner with the official Playwright image (`mcr.microsoft.com/playwright`, which
-ships the WebKit dependencies and software GL) or install `libjxl0.8`, `mesa` and a render node on this host with root.
+Widths (r3): `phone` 390, `tablet` 768x1024, `tablet-l` 1024x768, `desktop` 1366 (`UX_WIDTHS=tablet,tablet-l` selects); axe runs on every engine (`UX_AXE_ALL=0`: Chromium only);
+extra checks: clipped actions and words broken mid-word (from 768px up).
+
+WebKit runs on this host WITHOUT root and without touching UAT or the OS: `tools/rootless-browser-libs.sh <prefix>` downloads the libraries with `apt-get download`, unpacks them with
+`dpkg -x`, takes `libjxl 0.8` from the Debian snapshot archive, compiles a stub `libbacktrace.so.0`, and prepares `env-webkit.sh` (Mesa software EGL, `EGL_PLATFORM=surfaceless`, no render node
+needed). Append the prefix to `LD_LIBRARY_PATH` inside the downloaded browser's `minibrowser-wpe/MiniBrowser` wrapper, source `env-webkit.sh`, run `UX_ENGINES=webkit node smoke.mjs`.
+Evidence, caveats and the official-image command for a docker-capable operator: `docs/evidence/DOC-R3-TIME-BROWSERS/README.md`.
 
 ## Firefox without root
 

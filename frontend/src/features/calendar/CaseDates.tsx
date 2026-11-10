@@ -2,6 +2,7 @@ import { useContext, useEffect, useId, useState } from 'react';
 import type { MessageKey } from '../../i18n/catalog';
 import { useI18n } from '../../i18n/I18nContext';
 import { AuthContext } from '../auth/AuthContext';
+import { addDays as addCalendarDays, legalToday } from '../operations/days';
 import { loadError } from '../operations/formErrors';
 import { loadCaseEntries, type CalendarEntry } from './api';
 import { EntryRow } from './EntryRow';
@@ -16,9 +17,7 @@ interface Props {
 type Result = { key: number; entries: CalendarEntry[] } | { key: number; error: MessageKey };
 
 function addDays(days: number): string {
-  const day = new Date();
-  day.setUTCDate(day.getUTCDate() + days);
-  return day.toISOString().slice(0, 10);
+  return addCalendarDays(legalToday(), days);
 }
 
 /**
