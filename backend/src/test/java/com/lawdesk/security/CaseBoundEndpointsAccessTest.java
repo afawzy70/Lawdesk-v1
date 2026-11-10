@@ -48,8 +48,8 @@ import com.lawdesk.platform.PostgresTestSupport;
  *
  * <p>Nothing escapes classification: a handler with a path variable is either case-bound (its variables are resolved from
  * the segment before them) or on the explicit {@link #NOT_CASE_BOUND} list with the reason; a new unclassified handler
- * fails the test. Handlers whose request body cannot be completed generically answer 400 before the service runs; they are
- * listed in {@link #BODY_NOT_BUILT} and the list may not grow silently.
+ * fails the test. Request bodies that need seeded IDs or domain values are built explicitly, so 400 cannot masquerade as
+ * proof of access control. Any future 400 must be investigated, not silently allowed.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -87,18 +87,8 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
             Map.entry("assertions", "proceeding"), Map.entry("versions", "#int"), Map.entry("counsel", "case_party_counsel"),
             Map.entry("links", "evidence_link"), Map.entry("facts", "case_fact"), Map.entry("parties", "party"));
 
-    /** Handlers whose generated body is still refused by validation (400) before the service runs. */
-    private static final Set<String> BODY_NOT_BUILT = Set.of(
-            "AccessController#confidentiality /api/v1/cases/{caseId}/confidentiality PUT",
-            "AccessController#grant /api/v1/cases/{caseId}/grants POST",
-            "CaseController#changeStatus /api/v1/cases/{id}/status POST",
-            "CaseController#update /api/v1/cases/{id} PUT",
-            "CasePrecedentController#link /api/v1/cases/{caseId}/precedents POST",
-            "DocumentLinkController#add /api/v1/documents/{id}/links POST",
-            "InfoRequestController#replyWithDocument /api/v1/info-requests/{id}/replies POST",
-            "PartyController#addCounsel /api/v1/cases/{id}/parties/{partyId}/counsel POST",
-            "PartyController#link /api/v1/cases/{id}/parties POST",
-            "ProceedingController#create /api/v1/cases/{caseId}/proceedings POST");
+    /** A 400 is never evidence of case access enforcement. */
+    private static final Set<String> BODY_NOT_BUILT = Set.of();
 
     private static final Pattern VARIABLE = Pattern.compile("\\{([A-Za-z]+)}");
 
@@ -115,6 +105,7 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
     @AfterEach
     void clean() {
         OperationsTestData.deleteAll(jdbc);
+        jdbc.update("delete from library_judgment where subject = 'SYNTH-DOC precedent'");
         jdbc.update("delete from party");
     }
 
@@ -135,8 +126,10 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
         Map<String, UUID> ids = new LinkedHashMap<>();
         UUID member = insert("""
                 insert into app_user (username, email, display_name, password_hash, enabled, created_by, updated_by)
-                values ('cb' || substr(gen_random_uuid()::text, 1, 8), 'cb@example.invalid', 'SYNTH-DOC member', 'x', true,
+                values ('cb' || substr(gen_random_uuid()::text, 1, 8), 'cb' || gen_random_uuid() || '@example.invalid',
+                        'SYNTH-DOC member', 'x', true,
                         gen_random_uuid(), gen_random_uuid()) returning id""");
+        ids.put("member", member);
         UUID legalCase = insert("""
                 insert into legal_case (reference_no, title, case_type, opened_on, status, primary_member_id, created_by, updated_by)
                 values ('CB-' || gen_random_uuid(), 'SYNTH-DOC bound case', 'COMMERCIAL', '2026-01-10', 'OPEN', ?, ?, ?)
@@ -148,8 +141,13 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
         ids.put("legal_case", legalCase);
         UUID court = insert("""
                 insert into court (code, name_ar, name_en, level, active, created_by, updated_by)
-                values ('CB-' || substr(gen_random_uuid()::text, 1, 8), 'محكمة', 'Court', 'FIRST_INSTANCE', true, gen_random_uuid(),
+                values ('CB-' || upper(substr(gen_random_uuid()::text, 1, 8)), 'محكمة', 'Court', 'FIRST_INSTANCE', true, gen_random_uuid(),
                         gen_random_uuid()) returning id""");
+        ids.put("court", court);
+        ids.put("library_judgment", insert("""
+                insert into library_judgment (court_name, subject, source_reference, verification_note, created_by, updated_by)
+                values ('SYNTH-DOC Court', 'SYNTH-DOC precedent', 'SYNTH-DOC source', 'QA verified fixture', ?, ?)
+                returning id""", USER, USER));
         UUID proceeding = insert("""
                 insert into proceeding (case_id, stage, court_id, court_case_number, court_case_year, filing_date, created_by,
                                         updated_by) values (?, 'FIRST_INSTANCE', ?, '1', 2026, '2026-01-12', ?, ?) returning id""",
@@ -312,6 +310,53 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
         return "{}";
     }
 
+    /** Bodies that pass request validation and refer to seeded records. */
+    private static String validCaseBoundBody(String handler, Map<String, UUID> ids, Long version, String generated) {
+        long v = version == null ? 0 : version;
+        if (handler.startsWith("AccessController#confidentiality ")) {
+            return "{\"level\":\"RESTRICTED\",\"reason\":\"SYNTH-DOC review\",\"version\":" + v + "}";
+        }
+        if (handler.startsWith("AccessController#grant ")) {
+            return "{\"userId\":\"" + ids.get("member") + "\",\"level\":\"VIEW\",\"reason\":\"SYNTH-DOC review\"}";
+        }
+        if (handler.startsWith("CaseController#changeStatus ")) {
+            return "{\"status\":\"ACTIVE\",\"reason\":\"SYNTH-DOC review\",\"version\":" + v + "}";
+        }
+        if (handler.startsWith("CaseController#update ")) {
+            return "{\"title\":\"SYNTH-DOC case\",\"caseType\":\"COMMERCIAL\",\"openedOn\":\"2026-01-10\",\"version\":" + v + "}";
+        }
+        if (handler.startsWith("CasePrecedentController#link ")) {
+            return "{\"judgmentId\":\"" + ids.get("library_judgment") + "\",\"reason\":\"SYNTH-DOC similar\",\"origin\":\"MANUAL\"}";
+        }
+        if (handler.startsWith("DocumentLinkController#add ")) {
+            return "{\"targetType\":\"CLAIM\",\"targetId\":\"" + ids.get("claim") + "\",\"note\":\"SYNTH-DOC\"}";
+        }
+        if (handler.startsWith("InfoRequestController#replyWithDocument ")) {
+            return "{\"receivedOn\":\"2026-01-20\",\"completeness\":\"PARTIAL\",\"documentId\":\"" + ids.get("case_document") + "\"}";
+        }
+        if (handler.startsWith("PartyController#addCounsel ")) {
+            return "{\"kind\":\"LAWYER\",\"name\":\"SYNTH-DOC Counsel\"}";
+        }
+        if (handler.startsWith("PartyController#link ")) {
+            return "{\"partyId\":\"" + ids.get("party") + "\",\"role\":\"CLIENT\",\"side\":\"PLAINTIFF\"}";
+        }
+        if (handler.startsWith("ProceedingController#create ")) {
+            return "{\"stage\":\"FIRST_INSTANCE\",\"courtId\":\"" + ids.get("court")
+                    + "\",\"courtCaseNumber\":\"SYNTH-DOC-2\",\"courtCaseYear\":2026,\"filingDate\":\"2026-01-20\"}";
+        }
+        if (handler.startsWith("ProceedingController#update ")) {
+            return "{\"courtId\":\"" + ids.get("court")
+                    + "\",\"courtCaseNumber\":\"SYNTH-DOC-1\",\"courtCaseYear\":2026,\"filingDate\":\"2026-01-12\",\"version\":" + v + "}";
+        }
+        if (handler.startsWith("ResultController#recordClaimResults ")) {
+            return "{\"results\":[{\"claimId\":\"" + ids.get("claim") + "\",\"result\":\"ACCEPTED\"}]}";
+        }
+        if (handler.startsWith("ResultController#recordDefensePositions ")) {
+            return "{\"positions\":[{\"defenseId\":\"" + ids.get("defense") + "\",\"position\":\"ACCEPTED\"}]}";
+        }
+        return generated;
+    }
+
     private static final Permission[] EVERYTHING = Permission.values();
 
     @Test
@@ -378,7 +423,9 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
                         boolean hasBody = http == HttpMethod.POST || http == HttpMethod.PUT || http == HttpMethod.PATCH;
                         boolean multipart = Arrays.stream(entry.getValue().getMethod().getParameters())
                                 .anyMatch(p -> p.isAnnotationPresent(org.springframework.web.bind.annotation.RequestPart.class));
-                        String json = hasBody && !multipart ? body(entry.getValue().getMethod(), currentVersion(pattern, ids)) : null;
+                        String json = hasBody && !multipart
+                                ? validCaseBoundBody(name, ids, currentVersion(pattern, ids),
+                                        body(entry.getValue().getMethod(), currentVersion(pattern, ids))) : null;
                         int denied = multipart ? upload(outsider, url) : status(outsider, http, url, json);
                         int control = multipart ? upload(insider, url) : status(insider, http, url, json);
                         checked++;
@@ -434,7 +481,11 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
     private int upload(RequestPostProcessor user, String url) throws Exception {
         var file = new org.springframework.mock.web.MockMultipartFile("file", "x.pdf", "application/pdf",
                 "%PDF-1.4\n%%EOF\n".getBytes(java.nio.charset.StandardCharsets.ISO_8859_1));
-        return mvc.perform(MockMvcRequestBuilders.multipart(url).file(file).with(user).with(csrf())).andReturn().getResponse()
+        var builder = MockMvcRequestBuilders.multipart(url).file(file).with(user).with(csrf());
+        if (url.matches("/api/v1/info-requests/[^/]+/replies")) {
+            builder.param("receivedOn", "2026-01-20").param("completeness", "PARTIAL");
+        }
+        return mvc.perform(builder).andReturn().getResponse()
                 .getStatus();
     }
 
