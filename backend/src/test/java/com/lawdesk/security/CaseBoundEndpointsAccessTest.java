@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,8 +49,8 @@ import com.lawdesk.platform.PostgresTestSupport;
  *
  * <p>Nothing escapes classification: a handler with a path variable is either case-bound (its variables are resolved from
  * the segment before them) or on the explicit {@link #NOT_CASE_BOUND} list with the reason; a new unclassified handler
- * fails the test. Handlers whose request body cannot be completed generically answer 400 before the service runs; they are
- * listed in {@link #BODY_NOT_BUILT} and the list may not grow silently.
+ * fails the test. A 400 never counts as protection: handlers whose body cannot be generated carry a hand-built legitimate
+ * body in {@link #BUILT_BODIES}, and the insider must get a 2xx from it.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -87,18 +88,45 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
             Map.entry("assertions", "proceeding"), Map.entry("versions", "#int"), Map.entry("counsel", "case_party_counsel"),
             Map.entry("links", "evidence_link"), Map.entry("facts", "case_fact"), Map.entry("parties", "party"));
 
-    /** Handlers whose generated body is still refused by validation (400) before the service runs. */
-    private static final Set<String> BODY_NOT_BUILT = Set.of(
-            "AccessController#confidentiality /api/v1/cases/{caseId}/confidentiality PUT",
-            "AccessController#grant /api/v1/cases/{caseId}/grants POST",
-            "CaseController#changeStatus /api/v1/cases/{id}/status POST",
-            "CaseController#update /api/v1/cases/{id} PUT",
-            "CasePrecedentController#link /api/v1/cases/{caseId}/precedents POST",
-            "DocumentLinkController#add /api/v1/documents/{id}/links POST",
-            "InfoRequestController#replyWithDocument /api/v1/info-requests/{id}/replies POST",
-            "PartyController#addCounsel /api/v1/cases/{id}/parties/{partyId}/counsel POST",
-            "PartyController#link /api/v1/cases/{id}/parties POST",
-            "ProceedingController#create /api/v1/cases/{caseId}/proceedings POST");
+    /**
+     * Handlers whose body cannot be generated from the DTO alone (cross-field rules, ids of other records, business enums).
+     * Each gets a hand-built, legitimate body. For these the insider control call must succeed with a 2xx, so a body that
+     * is wrong can never pass as proof of protection. There is no "body not built" category any more: a 400 from an outsider
+     * fails the walk.
+     */
+    private static final Map<String, BiFunction<Map<String, UUID>, Long, String>> BUILT_BODIES = Map.ofEntries(
+            Map.entry("AccessController#confidentiality /api/v1/cases/{caseId}/confidentiality PUT",
+                    (ids, v) -> "{\"level\":\"NORMAL\",\"reason\":\"SYNTH-DOC\",\"version\":" + v + "}"),
+            Map.entry("AccessController#grant /api/v1/cases/{caseId}/grants POST",
+                    (ids, v) -> "{\"userId\":\"" + ids.get("x_member") + "\",\"level\":\"VIEW\",\"reason\":\"SYNTH-DOC\"}"),
+            Map.entry("CaseController#changeStatus /api/v1/cases/{id}/status POST",
+                    (ids, v) -> "{\"status\":\"ACTIVE\",\"reason\":\"SYNTH-DOC\",\"version\":" + v
+                            + ",\"acknowledgeOpenItems\":true}"),
+            Map.entry("CaseController#update /api/v1/cases/{id} PUT",
+                    (ids, v) -> "{\"title\":\"SYNTH-DOC renamed\",\"caseType\":\"COMMERCIAL\",\"subject\":\"SYNTH-DOC\","
+                            + "\"openedOn\":\"2026-01-10\",\"version\":" + v + "}"),
+            Map.entry("CasePrecedentController#link /api/v1/cases/{caseId}/precedents POST",
+                    (ids, v) -> "{\"judgmentId\":\"" + ids.get("x_library_judgment")
+                            + "\",\"reason\":\"SYNTH-DOC\",\"origin\":\"MANUAL\"}"),
+            Map.entry("DocumentLinkController#add /api/v1/documents/{id}/links POST",
+                    (ids, v) -> "{\"targetType\":\"CLAIM\",\"targetId\":\"" + ids.get("claim") + "\",\"note\":\"SYNTH-DOC\"}"),
+            Map.entry("InfoRequestController#replyWithDocument /api/v1/info-requests/{id}/replies POST", (ids, v) -> "#multipart"),
+            Map.entry("PartyController#addCounsel /api/v1/cases/{id}/parties/{partyId}/counsel POST",
+                    (ids, v) -> "{\"kind\":\"LAWYER\",\"name\":\"SYNTH-DOC counsel\"}"),
+            Map.entry("PartyController#link /api/v1/cases/{id}/parties POST",
+                    (ids, v) -> "{\"partyId\":\"" + ids.get("x_party2") + "\",\"role\":\"OPPONENT\"}"),
+            Map.entry("ProceedingController#create /api/v1/cases/{caseId}/proceedings POST",
+                    (ids, v) -> "{\"stage\":\"FIRST_INSTANCE\",\"courtId\":\"" + ids.get("x_court")
+                            + "\",\"courtCaseNumber\":\"2\",\"courtCaseYear\":2026,\"filingDate\":\"2026-01-12\"}"),
+            // Three more handlers became reachable once the seed was repaired (the court code had been refused, so every
+            // proceeding-bound table was silently unseeded and their handlers were never walked).
+            Map.entry("ProceedingController#update /api/v1/proceedings/{id} PUT",
+                    (ids, v) -> "{\"courtId\":\"" + ids.get("x_court")
+                            + "\",\"courtCaseNumber\":\"1\",\"courtCaseYear\":2026,\"filingDate\":\"2026-01-12\",\"version\":" + v + "}"),
+            Map.entry("ResultController#recordClaimResults /api/v1/judgments/{id}/claim-results PUT",
+                    (ids, v) -> "{\"results\":[{\"claimId\":\"" + ids.get("claim") + "\",\"result\":\"ACCEPTED\"}]}"),
+            Map.entry("ResultController#recordDefensePositions /api/v1/judgments/{id}/defense-positions PUT",
+                    (ids, v) -> "{\"positions\":[{\"defenseId\":\"" + ids.get("defense") + "\",\"position\":\"ACCEPTED\"}]}"));
 
     private static final Pattern VARIABLE = Pattern.compile("\\{([A-Za-z]+)}");
 
@@ -116,6 +144,7 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
     void clean() {
         OperationsTestData.deleteAll(jdbc);
         jdbc.update("delete from party");
+        jdbc.update("delete from library_judgment where court_name = 'SYNTH-DOC court'");
     }
 
     private long versionOffset;
@@ -135,7 +164,7 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
         Map<String, UUID> ids = new LinkedHashMap<>();
         UUID member = insert("""
                 insert into app_user (username, email, display_name, password_hash, enabled, created_by, updated_by)
-                values ('cb' || substr(gen_random_uuid()::text, 1, 8), 'cb@example.invalid', 'SYNTH-DOC member', 'x', true,
+                values ('cb' || substr(gen_random_uuid()::text, 1, 8), 'cb' || substr(gen_random_uuid()::text, 1, 8) || '@example.invalid', 'SYNTH-DOC member', 'x', true,
                         gen_random_uuid(), gen_random_uuid()) returning id""");
         UUID legalCase = insert("""
                 insert into legal_case (reference_no, title, case_type, opened_on, status, primary_member_id, created_by, updated_by)
@@ -146,14 +175,16 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
                 values ('CB-' || gen_random_uuid(), 'SYNTH-DOC other case', 'COMMERCIAL', '2026-01-10', 'OPEN', ?, ?)
                 returning id""", USER, USER);
         ids.put("legal_case", legalCase);
+        ids.put("x_member", member);
         UUID court = insert("""
                 insert into court (code, name_ar, name_en, level, active, created_by, updated_by)
-                values ('CB-' || substr(gen_random_uuid()::text, 1, 8), 'محكمة', 'Court', 'FIRST_INSTANCE', true, gen_random_uuid(),
+                values ('CB-' || upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 8)), 'محكمة', 'Court', 'FIRST_INSTANCE', true, gen_random_uuid(),
                         gen_random_uuid()) returning id""");
         UUID proceeding = insert("""
                 insert into proceeding (case_id, stage, court_id, court_case_number, court_case_year, filing_date, created_by,
                                         updated_by) values (?, 'FIRST_INSTANCE', ?, '1', 2026, '2026-01-12', ?, ?) returning id""",
                 legalCase, court, USER, USER);
+        ids.put("x_court", court);
         ids.put("proceeding", proceeding);
         UUID judgment = insert("""
                 insert into judgment (proceeding_id, judgment_date, outcome, final, created_by, updated_by)
@@ -187,8 +218,8 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
                 insert into deadline (case_id, source_type, source_text, action, due_on, calc_status, created_by, updated_by)
                 values (?, 'TEXT', 'SYNTH-DOC', 'SYNTH-DOC', '2026-12-01', 'MANUAL', ?, ?) returning id""", legalCase, USER, USER));
         ids.put("info_request", insert("""
-                insert into info_request (case_id, request_no, subject, created_by, updated_by)
-                values (?, 'IR-CB-' || substr(gen_random_uuid()::text, 1, 6), 'SYNTH-DOC', ?, ?) returning id""",
+                insert into info_request (case_id, request_no, subject, status, sent_on, created_by, updated_by)
+                values (?, 'IR-CB-' || substr(gen_random_uuid()::text, 1, 6), 'SYNTH-DOC', 'AWAITING', '2026-02-01', ?, ?) returning id""",
                 legalCase, USER, USER));
         ids.put("settlement", insert("""
                 insert into settlement (case_id, kind, created_by, updated_by) values (?, 'SETTLEMENT', ?, ?) returning id""",
@@ -202,7 +233,7 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
                 values (?, 1, 'PROCEDURE', '2026-03-01', 'SYNTH-DOC', ?, ?) returning id""", file, USER, USER));
         ids.put("special_decision", insert("""
                 insert into special_decision (proceeding_id, decision_type, decision_date, effect, created_by, updated_by)
-                values (?, 'URGENT_MEASURE', '2026-03-01', 'NONE', ?, ?) returning id""", proceeding, USER, USER));
+                values (?, 'URGENT_MEASURE', '2026-03-01', 'GRANTED', ?, ?) returning id""", proceeding, USER, USER));
         ids.put("directive", insert("""
                 insert into directive (directive_no, case_id, title, directive_date, source, addressee_text, created_by, updated_by)
                 values ('DIR-CB-' || substr(gen_random_uuid()::text, 1, 6), ?, 'SYNTH-DOC', '2026-03-01', 'SYNTH-DOC', 'x', ?, ?)
@@ -214,7 +245,7 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
                 insert into document_link (document_id, task_id, created_by) values (?, ?, ?) returning id""", document, task, USER));
         ids.put("case_link", insert("""
                 insert into case_link (case_id, other_case_id, kind, reason, created_by, updated_by)
-                values (?, ?, 'RELATED', 'SYNTH-DOC', ?, ?) returning id""", legalCase, other, USER, USER));
+                values (?, ?, 'SUBJECT_LINK', 'SYNTH-DOC', ?, ?) returning id""", legalCase, other, USER, USER));
         ids.put("gap_followup", insert("""
                 insert into gap_followup (evidence_id, task_id, created_by) values (?, ?, ?) returning id""", evidence, task, USER));
         UUID fact = insert("""
@@ -227,7 +258,19 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
                 insert into party (kind, name, created_by, updated_by) values ('PERSON', 'SYNTH-DOC', ?, ?) returning id""", USER, USER);
         ids.put("party", party);
         jdbc.update("insert into case_party (case_id, party_id, role, created_by) values (?, ?, 'CLIENT', ?)", legalCase, party, USER);
-        ids.put("case_precedent_link", null);
+        ids.put("x_party2", insert("""
+                insert into party (kind, name, created_by, updated_by) values ('PERSON', 'SYNTH-DOC second', ?, ?) returning id""",
+                USER, USER));
+        ids.put("x_library_judgment_seeded", insert("""
+                insert into library_judgment (court_name, subject, source_reference, verification_note, created_by, updated_by)
+                values ('SYNTH-DOC court', 'SYNTH-DOC linked', 'SYNTH-DOC source', 'SYNTH-DOC verified', ?, ?) returning id""",
+                USER, USER));
+        ids.put("x_library_judgment", insert("""
+                insert into library_judgment (court_name, subject, source_reference, verification_note, created_by, updated_by)
+                values ('SYNTH-DOC court', 'SYNTH-DOC', 'SYNTH-DOC source', 'SYNTH-DOC verified', ?, ?) returning id""", USER, USER));
+        ids.put("case_precedent_link", insert("""
+                insert into case_precedent_link (case_id, library_judgment_id, reason, origin, created_by)
+                values (?, ?, 'SYNTH-DOC', 'MANUAL', ?) returning id""", legalCase, ids.get("x_library_judgment_seeded"), USER));
         ids.put("risk_assessment", insert("""
                 insert into risk_assessment (case_id, version_no, level, level_reasons, trigger_kind, assessed_by)
                 values (?, 1, 'LOW', 'SYNTH-DOC', 'MANUAL', ?) returning id""", legalCase, USER));
@@ -338,10 +381,16 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
         Set<String> unclassified = new TreeSet<>();
         Set<String> unresolved = new TreeSet<>();
         Set<String> leaked = new TreeSet<>();
-        Set<String> bodyNotBuilt = new TreeSet<>();
+        Set<String> badRequest = new TreeSet<>();
+        Set<String> builtSeen = new TreeSet<>();
+        Set<String> builtControlFailed = new TreeSet<>();
         Set<String> controlMissing = new TreeSet<>();
         int checked = 0;
-        for (Map.Entry<RequestMappingInfo, HandlerMethod> entry : mappings.getHandlerMethods().entrySet()) {
+        // Hand-built handlers go first: a DELETE or a withdrawal elsewhere in the walk would otherwise change the records they need.
+        List<Map.Entry<RequestMappingInfo, HandlerMethod>> ordered = new ArrayList<>(mappings.getHandlerMethods().entrySet());
+        ordered.sort(java.util.Comparator.comparingInt(e -> BUILT_BODIES.keySet().stream()
+                .anyMatch(k -> k.startsWith(e.getValue().getBeanType().getSimpleName() + "#" + e.getValue().getMethod().getName() + " ")) ? 0 : 1));
+        for (Map.Entry<RequestMappingInfo, HandlerMethod> entry : ordered) {
             if (!isApi(entry.getKey())) {
                 continue;
             }
@@ -378,32 +427,45 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
                         boolean hasBody = http == HttpMethod.POST || http == HttpMethod.PUT || http == HttpMethod.PATCH;
                         boolean multipart = Arrays.stream(entry.getValue().getMethod().getParameters())
                                 .anyMatch(p -> p.isAnnotationPresent(org.springframework.web.bind.annotation.RequestPart.class));
-                        String json = hasBody && !multipart ? body(entry.getValue().getMethod(), currentVersion(pattern, ids)) : null;
+                        String key = name + " " + http;
+                        var built = BUILT_BODIES.get(key);
+                        String json = hasBody && !multipart
+                                ? (built != null ? built.apply(ids, currentVersion(pattern, ids)) : body(entry.getValue().getMethod(), currentVersion(pattern, ids)))
+                                : null;
+                        // The outsider goes first: a refused call changes nothing, so the insider control still sees a clean record.
                         int denied = multipart ? upload(outsider, url) : status(outsider, http, url, json);
                         int control = multipart ? upload(insider, url) : status(insider, http, url, json);
                         checked++;
+                        if (built != null) {
+                            builtSeen.add(key);
+                            if (versionOffset == 0 && (control < 200 || control > 299)) {
+                                builtControlFailed.add(key + " -> " + control);
+                            }
+                        }
                         if (denied == 400) {
-                            bodyNotBuilt.add(name + " " + http);
+                            badRequest.add(key);
                         } else if (denied != 404 && denied != 403) {
-                            leaked.add(name + " " + http + " -> " + denied);
+                            leaked.add(key + " -> " + denied);
                         }
                         if (control == 404 && denied != 404) {
-                            controlMissing.add(name + " " + http);
+                            controlMissing.add(key);
                         }
                     }
                 }
             }
         }
 
+        assertThat(unseeded).as("a table that could not be seeded silently removes its handlers from the walk").isEmpty();
         assertThat(checked).as("handlers checked").isGreaterThan(40);
         assertThat(unclassified).as("handlers with a path variable that are neither case-bound nor listed as not case-bound").isEmpty();
         assertThat(leaked).as("case-bound handlers that answered an outsider other than 404/403").isEmpty();
         assertThat(controlMissing).as("the control user could not find the record: the request was built wrongly").isEmpty();
-        assertThat(bodyNotBuilt).as("handlers refused by validation before the access check could be observed")
-                .isSubsetOf(BODY_NOT_BUILT);
+        assertThat(badRequest).as("a 400 hides the access result and never counts as protection").isEmpty();
+        assertThat(builtSeen).as("every hand-built body was exercised").isEqualTo(BUILT_BODIES.keySet());
+        assertThat(builtControlFailed).as("an in-scope user must get a 2xx from each hand-built request").isEmpty();
         // What could not be seeded or resolved is reported, never silently skipped.
         System.out.println("CASE_BOUND_WALK checked=" + checked + " unseeded=" + unseeded + " unresolved=" + unresolved
-                + " bodyNotBuilt=" + bodyNotBuilt);
+                + " built=" + builtSeen.size());
         assertThat(new LinkedHashSet<>(unresolved)).as("unresolved handlers").hasSizeLessThan(1000);
     }
 
@@ -434,7 +496,9 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
     private int upload(RequestPostProcessor user, String url) throws Exception {
         var file = new org.springframework.mock.web.MockMultipartFile("file", "x.pdf", "application/pdf",
                 "%PDF-1.4\n%%EOF\n".getBytes(java.nio.charset.StandardCharsets.ISO_8859_1));
-        return mvc.perform(MockMvcRequestBuilders.multipart(url).file(file).with(user).with(csrf())).andReturn().getResponse()
+        return mvc.perform(MockMvcRequestBuilders.multipart(url).file(file)
+                .param("receivedOn", "2026-03-01").param("completeness", "COMPLETE").param("summary", "SYNTH-DOC")
+                .with(user).with(csrf())).andReturn().getResponse()
                 .getStatus();
     }
 
