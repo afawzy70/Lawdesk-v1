@@ -183,7 +183,7 @@ export function CaseListPage() {
           <p>{t('cases.list.total', { count: formatNumber(load.result.totalItems, locale) })}</p>
           {/* Focusable so keyboard users can scroll the table on narrow screens. */}
           <div className="table-scroll" role="region" tabIndex={0} aria-labelledby={captionId}>
-            <table className="case-table">
+            <table className="case-table case-register">
               <caption id={captionId} className="visually-hidden">
                 {t('cases.title')}
               </caption>

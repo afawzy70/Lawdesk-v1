@@ -57,6 +57,7 @@ bdi, [dir='ltr'] { unicode-bidi: isolate; }
 
 /* The charcoal chambers rail is persistent on desktop and becomes an accessible menu on phones. */
 .app { display: grid; grid-template-columns: 10rem minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; min-block-size: 100dvh; }
+:root:not([lang='ar']) .app { grid-template-columns: 11rem minmax(0, 1fr); }
 .app-header { grid-column: 2; grid-row: 1; background: var(--mc-paper); border-block-end: 1px solid var(--ld-border); min-inline-size: 0; }
 .app-body { display: contents; }
 .app-nav { grid-column: 1; grid-row: 1 / 4; background: var(--mc-charcoal); border: 0; padding: 1.75rem .75rem; min-inline-size: 0; }
@@ -125,6 +126,13 @@ bdi, [dir='ltr'] { unicode-bidi: isolate; }
 .app-main table tbody tr:hover { background: #f6f1e7; }
 .app-main table tbody tr:last-child td { border-block-end: 0; }
 .app-main table td, .app-main table th { overflow-wrap: anywhere; }
+/* Tablet and up (r3, found by the 768px/1024px runs): `anywhere` lets a column shrink to one letter, so "Status", "Administrator" and "LD-2026-00001" broke
+   mid-word. `break-word` keeps whole words, the table grows to fit them and its named scroll region scrolls when it must. Phones keep `anywhere`. */
+@media (min-width: 768px) {
+  .app-main .table-scroll table td, .app-main .table-scroll table th { overflow-wrap: break-word; }
+  /* References and codes ("LD-2026-00001", "SYN-UX") also break at their hyphens, which `overflow-wrap` does not stop. */
+  .app-main table td bdi[dir='ltr'], .app-main table td[dir='ltr'] { white-space: nowrap; }
+}
 .app-main .ops-table th { overflow-wrap: normal; white-space: nowrap; }
 .app-main .ops-table td:last-child a { white-space: nowrap; }
 .app-main table td:first-child { font-weight: 600; }
@@ -197,6 +205,8 @@ bdi, [dir='ltr'] { unicode-bidi: isolate; }
 
 @media (max-width: 1120px) {
   .app { grid-template-columns: 9rem minmax(0, 1fr); }
+  /* English words in the rail ("Responsiveness", "Administration") are longer than the 9rem Arabic rail leaves room for. */
+  :root:not([lang='ar']) .app { grid-template-columns: 10.75rem minmax(0, 1fr); }
   .rpt-dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kpi:nth-child(2) { border-inline-end: 0; }

@@ -54,6 +54,16 @@ describe('case list (LD-015)', () => {
     expect(document.title).toBe('Cases — LawDesk (Preview)');
   });
 
+  it('marks the register table so the tablet-width CSS keeps references and headers unbroken, and shows updates in Kuwait time', async () => {
+    scriptedFetch(() => page([NILE]));
+    renderCases('/cases');
+    const table = await screen.findByRole('table', { name: 'Cases' });
+    // modern-chambers-cases.css (min-width 768px) targets .case-register; without the class a 768px/1024px register broke LD-2026-00001 mid-word.
+    expect(table).toHaveClass('case-register');
+    // 09:30Z is 12:30 in Kuwait (UTC+3), whatever zone the browser is in.
+    expect(within(table).getByText(/12:30/)).toBeInTheDocument();
+  });
+
   it('offers a link to create a case', async () => {
     scriptedFetch(() => page([]));
     renderCases('/cases');
