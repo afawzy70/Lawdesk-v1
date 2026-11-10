@@ -32,11 +32,14 @@ public class LibraryReadPort {
 
     private final LibraryJudgmentService judgments;
     private final SimilarJudgmentService similar;
+    private final CasePrecedentService precedents;
     private final CurrentActor currentActor;
 
-    LibraryReadPort(LibraryJudgmentService judgments, SimilarJudgmentService similar, CurrentActor currentActor) {
+    LibraryReadPort(LibraryJudgmentService judgments, SimilarJudgmentService similar, CasePrecedentService precedents,
+            CurrentActor currentActor) {
         this.judgments = judgments;
         this.similar = similar;
+        this.precedents = precedents;
         this.currentActor = currentActor;
     }
 
@@ -83,6 +86,23 @@ public class LibraryReadPort {
             found.add(authority(judgments.get(s.judgment().id()), reasons));
         }
         return found;
+    }
+
+    /** A judgment a member linked to a case, with the reason given for the link. */
+    public record Linked(UUID linkId, UUID judgmentId, String courtName, String caseNumber, Integer caseYear,
+            LocalDate judgmentDate, String subject, String reason) {
+    }
+
+    /**
+     * The judgments linked to a case by a member (404 for a case the user may not see; 403 without LIBRARY_VIEW). Read from
+     * {@link CasePrecedentService#forCase}: nothing is added or ranked here.
+     */
+    @Transactional(readOnly = true)
+    public List<Linked> linkedTo(UUID caseId) {
+        requireLibrary();
+        return precedents.forCase(caseId).stream().map(p -> new Linked(p.id(), p.judgment().id(), p.judgment().courtName(),
+                p.judgment().caseNumber(), p.judgment().caseYear(), p.judgment().judgmentDate(), p.judgment().subject(),
+                p.reason())).toList();
     }
 
     private static Authority authority(LibraryViews.Judgment j, List<String> reasons) {
