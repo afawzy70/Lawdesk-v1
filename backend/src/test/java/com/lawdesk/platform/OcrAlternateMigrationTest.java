@@ -120,6 +120,13 @@ class OcrAlternateMigrationTest extends PostgresTestSupport {
     void aDumpAndRestoreOfThePostV850SchemaKeepsTextAndAlternates() throws Exception {
         assumeTrue(onPath("pg_dump") && onPath("pg_restore") && onPath("psql"), "BLOCKED: pg_dump / pg_restore / psql are not on the PATH");
         PGSimpleDataSource source = (PGSimpleDataSource) freshDatabase();
+        int serverMajor = new JdbcTemplate(source).queryForObject("select current_setting('server_version_num')::int / 10000", Integer.class);
+        Process version = new ProcessBuilder("pg_dump", "--version").redirectErrorStream(true).start();
+        String versionText = new String(version.getInputStream().readAllBytes());
+        version.waitFor();
+        java.util.regex.Matcher major = java.util.regex.Pattern.compile("(\\d+)(?:\\.\\d+)*").matcher(versionText.replaceFirst("^[^\\d]*", ""));
+        int toolMajor = major.find() ? Integer.parseInt(major.group(1)) : 0;
+        assumeTrue(toolMajor >= serverMajor, "BLOCKED: pg_dump " + toolMajor + " is older than the server " + serverMajor + " (pg_dump refuses)");
         configured(source, MigrationVersion.fromVersion("845")).migrate();
         JdbcTemplate jdbc = new JdbcTemplate(source);
         UUID caseId = jdbc.queryForObject("""
