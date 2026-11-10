@@ -63,9 +63,28 @@ class PartyRepository {
                 .query(PartyRepository::row).optional();
     }
 
-    boolean exists(UUID id) {
-        return jdbc.sql("select exists (select 1 from party where id = :id)").param("id", id)
-                .query(Boolean.class).single();
+    private static final String LISTED_COLUMNS = """
+            p.id, p.kind, p.name, p.national_id, p.registration_no, p.phone, p.email, p.address, p.version, p.created_at,
+            p.created_by, p.updated_at, p.updated_by, p.authority, p.confidential, p.notes""";
+
+    /**
+     * The parties the caller may list (owner rule: a user outside a case's scope learns nothing about it, not even that a
+     * party name occurs there): the authority party, a party the caller created, a party that is on no case yet (so an
+     * existing party can still be picked and linked), and a party on at least one case the caller may see.
+     * {@code onCase} is a predicate over {@code x.case_id}.
+     */
+    private static String listed(CaseAccessPolicy.Predicate onCase) {
+        return "(p.authority or p.created_by = :pv_me"
+                + " or not exists (select 1 from case_party x where x.party_id = p.id)"
+                + " or exists (select 1 from case_party x where x.party_id = p.id and " + onCase.sql() + "))";
+    }
+
+    Optional<Party> findListed(UUID id, CaseAccessPolicy.Predicate onCase, UUID me) {
+        java.util.Map<String, Object> params = new java.util.HashMap<>(onCase.params());
+        params.put("id", id);
+        params.put("pv_me", me);
+        return jdbc.sql("select " + LISTED_COLUMNS + " from party p where p.id = :id and " + listed(onCase))
+                .params(params).query(PartyRepository::row).optional();
     }
 
     boolean nationalIdTaken(String nationalId, UUID except) {
@@ -76,15 +95,21 @@ class PartyRepository {
     }
 
     /** Parties whose name or identifiers contain {@code q} (ignoring case), by name. */
-    PageResponse<Party> search(Paging paging, boolean byIdentifier) {
-        String where = paging.q() == null ? "" : " where name ilike :q escape '\\'"
-                + (byIdentifier ? " or national_id ilike :q escape '\\' or registration_no ilike :q escape '\\'" : "");
-        String pattern = paging.q() == null ? null : "%" + Text.escapeLike(paging.q()) + "%";
-        long total = jdbc.sql("select count(*) from party" + where).param("q", pattern).query(Long.class).single();
-        List<Party> items = jdbc.sql("select " + COLUMNS + " from party" + where
-                        + " order by lower(name), id limit :limit offset :offset")
-                .param("q", pattern).param("limit", paging.sizeOrDefault()).param("offset", paging.offset())
-                .query(PartyRepository::row).list();
+    PageResponse<Party> search(Paging paging, boolean byIdentifier, CaseAccessPolicy.Predicate onCase, UUID me) {
+        String where = " where " + listed(onCase) + (paging.q() == null ? "" : " and (p.name ilike :q escape '\\'"
+                + (byIdentifier ? " or p.national_id ilike :q escape '\\' or p.registration_no ilike :q escape '\\'" : "")
+                + ")");
+        java.util.Map<String, Object> params = new java.util.HashMap<>(onCase.params());
+        params.put("pv_me", me);
+        if (paging.q() != null) {
+            params.put("q", "%" + Text.escapeLike(paging.q()) + "%");
+        }
+        long total = jdbc.sql("select count(*) from party p" + where).params(params).query(Long.class).single();
+        params.put("limit", paging.sizeOrDefault());
+        params.put("offset", paging.offset());
+        List<Party> items = jdbc.sql("select " + LISTED_COLUMNS + " from party p" + where
+                        + " order by lower(p.name), p.id limit :limit offset :offset")
+                .params(params).query(PartyRepository::row).list();
         return paging.page(items, total);
     }
 
@@ -121,6 +146,12 @@ class PartyRepository {
         linked.ifPresent(link -> jdbc.sql("delete from case_party where case_id = :caseId and party_id = :partyId")
                 .param("caseId", caseId).param("partyId", partyId).update());
         return linked;
+    }
+
+    /** True when a lawyer or agent was ever recorded for the party on the case (removed ones stay as marked rows). */
+    boolean hasCounsel(UUID caseId, UUID partyId) {
+        return jdbc.sql("select exists (select 1 from case_party_counsel where case_id = :caseId and party_id = :partyId)")
+                .param("caseId", caseId).param("partyId", partyId).query(Boolean.class).single();
     }
 
     Optional<CaseParty> linked(UUID caseId, UUID partyId) {
