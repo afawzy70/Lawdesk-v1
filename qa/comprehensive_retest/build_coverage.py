@@ -119,6 +119,15 @@ def journey(name):
 
 def result_for(c):
     rid, _, _, _, implemented, developer, _, cause, note = c
+    if rid == "LD-DOC-30-001":
+        probe_name = {"": "release-before.json", "-aea33fa": "release-aea-before.json",
+                      "-514c481": "release-514-after.json", "-03ff08e": "release-03ff-after.json"}.get(OUTPUT_TAG)
+        if probe_name:
+            probe = json.loads((HERE / probe_name).read_text())
+            if (probe["accounts"].get("admin", {}).get("login") == "401"
+                    and probe["accounts"]["manager"]["release"]["release"] == APP_SHA):
+                return "BLOCKED", probe_name, APP_SHA, \
+                    "اختبار مدير النظام المباشر محجوب: حساب qa.admin المخصص يعيد 401؛ QA-RT-002"
     if rid == "LD-DOC-35-015" and OUTPUT_TAG == "-514c481":
         leak_path = HERE / "party-directory-scope-514c481-result.json"
         if leak_path.exists():
