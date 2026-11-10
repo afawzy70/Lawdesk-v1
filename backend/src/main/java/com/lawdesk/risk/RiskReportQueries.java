@@ -27,8 +27,8 @@ public class RiskReportQueries {
     /** Cases whose latest assessment is HIGH or VERY_HIGH, as a condition over {@code legal_case}. */
     public static CaseAccessPolicy.Predicate highRisk() {
         return new CaseAccessPolicy.Predicate("legal_case.id in (select ra.case_id from risk_assessment ra"
-                + " where ra.level in ('HIGH', 'VERY_HIGH') and ra.version_no = (select max(m.version_no)"
-                + " from risk_assessment m where m.case_id = ra.case_id))", Map.of());
+                + " where ra.level in ('HIGH', 'VERY_HIGH') and not exists (select 1"
+                + " from risk_assessment n where n.case_id = ra.case_id and n.version_no > ra.version_no))", Map.of());
     }
 
     /**
@@ -43,8 +43,8 @@ public class RiskReportQueries {
         Map<String, LevelRow> found = new java.util.HashMap<>();
         jdbc.sql("select a.level, count(*) as n, coalesce(sum(a.potential_loss), 0) as loss,"
                 + " count(*) filter (where a.potential_loss is null) as unknown from risk_assessment a"
-                + " join legal_case on legal_case.id = a.case_id where a.version_no = (select max(m.version_no)"
-                + " from risk_assessment m where m.case_id = a.case_id) and " + caseScope.sql() + " group by a.level")
+                + " join legal_case on legal_case.id = a.case_id where not exists (select 1"
+                + " from risk_assessment n where n.case_id = a.case_id and n.version_no > a.version_no) and " + caseScope.sql() + " group by a.level")
                 .params(caseScope.params()).query(rs -> {
                     found.put(rs.getString("level"), new LevelRow(rs.getString("level"), rs.getLong("n"),
                             rs.getBigDecimal("loss").setScale(3), rs.getLong("unknown")));

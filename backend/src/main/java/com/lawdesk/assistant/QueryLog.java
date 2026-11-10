@@ -79,6 +79,9 @@ class QueryLog {
     /** The signed-in user's own queries, newest first; {@code caseId} narrows to one case. */
     @Transactional(readOnly = true)
     List<Entry> mine(UUID caseId) {
+        if (caseId != null) {
+            access.requireView(caseId); // a case the caller cannot see answers like one that does not exist (404)
+        }
         java.util.Map<String, Object> params = new java.util.HashMap<>();
         params.put("user", currentActor.require().id());
         String where = "l.user_id = :user" + (caseId == null ? "" : " and l.case_id = :case");
@@ -94,6 +97,9 @@ class QueryLog {
      */
     @Transactional(readOnly = true)
     List<Entry> reviewed(UUID caseId) {
+        if (caseId != null) {
+            access.requireView(caseId);
+        }
         if (!currentActor.has(Permission.AUDIT_VIEW)) {
             throw new org.springframework.security.access.AccessDeniedException("missing AUDIT_VIEW");
         }

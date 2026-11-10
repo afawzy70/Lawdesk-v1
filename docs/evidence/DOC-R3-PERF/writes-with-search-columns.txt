@@ -1,0 +1,9 @@
+variant=with bulk=5000 ops=300
+| case registered (case+involvement+proceeding+claim) | n=300 | p50 35.46 ms | p95 80.23 ms | mean 40.95 ms |
+| case update (title) | n=300 | p50 27.46 ms | p95 66.49 ms | mean 33.42 ms |
+| document upload + OCR job queued | n=300 | p50 11.32 ms | p95 28.72 ms | mean 13.63 ms |
+| OCR text stored (document_text update) | n=300 | p50 8.11 ms | p95 62.08 ms | mean 18.14 ms |
+| hearing update (date) | n=300 | p50 9.01 ms | p95 71.00 ms | mean 20.84 ms |
+| task update (title) | n=300 | p50 5.87 ms | p95 35.98 ms | mean 12.62 ms |
+| audit row | n=300 | p50 3.54 ms | p95 37.91 ms | mean 9.80 ms |
+| bulk import of 5000 cases (one transaction each) | total 289641 ms | 57.93 ms per case |

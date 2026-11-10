@@ -81,7 +81,9 @@ class Wp8PerformanceHarness extends PostgresTestSupport {
         long seedStart = System.nanoTime();
         String seed = Files.readString(Path.of("../tools/performance/wp8/seed-wp8.sql"), StandardCharsets.UTF_8)
                 .replace("${cases}", Integer.toString(cases));
-        jdbc.execute(seed);
+        if (System.getProperty("lawdesk.perf.db") == null) {
+            jdbc.execute(seed);
+        }
         long seedMs = (System.nanoTime() - seedStart) / 1_000_000;
         UUID member = jdbc.queryForObject("select primary_member_id from legal_case where reference_no = 'SYNTH-000001'",
                 UUID.class);

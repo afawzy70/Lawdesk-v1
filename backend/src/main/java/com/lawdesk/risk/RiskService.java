@@ -72,8 +72,8 @@ class RiskService {
     RiskRequests.HighRiskReport high(Pageable pageable) {
         CaseAccessPolicy.Predicate visible = access.visibleCaseIds("a.case_id");
         String where = """
-                a.level in ('HIGH', 'VERY_HIGH') and a.version_no = (select max(m.version_no) from risk_assessment m
-                where m.case_id = a.case_id) and """ + " " + visible.sql();
+                a.level in ('HIGH', 'VERY_HIGH') and not exists (select 1 from risk_assessment n
+                where n.case_id = a.case_id and n.version_no > a.version_no) and """ + " " + visible.sql();
         long total = jdbc.sql("select count(*) from risk_assessment a where " + where).params(visible.params())
                 .query(Long.class).single();
         List<RiskRequests.HighRisk> items = jdbc.sql("""

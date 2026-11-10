@@ -52,7 +52,7 @@ class PartyService {
     @Transactional
     Party update(UUID id, PartyRequest request) {
         ActorRef actor = currentActor.require();
-        Party stored = parties.find(id).orElseThrow(() -> new NotFoundException("party"));
+        Party stored = requireListed(id);
         // D4: whoever may change a party but not read its identifiers cannot overwrite them with what they were shown.
         PartyRequest effective = canSeeIdentifiers() ? request : keepingIdentifiers(request, stored);
         check(effective, id);
@@ -64,14 +64,24 @@ class PartyService {
         }
     }
 
+    /**
+     * The party, if the signed-in user may list it; otherwise 404, like a party that does not exist. A party is listed when it
+     * is on at least one case the user may see, is on no case at all, was created by the user, or is the authority party. A
+     * party that appears only on cases the user cannot see is therefore neither listed, read, edited nor linkable by them.
+     */
+    Party requireListed(UUID id) {
+        return parties.findListed(id, access.visibleCaseIds("x.case_id"), currentActor.require().id())
+                .orElseThrow(() -> new NotFoundException("party"));
+    }
+
     @Transactional(readOnly = true)
     Party get(UUID id) {
-        return shown(parties.find(id).orElseThrow(() -> new NotFoundException("party")));
+        return shown(requireListed(id));
     }
 
     @Transactional(readOnly = true)
     PageResponse<Party> search(Paging paging) {
-        PageResponse<Party> found = parties.search(paging, canSeeIdentifiers());
+        PageResponse<Party> found = parties.search(paging, canSeeIdentifiers(), access.visibleCaseIds("x.case_id"), currentActor.require().id());
         return new PageResponse<>(found.items().stream().map(this::shown).toList(), found.page(), found.size(),
                 found.totalItems(), found.totalPages());
     }
@@ -79,7 +89,7 @@ class PartyService {
     /** The cases a party is on, among those the signed-in user may see (section 2: all the cases of one party). */
     @Transactional(readOnly = true)
     List<PartyRepository.PartyCase> casesOf(UUID id) {
-        if (!parties.exists(id)) {
+        if (parties.findListed(id, access.visibleCaseIds("x.case_id"), currentActor.require().id()).isEmpty()) {
             throw new NotFoundException("party");
         }
         return parties.casesOf(id, access.viewable("c"));
@@ -129,7 +139,7 @@ class PartyService {
         ActorRef actor = currentActor.require();
         access.requireChange(caseId);
         LegalCase legalCase = requireChangeableParties(caseId);
-        Party party = parties.find(request.partyId()).orElseThrow(() -> new NotFoundException("party"));
+        Party party = requireListed(request.partyId());
         if (party.authority()) {
             throw new BusinessRuleException(PARTY_IS_AUTHORITY, "the authority is part of the case already");
         }
@@ -164,6 +174,10 @@ class PartyService {
         CaseParty current = parties.linked(caseId, partyId).orElseThrow(() -> new NotFoundException("case party"));
         if (current.authority()) {
             throw new BusinessRuleException(PARTY_IS_AUTHORITY, "the authority stays on its case");
+        }
+        if (parties.hasCounsel(caseId, partyId)) {
+            // case_party_counsel keeps its rows (removal is a mark) and references this link: refuse cleanly, not with a 500.
+            throw new ConflictException("the party has a lawyer or agent recorded on the case; it cannot be removed from it");
         }
         CaseParty removed = parties.unlink(caseId, partyId).orElseThrow(() -> new NotFoundException("case party"));
         timeline.append(caseId, CaseTimeline.PARTY_REMOVED, removed.name() + " removed as "
