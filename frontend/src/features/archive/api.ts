@@ -75,6 +75,11 @@ export interface TextState {
   pageCount: number | null;
   truncated: boolean;
   text: string | null;
+  /** Words other recognition passes were sure of and the page text lacks (searched, not shown as the page). */
+  alternateReadings?: string | null;
+  wordsRead?: number | null;
+  /** Words the engine was unsure of; above zero a search may miss a word and the text may hold a misreading. */
+  wordsUncertain?: number | null;
 }
 
 export interface DocumentVersion {

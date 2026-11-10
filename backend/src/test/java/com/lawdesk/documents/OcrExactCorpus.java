@@ -54,7 +54,13 @@ final class OcrExactCorpus {
         pages.add(extra("x-ref-200dpi-12pt.png", 200, 12, 0, 0, 1, 0, refs, refTerms));
         pages.add(extra("x-ref-300dpi-9pt.png", 300, 9, 0, 0, 1, 0, refs, refTerms));
 
-        List<String> rows = List.of("الاسم\tالصفة\tالمبلغ", "شركة الكويت للتجارة\tالمدعية\t1,250.500", "وزارة المالية\tالمدعى عليها\t980.000",
+        // harder pages: low resolution, small type with noise and skew (no tuning of these: they are what they are)
+        pages.add(extra("x-ref-100dpi-12pt.png", 100, 12, 0, 0, 1, 0, refs, refTerms));
+        pages.add(extra("x-ref-72dpi-12pt.png", 72, 12, 0, 0, 1, 0, refs, refTerms));
+        pages.add(extra("x-ar-150dpi-9pt-noise.jpg", 150, 9, 0, 20, 0.7, 0.8, body, bodyTerms));
+        pages.add(extra("x-ref-200dpi-9pt-skew3-noise.jpg", 200, 9, 3, 18, 0.6, 0.8, refs, refTerms));
+
+        List<String> rows =List.of("الاسم\tالصفة\tالمبلغ", "شركة الكويت للتجارة\tالمدعية\t1,250.500", "وزارة المالية\tالمدعى عليها\t980.000",
                 "مكتب الخبير\tجهة الخبرة\t450.250");
         pages.add(new Page(new OcrCorpus.Case("x-table-200dpi", "table", 200, rows, 0, 0, 1, 0, false, 12, true), "x-table-200dpi.png",
                 List.of("الصفة", "المدعية", "المالية", "المدعى", "الخبير", "الخبرة", "1,250.500", "980.000"), false));

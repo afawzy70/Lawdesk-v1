@@ -21,7 +21,14 @@ import org.junit.jupiter.api.Test;
 class OcrExactTermsTest {
 
     /** Terms still missed after the change, by file; every entry is a measured failure (docs/evidence/DOC-R3-OCR/README.md). */
-    static final Map<String, List<String>> STILL_MISSED = Map.of();
+    static final Map<String, List<String>> STILL_MISSED = Map.of(
+            // Read as "15-03-2026": the engine's right-to-left ordering reverses the run of a date inside an Arabic line. Every
+            // component is in the text and the archive search matches by parts, but the run "2026 03 15" is not there.
+            "ocr-mixed.png", List.of("2026-03-15"),
+            // Table cells: two Arabic words in ruled cells are misread by every pass tried (no reading of any variant has them).
+            "x-table-200dpi.png", List.of("المدعية", "الخبير"),
+            // Small type (9 pt at 150 dpi) under noise: the main reading finds no word at all; the other passes find five of seven terms.
+            "x-ar-150dpi-9pt-noise.jpg", List.of("الكويتية", "الكويتي"));
 
     static Path root() {
         Path here = Path.of("").toAbsolutePath();
@@ -60,6 +67,12 @@ class OcrExactTermsTest {
             for (String t : listed) {
                 if (!missed.contains(t)) {
                     unexpected.add(page.file() + ": «" + t + "» is listed as missed but was found; remove it from STILL_MISSED");
+                }
+            }
+            if (reading.words() == 0 || !reading.alternates().isBlank() || !missed.isEmpty()) {
+                // doubt is never silent: a page whose main reading was empty, disagreed with another pass, or lost a term says so
+                if (reading.uncertainWords() == 0) {
+                    unexpected.add(page.file() + ": the reading was empty, disagreed or missed a term but reports no uncertain words");
                 }
             }
             if (report != null) {

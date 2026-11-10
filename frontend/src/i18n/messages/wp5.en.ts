@@ -123,6 +123,7 @@ export const wp5En = {
   'wp5.text.searchable': 'Searchable',
   'wp5.text.notSearchable': 'Not searchable by content',
   'wp5.text.truncated': 'Only part of the text is stored.',
+  'wp5.text.uncertain': 'Recognition uncertain: {count} word(s) may be misread, so a search can miss them.',
   'wp5.text.pages': '{count} pages',
   'wp5.text.reprocess': 'Read the file again',
   'wp5.text.reprocessed': 'The file will be read again.',

@@ -112,7 +112,7 @@ class TesseractOcrEngine implements OcrEngine {
     /**
      * The main reading (the thresholded, deskewed page, automatic layout, plus the sparse reading of short pages) and, when the
      * main reading holds a word the engine was unsure of or the page is short, further readings of the same picture: the page
-     * as scanned, deskewed but not thresholded, enlarged to about 300 dpi, and sparse-text layout. Words those readings are
+     * as scanned, deskewed but not thresholded, and enlarged to about 300 dpi, the last two in sparse-text layout. Words those readings are
      * confident about and the main reading lacks become the {@code alternates}. Nothing is invented: every word was read by the
      * engine from this page, and no pass can remove a word of another.
      */
@@ -138,17 +138,17 @@ class TesseractOcrEngine implements OcrEngine {
             if (multiPass && preprocess && (unsure > 0 || shortPage)) {
                 // The thresholded page is the one most likely to have lost a dot or a stroke (observed: one yeh read as beh); the
                 // other readings start from the picture as it was stored.
+                // Measured on the corpus (docs/evidence/DOC-R3-OCR): the stored picture with automatic layout, the deskewed grey page
+                // and the enlarged page, both in sparse-text layout, found what the others missed; the other combinations added nothing.
                 others.add(run(dir, "original", image, pageSegmentation));
                 byte[] grey = OcrPreprocessor.prepareGrey(image, false);
                 if (grey != null) {
-                    others.add(run(dir, "grey", grey, pageSegmentation));
+                    others.add(run(dir, "grey-sparse", grey, 11));
                 }
                 byte[] enlarged = OcrPreprocessor.prepareGrey(image, true);
                 if (enlarged != null) {
                     others.add(run(dir, "enlarged", enlarged, pageSegmentation));
-                }
-                if (pageSegmentation != 11) {
-                    others.add(run(dir, "original-sparse", image, 11));
+                    others.add(run(dir, "enlarged-sparse", enlarged, 11));
                 }
             }
             // A word counts as already read when its normalised form (a reference such as LD-2026/045 is "ld 2026 045") occurs
@@ -169,8 +169,26 @@ class TesseractOcrEngine implements OcrEngine {
             }
             List<String> doubtful = main.words().stream().filter(w -> w.confidence() < UNCERTAIN_BELOW)
                     .map(Word::text).filter(t -> !words(t).isEmpty()).toList();
-            return new Reading(text, String.join(" ", alternates), main.words().size(), doubtful.size(), doubtful,
+            // Words the main reading was unsure of, plus words only another reading found: the passes disagree about them, so
+            // the page is "uncertain" even when the main reading was sure of what it did read (or read nothing at all).
+            return new Reading(text, String.join(" ", alternates), main.words().size(), doubtful.size() + alternates.size(), doubtful,
                     1 + others.size());
+        } catch (IOException e) {
+            throw new OcrException("the engine could not be run", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new OcrException("interrupted", e);
+        } finally {
+            deleteQuietly(dir);
+        }
+    }
+
+    /** One pass on a picture as it is (measurement and tests). */
+    Pass pass(byte[] bytes, int psm) throws OcrException {
+        Path dir = null;
+        try {
+            dir = Files.createTempDirectory("lawdesk-ocr");
+            return run(dir, "probe", bytes, psm);
         } catch (IOException e) {
             throw new OcrException("the engine could not be run", e);
         } catch (InterruptedException e) {

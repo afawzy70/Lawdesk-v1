@@ -22,6 +22,7 @@ public interface OcrEngine {
      * passes read with enough confidence and the main reading lacks (searched, never shown as the page text); the counts say how
      * sure the engine was, so that "recognition uncertain" can be shown instead of a silent miss.
      */
+    /** {@code uncertainWords}: words read with low confidence plus words only another pass read. */
     record Reading(String text, String alternates, int words, int uncertainWords, java.util.List<String> uncertainWordList,
             int passes) {
     }

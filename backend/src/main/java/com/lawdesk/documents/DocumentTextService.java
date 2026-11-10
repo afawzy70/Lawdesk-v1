@@ -44,7 +44,8 @@ class DocumentTextService {
 
     /** The text state of one version. {@code text} is present only when the caller asked for it. */
     record TextView(UUID versionId, UUID documentId, String status, String method, String engine, String detail,
-            Integer pageCount, boolean truncated, String text) {
+            Integer pageCount, boolean truncated, String text, String alternateReadings, Integer wordsRead,
+            Integer wordsUncertain) {
     }
 
     /** One search result: the document, the case it belongs to and a short piece of its text around the match. */
@@ -98,18 +99,25 @@ class DocumentTextService {
 
     private void save(UUID versionId, UUID documentId, String status, String method, String engineName, String detail,
             Integer pages, boolean truncated, String text) {
+        save(versionId, documentId, status, method, engineName, detail, pages, truncated, text, null, null, null);
+    }
+
+    private void save(UUID versionId, UUID documentId, String status, String method, String engineName, String detail,
+            Integer pages, boolean truncated, String text, String altText, Integer wordsRead, Integer wordsUncertain) {
         jdbc.sql("""
                 insert into document_text (version_id, document_id, status, method, engine, languages, detail, page_count,
-                                           truncated, text, processed_at)
-                values (:v, :d, :status, :method, :engine, :languages, :detail, :pages, :truncated, :text,
+                                           truncated, text, alt_text, words_read, words_uncertain, processed_at)
+                values (:v, :d, :status, :method, :engine, :languages, :detail, :pages, :truncated, :text, :alt, :read, :unsure,
                         case when :status in ('EXTRACTED', 'OCR_DONE') then now() end)
                 on conflict (version_id) do update set status = excluded.status, method = excluded.method,
                     engine = excluded.engine, languages = excluded.languages, detail = excluded.detail,
                     page_count = excluded.page_count, truncated = excluded.truncated, text = excluded.text,
+                    alt_text = excluded.alt_text, words_read = excluded.words_read, words_uncertain = excluded.words_uncertain,
                     processed_at = excluded.processed_at""").param("v", versionId).param("d", documentId)
                 .param("status", status).param("method", method).param("engine", engineName)
                 .param("languages", "OCR".equals(method) ? engine.status().languages() : null).param("detail", detail)
-                .param("pages", pages).param("truncated", truncated).param("text", text).update();
+                .param("pages", pages).param("truncated", truncated).param("text", text).param("alt", altText)
+                .param("read", wordsRead).param("unsure", wordsUncertain).update();
     }
 
     private static String unavailable(OcrEngine.Status status) {
@@ -155,16 +163,26 @@ class DocumentTextService {
                 total = 1;
             }
             StringBuilder text = new StringBuilder();
+            StringBuilder alternates = new StringBuilder();
+            int read = 0;
+            int unsure = 0;
             for (byte[] page : pages) {
-                text.append(engine.recognise(page)).append("\n\n");
+                OcrEngine.Reading reading = engine.read(page);
+                text.append(reading.text()).append("\n\n");
+                alternates.append(reading.alternates()).append('\n');
+                read += reading.words();
+                unsure += reading.uncertainWords();
             }
             String clean = TextExtractor.clean(text.toString());
             boolean cut = total > pages.size() || clean.length() > limits.maxTextChars();
             String detail = total > pages.size() ? "only the first " + pages.size() + " of " + total + " pages were read" : null;
             boolean empty = clean.chars().noneMatch(Character::isLetterOrDigit);
+            String alt = TextExtractor.clean(alternates.toString());
             save(versionId, document.get(), empty ? NO_TEXT : OCR_DONE, "OCR", status.engine(),
                     empty ? "recognition found no text" : detail, total, cut,
-                    empty ? null : clean.substring(0, Math.min(clean.length(), limits.maxTextChars())));
+                    empty ? null : clean.substring(0, Math.min(clean.length(), limits.maxTextChars())),
+                    empty || alt.isBlank() ? null : alt.substring(0, Math.min(alt.length(), limits.maxTextChars())),
+                    empty ? null : read, empty ? null : unsure);
         } catch (OcrEngine.OcrException | IOException | RuntimeException e) {
             int attempts = jdbc.sql("update document_text set attempts = attempts + 1 where version_id = :v returning attempts")
                     .param("v", versionId).query(Integer.class).single();
@@ -194,12 +212,14 @@ class DocumentTextService {
     @Transactional(readOnly = true)
     Optional<TextView> view(UUID versionId, boolean withText) {
         return jdbc.sql("""
-                select version_id, document_id, status, method, engine, detail, page_count, truncated, text
+                select version_id, document_id, status, method, engine, detail, page_count, truncated, text, alt_text,
+                       words_read, words_uncertain
                 from document_text where version_id = :v""").param("v", versionId)
                 .query((rs, n) -> new TextView(rs.getObject("version_id", UUID.class), rs.getObject("document_id", UUID.class),
                         rs.getString("status"), rs.getString("method"), rs.getString("engine"), rs.getString("detail"),
                         (Integer) rs.getObject("page_count"), rs.getBoolean("truncated"),
-                        withText ? rs.getString("text") : null)).optional();
+                        withText ? rs.getString("text") : null, withText ? rs.getString("alt_text") : null,
+                        (Integer) rs.getObject("words_read"), (Integer) rs.getObject("words_uncertain"))).optional();
     }
 
     /** The status of every version of a document, by version id. */
