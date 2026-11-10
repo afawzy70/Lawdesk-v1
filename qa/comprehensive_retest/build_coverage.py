@@ -60,6 +60,17 @@ SCENARIO_PARTIAL = {
 ALIAS = {"wp1a": "wp1_access", "wp1c": "wp1c_parties", "wp1d": "wp1d_stages",
          "wp3": "wp3_followup", "conn": "connected"}
 
+SECTION_PROBE = {
+    0: "connected", 1: "wp1_access", 2: "wp1c_parties", 3: "wp1c_parties",
+    4: "wp1d_stages", 5: "wp2", 6: "wp1_access", 7: "wp2", 8: "wp3_followup",
+    9: "wp2", 10: "wp4", 11: "wp5", 12: "wp5", 13: "ocr", 14: "wp6",
+    15: "wp6", 16: "wp7", 17: "wp2", 18: "wp3_followup", 19: "wp3_followup",
+    20: "wp2", 21: "connected", 22: "wp10", 23: "wp9", 24: "wp9",
+    25: "wp9", 26: "wp8", 27: "wp8", 28: "wp8", 29: "wp9", 30: "wp1_access",
+    31: "wp1_access", 32: "wp6", 33: "wp3_followup", 34: "isolated", 35: "S1–S16",
+    36: "all", 37: "docs-review",
+}
+
 
 def read_rows():
     source = SOURCE.read_text(encoding="utf-8").splitlines()
@@ -125,7 +136,7 @@ def result_for(c):
     if implemented == "PARTIAL":
         return "PARTIAL", "docs/requirements: " + cause, APP_SHA, note
     match = re.search(r"\[([A-Z0-9_]+)\]", developer)
-    return "NOT_TESTED", "", "", ("اختبار مقترح: " + developer[:180] if developer else "يلزم تصميم اختبار مستقل للحقل أو القاعدة")
+    return "NOT_TESTED", "", "", ("اختبار مقترح: " + developer[:180].strip() if developer else "يلزم تصميم اختبار مستقل للحقل أو القاعدة")
 
 
 def blocker_assessment(c):
@@ -157,20 +168,37 @@ def blocker_assessment(c):
     return "ENGINEERING_REVIEW", "راجع الجزء المتبقي مع اختبار مستقل"
 
 
+def plan_for(c):
+    rid, _, _, text, implemented, developer, _, cause, _ = c
+    sec = int(rid.split("-")[2])
+    baseline = SECTION_PROBE[sec]
+    field = text[:105].replace("\n", " ")
+    if cause == "EXTERNAL_PROVIDER":
+        return f"تحقق محلي من الاسترجاع والصلاحيات والمصادر للجزء «{field}»؛ اختبار توليدي تشغيلي بعد D8 فقط"
+    if cause == "LEGAL_INPUT":
+        return f"اختبار محرك اصطناعي معزول للجزء «{field}»؛ المدد الفعلية بعد اعتماد D6"
+    if sec == 34:
+        return f"فحص بنية/أمن/أداء/استعادة مستقل في بيئة معزولة للجزء «{field}»"
+    if sec in (36, 37):
+        return f"مراجعة الدليل والتسليم وربط البنود التفصيلية للجزء «{field}»"
+    return f"إعادة رحلة {baseline} مع تأكيد مستقل للحقل/القاعدة «{field}» عبر API، ثم واجهة/صلاحية عند اللزوم"
+
+
 def main():
     rows, source = read_rows()
     out = HERE / "coverage.csv"
     counts = Counter()
     with out.open("w", newline="", encoding="utf-8") as f:
-        w = csv.writer(f)
+        w = csv.writer(f, lineterminator="\n")
         w.writerow(["requirement_id", "source_line", "source_text", "implemented_claim", "developer_evidence_claim",
-                    "qa_result", "qa_evidence", "tested_app_sha", "qa_note"])
+                    "qa_test_plan", "qa_result", "qa_evidence", "tested_app_sha", "qa_note"])
         for c in rows:
             state, evidence, sha, note = result_for(c)
             counts[state] += 1
-            w.writerow([c[0], c[1], c[3], c[4], c[5], state, evidence, sha, note])
+            w.writerow([x.rstrip() if isinstance(x, str) else x for x in
+                        (c[0], c[1], c[3], c[4], c[5], plan_for(c), state, evidence, sha, note)])
     with (HERE / "open_rows_review.csv").open("w", newline="", encoding="utf-8") as f:
-        w = csv.writer(f)
+        w = csv.writer(f, lineterminator="\n")
         w.writerow(["requirement_id", "source_text", "implementation_claim", "claimed_blocker", "qa_assessment", "action"])
         for c in rows:
             if c[4] in ("PARTIAL", "BLOCKED"):
