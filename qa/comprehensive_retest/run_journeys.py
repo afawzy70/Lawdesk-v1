@@ -25,8 +25,11 @@ def run_one(name, out):
     before = release()
     evidence = out / f"{name}.json"
     env = dict(os.environ)
-    env["PYTHONPATH"] = str(HERE) + os.pathsep + env.get("PYTHONPATH", "")
-    command = [sys.executable, str(ROOT / "tools" / "journeys" / f"{name}_journey.py"), str(evidence)]
+    env["PYTHONPATH"] = str(ROOT / "tools" / "journeys") + os.pathsep + str(HERE) + os.pathsep + env.get("PYTHONPATH", "")
+    script = ROOT / "tools" / "journeys" / f"{name}_journey.py"
+    if os.environ.get("QA_JOURNEY_PROFILE") == "03ff" and name == "wp1c_parties":
+        script = HERE / "wp1c_parties_journey_03ff.py"
+    command = [sys.executable, str(script), str(evidence)]
     try:
         proc = subprocess.run(command, cwd=ROOT, env=env, text=True, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, timeout=420)
