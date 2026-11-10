@@ -199,7 +199,7 @@ EXPECTED_ROWS = 650
 COLUMNS = ["المعرّف", "السطر", "المجموعة", "المتطلب (نص المصدر)", "IMPLEMENTED", "VERIFIED_BY_DEVELOPER", "QA_ACCEPTED", "سبب العائق", "ملاحظة (ما تبقى / لماذا لم يُتحقق)"]
 IMPL_VALUES = ("YES", "PARTIAL", "NO", "BLOCKED")
 SUMMARY = HERE / "TESTED-STATUS-SUMMARY.md"
-YES_NOW = {"LD-DOC-13-001", "LD-DOC-13-004", "LD-DOC-28-010", "LD-DOC-28-013"}  # delivered after the round-2 gap list (OCR, #89, #95)
+YES_NOW = {"LD-DOC-13-001", "LD-DOC-13-004", "LD-DOC-28-010", "LD-DOC-28-013", "LD-DOC-16-043"}  # delivered after the round-2 gap list (OCR, #89, #95)
 
 
 def gap_status():
@@ -299,6 +299,11 @@ def decide(rows):
             if seq in RD.A22_RULES:
                 impl, cause, dep = "PARTIAL", "EXTERNAL_PROVIDER", "D8: the real model's behaviour cannot be tested before a provider is approved"
                 note = "The rule is enforced by code and tested with a deterministic non-production provider (AssistantBoundariesTest, AssistantAskApiTest, journey wp10: refusal without sources, 404 for a case the account cannot see, drafts stay DRAFT, every query logged). Not verifiable on a real model."
+            elif seq in RD.A22_BRIEF:
+                impl, cause, dep = "PARTIAL", "EXTERNAL_PROVIDER", "D8 for the natural-language assistant wording; the records-only part needs no provider"
+                note = ("Records-only part DONE and verified by the developer: GET /api/v1/cases/{id}/brief (CaseBriefApiTest, PR #102; docs/evidence/DOC-R3-BRIEF) answers from the system's own records, "
+                        "marked not model-generated, each item with its source record, NOT_RECORDED where the records are silent, access policy before validation. "
+                        "NOT done: asking in natural language, any model-generated wording, extraction from document text. This is not the AI assistant and does not satisfy the model-based requirement.")
             elif seq in RD.A22_LIBRARY:
                 impl, cause, dep = "PARTIAL", "EXTERNAL_PROVIDER", "D8 for the assistant wording; the library function itself needs no provider"
                 note = "Independent part DONE and verified in the library: similar-judgment suggestions with their reasons and a citation (source, date, number) - SimilarJudgmentApiTest, journey wp7. The assistant on top of it is not operational."
@@ -443,7 +448,7 @@ def render(lines):
     out.append("- **IMPLEMENTED** (`YES` / `PARTIAL` / `NO` / `BLOCKED`): هل الوظيفة موجودة في الشيفرة المنشورة. `PARTIAL` يعني أن جزءًا مستقلًا منفذ والباقي مذكور في الملاحظة؛ `BLOCKED` لا جزء مستقلًا منفذًا منه.")
     out.append(f"- **VERIFIED_BY_DEVELOPER**: فارغ، أو الدليل الدقيق: صنف اختبار (أو `Class#method`) وSHA الذي أخضر عليه CI (`{RD.TEST_SHA}`)، أو رحلة UAT واسم الخطوة وSHA النشر المسجل داخل ملف الدليل. لا يُملأ إلا لصف `YES`، وكل اسم يُفحص وجوده في المستودع عند التوليد. التحقق على مستوى الميزة: الاختبار/الخطوة يُنشئ السجل ويقرؤه أو يمارس القاعدة، ولا يُدّعى أن كل حقل فُحص منفردًا.")
     out.append("- **QA_ACCEPTED**: فارغ دائمًا. لا يملؤه إلا مراجعة Codex المستقلة. لا شيء مقبول بعد.\n")
-    out.append("الرحلات المرجعية أُجريت على إصدارات UAT أقدم من `cac8d73` (الإصدار في كل ملف دليل)؛ إعادة تشغيلها على الإصدار الحالي مطلوبة قبل أن يعتمد Codex الأدلة. انظر `RETEST-PACKAGE-FOR-CODEX.md`.\n")
+    out.append("رحلات UAT المرجعية الأربع عشرة أُعيد تشغيلها على الإصدار المنشور `18822a83bff8e2a38b83db4370674a9f69919d81` (الإصدار مسجّل داخل كل ملف دليل في `docs/evidence/DOC-RETEST/*-18822a8.json`)، وقد نجحت كلها. أدلة الاختبارات الآلية مرتبطة بـCI الأخضر على `18822a8`. هذا تحقق مطوّر لا قبول QA. انظر `RETEST-PACKAGE-FOR-CODEX.md`.\n")
     out.append("## الملخص (من المصفوفة المولَّدة)\n")
     out.append(f"- أسطر المصدر غير الفارغة: {len(nonblank)}، كلها مغطاة: {'نعم' if not missing else 'لا \u2014 ' + str(missing)}")
     out.append(f"- متطلبات ذرية (صفوف): {nreq}")
@@ -465,7 +470,8 @@ def render(lines):
     out.append("| LD-DOC-22-003 | تلخيص استخراجي بمصادر | YES | " + evidence_text("ASSISTANT_SUMMARY") + " |")
     out.append("| LD-DOC-22-003 | تلخيص توليدي بنموذج حقيقي | BLOCKED (EXTERNAL_PROVIDER, D8) | لا مزود معتمد |")
     out.append("| LD-DOC-34-014 | Chromium وFirefox | YES | " + evidence_text("UX_ENGINES") + " |")
-    out.append("| LD-DOC-34-014 | WebKit | BLOCKED (INFRA) | لا صورة Docker ولا render node للمستخدم |")
+    out.append("| LD-DOC-34-014 | WebKit (بناء Playwright WPE، ليس Safari) | YES | " + evidence_text("UX_ENGINES") + " |")
+    out.append("| LD-DOC-34-014 | Safari / iOS الفعليان | NOT RUN | لم يُشغَّلا؛ أمر الصورة الرسمية لمشغّل يملك docker في `frontend/e2e-wp/README.md` ولم يُنفَّذ |")
     out.append("\n## ملحق: حزم الأدلة\n")
     out.append("كل رمز بين قوسين في عمود VERIFIED_BY_DEVELOPER يشير إلى حزمة هنا بخطواتها الكاملة.\n")
     for key in sorted(used):

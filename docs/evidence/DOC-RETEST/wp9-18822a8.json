@@ -1,0 +1,353 @@
+{
+  "journey": "WP9 settlements, directives, templates, unified search (261110080538)",
+  "base": "https://lawdesk.167-86-90-174.sslip.io",
+  "steps": [
+    {
+      "step": "deployed release",
+      "value": {
+        "release": "18822a83bff8e2a38b83db4370674a9f69919d81"
+      }
+    },
+    {
+      "step": "intake registers the synthetic case",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the settlement kinds are the three of the requirements text",
+      "expected": [
+        200,
+        [
+          "SETTLEMENT",
+          "WAIVER",
+          "CONCILIATION"
+        ]
+      ],
+      "actual": [
+        200,
+        [
+          "SETTLEMENT",
+          "WAIVER",
+          "CONCILIATION"
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "step": "a reader cannot propose a settlement",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the specialist proposes a settlement with its own amount",
+      "expected": [
+        201,
+        "PROPOSED",
+        "12500.500"
+      ],
+      "actual": [
+        201,
+        "PROPOSED",
+        "12500.500"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the amount does not touch the case's other amounts",
+      "expected": null,
+      "actual": null,
+      "ok": true
+    },
+    {
+      "step": "the specialist submits it for review",
+      "expected": [
+        200,
+        "UNDER_REVIEW"
+      ],
+      "actual": [
+        200,
+        "UNDER_REVIEW"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the specialist cannot approve it",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "a rejection needs a reason",
+      "expected": 400,
+      "actual": 400,
+      "ok": true
+    },
+    {
+      "step": "the manager approves it",
+      "expected": [
+        200,
+        "APPROVED",
+        "376c020e-b416-4240-b1b1-8efeeb68c219"
+      ],
+      "actual": [
+        200,
+        "APPROVED",
+        "376c020e-b416-4240-b1b1-8efeeb68c219"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the approved terms cannot be edited",
+      "expected": 422,
+      "actual": 422,
+      "ok": true
+    },
+    {
+      "step": "execution needs the completion date",
+      "expected": 400,
+      "actual": 400,
+      "ok": true
+    },
+    {
+      "step": "the settlement is executed",
+      "expected": [
+        200,
+        "EXECUTED"
+      ],
+      "actual": [
+        200,
+        "EXECUTED"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the case is still open: a settlement never closes it",
+      "expected": "OPEN",
+      "actual": "OPEN",
+      "ok": true
+    },
+    {
+      "step": "the history keeps every step with who did it",
+      "expected": [
+        200,
+        [
+          "CREATED",
+          "STATUS_CHANGED",
+          "STATUS_CHANGED",
+          "STATUS_CHANGED"
+        ]
+      ],
+      "actual": [
+        200,
+        [
+          "CREATED",
+          "STATUS_CHANGED",
+          "STATUS_CHANGED",
+          "STATUS_CHANGED"
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "step": "a specialist cannot issue a directive",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "the manager issues a directive with a system number",
+      "expected": [
+        201,
+        "DIR-",
+        "NEW"
+      ],
+      "actual": [
+        201,
+        "DIR-",
+        "NEW"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the addressee finds it in the register",
+      "expected": [
+        200,
+        [
+          "9a3d1e24-5eda-47ac-8a5b-76d706a56255"
+        ]
+      ],
+      "actual": [
+        200,
+        [
+          "9a3d1e24-5eda-47ac-8a5b-76d706a56255"
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "step": "the addressee moves its status",
+      "expected": [
+        200,
+        "IN_PROGRESS"
+      ],
+      "actual": [
+        200,
+        "IN_PROGRESS"
+      ],
+      "ok": true
+    },
+    {
+      "step": "a reader finds no directive of this case",
+      "expected": 0,
+      "actual": 0,
+      "ok": true
+    },
+    {
+      "step": "the template kinds are those of the requirements text",
+      "expected": [
+        200,
+        11
+      ],
+      "actual": [
+        200,
+        11
+      ],
+      "ok": true
+    },
+    {
+      "step": "no template is seeded",
+      "expected": [],
+      "actual": [],
+      "ok": true
+    },
+    {
+      "step": "the manager creates a template with a draft first version",
+      "expected": [
+        201,
+        "DRAFT"
+      ],
+      "actual": [
+        201,
+        "DRAFT"
+      ],
+      "ok": true
+    },
+    {
+      "step": "a specialist cannot make a draft from an unapproved version",
+      "expected": 422,
+      "actual": 422,
+      "ok": true
+    },
+    {
+      "step": "the version is reviewed then approved",
+      "expected": [
+        200,
+        "APPROVED"
+      ],
+      "actual": [
+        200,
+        "APPROVED"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the draft is not final",
+      "expected": [
+        200,
+        true,
+        false
+      ],
+      "actual": [
+        200,
+        true,
+        false
+      ],
+      "ok": true
+    },
+    {
+      "step": "it fills the case number and title from the case file",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "it names the field the file does not hold and leaves its placeholder",
+      "expected": [
+        [
+          "case.chamber"
+        ],
+        true
+      ],
+      "actual": [
+        [
+          "case.chamber"
+        ],
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "nothing was added to the case file",
+      "expected": 0,
+      "actual": 0,
+      "ok": true
+    },
+    {
+      "step": "the member finds the case, its party, the settlement and the directive",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the group totals add up to the total",
+      "expected": 4,
+      "actual": 4,
+      "ok": true
+    },
+    {
+      "step": "spelling variants find the same case",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "the case is found by its number too",
+      "expected": 1,
+      "actual": 1,
+      "ok": true
+    },
+    {
+      "step": "a snippet shows the matched words",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "an account with no access finds nothing of it",
+      "expected": [
+        200,
+        0
+      ],
+      "actual": [
+        200,
+        0
+      ],
+      "ok": true
+    },
+    {
+      "step": "and its answer does not mention the case",
+      "expected": false,
+      "actual": false,
+      "ok": true
+    },
+    {
+      "step": "the template is put out of use at the end",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    }
+  ],
+  "passed": true
+}

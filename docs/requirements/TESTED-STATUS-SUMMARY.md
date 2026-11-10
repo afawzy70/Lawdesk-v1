@@ -6,17 +6,17 @@ Atomic requirement rows: **650**
 
 | Column | Value | Count |
 |---|---|---|
-| IMPLEMENTED | YES | 565 |
-| IMPLEMENTED | PARTIAL | 40 |
+| IMPLEMENTED | YES | 567 |
+| IMPLEMENTED | PARTIAL | 57 |
 | IMPLEMENTED | NO | 0 |
-| IMPLEMENTED | BLOCKED | 45 |
-| VERIFIED_BY_DEVELOPER | with named test/journey evidence | 520 |
-| VERIFIED_BY_DEVELOPER | empty | 130 |
+| IMPLEMENTED | BLOCKED | 26 |
+| VERIFIED_BY_DEVELOPER | with named test/journey evidence | 521 |
+| VERIFIED_BY_DEVELOPER | empty | 129 |
 | QA_ACCEPTED | accepted by Codex | 0 |
 | QA_ACCEPTED | empty | 650 |
 
-BLOCKED rows by real cause: EXTERNAL_PROVIDER 44, OWNER_DECISION 1.
-PARTIAL rows by cause of what remains: DATA_NOT_PROVIDED 2, EXTERNAL_PROVIDER 21, INFRA 3, LEGAL_INPUT 4, NONE 2, OWNER_DECISION 3, PERFORMANCE_ENGINEERING 1, SPECIALIST 1, TEST_NOT_RUN 1, UI_NOT_BUILT 2.
+BLOCKED rows by real cause: EXTERNAL_PROVIDER 25, OWNER_DECISION 1.
+PARTIAL rows by cause of what remains: DATA_NOT_PROVIDED 2, EXTERNAL_PROVIDER 40, INFRA 2, LEGAL_INPUT 4, NONE 2, OWNER_DECISION 3, PERFORMANCE_ENGINEERING 1, SPECIALIST 1, TEST_NOT_RUN 2.
 NO rows: none.
 
 Former MISSING rows: LD-DOC-00-001 and LD-DOC-00-002 (connected system). Closed in PR #86 (ConnectedCaseApiTest, connected_journey.py); no new code needed.
