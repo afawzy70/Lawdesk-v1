@@ -1,0 +1,123 @@
+{
+  "journey": "WP1c parties, counsel and duplicates (261110061205)",
+  "base": "https://lawdesk.167-86-90-174.sslip.io",
+  "steps": [
+    {
+      "step": "deployed release",
+      "value": {
+        "release": "03ff08ed053402744b5160409e5e851e0565fed6"
+      }
+    },
+    {
+      "step": "manager creates a confidential party with a civil number",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the manager sees the full civil number",
+      "expected": "29110061205",
+      "actual": "29110061205",
+      "ok": true
+    },
+    {
+      "step": "a reader without PARTY_ID_VIEW sees only the last three characters",
+      "expected": "********205",
+      "actual": "********205",
+      "ok": true
+    },
+    {
+      "step": "and no contact details of a confidential party",
+      "expected": null,
+      "actual": null,
+      "ok": true
+    },
+    {
+      "step": "an identifier is not a search key for that reader",
+      "expected": 0,
+      "actual": 0,
+      "ok": true
+    },
+    {
+      "step": "but it is for the manager",
+      "expected": 1,
+      "actual": 1,
+      "ok": true
+    },
+    {
+      "step": "the case is registered with the party",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the party's cases include it for the specialist",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "a reader outside the case cannot resolve its party once linked",
+      "expected": 404,
+      "actual": 404,
+      "ok": true
+    },
+    {
+      "step": "counsel is recorded for the party on the case",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the case lists it",
+      "expected": 1,
+      "actual": 1,
+      "ok": true
+    },
+    {
+      "step": "a reader without access cannot list it",
+      "expected": 404,
+      "actual": 404,
+      "ok": true
+    },
+    {
+      "step": "counsel is removed (marked, not erased)",
+      "expected": 204,
+      "actual": 204,
+      "ok": true
+    },
+    {
+      "step": "a case with the same automated number is warned about",
+      "expected": [
+        422,
+        "DUPLICATE_SUSPECTED"
+      ],
+      "actual": [
+        422,
+        "DUPLICATE_SUSPECTED"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the check names the visible case",
+      "expected": [
+        "3d3ddf88-643c-40a4-b841-ed29bc352de0"
+      ],
+      "actual": [
+        "3d3ddf88-643c-40a4-b841-ed29bc352de0"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the registrar confirms it is different and it is registered",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "second case",
+      "value": "LD-2026-00212"
+    }
+  ],
+  "passed": true
+}
