@@ -37,6 +37,8 @@ describe('notifications bell', () => {
     serve(() => jsonResponse({ unread: 250 }));
     const b = mount(<NotificationsBell />);
     expect(await screen.findByText('99+')).toBeInTheDocument();
+    // QA-RT-008 (WCAG 2.5.3): the visible text '99+' must be part of the accessible name, not the exact count.
+    expect(screen.getByRole('link', { name: 'Notifications, 99+ unread' })).toHaveTextContent('99+');
     b.unmount();
     serve(() => problem(500));
     const c = mount(<NotificationsBell />);
