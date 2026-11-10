@@ -121,7 +121,8 @@ def result_for(c):
     rid, _, _, _, implemented, developer, _, cause, note = c
     if rid == "LD-DOC-30-001":
         probe_name = {"": "release-before.json", "-aea33fa": "release-aea-before.json",
-                      "-514c481": "release-514-after.json", "-03ff08e": "release-03ff-after.json"}.get(OUTPUT_TAG)
+                      "-514c481": "release-514-after.json", "-03ff08e": "release-03ff-after.json",
+                      "-18822a8": "release-111-after-journeys.json"}.get(OUTPUT_TAG)
         if probe_name:
             probe = json.loads((HERE / probe_name).read_text())
             if (probe["accounts"].get("admin", {}).get("login") == "401"
@@ -164,6 +165,22 @@ def result_for(c):
                 if errors500:
                     return "FAIL", browser_path.name, APP_SHA, \
                         f"صفحة القضية أعادت {errors500} ردًا HTTP 500 في 32 فحص Chromium؛ QA-RT-011"
+                if OUTPUT_TAG == "-18822a8":
+                    second_path = HERE / "browser-uat-result-18822a8b.json"
+                    deep_path = HERE / "browser-deep-18822a8.json"
+                    second = json.loads(second_path.read_text()) if second_path.exists() else []
+                    deep = json.loads(deep_path.read_text()) if deep_path.exists() else []
+                    healthy = len(second) == 32 and len(deep) == 2 and all(
+                        x.get("applicationShaBefore") == APP_SHA == x.get("applicationShaAfter")
+                        and not x.get("networkErrors") and not x.get("consoleErrors") for x in browser + second)
+                    complete = all(x.get("applicationShaBefore") == APP_SHA == x.get("applicationShaAfter")
+                                   and not x.get("errors") and all(c.get("ok") for c in x.get("checks", [])) for x in deep)
+                    if not healthy or not complete:
+                        return "FAIL", f"{browser_path.name}; {second_path.name}; {deep_path.name}", APP_SHA, \
+                            "إعادة المتصفح أو اكتمال بيانات اللوحات لم يجتز التحقق؛ راجع الأدلة المفصلة"
+                    return "PARTIAL", f"{browser_path.name}; {second_path.name}; {deep_path.name}; " \
+                        "browser-uat-result-firefox18822a8.json; browser-uat-result-webkit18822a8.json", APP_SHA, \
+                        f"إعادة Chromium 32×2 بلا 5xx أو طلب ملغى؛ اكتمال بيانات اللوحات فُحص؛ مخالفات axe={violations} في كل تكرار QA-RT-012؛ Firefox 32 نظيفة؛ WebKit 32 بلا 5xx لكن 200 رفض CSP في Console QA-RT-013؛ اللوحي غير مفحوص"
                 return "PARTIAL", browser_path.name, APP_SHA, \
                     f"32 فحص Chromium للهاتف والحاسب؛ اللوحي وFirefox/WebKit غير مفحوصة، ومخالفات axe={violations}"
     if rid in ACCEPT:

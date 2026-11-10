@@ -2,14 +2,17 @@
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
-const { chromium } = require('../../frontend/e2e-wp/node_modules/playwright');
+const { chromium, firefox, webkit } = require('../../frontend/e2e-wp/node_modules/playwright');
 const { default: AxeBuilder } = require('../../frontend/e2e-wp/node_modules/@axe-core/playwright');
 
 const host = 'lawdesk.167-86-90-174.sslip.io';
 const base = `https://${host}`;
 const credentials = JSON.parse(fs.readFileSync('/srv/ai-workspaces/secrets/lawdesk-qa/manager.json', 'utf8'));
-const browser = await chromium.launch({ headless: true,
-  args: [`--host-resolver-rules=MAP ${host} 167.86.90.174`] });
+const engine = process.env.QA_BROWSER_ENGINE || 'chromium';
+const browserType = { chromium, firefox, webkit }[engine];
+if (!browserType) throw new Error('invalid QA_BROWSER_ENGINE');
+const browser = await browserType.launch({ headless: true,
+  args: engine === 'chromium' ? [`--host-resolver-rules=MAP ${host} 167.86.90.174`] : [] });
 const results = [];
 const outputName = process.env.QA_BROWSER_OUT || 'browser-uat-result.json';
 if (!/^browser-uat-result(?:-[a-z0-9]+)?\.json$/.test(outputName)) throw new Error('invalid QA_BROWSER_OUT');
@@ -45,7 +48,7 @@ for (const locale of ['ar', 'en']) {
     for (const [screen, route] of routes) {
       errors.length = 0; network.length = 0;
       const separator = route.includes('?') ? '&' : '?';
-      const rec = { engine: 'chromium', locale, width: widthName, screen,
+      const rec = { engine, locale, width: widthName, screen,
                     applicationShaBefore: releaseBefore };
       try {
         await page.goto(`${base}${route}${separator}lang=${locale}`, { waitUntil: 'domcontentloaded', timeout: 30000 });

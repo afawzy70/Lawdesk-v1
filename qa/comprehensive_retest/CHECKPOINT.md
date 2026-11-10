@@ -1,4 +1,14 @@
-# Independent QA checkpoint — 2026-11-10 05:19 UTC
+# Independent QA checkpoint — 2026-11-10 08:06 UTC
+
+## Latest checkpoint: deployed PR #111 on 18822a8
+
+The QA-only worktree and branch remain `/tmp/lawdesk-qa-comprehensive-20261110` and `qa/comprehensive-retest-20261110`, Draft PR #104. QA merged latest `origin/develop` `18822a83bff8e2a38b83db4370674a9f69919d81` into its branch; no application or migration source was edited by QA. The same SHA was observed on UAT at 07:27:54, 07:38:33, 07:43:18 and 08:06:03 UTC, plus before/after each of 14 journeys and before each browser locale/viewport group and after every browser row. The release endpoint has no deployment timestamp. The journey runner used QA branch merge SHA `74d5fbeb4253fa0d3b01c406c68b031c1a7193c7`; new QA-only browser probes were uncommitted during execution and are preserved in this PR. The application's exact source was `18822a8` in both UAT and isolated tests.
+
+QA-RT-011 is **closed for the original case-page 5xx path on 18822a8**: two solo Chromium 32-row matrices had zero HTTP and Console errors; the deep probe performed 58/58 passing checks against direct API data, with zero request failures, HTTP errors, Console errors, stuck loading or SHA change. Fourteen synthetic journeys passed 611/611 scripted assertions. The source regression suite passed 46/46 auth/concurrency/access tests, including 13 built request bodies in each of two 168-endpoint API mutation walks. Restricted DB role, migrations and pinned Kuwait tests passed 35/35; targeted frontend case/mobile/time tests passed 66/66. Firefox completed 32 rows with zero HTTP/Console errors. WebKit completed 32 with zero HTTP errors but 200 CSP inline-style Console refusals; QA-RT-013 remains for triage. English hearing action naming remains QA-RT-012 (4 axe observations). OCR still misses two target terms; `qa.admin` still returns 401. See `browser-summary-18822a8.json`, `source-18822a8-auth-result.json`, `ocr-targeted-result-18822a8.json` and `DEFECTS.md`.
+
+Latest matrix `coverage-18822a8.csv`: **PASS 17, FAIL 0, BLOCKED 38, NOT_TESTED 585, PARTIAL 10 = 650**. Eight S1–S16 scenarios have narrow PASS, eight are PARTIAL; read `SCENARIOS-18822a8.md`. Project-wide QA acceptance is not available. Still outstanding: independent real pre-V800 restore of an old dump, 50k performance/export rerun after PR #101, full seven-role live matrix and admin account, tablet/manual screen-reader and actual midnight UAT, legal rules D6, operational assistant D8, and most atomic rows. Work on the QA branch can continue without changing UAT or Claude's branch. Earlier results remain below as a historical checkpoint.
+
+## Historical checkpoint at 05:19 UTC
 
 ## Isolation and versions
 
