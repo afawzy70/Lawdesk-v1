@@ -100,7 +100,7 @@ class AuditController {
      * what, when) and its details are masked.
      */
     private AuditEventView scoped(AuditEventView e) {
-        if (!"CASE".equals(e.targetType()) || e.reason() == null) {
+        if (!"CASE".equals(e.targetType())) {
             return e;
         }
         UUID caseId;
@@ -112,7 +112,8 @@ class AuditController {
         if (access.canView(caseId)) {
             return e;
         }
+        // The case reference is withdrawn as well as the details: a user outside the case's scope learns nothing about it.
         return new AuditEventView(e.id(), e.occurredAt(), e.actorId(), e.actorUsername(), e.action(), e.targetType(),
-                e.targetId(), e.outcome(), null, e.requestId(), true);
+                null, e.outcome(), null, e.requestId(), true);
     }
 }

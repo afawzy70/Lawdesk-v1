@@ -404,3 +404,7 @@ export const unlinkPrecedent = (caseId: string, linkId: string): Promise<void> =
 
 export const similarJudgments = (caseId: string, signal?: AbortSignal): Promise<Suggestions> =>
   api(`/api/v1/cases/${caseId}/similar-judgments`, signalOf(signal));
+
+/** The judgments that look like one defence alone (requirements section 16, preparing a defence memo). */
+export const similarJudgmentsForDefense = (caseId: string, defenseId: string, signal?: AbortSignal): Promise<Suggestions> =>
+  api(`/api/v1/cases/${caseId}/similar-judgments?defenseId=${encodeURIComponent(defenseId)}`, signalOf(signal));

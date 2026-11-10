@@ -132,7 +132,7 @@ class IntakeService {
         Side side = Side.valueOf(entry.side());
         UUID partyId;
         if (entry.partyId() != null) {
-            Party existing = parties.find(entry.partyId()).orElseThrow(() -> new NotFoundException("party"));
+            Party existing = partyService.requireListed(entry.partyId());
             if (existing.authority()) {
                 throw new BusinessRuleException(PartyService.PARTY_IS_AUTHORITY, "the authority is on the case already");
             }
