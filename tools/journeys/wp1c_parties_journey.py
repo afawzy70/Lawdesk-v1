@@ -48,7 +48,9 @@ check("the case is registered with the party", status, 201)
 cid = case["id"]
 check("the party's cases include it for the specialist", any(
     c["caseId"] == cid for c in staff.call("GET", "/api/v1/parties/%s/cases" % pid)[1]), True)
-check("but not for a reader who cannot see the case", viewer.call("GET", "/api/v1/parties/%s/cases" % pid)[1], [])
+# Since #105 a party that sits only on cases the reader cannot see does not exist for that reader (404, like an unknown id),
+# instead of answering an empty list that would still confirm the party exists.
+check("but not for a reader who cannot see the case: the party is not found", viewer.call("GET", "/api/v1/parties/%s/cases" % pid)[0], 404)
 
 status, counsel = staff.call("POST", "/api/v1/cases/%s/parties/%s/counsel" % (cid, pid),
                              {"kind": "LAWYER", "name": "محامٍ اختباري", "phone": "22001100"})
