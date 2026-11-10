@@ -1,0 +1,31 @@
+{
+  "applicationSourceSha": "352277571426bd4d135ea4acb0e12489aa09fc3c",
+  "database": "isolated embedded PostgreSQL 18",
+  "backendCommand": "cd backend && ./mvnw -o -q -Dmaven.repo.local=/tmp/lawdesk-qa-m2-20261110 test -Dtest=RestrictedRoleApplicationTest,NoPublicSchemaReferenceTest,TaskStatusMigrationApiTest,TimeZoneConsistencyTest,ReportExportApiTest,IndicatorApiTest,StoredSearchDocumentsTest",
+  "backendSuites": {
+    "RestrictedRoleApplicationTest": 3,
+    "NoPublicSchemaReferenceTest": 2,
+    "TaskStatusMigrationApiTest": 10,
+    "TimeZoneConsistencyTest": 1,
+    "ReportExportApiTest": 13,
+    "IndicatorApiTest": 12,
+    "StoredSearchDocumentsTest": 6
+  },
+  "backendTotal": {"tests": 47, "failed": 0, "errors": 0, "skipped": 0},
+  "pinnedKuwaitClock": {
+    "command": "cd backend && ./mvnw -o -q -Dmaven.repo.local=/tmp/lawdesk-qa-m2-20261110 test -Dtest=KuwaitDayValidationTest",
+    "fixedInstantUtc": "2026-11-09T21:30:00Z",
+    "localInstant": "2026-11-10T00:30:00+03:00",
+    "tests": 2,
+    "failed": 0,
+    "scope": "case and judgment date validation; other 00:00–03:00 workflows remain untested"
+  },
+  "frontend": {
+    "build": "PASS",
+    "fullVitest": {"filesPassed": 109, "filesFailed": 1, "testsPassed": 939, "testsFailed": 1, "failure": "OperationsLayout English test exceeded its 5 s timeout during parallel host load"},
+    "targetedRerun": {"filesPassed": 3, "testsPassed": 31, "testsFailed": 0, "scope": "OperationsLayout, Access and HearingExtension; timeout was not reproduced"}
+  },
+  "qaToolTests": {"tests": 180, "failed": 0, "environment": "local-socket-capable executor"},
+  "qaIndependentTests": {"tests": 6, "failed": 0},
+  "interpretation": "A developer-authored test passed when independently rerun; atomic QA acceptance is assigned only when its exact assertion was reviewed and mapped in coverage.csv. The broad frontend suite did not pass as a whole."
+}
