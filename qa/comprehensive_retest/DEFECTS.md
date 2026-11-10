@@ -101,6 +101,7 @@ Each defect names its application SHA. UAT was first `352277571426bd4d135ea4acb0
 | QA-RT-003 | OPEN residual; synthetic subcases pass | V781 old-state 21/21 and post-V845 15/15 in `restore-old-window2/` and `restore-v845-window2/`; actual historical operational backup still absent. |
 | QA-RT-008 | CLOSED for tested bell UI | `bell-matrix-window2.json`: 16/16 synthetic count/locale/width/error cells, axe 0; the two live route matrices also have axe 0. Manual screen reader still open. |
 | QA-RT-011 | CLOSED again for original reproduction on this SHA | `browser-uat-result-window2a.json`, `browser-uat-result-window2b.json`: 32+32 with zero HTTP/Console errors; `browser-deep-18822a8-window2.json`: 58/58 API-to-panel comparisons. |
+| QA-RT-012 | OPEN | The current smoke selects the first current `SYNTH-DOC` result, while prior evidence did not retain its first case ID; zero axe in this new pair does not prove that the earlier hearing action was present or fixed. Retest a pinned case containing that action. |
 | QA-RT-014 | OPEN high | Unattached confidential party exposed to viewer; S15 and LD-DOC-35-015 FAIL. |
 | QA-RT-015 | OPEN policy/workflow conflict | Soft-deleted lawyer still blocks unlink with 409; no 500. |
 | QA-RT-016 | OPEN test-evidence defect | Auth suite 45/46, isolated failing method 1/1. |
