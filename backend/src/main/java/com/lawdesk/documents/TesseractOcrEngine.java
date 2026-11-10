@@ -29,6 +29,7 @@ class TesseractOcrEngine implements OcrEngine {
     private final String languages;
     private final boolean preprocess;
     private final int pageSegmentation;
+    private final boolean multiPass;
     private volatile Status cached;
     private volatile long cachedAt;
 
@@ -36,15 +37,21 @@ class TesseractOcrEngine implements OcrEngine {
     TesseractOcrEngine(@Value("${lawdesk.ocr.tesseract-command:tesseract}") String command,
             @Value("${lawdesk.ocr.languages:ara+eng}") String languages,
             @Value("${lawdesk.ocr.preprocess:true}") boolean preprocess,
-            @Value("${lawdesk.ocr.psm:3}") int pageSegmentation) {
+            @Value("${lawdesk.ocr.psm:3}") int pageSegmentation,
+            @Value("${lawdesk.ocr.multi-pass:true}") boolean multiPass) {
         this.command = command;
+        this.multiPass = multiPass;
         this.pageSegmentation = pageSegmentation;
         this.languages = languages;
         this.preprocess = preprocess;
     }
 
     TesseractOcrEngine(String command, String languages) {
-        this(command, languages, true, 3);
+        this(command, languages, true, 3, true);
+    }
+
+    TesseractOcrEngine(String command, String languages, boolean preprocess, int pageSegmentation) {
+        this(command, languages, preprocess, pageSegmentation, true);
     }
 
     @Override
@@ -86,21 +93,84 @@ class TesseractOcrEngine implements OcrEngine {
     /** Pages whose first reading has fewer lines than this are read a second time in sparse mode (see {@link #merge}). */
     static final int SPARSE_BELOW_LINES = 8;
 
+    /** A word read with less confidence than this (0 to 100) is "uncertain"; an alternate word must reach {@link #ALTERNATE_MIN}. */
+    static final double UNCERTAIN_BELOW = 80;
+    static final double ALTERNATE_MIN = 60;
+
+    /** One run of the engine: its text, and every word with the confidence the engine gave it. */
+    record Pass(String name, String text, List<Word> words) {
+    }
+
+    record Word(String text, double confidence) {
+    }
+
     @Override
     public String recognise(byte[] image) throws OcrException {
+        return read(image).text();
+    }
+
+    /**
+     * The main reading (the thresholded, deskewed page, automatic layout, plus the sparse reading of short pages) and, when the
+     * main reading holds a word the engine was unsure of or the page is short, further readings of the same picture: the page
+     * as scanned, deskewed but not thresholded, enlarged to about 300 dpi, and sparse-text layout. Words those readings are
+     * confident about and the main reading lacks become the {@code alternates}. Nothing is invented: every word was read by the
+     * engine from this page, and no pass can remove a word of another.
+     */
+    @Override
+    public Reading read(byte[] image) throws OcrException {
         Path dir = null;
         try {
             dir = Files.createTempDirectory("lawdesk-ocr");
-            Path input = dir.resolve("page");
-            Files.write(input, preprocess ? OcrPreprocessor.prepare(image) : image);
-            String text = run(dir, input, pageSegmentation);
+            byte[] prepared = preprocess ? OcrPreprocessor.prepare(image) : image;
+            Pass main = run(dir, "main", prepared, pageSegmentation);
+            String text = main.text();
             // Measured (docs/evidence/DOC-OCR): on a page of only a few lines the automatic layout analysis can drop a whole
             // line (a two-line Arabic page at 300 dpi lost its first line); sparse-text mode finds it. The second reading is
             // cheap on such pages and only adds lines the first did not contain, so it can add words to the search but never remove any.
-            if (pageSegmentation != 11 && text.lines().filter(l -> !l.isBlank()).count() < SPARSE_BELOW_LINES) {
-                text = merge(text, run(dir, input, 11));
+            boolean shortPage = text.lines().filter(l -> !l.isBlank()).count() < SPARSE_BELOW_LINES;
+            List<Pass> others = new java.util.ArrayList<>();
+            if (pageSegmentation != 11 && shortPage) {
+                Pass sparse = run(dir, "sparse", prepared, 11);
+                text = merge(text, sparse.text());
+                others.add(sparse);
             }
-            return text;
+            long unsure = main.words().stream().filter(w -> w.confidence() < UNCERTAIN_BELOW).count();
+            if (multiPass && preprocess && (unsure > 0 || shortPage)) {
+                // The thresholded page is the one most likely to have lost a dot or a stroke (observed: one yeh read as beh); the
+                // other readings start from the picture as it was stored.
+                others.add(run(dir, "original", image, pageSegmentation));
+                byte[] grey = OcrPreprocessor.prepareGrey(image, false);
+                if (grey != null) {
+                    others.add(run(dir, "grey", grey, pageSegmentation));
+                }
+                byte[] enlarged = OcrPreprocessor.prepareGrey(image, true);
+                if (enlarged != null) {
+                    others.add(run(dir, "enlarged", enlarged, pageSegmentation));
+                }
+                if (pageSegmentation != 11) {
+                    others.add(run(dir, "original-sparse", image, 11));
+                }
+            }
+            // A word counts as already read when its normalised form (a reference such as LD-2026/045 is "ld 2026 045") occurs
+            // as a run of words in the text read so far.
+            StringBuilder known = new StringBuilder(" ");
+            for (String line : text.split("\\R")) {
+                known.append(String.join(" ", words(line))).append("  ");
+            }
+            Set<String> alternates = new java.util.LinkedHashSet<>();
+            for (Pass pass : others) {
+                for (Word w : pass.words()) {
+                    String key = String.join(" ", words(w.text()));
+                    if (w.confidence() >= ALTERNATE_MIN && !key.isEmpty() && !known.toString().contains(" " + key + " ")) {
+                        known.append(key).append("  ");
+                        alternates.add(w.text());
+                    }
+                }
+            }
+            List<String> doubtful = main.words().stream().filter(w -> w.confidence() < UNCERTAIN_BELOW)
+                    .map(Word::text).filter(t -> !words(t).isEmpty()).toList();
+            return new Reading(text, String.join(" ", alternates), main.words().size(), doubtful.size(), doubtful,
+                    1 + others.size());
         } catch (IOException e) {
             throw new OcrException("the engine could not be run", e);
         } catch (InterruptedException e) {
@@ -111,11 +181,14 @@ class TesseractOcrEngine implements OcrEngine {
         }
     }
 
-    private String run(Path dir, Path input, int psm) throws IOException, InterruptedException, OcrException {
-        Path out = dir.resolve("out-" + psm + ".txt");
-        // The output goes to a file, not a pipe: reading a pipe to its end would wait for a hung engine and the time limit would never apply.
-        Process process = new ProcessBuilder(command, input.toString(), "stdout", "-l", languages, "--psm", Integer.toString(psm))
-                .redirectError(ProcessBuilder.Redirect.DISCARD).redirectOutput(out.toFile()).start();
+    private Pass run(Path dir, String name, byte[] bytes, int psm) throws IOException, InterruptedException, OcrException {
+        Path input = dir.resolve("in-" + name);
+        Files.write(input, bytes);
+        Path base = dir.resolve("out-" + name + "-" + psm);
+        // The output goes to files, not a pipe: reading a pipe to its end would wait for a hung engine and the time limit would never apply.
+        Process process = new ProcessBuilder(command, input.toString(), base.toString(), "-l", languages, "--psm",
+                Integer.toString(psm), "txt", "tsv").redirectError(ProcessBuilder.Redirect.DISCARD)
+                .redirectOutput(ProcessBuilder.Redirect.DISCARD).start();
         if (!process.waitFor(RECOGNISE_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
             process.destroyForcibly();
             throw new OcrException("the engine took too long", null);
@@ -123,7 +196,26 @@ class TesseractOcrEngine implements OcrEngine {
         if (process.exitValue() != 0) {
             throw new OcrException("the engine failed on this page", null);
         }
-        return Files.readString(out, StandardCharsets.UTF_8);
+        return new Pass(name, Files.readString(Path.of(base + ".txt"), StandardCharsets.UTF_8), parse(Path.of(base + ".tsv")));
+    }
+
+    /** Word rows (level 5) of the engine's tab-separated output: confidence in column 11, the word in column 12. */
+    static List<Word> parse(Path tsv) throws IOException {
+        List<Word> words = new java.util.ArrayList<>();
+        if (!Files.exists(tsv)) {
+            return words;
+        }
+        for (String row : Files.readAllLines(tsv, StandardCharsets.UTF_8)) {
+            String[] c = row.split("\t", 12);
+            if (c.length == 12 && "5".equals(c[0]) && !c[11].isBlank()) {
+                try {
+                    words.add(new Word(c[11].strip(), Double.parseDouble(c[10])));
+                } catch (NumberFormatException ignored) {
+                    // the header row
+                }
+            }
+        }
+        return words;
     }
 
     /**

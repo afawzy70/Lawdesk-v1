@@ -1,0 +1,92 @@
+package com.lawdesk.documents;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.jupiter.api.Test;
+
+/**
+ * Exact terms on the committed synthetic pages ({@link OcrExactCorpus}) with the real engine: every term a user would search
+ * for must be in the text the engine read (the main reading plus the confident words of the other passes). A term that is not
+ * found fails the test unless it is in {@link #STILL_MISSED}, the documented list of misses; a listed term that is found again
+ * also fails, so the list cannot go stale. The two terms QA found missing (QA-RT-001) have no exemption.
+ * Skipped, visibly, where Tesseract with Arabic data is not installed. With {@code -Docr.report=<file>} the before/after table is written.
+ */
+class OcrExactTermsTest {
+
+    /** Terms still missed after the change, by file; every entry is a measured failure (docs/evidence/DOC-R3-OCR/README.md). */
+    static final Map<String, List<String>> STILL_MISSED = Map.of();
+
+    static Path root() {
+        Path here = Path.of("").toAbsolutePath();
+        return Files.isDirectory(here.resolve("tools")) ? here : here.getParent();
+    }
+
+    static byte[] picture(OcrExactCorpus.Page page) throws Exception {
+        Path dir = root().resolve(page.journey() ? OcrExactCorpus.JOURNEY_DIR : OcrExactCorpus.EXTRA_DIR);
+        return Files.readAllBytes(dir.resolve(page.file()));
+    }
+
+    @Test
+    void theTermsOfEveryPageAreFoundInTheExtractedText() throws Exception {
+        TesseractOcrEngine after = new TesseractOcrEngine("tesseract", "ara+eng");
+        TesseractOcrEngine before = new TesseractOcrEngine("tesseract", "ara+eng", true, 3, false);
+        OcrEngine.Status status = after.status();
+        assumeTrue(status.available(), "BLOCKED: no Tesseract with Arabic data on this machine (" + status.detail() + ")");
+        String report = System.getProperty("ocr.report");
+        StringBuilder table = new StringBuilder("file\tdpi\tpoints\tskew\tnoise\tbefore_recall\tafter_recall\tbefore_terms\tafter_terms\t"
+                + "passes\tuncertain_words\tmissed_after\tms\n");
+        List<String> unexpected = new ArrayList<>();
+        for (OcrExactCorpus.Page page : OcrExactCorpus.pages()) {
+            byte[] bytes = picture(page);
+            String old = report != null ? before.recognise(bytes) : "";
+            long t0 = System.nanoTime();
+            OcrEngine.Reading reading = after.read(bytes);
+            long ms = (System.nanoTime() - t0) / 1_000_000;
+            String searchable = reading.text() + "\n" + reading.alternates();
+            List<String> missed = page.terms().stream().filter(t -> !OcrExactCorpus.contains(searchable, t)).toList();
+            List<String> listed = STILL_MISSED.getOrDefault(page.file(), List.of());
+            for (String t : missed) {
+                if (!listed.contains(t)) {
+                    unexpected.add(page.file() + ": «" + t + "» is not in the extracted text");
+                }
+            }
+            for (String t : listed) {
+                if (!missed.contains(t)) {
+                    unexpected.add(page.file() + ": «" + t + "» is listed as missed but was found; remove it from STILL_MISSED");
+                }
+            }
+            if (report != null) {
+                long hitsBefore = page.terms().stream().filter(t -> OcrExactCorpus.contains(old, t)).count();
+                OcrCorpus.Case c = page.drawing();
+                table.append(String.format("%s\t%d\t%.0f\t%.1f\t%.0f\t%.3f\t%.3f\t%d/%d\t%d/%d\t%d\t%d/%d\t%s\t%d%n", page.file(),
+                        c.dpi(), c.points(), c.angleDegrees(), c.noiseSigma(), OcrCorpus.searchRecall(c.truth(), old),
+                        OcrCorpus.searchRecall(c.truth(), searchable), hitsBefore, page.terms().size(),
+                        page.terms().size() - missed.size(), page.terms().size(), reading.passes(), reading.uncertainWords(),
+                        reading.words(), String.join(" | ", missed), ms));
+            }
+        }
+        if (report != null) {
+            Files.writeString(Path.of(report), table.toString());
+        }
+        assertThat(unexpected).as("terms missing from the extracted text (or a stale STILL_MISSED entry)").isEmpty();
+    }
+
+    /** QA-RT-001: the legal word and the case reference the independent run did not find; no exemption, ever. */
+    @Test
+    void theTwoTermsQaFoundMissingAreInTheText() throws Exception {
+        TesseractOcrEngine engine = new TesseractOcrEngine("tesseract", "ara+eng");
+        OcrEngine.Status status = engine.status();
+        assumeTrue(status.available(), "BLOCKED: no Tesseract with Arabic data on this machine (" + status.detail() + ")");
+        OcrEngine.Reading clear = engine.read(Files.readAllBytes(root().resolve(OcrExactCorpus.JOURNEY_DIR).resolve("ocr-clear-ar.png")));
+        OcrEngine.Reading mixed = engine.read(Files.readAllBytes(root().resolve(OcrExactCorpus.JOURNEY_DIR).resolve("ocr-mixed.png")));
+        assertThat(OcrExactCorpus.contains(clear.text() + "\n" + clear.alternates(), "الكويتي")).as("الكويتي").isTrue();
+        assertThat(OcrExactCorpus.contains(mixed.text() + "\n" + mixed.alternates(), "LD-2026/045")).as("LD-2026/045").isTrue();
+    }
+}

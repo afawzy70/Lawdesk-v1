@@ -63,6 +63,35 @@ final class OcrPreprocessor {
         }
     }
 
+    /** Pages narrower than this many pixels (about 300 dpi on A4 less margins) get an enlarged reading as an extra pass. */
+    static final int TARGET_WIDTH = 2200;
+    static final double MAX_UPSCALE = 3.0;
+
+    /**
+     * The page deskewed but not thresholded (the engine then binarises it itself, locally, which keeps faint dots and strokes a
+     * global threshold removes), optionally enlarged so that the letters are about the size the engine was trained on. Null when
+     * the picture cannot be prepared safely, or when an enlargement is asked for and the page is already large enough.
+     */
+    static byte[] prepareGrey(byte[] original, boolean enlarge) {
+        try {
+            BufferedImage image = decode(original);
+            if (image == null || (long) image.getWidth() * image.getHeight() > MAX_PIXELS) {
+                return null;
+            }
+            double factor = enlarge ? Math.min(MAX_UPSCALE, (double) TARGET_WIDTH / image.getWidth()) : 1;
+            if (enlarge && (factor < 1.2 || (long) (image.getWidth() * factor) * (image.getHeight() * factor) > MAX_PIXELS)) {
+                return null;
+            }
+            BufferedImage out = deskew(image);
+            if (enlarge) {
+                out = scale(out, factor);
+            }
+            return png(pad(out));
+        } catch (RuntimeException | OutOfMemoryError e) {
+            return null;
+        }
+    }
+
     /** Decodes bytes into a picture, or null when Java cannot read the format (the engine then gets the original). */
     static BufferedImage decode(byte[] bytes) {
         try {

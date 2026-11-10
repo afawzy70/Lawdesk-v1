@@ -42,4 +42,34 @@ class OcrFixtureExport {
         }
         Files.writeString(out.resolve("manifest.json"), manifest.append("\n]\n").toString());
     }
+
+    /** The extra pages of the exact-term corpus, with their ground truth and search terms (backend/src/test/resources/ocr-corpus). */
+    @Test
+    void exportExtraCorpus() throws Exception {
+        String dir = System.getProperty("ocr.extra");
+        assumeTrue(dir != null, "only with -Docr.extra=<directory>");
+        Path out = Path.of(dir);
+        Files.createDirectories(out);
+        StringBuilder manifest = new StringBuilder("[\n");
+        boolean first = true;
+        for (OcrExactCorpus.Page p : OcrExactCorpus.pages()) {
+            if (p.journey()) {
+                continue;
+            }
+            OcrCorpus.Case c = p.drawing();
+            String extension = p.file().substring(p.file().lastIndexOf('.') + 1);
+            Files.write(out.resolve(p.file()), OcrCorpus.encode(OcrCorpus.image(c), extension));
+            manifest.append(first ? "" : ",\n").append("  {\"file\": \"").append(p.file()).append("\", \"dpi\": ").append(c.dpi())
+                    .append(", \"points\": ").append(c.points()).append(", \"skewDegrees\": ").append(c.angleDegrees())
+                    .append(", \"noiseSigma\": ").append(c.noiseSigma()).append(", \"table\": ").append(c.table())
+                    .append(", \"lines\": ").append(json(c.lines())).append(", \"terms\": ").append(json(p.terms())).append('}');
+            first = false;
+        }
+        Files.writeString(out.resolve("manifest.json"), manifest.append("\n]\n").toString());
+    }
+
+    private static String json(List<String> values) {
+        return values.stream().map(v -> '"' + v.replace("\\", "\\\\").replace("\"", "\\\"").replace("\t", "\\t") + '"')
+                .collect(java.util.stream.Collectors.joining(", ", "[", "]"));
+    }
 }
