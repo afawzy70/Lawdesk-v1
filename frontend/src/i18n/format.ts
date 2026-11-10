@@ -10,8 +10,11 @@ export function intlLocale(locale: Locale): string {
   return INTL_LOCALES[locale];
 }
 
-/** Formats an instant as weekday, date and time. `timeZone` defaults to the browser's zone. */
-export function formatDateTime(value: string | Date, locale: Locale, timeZone?: string): string {
+/** The product's zone: instants are stored and sent in UTC and people read them in Kuwait time (UTC+3, no daylight saving). */
+export const LEGAL_TIME_ZONE = 'Asia/Kuwait';
+
+/** Formats an instant as weekday, date and time. `timeZone` defaults to Kuwait, never to the browser's zone. */
+export function formatDateTime(value: string | Date, locale: Locale, timeZone: string = LEGAL_TIME_ZONE): string {
   return new Intl.DateTimeFormat(intlLocale(locale), {
     weekday: 'short',
     day: 'numeric',
@@ -20,7 +23,7 @@ export function formatDateTime(value: string | Date, locale: Locale, timeZone?: 
     hour: '2-digit',
     minute: '2-digit',
     hourCycle: 'h23',
-    ...(timeZone === undefined ? {} : { timeZone }),
+    timeZone,
   }).format(typeof value === 'string' ? new Date(value) : value);
 }
 

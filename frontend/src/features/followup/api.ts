@@ -1,4 +1,5 @@
 import { api } from '../../api/http';
+import { legalToday } from '../operations/days';
 
 /** LD-053 (WP3): linked cases, information requests, risk assessment, the executive summary, the unified timeline, notifications. */
 
@@ -187,7 +188,7 @@ export function createRequest(caseId: string, input: NewRequest): Promise<InfoRe
       requiredDocuments: blankToNull(input.requiredDocuments),
       dueOn: blankToNull(input.dueOn),
       addressee: blankToNull(input.addressee),
-      draftedOn: new Date().toISOString().slice(0, 10),
+      draftedOn: legalToday(),
     },
   });
 }
