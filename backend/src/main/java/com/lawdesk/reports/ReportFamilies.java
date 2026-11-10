@@ -150,8 +150,11 @@ public class ReportFamilies {
             case "CASES_BY_TYPE_COURT_STAGE" -> casesByTypeCourtStage(info, groupBy, filter, scope, labels);
             case "CASES_BY_ORG_UNIT" -> caseGroups(info, groupBy, labels, cases.groups(filter, Dimension.valueOf(groupBy)),
                     labels.word("group.level." + groupBy), null);
-            case "CASES_BY_MEMBER" -> caseGroups(info, groupBy, labels, cases.groups(filter, Dimension.MEMBER),
-                    labels.word("member"), this::memberName);
+            case "CASES_BY_MEMBER" -> {
+                List<CaseReportQueries.Group> byMember = cases.groups(filter, Dimension.MEMBER);
+                yield caseGroups(info, groupBy, labels, byMember, labels.word("member"),
+                        memberNames(byMember.stream().map(CaseReportQueries.Group::key).toList()));
+            }
             case "OPEN_CLOSED_CASES" -> openClosed(info, groupBy, filter, labels);
             case "JUDGMENT_OUTCOMES" -> judgmentOutcomes(info, scope, labels);
             case "CLAIM_RESULTS" -> claimResults(info, scope, labels);
@@ -221,15 +224,29 @@ public class ReportFamilies {
         return (value == null ? BigDecimal.ZERO : value).setScale(3);
     }
 
-    private String memberName(String id) {
-        if (id == null) {
-            return null;
+    /** The display name of each member id (text), looked up in one statement for all of them; null for an unknown id. */
+    private java.util.function.Function<String, String> memberNames(java.util.Collection<String> ids) {
+        List<UUID> uuids = new ArrayList<>();
+        for (String id : ids) {
+            if (id != null) {
+                try {
+                    uuids.add(UUID.fromString(id));
+                } catch (IllegalArgumentException e) {
+                    // not an id: reported as an unknown user, as before
+                }
+            }
         }
-        try {
-            return users.find(UUID.fromString(id)).map(UserDirectory.UserSummary::displayName).orElse(null);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+        Map<UUID, String> names = users.displayNames(uuids);
+        return id -> {
+            if (id == null) {
+                return null;
+            }
+            try {
+                return names.get(UUID.fromString(id));
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
+        };
     }
 
     // ---- 1-4: cases ------------------------------------------------------------------------------------------------
@@ -538,9 +555,11 @@ public class ReportFamilies {
             f[13] = d.overdue();
         }
         List<List<Object>> rows = new ArrayList<>();
+        java.util.function.Function<String, String> nameOf = memberNames(
+                figures.keySet().stream().map(UUID::toString).toList());
         figures.forEach((id, f) -> {
             List<Object> cells = new ArrayList<>();
-            cells.add(orUnknown(memberName(id.toString()), labels));
+            cells.add(orUnknown(nameOf.apply(id.toString()), labels));
             for (long value : f) {
                 cells.add(value);
             }

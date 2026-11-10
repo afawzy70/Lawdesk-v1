@@ -28,7 +28,10 @@ public abstract class PostgresTestSupport {
     @DynamicPropertySource
     static void isolatedDatabase(DynamicPropertyRegistry registry) {
         Server server = Server.INSTANCE;
-        String url = server.jdbcUrl(server.createDatabase());
+        // LD-DOC-R3 performance harness: -Dlawdesk.perf.db=<name> reuses an existing (seeded, throw-away) database of the
+        // server instead of creating an empty one; Flyway still runs on it.
+        String existing = System.getProperty("lawdesk.perf.db");
+        String url = server.jdbcUrl(existing != null && !existing.isBlank() ? existing : server.createDatabase());
         registry.add("spring.datasource.url", () -> url);
         registry.add("spring.datasource.username", () -> server.user);
         registry.add("spring.datasource.password", () -> server.password);

@@ -29,6 +29,18 @@ public class UserDirectory {
         return jdbc.query(SELECT + " where id = ?", (rs, n) -> summary(rs), id).stream().findFirst();
     }
 
+    /** The display names of these users in one statement (users that do not exist are left out). */
+    public java.util.Map<UUID, String> displayNames(java.util.Collection<UUID> ids) {
+        java.util.Map<UUID, String> names = new java.util.HashMap<>();
+        if (ids.isEmpty()) {
+            return names;
+        }
+        jdbc.query("select id, display_name from app_user where id in (select unnest(cast(? as uuid[])))", rs -> {
+            names.put(rs.getObject("id", UUID.class), rs.getString("display_name"));
+        }, ids.stream().map(UUID::toString).collect(java.util.stream.Collectors.joining(",", "{", "}")));
+        return names;
+    }
+
     /** Enabled users, the ones work can be assigned to, by display name. */
     public List<UserSummary> active() {
         return jdbc.query(SELECT + " where enabled order by lower(display_name), username", (rs, n) -> summary(rs));
