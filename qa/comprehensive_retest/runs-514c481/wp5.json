@@ -1,0 +1,640 @@
+{
+  "journey": "WP5 enforcement, memos with approval and the electronic archive (261110054923)",
+  "base": "https://lawdesk.167-86-90-174.sslip.io",
+  "steps": [
+    {
+      "step": "deployed release",
+      "value": {
+        "release": "514c481c02673f29a39601a6b22694d5e0427029"
+      }
+    },
+    {
+      "step": "intake registers the synthetic case",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the alternate member (the manager, who holds JUDGMENT_MANAGE) records the judgment",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "a judgment starts with no enforcement file",
+      "expected": [
+        200,
+        null,
+        []
+      ],
+      "actual": [
+        200,
+        null,
+        []
+      ],
+      "ok": true
+    },
+    {
+      "step": "the enforcement view shows the judgment's own number, date and operative part",
+      "expected": [
+        "2026-11-10",
+        "إلزام الجهة بالأداء (SYNTH-DOC)",
+        true
+      ],
+      "actual": [
+        "2026-11-10",
+        "إلزام الجهة بالأداء (SYNTH-DOC)",
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "a judgment without a file counts as not executed",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the specialist opens the enforcement file",
+      "expected": [
+        201,
+        "IN_PROGRESS"
+      ],
+      "actual": [
+        201,
+        "IN_PROGRESS"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the amount is a KWD string with three decimals",
+      "expected": "1250.500",
+      "actual": "1250.500",
+      "ok": true
+    },
+    {
+      "step": "a target date in the past makes it late",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "a second file for the same judgment is refused",
+      "expected": "ENFORCEMENT_ALREADY_RECORDED",
+      "actual": "ENFORCEMENT_ALREADY_RECORDED",
+      "ok": true
+    },
+    {
+      "step": "an action is recorded with its number, date and result",
+      "expected": [
+        201,
+        1,
+        "لم يرد"
+      ],
+      "actual": [
+        201,
+        1,
+        "لم يرد"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the next action gets the next number",
+      "expected": [
+        201,
+        2
+      ],
+      "actual": [
+        201,
+        2
+      ],
+      "ok": true
+    },
+    {
+      "step": "completing needs a completion date",
+      "expected": 400,
+      "actual": 400,
+      "ok": true
+    },
+    {
+      "step": "the manager's list of late judgments shows it",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the viewer's list does not show the case",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the viewer is told the enforcement does not exist",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the viewer cannot open an enforcement file",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "the specialist completes the enforcement",
+      "expected": [
+        200,
+        "EXECUTED",
+        false
+      ],
+      "actual": [
+        200,
+        "EXECUTED",
+        false
+      ],
+      "ok": true
+    },
+    {
+      "step": "an executed judgment leaves the late list",
+      "expected": false,
+      "actual": false,
+      "ok": true
+    },
+    {
+      "step": "the archive settings are readable",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "archive limits (assumptions)",
+      "value": {
+        "maxFileBytes": 10485760,
+        "maxDocumentsPerCase": 100,
+        "maxVersionsPerDocument": 20,
+        "maxOcrPages": 50,
+        "maxTextChars": 2000000
+      }
+    },
+    {
+      "step": "OCR engine on this server",
+      "value": {
+        "available": true,
+        "engine": "tesseract",
+        "languages": "ara+eng",
+        "detail": null
+      }
+    },
+    {
+      "step": "a PDF is archived as version 1",
+      "expected": [
+        201,
+        1,
+        "application/pdf"
+      ],
+      "actual": [
+        201,
+        1,
+        "application/pdf"
+      ],
+      "ok": true
+    },
+    {
+      "step": "a Word document is archived",
+      "expected": [
+        201,
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      ],
+      "actual": [
+        201,
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      ],
+      "ok": true
+    },
+    {
+      "step": "an image is archived",
+      "expected": [
+        201,
+        "image/png"
+      ],
+      "actual": [
+        201,
+        "image/png"
+      ],
+      "ok": true
+    },
+    {
+      "step": "a file that is not what it claims is refused",
+      "expected": 400,
+      "actual": 400,
+      "ok": true
+    },
+    {
+      "step": "a script is refused",
+      "expected": 400,
+      "actual": 400,
+      "ok": true
+    },
+    {
+      "step": "with an engine an image waits for recognition or has been read",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "image text state",
+      "value": {
+        "status": "PENDING",
+        "method": "OCR",
+        "engine": "tesseract",
+        "detail": "waiting for recognition"
+      }
+    },
+    {
+      "step": "the Word text is read locally",
+      "expected": "EXTRACTED",
+      "actual": "EXTRACTED",
+      "ok": true
+    },
+    {
+      "step": "the specialist finds the PDF by its text",
+      "expected": [
+        "35b22670-9502-4c7c-aa57-a7286978939c"
+      ],
+      "actual": [
+        "35b22670-9502-4c7c-aa57-a7286978939c"
+      ],
+      "ok": true
+    },
+    {
+      "step": "Arabic spelling variant 'مذكره دفاع' finds the Word memo",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "Arabic spelling variant 'الدفاع' finds the Word memo",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "Arabic spelling variant 'المدعي عليها' finds the Word memo",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "Arabic spelling variant 'القانون المدني' finds the Word memo",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the snippet is the matching line only",
+      "expected": [
+        "المادة 12 من القانون المدني (SYNTH-DOC)"
+      ],
+      "actual": [
+        "المادة 12 من القانون المدني (SYNTH-DOC)"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the viewer finds nothing of a case they cannot see",
+      "expected": [
+        0,
+        false
+      ],
+      "actual": [
+        0,
+        false
+      ],
+      "ok": true
+    },
+    {
+      "step": "the viewer is told the document does not exist",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "hostile text is found as data and nothing happens",
+      "expected": [
+        201,
+        [
+          "8c52d42a-d874-4a37-888a-cdeebf73cfdd"
+        ]
+      ],
+      "actual": [
+        201,
+        [
+          "8c52d42a-d874-4a37-888a-cdeebf73cfdd"
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "step": "a new version keeps the earlier ones",
+      "expected": [
+        201,
+        2,
+        true
+      ],
+      "actual": [
+        201,
+        2,
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "both versions list who uploaded them and when",
+      "expected": [
+        [
+          2,
+          true,
+          true
+        ],
+        [
+          1,
+          true,
+          true
+        ]
+      ],
+      "actual": [
+        [
+          2,
+          true,
+          true
+        ],
+        [
+          1,
+          true,
+          true
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "step": "the old version is still downloadable",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "only the current version is searched",
+      "expected": [
+        0,
+        1
+      ],
+      "actual": [
+        0,
+        1
+      ],
+      "ok": true
+    },
+    {
+      "step": "the viewer cannot add a version",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "a document is classified by type, date and stage",
+      "expected": [
+        200,
+        "89483c9a-f922-46d0-a7ea-2b2263717ed1",
+        "3a9d3510-717e-40fd-95d7-5d8432fdb482"
+      ],
+      "actual": [
+        200,
+        "89483c9a-f922-46d0-a7ea-2b2263717ed1",
+        "3a9d3510-717e-40fd-95d7-5d8432fdb482"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the search can be limited to a category",
+      "expected": [
+        "9066d331-7558-4f54-8f06-ff44e8cd9531"
+      ],
+      "actual": [
+        "9066d331-7558-4f54-8f06-ff44e8cd9531"
+      ],
+      "ok": true
+    },
+    {
+      "step": "a document is linked to the judgment it concerns",
+      "expected": [
+        201,
+        "JUDGMENT"
+      ],
+      "actual": [
+        201,
+        "JUDGMENT"
+      ],
+      "ok": true
+    },
+    {
+      "step": "a record of another case cannot be linked",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "a document is withdrawn from the case file with a reason",
+      "expected": 204,
+      "actual": 204,
+      "ok": true
+    },
+    {
+      "step": "it leaves the case file but is kept",
+      "expected": false,
+      "actual": false,
+      "ok": true
+    },
+    {
+      "step": "the withdrawn list still holds it",
+      "expected": [
+        "6ae80fbc-48f6-49e2-bf56-d173d5af4fbe"
+      ],
+      "actual": [
+        "6ae80fbc-48f6-49e2-bf56-d173d5af4fbe"
+      ],
+      "ok": true
+    },
+    {
+      "step": "a permanent deletion is refused without the archive right",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "a withdrawn document can be restored",
+      "expected": 204,
+      "actual": 204,
+      "ok": true
+    },
+    {
+      "step": "the specialist registers a memo as a draft",
+      "expected": [
+        201,
+        "DRAFT"
+      ],
+      "actual": [
+        201,
+        "DRAFT"
+      ],
+      "ok": true
+    },
+    {
+      "step": "review needs the electronic copy first",
+      "expected": "LEGAL_DOCUMENT_NEEDS_FILE",
+      "actual": "LEGAL_DOCUMENT_NEEDS_FILE",
+      "ok": true
+    },
+    {
+      "step": "the electronic copy is stored in the archive",
+      "expected": [
+        200,
+        1
+      ],
+      "actual": [
+        200,
+        1
+      ],
+      "ok": true
+    },
+    {
+      "step": "the memo goes to review",
+      "expected": [
+        200,
+        "IN_REVIEW"
+      ],
+      "actual": [
+        200,
+        "IN_REVIEW"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the author cannot approve their own memo without the approval right",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "an edit during review is refused",
+      "expected": "LEGAL_DOCUMENT_NOT_DRAFT",
+      "actual": "LEGAL_DOCUMENT_NOT_DRAFT",
+      "ok": true
+    },
+    {
+      "step": "the manager approves",
+      "expected": [
+        200,
+        "APPROVED",
+        "376c020e-b416-4240-b1b1-8efeeb68c219"
+      ],
+      "actual": [
+        200,
+        "APPROVED",
+        "376c020e-b416-4240-b1b1-8efeeb68c219"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the approval time is kept",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the approved copy is locked",
+      "expected": "LEGAL_DOCUMENT_LOCKED",
+      "actual": "LEGAL_DOCUMENT_LOCKED",
+      "ok": true
+    },
+    {
+      "step": "a member records that it was sent",
+      "expected": [
+        200,
+        "SENT",
+        true
+      ],
+      "actual": [
+        200,
+        "SENT",
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "it was not sent through any integration",
+      "expected": false,
+      "actual": false,
+      "ok": true
+    },
+    {
+      "step": "the memo is archived",
+      "expected": [
+        200,
+        "ARCHIVED"
+      ],
+      "actual": [
+        200,
+        "ARCHIVED"
+      ],
+      "ok": true
+    },
+    {
+      "step": "every step is in the history",
+      "expected": [
+        "DRAFT",
+        "IN_REVIEW",
+        "APPROVED",
+        "SENT",
+        "ARCHIVED"
+      ],
+      "actual": [
+        "DRAFT",
+        "IN_REVIEW",
+        "APPROVED",
+        "SENT",
+        "ARCHIVED"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the viewer's register does not show the case's memos",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the viewer is told the memo does not exist",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the executed judgment is not in the unexecuted list",
+      "expected": false,
+      "actual": false,
+      "ok": true
+    },
+    {
+      "step": "unexecuted judgments before/after the journey (all synthetic and real)",
+      "value": [
+        247,
+        247
+      ]
+    },
+    {
+      "step": "late judgments before the journey",
+      "value": 2
+    }
+  ],
+  "passed": true
+}

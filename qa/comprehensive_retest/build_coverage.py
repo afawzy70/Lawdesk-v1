@@ -61,7 +61,9 @@ SCENARIO_PARTIAL = {
     "LD-DOC-35-008": ("wp2", "روابط الواقعة والدفع والطلب ظهرت؛ لم يثبت أن الملف نفسه رُبط بالثلاثة"),
     "LD-DOC-35-012": ("wp3_followup", "التاريخ محفوظ بعد الإغلاق؛ مراجعة البنود والمواعيد المفتوحة لم تُفحص بالكامل"),
     "LD-DOC-35-013": ("wp2", "نتائج الدرجات حُفظت؛ ثبات المرجع القضائي وأرقام المحكمة المستقلة لم يُفحصا معًا"),
+    "LD-DOC-35-014": ("wp4", "قواعد اصطناعية ومراجعة وتنبيه؛ القواعد والعطلات القانونية الفعلية تنتظر D6"),
     "LD-DOC-35-015": ("wp1_access", "صلاحيات ونطاق ومنح محدودة فُحصت؛ حساب qa.admin معطل، والأدوار السبعة لم تُفحص كلها"),
+    "LD-DOC-35-016": ("wp10", "الاسترجاع والمصادر مع مزود اختباري حتمي؛ التشغيل التوليدي الفعلي ينتظر D8"),
 }
 
 ALIAS = {"wp1a": "wp1_access", "wp1c": "wp1c_parties", "wp1d": "wp1d_stages",
@@ -117,6 +119,15 @@ def journey(name):
 
 def result_for(c):
     rid, _, _, _, implemented, developer, _, cause, note = c
+    if rid == "LD-DOC-35-015" and OUTPUT_TAG == "-514c481":
+        leak_path = HERE / "party-directory-scope-514c481-result.json"
+        if leak_path.exists():
+            leak = json.loads(leak_path.read_text())
+            if leak["applicationShaBefore"] == leak["applicationShaAfter"] == APP_SHA \
+                    and leak["outsiderSearchTotal"] > 0 and leak["outsiderSeesName"] \
+                    and leak["outsiderCaseCount"] == 0:
+                return "FAIL", leak_path.name, APP_SHA, \
+                    "S15: مشاهد خارج نطاق القضية استطاع العثور على طرفها وقراءة اسمه؛ QA-RT-010"
     if rid in SCENARIO_ACCEPT:
         required = SCENARIO_ACCEPT[rid]
         if all((data := journey(name)) and any(s["step"] == step and s.get("ok") is True for s in data["steps"])
@@ -133,15 +144,27 @@ def result_for(c):
         if targeted["applicationShaBefore"] == targeted["applicationShaAfter"] == APP_SHA:
             return "PARTIAL", f"ocr-targeted-result{OUTPUT_TAG}.json; {RUN_DIR.name}/ocr.json", APP_SHA, \
                 "OCR_DONE والفهرسة تعملان، لكن كلمة الكويتي والمرجع LD-2026/045 غائبان ولا يظهر الملف بالبحث عنهما"
+    if rid == "LD-DOC-34-016":
+        browser_path = HERE / f"browser-uat-result{OUTPUT_TAG}.json"
+        if browser_path.exists():
+            browser = json.loads(browser_path.read_text())
+            if len(browser) == 32 and all(x.get("applicationShaBefore") == APP_SHA
+                                          and x.get("applicationShaAfter") == APP_SHA for x in browser):
+                violations = sum(len(x.get("axeViolations", [])) for x in browser)
+                return "PARTIAL", browser_path.name, APP_SHA, \
+                    f"32 فحص Chromium للهاتف والحاسب؛ اللوحي وFirefox/WebKit غير مفحوصة، ومخالفات axe={violations}"
     if rid in ACCEPT:
         name, step = ACCEPT[rid]
         data = journey(name)
         if data and any(s["step"] == step and s.get("ok") is True for s in data["steps"]):
             return "PASS", f"{RUN_DIR.name}/{name}.json: {step}", APP_SHA, "ضيق النطاق: تحقق هذا النص الذري فقط"
     if implemented == "BLOCKED":
-        return "BLOCKED", "docs/requirements: " + cause, "", note
+        category, action = blocker_assessment(c)
+        if category in ("OWNER_PROVIDER", "OWNER_DECISION", "OWNER_DATA", "SPECIALIST_RULES", "SPECIALIST_TEST"):
+            return "BLOCKED", f"open_rows_review{OUTPUT_TAG}.csv; docs/design owner decisions: " + cause, "", action
+        return "NOT_TESTED", f"open_rows_review{OUTPUT_TAG}.csv", "", "المطور صنفه محجوبًا، لكن الجزء التقني قابل للفحص: " + action
     if implemented == "PARTIAL":
-        return "PARTIAL", "docs/requirements: " + cause, APP_SHA, note
+        return "NOT_TESTED", f"open_rows_review{OUTPUT_TAG}.csv", "", "ادعاء المطور PARTIAL فقط؛ لا دليل QA مستقل لهذا الصف: " + note
     match = re.search(r"\[([A-Z0-9_]+)\]", developer)
     return "NOT_TESTED", "", "", ("اختبار مقترح: " + developer[:180].strip() if developer else "يلزم تصميم اختبار مستقل للحقل أو القاعدة")
 

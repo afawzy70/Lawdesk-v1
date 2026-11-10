@@ -1,0 +1,213 @@
+{
+  "journey": "WP1 access, case record and involved units (261110054834)",
+  "base": "https://lawdesk.167-86-90-174.sslip.io",
+  "steps": [
+    {
+      "step": "deployed release",
+      "value": {
+        "release": "514c481c02673f29a39601a6b22694d5e0427029"
+      }
+    },
+    {
+      "step": "manager creates a legal department unit",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "manager creates a legal section",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "manager creates the authority's sector/department/section",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "manager places the staff account in the legal section",
+      "expected": 204,
+      "actual": 204,
+      "ok": true
+    },
+    {
+      "step": "intake registers the synthetic case",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "reference (system, D1)",
+      "value": "LD-2026-00188"
+    },
+    {
+      "step": "automated number (user, D1)",
+      "value": "AUTO-261110054834"
+    },
+    {
+      "step": "claimed amount keeps three decimals",
+      "expected": "12500.500",
+      "actual": "12500.500",
+      "ok": true
+    },
+    {
+      "step": "financial impact stays a separate amount",
+      "expected": "1500.250",
+      "actual": "1500.250",
+      "ok": true
+    },
+    {
+      "step": "the case belongs to the specialist's unit",
+      "expected": "df4616aa-6a04-4990-b909-7981fda6cfc1",
+      "actual": "df4616aa-6a04-4990-b909-7981fda6cfc1",
+      "ok": true
+    },
+    {
+      "step": "the specialist sees the case",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "the alternate member (also the manager) sees it",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "a read-only user without a scope does not see it",
+      "expected": 404,
+      "actual": 404,
+      "ok": true
+    },
+    {
+      "step": "nor in the viewer's list",
+      "expected": 0,
+      "actual": 0,
+      "ok": true
+    },
+    {
+      "step": "the specialist finds it by its subject",
+      "expected": 1,
+      "actual": 1,
+      "ok": true
+    },
+    {
+      "step": "viewer is refused /timeline",
+      "expected": 404,
+      "actual": 404,
+      "ok": true
+    },
+    {
+      "step": "viewer is refused /parties",
+      "expected": 404,
+      "actual": 404,
+      "ok": true
+    },
+    {
+      "step": "viewer is refused /proceedings",
+      "expected": 404,
+      "actual": 404,
+      "ok": true
+    },
+    {
+      "step": "viewer is refused /notes",
+      "expected": 404,
+      "actual": 404,
+      "ok": true
+    },
+    {
+      "step": "viewer is refused /judgments",
+      "expected": 404,
+      "actual": 404,
+      "ok": true
+    },
+    {
+      "step": "viewer is refused /hearings",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "viewer is refused /documents",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the specialist records the primary involved unit",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the sector name is frozen on the record",
+      "expected": "قطاع الخدمات المساندة (SYNTH-DOC 261110054834)",
+      "actual": "قطاع الخدمات المساندة (SYNTH-DOC 261110054834)",
+      "ok": true
+    },
+    {
+      "step": "renaming the unit later leaves the case's record unchanged",
+      "expected": "قسم شؤون الموظفين (261110054834)",
+      "actual": "قسم شؤون الموظفين (261110054834)",
+      "ok": true
+    },
+    {
+      "step": "the alternate member restricts the case",
+      "expected": 204,
+      "actual": 204,
+      "ok": true
+    },
+    {
+      "step": "the specialist still sees it",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "a grant is given with a reason",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the grantee now sees the restricted case",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "the grantee cannot change it",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "nobody grants themself access",
+      "expected": 422,
+      "actual": 422,
+      "ok": true
+    },
+    {
+      "step": "the grant is withdrawn",
+      "expected": 204,
+      "actual": 204,
+      "ok": true
+    },
+    {
+      "step": "the grantee no longer sees it",
+      "expected": 404,
+      "actual": 404,
+      "ok": true
+    },
+    {
+      "step": "the audit trail records the grant",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    }
+  ],
+  "passed": true
+}

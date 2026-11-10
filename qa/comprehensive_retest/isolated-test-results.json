@@ -11,7 +11,32 @@
     "IndicatorApiTest": 12,
     "StoredSearchDocumentsTest": 6
   },
-  "backendTotal": {"tests": 47, "failed": 0, "errors": 0, "skipped": 0},
+  "backendTotal": {
+    "tests": 47,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "securityAssistantDeadlineSuites": {
+    "AuthorizationBeforeValidationTest": 4,
+    "PermissionContractTest": 4,
+    "SessionRevocationTest": 12,
+    "AssistantAskApiTest": 16,
+    "AssistantBoundariesTest": 9,
+    "AssistantDefaultRolesTest": 1,
+    "AssistantTasksApiTest": 16,
+    "DeadlineCalculatorTest": 10,
+    "DeadlineApiTest": 21,
+    "DeadlineReminderApiTest": 5,
+    "DeadlineTimelineApiTest": 3
+  },
+  "securityAssistantDeadlineTotal": {
+    "tests": 101,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "scope": "isolated tests with synthetic rules and deterministic test provider; no operational AI acceptance"
+  },
   "pinnedKuwaitClock": {
     "command": "cd backend && ./mvnw -o -q -Dmaven.repo.local=/tmp/lawdesk-qa-m2-20261110 test -Dtest=KuwaitDayValidationTest",
     "fixedInstantUtc": "2026-11-09T21:30:00Z",
@@ -22,10 +47,46 @@
   },
   "frontend": {
     "build": "PASS",
-    "fullVitest": {"filesPassed": 109, "filesFailed": 1, "testsPassed": 939, "testsFailed": 1, "failure": "OperationsLayout English test exceeded its 5 s timeout during parallel host load"},
-    "targetedRerun": {"filesPassed": 3, "testsPassed": 31, "testsFailed": 0, "scope": "OperationsLayout, Access and HearingExtension; timeout was not reproduced"}
+    "fullVitest": {
+      "filesPassed": 109,
+      "filesFailed": 1,
+      "testsPassed": 939,
+      "testsFailed": 1,
+      "failure": "OperationsLayout English test exceeded its 5 s timeout during parallel host load"
+    },
+    "targetedRerun": {
+      "filesPassed": 3,
+      "testsPassed": 31,
+      "testsFailed": 0,
+      "scope": "OperationsLayout, Access and HearingExtension; timeout was not reproduced"
+    }
   },
-  "qaToolTests": {"tests": 180, "failed": 0, "environment": "local-socket-capable executor"},
-  "qaIndependentTests": {"tests": 6, "failed": 0},
-  "interpretation": "A developer-authored test passed when independently rerun; atomic QA acceptance is assigned only when its exact assertion was reviewed and mapped in coverage.csv. The broad frontend suite did not pass as a whole."
+  "qaToolTests": {
+    "tests": 180,
+    "failed": 0,
+    "environment": "local-socket-capable executor"
+  },
+  "qaIndependentTests": {
+    "tests": 6,
+    "failed": 0
+  },
+  "largeExportRetest": {
+    "test": "Wp8ExportRetestQa",
+    "tests": 1,
+    "failed": 0,
+    "evidence": "export-50k-result.json",
+    "httpStatus": 422,
+    "elapsedMs": 733,
+    "interpretation": "The documented 10000-row cap refused a 50000-case export without an attachment; the historical timeout was not reproduced and no timeout was raised."
+  },
+  "interpretation": "A developer-authored test passed when independently rerun; atomic QA acceptance is assigned only when its exact assertion was reviewed and mapped in coverage.csv. The broad frontend suite did not pass as a whole.",
+  "access514c481": {
+    "applicationSha": "514c481c02673f29a39601a6b22694d5e0427029",
+    "evidence": "access-514c481-result.json",
+    "testsPassed": 10,
+    "walkChecksEach": 168,
+    "unseeded": 0,
+    "unresolved": 0,
+    "bodyNotBuilt": 0
+  }
 }

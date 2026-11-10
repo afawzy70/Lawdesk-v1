@@ -59,7 +59,9 @@ for (const locale of ['ar', 'en']) {
         })));
         if (screen === 'cases' || screen === 'case') {
           const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
-          rec.axeViolations = axe.violations.map(v => ({ id: v.id, impact: v.impact, nodes: v.nodes.length }));
+          rec.axeViolations = axe.violations.map(v => ({ id: v.id, impact: v.impact, nodes: v.nodes.length,
+            targets: v.nodes.map(n => n.target).slice(0, 3),
+            failure: v.nodes[0]?.failureSummary?.slice(0, 300) }));
         }
       } catch (e) {
         rec.fatal = String(e).split('\n')[0].slice(0, 160);

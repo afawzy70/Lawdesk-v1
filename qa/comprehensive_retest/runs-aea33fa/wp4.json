@@ -1,0 +1,555 @@
+{
+  "journey": "WP4 legal deadlines, rules, holidays and reminders (261110053001)",
+  "base": "https://lawdesk.167-86-90-174.sslip.io",
+  "steps": [
+    {
+      "step": "deployed release",
+      "value": {
+        "release": "aea33fa3d8e1f92a5b8bde5ad6f34c99e4bf1bfa"
+      }
+    },
+    {
+      "step": "intake registers the synthetic case",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "case",
+      "value": "LD-2026-00175"
+    },
+    {
+      "step": "reminder lead times configured by the owner",
+      "value": {
+        "configured": false,
+        "leadDays": null,
+        "updatedAt": null
+      }
+    },
+    {
+      "step": "the lead times are an explicit choice: unconfigured means no leadDays at all",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "a synthetic judgment is recorded as a source",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "staff records a deadline from the judgment",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "it is manual and not official",
+      "expected": [
+        "MANUAL",
+        false,
+        "OPEN"
+      ],
+      "actual": [
+        "MANUAL",
+        false,
+        "OPEN"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the source is the judgment",
+      "expected": [
+        "JUDGMENT",
+        "7469480e-f882-49ac-b5fb-af43e9062099"
+      ],
+      "actual": [
+        "JUDGMENT",
+        "7469480e-f882-49ac-b5fb-af43e9062099"
+      ],
+      "ok": true
+    },
+    {
+      "step": "a read-only user cannot record a deadline",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "a read-only user cannot approve it",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "a competent member approves it",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "it is official, with the approver and the time kept",
+      "expected": [
+        "APPROVED",
+        true,
+        "376c020e-b416-4240-b1b1-8efeeb68c219",
+        true
+      ],
+      "actual": [
+        "APPROVED",
+        true,
+        "376c020e-b416-4240-b1b1-8efeeb68c219",
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "approving twice is refused",
+      "expected": "DEADLINE_ALREADY_APPROVED",
+      "actual": "DEADLINE_ALREADY_APPROVED",
+      "ok": true
+    },
+    {
+      "step": "a period without a due date is a valid record",
+      "expected": [
+        201,
+        null
+      ],
+      "actual": [
+        201,
+        null
+      ],
+      "ok": true
+    },
+    {
+      "step": "but it cannot be approved without a date",
+      "expected": "DEADLINE_NO_DUE_DATE",
+      "actual": "DEADLINE_NO_DUE_DATE",
+      "ok": true
+    },
+    {
+      "step": "the judgment shows its own deadline",
+      "expected": [
+        "43ee9484-ba36-4a3b-bcde-088e1b5a119b"
+      ],
+      "actual": [
+        "43ee9484-ba36-4a3b-bcde-088e1b5a119b"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the register lists the case's deadlines",
+      "expected": 2,
+      "actual": 2,
+      "ok": true
+    },
+    {
+      "step": "the register filters by approval",
+      "expected": [
+        "43ee9484-ba36-4a3b-bcde-088e1b5a119b"
+      ],
+      "actual": [
+        "43ee9484-ba36-4a3b-bcde-088e1b5a119b"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the register filters by due window",
+      "expected": [
+        "43ee9484-ba36-4a3b-bcde-088e1b5a119b"
+      ],
+      "actual": [
+        "43ee9484-ba36-4a3b-bcde-088e1b5a119b"
+      ],
+      "ok": true
+    },
+    {
+      "step": "a user who cannot see the case sees none of its deadlines",
+      "expected": 0,
+      "actual": 0,
+      "ok": true
+    },
+    {
+      "step": "nor can they open one",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "nor the judgment's view",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "a read-only user cannot enter a rule",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "staff enters a rule as a draft",
+      "expected": [
+        201,
+        "DRAFT"
+      ],
+      "actual": [
+        201,
+        "DRAFT"
+      ],
+      "ok": true
+    },
+    {
+      "step": "a draft rule is not an approved rule: the system answers 422 NO_APPROVED_RULE",
+      "expected": [
+        422,
+        "NO_APPROVED_RULE"
+      ],
+      "actual": [
+        422,
+        "NO_APPROVED_RULE"
+      ],
+      "ok": true
+    },
+    {
+      "step": "staff enters a holiday as a draft",
+      "expected": [
+        201,
+        "DRAFT"
+      ],
+      "actual": [
+        201,
+        "DRAFT"
+      ],
+      "ok": true
+    },
+    {
+      "step": "a holiday is approved by a competent member only",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "the holiday is approved, with the approver kept",
+      "expected": [
+        200,
+        "APPROVED",
+        true
+      ],
+      "actual": [
+        200,
+        "APPROVED",
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "a competent member approves the rule",
+      "expected": [
+        200,
+        "APPROVED"
+      ],
+      "actual": [
+        200,
+        "APPROVED"
+      ],
+      "ok": true
+    },
+    {
+      "step": "an approved rule is frozen",
+      "expected": [
+        422,
+        "RULE_NOT_DRAFT"
+      ],
+      "actual": [
+        422,
+        "RULE_NOT_DRAFT"
+      ],
+      "ok": true
+    },
+    {
+      "step": "with an approved rule the system proposes a date",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "it is a proposal, not an official deadline",
+      "expected": [
+        "PROPOSED",
+        false,
+        null
+      ],
+      "actual": [
+        "PROPOSED",
+        false,
+        null
+      ],
+      "ok": true
+    },
+    {
+      "step": "5 working days from Monday 2001-03-05, Saturday/Sunday closed and the holiday skipped, end on 2001-03-13",
+      "expected": "2001-03-13",
+      "actual": "2001-03-13",
+      "ok": true
+    },
+    {
+      "step": "it shows the rule and its legal source",
+      "expected": [
+        "SYNTH-DOC-261110053001",
+        "مصدر اختباري فقط (SYNTH-DOC)"
+      ],
+      "actual": [
+        "SYNTH-DOC-261110053001",
+        "مصدر اختباري فقط (SYNTH-DOC)"
+      ],
+      "ok": true
+    },
+    {
+      "step": "it shows the holiday applied and the closed weekdays skipped",
+      "expected": [
+        [
+          "2001-03-07",
+          "HOLIDAY"
+        ],
+        [
+          "2001-03-10",
+          "WEEKDAY"
+        ],
+        [
+          "2001-03-11",
+          "WEEKDAY"
+        ]
+      ],
+      "actual": [
+        [
+          "2001-03-07",
+          "HOLIDAY"
+        ],
+        [
+          "2001-03-10",
+          "WEEKDAY"
+        ],
+        [
+          "2001-03-11",
+          "WEEKDAY"
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "step": "a proposal cannot be completed before it is approved",
+      "expected": "DEADLINE_PROPOSAL_PENDING",
+      "actual": "DEADLINE_PROPOSAL_PENDING",
+      "ok": true
+    },
+    {
+      "step": "a rule is not used before its effective date",
+      "expected": [
+        422,
+        "RULE_NOT_EFFECTIVE"
+      ],
+      "actual": [
+        422,
+        "RULE_NOT_EFFECTIVE"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the proposal becomes official only when approved",
+      "expected": [
+        200,
+        true,
+        "376c020e-b416-4240-b1b1-8efeeb68c219"
+      ],
+      "actual": [
+        200,
+        true,
+        "376c020e-b416-4240-b1b1-8efeeb68c219"
+      ],
+      "ok": true
+    },
+    {
+      "step": "and keeps the arithmetic it was approved with",
+      "expected": "2001-03-13",
+      "actual": "2001-03-13",
+      "ok": true
+    },
+    {
+      "step": "a proof document is archived in the case file",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "staff completes the deadline with its proof",
+      "expected": [
+        200,
+        "COMPLETED",
+        "0052ea09-abef-40b8-b250-f706a5e0867a"
+      ],
+      "actual": [
+        200,
+        "COMPLETED",
+        "0052ea09-abef-40b8-b250-f706a5e0867a"
+      ],
+      "ok": true
+    },
+    {
+      "step": "a mistaken completion can be reopened by a user",
+      "expected": [
+        200,
+        "OPEN",
+        null
+      ],
+      "actual": [
+        200,
+        "OPEN",
+        null
+      ],
+      "ok": true
+    },
+    {
+      "step": "an already-late deadline can be recorded",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "and approved",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "it is overdue in the register (as is the reopened 2001 deadline: nothing closes by itself)",
+      "expected": [
+        "ab640e1b-e3e4-46f0-ab7f-8e8adf8a679a",
+        "ea922139-13cf-4190-9614-cb664d57abff"
+      ],
+      "actual": [
+        "ab640e1b-e3e4-46f0-ab7f-8e8adf8a679a",
+        "ea922139-13cf-4190-9614-cb664d57abff"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the reminder run answers",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "no reminder is created before a due date while the lead times are not configured",
+      "expected": 0,
+      "actual": 0,
+      "ok": true
+    },
+    {
+      "step": "the specialist is told in the system once per overdue approved deadline (a repeated run adds none)",
+      "expected": 2,
+      "actual": 2,
+      "ok": true
+    },
+    {
+      "step": "a user who cannot see the case receives nothing about it",
+      "expected": [],
+      "actual": [],
+      "ok": true
+    },
+    {
+      "step": "the run did not close the overdue deadline",
+      "expected": "OPEN",
+      "actual": "OPEN",
+      "ok": true
+    },
+    {
+      "step": "the timeline lists the case's dated deadlines (the one with only a period has no date)",
+      "expected": 3,
+      "actual": 3,
+      "ok": true
+    },
+    {
+      "step": "and says deadlines are available",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the overdue one needs action",
+      "expected": [
+        true
+      ],
+      "actual": [
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "the future approved one is marked as upcoming",
+      "expected": [
+        true
+      ],
+      "actual": [
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "the summary counts the open deadlines",
+      "expected": [
+        4,
+        2
+      ],
+      "actual": [
+        4,
+        2
+      ],
+      "ok": true
+    },
+    {
+      "step": "a user who cannot see the case cannot read its timeline",
+      "expected": 404,
+      "actual": 404,
+      "ok": true
+    },
+    {
+      "step": "the synthetic rule is retired",
+      "expected": [
+        200,
+        "RETIRED"
+      ],
+      "actual": [
+        200,
+        "RETIRED"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the synthetic holiday is retired",
+      "expected": [
+        200,
+        "RETIRED"
+      ],
+      "actual": [
+        200,
+        "RETIRED"
+      ],
+      "ok": true
+    },
+    {
+      "step": "a retired rule proposes nothing",
+      "expected": [
+        422,
+        "NO_APPROVED_RULE"
+      ],
+      "actual": [
+        422,
+        "NO_APPROVED_RULE"
+      ],
+      "ok": true
+    }
+  ],
+  "passed": true
+}

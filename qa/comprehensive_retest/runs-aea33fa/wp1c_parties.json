@@ -1,0 +1,123 @@
+{
+  "journey": "WP1c parties, counsel and duplicates (261110052931)",
+  "base": "https://lawdesk.167-86-90-174.sslip.io",
+  "steps": [
+    {
+      "step": "deployed release",
+      "value": {
+        "release": "aea33fa3d8e1f92a5b8bde5ad6f34c99e4bf1bfa"
+      }
+    },
+    {
+      "step": "manager creates a confidential party with a civil number",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the manager sees the full civil number",
+      "expected": "29110052931",
+      "actual": "29110052931",
+      "ok": true
+    },
+    {
+      "step": "a reader without PARTY_ID_VIEW sees only the last three characters",
+      "expected": "********931",
+      "actual": "********931",
+      "ok": true
+    },
+    {
+      "step": "and no contact details of a confidential party",
+      "expected": null,
+      "actual": null,
+      "ok": true
+    },
+    {
+      "step": "an identifier is not a search key for that reader",
+      "expected": 0,
+      "actual": 0,
+      "ok": true
+    },
+    {
+      "step": "but it is for the manager",
+      "expected": 1,
+      "actual": 1,
+      "ok": true
+    },
+    {
+      "step": "the case is registered with the party",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the party's cases include it for the specialist",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "but not for a reader who cannot see the case",
+      "expected": [],
+      "actual": [],
+      "ok": true
+    },
+    {
+      "step": "counsel is recorded for the party on the case",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the case lists it",
+      "expected": 1,
+      "actual": 1,
+      "ok": true
+    },
+    {
+      "step": "a reader without access cannot list it",
+      "expected": 404,
+      "actual": 404,
+      "ok": true
+    },
+    {
+      "step": "counsel is removed (marked, not erased)",
+      "expected": 204,
+      "actual": 204,
+      "ok": true
+    },
+    {
+      "step": "a case with the same automated number is warned about",
+      "expected": [
+        422,
+        "DUPLICATE_SUSPECTED"
+      ],
+      "actual": [
+        422,
+        "DUPLICATE_SUSPECTED"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the check names the visible case",
+      "expected": [
+        "5f5872c6-00cb-4242-aa83-a668da1bfcc9"
+      ],
+      "actual": [
+        "5f5872c6-00cb-4242-aa83-a668da1bfcc9"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the registrar confirms it is different and it is registered",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "second case",
+      "value": "LD-2026-00170"
+    }
+  ],
+  "passed": true
+}
