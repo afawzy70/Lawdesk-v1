@@ -61,7 +61,9 @@ def main():
     invalid = set(names) - set(NAMES)
     if invalid:
         raise SystemExit(f"unknown journeys: {sorted(invalid)}")
-    out = HERE / "runs"
+    out = Path(os.environ.get("QA_RUN_DIR", str(HERE / "runs"))).resolve()
+    if out.parent != HERE or not out.name.startswith("runs"):
+        raise SystemExit("QA_RUN_DIR must name a runs directory directly under qa/comprehensive_retest")
     out.mkdir(exist_ok=True)
     summary_path = out / "run-summary.json"
     results = json.loads(summary_path.read_text()) if summary_path.exists() else []

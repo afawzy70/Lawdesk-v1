@@ -3,6 +3,7 @@
 
 import csv
 import json
+import os
 import re
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -11,7 +12,13 @@ ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
 SOURCE = ROOT / "docs/requirements/lawdesk-comprehensive-source.txt"
 REGISTER = ROOT / "docs/requirements/lawdesk-comprehensive-requirements-matrix.md"
-APP_SHA = "352277571426bd4d135ea4acb0e12489aa09fc3c"
+APP_SHA = os.environ.get("QA_APP_SHA", "352277571426bd4d135ea4acb0e12489aa09fc3c")
+RUN_DIR = Path(os.environ.get("QA_RUN_DIR", str(HERE / "runs"))).resolve()
+OUTPUT_TAG = os.environ.get("QA_OUTPUT_TAG", "")
+if RUN_DIR.parent != HERE or not RUN_DIR.name.startswith("runs"):
+    raise SystemExit("QA_RUN_DIR must name a runs directory directly under qa/comprehensive_retest")
+if OUTPUT_TAG and not re.fullmatch(r"-[a-z0-9]+", OUTPUT_TAG):
+    raise SystemExit("QA_OUTPUT_TAG must be a simple -suffix")
 
 # These are narrow, exact assertions in independent UAT reruns. A passing
 # developer journey never promotes every row assigned to its evidence bundle.
@@ -99,8 +106,8 @@ def read_rows():
 
 
 def journey(name):
-    p = HERE / "runs" / f"{name}.json"
-    summary = json.loads((HERE / "runs/run-summary.json").read_text())
+    p = RUN_DIR / f"{name}.json"
+    summary = json.loads((RUN_DIR / "run-summary.json").read_text())
     meta = next((x for x in summary if x["name"] == name), None)
     if not p.exists() or not meta or meta["state"] != "SCRIPT_PASS" or \
             meta["applicationShaBefore"] != APP_SHA or meta["applicationShaAfter"] != APP_SHA:
@@ -114,23 +121,23 @@ def result_for(c):
         required = SCENARIO_ACCEPT[rid]
         if all((data := journey(name)) and any(s["step"] == step and s.get("ok") is True for s in data["steps"])
                for name, step in required):
-            paths = sorted({f"runs/{name}.json" for name, _ in required})
+            paths = sorted({f"{RUN_DIR.name}/{name}.json" for name, _ in required})
             return "PASS", "; ".join(paths) + ": " + "; ".join(step for _, step in required), APP_SHA, \
                 "قبول السيناريو المحدد فقط؛ لا يعمم على جميع حقول الوحدة"
     if rid in SCENARIO_PARTIAL:
         name, gap = SCENARIO_PARTIAL[rid]
         if journey(name):
-            return "PARTIAL", f"runs/{name}.json", APP_SHA, gap
+            return "PARTIAL", f"{RUN_DIR.name}/{name}.json", APP_SHA, gap
     if rid == "LD-DOC-13-004":
-        targeted = json.loads((HERE / "ocr-targeted-result.json").read_text())
+        targeted = json.loads((HERE / f"ocr-targeted-result{OUTPUT_TAG}.json").read_text())
         if targeted["applicationShaBefore"] == targeted["applicationShaAfter"] == APP_SHA:
-            return "PARTIAL", "ocr-targeted-result.json; runs/ocr.json", APP_SHA, \
+            return "PARTIAL", f"ocr-targeted-result{OUTPUT_TAG}.json; {RUN_DIR.name}/ocr.json", APP_SHA, \
                 "OCR_DONE والفهرسة تعملان، لكن كلمة الكويتي والمرجع LD-2026/045 غائبان ولا يظهر الملف بالبحث عنهما"
     if rid in ACCEPT:
         name, step = ACCEPT[rid]
         data = journey(name)
         if data and any(s["step"] == step and s.get("ok") is True for s in data["steps"]):
-            return "PASS", f"runs/{name}.json: {step}", APP_SHA, "ضيق النطاق: تحقق هذا النص الذري فقط"
+            return "PASS", f"{RUN_DIR.name}/{name}.json: {step}", APP_SHA, "ضيق النطاق: تحقق هذا النص الذري فقط"
     if implemented == "BLOCKED":
         return "BLOCKED", "docs/requirements: " + cause, "", note
     if implemented == "PARTIAL":
@@ -186,7 +193,7 @@ def plan_for(c):
 
 def main():
     rows, source = read_rows()
-    out = HERE / "coverage.csv"
+    out = HERE / f"coverage{OUTPUT_TAG}.csv"
     counts = Counter()
     with out.open("w", newline="", encoding="utf-8") as f:
         w = csv.writer(f, lineterminator="\n")
@@ -197,7 +204,7 @@ def main():
             counts[state] += 1
             w.writerow([x.rstrip() if isinstance(x, str) else x for x in
                         (c[0], c[1], c[3], c[4], c[5], plan_for(c), state, evidence, sha, note)])
-    with (HERE / "open_rows_review.csv").open("w", newline="", encoding="utf-8") as f:
+    with (HERE / f"open_rows_review{OUTPUT_TAG}.csv").open("w", newline="", encoding="utf-8") as f:
         w = csv.writer(f, lineterminator="\n")
         w.writerow(["requirement_id", "source_text", "implementation_claim", "claimed_blocker", "qa_assessment", "action"])
         for c in rows:
@@ -216,7 +223,7 @@ def main():
         "openRowsReviewed": sum(r[4] in ("PARTIAL", "BLOCKED") for r in rows),
         "applicationSha": APP_SHA,
     }
-    (HERE / "coverage-summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n")
+    (HERE / f"coverage-summary{OUTPUT_TAG}.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n")
     print(json.dumps(summary, ensure_ascii=False))
 
 

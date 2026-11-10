@@ -11,7 +11,9 @@ const credentials = JSON.parse(fs.readFileSync('/srv/ai-workspaces/secrets/lawde
 const browser = await chromium.launch({ headless: true,
   args: [`--host-resolver-rules=MAP ${host} 167.86.90.174`] });
 const results = [];
-const output = new URL('./browser-uat-result.json', import.meta.url);
+const outputName = process.env.QA_BROWSER_OUT || 'browser-uat-result.json';
+if (!/^browser-uat-result(?:-[a-z0-9]+)?\.json$/.test(outputName)) throw new Error('invalid QA_BROWSER_OUT');
+const output = new URL(`./${outputName}`, import.meta.url);
 for (const locale of ['ar', 'en']) {
   for (const [widthName, width, height] of [['phone', 390, 844], ['desktop', 1366, 900]]) {
     const context = await browser.newContext({ viewport: { width, height }, locale });

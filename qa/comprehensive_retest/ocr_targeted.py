@@ -2,6 +2,7 @@
 """Probe OCR omissions explicitly instead of dropping a failed search term."""
 
 import json
+import os
 import re
 import sys
 import urllib.parse
@@ -15,7 +16,10 @@ from uat import Session  # noqa: E402
 
 
 def main():
-    prior = json.loads((HERE / "runs/ocr.json").read_text())
+    run_dir = Path(os.environ.get("QA_RUN_DIR", str(HERE / "runs"))).resolve()
+    if run_dir.parent != HERE or not run_dir.name.startswith("runs"):
+        raise SystemExit("QA_RUN_DIR must name a runs directory directly under qa/comprehensive_retest")
+    prior = json.loads((run_dir / "ocr.json").read_text())
     run = re.search(r"\((\d+)\)$", prior["journey"]).group(1)
     staff = Session("staff").login("staff")
     release_before = staff.call("GET", "/api/v1/release")[1]["release"]
@@ -40,7 +44,10 @@ def main():
     result = {"observedAtUtc": datetime.now(timezone.utc).isoformat(),
               "applicationShaBefore": release_before, "applicationShaAfter": release_after,
               "checks": checks}
-    (HERE / "ocr-targeted-result.json").write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n")
+    output = Path(os.environ.get("QA_OCR_OUT", str(HERE / "ocr-targeted-result.json"))).resolve()
+    if output.parent != HERE:
+        raise SystemExit("QA_OCR_OUT must be in qa/comprehensive_retest")
+    output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n")
     print(json.dumps(result, ensure_ascii=False))
     return 0 if release_before == release_after else 2
 
