@@ -83,7 +83,7 @@ for row in base:
     out.append(item)
 
 with (HERE / "coverage-window2-18822a8.csv").open("w", newline="") as f:
-    writer = csv.DictWriter(f, fieldnames=fieldnames)
+    writer = csv.DictWriter(f, fieldnames=fieldnames, lineterminator="\n")
     writer.writeheader()
     writer.writerows(out)
 counts = Counter(x["qa_result"] for x in out)
