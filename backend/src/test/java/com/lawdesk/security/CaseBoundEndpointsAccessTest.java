@@ -144,6 +144,7 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
     void clean() {
         OperationsTestData.deleteAll(jdbc);
         jdbc.update("delete from party");
+        jdbc.update("delete from expert where name = 'SYNTH-DOC expert'");
         jdbc.update("delete from library_judgment where court_name = 'SYNTH-DOC court'");
     }
 
@@ -274,6 +275,24 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
         ids.put("risk_assessment", insert("""
                 insert into risk_assessment (case_id, version_no, level, level_reasons, trigger_kind, assessed_by)
                 values (?, 1, 'LOW', 'SYNTH-DOC', 'MANUAL', ?) returning id""", legalCase, USER));
+        ids.put("case_grant", insert("""
+                insert into case_grant (case_id, user_id, level, reason, granted_by) values (?, ?, 'VIEW', 'SYNTH-DOC', ?) returning id""",
+                legalCase, member, USER));
+        ids.put("case_org_involvement", insert("""
+                insert into case_org_involvement (case_id, sector_name_snapshot, created_by, updated_by) values (?, 'SYNTH-DOC', ?, ?) returning id""",
+                legalCase, USER, USER));
+        ids.put("case_party_counsel", insert("""
+                insert into case_party_counsel (case_id, party_id, kind, name, created_by) values (?, ?, 'LAWYER', 'SYNTH-DOC', ?)
+                returning id""", legalCase, party, USER));
+        UUID expert = insert("""
+                insert into expert (name, specialty, created_by, updated_by) values ('SYNTH-DOC expert', 'SYNTH-DOC', ?, ?) returning id""",
+                USER, USER);
+        ids.put("expert_referral", insert("""
+                insert into expert_referral (case_id, proceeding_id, expert_id, referral_date, mission, created_by, updated_by)
+                values (?, ?, ?, '2026-02-01', 'SYNTH-DOC', ?, ?) returning id""", legalCase, proceeding, expert, USER, USER));
+        ids.put("risk_remediation", insert("""
+                insert into risk_remediation (assessment_id, case_id, cause, action, created_by, updated_by)
+                values (?, ?, 'SYNTH-DOC', 'SYNTH-DOC', ?, ?) returning id""", ids.get("risk_assessment"), legalCase, USER, USER));
         ids.forEach((table, id) -> {
             if (id == null) {
                 unseeded.add(table);
@@ -296,6 +315,11 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
 
     /** The URL with each variable replaced by the record named by the segment before it; null when no record exists. */
     private static String resolve(String pattern, Map<String, UUID> ids, UUID caseId) {
+        return resolve(pattern, ids, caseId, false);
+    }
+
+    /** As above; with {@code missing} each variable names a random record that does not exist. */
+    private static String resolve(String pattern, Map<String, UUID> ids, UUID caseId, boolean missing) {
         Matcher m = VARIABLE.matcher(pattern);
         StringBuilder out = new StringBuilder();
         while (m.find()) {
@@ -311,7 +335,7 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
             } else if (table == null || ids.get(table) == null) {
                 return null;
             } else {
-                value = ids.get(table).toString();
+                value = missing ? UUID.randomUUID().toString() : ids.get(table).toString();
             }
             m.appendReplacement(out, Matcher.quoteReplacement(value));
         }
@@ -368,8 +392,45 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
         walk(1000);
     }
 
+    /**
+     * Existence is not disclosed: for every case-bound handler an outsider holding every permission gets the SAME status,
+     * content type and body shape (ids and the path they sit in normalised) for a record that exists in a case they cannot
+     * see as for a record that does not exist at all, and both are 404/403 (a 400 would hide the comparison).
+     */
+    @Test
+    void anOutsiderCannotTellARecordThatExistsFromOneThatDoesNot() throws Exception {
+        walk(0, true);
+    }
+
+    private static final Pattern UUID_TEXT = Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
+
+    private static String shape(org.springframework.mock.web.MockHttpServletResponse response) throws Exception {
+        return response.getStatus() + " " + response.getContentType() + " "
+                + UUID_TEXT.matcher(response.getContentAsString()).replaceAll("<id>");
+    }
+
+    private org.springframework.mock.web.MockHttpServletResponse respond(RequestPostProcessor user, HttpMethod method, String url,
+            String json, boolean multipart) throws Exception {
+        if (multipart) {
+            var file = new org.springframework.mock.web.MockMultipartFile("file", "x.pdf", "application/pdf",
+                    "%PDF-1.4\n%%EOF\n".getBytes(java.nio.charset.StandardCharsets.ISO_8859_1));
+            return mvc.perform(MockMvcRequestBuilders.multipart(url).file(file).param("receivedOn", "2026-03-01")
+                    .param("completeness", "COMPLETE").param("summary", "SYNTH-DOC").with(user).with(csrf())).andReturn().getResponse();
+        }
+        var builder = MockMvcRequestBuilders.request(method, url).with(user).with(csrf());
+        if (json != null) {
+            builder = builder.contentType(MediaType.APPLICATION_JSON).content(json);
+        }
+        return mvc.perform(builder).andReturn().getResponse();
+    }
+
     private void walk(long versionOffset) throws Exception {
+        walk(versionOffset, false);
+    }
+
+    private void walk(long versionOffset, boolean existence) throws Exception {
         this.versionOffset = versionOffset;
+        Set<String> disclosed = new TreeSet<>();
         List<String> unseeded = new ArrayList<>();
         Map<String, UUID> ids = seed(unseeded);
         UUID caseId = ids.get("legal_case");
@@ -432,6 +493,21 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
                         String json = hasBody && !multipart
                                 ? (built != null ? built.apply(ids, currentVersion(pattern, ids)) : body(entry.getValue().getMethod(), currentVersion(pattern, ids)))
                                 : null;
+                        if (existence) {
+                            String missingUrl = resolve(pattern, ids, caseId, true);
+                            if (url.contains("?")) {
+                                missingUrl = missingUrl + url.substring(url.indexOf('?'));
+                            }
+                            var real = respond(outsider, http, url, json, multipart);
+                            var absent = respond(outsider, http, missingUrl, json, multipart);
+                            checked++;
+                            if ((real.getStatus() != 404 && real.getStatus() != 403) || (absent.getStatus() != 404 && absent.getStatus() != 403)) {
+                                disclosed.add(key + " exists=" + real.getStatus() + " missing=" + absent.getStatus());
+                            } else if (!shape(real).equals(shape(absent))) {
+                                disclosed.add(key + " exists=[" + shape(real) + "] missing=[" + shape(absent) + "]");
+                            }
+                            continue;
+                        }
                         // The outsider goes first: a refused call changes nothing, so the insider control still sees a clean record.
                         int denied = multipart ? upload(outsider, url) : status(outsider, http, url, json);
                         int control = multipart ? upload(insider, url) : status(insider, http, url, json);
@@ -455,18 +531,22 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
             }
         }
 
+        assertThat(disclosed).as("an outsider could tell an existing record from a missing one").isEmpty();
         assertThat(unseeded).as("a table that could not be seeded silently removes its handlers from the walk").isEmpty();
         assertThat(checked).as("handlers checked").isGreaterThan(40);
         assertThat(unclassified).as("handlers with a path variable that are neither case-bound nor listed as not case-bound").isEmpty();
         assertThat(leaked).as("case-bound handlers that answered an outsider other than 404/403").isEmpty();
         assertThat(controlMissing).as("the control user could not find the record: the request was built wrongly").isEmpty();
         assertThat(badRequest).as("a 400 hides the access result and never counts as protection").isEmpty();
-        assertThat(builtSeen).as("every hand-built body was exercised").isEqualTo(BUILT_BODIES.keySet());
+        if (!existence) {
+            assertThat(builtSeen).as("every hand-built body was exercised").isEqualTo(BUILT_BODIES.keySet());
+        }
         assertThat(builtControlFailed).as("an in-scope user must get a 2xx from each hand-built request").isEmpty();
         // What could not be seeded or resolved is reported, never silently skipped.
+        unresolved.forEach(u -> System.out.println("CASE_BOUND_UNRESOLVED " + u));
         System.out.println("CASE_BOUND_WALK checked=" + checked + " unseeded=" + unseeded + " unresolved=" + unresolved
                 + " built=" + builtSeen.size());
-        assertThat(new LinkedHashSet<>(unresolved)).as("unresolved handlers").hasSizeLessThan(1000);
+        assertThat(new LinkedHashSet<>(unresolved)).as("a handler whose record could not be resolved is not walked").isEmpty();
     }
 
     /** The real current version of the record the last path variable names, so a 409 can only come from a real conflict. */
