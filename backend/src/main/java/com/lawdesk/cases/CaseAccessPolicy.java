@@ -131,7 +131,8 @@ public class CaseAccessPolicy {
 
     /** The cases of {@code alias} (an alias of {@code legal_case}) the signed-in user may see. */
     public Predicate viewable(String alias) {
-        return new Predicate(fastVisible(alias), args(scope()));
+        Scope scope = scope();
+        return new Predicate(fastVisible(alias, scope.all()), args(scope));
     }
 
     /** The cases of {@code alias} the signed-in user may change. */
@@ -150,8 +151,9 @@ public class CaseAccessPolicy {
      * function ten times as often.
      */
     public Predicate visibleCaseIds(String column) {
-        return new Predicate(column + " in (select vc.id from legal_case vc where " + fastVisible("vc") + ")",
-                args(scope()));
+        Scope scope = scope();
+        return new Predicate(column + " in (select vc.id from legal_case vc where " + fastVisible("vc", scope.all()) + ")",
+                args(scope));
     }
 
     /**
@@ -163,6 +165,13 @@ public class CaseAccessPolicy {
      * register. The grant and task tests here are deliberately broader than the rule (any grant, any task of the user): they
      * only decide whether to ask the function, never that a case is visible.
      */
+    private static String fastVisible(String a, boolean allScope) {
+        String rule = fastVisible(a);
+        // A department-wide user sees every case that is not restricted: say that first, so the common row is decided by
+        // one comparison instead of after three member comparisons. Same set of cases (the rule is still the fallback).
+        return allScope ? "(" + a + ".confidentiality <> 'RESTRICTED' or " + rule + ")" : rule;
+    }
+
     private static String fastVisible(String a) {
         return "(" + a + ".primary_member_id = :av_me or " + a + ".alternate_member_id = :av_me or " + a
                 + ".created_by = :av_me or (:av_all and " + a + ".confidentiality <> 'RESTRICTED') or (:av_types <> ''"

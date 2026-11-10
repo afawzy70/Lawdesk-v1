@@ -139,6 +139,11 @@ public class IndicatorService {
 
     /** One indicator's figure; if its own queries fail it is unavailable ({@link #INDICATOR_FAILED}) and the failure is logged. */
     private IndicatorFigure figure(IndicatorCode code, IndicatorQuery plain, CaseReportQueries.CaseCounts caseCounts) {
+        Long counted = statusFigure(code, caseCounts);
+        if (counted != null && !code.grouped()) {
+            // Answered by the counts already read: no statement runs, so no savepoint (two round trips) is needed either.
+            return new IndicatorFigure(code, code.number(), code.entity(), true, null, counted, null);
+        }
         try {
             return isolated(() -> {
                 Source source = source(code, plain);
