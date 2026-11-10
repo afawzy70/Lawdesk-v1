@@ -47,17 +47,15 @@ class OcrExactTermsTest {
         OcrEngine.Status status = after.status();
         assumeTrue(status.available(), "BLOCKED: no Tesseract with Arabic data on this machine (" + status.detail() + ")");
         String report = System.getProperty("ocr.report");
-        StringBuilder table = new StringBuilder("file\tdpi\tpoints\tskew\tnoise\tbefore_recall\tafter_recall\tbefore_terms\tafter_terms\t"
-                + "passes\tuncertain_words\tmissed_after\tms\n");
+        StringBuilder table = new StringBuilder(OcrMeasure.Row.header());
+        StringBuilder tableBefore = new StringBuilder(OcrMeasure.Row.header());
         List<String> unexpected = new ArrayList<>();
         for (OcrExactCorpus.Page page : OcrExactCorpus.pages()) {
             byte[] bytes = picture(page);
-            String old = report != null ? before.recognise(bytes) : "";
-            long t0 = System.nanoTime();
             OcrEngine.Reading reading = after.read(bytes);
-            long ms = (System.nanoTime() - t0) / 1_000_000;
-            String searchable = reading.text() + "\n" + reading.alternateText();
-            List<String> missed = page.terms().stream().filter(t -> !OcrExactCorpus.contains(searchable, t)).toList();
+            // found = in the main reading, or inside ONE alternate word (never across two alternates)
+            List<String> missed = page.terms().stream()
+                    .filter(t -> !OcrExactCorpus.contains(reading.text(), t) && !OcrMeasure.containsInAlternate(reading, t)).toList();
             List<String> listed = STILL_MISSED.getOrDefault(page.file(), List.of());
             for (String t : missed) {
                 if (!listed.contains(t)) {
@@ -76,17 +74,13 @@ class OcrExactTermsTest {
                 }
             }
             if (report != null) {
-                long hitsBefore = page.terms().stream().filter(t -> OcrExactCorpus.contains(old, t)).count();
-                OcrCorpus.Case c = page.drawing();
-                table.append(String.format("%s\t%d\t%.0f\t%.1f\t%.0f\t%.3f\t%.3f\t%d/%d\t%d/%d\t%d\t%d/%d\t%s\t%d%n", page.file(),
-                        c.dpi(), c.points(), c.angleDegrees(), c.noiseSigma(), OcrCorpus.searchRecall(c.truth(), old),
-                        OcrCorpus.searchRecall(c.truth(), searchable), hitsBefore, page.terms().size(),
-                        page.terms().size() - missed.size(), page.terms().size(), reading.passes(), reading.uncertainWords(),
-                        reading.words(), String.join(" | ", missed), ms));
+                table.append(OcrMeasure.measure(page.file(), page.drawing(), page.terms(), bytes, after).line());
+                tableBefore.append(OcrMeasure.measure(page.file(), page.drawing(), page.terms(), bytes, before).line());
             }
         }
         if (report != null) {
             Files.writeString(Path.of(report), table.toString());
+            Files.writeString(Path.of(report + ".before"), tableBefore.toString());
         }
         assertThat(unexpected).as("terms missing from the extracted text (or a stale STILL_MISSED entry)").isEmpty();
     }
