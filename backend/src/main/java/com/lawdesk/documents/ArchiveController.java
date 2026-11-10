@@ -177,9 +177,10 @@ class ArchiveController {
     ResponseEntity<DocumentTextService.TextView> text(@PathVariable UUID id,
             @RequestParam(defaultValue = "false") boolean withText) {
         CaseDocument document = documents.get(id);
-        UUID versionId = documents.versions(id).stream().filter(v -> v.versionNo() == document.currentVersionNo())
-                .findFirst().orElseThrow().id();
-        return texts.view(versionId, withText).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        // A document with no stored version has no text: 404, the same answer as a version whose text was never recorded.
+        return documents.versions(id).stream().filter(v -> v.versionNo() == document.currentVersionNo()).findFirst()
+                .flatMap(v -> texts.view(v.id(), withText)).map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /** Reads the current version again, for example after a recognition engine was installed. */
@@ -189,7 +190,9 @@ class ArchiveController {
         CaseDocument document = documents.get(id);
         documents.requireChangeable(document);
         UUID versionId = documents.versions(id).stream().filter(v -> v.versionNo() == document.currentVersionNo())
-                .findFirst().orElseThrow().id();
+                .findFirst().orElseThrow(() -> new com.lawdesk.api.BusinessRuleException("DOCUMENT_HAS_NO_VERSION",
+                        "document " + id + " has no stored version to read"))
+                .id();
         texts.reindex(versionId);
         return ResponseEntity.ok(texts.view(versionId, false).orElseThrow());
     }

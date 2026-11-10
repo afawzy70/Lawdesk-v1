@@ -61,7 +61,7 @@ an empty answer cannot be an empty fixture.
 
 ## Findings and honest limits
 
-- No leak that needed an application fix was found. The tests prove what they enumerate; they are not a proof for routes added
+- (Superseded by "Fixed in this PR" below.) No leak that needed an application fix was found. The tests prove what they enumerate; they are not a proof for routes added
   later (the route inventory test and the unresolved/unseeded assertions are the guard).
 - **Party directory (decision for the owner).** `GET /api/v1/parties` and `/parties/{id}` are open to any CASE_VIEW holder. A party
   that is on one restricted case still appears there by name (the unified search hides it, the directory does not). The case,
@@ -77,3 +77,28 @@ an empty answer cannot be an empty fixture.
 - Excel and PDF of families and indicators were not run (CSV only): they share the CSV row source, and the formats are proven on the
   case exports.
 - The seed inserts rows through SQL; the uploaded PDF is a minimal valid header, not a rendered file.
+
+## Fixed in this PR (LD-DOC-R3 follow-up)
+
+The findings pinned above as current behaviour are now fixed in the application; the pinning tests assert the fixed behaviour.
+Rule applied everywhere: a user outside a case's scope learns nothing about it, and a hidden record answers like a missing one.
+
+1. **Party directory.** A party is listed (`GET /parties`), readable (`/parties/{id}`, `/parties/{id}/cases`), editable and
+   linkable (`POST /cases/{id}/parties`, the intake) only for a caller who sees at least one case it is on, **or** when it is on no
+   case at all (so the picker still finds an unlinked party), **or** the caller created it, **or** it is the authority party. A party
+   that is only on cases the caller cannot see answers 404, identical to a random id. This is the least leaky option that keeps
+   linking working: the creator rule lets a user link a party they just made; the "no case yet" rule is the one remaining
+   disclosure (a party whose last case was unlinked, or not yet linked, shows its name to every CASE_VIEW holder). Grants and
+   revocation take effect at once (`PartyDirectoryAndDefectsTest.aGrantMakes...`). Tests: `thePartyDirectoryNamesNoCaseToAnOutsider`,
+   `PartyDirectoryAndDefectsTest` (outsider, legitimate linking of unlinked, shared and self-created parties, hidden party 404).
+2. **Audit.** For an event about a case the caller cannot see, the target id is now withdrawn (null) as well as the details; the
+   event stays listed with `masked: true`. This also covers events with no details (previously returned unmasked). The owner and
+   anyone who sees the case still get the id. Test: `auditDetailsOfTheSecretCaseAreMaskedForAnOutsider`.
+3. **Assistant query log.** `GET /assistant/queries` (both scopes) with a case id the caller cannot see answers 404, identical to a
+   random id, as `/assistant/outputs?caseId=` already did. Nothing else about the assistant changed.
+4. **Two 500s.** Unlinking a party that has counsel on the case now answers 409 (the counsel rows are kept, removal is a mark, so
+   the link cannot be deleted; a party with only removed counsel is also kept, by design of the history). `GET /documents/{id}/text`
+   on a document with no stored version answers 404 (no text, as for a version with no text row); `POST .../text/reprocess` answers
+   422 `DOCUMENT_HAS_NO_VERSION`. Tests: `PartyDirectoryAndDefectsTest`.
+5. **Exports.** The Excel and PDF of every family and indicator export now run in the surfaces walk (the CSV-only skip is removed):
+   no leak was found, no application change needed.

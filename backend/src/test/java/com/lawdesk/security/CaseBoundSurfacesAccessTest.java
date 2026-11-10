@@ -254,22 +254,29 @@ class CaseBoundSurfacesAccessTest extends Wp9TestSupport {
     }
 
     /**
-     * The party directory is shared across cases by design: any holder of CASE_VIEW lists parties by name (the unified search
-     * is stricter and hides a party that is on no visible case). This test pins exactly what that costs: the party NAME may be
-     * listed, but no case of it, no case reference or id and no case wording is reachable from the directory by an outsider.
+     * The party directory lists a party only to a user who sees at least one case it is on (or when it is on no case, or the
+     * user created it): a party that appears only on a case the caller cannot see is not listed, not readable by id and has no
+     * case list, exactly like a party that does not exist.
      */
     @Test
     void thePartyDirectoryNamesNoCaseToAnOutsider() throws Exception {
+        String partyId = party.toString();
         var listed = get(attackerAs, "/api/v1/parties?q=" + MARKER);
         assertThat(listed.getStatus()).isEqualTo(200);
-        String partyId = party.toString();
-        for (String url : List.of("/api/v1/parties?q=" + MARKER, "/api/v1/parties/" + partyId)) {
-            String body = get(attackerAs, url).getContentAsString().replace(MARKER + " party", "");
-            assertThat(mentionsTheCase(body)).as(url + " names a case: " + body).isFalse();
+        assertThat(listed.getContentAsString()).as("the party name is not listed to an outsider").doesNotContain(MARKER);
+        assertThat(JsonPath.<Integer>read(listed.getContentAsString(), "$.totalItems")).isZero();
+        // By id the party answers like one that does not exist, on every route.
+        for (String template : List.of("/api/v1/parties/{id}", "/api/v1/parties/{id}/cases")) {
+            var refused = get(attackerAs, template.replace("{id}", partyId));
+            var absent = get(attackerAs, template.replace("{id}", UUID.randomUUID().toString()));
+            assertThat(refused.getStatus()).as(template).isEqualTo(404);
+            assertThat(shape(refused)).as(template).isEqualTo(shape(absent));
+            assertThat(mentionsTheCase(refused.getContentAsString())).isFalse();
         }
-        var cases = get(attackerAs, "/api/v1/parties/" + partyId + "/cases");
-        assertThat(cases.getStatus()).isEqualTo(200);
-        assertThat(cases.getContentAsString()).as("the cases of the party that the outsider may see").isEqualTo("[]");
+        // The owner is the control: the name is there for someone who sees the case.
+        assertThat(JsonPath.<Integer>read(get(ownerAs, "/api/v1/parties?q=" + MARKER).getContentAsString(), "$.totalItems"))
+                .isEqualTo(1);
+        assertThat(get(ownerAs, "/api/v1/parties/" + partyId).getStatus()).isEqualTo(200);
         assertThat(get(ownerAs, "/api/v1/parties/" + partyId + "/cases").getContentAsString()).as("the owner sees the case")
                 .contains(secretCase.toString());
     }
@@ -292,10 +299,6 @@ class CaseBoundSurfacesAccessTest extends Wp9TestSupport {
         boolean ownerSawIt = false;
         for (String base : exports) {
             for (String format : List.of("csv", "xlsx", "pdf")) {
-                boolean heavy = !format.equals("csv") && (base.contains("/families/") || base.contains("/indicators/"));
-                if (heavy) {
-                    continue;
-                }
                 String url = base + "?format=" + format + (base.endsWith("/cases/export") ? "&q=" + MARKER : "");
                 var refused = get(attackerAs, url);
                 if (refused.getStatus() == 400) {
@@ -327,11 +330,24 @@ class CaseBoundSurfacesAccessTest extends Wp9TestSupport {
         var refused = get(attackerAs, url);
         assertThat(refused.getStatus()).isEqualTo(200);
         assertThat(refused.getContentAsString()).as("the outsider sees the event, never the old and new values")
-                .doesNotContain(MARKER).contains("\"masked\":true");
+                .doesNotContain(MARKER).doesNotContain(secretCase.toString()).doesNotContain(reference)
+                .contains("\"masked\":true");
+        assertThat(control.getContentAsString()).as("the owner still sees which case the event is about")
+                .contains(secretCase.toString());
+        // An event about a case without any details (no reason) hides the case reference just the same.
+        jdbc.update("""
+                insert into audit_event (actor_id, actor_username, action, target_type, target_id, outcome)
+                values (?, 'zqxprobe', 'ZQX_ACCESS_PROBE_BARE', 'CASE', ?, 'SUCCESS')""", owner, secretCase.toString());
+        String bare = "/api/v1/audit?action=ZQX_ACCESS_PROBE_BARE";
+        assertThat(get(ownerAs, bare).getContentAsString()).contains(secretCase.toString());
+        var bareRefused = get(attackerAs, bare);
+        assertThat(bareRefused.getContentAsString()).doesNotContain(secretCase.toString()).contains("\"masked\":true");
+        assertThat(JsonPath.<Integer>read(bareRefused.getContentAsString(), "$.totalItems")).isGreaterThanOrEqualTo(1);
         // Other filters reach the same rows and are masked the same way.
         for (String other : List.of("/api/v1/audit?action=ZQX_ACCESS_PROBE", "/api/v1/audit?outcome=SUCCESS&size=200",
                 "/api/v1/audit?actor=zqxprobe&from=2020-01-01T00:00:00Z&to=2100-01-01T00:00:00Z")) {
-            assertThat(get(attackerAs, other).getContentAsString()).as(other).doesNotContain(MARKER);
+            assertThat(get(attackerAs, other).getContentAsString()).as(other).doesNotContain(MARKER)
+                    .doesNotContain(secretCase.toString());
         }
     }
 
@@ -387,10 +403,19 @@ class CaseBoundSurfacesAccessTest extends Wp9TestSupport {
         if (outputsRefused.getStatus() != 404 || !shape(outputsRefused).equals(shape(outputsAbsent))) {
             problems.add("outputs by case [" + shape(outputsRefused) + "] vs [" + shape(outputsAbsent) + "]");
         }
-        // Lists of the caller's own history: filtering by the secret case may answer, but only with the caller's own rows
-        // (the query log of a case is not filtered by case access for the caller's own entries; it holds no other user's rows).
-        for (String url : List.of("/api/v1/assistant/outputs", "/api/v1/assistant/queries", "/api/v1/assistant/queries?scope=all",
-                "/api/v1/assistant/queries?caseId=" + secretCase, "/api/v1/assistant/queries?caseId=" + secretCase + "&scope=all")) {
+        // Filtering the query log by a case the caller cannot see answers like a random id: 404, the same shape.
+        for (String suffix : List.of("", "&scope=all")) {
+            var queriesRefused = get(attackerAs, "/api/v1/assistant/queries?caseId=" + secretCase + suffix);
+            var queriesAbsent = get(attackerAs, "/api/v1/assistant/queries?caseId=" + UUID.randomUUID() + suffix);
+            if (queriesRefused.getStatus() != 404 || !shape(queriesRefused).equals(shape(queriesAbsent))) {
+                problems.add("queries by case" + suffix + " [" + shape(queriesRefused) + "] vs [" + shape(queriesAbsent) + "]");
+            }
+            if (get(ownerAs, "/api/v1/assistant/queries?caseId=" + secretCase + suffix).getStatus() != 200) {
+                problems.add("the owner cannot filter their own query log by the case" + suffix);
+            }
+        }
+        // Lists of the caller's own history carry only the caller's own rows (the log holds no other user's rows for them).
+        for (String url : List.of("/api/v1/assistant/outputs", "/api/v1/assistant/queries", "/api/v1/assistant/queries?scope=all")) {
             var listed = get(attackerAs, url);
             if (listed.getStatus() != 200 && listed.getStatus() != 404 && listed.getStatus() != 403) {
                 problems.add(url + " -> " + listed.getStatus());
