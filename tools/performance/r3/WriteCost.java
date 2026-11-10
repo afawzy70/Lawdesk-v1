@@ -101,7 +101,7 @@ public class WriteCost {
                     + " section_name_snapshot, created_by, updated_by) values ('" + id + "', true, 'SYNTH sector 1', 'SYNTH department 2',"
                     + " 'SYNTH section 3', '" + ACTOR + "', '" + ACTOR + "')");
             s.executeUpdate("insert into proceeding (case_id, stage, court_id, court_case_number, court_case_year, filing_date, created_by,"
-                    + " updated_by) values ('" + id + "', 'FIRST_INSTANCE', '" + court + "', 'W" + tag + "', 2026, current_date, '" + ACTOR
+                    + " updated_by) values ('" + id + "', 'FIRST_INSTANCE', '" + court + "', 'W" + id.toString().substring(0, 8) + "', 2026, current_date, '" + ACTOR
                     + "', '" + ACTOR + "')");
             s.executeUpdate("insert into claim (case_id, seq, text, kind, created_by, updated_by) values ('" + id + "', 1, 'SYNTHW claim',"
                     + " 'PRIMARY', '" + ACTOR + "', '" + ACTOR + "')");
