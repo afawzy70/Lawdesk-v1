@@ -1,6 +1,14 @@
-# Independent QA checkpoint — 2026-11-10 08:42 UTC
+# Independent QA checkpoint — 2026-11-10 09:36 UTC
 
-## Latest checkpoint: deployed PR #111 on 18822a8
+## Latest pinned-release window: 09:01:55–09:13:42 UTC
+
+UAT stayed at `18822a83bff8e2a38b83db4370674a9f69919d81` in seven authenticated release reads. QA-RT-011 original 32-row matrix ran twice cleanly and the API-to-panel deep probe passed 58/58 checks; QA-RT-008 bell passed 16 locale/viewport/count/error combinations on the deployed frontend with browser-local count interception. Manager/staff/viewer sign in; `qa.admin` remains 401. A live grant/revoke in one viewer session passed. A confidential unattached party was exposed to a `CASE_VIEW` viewer without `PARTY_MANAGE` (QA-RT-014), so S15 and LD-DOC-35-015 are now FAIL. A removed counsel record still blocked unlink with 409 (QA-RT-015 policy conflict). The window ended early; the proposed account-operator slot is 10:00–10:15 UTC, with advance notice because provision rotates all four QA credentials. QA did not provision accounts.
+
+Isolated checks continued after UAT release: old-state V781 real synthetic dump recovery passed 21/21 with the guarded procedure, and a fresh post-V845 dump/restore passed 15/15. PR #112's seven V845 tests ran and passed in a detached worktree. The repeated source auth suite had 45/46 passing together, then the one audit-count test passed 1/1 alone; QA-RT-016 records test contamination, and the first failure is retained. PR #113's candidate register generator passed its check; its 18 assistant reclassifications are developer PARTIAL claims only and gave no QA acceptance. See `OWNER-REPORT-window2-ar.md`, `coverage-window2-18822a8.csv`, `CLAUDE-HANDOFF-window2.md`, `PR113-ASSISTANT-REVIEW.md`, `RESTORE-WINDOW2-QA.md` and `DEFECTS.md`.
+
+Latest matrix: **PASS 17 historical on this SHA, FAIL 1, BLOCKED 38, NOT_TESTED 578, PARTIAL 16 = 650**. Zero of the 17 exact atomic PASS steps were replayed during this short UAT window; their prior evidence and SHA are preserved. No project-level QA acceptance. The previous checkpoint follows as history.
+
+## Historical checkpoint: deployed PR #111 on 18822a8
 
 The QA-only worktree and branch remain `/tmp/lawdesk-qa-comprehensive-20261110` and `qa/comprehensive-retest-20261110`, Draft PR #104. QA merged latest `origin/develop` `18822a83bff8e2a38b83db4370674a9f69919d81` into its branch; no application or migration source was edited by QA. The same SHA was observed on UAT at 07:27:54, 07:38:33, 07:43:18 and 08:06:03 UTC, plus before/after each of 14 journeys and before each browser locale/viewport group and after every browser row. The release endpoint has no deployment timestamp. The journey runner used QA branch merge SHA `74d5fbeb4253fa0d3b01c406c68b031c1a7193c7`; new QA-only browser probes were uncommitted during execution and are preserved in this PR. The application's exact source was `18822a8` in both UAT and isolated tests.
 

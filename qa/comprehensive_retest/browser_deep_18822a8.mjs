@@ -11,7 +11,9 @@ const run = JSON.parse(fs.readFileSync(new URL('./runs-03ff08e/wp2.json', import
 const marker = run.journey.match(/\((\d+)\)$/)?.[1];
 if (!marker) throw new Error('missing synthetic WP2 marker');
 const credentials = JSON.parse(fs.readFileSync('/srv/ai-workspaces/secrets/lawdesk-qa/manager.json', 'utf8'));
-const output = new URL('./browser-deep-18822a8.json', import.meta.url);
+const outputName = process.env.QA_DEEP_OUT || 'browser-deep-18822a8.json';
+if (!/^browser-deep-18822a8(?:-[a-z0-9]+)?\.json$/.test(outputName)) throw new Error('invalid QA_DEEP_OUT');
+const output = new URL(`./${outputName}`, import.meta.url);
 const browser = await chromium.launch({ headless: true, args: [`--host-resolver-rules=MAP ${host} 167.86.90.174`] });
 const rows = [];
 const safePath = url => new URL(url).pathname.replace(/[0-9a-f]{8}-[0-9a-f-]{27,}/gi, '{id}');
