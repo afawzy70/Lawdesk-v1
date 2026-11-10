@@ -183,6 +183,44 @@ def result_for(c):
                         f"إعادة Chromium 32×2 بلا 5xx أو طلب ملغى؛ اكتمال بيانات اللوحات فُحص؛ مخالفات axe={violations} في كل تكرار QA-RT-012؛ Firefox 32 نظيفة؛ WebKit 32 بلا 5xx لكن 200 رفض CSP في Console QA-RT-013؛ اللوحي غير مفحوص"
                 return "PARTIAL", browser_path.name, APP_SHA, \
                     f"32 فحص Chromium للهاتف والحاسب؛ اللوحي وFirefox/WebKit غير مفحوصة، ومخالفات axe={violations}"
+    if OUTPUT_TAG == "-18822a8":
+        if rid == "LD-DOC-34-006":
+            p = HERE / "performance-50k-18822a8.md"
+            if p.exists() and APP_SHA in p.read_text() and "cases: 50000" in p.read_text():
+                return "PARTIAL", "PERFORMANCE-18822a8-QA.md; performance-50k-18822a8.raw.csv", APP_SHA, \
+                    "50 ألف قضية مع p50/p95؛ فلتر نص المدير p95=545ms فوق هدف 500ms المقترح؛ بحث شامل/cache/صحة حمولة 50 ألف لم تُفحص"
+        if rid == "LD-DOC-34-009":
+            p = HERE / "restore-old-18822a8/drill-result.json"
+            if p.exists() and (drill := json.loads(p.read_text())).get("passed") and \
+                    len(drill.get("checks", [])) == 21 and all(x.get("ok") for x in drill["checks"]):
+                return "PARTIAL", "RESTORE-OLD-18822a8-QA.md; restore-old-18822a8/drill-result.json", APP_SHA, \
+                    "استعادة dump صناعي فعلي من V781 نجحت في قاعدة جانبية؛ نسخ التشغيل الأقدم/الحقيقية وآلية النسخ قبل النشر غير مقبولة بعد"
+        if rid in ("LD-DOC-34-008", "LD-DOC-34-010", "LD-DOC-34-011"):
+            p = HERE / "source-18822a8-auth-result.json"
+            if p.exists() and (auth := json.loads(p.read_text())).get("applicationSourceSha") == APP_SHA \
+                    and auth.get("totals", {}).get("tests") == 46 \
+                    and auth["totals"].get("failures") == auth["totals"].get("errors") == 0:
+                details = {
+                    "LD-DOC-34-008": "حماية تحميل/نص المستند فُحصت في API وOCR صناعي؛ التشفير والاحتفاظ وكل أنواع الملفات مفتوحة",
+                    "LD-DOC-34-010": "مصادقة ثلاثة حسابات UAT وتغير الدور/تعطيل الجلسة في قاعدة معزولة؛ qa.admin والأدوار السبعة مفتوحة",
+                    "LD-DOC-34-011": "رفض خارج النطاق ومنح/سحب و13 جسم طلب صحيح في مصدر مطابق؛ مصفوفة UAT للأدوار السبعة مفتوحة",
+                }
+                evidence = "source-18822a8-auth-result.json; runs-18822a8/wp1_access.json"
+                if rid == "LD-DOC-34-008":
+                    evidence += "; runs-18822a8/ocr.json"
+                if rid == "LD-DOC-34-011":
+                    evidence += "; party-directory-scope-18822a8-result.json"
+                return "PARTIAL", evidence, APP_SHA, details[rid]
+        if rid in ("LD-DOC-34-014", "LD-DOC-34-015"):
+            p = HERE / "browser-summary-18822a8.json"
+            if p.exists() and (summary := json.loads(p.read_text())).get("applicationSha") == APP_SHA \
+                    and all(v["rows"] == 32 and v["releaseChanged"] == v["fatal"] == 0
+                            and v.get("unexpectedDirection") == v.get("languageMismatch") == 0
+                            for v in summary.get("matrices", {}).values()) and len(summary["matrices"]) == 4:
+                note = ("Chromium 32×2 وFirefox/WebKit 32؛ WebKit يسجل 200 CSP Console، والتفاعل اليدوي/اللوحي مفتوح"
+                        if rid == "LD-DOC-34-014" else
+                        "RTL والعربية والإنجليزية ظهرت في 128 صف متصفح؛ اكتمال ترجمة كل نموذج وحقل ولوحي لم يُفحص")
+                return "PARTIAL", "browser-summary-18822a8.json; webkit-csp-18822a8.json", APP_SHA, note
     if rid in ACCEPT:
         name, step = ACCEPT[rid]
         data = journey(name)

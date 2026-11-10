@@ -49,10 +49,10 @@ class Wp8ExportRetestQa extends PostgresTestSupport {
         String body = response.getResponse().getContentAsString();
         boolean limitRule = body.contains("EXPORT_TOO_LARGE");
         boolean attachment = response.getResponse().containsHeader("Content-Disposition");
-        Path out = Path.of("../qa/comprehensive_retest/export-50k-result.json");
+        Path out = Path.of(System.getProperty("lawdesk.qa.export.out", "../qa/comprehensive_retest/export-50k-result.json"));
         Files.createDirectories(out.getParent());
         Files.writeString(out, "{\n"
-                + "  \"applicationSourceSha\": \"352277571426bd4d135ea4acb0e12489aa09fc3c\",\n"
+                + "  \"applicationSourceSha\": \"" + System.getProperty("lawdesk.qa.export.sha", "not given") + "\",\n"
                 + "  \"cases\": " + count + ",\n"
                 + "  \"actorScope\": \"ALL\",\n"
                 + "  \"endpoint\": \"GET /api/v1/reports/cases/export?format=csv\",\n"
