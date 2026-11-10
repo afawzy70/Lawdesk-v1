@@ -53,6 +53,23 @@ class CasePageConcurrencyTest extends PostgresTestSupport {
     private TestUsers users;
 
     @Autowired
+    private javax.sql.DataSource dataSource;
+
+    @org.springframework.beans.factory.annotation.Value("${spring.datasource.url}")
+    private String url;
+
+    @org.springframework.beans.factory.annotation.Value("${spring.datasource.username}")
+    private String dbUser;
+
+    @org.springframework.beans.factory.annotation.Value("${spring.datasource.password}")
+    private String dbPassword;
+
+    /** HTTP/1.1 here; the HTTP/2 subclass overrides it (h2c, same server, same pool). */
+    protected HttpClient.Version httpVersion() {
+        return HttpClient.Version.HTTP_1_1;
+    }
+
+    @Autowired
     private JdbcTemplate jdbc;
 
     @Autowired
@@ -79,8 +96,11 @@ class CasePageConcurrencyTest extends PostgresTestSupport {
         // Sequential control: every request is fine on its own (this is what the defect report observed too).
         HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
         Map<String, Integer> sequential = new TreeMap<>();
+        Map<String, HttpResponse<String>> controls = new java.util.HashMap<>();
         for (String path : paths) {
-            int status = get(client, path, cookie).statusCode();
+            HttpResponse<String> control = get(client, path, cookie);
+            controls.put(path, control);
+            int status = control.statusCode();
             if (status >= 500) {
                 sequential.put(path, status);
             }
@@ -93,9 +113,12 @@ class CasePageConcurrencyTest extends PostgresTestSupport {
         }
         Map<String, String> failures = new TreeMap<>();
         int total = 0;
+        java.util.concurrent.atomic.AtomicLong maxLatencyMs = new java.util.concurrent.atomic.AtomicLong();
+        PoolSampler sampler = new PoolSampler(dataSource, url, dbUser, dbPassword);
+        sampler.start();
         for (int round = 0; round < ROUNDS; round++) {
             // A fresh client per round: new connections, nothing warmed, like a browser opening the page.
-            HttpClient fresh = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+            HttpClient fresh = HttpClient.newBuilder().version(httpVersion()).connectTimeout(Duration.ofSeconds(5)).build();
             CountDownLatch go = new CountDownLatch(1);
             ExecutorService executor = Executors.newFixedThreadPool(burst.size());
             List<CompletableFuture<HttpResponse<String>>> calls = new ArrayList<>();
@@ -103,7 +126,10 @@ class CasePageConcurrencyTest extends PostgresTestSupport {
                 calls.add(CompletableFuture.supplyAsync(() -> {
                     try {
                         go.await();
-                        return get(fresh, path, cookie);
+                        long began = System.nanoTime();
+                        HttpResponse<String> answer = get(fresh, path, cookie);
+                        maxLatencyMs.accumulateAndGet((System.nanoTime() - began) / 1_000_000, Math::max);
+                        return answer;
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         throw new IllegalStateException(e);
@@ -112,8 +138,22 @@ class CasePageConcurrencyTest extends PostgresTestSupport {
             }
             go.countDown();
             for (int i = 0; i < burst.size(); i++) {
-                HttpResponse<String> response = calls.get(i).get();
                 total++;
+                HttpResponse<String> response;
+                try {
+                    response = calls.get(i).get();
+                } catch (java.util.concurrent.ExecutionException e) {
+                    // A broken response (for example a truncated body after an error) is a failure too.
+                    failures.put("round " + round + " transport " + burst.get(i) + " #" + i, String.valueOf(e.getCause()));
+                    continue;
+                }
+                // Complete data and correct permissions: the same status and body as the sequential control.
+                HttpResponse<String> control = controls.get(burst.get(i));
+                if (response.statusCode() < 500 && (response.statusCode() != control.statusCode()
+                        || !response.body().equals(control.body()))) {
+                    failures.put("round " + round + " differs from sequential " + response.statusCode() + " " + burst.get(i)
+                            + " #" + i, response.body());
+                }
                 if (response.statusCode() >= 500) {
                     failures.merge("round " + round + " " + response.statusCode() + " " + burst.get(i), response.body(),
                             (a, b) -> a);
@@ -121,7 +161,10 @@ class CasePageConcurrencyTest extends PostgresTestSupport {
             }
             executor.shutdown();
         }
-        System.out.println("CASE-PAGE-CONCURRENCY requests=" + total + " failures=" + failures.size());
+        sampler.stop();
+        System.out.println("CASE-PAGE-CONCURRENCY protocol=" + httpVersion() + " requests=" + total + " failures="
+                + failures.size() + " maxLatencyMs=" + maxLatencyMs.get() + " " + sampler.summary());
+        failures.forEach((k, v) -> System.out.println("CASE-PAGE-FAILURE " + k + " body=" + v));
         assertThat(failures).as("5xx among %d simultaneous case page requests", total).isEmpty();
     }
 

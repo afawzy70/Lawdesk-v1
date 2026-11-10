@@ -10,7 +10,9 @@ import java.util.UUID;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /** Reads and changes the account data that authentication needs (LD-007, LD-008). */
 @Repository
@@ -29,18 +31,21 @@ public class UserAccounts {
 
     private final JdbcTemplate jdbc;
 
-    UserAccounts(JdbcTemplate jdbc) {
+    /** The account reads of one call share a single connection and snapshot. */
+    private final TransactionTemplate reads;
+
+    UserAccounts(JdbcTemplate jdbc, PlatformTransactionManager transactions) {
         this.jdbc = jdbc;
+        this.reads = new TransactionTemplate(transactions);
+        this.reads.setReadOnly(true);
     }
 
     /** By username or email, ignoring case. Usernames cannot contain '@' and emails must, so at most one matches. */
-    @Transactional(readOnly = true)
     public Optional<Account> findByLogin(String login) {
         return one("select " + COLUMNS + " from app_user where lower(username) = lower(?) or lower(email) = lower(?)",
                 login, login);
     }
 
-    @Transactional(readOnly = true)
     public Optional<Account> findById(UUID id) {
         return one("select " + COLUMNS + " from app_user where id = ?", id);
     }
@@ -97,14 +102,16 @@ public class UserAccounts {
     private Optional<Account> one(String sql, Object... args) {
         // QA-RT-011: read the rows first and only then load roles, permissions and scopes. Running those queries inside
         // the row mapper held the result set's connection while asking the pool for another one, so N concurrent
-        // requests used up a pool of N and each waited for the timeout (a 500). The reads are also one read-only
-        // transaction (see the callers), so they share a single connection.
-        List<AccountRow> rows = jdbc.query(sql, (rs, row) -> new AccountRow(rs.getObject("id", UUID.class),
-                rs.getString("username"), rs.getString("email"), rs.getString("display_name"), rs.getString("locale"),
-                rs.getString("password_hash"), rs.getBoolean("enabled"), rs.getBoolean("must_change_password"),
-                rs.getTimestamp("locked_until"), rs.getLong("credential_version"),
-                rs.getObject("org_unit_id", UUID.class)), args);
-        return rows.stream().findFirst().map(this::account);
+        // requests used up a pool of N and each waited for the timeout (a 500). The reads also run in one read-only
+        // transaction, so they share a single connection.
+        return reads.execute(status -> {
+            List<AccountRow> rows = jdbc.query(sql, (rs, row) -> new AccountRow(rs.getObject("id", UUID.class),
+                    rs.getString("username"), rs.getString("email"), rs.getString("display_name"),
+                    rs.getString("locale"), rs.getString("password_hash"), rs.getBoolean("enabled"),
+                    rs.getBoolean("must_change_password"), rs.getTimestamp("locked_until"),
+                    rs.getLong("credential_version"), rs.getObject("org_unit_id", UUID.class)), args);
+            return rows.stream().findFirst().map(this::account);
+        });
     }
 
     private record AccountRow(UUID id, String username, String email, String displayName, String locale,
