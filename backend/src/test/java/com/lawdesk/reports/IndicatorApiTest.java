@@ -185,18 +185,18 @@ class IndicatorApiTest extends PostgresTestSupport {
      */
     @Test
     void figuresAndDashboardEqualTheirListsForTypeUnitGrantTaskCreatorAndAlternateScopes() throws Exception {
-        Map<String, UUID> ids = seed();
-        UUID unit = jdbc.queryForObject("""
+        UUID grantee = data.insertUser("Grantee");
+        UUID alternate = data.insertUser("Alternate");
+        UUID creator = data.insertUser("Creator");
+        UUID unit = data.track("org_unit", jdbc.queryForObject("""
                 insert into org_unit (tree, parent_id, level, name_ar, created_by, updated_by)
                 values ('LEGAL', null, 'DEPARTMENT', 'LD-DOC-R3 unit', gen_random_uuid(), gen_random_uuid()) returning id""",
-                UUID.class);
+                UUID.class));
+        Map<String, UUID> ids = seed();
         jdbc.update("update legal_case set owning_unit_id = ? where id in (?, ?)", unit, ids.get("fresh"), ids.get("closed"));
-        UUID grantee = data.insertUser("Grantee");
-        jdbc.update("insert into case_grant (case_id, user_id, level, reason, granted_by) values (?, ?, 'VIEW', 'second opinion',"
-                + " gen_random_uuid())", ids.get("hidden"), grantee);
-        UUID alternate = data.insertUser("Alternate");
+        data.track("case_grant", jdbc.queryForObject("insert into case_grant (case_id, user_id, level, reason, granted_by)"
+                + " values (?, ?, 'VIEW', 'second opinion', gen_random_uuid()) returning id", UUID.class, ids.get("hidden"), grantee));
         rows.alternateMember(ids.get("closed"), alternate);
-        UUID creator = data.insertUser("Creator");
         jdbc.update("update legal_case set created_by = ? where id = ?", creator, ids.get("archived"));
         Permission[] p = {Permission.REPORT_VIEW, Permission.REPORT_EXPORT, Permission.CASE_VIEW};
         List<RequestPostProcessor> users = List.of(
