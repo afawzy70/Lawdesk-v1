@@ -119,6 +119,8 @@ function sources(dir: string): string[] {
 /** Lists that appear on screens as read-only labels, not in a dropdown: nothing to order or hide. */
 const LABEL_ONLY_DISPLAY: Record<string, string> = {
   LEGAL_DOCUMENT_STATUS: 'shown as the status of a legal document and in its confirmation messages (relabelled through t())',
+  DEADLINE_STATUS: 'its only dropdown was the filter of the /deadlines register, removed by owner decision (LD-DOC-r5); the status is still shown as a badge on case deadlines (relabelled through t())',
+  DEADLINE_CALC_STATUS: 'its only dropdown was the filter of the /deadlines register, removed by owner decision (LD-DOC-r5); the calculation status is still shown as a badge on case deadlines (relabelled through t())',
 };
 
 describe('every catalogued list is wired', () => {

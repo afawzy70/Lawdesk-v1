@@ -53,8 +53,8 @@ Stream A of the r5 screens round. Page: **/admin/lists** (tab «القوائم �
 | TASK_PRIORITY (أولوية المهمة) | task form, tasks list | task.priority (CHECK + Java enum TaskPriority) | b | task ordering and reminder escalation compare priorities |
 | CALENDAR_ENTRY_TYPE (نوع مدخل التقويم) | calendar filter, manual date form | calendar projection kinds (Java constants) | b | the calendar projects hearings, tasks and deadlines under these types and colours them |
 | NOTIFICATION_TYPE (نوع الإشعار) | notifications filter and preferences | notification.type (Java constants) | b | notification generation and per-user preferences are keyed by the type |
-| DEADLINE_STATUS (حالة الموعد القانوني) | deadline lists/filters | deadline.status (CHECK) | b | missed-deadline detection and reminders transition on these codes |
-| DEADLINE_CALC_STATUS (حالة احتساب الموعد) | deadline lists/filters | deadline.calc_status (CHECK) | b | PROPOSED/APPROVED is the approval workflow of calculated dates |
+| DEADLINE_STATUS (حالة الموعد القانوني) | badges on case deadlines (the filter dropdown was removed with the /deadlines register) | deadline.status (CHECK) | b | missed-deadline detection and reminders transition on these codes |
+| DEADLINE_CALC_STATUS (حالة احتساب الموعد) | badges on case deadlines (the filter dropdown was removed with the /deadlines register) | deadline.calc_status (CHECK) | b | PROPOSED/APPROVED is the approval workflow of calculated dates |
 | DEADLINE_COUNT_METHOD (طريقة العدّ) | deadline rule form | deadline_rule.count_method (CHECK) | b | the calculation engine branches on calendar vs working days |
 | DEADLINE_SOURCE_TYPE (مصدر الموعد) | deadline form | deadline.source_type (CHECK) | b | the source type decides which record the date is computed from |
 | RISK_LEVEL (مستوى المخاطر) | risk assessment form | risk_assessment.level (CHECK) | b | HIGH/VERY_HIGH raise notifications and appear in reports |

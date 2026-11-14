@@ -186,8 +186,33 @@ class CaseVisibilityApiTest extends GovernmentIntakeTestSupport {
         assertThat(codeOf(reader(grantee), "/api/v1/cases/" + caseId)).isEqualTo(404);
         mvc.perform(delete("/api/v1/cases/" + caseId + "/grants/" + grantId).with(owner).with(csrf()))
                 .andExpect(status().isUnprocessableEntity());
+        assertThat(grantEvents(caseId)).as("the grant and the withdrawal of THIS case, whatever other cases recorded").isEqualTo(2);
+    }
+
+    /** The grant and withdrawal events recorded for one case; events of other cases never count. */
+    private int grantEvents(UUID forCase) {
+        return count("select count(*) from audit_event where action in ('CASE_GRANT_CREATE', 'CASE_GRANT_REVOKE') and target_id = ?",
+                forCase.toString());
+    }
+
+    @Test
+    void grantEventsOfAnotherCaseDoNotChangeTheCountOfThisCase() throws Exception {
+        UUID other = registered(registrar(member("Second clerk")), intake(firstInstanceCourt(), specialist,
+                "\"alternateMemberId\":\"" + alternate + "\"").replace("000123", "000124").replace("4471", "4472"));
+        RequestPostProcessor owner = supervisor(specialist);
+        mvc.perform(put("/api/v1/cases/" + other + "/confidentiality").with(owner).with(csrf())
+                .contentType(MediaType.APPLICATION_JSON).content("{\"level\":\"RESTRICTED\",\"reason\":\"sensitive\",\"version\":0}"))
+                .andExpect(status().isNoContent());
+        String created = mvc.perform(post("/api/v1/cases/" + other + "/grants").with(owner).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"userId\":\"" + grantee + "\",\"level\":\"VIEW\",\"reason\":\"second opinion\"}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        mvc.perform(delete("/api/v1/cases/" + other + "/grants/" + JsonPath.read(created, "$.id")).with(owner).with(csrf()))
+                .andExpect(status().isNoContent());
+        assertThat(grantEvents(other)).isEqualTo(2);
+        assertThat(grantEvents(caseId)).as("nothing was granted on this case").isZero();
         assertThat(count("select count(*) from audit_event where action in ('CASE_GRANT_CREATE', 'CASE_GRANT_REVOKE')"))
-                .isEqualTo(2);
+                .as("the events themselves are all still recorded").isGreaterThanOrEqualTo(2);
     }
 
     @Test

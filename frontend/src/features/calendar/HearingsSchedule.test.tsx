@@ -5,6 +5,7 @@ import type { Permission } from '../../api/permissions';
 import { jsonResponse } from '../../test/http';
 import { mount, page, problem, serve, type Request } from '../followup/testSupport';
 import { hearing } from '../operations/testSupport';
+import { setCatalog } from '../../catalog/catalogStore';
 import { CalendarPage } from './CalendarPage';
 
 /** Requirements section 15: the hearings schedule is a table view of the calendar (owner decision, round 5). */
@@ -145,5 +146,42 @@ describe('the hearings schedule table in the calendar', () => {
     expect(row).toHaveTextContent('مرافعة');
     expect(row).toHaveTextContent('٠٩:٣٠');
     expect(screen.getByRole('button', { name: 'جدول الجلسات' })).toHaveAttribute('aria-pressed', 'true');
+  });
+});
+
+describe('the hearings table shows the labels the administrator manages (LD-DOC-13)', () => {
+  const entry = (code: string, labelAr: string, labelEn: string, sortOrder: number) => ({ code, labelAr, labelEn, active: true, sortOrder });
+
+  it('uses the edited status and purpose labels, and the built-in ones again when the catalogue is empty', async () => {
+    const user = userEvent.setup();
+    backend(() => page([hearing()]));
+    setCatalog({
+      HEARING_STATUS: [entry('SCHEDULED', 'مجدولة (معدّلة)', 'Booked (edited by the administrator)', 1)],
+      HEARING_PURPOSE: [entry('PLEADING', 'مرافعة (معدّلة)', 'Oral pleading (edited)', 1)],
+    });
+    try {
+      mount(<CalendarPage />, WITH_HEARINGS);
+      await user.click(await screen.findByRole('button', { name: 'Hearings schedule (table)' }));
+      const table = await screen.findByRole('table', { name: 'Hearings schedule' });
+      const row = within(table).getAllByRole('row')[1];
+      expect(row).toHaveTextContent('Booked (edited by the administrator)');
+      expect(row).toHaveTextContent('Oral pleading (edited)');
+      expect(row).not.toHaveTextContent('Scheduled');
+      // The status filter offers the same edited label.
+      expect(within(screen.getByLabelText('Status')).getByRole('option', { name: 'Booked (edited by the administrator)' })).toBeInTheDocument();
+    } finally {
+      setCatalog({});
+    }
+  });
+
+  it('falls back to the built-in labels when the catalogue cannot be read', async () => {
+    const user = userEvent.setup();
+    backend(() => page([hearing()]));
+    setCatalog({});
+    mount(<CalendarPage />, WITH_HEARINGS);
+    await user.click(await screen.findByRole('button', { name: 'Hearings schedule (table)' }));
+    const row = within(await screen.findByRole('table', { name: 'Hearings schedule' })).getAllByRole('row')[1];
+    expect(row).toHaveTextContent('Scheduled');
+    expect(row).toHaveTextContent('Pleading');
   });
 });
