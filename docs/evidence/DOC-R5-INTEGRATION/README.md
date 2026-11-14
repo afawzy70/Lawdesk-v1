@@ -13,7 +13,9 @@ Not merged into `develop`, not deployed to UAT, no destructive migration run any
 
 Integration-only changes: conflict resolution in `IntakeRequest.java`, `api.ts`, `CaseCreatePage.tsx`, `IntakePartiesSection.tsx`, `HearingsPage.tsx`, `DeadlinesPage.tsx` (kept both sides; the deleted page stays deleted); the new hearings table reads the catalogue; V880 changed from a drop to a rename (owner decision); the audit assertion of `CaseVisibilityApiTest` scoped to the tested case; tests, journeys and documentation listed below.
 
-## Test results (tested SHA: see `RESULTS.md` next to this file, filled from the process exit codes of the final run)
+## Test results
+
+See `RESULTS.md` (tested SHA `a2a76e4`: backend 1456 run, 0 failures, 5 OCR tests skipped for lack of Tesseract; frontend 1122/1122; tsc, eslint and the register check clean).
 
 ## Baseline comparison — `CaseVisibilityApiTest.aGrantGivesViewOrContributeUntilItIsWithdrawn`
 
