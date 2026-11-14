@@ -8,6 +8,7 @@ import { usePageTitle } from '../../i18n/usePageTitle';
 import { CourtForm } from './CourtForm';
 import { COURT_LEVELS, listCourts, type Court, type CourtFilter, type CourtLevel, type CourtPage } from './courtsApi';
 import './courts.css';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 type Load = { state: 'loading' } | { state: 'loaded'; page: CourtPage } | { state: 'failed'; error: MessageKey };
 
@@ -93,7 +94,7 @@ export function CourtsPage() {
             }}
           >
             <option value="">{t('courts.filter.all')}</option>
-            {COURT_LEVELS.map((level) => (
+            {catalogCodes('COURT_LEVEL', COURT_LEVELS).map((level) => (
               <option key={level} value={level}>
                 {t(`courts.level.${level}`)}
               </option>

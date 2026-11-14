@@ -6,6 +6,7 @@ import { useI18n } from '../../i18n/I18nContext';
 import { AuthContext } from '../auth/AuthContext';
 import { listAssignees, type DirectoryUser } from '../operations/tasks/tasksApi';
 import { grantAccess, type CaseGrant, type GrantLevel, listGrants, revokeGrant, setConfidentiality } from './api';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 interface Props {
   caseId: string;
@@ -138,8 +139,9 @@ export function CaseAccessSection({ caseId, confidentiality, version, onChanged 
               setLevel(e.target.value as 'NORMAL' | 'RESTRICTED');
             }}
           >
-            <option value="NORMAL">{t('access.case.NORMAL')}</option>
-            <option value="RESTRICTED">{t('access.case.RESTRICTED')}</option>
+            {catalogCodes('CASE_CONFIDENTIALITY', ['NORMAL', 'RESTRICTED'] as const).map((code) => (
+              <option key={code} value={code}>{t(`access.case.${code}`)}</option>
+            ))}
           </select>
         </div>
         <div className="case-field">
@@ -208,8 +210,9 @@ export function CaseAccessSection({ caseId, confidentiality, version, onChanged 
               setGrantLevel(e.target.value as GrantLevel);
             }}
           >
-            <option value="VIEW">{t('access.case.level.VIEW')}</option>
-            <option value="CONTRIBUTE">{t('access.case.level.CONTRIBUTE')}</option>
+            {catalogCodes('GRANT_LEVEL', ['VIEW', 'CONTRIBUTE'] as const).map((code) => (
+              <option key={code} value={code}>{t(`access.case.level.${code}`)}</option>
+            ))}
           </select>
         </div>
         <div className="case-field">

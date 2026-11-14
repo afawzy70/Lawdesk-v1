@@ -10,6 +10,7 @@ import { getFamily, isFamilyCode, isFamilyTable, type Cell, type FamilyCode, typ
 import { ExportLinks, Field, ReportSections } from './ReportParts';
 import { useReport } from './useReport';
 import './reports.css';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 const GROUPINGS: Record<FamilyCode, readonly string[]> = {
   CASES_BY_TYPE_COURT_STAGE: ['CASE_TYPE', 'COURT', 'STAGE'],
@@ -124,7 +125,7 @@ function Family({ code }: { code: FamilyCode }) {
             <Field label={t('wp8.filter.caseType')}>
               <select name="caseType" defaultValue={params.get('caseType') ?? ''}>
                 {anyOption}
-                {CASE_TYPES.map((type) => (
+                {catalogCodes('CASE_TYPE', CASE_TYPES).map((type) => (
                   <option key={type} value={type}>
                     {t(`cases.type.${type}`)}
                   </option>

@@ -23,6 +23,7 @@ import {
 } from './api';
 import { classificationLabel, courtLevelKey, dimensionKey, directionKey, finalityKey } from './labels';
 import './library.css';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 type Draft = {
   courtName: string;
@@ -315,12 +316,12 @@ export function JudgmentFormPage() {
         }}
       >
         {text('courtName', 'library.form.courtName', { required: true })}
-        {choice('courtLevel', 'library.form.courtLevel', COURT_LEVELS, (o) => t(courtLevelKey(o)), true)}
+        {choice('courtLevel', 'library.form.courtLevel', catalogCodes('LIBRARY_COURT_LEVEL', COURT_LEVELS), (o) => t(courtLevelKey(o)), true)}
         {text('chamber', 'library.form.chamber', { max: 120 })}
         {text('caseNumber', 'library.form.caseNumber', { max: 60 })}
         {text('caseYear', 'library.form.caseYear', { type: 'number', max: 4 })}
         {text('judgmentDate', 'library.form.judgmentDate', { type: 'date' })}
-        {choice('caseType', 'library.form.caseType', CASE_TYPES, (o) => t(`cases.type.${o}` as MessageKey), true)}
+        {choice('caseType', 'library.form.caseType', catalogCodes('CASE_TYPE', CASE_TYPES), (o) => t(`cases.type.${o}` as MessageKey), true)}
         {text('subject', 'library.form.subject', { required: true, max: 1000 })}
         {text('partiesDescription', 'library.form.parties', { max: 1000, hint: 'library.form.partiesHint' })}
         {area('summary', 'library.form.summary')}
@@ -329,10 +330,10 @@ export function JudgmentFormPage() {
         {area('legalTexts', 'library.form.legalTexts')}
         {area('requestsAddressed', 'library.form.requests')}
         {area('requestResults', 'library.form.requestResults')}
-        {choice('direction', 'library.form.direction', DIRECTIONS, (o) => t(directionKey(o as (typeof DIRECTIONS)[number])), true)}
+        {choice('direction', 'library.form.direction', catalogCodes('LIBRARY_DIRECTION', DIRECTIONS), (o) => t(directionKey(o as (typeof DIRECTIONS)[number])), true)}
         {area('keywords', 'library.form.keywords')}
-        {choice('finality', 'library.form.finality', FINALITIES, (o) => t(finalityKey(o as (typeof FINALITIES)[number])), false)}
-        {choice('confidentiality', 'library.form.confidentiality', CONFIDENTIALITIES, (o) => t(`library.confidentiality.${o}` as MessageKey), false)}
+        {choice('finality', 'library.form.finality', catalogCodes('LIBRARY_FINALITY', FINALITIES), (o) => t(finalityKey(o as (typeof FINALITIES)[number])), false)}
+        {choice('confidentiality', 'library.form.confidentiality', catalogCodes('LIBRARY_CONFIDENTIALITY', CONFIDENTIALITIES), (o) => t(`library.confidentiality.${o}` as MessageKey), false)}
         {text('sourceReference', 'library.form.source', { required: true, max: 1000 })}
         {text('verificationNote', 'library.form.verification', { required: true, max: 1000 })}
         {text('copyReference', 'library.form.copy', { max: 500 })}

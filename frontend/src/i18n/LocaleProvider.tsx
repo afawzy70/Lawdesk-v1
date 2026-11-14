@@ -1,5 +1,6 @@
-import { useCallback, useLayoutEffect, useMemo, type ReactNode } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useSyncExternalStore, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router';
+import { catalogVersion, subscribeCatalog } from '../catalog/catalogStore';
 import { I18nContext, i18nFor } from './I18nContext';
 import { applyDocumentLocale, resolveLocale, type Locale } from './locale';
 
@@ -38,6 +39,9 @@ export function LocaleProvider({ defaultLocale, children }: Props) {
     [setParams],
   );
 
-  const value = useMemo(() => i18nFor(locale, setLocale), [locale, setLocale]);
+  // A changed catalogue gives every consumer a new `t`, so screens show the administrator's labels at once.
+  const catalogue = useSyncExternalStore(subscribeCatalog, catalogVersion);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const value = useMemo(() => i18nFor(locale, setLocale), [locale, setLocale, catalogue]);
   return <I18nContext value={value}>{children}</I18nContext>;
 }

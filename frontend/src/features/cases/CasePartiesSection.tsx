@@ -18,6 +18,7 @@ import {
 } from './api';
 import { PartyCases } from './PartyCases';
 import { isStatus, problemMessage } from './problems';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 function explain(error: unknown): MessageKey {
   if (isStatus(error, 409)) return 'cases.parties.conflict';
@@ -63,7 +64,7 @@ function RoleOrSide({
             onChange({ ...value, role: e.target.value as PartyRole });
           }}
         >
-          {PARTY_ROLES.map((role) => (
+          {catalogCodes('PARTY_ROLE', PARTY_ROLES).map((role) => (
             <option key={role} value={role}>
               {t(`cases.role.${role}`)}
             </option>
@@ -77,7 +78,7 @@ function RoleOrSide({
             onChange({ ...value, side: e.target.value as Side });
           }}
         >
-          {SIDES.map((side) => (
+          {catalogCodes('AUTHORITY_POSITION', SIDES).map((side) => (
             <option key={side} value={side}>
               {t(`intake.position.${side}`)}
             </option>
@@ -132,7 +133,7 @@ function NewPartyForm({ caseId, position, onChanged }: { caseId: string; positio
             setKind(e.target.value as PartyKind);
           }}
         >
-          {PARTY_KINDS.map((option) => (
+          {catalogCodes('PARTY_KIND', PARTY_KINDS).map((option) => (
             <option key={option} value={option}>
               {t(`cases.kind.${option}`)}
             </option>

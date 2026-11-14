@@ -3,6 +3,7 @@ import type { MessageKey } from '../../../i18n/catalog';
 import { useI18n } from '../../../i18n/I18nContext';
 import { listOrgUnits, type OrgUnit } from '../../access/api';
 import { arrange } from '../../access/orgTree';
+import { catalogCodes } from '../../../catalog/catalogStore';
 import { type DetailsInput, IMPORTANCE_LEVELS } from '../api';
 
 interface Props {
@@ -10,6 +11,20 @@ interface Props {
   onChange: (next: DetailsInput) => void;
   /** The key of the message under the claimed amount when it is malformed. */
   amountError?: MessageKey | undefined;
+  /** False where the chamber is asked under the litigation degree instead (registration). */
+  showChamber?: boolean;
+}
+
+/** «الدائرة المختصة»: the chamber, asked right under the litigation degree. */
+export function ChamberField({ value, onChange }: { value: DetailsInput; onChange: (next: DetailsInput) => void }) {
+  const { t } = useI18n();
+  const id = useId();
+  return (
+    <div className="case-field">
+      <label htmlFor={`${id}-chamber`}>{t('details.chamber')}</label>
+      <input id={`${id}-chamber`} type="text" maxLength={100} value={value.chamber} onChange={(e) => { onChange({ ...value, chamber: e.target.value }); }} />
+    </div>
+  );
 }
 
 /**
@@ -17,10 +32,13 @@ interface Props {
  * who referred it, the facts, the amount claimed, the importance and internal notes. All of it is optional; what is left
  * empty is stored as "not specified", never filled in.
  */
-export function CaseDetailsFields({ value, onChange, amountError }: Props) {
+export function CaseDetailsFields({ value, onChange, amountError, showChamber = true }: Props) {
   const { t, locale } = useI18n();
   const id = useId();
   const [units, setUnits] = useState<OrgUnit[]>([]);
+  // The administrator's active options in their order; a level the case already carries stays choosable though deactivated.
+  const levels = catalogCodes<string>('CASE_IMPORTANCE', IMPORTANCE_LEVELS, value.importance);
+  if (value.importance !== '' && !levels.includes(value.importance)) levels.push(value.importance);
 
   useEffect(() => {
     let current = true;
@@ -45,10 +63,7 @@ export function CaseDetailsFields({ value, onChange, amountError }: Props) {
   return (
     <fieldset className="case-details-fields">
       <legend>{t('details.legend')}</legend>
-      <div className="case-field">
-        <label htmlFor={`${id}-chamber`}>{t('details.chamber')}</label>
-        <input id={`${id}-chamber`} type="text" maxLength={100} value={value.chamber} onChange={(e) => { set('chamber')(e.target.value); }} />
-      </div>
+      {showChamber ? <ChamberField value={value} onChange={onChange} /> : null}
       <div className="case-field">
         <label htmlFor={`${id}-received`}>{t('details.receivedOn')}</label>
         <input id={`${id}-received`} type="date" value={value.receivedOn} onChange={(e) => { set('receivedOn')(e.target.value); }} />
@@ -93,9 +108,9 @@ export function CaseDetailsFields({ value, onChange, amountError }: Props) {
         <label htmlFor={`${id}-importance`}>{t('details.importance')}</label>
         <select id={`${id}-importance`} value={value.importance} onChange={(e) => { set('importance')(e.target.value); }}>
           <option value="">{t('details.notSpecified')}</option>
-          {IMPORTANCE_LEVELS.map((level) => (
+          {levels.map((level) => (
             <option key={level} value={level}>
-              {t(`details.importance.${level}`)}
+              {t(`details.importance.${level}` as MessageKey)}
             </option>
           ))}
         </select>

@@ -36,7 +36,7 @@ final class ResultRequests {
     }
 
     /** One claim of the case with the result this judgment gave it, if any ({@code result} is null before it is recorded). */
-    record ClaimResultView(UUID claimId, int claimSeq, String claimText, ClaimKind claimKind, ClaimStatus claimStatus,
+    record ClaimResultView(UUID claimId, int claimSeq, String claimText, String claimKind, ClaimStatus claimStatus,
             ClaimResult result, String operative, String reasons,
             @JsonFormat(shape = JsonFormat.Shape.STRING) BigDecimal awardedAmount, String notes, Long version) {
     }

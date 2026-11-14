@@ -157,6 +157,13 @@ describe('dashboard with real figures (LD-030)', () => {
     ]);
     expect(screen.queryByText('Not available yet')).not.toBeInTheDocument();
   });
+
+  it('shows the upcoming hearings with a link to the calendar, where the hearing schedule is read', async () => {
+    stub({ ...REPORTER, permissions: ['CASE_VIEW', 'REPORT_VIEW', 'HEARING_VIEW'] });
+    await renderDashboard();
+    expect(await screen.findByRole('heading', { name: 'Upcoming hearings' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'View calendar' })).toHaveAttribute('href', expect.stringContaining('/calendar'));
+  });
 });
 
 describe('dashboard in Arabic', () => {

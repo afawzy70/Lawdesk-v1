@@ -1,7 +1,9 @@
 import { render } from '@testing-library/react';
 import { Outlet, RouterProvider, createMemoryRouter } from 'react-router';
 import { vi } from 'vitest';
+import type { Permission } from '../../api/permissions';
 import { LocaleProvider } from '../../i18n/LocaleProvider';
+import { AuthContext } from '../auth/AuthContext';
 import { jsonResponse } from '../../test/http';
 import type { LegalCase } from './api';
 import { CaseCreatePage } from './CaseCreatePage';
@@ -11,13 +13,30 @@ import { CaseListPage } from './CaseListPage';
 
 /** Test-only helpers for the case screens: the routes as App.tsx mounts them, and a scripted backend. */
 
-export function renderCases(path: string, state?: unknown) {
+/** `permissions` signs a user in with them; without it the screens render with no session, as before. */
+export function renderCases(path: string, state?: unknown, permissions?: Permission[]) {
   const router = createMemoryRouter(
     [
       {
         element: (
           <LocaleProvider>
-            <Outlet />
+            {permissions === undefined ? (
+              <Outlet />
+            ) : (
+              <AuthContext.Provider
+                value={{
+                  state: {
+                    status: 'signedIn',
+                    me: { id: 'u1', username: 'mona', displayName: 'Mona', email: 'mona@example.invalid', locale: 'en', roles: [], permissions, mustChangePassword: false },
+                  },
+                  signIn: () => Promise.resolve(true),
+                  signOut: () => Promise.resolve(),
+                  refresh: () => Promise.resolve(),
+                }}
+              >
+                <Outlet />
+              </AuthContext.Provider>
+            )}
           </LocaleProvider>
         ),
         children: [
@@ -58,7 +77,7 @@ export function scriptedFetch(
       return Promise.resolve(jsonResponse({ items: [], hiddenCount: 0, page: 0, size: 20, totalItems: 0, totalPages: 0 }));
     }
     // LD-057 (WP9): settlements and the template library answer "nothing there" in tests that do not script them.
-    if (request.method === 'GET' && /\/settlements$|\/api\/v1\/templates|\/api\/v1\/lists\//.test(url)) {
+    if (request.method === 'GET' && /\/settlements$|\/api\/v1\/templates|\/api\/v1\/lists\/|\/api\/v1\/lookups\//.test(url)) {
       return Promise.resolve(jsonResponse([]));
     }
     if (request.method === 'GET' && /\/summary$/.test(url)) return Promise.resolve(problem(404));

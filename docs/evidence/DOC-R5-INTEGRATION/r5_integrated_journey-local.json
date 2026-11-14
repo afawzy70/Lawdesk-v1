@@ -1,0 +1,483 @@
+{
+  "journey": "R5 integrated A/B/C (261114202225)",
+  "base": "http://127.0.0.1:33053",
+  "steps": [
+    {
+      "step": "release",
+      "value": {
+        "release": "0.0.1-SNAPSHOT"
+      }
+    },
+    {
+      "step": "A: the administrator reads the catalogue of lists",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "A: the catalogue names 58 or more lists",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "A: manager cannot open the lists administration",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "A: manager cannot edit a list option",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "A: staff cannot open the lists administration",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "A: staff cannot edit a list option",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "A: viewer cannot open the lists administration",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "A: viewer cannot edit a list option",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "A: hearing status is a label-and-order list (no new options)",
+      "expected": false,
+      "actual": false,
+      "ok": true
+    },
+    {
+      "step": "A: case importance accepts new options",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "A: the administrator edits the label of a system value",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "A: its code is unchanged",
+      "expected": "SCHEDULED",
+      "actual": "SCHEDULED",
+      "ok": true
+    },
+    {
+      "step": "A: every signed-in user reads the catalogue the screens use",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "A: the edited label is what the catalogue serves",
+      "expected": [
+        "SYNTH-DOC جلسة مجدولة 261114202225",
+        "SYNTH-DOC Scheduled 261114202225"
+      ],
+      "actual": [
+        "SYNTH-DOC جلسة مجدولة 261114202225",
+        "SYNTH-DOC Scheduled 261114202225"
+      ],
+      "ok": true
+    },
+    {
+      "step": "A: a system value cannot be deactivated",
+      "expected": 422,
+      "actual": 422,
+      "ok": true
+    },
+    {
+      "step": "A: no option can be added to a logic-bound list",
+      "expected": 422,
+      "actual": 422,
+      "ok": true
+    },
+    {
+      "step": "A: a descriptive list accepts a new option",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "A: a duplicate code is refused",
+      "expected": 409,
+      "actual": 409,
+      "ok": true
+    },
+    {
+      "step": "A: the new option reaches the catalogue",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "A: the edit is kept in the option's history",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "C: the case is registered with requests and a next hearing",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "B: the next hearing is in the hearings schedule",
+      "expected": 1,
+      "actual": 1,
+      "ok": true
+    },
+    {
+      "step": "B: it is a scheduled hearing on the given day",
+      "expected": [
+        "SCHEDULED",
+        "2026-11-23"
+      ],
+      "actual": [
+        "SCHEDULED",
+        "2026-11-23"
+      ],
+      "ok": true
+    },
+    {
+      "step": "B: the calendar carries the same hearing",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "B: the specialist sees it in the schedule too",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "B: a user outside the case sees nothing of it",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "B: nor in the calendar",
+      "expected": false,
+      "actual": false,
+      "ok": true
+    },
+    {
+      "step": "B: a hearing date far in the future is refused and registers nothing",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "B: the old /deadlines register is a page of the application only (the API of case deadlines stays)",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "C: requests given at registration are stored per side",
+      "expected": {
+        "plaintiff": [
+          "طلب المدعي"
+        ],
+        "defendant": [
+          "طلب المدعى عليه الأول",
+          "طلب المدعى عليه الثاني"
+        ]
+      },
+      "actual": {
+        "plaintiff": [
+          "طلب المدعي"
+        ],
+        "defendant": [
+          "طلب المدعى عليه الأول",
+          "طلب المدعى عليه الثاني"
+        ]
+      },
+      "ok": true
+    },
+    {
+      "step": "C: exactly 20 items per side are accepted",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "C: the 21st item is refused",
+      "expected": 400,
+      "actual": 400,
+      "ok": true
+    },
+    {
+      "step": "C: the refused change left the stored items alone (reload)",
+      "expected": [
+        20,
+        20
+      ],
+      "actual": [
+        20,
+        20
+      ],
+      "ok": true
+    },
+    {
+      "step": "C: an item is edited and others are removed",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "C: a fresh read shows exactly the current list",
+      "expected": {
+        "plaintiff": [
+          "P 1 (amended)",
+          "P 3",
+          "P 4",
+          "P 5",
+          "P 6",
+          "P 7",
+          "P 8",
+          "P 9",
+          "P 10",
+          "P 11",
+          "P 12",
+          "P 13",
+          "P 14",
+          "P 15",
+          "P 16",
+          "P 17",
+          "P 18",
+          "P 19",
+          "P 20"
+        ],
+        "defendant": [
+          "D 1"
+        ]
+      },
+      "actual": {
+        "plaintiff": [
+          "P 1 (amended)",
+          "P 3",
+          "P 4",
+          "P 5",
+          "P 6",
+          "P 7",
+          "P 8",
+          "P 9",
+          "P 10",
+          "P 11",
+          "P 12",
+          "P 13",
+          "P 14",
+          "P 15",
+          "P 16",
+          "P 17",
+          "P 18",
+          "P 19",
+          "P 20"
+        ],
+        "defendant": [
+          "D 1"
+        ]
+      },
+      "ok": true
+    },
+    {
+      "step": "C: the case answers a reader outside the case exactly as an unknown id (404)",
+      "expected": [
+        404,
+        "{'instance': '/api/v1/cases/ID', 'status': 404, 'title': 'Not Found', 'type': 'about:blank'}"
+      ],
+      "actual": [
+        404,
+        "{'instance': '/api/v1/cases/ID', 'status': 404, 'title': 'Not Found', 'type': 'about:blank'}"
+      ],
+      "ok": true
+    },
+    {
+      "step": "C: its requests answers a reader outside the case exactly as an unknown id (404)",
+      "expected": [
+        404,
+        "{'instance': '/api/v1/cases/ID/requests', 'status': 404, 'title': 'Not Found', 'type': 'about:blank'}"
+      ],
+      "actual": [
+        404,
+        "{'instance': '/api/v1/cases/ID/requests', 'status': 404, 'title': 'Not Found', 'type': 'about:blank'}"
+      ],
+      "ok": true
+    },
+    {
+      "step": "C: a change of its requests answers a reader outside the case exactly as an unknown id (403)",
+      "expected": [
+        403,
+        "{'type': 'about:blank', 'title': 'Forbidden', 'status': 403}"
+      ],
+      "actual": [
+        403,
+        "{'type': 'about:blank', 'title': 'Forbidden', 'status': 403}"
+      ],
+      "ok": true
+    },
+    {
+      "step": "C: its grants answers a reader outside the case exactly as an unknown id (403)",
+      "expected": [
+        403,
+        "{'type': 'about:blank', 'title': 'Forbidden', 'status': 403}"
+      ],
+      "actual": [
+        403,
+        "{'type': 'about:blank', 'title': 'Forbidden', 'status': 403}"
+      ],
+      "ok": true
+    },
+    {
+      "step": "C: and that answer is 404",
+      "expected": 404,
+      "actual": 404,
+      "ok": true
+    },
+    {
+      "step": "C: the manager grants read access to the read-only user",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "C: the read-only user now reads the requests",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "C: but cannot change them",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "C: the requests did not change",
+      "expected": {
+        "plaintiff": [
+          "P 1 (amended)",
+          "P 3",
+          "P 4",
+          "P 5",
+          "P 6",
+          "P 7",
+          "P 8",
+          "P 9",
+          "P 10",
+          "P 11",
+          "P 12",
+          "P 13",
+          "P 14",
+          "P 15",
+          "P 16",
+          "P 17",
+          "P 18",
+          "P 19",
+          "P 20"
+        ],
+        "defendant": [
+          "D 1"
+        ]
+      },
+      "actual": {
+        "plaintiff": [
+          "P 1 (amended)",
+          "P 3",
+          "P 4",
+          "P 5",
+          "P 6",
+          "P 7",
+          "P 8",
+          "P 9",
+          "P 10",
+          "P 11",
+          "P 12",
+          "P 13",
+          "P 14",
+          "P 15",
+          "P 16",
+          "P 17",
+          "P 18",
+          "P 19",
+          "P 20"
+        ],
+        "defendant": [
+          "D 1"
+        ]
+      },
+      "ok": true
+    },
+    {
+      "step": "C: the read-only user cannot link an administrative body",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "C: nor raise an information request",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "C: the specialist, without the grant permission, cannot manage grants",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "C: the administrative case-access endpoints list the grant for the manager",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "C: confidentiality is set through the same endpoint the administration page uses",
+      "expected": 204,
+      "actual": 204,
+      "ok": true
+    },
+    {
+      "step": "C: a restricted case stays unseen by an unrelated reader (the user with the grant still reads it)",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "C: the lawyer and agent endpoints are gone",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "A: the original hearing-status label is restored",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    }
+  ],
+  "passed": true
+}

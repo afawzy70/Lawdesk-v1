@@ -109,10 +109,53 @@ describe('the registration screen', () => {
       'The authority’s position and the parties',
       'Legal department members',
       'Financial impact',
+      'Requests',
     ]);
     expect(screen.queryByText(/Legal operations/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('region', { name: /Hearings|Tasks|Expert|Notes|Documents/ })).not.toBeInTheDocument();
     expect(document.title).toBe('Register a new case — LawDesk (Preview)');
+  });
+
+  it('asks for the chamber right under the litigation degree, not among the case details', async () => {
+    const user = userEvent.setup();
+    const { requests } = serve();
+    renderCases('/cases/new');
+    const stage = await screen.findByText('First instance');
+    const chamber = screen.getByRole('textbox', { name: 'Chamber' });
+    const court = screen.getByRole('combobox', { name: /Court/ });
+    expect(stage.compareDocumentPosition(chamber) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(chamber.compareDocumentPosition(court) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(within(screen.getByRole('group', { name: 'Case record' })).queryByRole('textbox', { name: 'Chamber' })).not.toBeInTheDocument();
+    await fillRequired(user);
+    await user.type(chamber, 'Third civil chamber');
+    await user.click(submit());
+    await screen.findByText('Case LD-2026-00001 created.');
+    expect((intakeBody(requests).details as { chamber: string }).chamber).toBe('Third civil chamber');
+  });
+
+  it('has a separate add-party form and a separate request list for each side', async () => {
+    const user = userEvent.setup();
+    const { requests } = serve();
+    renderCases('/cases/new');
+    await fillRequired(user);
+    expect(screen.getAllByRole('group', { name: /^Add a party to the/ })).toHaveLength(2);
+    expect(screen.queryByLabelText('Side')).not.toBeInTheDocument();
+
+    const plaintiffRequests = screen.getByRole('region', { name: 'Requests of the Plaintiffs' });
+    await user.type(within(plaintiffRequests).getByLabelText('New request of the Plaintiffs'), 'Annul the decision{Enter}');
+    await user.type(within(plaintiffRequests).getByLabelText('New request of the Plaintiffs'), 'Costs');
+    await user.click(within(plaintiffRequests).getByRole('button', { name: 'Add request' }));
+    const defendantRequests = screen.getByRole('region', { name: 'Requests of the Defendants' });
+    await user.type(within(defendantRequests).getByLabelText('New request of the Defendants'), 'Dismiss the claim');
+    await user.click(within(defendantRequests).getByRole('button', { name: 'Add request' }));
+    expect(within(plaintiffRequests).getAllByRole('listitem')).toHaveLength(2);
+    // Enter in a request field adds the item and does not register the case.
+    expect(requests.some((r) => r.method === 'POST')).toBe(false);
+
+    await user.click(within(defendantRequests).getByRole('button', { name: /^Remove the request "Dismiss the claim"/ }));
+    await user.click(submit());
+    await screen.findByText('Case LD-2026-00001 created.');
+    expect(intakeBody(requests).requests).toEqual({ plaintiff: ['Annul the decision', 'Costs'], defendant: [] });
   });
 
   it('keeps the two numbers apart and marks the required fields', async () => {
@@ -150,6 +193,7 @@ describe('the registration screen', () => {
       primaryMemberId: SPECIALIST,
       alternateMemberId: null,
       financialImpact: 'NO',
+      requests: { plaintiff: [], defendant: [] },
       details: { chamber: null, receivedOn: null, referringUnitId: null, referredBy: null, facts: null, claimedAmount: null, importance: null, internalNotes: null },
     });
     // Registering writes nothing but the registration itself: no hearing, task, note or document is created.
@@ -183,8 +227,7 @@ describe('the registration screen', () => {
     expect(within(defendants).queryByText('The authority', { selector: 'strong' })).not.toBeInTheDocument();
 
     const addParty = async (side: string, name: string, number: string) => {
-      const group = screen.getByRole('group', { name: 'Add a party' });
-      await user.selectOptions(within(group).getByLabelText('Side'), side);
+      const group = screen.getByRole('group', { name: side === 'PLAINTIFF' ? 'Add a party to the Plaintiffs' : 'Add a party to the Defendants' });
       await user.type(within(group).getByLabelText('Name'), name);
       if (number !== '') await user.type(within(group).getByLabelText('Civil number'), number);
       await user.click(within(group).getByRole('button', { name: 'Add to the case' }));
@@ -223,8 +266,7 @@ describe('the registration screen', () => {
     const { requests } = serve();
     renderCases('/cases/new');
     await fillRequired(user);
-    const group = screen.getByRole('group', { name: 'Add a party' });
-    await user.selectOptions(within(group).getByLabelText('Side'), 'DEFENDANT');
+    const group = screen.getByRole('group', { name: 'Add a party to the Defendants' });
     await user.type(within(group).getByLabelText('Name'), 'Opponent');
     await user.click(within(group).getByRole('button', { name: 'Add to the case' }));
 
@@ -251,7 +293,7 @@ describe('the registration screen', () => {
     const { requests } = serve();
     renderCases('/cases/new');
     await fillRequired(user);
-    const group = screen.getByRole('group', { name: 'Add a party' });
+    const group = screen.getByRole('group', { name: 'Add a party to the Defendants' });
     await user.click(within(group).getByRole('radio', { name: 'Registered party' }));
     const select = within(group).getByRole('combobox', { name: 'Registered party' });
     await within(select).findByRole('option', { name: /^Nile Trading Co\. \(/ });
@@ -401,7 +443,7 @@ describe('the registration screen in Arabic', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'تسجيل قضية جديدة' })).toBeInTheDocument();
     expect(document.documentElement).toHaveAttribute('dir', 'rtl');
     expect((await screen.findAllByRole('heading', { level: 2 })).map((h) => h.textContent)).toEqual([
-      'بيانات القضية', 'درجة التقاضي', 'موقف الهيئة والأطراف', 'أعضاء الإدارة القانونية', 'الأثر المالي',
+      'بيانات القضية', 'درجة التقاضي', 'موقف الهيئة والأطراف', 'أعضاء الإدارة القانونية', 'الأثر المالي', 'الطلبات',
     ]);
     expect(screen.getByRole('radio', { name: 'مدعي' })).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'مدعى عليه' })).toBeInTheDocument();
@@ -422,5 +464,50 @@ describe('the registration screen in Arabic', () => {
     await screen.findByRole('radio', { name: 'يوجد أثر مالي' });
     await user.click(screen.getByRole('radio', { name: 'يوجد أثر مالي' }));
     expect(screen.getByRole('textbox', { name: /مبلغ الأثر المالي \(دينار كويتي\)/ })).toBeInTheDocument();
+  });
+});
+
+describe('the optional next hearing', () => {
+  it('sends the next hearing with the registration when its date is given', async () => {
+    const user = userEvent.setup();
+    const { requests } = serve();
+    renderCases('/cases/new', undefined, ['HEARING_MANAGE']);
+    await fillRequired(user);
+    await user.type(screen.getByLabelText('Next hearing date'), '2026-12-01');
+    await user.type(screen.getByLabelText('Time (optional)'), '09:30');
+    await user.type(screen.getByLabelText('Notes (optional)'), 'bring the file');
+    await user.click(submit());
+    expect(await screen.findByText('Case LD-2026-00001 created.')).toBeInTheDocument();
+    expect(intakeBody(requests)).toMatchObject({
+      nextHearing: { hearingDate: '2026-12-01', hearingTime: '09:30', notes: 'bring the file' },
+    });
+  });
+
+  it('sends no hearing when the date is left empty', async () => {
+    const user = userEvent.setup();
+    const { requests } = serve();
+    renderCases('/cases/new', undefined, ['HEARING_MANAGE']);
+    await fillRequired(user);
+    await user.type(screen.getByLabelText('Notes (optional)'), 'ignored without a date');
+    await user.click(submit());
+    expect(await screen.findByText('Case LD-2026-00001 created.')).toBeInTheDocument();
+    expect(intakeBody(requests)).not.toHaveProperty('nextHearing');
+  });
+
+  it('shows a refused hearing date next to its field', async () => {
+    const user = userEvent.setup();
+    serve(() => problem(400, { errors: [{ field: 'nextHearing.hearingDate', code: 'Range' }] }));
+    renderCases('/cases/new', undefined, ['HEARING_MANAGE']);
+    await fillRequired(user);
+    await user.type(screen.getByLabelText('Next hearing date'), '2031-12-01');
+    await user.click(submit());
+    expect(await screen.findByText('This value is not valid.')).toBeInTheDocument();
+  });
+
+  it('offers no next hearing to a user without HEARING_MANAGE', async () => {
+    serve();
+    renderCases('/cases/new', undefined, ['CASE_CREATE']);
+    await screen.findByRole('radio', { name: 'Plaintiff' });
+    expect(screen.queryByLabelText('Next hearing date')).not.toBeInTheDocument();
   });
 });

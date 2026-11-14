@@ -179,14 +179,14 @@ describe('the next hearing after "no next date"', () => {
     first.unmount();
     backend(page([]), undefined, page([]));
     renderOperations('/hearings?lang=en');
-    await screen.findByRole('heading', { level: 1, name: 'Hearing calendar' });
+    await screen.findByRole('heading', { level: 1, name: 'Hearing results and follow-up' });
     expect(screen.queryByRole('heading', { name: 'Follow-up: no next date' })).not.toBeInTheDocument();
   });
 
   it('stays out of the way when the follow-up list cannot be read', async () => {
     backend(page([]), undefined, problem(500));
     renderOperations('/hearings?lang=en');
-    await screen.findByRole('heading', { level: 1, name: 'Hearing calendar' });
+    await screen.findByRole('heading', { level: 1, name: 'Hearing results and follow-up' });
     expect(screen.queryByRole('heading', { name: 'Follow-up: no next date' })).not.toBeInTheDocument();
   });
 });

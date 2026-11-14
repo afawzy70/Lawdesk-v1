@@ -267,4 +267,9 @@ export const wp3En = {
   'wp3.notification.HEARING_NO_NEXT_DATE': 'The hearing of {hearingDate} in case {caseReferenceNo} was adjourned with no next date.',
   'wp3.notification.RISK_HIGH': 'Case {caseReferenceNo} now has a high risk level ({level}).',
   'wp3.notification.unknown': 'You have a notification.',
+  'wp3.requests.unit.involved': 'Administrative units concerned by the case',
+  'wp3.requests.unit.other': 'Other units',
+  'wp3.requests.unit.all': 'Units',
+  'involveRequests.title': 'Administrative units concerned and information requests',
+  'involveRequests.intro': 'An information request is addressed to the administrative units the case concerns, listed below.',
 } as const;

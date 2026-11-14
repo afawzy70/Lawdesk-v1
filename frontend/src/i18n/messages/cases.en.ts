@@ -159,4 +159,7 @@ export const casesEn = {
   'cases.event.COUNSEL_REMOVED': 'Lawyer or agent removed',
   'cases.event.DUPLICATE_REVIEWED': 'Duplicate warning reviewed',
   'cases.event.other': 'Other event',
+  'cases.circulation.pending': 'Pending (in circulation)',
+  'cases.circulation.judged': 'Judgment issued on {date}',
+  'cases.event.REQUESTS_CHANGED': 'Case requests updated',
 } as const;

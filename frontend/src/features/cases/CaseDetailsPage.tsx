@@ -12,10 +12,10 @@ import { CaseOperations } from '../operations/CaseOperations';
 import { CaseLibrarySection } from '../library/CaseLibrarySection';
 import { CaseProceedings } from '../proceedings/CaseProceedings';
 import { CasePleadings } from '../pleadings/CasePleadings';
-import { CaseAccessSection } from '../access/CaseAccessSection';
-import { CaseCounselSection } from './CaseCounselSection';
+import { CaseCirculationStatus } from './CaseCirculationStatus';
+import { CaseRequestsSection } from './CaseRequestsSection';
 import { CaseDetailsView } from './CaseDetailsView';
-import { CaseInvolvementsSection } from './CaseInvolvementsSection';
+import { InvolvementsAndRequests } from './InvolvementsAndRequests';
 import { CaseAssignmentSection } from './intake/CaseAssignmentSection';
 import { CasePartiesSection } from './CasePartiesSection';
 import { CaseStatusForm } from './CaseStatusForm';
@@ -132,6 +132,7 @@ function CaseDetails({ id }: { id: string }) {
       <div className="case-dossier-head">
         <h1>{t('cases.details.title', { referenceNo: legalCase.referenceNo })}</h1>
         {back}
+        <CaseCirculationStatus caseId={legalCase.id} generation={generation} />
         {confirmation === null ? null : (
           <p className="case-notice" role="status">
             {confirmation}
@@ -146,10 +147,6 @@ function CaseDetails({ id }: { id: string }) {
           <dd>{legalCase.title}</dd>
           <dt>{t('cases.field.caseType')}</dt>
           <dd>{t(`cases.type.${legalCase.caseType}`)}</dd>
-          <dt>{t('cases.field.status')}</dt>
-          <dd>
-            <span className="case-status" data-status={legalCase.status}>{t(`cases.status.${legalCase.status}`)}</span>
-          </dd>
           <dt>{t('cases.field.subject')}</dt>
           <dd>{legalCase.subject ?? '—'}</dd>
           <dt>{t('cases.field.openedOn')}</dt>
@@ -200,16 +197,7 @@ function CaseDetails({ id }: { id: string }) {
               refresh('intake.assign.done');
             }}
           />
-          <CaseInvolvementsSection caseId={legalCase.id} editable={!archived} />
-          <CaseAccessSection
-            key={`access-${String(legalCase.version)}`}
-            caseId={legalCase.id}
-            confidentiality={legalCase.confidentiality ?? 'NORMAL'}
-            version={legalCase.version}
-            onChanged={() => {
-              refresh('access.case.saved');
-            }}
-          />
+          <InvolvementsAndRequests caseId={legalCase.id} archived={archived} />
           <CasePartiesSection
             caseId={legalCase.id}
             authorityPosition={legalCase.authorityPosition ?? null}
@@ -219,7 +207,7 @@ function CaseDetails({ id }: { id: string }) {
               refresh(null);
             }}
           />
-          <CaseCounselSection caseId={legalCase.id} editable={!archived} generation={generation} />
+          <CaseRequestsSection caseId={legalCase.id} editable={!archived && legalCase.status !== 'CLOSED'} />
           <CaseTimelineList caseId={legalCase.id} generation={generation} />
         </div>
         <div className="case-workspace-content">

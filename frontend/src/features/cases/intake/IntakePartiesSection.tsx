@@ -3,6 +3,7 @@ import { api } from '../../../api/http';
 import { PagedSelect, type PagedResult } from '../../../components/PagedSelect';
 import { useI18n } from '../../../i18n/I18nContext';
 import { PARTY_KINDS, SIDES, type IntakeParty, type Party, type PartyKind, type Side } from '../api';
+import { catalogCodes } from '../../../catalog/catalogStore';
 
 /** A party the user added on the intake screen, with what the list shows and what the request will carry. */
 export interface DraftParty {
@@ -74,6 +75,7 @@ export function IntakePartiesSection(props: Props) {
           ))}
           {position !== side && others.length === 0 ? <li className="case-field-hint">{t('intake.side.none')}</li> : null}
         </ul>
+        <AddParty side={side} parties={parties} onParties={onParties} />
       </section>
     );
   };
@@ -82,7 +84,7 @@ export function IntakePartiesSection(props: Props) {
     <div>
       <fieldset className="case-fieldset" aria-describedby={positionError === undefined ? undefined : `${id}-pos-error`}>
         <legend>{t('intake.position.legend')} *</legend>
-        {SIDES.map((side) => (
+        {catalogCodes('PARTY_SIDE_GROUP', SIDES).map((side) => (
           <label key={side} className="case-radio">
             <input
               type="radio"
@@ -115,25 +117,24 @@ export function IntakePartiesSection(props: Props) {
         </div>
       ) : null}
 
-      {position === '' ? null : <div className="intake-sides">{SIDES.map(column)}</div>}
-      {position === '' ? null : <AddParty position={position} parties={parties} onParties={onParties} />}
+      {position === '' ? null : <div className="intake-sides">{catalogCodes('PARTY_SIDE_GROUP', SIDES).map(column)}</div>}
     </div>
   );
 }
 
+/** Adds a party to one side only: each side of the case has its own form, so a party cannot land on the wrong side. */
 function AddParty({
-  position,
+  side,
   parties,
   onParties,
 }: {
-  position: Side;
+  side: Side;
   parties: DraftParty[];
   onParties: (parties: DraftParty[]) => void;
 }) {
   const { t } = useI18n();
   const id = useId();
   const [mode, setMode] = useState<'new' | 'registered'>('new');
-  const [side, setSide] = useState<Side>(position === 'PLAINTIFF' ? 'DEFENDANT' : 'PLAINTIFF');
   const [kind, setKind] = useState<PartyKind>('PERSON');
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
@@ -204,24 +205,8 @@ function AddParty({
 
   return (
     <div className="intake-add-party" role="group" aria-labelledby={`${id}-title`}>
-      <h3 id={`${id}-title`}>{t('intake.party.addTitle')}</h3>
-      <div className="case-field">
-        <label htmlFor={`${id}-side`}>{t('intake.party.side')}</label>
-        <select
-          id={`${id}-side`}
-          value={side}
-          onChange={(event) => {
-            setSide(event.target.value as Side);
-          }}
-        >
-          {SIDES.map((option) => (
-            <option key={option} value={option}>
-              {t(`intake.position.${option}`)}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div role="radiogroup" aria-label={t('intake.party.addTitle')} className="case-radios">
+      <h4 id={`${id}-title`}>{t('intake.party.addToSide', { side: t(`intake.side.${side}`) })}</h4>
+      <div role="radiogroup" aria-label={t('intake.party.addToSide', { side: t(`intake.side.${side}`) })} className="case-radios">
         {(['new', 'registered'] as const).map((option) => (
           <label key={option} className="case-radio">
             <input
@@ -248,7 +233,7 @@ function AddParty({
                 setKind(event.target.value as PartyKind);
               }}
             >
-              {PARTY_KINDS.map((option) => (
+              {catalogCodes('PARTY_KIND', PARTY_KINDS).map((option) => (
                 <option key={option} value={option}>
                   {t(`cases.kind.${option}`)}
                 </option>

@@ -24,6 +24,7 @@ import {
   type Stage,
   updateJudgment,
 } from './proceedingsApi';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 /** Forms of the judicial stages (LD-019…LD-023). The backend validates; the forms show its answer. */
 
@@ -176,7 +177,7 @@ export function ProceedingForm({ caseId, automatedNo = null, proceedings, onSave
             setParentId('');
           }}
         >
-          {STAGES.map((s) => (
+          {catalogCodes('STAGE', STAGES).map((s) => (
             <option key={s} value={s}>
               {t(`proceedings.stage.${s}`)}
             </option>
@@ -354,7 +355,7 @@ export function JudgmentForm({ proceeding, judgment, onSaved, onCancel }: Judgme
           }}
         >
           <option value="">{t('proceedings.choose')}</option>
-          {OUTCOMES.map((o) => (
+          {catalogCodes('JUDGMENT_OUTCOME', OUTCOMES).map((o) => (
             <option key={o} value={o}>
               {t(`proceedings.outcome.${o}`)}
             </option>
@@ -458,7 +459,7 @@ export function DecisionForm({ proceeding, judgments, proceedingsById, onSaved, 
             setType(event.target.value as DecisionType);
           }}
         >
-          {DECISION_TYPES.map((d) => (
+          {catalogCodes('DECISION_TYPE', DECISION_TYPES).map((d) => (
             <option key={d} value={d}>
               {t(`proceedings.decisionType.${d}`)}
             </option>
@@ -488,7 +489,7 @@ export function DecisionForm({ proceeding, judgments, proceedingsById, onSaved, 
           }}
         >
           <option value="">{t('proceedings.choose')}</option>
-          {DECISION_EFFECTS.map((e) => (
+          {catalogCodes('DECISION_EFFECT', DECISION_EFFECTS).map((e) => (
             <option key={e} value={e}>
               {t(`proceedings.effect.${e}`)}
             </option>

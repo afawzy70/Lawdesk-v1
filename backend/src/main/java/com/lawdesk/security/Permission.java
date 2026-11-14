@@ -54,6 +54,7 @@ public enum Permission {
     EVIDENCE_VIEW,
     EVIDENCE_MANAGE,
     LOOKUP_MANAGE,
+    LIST_ADMIN,
     SETTLEMENT_MANAGE,
     SETTLEMENT_APPROVE,
     DIRECTIVE_MANAGE,
@@ -120,6 +121,7 @@ public enum Permission {
         public static final String EVIDENCE_VIEW = "hasAuthority('EVIDENCE_VIEW')";
         public static final String EVIDENCE_MANAGE = "hasAuthority('EVIDENCE_MANAGE')";
         public static final String LOOKUP_MANAGE = "hasAuthority('LOOKUP_MANAGE')";
+        public static final String LIST_ADMIN = "hasAuthority('LIST_ADMIN')";
         public static final String SETTLEMENT_MANAGE = "hasAuthority('SETTLEMENT_MANAGE')";
         public static final String SETTLEMENT_APPROVE = "hasAuthority('SETTLEMENT_APPROVE')";
         public static final String DIRECTIVE_MANAGE = "hasAuthority('DIRECTIVE_MANAGE')";

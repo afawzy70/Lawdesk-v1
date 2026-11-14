@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { jsonResponse } from '../../../test/http';
@@ -22,8 +22,8 @@ afterEach(() => {
 const calendarCalls = (requests: Request[]) =>
   requests.filter((r) => r.method === 'GET' && r.path === '/api/v1/hearings');
 
-describe('hearing calendar', () => {
-  it('lists the next 30 days from the Egyptian date by default', async () => {
+describe('hearing results and follow-up', () => {
+  it('lists the past hearings still waiting for a result, with their actions and a link to the schedule', async () => {
     const { requests } = scriptedFetch((r) =>
       r.path === '/api/v1/hearings'
         ? page([
@@ -41,8 +41,8 @@ describe('hearing calendar', () => {
     );
     renderOperations('/hearings?lang=en');
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Hearing calendar' })).toBeInTheDocument();
-    const table = await screen.findByRole('table', { name: 'Hearing calendar' });
+    expect(await screen.findByRole('heading', { level: 1, name: 'Hearing results and follow-up' })).toBeInTheDocument();
+    const table = await screen.findByRole('table', { name: 'Hearings waiting for a result' });
     const [first, second] = within(table).getAllByRole('row').slice(1);
     expect(first).toHaveTextContent('Sun, 2 Mar 2025');
     expect(first).toHaveTextContent('09:30');
@@ -50,49 +50,38 @@ describe('hearing calendar', () => {
     expect(first).toHaveTextContent('Sample First-Instance Court');
     expect(first).toHaveTextContent('1234/2025');
     expect(first).toHaveTextContent('Pleading');
-    expect(first).toHaveTextContent('Scheduled');
     expect(within(first as HTMLElement).getByRole('link', { name: 'LD-2025-00042' })).toHaveAttribute(
       'href',
       '/cases/c0000000-0000-4000-8000-000000000001?lang=en',
     );
+    expect(within(first as HTMLElement).getByRole('button', { name: /^Record the result/ })).toBeInTheDocument();
+    expect(within(first as HTMLElement).getByRole('button', { name: /^Reschedule the hearing/ })).toBeInTheDocument();
     expect(second).toHaveTextContent('No time set');
     expect(second).toHaveTextContent('Pronouncement of judgment');
     expect(second).toHaveTextContent('Awaiting result');
-    expect(screen.getByRole('region', { name: 'Hearing calendar' })).toHaveAttribute('tabindex', '0');
-    expect(document.title).toBe('Hearing calendar — LawDesk (Preview)');
+    expect(screen.getByRole('region', { name: 'Hearings waiting for a result' })).toHaveAttribute('tabindex', '0');
+    expect(document.title).toBe('Hearing results and follow-up — LawDesk (Preview)');
+    // The schedule is not repeated here: no period or status filters, and a link to the calendar's table.
+    expect(screen.queryByLabelText('From')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Status')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Open the hearings schedule in the calendar' })).toHaveAttribute(
+      'href',
+      '/calendar?lang=en&view=hearings',
+    );
 
     const [call] = calendarCalls(requests);
-    expect(call?.query.get('from')).toBe('2025-03-02');
-    expect(call?.query.get('to')).toBe('2025-04-01');
+    // The year up to today (Kuwait day), still scheduled.
+    expect(call?.query.get('from')).toBe('2024-03-02');
+    expect(call?.query.get('to')).toBe('2025-03-02');
+    expect(call?.query.get('status')).toBe('SCHEDULED');
     expect(call?.query.get('page')).toBe('0');
     expect(call?.query.get('size')).toBe('20');
-    expect(call?.query.has('status')).toBe(false);
   });
 
-  it('filters by dates and status, and says when nothing matches', async () => {
-    const user = userEvent.setup();
-    const { requests } = scriptedFetch((r) => (r.path === '/api/v1/hearings' ? page([]) : undefined));
+  it('says when no past hearing is waiting for a result', async () => {
+    scriptedFetch((r) => (r.path === '/api/v1/hearings' ? page([]) : undefined));
     renderOperations('/hearings');
-    expect(await screen.findByText('No hearings in this period.')).toBeInTheDocument();
-
-    fireEvent.change(screen.getByLabelText('From'), { target: { value: '2025-02-01' } });
-    await user.selectOptions(screen.getByLabelText('Status'), 'ADJOURNED');
-    await waitFor(() => {
-      const last = calendarCalls(requests).at(-1);
-      expect(last?.query.get('from')).toBe('2025-02-01');
-      expect(last?.query.get('status')).toBe('ADJOURNED');
-    });
-    fireEvent.change(screen.getByLabelText('To'), { target: { value: '2025-02-28' } });
-    // A cleared date field keeps the last date asked for.
-    fireEvent.change(screen.getByLabelText('To'), { target: { value: '' } });
-    expect(screen.getByLabelText('To')).toHaveValue('2025-02-28');
-    await waitFor(() => {
-      expect(calendarCalls(requests).at(-1)?.query.get('to')).toBe('2025-02-28');
-    });
-    await user.selectOptions(screen.getByLabelText('Status'), '');
-    await waitFor(() => {
-      expect(calendarCalls(requests).at(-1)?.query.has('status')).toBe(false);
-    });
+    expect(await screen.findByText('No past hearing is waiting for a result.')).toBeInTheDocument();
   });
 
   it('pages through long periods', async () => {
@@ -125,16 +114,9 @@ describe('hearing calendar', () => {
     expect(await screen.findByRole('heading', { name: 'Access denied' })).toBeInTheDocument();
   });
 
-  it('explains a refused date range and an expired session', async () => {
-    let answer = problem(400, { errors: [{ field: 'to', code: 'Range' }] });
-    scriptedFetch((r) => (r.path === '/api/v1/hearings' ? answer.clone() : undefined));
-    const user = userEvent.setup();
+  it('explains an expired session without offering a retry', async () => {
+    scriptedFetch((r) => (r.path === '/api/v1/hearings' ? problem(401) : undefined));
     renderOperations('/hearings');
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'The end date must be on or after the start date, and at most 366 days later.',
-    );
-    answer = problem(401);
-    await user.selectOptions(screen.getByLabelText('Status'), 'HELD');
     expect(await screen.findByText('Your session has ended. Sign in again.')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
   });
@@ -150,22 +132,19 @@ describe('hearing calendar', () => {
     expect(await screen.findByText('The data could not be loaded. Check the connection and try again.')).toBeVisible();
     fail = false;
     await user.click(screen.getByRole('button', { name: 'Try again' }));
-    expect(await screen.findByRole('table', { name: 'Hearing calendar' })).toBeInTheDocument();
+    expect(await screen.findByRole('table', { name: 'Hearings waiting for a result' })).toBeInTheDocument();
   });
 
   it('shows Arabic labels, dates and digits right to left', async () => {
-    scriptedFetch((r) => (r.path === '/api/v1/hearings' ? page([hearing({ status: 'ADJOURNED' })]) : undefined));
+    scriptedFetch((r) => (r.path === '/api/v1/hearings' ? page([hearing()]) : undefined));
     renderOperations('/hearings?lang=ar');
-    expect(await screen.findByRole('heading', { level: 1, name: 'جدول الجلسات' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'نتائج الجلسات ومتابعتها' })).toBeInTheDocument();
     expect(document.documentElement).toHaveAttribute('dir', 'rtl');
-    const row = within(await screen.findByRole('table', { name: 'جدول الجلسات' })).getAllByRole('row')[1];
+    const row = within(await screen.findByRole('table', { name: 'جلسات بانتظار النتيجة' })).getAllByRole('row')[1];
     expect(row).toHaveTextContent('محكمة أول درجة نموذجية');
     expect(row).toHaveTextContent('مرافعة');
-    expect(row).toHaveTextContent('تأجلت');
     expect(row).toHaveTextContent('٠٩:٣٠');
-    expect(screen.getByLabelText('من')).toBeInTheDocument();
-    // A hearing with a result offers no actions.
-    expect(within(row as HTMLElement).queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'افتح جدول الجلسات في التقويم' })).toBeInTheDocument();
   });
 });
 

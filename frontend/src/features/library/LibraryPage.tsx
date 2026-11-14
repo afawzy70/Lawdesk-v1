@@ -23,6 +23,7 @@ import {
 } from './api';
 import { citation, classificationLabel, courtLevelKey, directionKey, finalityKey, relationKey, listSeparator } from './labels';
 import './library.css';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 type Load = { kind: 'loading' } | { kind: 'forbidden' } | { kind: 'failed' } | { kind: 'loaded'; page: Page<ListItem> };
 
@@ -148,19 +149,19 @@ export function LibraryPage() {
         </div>
         <div className="case-field">
           <label htmlFor={`${id}-caseType`}>{t('library.search.caseType')}</label>
-          {select('caseType', CASE_TYPES, (o) => t(`cases.type.${o}` as MessageKey))}
+          {select('caseType', catalogCodes('CASE_TYPE', CASE_TYPES), (o) => t(`cases.type.${o}` as MessageKey))}
         </div>
         <div className="case-field">
           <label htmlFor={`${id}-courtLevel`}>{t('library.search.courtLevel')}</label>
-          {select('courtLevel', COURT_LEVELS, (o) => t(courtLevelKey(o)))}
+          {select('courtLevel', catalogCodes('LIBRARY_COURT_LEVEL', COURT_LEVELS), (o) => t(courtLevelKey(o)))}
         </div>
         <div className="case-field">
           <label htmlFor={`${id}-direction`}>{t('library.search.direction')}</label>
-          {select('direction', DIRECTIONS, (o) => t(directionKey(o as (typeof DIRECTIONS)[number])))}
+          {select('direction', catalogCodes('LIBRARY_DIRECTION', DIRECTIONS), (o) => t(directionKey(o as (typeof DIRECTIONS)[number])))}
         </div>
         <div className="case-field">
           <label htmlFor={`${id}-finality`}>{t('library.search.finality')}</label>
-          {select('finality', FINALITIES, (o) => t(finalityKey(o as (typeof FINALITIES)[number])))}
+          {select('finality', catalogCodes('LIBRARY_FINALITY', FINALITIES), (o) => t(finalityKey(o as (typeof FINALITIES)[number])))}
         </div>
         <div className="case-field">
           <label htmlFor={`${id}-classification`}>{t('library.search.classification')}</label>

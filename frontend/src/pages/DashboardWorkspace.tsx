@@ -2,11 +2,15 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { getCaseParties, searchCases, type CaseListItem, type CaseParty } from '../features/cases/api';
 import { casePath } from '../features/cases/paths';
-import { addDays, formatDay, formatTime, legalToday } from '../features/operations/days';
+import { addDays, formatDay, legalToday } from '../features/operations/days';
+import { HearingsTable } from '../features/operations/hearings/HearingsTable';
 import { listCalendar, type Hearing } from '../features/operations/hearings/hearingsApi';
 import { useI18n } from '../i18n/I18nContext';
 import { withLang } from '../i18n/locale';
 import './modern-chambers-dashboard.css';
+
+/** The next hearings the dashboard's schedule table shows; the calendar holds the whole schedule. */
+const UPCOMING = 5;
 
 type Preview<T> =
   | { kind: 'loading' }
@@ -83,34 +87,13 @@ export function DashboardWorkspace({ canCases, canHearings }: { canCases: boolea
               <h2 id="mc-diary-heading">{t('reports.dashboard.diary')}</h2>
               <p>{t('reports.dashboard.diaryPeriod')}</p>
             </div>
-            <Link to={withLang('/hearings', locale)}>{t('reports.dashboard.viewCalendar')}</Link>
+            <Link to={withLang('/calendar', locale)}>{t('reports.dashboard.viewCalendar')}</Link>
           </div>
           {hearings.kind === 'loading' && <p>{t('reports.dashboard.loadingHearings')}</p>}
           {hearings.kind === 'failed' && <p>{t('reports.dashboard.unavailableHearings')}</p>}
           {hearings.kind === 'loaded' && hearings.items.length === 0 && <p className="mc-work-empty">{t('reports.dashboard.emptyHearings')}</p>}
           {hearings.kind === 'loaded' && hearings.items.length > 0 && (
-            <ol className="mc-hearing-list">
-              {hearings.items.slice(0, 3).map((hearing) => (
-                <li key={hearing.id} className={hearing === hearings.items[0] ? 'mc-hearing-lead' : undefined}>
-                  <p className="mc-hearing-time">
-                    <time dateTime={`${hearing.hearingDate}${hearing.hearingTime === null ? '' : `T${hearing.hearingTime}`}`}>
-                      {formatDay(hearing.hearingDate, locale)}
-                      {hearing.hearingTime === null ? '' : ` · ${formatTime(hearing.hearingTime.slice(0, 5), locale)}`}
-                    </time>
-                  </p>
-                  <p className="mc-hearing-title">
-                    {canCases ? (
-                      <Link to={withLang(casePath(hearing.caseId), locale)}><bdi dir="auto">{hearing.caseTitle}</bdi></Link>
-                    ) : <bdi dir="auto">{hearing.caseTitle}</bdi>}
-                  </p>
-                  <p className="mc-hearing-meta">
-                    <bdi dir="ltr">{hearing.caseReferenceNo}</bdi>
-                    <span aria-hidden="true"> · </span>
-                    <bdi dir="auto">{locale === 'ar' ? hearing.courtNameAr : hearing.courtNameEn}</bdi>
-                  </p>
-                </li>
-              ))}
-            </ol>
+            <HearingsTable hearings={hearings.items.slice(0, UPCOMING)} caption={t('reports.dashboard.diary')} compact />
           )}
         </section>
       )}

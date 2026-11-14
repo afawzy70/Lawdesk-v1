@@ -6,6 +6,7 @@ import { CaseDetailsFields } from './intake/CaseDetailsFields';
 import { FinancialImpactFields } from './intake/FinancialImpactFields';
 import type { CaseField, FieldErrors } from './problems';
 import './cases.css';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 /** How a page explains a failed submission: a summary, errors per field, and whether to offer a reload. */
 export interface Failure {
@@ -152,7 +153,7 @@ export function CaseForm({ initial, withReference, submitLabel, initialExtras, o
           {...ids('caseType')}
         >
           <option value="">{t('cases.form.chooseType')}</option>
-          {CASE_TYPES.map((type) => (
+          {catalogCodes('CASE_TYPE', CASE_TYPES).map((type) => (
             <option key={type} value={type}>
               {t(`cases.type.${type}`)}
             </option>

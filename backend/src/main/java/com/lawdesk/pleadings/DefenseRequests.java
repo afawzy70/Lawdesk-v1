@@ -63,7 +63,7 @@ final class DefenseRequests {
             LocalDate onDate, UUID memoDocumentId, String memoDocumentTitle) {
     }
 
-    record LinkedEvidence(UUID evidenceId, String name, EvidenceRole role, EvidenceImportance importance, UUID documentId,
+    record LinkedEvidence(UUID evidenceId, String name, EvidenceRole role, String importance, UUID documentId,
             boolean submittedToCourt) {
     }
 

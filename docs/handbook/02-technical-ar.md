@@ -29,7 +29,7 @@
 |------------------|-------------------|------------------------------|----------|
 | `security`, `users`, `audit` | `app_user`, `app_role`, `role_permission`, `user_role`, `audit_event` | `/auth/login`, `/me`, `/users`, `/roles`, `/audit` | V100–V102، V190 |
 | `access`, `org`, `cases.CaseAccessPolicy` | `org_unit`, `access_scope`, `case_grant` | `/access-scopes`, `/cases/{id}/grants`, `/cases/{id}/confidentiality`, `/org-units` | V600 |
-| `cases` | `legal_case`, `case_reference_counter`, `case_event`, `party`, `case_party`, `case_party_counsel`, `case_org_involvement`, `case_duplicate_hint` | `/cases`, `/cases/intake`, `/parties`, `/cases/{id}/involvements` | V200–V202، V601–V602 |
+| `cases` | `legal_case`, `case_reference_counter`, `case_event`, `party`, `case_party`, `case_request_item`, `case_org_involvement`, `case_duplicate_hint` | `/cases`, `/cases/intake`, `/parties`, `/cases/{id}/involvements` | V200–V202، V601–V602 |
 | `courts`, `proceedings` | `court`, `proceeding`, `judgment`, `special_decision` | `/courts`, `/cases/{id}/proceedings`, `/judgments/{id}` | V300–V304، V603 |
 | `pleadings` | `claim`, `claim_revision`, `claim_result`, `defense*`, `case_fact`, `evidence_*`, `gap_followup`, `lookup_value*` | `/cases/{id}/claims`, `/defenses`, `/evidence`, `/judgments/{id}/claim-results`, `/lookups` | V620–V623 |
 | `hearings`, `experts` | `hearing`, `expert`, `expert_referral`, `expert_session` | `/hearings`, `/experts`, `/expert-referrals` | V400–V408، V660 |

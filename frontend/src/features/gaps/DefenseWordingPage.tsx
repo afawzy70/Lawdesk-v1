@@ -13,6 +13,7 @@ import {
   type TemplateInput,
   type WordingTemplate,
 } from './api';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 const EMPTY: TemplateInput = { title: '', kind: 'SUBSTANTIVE', text: null, legalBasis: null, status: 'DRAFT' };
 
@@ -72,7 +73,7 @@ export function DefenseWordingPage() {
           <p>
             <label>{t('gap.wording.kind')}{' '}
               <select value={draft.kind} onChange={(e) => { setDraft({ ...draft, kind: DEFENSE_KINDS.find((k) => k === e.target.value) ?? 'OTHER' }); }}>
-                {DEFENSE_KINDS.map((k) => <option key={k} value={k}>{k}</option>)}
+                {catalogCodes('DEFENSE_KIND', DEFENSE_KINDS).map((k) => <option key={k} value={k}>{t(`pl.defenses.kind.${k}`)}</option>)}
               </select>
             </label>
           </p>
@@ -81,7 +82,7 @@ export function DefenseWordingPage() {
           <p>
             <label>{t('gap.wording.status')}{' '}
               <select value={draft.status} onChange={(e) => { setDraft({ ...draft, status: TEMPLATE_STATUSES.find((s) => s === e.target.value) ?? 'DRAFT' }); }}>
-                {TEMPLATE_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                {catalogCodes('TEMPLATE_VERSION_STATUS', TEMPLATE_STATUSES).map((s) => <option key={s} value={s}>{t(`wp9.template.vstatus.${s}`)}</option>)}
               </select>
             </label>
           </p>

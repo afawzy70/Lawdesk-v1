@@ -59,6 +59,7 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
     /** First path segments (after /api/v1) whose records are not owned by a case, with why. */
     private static final Map<String, String> NOT_CASE_BOUND = Map.ofEntries(
             Map.entry("users", "administration of accounts"), Map.entry("roles", "administration of roles"),
+            Map.entry("admin", "the administrator's catalogue of dropdown lists"),
             Map.entry("courts", "reference list"), Map.entry("lists", "managed reference lists"),
             Map.entry("lookups", "managed reference lists"), Map.entry("library", "the department library holds no case data"),
             Map.entry("org-units", "organisation tree"), Map.entry("access-scopes", "administration of scopes"),
@@ -85,7 +86,7 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
             Map.entry("info-requests", "info_request"), Map.entry("document-links", "document_link"),
             Map.entry("precedents", "case_precedent_link"), Map.entry("followups", "gap_followup"),
             Map.entry("grants", "case_grant"), Map.entry("involvements", "case_org_involvement"),
-            Map.entry("assertions", "proceeding"), Map.entry("versions", "#int"), Map.entry("counsel", "case_party_counsel"),
+            Map.entry("assertions", "proceeding"), Map.entry("versions", "#int"),
             Map.entry("links", "evidence_link"), Map.entry("facts", "case_fact"), Map.entry("parties", "party"));
 
     /**
@@ -110,9 +111,15 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
                             + "\",\"reason\":\"SYNTH-DOC\",\"origin\":\"MANUAL\"}"),
             Map.entry("DocumentLinkController#add /api/v1/documents/{id}/links POST",
                     (ids, v) -> "{\"targetType\":\"CLAIM\",\"targetId\":\"" + ids.get("claim") + "\",\"note\":\"SYNTH-DOC\"}"),
+            Map.entry("ClaimController#create /api/v1/cases/{caseId}/claims POST",
+                    (ids, v) -> "{\"text\":\"SYNTH-DOC claim\",\"kind\":\"PRIMARY\"}"),
+            Map.entry("ClaimController#update /api/v1/claims/{id} PUT",
+                    (ids, v) -> "{\"text\":\"SYNTH-DOC claim\",\"kind\":\"PRIMARY\",\"status\":\"STANDING\",\"version\":" + v + "}"),
+            Map.entry("EvidenceController#add /api/v1/cases/{caseId}/evidence POST",
+                    (ids, v) -> "{\"name\":\"SYNTH-DOC evidence\",\"role\":\"SUPPORTING\",\"importance\":\"LOW\"}"),
+            Map.entry("EvidenceController#update /api/v1/evidence/{id} PUT",
+                    (ids, v) -> "{\"name\":\"SYNTH-DOC evidence\",\"role\":\"SUPPORTING\",\"importance\":\"LOW\",\"version\":" + v + "}"),
             Map.entry("InfoRequestController#replyWithDocument /api/v1/info-requests/{id}/replies POST", (ids, v) -> "#multipart"),
-            Map.entry("PartyController#addCounsel /api/v1/cases/{id}/parties/{partyId}/counsel POST",
-                    (ids, v) -> "{\"kind\":\"LAWYER\",\"name\":\"SYNTH-DOC counsel\"}"),
             Map.entry("PartyController#link /api/v1/cases/{id}/parties POST",
                     (ids, v) -> "{\"partyId\":\"" + ids.get("x_party2") + "\",\"role\":\"OPPONENT\"}"),
             Map.entry("ProceedingController#create /api/v1/cases/{caseId}/proceedings POST",
@@ -281,9 +288,6 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
         ids.put("case_org_involvement", insert("""
                 insert into case_org_involvement (case_id, sector_name_snapshot, created_by, updated_by) values (?, 'SYNTH-DOC', ?, ?) returning id""",
                 legalCase, USER, USER));
-        ids.put("case_party_counsel", insert("""
-                insert into case_party_counsel (case_id, party_id, kind, name, created_by) values (?, ?, 'LAWYER', 'SYNTH-DOC', ?)
-                returning id""", legalCase, party, USER));
         UUID expert = insert("""
                 insert into expert (name, specialty, created_by, updated_by) values ('SYNTH-DOC expert', 'SYNTH-DOC', ?, ?) returning id""",
                 USER, USER);

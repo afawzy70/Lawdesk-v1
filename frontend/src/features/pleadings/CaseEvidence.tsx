@@ -22,6 +22,7 @@ import {
 import { documentOptions, usePickers } from './pickers';
 import { CheckField, ChoiceField, Notice, TextField } from './ui';
 import { flaggedFields, orNull, saveMessage, useLoad } from './useLoad';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 interface FormState {
   name: string;
@@ -389,13 +390,13 @@ export function CaseEvidence({ caseId, canManage }: Props) {
             label={t('pl.evidence.role')}
             value={form.role}
             onChange={set('role')}
-            options={EVIDENCE_ROLES.map((r) => [r, t(`pl.evidence.role.${r}`)] as const)}
+            options={catalogCodes('EVIDENCE_ROLE', EVIDENCE_ROLES).map((r) => [r, t(`pl.evidence.role.${r}`)] as const)}
           />
           <ChoiceField
             label={t('pl.evidence.importance')}
             value={form.importance}
             onChange={set('importance')}
-            options={EVIDENCE_IMPORTANCE.map((r) => [r, t(`pl.evidence.importance.${r}`)] as const)}
+            options={catalogCodes('EVIDENCE_IMPORTANCE', EVIDENCE_IMPORTANCE, form.importance).map((r) => [r, t(`pl.evidence.importance.${r}`)] as const)}
             empty={t('pl.notSpecified')}
           />
           <ChoiceField

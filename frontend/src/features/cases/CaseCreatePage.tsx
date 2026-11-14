@@ -4,16 +4,21 @@ import { ApiError } from '../../api/http';
 import { PagedSelect } from '../../components/PagedSelect';
 import type { MessageKey } from '../../i18n/catalog';
 import { useI18n } from '../../i18n/I18nContext';
+import { catalogCodes } from '../../catalog/catalogStore';
 import { withLang } from '../../i18n/locale';
 import { usePageTitle } from '../../i18n/usePageTitle';
 import { listCourtsPage } from '../proceedings/proceedingsApi';
 import type { Court } from '../courts/courtsApi';
-import { CASE_TYPES, checkDuplicates, claimedAmountValid, type DuplicateResult, EMPTY_DETAILS, registerCase, type IntakeInput, type Side } from './api';
-import { CaseDetailsFields } from './intake/CaseDetailsFields';
+import { CASE_TYPES, checkDuplicates, claimedAmountValid, type DuplicateResult, EMPTY_DETAILS, EMPTY_REQUESTS, registerCase, type IntakeInput, type Side } from './api';
+import { CaseDetailsFields, ChamberField } from './intake/CaseDetailsFields';
+import { RequestItemsEditor } from './RequestItemsEditor';
 import { DuplicateWarning } from './DuplicateWarning';
 import { FinancialImpactFields, type FinancialValue } from './intake/FinancialImpactFields';
 import { IntakePartiesSection, type DraftParty } from './intake/IntakePartiesSection';
 import { MemberFields } from './intake/MemberFields';
+import { NextHearingFields } from './intake/NextHearingFields';
+import { NO_NEXT_HEARING } from './intake/nextHearing';
+import { usePermissions } from '../archive/usePermissions';
 import { todayIso } from './format';
 import { CASES_PATH, casePath } from './paths';
 import { problemMessage } from './problems';
@@ -27,7 +32,7 @@ export interface CreatedState {
 type Field =
   | 'automatedNo' | 'title' | 'caseType' | 'subject' | 'openedOn' | 'courtId' | 'courtCaseNumber' | 'courtCaseYear'
   | 'filingDate' | 'authorityPosition' | 'parties' | 'primaryMemberId' | 'alternateMemberId' | 'financialImpact'
-  | 'financialAmount' | 'claimedAmount';
+  | 'financialAmount' | 'claimedAmount' | 'nextHearingDate';
 type Errors = Partial<Record<Field, MessageKey>>;
 
 const SERVER_FIELDS: Record<string, Field> = {
@@ -36,7 +41,7 @@ const SERVER_FIELDS: Record<string, Field> = {
   'firstInstance.courtCaseYear': 'courtCaseYear', 'firstInstance.filingDate': 'filingDate',
   firstInstance: 'courtId', authorityPosition: 'authorityPosition', primaryMemberId: 'primaryMemberId',
   alternateMemberId: 'alternateMemberId', financialImpact: 'financialImpact', financialAmount: 'financialAmount',
-  'details.claimedAmount': 'claimedAmount',
+  'details.claimedAmount': 'claimedAmount', 'nextHearing.hearingDate': 'nextHearingDate',
 };
 
 const CODES: Record<string, MessageKey> = {
@@ -82,6 +87,7 @@ const intakeRuleKeys: Partial<Record<MessageKey, true>> = {
   'intake.rule.COURT_LEVEL_MISMATCH': true,
   'intake.rule.MEMBER_NOT_ELIGIBLE': true,
   'intake.rule.PARTY_IS_AUTHORITY': true,
+  'intake.rule.HEARING_BEFORE_FILING': true,
 };
 
 const AMOUNT = /^\d{1,12}([.,]\d{1,3})?$/;
@@ -121,11 +127,12 @@ export function CaseCreatePage() {
   const { locale, t } = useI18n();
   const navigate = useNavigate();
   const formId = useId();
+  const canScheduleHearing = usePermissions().has('HEARING_MANAGE');
   usePageTitle(t('intake.title'));
   const [values, setValues] = useState<IntakeInput>(() => ({
     automatedNo: '', title: '', caseType: '', subject: '', openedOn: todayIso(), courtId: '', courtCaseNumber: '',
     courtCaseYear: '', filingDate: '', authorityPosition: '', parties: [], primaryMemberId: '', alternateMemberId: '',
-    financialImpact: '', financialAmount: '', details: EMPTY_DETAILS,
+    financialImpact: '', financialAmount: '', details: EMPTY_DETAILS, requests: EMPTY_REQUESTS, nextHearing: NO_NEXT_HEARING,
   }));
   const [drafts, setDrafts] = useState<DraftParty[]>([]);
   const [reviewPending, setReviewPending] = useState(false);
@@ -249,7 +256,7 @@ export function CaseCreatePage() {
             {field('caseType', 'cases.field.caseType', (props) => (
               <select {...props} value={values.caseType} onChange={(event) => { set('caseType')(event.target.value); }}>
                 <option value="">{t('cases.form.chooseType')}</option>
-                {CASE_TYPES.map((type) => (
+                {catalogCodes('CASE_TYPE', CASE_TYPES).map((type) => (
                   <option key={type} value={type}>{t(`cases.type.${type}`)}</option>
                 ))}
               </select>
@@ -271,6 +278,7 @@ export function CaseCreatePage() {
               <p>{t('intake.stage.FIRST_INSTANCE')}</p>
               <p className="case-field-hint">{t('intake.field.stageHint')}</p>
             </div>
+            <ChamberField value={values.details} onChange={(next) => { setValues((c) => ({ ...c, details: next })); }} />
             {field('courtId', 'intake.field.court', (props) => (
               <PagedSelect<Court>
                 selectProps={props}
@@ -290,6 +298,13 @@ export function CaseCreatePage() {
             ))}
           </>
         ))}
+        {canScheduleHearing ? (
+          <NextHearingFields
+            value={values.nextHearing ?? NO_NEXT_HEARING}
+            onChange={(next) => { setValues((c) => ({ ...c, nextHearing: next })); }}
+            dateError={errors.nextHearingDate}
+          />
+        ) : null}
         {section('intake.section.parties', (
           <>
             <IntakePartiesSection
@@ -322,6 +337,12 @@ export function CaseCreatePage() {
             amountError={errors.financialAmount}
           />
         ))}
+        {section('intake.section.requests', (
+          <>
+            <p className="case-field-hint">{t('requests.intro')}</p>
+            <RequestItemsEditor value={values.requests} onChange={(next) => { setValues((c) => ({ ...c, requests: next })); }} />
+          </>
+        ))}
         {duplicates === null ? null : (
           <DuplicateWarning
             result={duplicates}
@@ -336,6 +357,7 @@ export function CaseCreatePage() {
           value={values.details}
           onChange={(next) => { setValues((c) => ({ ...c, details: next })); }}
           amountError={errors.claimedAmount}
+          showChamber={false}
         />
         <div className="case-actions">
           <button type="submit" className="primary" disabled={saving}>

@@ -2,7 +2,6 @@ import type { deadlinesEn } from './deadlines.en';
 
 /** رسائل WP4 (LD-054، القسم 10 من المتطلبات، قرار D6): المواعيد القانونية وقواعدها وعطلاتها وتنبيهاتها. */
 export const deadlinesAr: Record<keyof typeof deadlinesEn, string> = {
-  'nav.deadlines': 'المواعيد القانونية',
   'admin.tabs.deadlines': 'قواعد المواعيد',
 
   'wp4.title': 'المواعيد القانونية',
@@ -96,12 +95,6 @@ export const deadlinesAr: Record<keyof typeof deadlinesEn, string> = {
   'wp4.calc.rolledFrom': 'انتهت المدة في يوم معطل',
   'wp4.calc.result': 'آخر موعد مقترح',
 
-  'wp4.register.title': 'سجل المواعيد القانونية',
-  'wp4.register.hint': 'مواعيد كل القضايا التي يحق لك الاطلاع عليها. يبقى الميعاد قائمًا حتى يُتمه مستخدم؛ لا يُغلق شيء تلقائيًا.',
-  'wp4.register.settings': 'قواعد المواعيد والعطلات والتنبيهات',
-  'wp4.register.filters': 'تصفية المواعيد',
-  'wp4.register.none': 'لا يوجد ميعاد مطابق.',
-  'wp4.register.count': '{count} ميعاد',
   'wp4.filter.all': 'الكل',
   'wp4.filter.status': 'الحالة',
   'wp4.filter.calc': 'الاعتماد',
@@ -129,7 +122,7 @@ export const deadlinesAr: Record<keyof typeof deadlinesEn, string> = {
   'wp4.settings.title': 'قواعد المواعيد القانونية',
   'wp4.settings.disclaimer':
     'لا يحدد لوديسك أي مدة قانونية أو طريقة عد أو عطلة من عنده. كل ما يلي يدخله المختصون عندكم مع مصدره القانوني، ويعتمده العضو المختص قبل أن يستعمله النظام.',
-  'wp4.settings.toRegister': 'العودة إلى سجل المواعيد',
+  'wp4.settings.toCalendar': 'العودة إلى التقويم',
   'wp4.setting.DRAFT': 'مسودة',
   'wp4.setting.APPROVED': 'معتمدة',
   'wp4.setting.RETIRED': 'مسحوبة',
