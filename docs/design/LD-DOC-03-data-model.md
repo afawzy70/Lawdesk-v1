@@ -59,7 +59,7 @@ erDiagram
 | `legal_case` (توسيع) | `chamber` (الدائرة، على القضية)، `received_on date` (ورود الإدارة)، `referring_unit_id` (جهة الإحالة)، `facts text`، `claimed_amount numeric(15,3)`، `importance` (LOW/NORMAL/HIGH/CRITICAL)، `confidentiality` (NORMAL/RESTRICTED)، `case_type` يتسع بـ CONSTITUTIONAL وOTHER | الأعمدة nullable؛ «غير محدد» حيث لا بيانات؛ لا تعبئة مخترعة |
 | `proceeding` (توسيع) | `stage` يتسع بـ CONSTITUTIONAL وENFORCEMENT وGRIEVANCE، `chamber`، `status` | قرار D2 |
 | `party` (توسيع) | `civil_or_establishment_no` (يستعمل `national_id`/`registration_no` الحاليين)، `confidential bool`، `notes` | تسمية فقط، لا تغيير في القيم |
-| `party_counsel` | `party_id`، `case_id` اختياري، `name`، `kind` (LAWYER/AGENT)، `phone`، `email`، `notes` | المحامي أو الوكيل |
+| ~~`party_counsel`~~ | (أُلغي بقرار المالك 2026-11-14؛ الجدول الفعلي `case_party_counsel` مُعاد تسميته `case_party_counsel_retired`، انظر `docs/operations/COUNSEL-RETIREMENT.md`) | المحامي أو الوكيل |
 | `org_unit` | `id`، `parent_id`، `level` (SECTOR/DEPARTMENT/SECTION)، `name_ar`، `name_en`، `active`، `valid_from`، `valid_to` | شجرة قابلة للإدارة |
 | `case_org_involvement` | `case_id`، `org_unit_id`، `is_primary`، `contact_name`، `contact_info`، `referral_date`، `requested_from_unit text`، `notes`، **`sector_name_snapshot`، `department_name_snapshot`، `section_name_snapshot`** | اللقطة تحفظ الهيكل وقت التسجيل؛ إعادة تسمية الوحدة لا تغيّر اللقطة |
 | `access_scope` | `subject_type` (USER/ROLE)، `subject_id`، `scope_type` (ALL/ORG_UNIT/CASE_TYPE/OWN)، `scope_ref` | قرار D3 |
