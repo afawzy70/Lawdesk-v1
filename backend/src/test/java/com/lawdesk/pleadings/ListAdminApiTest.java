@@ -36,7 +36,7 @@ class ListAdminApiTest extends PleadingsTestSupport {
 
     @Test
     void theCatalogueNamesEveryListAndSaysWhichOnesTakeNewOptions() throws Exception {
-        get(admin(), ADMIN_LISTS).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(14))
+        get(admin(), ADMIN_LISTS).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(ListCatalog.ALL.size()))
                 .andExpect(jsonPath("$[?(@.code=='CASE_IMPORTANCE')].addable").value(true))
                 .andExpect(jsonPath("$[?(@.code=='COURTS')].source").value("COURT"))
                 .andExpect(jsonPath("$[?(@.code=='SETTLEMENT_KIND')].source").value("MANAGED"))

@@ -11,6 +11,7 @@ import {
   type Task,
   type TaskInput,
 } from './tasksApi';
+import { catalogCodes } from '../../../catalog/catalogStore';
 
 /** Creates or edits one task (LD-027). The backend validates; the form shows its answers next to the fields. */
 
@@ -116,7 +117,7 @@ export function TaskForm({ task, caseId, onSaved, onCancel }: Props) {
         errorId={form.errorId('priority')}>
         <select {...form.control('priority')} value={values.priority}
           onChange={(event) => { set('priority')(event.target.value); }}>
-          {TASK_PRIORITIES.map((priority) => (
+          {catalogCodes('TASK_PRIORITY', TASK_PRIORITIES).map((priority) => (
             <option key={priority} value={priority}>{t(`operations.priority.${priority}`)}</option>
           ))}
         </select>

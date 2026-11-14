@@ -24,6 +24,7 @@ import {
   type TaskStatus,
 } from './tasksApi';
 import '../operations.css';
+import { catalogCodes } from '../../../catalog/catalogStore';
 
 type Result = { key: string; page: TaskPage } | { key: string; error: MessageKey };
 type Editing = null | 'new' | Task;
@@ -180,7 +181,7 @@ export function TasksPage() {
             }}
           >
             <option value="">{t('operations.all')}</option>
-            {TASK_STATUSES.map((status) => (
+            {catalogCodes('TASK_STATUS', TASK_STATUSES).map((status) => (
               <option key={status} value={status}>
                 {t(`operations.taskStatus.${status}`)}
               </option>

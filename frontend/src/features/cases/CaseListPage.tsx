@@ -21,6 +21,7 @@ import { NEW_CASE_PATH, casePath } from './paths';
 import { isStatus, problemMessage } from './problems';
 import { AccessDeniedPage } from '../auth/AccessDeniedPage';
 import './cases.css';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 type Load =
   | { kind: 'loading' }
@@ -138,7 +139,7 @@ export function CaseListPage() {
           {t('cases.field.status')}
           <select name="status" defaultValue={search.status ?? ''}>
             <option value="">{t('cases.list.anyStatus')}</option>
-            {CASE_STATUSES.map((status: CaseStatus) => (
+            {catalogCodes('CASE_STATUS', CASE_STATUSES).map((status: CaseStatus) => (
               <option key={status} value={status}>
                 {t(`cases.status.${status}`)}
               </option>
@@ -149,7 +150,7 @@ export function CaseListPage() {
           {t('cases.field.caseType')}
           <select name="caseType" defaultValue={search.caseType ?? ''}>
             <option value="">{t('cases.list.anyType')}</option>
-            {CASE_TYPES.map((type: CaseType) => (
+            {catalogCodes('CASE_TYPE', CASE_TYPES).map((type: CaseType) => (
               <option key={type} value={type}>
                 {t(`cases.type.${type}`)}
               </option>

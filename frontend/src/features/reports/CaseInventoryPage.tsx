@@ -23,6 +23,7 @@ import { failureMessage, isForbidden } from './common';
 import { CourtFilter } from './courts';
 import { ExportLinks, Field, Pager, ReportSections, Summary } from './ReportParts';
 import './reports.css';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 type Load =
   | { kind: 'loading' }
@@ -124,7 +125,7 @@ export function CaseInventoryPage() {
           <Field label={t('reports.filter.status')}>
             <select name="status" defaultValue={filter.status ?? ''}>
               {anyOption}
-              {CASE_STATUSES.map((status) => (
+              {catalogCodes('CASE_STATUS', CASE_STATUSES).map((status) => (
                 <option key={status} value={status}>
                   {t(`cases.status.${status}`)}
                 </option>
@@ -144,7 +145,7 @@ export function CaseInventoryPage() {
           <Field label={t('reports.filter.caseType')}>
             <select name="caseType" defaultValue={filter.caseType ?? ''}>
               {anyOption}
-              {CASE_TYPES.map((type) => (
+              {catalogCodes('CASE_TYPE', CASE_TYPES).map((type) => (
                 <option key={type} value={type}>
                   {t(`cases.type.${type}`)}
                 </option>
@@ -160,7 +161,7 @@ export function CaseInventoryPage() {
           <Field label={t('reports.filter.stage')}>
             <select name="stage" defaultValue={filter.stage ?? ''}>
               {anyOption}
-              {STAGES.map((stage) => (
+              {catalogCodes('STAGE', STAGES).map((stage) => (
                 <option key={stage} value={stage}>
                   {t(`proceedings.stage.${stage}`)}
                 </option>

@@ -23,6 +23,7 @@ import { failureKey } from './errors';
 import { formatKwd } from './format';
 import { SettlementForm } from './SettlementForm';
 import type { MessageKey } from '../../i18n/catalog';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 interface Props {
   settlement: Settlement;
@@ -243,7 +244,7 @@ export function SettlementCard({ settlement, kinds, parties, documents, editable
               }}
             >
               <option value="">{t('wp9.choose')}</option>
-              {moves.map((status) => (
+              {catalogCodes('SETTLEMENT_STATUS', moves).map((status) => (
                 <option key={status} value={status}>
                   {t(`wp9.settlement.status.${status}`)}
                 </option>

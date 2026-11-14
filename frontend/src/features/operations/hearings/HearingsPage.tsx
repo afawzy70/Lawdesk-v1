@@ -21,6 +21,7 @@ import {
   type HearingStatus,
 } from './hearingsApi';
 import '../operations.css';
+import { catalogCodes } from '../../../catalog/catalogStore';
 
 /** The default calendar window: today and the next 30 days (ASSUMPTION, PHASE-5-ACCEPTANCE LD-024.6). */
 const WINDOW_DAYS = 30;
@@ -174,7 +175,7 @@ export function HearingsPage() {
           }}
         >
           <option value="">{t('operations.all')}</option>
-          {HEARING_STATUSES.map((status) => (
+          {catalogCodes('HEARING_STATUS', HEARING_STATUSES).map((status) => (
             <option key={status} value={status}>
               {t(`operations.hearingStatus.${status}`)}
             </option>

@@ -3,7 +3,7 @@ import type { MessageKey } from '../../../i18n/catalog';
 import { useI18n } from '../../../i18n/I18nContext';
 import { listOrgUnits, type OrgUnit } from '../../access/api';
 import { arrange } from '../../access/orgTree';
-import { useListOptions } from '../../lists/useListOptions';
+import { catalogCodes } from '../../../catalog/catalogStore';
 import { type DetailsInput, IMPORTANCE_LEVELS } from '../api';
 
 interface Props {
@@ -22,9 +22,8 @@ export function CaseDetailsFields({ value, onChange, amountError }: Props) {
   const { t, locale } = useI18n();
   const id = useId();
   const [units, setUnits] = useState<OrgUnit[]>([]);
-  const importanceList = useListOptions('CASE_IMPORTANCE');
   // The administrator's active options in their order; a level the case already carries stays choosable though deactivated.
-  const levels: string[] = importanceList.options === null ? [...IMPORTANCE_LEVELS] : importanceList.options.map((o) => o.code);
+  const levels = catalogCodes<string>('CASE_IMPORTANCE', IMPORTANCE_LEVELS, value.importance);
   if (value.importance !== '' && !levels.includes(value.importance)) levels.push(value.importance);
 
   useEffect(() => {
@@ -100,7 +99,7 @@ export function CaseDetailsFields({ value, onChange, amountError }: Props) {
           <option value="">{t('details.notSpecified')}</option>
           {levels.map((level) => (
             <option key={level} value={level}>
-              {importanceList.label(level, IMPORTANCE_LEVELS.includes(level as never) ? t(`details.importance.${level}` as MessageKey) : level)}
+              {t(`details.importance.${level}` as MessageKey)}
             </option>
           ))}
         </select>

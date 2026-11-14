@@ -4,7 +4,7 @@ import { ApiError } from '../../api/http';
 import { PagedSelect } from '../../components/PagedSelect';
 import type { MessageKey } from '../../i18n/catalog';
 import { useI18n } from '../../i18n/I18nContext';
-import { useListOptions } from '../lists/useListOptions';
+import { catalogCodes } from '../../catalog/catalogStore';
 import { withLang } from '../../i18n/locale';
 import { usePageTitle } from '../../i18n/usePageTitle';
 import { listCourtsPage } from '../proceedings/proceedingsApi';
@@ -120,7 +120,6 @@ function check(v: IntakeInput, financial: FinancialValue, reviewPending: boolean
  */
 export function CaseCreatePage() {
   const { locale, t } = useI18n();
-  const caseTypeList = useListOptions('CASE_TYPE');
   const navigate = useNavigate();
   const formId = useId();
   usePageTitle(t('intake.title'));
@@ -251,8 +250,8 @@ export function CaseCreatePage() {
             {field('caseType', 'cases.field.caseType', (props) => (
               <select {...props} value={values.caseType} onChange={(event) => { set('caseType')(event.target.value); }}>
                 <option value="">{t('cases.form.chooseType')}</option>
-                {caseTypeList.order(CASE_TYPES).map((type) => (
-                  <option key={type} value={type}>{caseTypeList.label(type, t(`cases.type.${type}`))}</option>
+                {catalogCodes('CASE_TYPE', CASE_TYPES).map((type) => (
+                  <option key={type} value={type}>{t(`cases.type.${type}`)}</option>
                 ))}
               </select>
             ))}

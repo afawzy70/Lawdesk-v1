@@ -15,6 +15,8 @@ import com.lawdesk.api.FieldErrorException;
 public class LookupValues {
 
     public static final String CASE_IMPORTANCE = "CASE_IMPORTANCE";
+    public static final String CLAIM_KIND = "CLAIM_KIND";
+    public static final String EVIDENCE_IMPORTANCE = "EVIDENCE_IMPORTANCE";
 
     private final JdbcClient jdbc;
 

@@ -59,7 +59,3 @@ export function saveOption(list: ListSummary, option: ListOption, input: OptionI
       : `/api/v1/admin/lists/options/${enc(option.id)}`;
   return api<ListOption>(url, { method: 'PUT', body: { ...input, version: option.version } });
 }
-
-/** The active options a screen offers, in order (any signed-in user who sees cases). */
-export const screenOptions = (list: string, signal?: AbortSignal) =>
-  api<ListOption[]>(`/api/v1/lookups/${enc(list)}`, signal === undefined ? {} : { signal });

@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react';
+import { catalogLabel } from '../catalog/catalogStore';
 import { translate, type MessageKey, type MessageVars } from './catalog';
 import { DEFAULT_LOCALE, type Locale } from './locale';
 
@@ -9,7 +10,8 @@ export interface I18n {
 }
 
 export function i18nFor(locale: Locale, setLocale: (locale: Locale) => void): I18n {
-  return { locale, t: (key, vars) => translate(locale, key, vars), setLocale };
+  // The administrator's label of a catalogued list wins over the built-in one (LD-DOC-13); labels carry no variables.
+  return { locale, t: (key, vars) => (vars === undefined ? catalogLabel(key, locale) : undefined) ?? translate(locale, key, vars), setLocale };
 }
 
 /** Outside a `LocaleProvider` (e.g. isolated component tests) components render in the default locale. */

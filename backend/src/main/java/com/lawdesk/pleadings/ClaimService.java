@@ -33,9 +33,12 @@ class ClaimService {
     private final JdbcClient jdbc;
     private final CaseRows rows;
 
-    ClaimService(JdbcClient jdbc, CaseRows rows) {
+    private final LookupValues lookups;
+
+    ClaimService(JdbcClient jdbc, CaseRows rows, LookupValues lookups) {
         this.jdbc = jdbc;
         this.rows = rows;
+        this.lookups = lookups;
     }
 
     @Transactional(readOnly = true)
@@ -59,7 +62,7 @@ class ClaimService {
                        reason, changed_by, changed_at
                 from claim_revision where claim_id = :id order by rev desc""").param("id", id)
                 .query((rs, n) -> new ClaimRequests.Revision(rs.getInt("rev"), rs.getString("text"),
-                        ClaimKind.valueOf(rs.getString("kind")), ClaimStatus.valueOf(rs.getString("status")),
+                        rs.getString("kind"), ClaimStatus.valueOf(rs.getString("status")),
                         rs.getObject("submitted_by_party_id", UUID.class), rs.getObject("submitted_on", LocalDate.class),
                         rs.getObject("stage_id", UUID.class), rs.getObject("source_document_id", UUID.class),
                         rs.getString("notes"), rs.getString("reason"), rs.getObject("changed_by", UUID.class),
@@ -71,13 +74,14 @@ class ClaimService {
     ClaimRequests.View create(UUID caseId, ClaimRequests.Create request) {
         ActorRef actor = rows.change(caseId);
         check(caseId, request.stageId(), request.sourceDocumentId(), request.submittedByPartyId());
+        lookups.requireUsable(LookupValues.CLAIM_KIND, request.kind(), null, "kind");
         int seq = rows.nextSeq("claim", caseId);
         UUID id = jdbc.sql("""
                 insert into claim (case_id, seq, text, kind, submitted_by_party_id, submitted_on, stage_id,
                                    source_document_id, notes, created_by, updated_by)
                 values (:case, :seq, :text, :kind, :party, :on, :stage, :document, :notes, :actor, :actor)
                 returning id""").param("case", caseId).param("seq", seq).param("text", request.text())
-                .param("kind", request.kind().name()).param("party", request.submittedByPartyId())
+                .param("kind", request.kind()).param("party", request.submittedByPartyId())
                 .param("on", request.submittedOn()).param("stage", request.stageId())
                 .param("document", request.sourceDocumentId()).param("notes", request.notes())
                 .param("actor", actor.id()).query(UUID.class).single();
@@ -96,7 +100,8 @@ class ClaimService {
             throw new ConflictException("claim " + id + " has changed since version " + request.version());
         }
         check(caseId, request.stageId(), request.sourceDocumentId(), request.submittedByPartyId());
-        boolean textChanged = !current.text().equals(request.text()) || current.kind() != request.kind();
+        lookups.requireUsable(LookupValues.CLAIM_KIND, request.kind(), current.kind(), "kind");
+        boolean textChanged = !current.text().equals(request.text()) || !current.kind().equals(request.kind());
         // Changing the wording of a standing claim makes it an amended one unless the user states another status.
         ClaimStatus status = textChanged && current.status() == ClaimStatus.STANDING
                 && request.status() == ClaimStatus.STANDING ? ClaimStatus.AMENDED : request.status();
@@ -114,7 +119,7 @@ class ClaimService {
                        submitted_on = :on, stage_id = :stage, source_document_id = :document, notes = :notes,
                        version = version + 1, updated_at = now(), updated_by = :actor
                 where id = :id and version = :version""").param("text", request.text())
-                .param("kind", request.kind().name()).param("status", status.name())
+                .param("kind", request.kind()).param("status", status.name())
                 .param("party", request.submittedByPartyId()).param("on", request.submittedOn())
                 .param("stage", request.stageId()).param("document", request.sourceDocumentId())
                 .param("notes", request.notes()).param("actor", actor.id()).param("id", id)
@@ -152,7 +157,7 @@ class ClaimService {
 
     private static ClaimRequests.View view(ResultSet rs, int n) throws SQLException {
         return new ClaimRequests.View(rs.getObject("id", UUID.class), rs.getObject("case_id", UUID.class),
-                rs.getInt("seq"), rs.getString("text"), ClaimKind.valueOf(rs.getString("kind")),
+                rs.getInt("seq"), rs.getString("text"), rs.getString("kind"),
                 ClaimStatus.valueOf(rs.getString("status")), rs.getObject("submitted_by_party_id", UUID.class),
                 rs.getString("party_name"), rs.getObject("submitted_on", LocalDate.class),
                 rs.getObject("stage_id", UUID.class), rs.getObject("source_document_id", UUID.class),

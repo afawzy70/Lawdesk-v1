@@ -19,6 +19,7 @@ import {
 import { documentOptions, partyOptions, stageOptions, usePickers } from './pickers';
 import { AreaField, ChoiceField, Notice, TextField } from './ui';
 import { flaggedFields, orNull, saveMessage, useLoad } from './useLoad';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 interface FormState {
   text: string;
@@ -252,14 +253,14 @@ export function CaseClaims({ caseId, canManage }: Props) {
             label={t('pl.claims.kind')}
             value={form.kind}
             onChange={set('kind')}
-            options={CLAIM_KINDS.map((k) => [k, t(`pl.claims.kind.${k}`)] as const)}
+            options={catalogCodes('CLAIM_KIND', CLAIM_KINDS, form.kind).map((k) => [k, t(`pl.claims.kind.${k}`)] as const)}
           />
           {editing === 'new' ? null : (
             <ChoiceField
               label={t('pl.claims.status')}
               value={form.status}
               onChange={set('status')}
-              options={CLAIM_STATUSES.map((s) => [s, t(`pl.claims.status.${s}`)] as const)}
+              options={catalogCodes('CLAIM_STATUS', CLAIM_STATUSES).map((s) => [s, t(`pl.claims.status.${s}`)] as const)}
             />
           )}
           <ChoiceField

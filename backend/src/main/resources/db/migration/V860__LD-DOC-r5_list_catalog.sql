@@ -52,7 +52,7 @@ from (values
     ('HEARING_PURPOSE', 'PLEADING', 'مرافعة', 'Pleading', 2, true),
     ('HEARING_PURPOSE', 'EVIDENCE', 'إثبات وسماع شهود', 'Evidence and witnesses', 3, true),
     ('HEARING_PURPOSE', 'EXPERT_REPORT', 'مناقشة تقرير الخبير', 'Expert report', 4, true),
-    ('HEARING_PURPOSE', 'JUDGMENT', 'النطق بالحكم', 'Judgment', 5, true),
+    ('HEARING_PURPOSE', 'JUDGMENT', 'النطق بالحكم', 'Pronouncement of judgment', 5, true),
     ('HEARING_PURPOSE', 'OTHER', 'أخرى', 'Other', 6, true),
     ('HEARING_STATUS', 'SCHEDULED', 'محددة', 'Scheduled', 1, true),
     ('HEARING_STATUS', 'HELD', 'انعقدت', 'Held', 2, true),

@@ -13,6 +13,7 @@ import { DeadlineBadges } from './DeadlineParts';
 import { useSourceName } from './useSourceName';
 import { failureKey } from './errors';
 import '../followup/followup.css';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 /** Section 10: the register of legal deadlines of every case the user may see, with filters by state, owner, window and lateness. */
 export function DeadlinesPage() {
@@ -87,14 +88,14 @@ export function DeadlinesPage() {
           <label htmlFor={`${id}-status`}>{t('wp4.filter.status')}</label>
           <select id={`${id}-status`} value={filter.status} onChange={(e) => { set('status')(e.target.value); }}>
             <option value="">{t('wp4.filter.all')}</option>
-            {DEADLINE_STATUSES.map((s) => (<option key={s} value={s}>{t(`wp4.status.${s}`)}</option>))}
+            {catalogCodes('DEADLINE_STATUS', DEADLINE_STATUSES).map((s) => (<option key={s} value={s}>{t(`wp4.status.${s}`)}</option>))}
           </select>
         </div>
         <div className="case-field">
           <label htmlFor={`${id}-calc`}>{t('wp4.filter.calc')}</label>
           <select id={`${id}-calc`} value={filter.calcStatus} onChange={(e) => { set('calcStatus')(e.target.value); }}>
             <option value="">{t('wp4.filter.all')}</option>
-            {CALC_STATUSES.map((s) => (<option key={s} value={s}>{t(`wp4.calc.${s}`)}</option>))}
+            {catalogCodes('DEADLINE_CALC_STATUS', CALC_STATUSES).map((s) => (<option key={s} value={s}>{t(`wp4.calc.${s}`)}</option>))}
           </select>
         </div>
         <div className="case-field">

@@ -7,6 +7,7 @@ import { formatDate } from '../cases/format';
 import { casePath } from '../cases/paths';
 import { useLoad } from '../pleadings/useLoad';
 import { listJudgments, OUTCOMES } from './api';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 /** The judgments of every case the user may see (requirements section 9); the server lists only visible cases. */
 export function JudgmentsPage() {
@@ -31,7 +32,7 @@ export function JudgmentsPage() {
             }}
           >
             <option value="">{t('gap.any')}</option>
-            {OUTCOMES.map((o) => (
+            {catalogCodes('CLAIM_RESULT', OUTCOMES).map((o) => (
               <option key={o} value={o}>
                 {o}
               </option>

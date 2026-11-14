@@ -48,6 +48,15 @@ class LookupService {
                 + " order by sort_order, created_at, code").param("list", listCode).query(LookupService::view).list();
     }
 
+    /** Every catalogue list with its options, active and inactive, in display order: what the screens relabel and order by. */
+    @Transactional(readOnly = true)
+    java.util.Map<String, List<LookupRequests.View>> all() {
+        java.util.Map<String, List<LookupRequests.View>> out = new java.util.LinkedHashMap<>();
+        jdbc.sql(SELECT + " order by list_code, sort_order, created_at, code").query(LookupService::view).list()
+                .forEach((v) -> out.computeIfAbsent(v.listCode(), (k) -> new java.util.ArrayList<>()).add(v));
+        return out;
+    }
+
     @Transactional
     LookupRequests.View create(String listCode, LookupRequests.Create request) {
         ActorRef actor = currentActor.require();

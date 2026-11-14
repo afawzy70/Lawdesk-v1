@@ -5,6 +5,7 @@ import { BLANK, type DetailsState, type Extras } from './judgmentState';
 import { documentOptions } from './pickers';
 import { AreaField, ChoiceField, TextField } from './ui';
 import { useLoad } from './useLoad';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 /** Fields of the extended judgment plus a result selector for every registered claim and a position for every defence. */
 interface Props {
@@ -76,7 +77,7 @@ export function JudgmentExtras({ caseId, extras, summary }: Props) {
           label={t('pl.judgment.status')}
           value={details.status}
           onChange={set('status')}
-          options={JUDGMENT_STATUSES.map((s) => [s, t(`pl.judgment.status.${s}`)] as const)}
+          options={catalogCodes('JUDGMENT_STATUS', JUDGMENT_STATUSES).map((s) => [s, t(`pl.judgment.status.${s}`)] as const)}
           empty={t('pl.notSpecified')}
         />
         <ChoiceField
@@ -104,7 +105,7 @@ export function JudgmentExtras({ caseId, extras, summary }: Props) {
                 onChange={(value) => {
                   extras.setEntry('claims', c.id, { ...entry, value });
                 }}
-                options={CLAIM_RESULTS.map((r) => [r, t(`pl.claims.result.${r}`)] as const)}
+                options={catalogCodes('CLAIM_RESULT', CLAIM_RESULTS).map((r) => [r, t(`pl.claims.result.${r}`)] as const)}
                 empty={t('pl.judgment.notRecordedYet')}
               />
               <TextField
@@ -143,7 +144,7 @@ export function JudgmentExtras({ caseId, extras, summary }: Props) {
                   onChange={(value) => {
                     extras.setEntry('defenses', d.id, { ...entry, value });
                   }}
-                  options={DEFENSE_POSITIONS.map((p) => [p, t(`pl.defenses.position.${p}`)] as const)}
+                  options={catalogCodes('DEFENSE_POSITION', DEFENSE_POSITIONS).map((p) => [p, t(`pl.defenses.position.${p}`)] as const)}
                   empty={t('pl.judgment.notRecordedYet')}
                 />
                 <TextField

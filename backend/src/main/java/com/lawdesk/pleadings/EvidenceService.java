@@ -39,7 +39,10 @@ class EvidenceService {
     private final JdbcClient jdbc;
     private final CaseRows rows;
 
-    EvidenceService(JdbcClient jdbc, CaseRows rows) {
+    private final LookupValues lookups;
+
+    EvidenceService(JdbcClient jdbc, CaseRows rows, LookupValues lookups) {
+        this.lookups = lookups;
         this.jdbc = jdbc;
         this.rows = rows;
     }
@@ -120,6 +123,7 @@ class EvidenceService {
     EvidenceRequests.ItemView add(UUID caseId, EvidenceRequests.ItemBody body) {
         ActorRef actor = rows.change(caseId);
         check(caseId, body);
+        lookups.requireUsable(LookupValues.EVIDENCE_IMPORTANCE, body.importance(), null, "importance");
         UUID id = jdbc.sql("""
                 insert into evidence_item (case_id, document_id, name, doc_type, issued_on, issuer, received_on, source, role,
                                            importance, submitted_to_court, submitted_on, submitted_in, opponent_responded,
@@ -138,6 +142,9 @@ class EvidenceService {
         UUID caseId = rows.caseOf("evidence_item", id, "evidence");
         ActorRef actor = rows.change(caseId);
         check(caseId, body);
+        String previous = jdbc.sql("select importance from evidence_item where id = :id").param("id", id)
+                .query(String.class).optional().orElse(null);
+        lookups.requireUsable(LookupValues.EVIDENCE_IMPORTANCE, body.importance(), previous, "importance");
         int updated = jdbc.sql("""
                 update evidence_item set document_id = :document, name = :name, doc_type = :type, issued_on = :issued,
                        issuer = :issuer, received_on = :received, source = :source, role = :role, importance = :importance,
@@ -171,7 +178,7 @@ class EvidenceService {
         out.put("received", body.receivedOn());
         out.put("source", body.source());
         out.put("role", body.role().name());
-        out.put("importance", body.importance() == null ? null : body.importance().name());
+        out.put("importance", body.importance());
         out.put("submitted", body.submitted());
         out.put("submittedOn", body.submittedOn());
         out.put("submittedIn", body.submittedIn());
@@ -374,7 +381,7 @@ class EvidenceService {
                 rs.getObject("document_id", UUID.class), rs.getString("document_title"), rs.getString("name"),
                 rs.getString("doc_type"), rs.getObject("issued_on", LocalDate.class), rs.getString("issuer"),
                 rs.getObject("received_on", LocalDate.class), rs.getString("source"),
-                EvidenceRole.valueOf(rs.getString("role")), importance == null ? null : EvidenceImportance.valueOf(importance),
+                EvidenceRole.valueOf(rs.getString("role")), importance,
                 rs.getBoolean("submitted_to_court"), rs.getObject("submitted_on", LocalDate.class),
                 rs.getString("submitted_in"), rs.wasNull() ? null : responded, rs.getString("opponent_response"),
                 rs.getString("court_position"), rs.getString("notes"), rs.getLong("version"), List.of(), List.of(), null);

@@ -15,6 +15,7 @@ import {
   type NewRule,
 } from './api';
 import { failureKey } from './errors';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 interface Props {
   canManage: boolean;
@@ -101,8 +102,9 @@ export function RulesPanel({ canManage, canApprove }: Props) {
           <div className="case-field">
             <label htmlFor={`${id}-method`}>{t('wp4.rules.method')}</label>
             <select id={`${id}-method`} value={form.countMethod} onChange={(e) => { setForm({ ...form, countMethod: e.target.value === 'WORKING' ? 'WORKING' : 'CALENDAR' }); }}>
-              <option value="CALENDAR">{t('wp4.method.CALENDAR')}</option>
-              <option value="WORKING">{t('wp4.method.WORKING')}</option>
+              {catalogCodes('DEADLINE_COUNT_METHOD', ['CALENDAR', 'WORKING'] as const).map((method) => (
+                <option key={method} value={method}>{t(`wp4.method.${method}`)}</option>
+              ))}
             </select>
           </div>
           <label>

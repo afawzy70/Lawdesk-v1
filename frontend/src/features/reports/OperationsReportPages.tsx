@@ -25,6 +25,7 @@ import {
 import { ExportLinks, Field, Pager, ReportSections, Summary } from './ReportParts';
 import { isObject, useReport, type ReportLoad } from './useReport';
 import './reports.css';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 /** The frame of a report section: page heading, section links, the section's heading and its state. */
 function ReportFrame<T>({
@@ -126,7 +127,7 @@ export function HearingReportPage() {
         <Field label={t('reports.filter.hearingStatus')}>
           <select name="status" defaultValue={filter.status ?? ''}>
             <option value="">{t('reports.filter.any')}</option>
-            {HEARING_STATUSES.map((status) => (
+            {catalogCodes('HEARING_STATUS', HEARING_STATUSES).map((status) => (
               <option key={status} value={status}>
                 {t(`operations.hearingStatus.${status}`)}
               </option>

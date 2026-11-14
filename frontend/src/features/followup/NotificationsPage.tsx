@@ -19,6 +19,7 @@ import {
   type NotificationPreference,
 } from './api';
 import { failureKey } from './errors';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 /** The kinds in the order of the requirements (section 32), then the system notices. */
 const NOTIFICATION_TYPES = [
@@ -160,7 +161,7 @@ export function NotificationsPage() {
           }}
         >
           <option value="">{t('operations.all')}</option>
-          {NOTIFICATION_TYPES.map((type) => (
+          {catalogCodes('NOTIFICATION_TYPE', NOTIFICATION_TYPES).map((type) => (
             <option key={type} value={type}>{t(typeLabel(type))}</option>
           ))}
         </select>

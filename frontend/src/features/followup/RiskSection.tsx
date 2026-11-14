@@ -22,6 +22,7 @@ import {
   type RiskTrigger,
 } from './api';
 import { failureKey, isForbidden } from './errors';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 function blank(): NewAssessment {
   const elements = {} as NewAssessment['elements'];
@@ -178,7 +179,7 @@ export function RiskSection({ caseId, editable }: Props) {
                                 value={r.status}
                                 onChange={(e) => void step(r, e.target.value as RemediationStatus)}
                               >
-                                {REMEDIATION_STATUSES.map((status) => (
+                                {catalogCodes('REMEDIATION_STATUS', REMEDIATION_STATUSES).map((status) => (
                                   <option key={status} value={status}>{t(`wp3.risk.step.${status}`)}</option>
                                 ))}
                               </select>
@@ -203,7 +204,7 @@ export function RiskSection({ caseId, editable }: Props) {
               <div className="case-field" key={code}>
                 <label htmlFor={`${id}-r-${code}`}>{t(`wp3.risk.element.${code}`)}</label>
                 <select id={`${id}-r-${code}`} value={form.elements[code].rating} onChange={(e) => { setElement(code, { rating: e.target.value as RiskRating }); }}>
-                  {RISK_RATINGS.map((rating) => (
+                  {catalogCodes('RISK_RATING', RISK_RATINGS).map((rating) => (
                     <option key={rating} value={rating}>{t(`wp3.risk.rating.${rating}`)}</option>
                   ))}
                 </select>
@@ -220,7 +221,7 @@ export function RiskSection({ caseId, editable }: Props) {
           <div className="case-field">
             <label htmlFor={`${id}-level`}>{t('wp3.risk.overall')}</label>
             <select id={`${id}-level`} value={form.level} onChange={(e) => { setForm({ ...form, level: e.target.value as RiskLevel }); }}>
-              {RISK_LEVELS.map((level) => (
+              {catalogCodes('RISK_LEVEL', RISK_LEVELS).map((level) => (
                 <option key={level} value={level}>{t(`wp3.risk.level.${level}`)}</option>
               ))}
             </select>
@@ -237,7 +238,7 @@ export function RiskSection({ caseId, editable }: Props) {
           <div className="case-field">
             <label htmlFor={`${id}-trigger`}>{t('wp3.risk.triggerField')}</label>
             <select id={`${id}-trigger`} value={form.trigger} onChange={(e) => { setForm({ ...form, trigger: e.target.value as RiskTrigger }); }}>
-              {RISK_TRIGGERS.map((trigger) => (
+              {catalogCodes('RISK_TRIGGER', RISK_TRIGGERS).map((trigger) => (
                 <option key={trigger} value={trigger}>{t(`wp3.risk.trigger.${trigger}`)}</option>
               ))}
             </select>

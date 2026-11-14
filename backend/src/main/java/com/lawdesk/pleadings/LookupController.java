@@ -27,6 +27,13 @@ class LookupController {
         this.service = service;
     }
 
+    /** All catalogue lists at once, for any signed-in user: labels and order of the dropdowns are not sensitive. */
+    @GetMapping("/api/v1/lookups/all")
+    @PreAuthorize("isAuthenticated()")
+    java.util.Map<String, List<LookupRequests.View>> all() {
+        return service.all();
+    }
+
     @GetMapping("/api/v1/lookups/{list}")
     @PreAuthorize(Permission.Codes.CASE_VIEW)
     List<LookupRequests.View> list(@PathVariable String list, @RequestParam(defaultValue = "false") boolean includeInactive) {

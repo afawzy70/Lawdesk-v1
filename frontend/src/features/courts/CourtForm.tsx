@@ -3,6 +3,7 @@ import { ApiError } from '../../api/http';
 import type { MessageKey } from '../../i18n/catalog';
 import { useI18n } from '../../i18n/I18nContext';
 import { COURT_LEVELS, createCourt, updateCourt, type Court, type CourtInput } from './courtsApi';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 type Field = keyof CourtInput;
 const FIELDS: readonly Field[] = ['code', 'nameAr', 'nameEn', 'level', 'governorate'];
@@ -157,7 +158,7 @@ export function CourtForm({ court, onSaved, onCancel }: Props) {
           }}
         >
           <option value="">{t('courts.chooseLevel')}</option>
-          {COURT_LEVELS.map((level) => (
+          {catalogCodes('COURT_LEVEL', COURT_LEVELS).map((level) => (
             <option key={level} value={level}>
               {t(`courts.level.${level}`)}
             </option>

@@ -16,6 +16,7 @@ import {
   type RelationType,
 } from './api';
 import { citation, relationKey } from './labels';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 interface Props {
   judgment: Judgment;
@@ -168,7 +169,7 @@ export function RelationsSection({ judgment, canManage, onChanged }: Props) {
                 setType(e.target.value as RelationType);
               }}
             >
-              {RELATION_TYPES.map((r) => (
+              {catalogCodes('LIBRARY_RELATION_TYPE', RELATION_TYPES).map((r) => (
                 <option key={r} value={r}>
                   {t(relationKey(r))}
                 </option>

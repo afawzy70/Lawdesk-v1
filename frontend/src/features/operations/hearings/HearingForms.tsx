@@ -21,6 +21,7 @@ import {
   type ResultInput,
   type ResultStatus,
 } from './hearingsApi';
+import { catalogCodes } from '../../../catalog/catalogStore';
 
 /** Forms of the hearings (LD-024). The backend validates and applies the rules; the forms show its answers. */
 
@@ -88,7 +89,7 @@ function HearingFields({ values, onChange, form }: HearingFieldsProps) {
       <Field id={field('kind').id} label={t('wp3.hearing.kindField')} error={form.errors.kind} errorId={form.errorId('kind')}>
         <select {...field('kind')} value={values.kind}
           onChange={(event) => { onChange({ ...values, kind: event.target.value as HearingKind }); }}>
-          {HEARING_KINDS.map((kind) => (
+          {catalogCodes('HEARING_KIND', HEARING_KINDS).map((kind) => (
             <option key={kind} value={kind}>{t(`wp3.hearing.kind.${kind}`)}</option>
           ))}
         </select>
@@ -117,7 +118,7 @@ function HearingFields({ values, onChange, form }: HearingFieldsProps) {
         <select {...field('purpose')} required value={values.purpose}
           onChange={(event) => { set('purpose')(event.target.value); }}>
           <option value="">{t('operations.choose')}</option>
-          {HEARING_PURPOSES.map((purpose) => (
+          {catalogCodes('HEARING_PURPOSE', HEARING_PURPOSES).map((purpose) => (
             <option key={purpose} value={purpose}>{t(`operations.purpose.${purpose}`)}</option>
           ))}
         </select>
@@ -366,7 +367,7 @@ export function HearingResultForm({ hearing, onSaved, onCancel }: HearingProps) 
             <select {...form.control('nextHearingPurpose')} value={values.nextHearingPurpose}
               onChange={(event) => { set('nextHearingPurpose')(event.target.value); }}>
               <option value="">{t('operations.hearing.samePurpose')}</option>
-              {HEARING_PURPOSES.map((purpose) => (
+              {catalogCodes('HEARING_PURPOSE', HEARING_PURPOSES).map((purpose) => (
                 <option key={purpose} value={purpose}>{t(`operations.purpose.${purpose}`)}</option>
               ))}
             </select>

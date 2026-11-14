@@ -23,6 +23,7 @@ import {
 } from './api';
 import { archiveError } from './errors';
 import { usePermissions } from './usePermissions';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 interface Props {
   judgmentId: string;
@@ -212,7 +213,7 @@ function FileForm({ judgmentId, file, members, onSaved, onCancel }: FormProps) {
         onChange={(value) => {
           setStatus(value as EnforcementStatus);
         }}
-        options={ENFORCEMENT_STATUSES.map((s) => [s, t(`wp5.enf.status.${s}`)] as const)}
+        options={catalogCodes('ENFORCEMENT_STATUS', ENFORCEMENT_STATUSES).map((s) => [s, t(`wp5.enf.status.${s}`)] as const)}
         invalid={flagged.includes('status')}
       />
       <ChoiceField
@@ -380,7 +381,7 @@ function ActionForm({
         onChange={(value) => {
           setKind(value as ActionKind);
         }}
-        options={ACTION_KINDS.map((k) => [k, t(`wp5.enf.action.${k}`)] as const)}
+        options={catalogCodes('ENFORCEMENT_ACTION_KIND', ACTION_KINDS).map((k) => [k, t(`wp5.enf.action.${k}`)] as const)}
       />
       <TextField label={t('wp5.enf.action.date')} type="date" value={date} onChange={setDate} />
       <AreaField label={t('wp5.enf.action.description')} value={description} onChange={setDescription} />

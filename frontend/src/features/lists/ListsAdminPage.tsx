@@ -8,6 +8,7 @@ import { AdminTabs } from '../admin/AdminTabs';
 import { AccessDeniedPage } from '../auth/AccessDeniedPage';
 import { usePermissions } from '../archive/usePermissions';
 import { ApiError } from '../../api/http';
+import { loadCatalog } from '../../catalog/catalogStore';
 import { ChoiceField, CheckField, Notice, TextField } from '../pleadings/ui';
 import { flaggedFields, orNull, useLoad } from '../pleadings/useLoad';
 import '../pleadings/pleadings.css';
@@ -86,6 +87,8 @@ function ListPanel({ list, onChanged }: { list: ListSummary; onChanged: () => vo
       setEditing(null);
       options.reload();
       onChanged();
+      // Every screen shows the new label/order at once.
+      void loadCatalog();
     } catch (error) {
       setFlagged(flaggedFields(error));
       setMessage({ key: failure(error), failed: true });
@@ -189,7 +192,7 @@ function ListPanel({ list, onChanged }: { list: ListSummary; onChanged: () => vo
                 onChange={(labelAr) => { setForm((c) => ({ ...c, labelAr })); }} />
               <TextField label={t('lists.col.labelEn')} value={form.labelEn} max={200} dir="ltr"
                 onChange={(labelEn) => { setForm((c) => ({ ...c, labelEn })); }} />
-              <TextField label={t('lists.col.order')} value={form.order} type="number" max={6}
+              <TextField label={t('lists.col.order')} value={form.order} dir="ltr" max={6}
                 onChange={(order) => { setForm((c) => ({ ...c, order })); }} />
               {editing.system === true ? null : (
                 <CheckField label={t('lists.active')} checked={form.active} onChange={(active) => { setForm((c) => ({ ...c, active })); }} />
@@ -209,7 +212,7 @@ function ListPanel({ list, onChanged }: { list: ListSummary; onChanged: () => vo
                 onChange={(labelAr) => { setAdd((c) => ({ ...c, labelAr })); }} />
               <TextField label={t('lists.col.labelEn')} value={add.labelEn} max={200} dir="ltr"
                 onChange={(labelEn) => { setAdd((c) => ({ ...c, labelEn })); }} />
-              <TextField label={t('lists.col.order')} value={add.order} type="number" max={6}
+              <TextField label={t('lists.col.order')} value={add.order} dir="ltr" max={6}
                 onChange={(order) => { setAdd((c) => ({ ...c, order })); }} />
               <div className="case-actions">
                 <button type="submit" className="primary">{t('lists.add')}</button>
