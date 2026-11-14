@@ -69,7 +69,9 @@ def events(session, path):
 
 
 def of_case(view, case_id, kind=None):
-    return [e for e in view["events"] if e["caseId"] == case_id and (kind is None or e["type"] == kind)]
+    # A refused calendar (a role without CALENDAR_VIEW) has no entries to list.
+    entries = view.get("events", []) if isinstance(view, dict) else []
+    return [e for e in entries if e["caseId"] == case_id and (kind is None or e["type"] == kind)]
 
 
 # --- S11: a hearing and a task both appear in the calendar --------------------------------------------------------------------------
@@ -94,7 +96,11 @@ check("the hearing is shown at 10:00 and stored as the UTC instant", (hearing_en
       ("10:00", expected_utc.strftime("%Y-%m-%dT%H:%M:%SZ")))
 status, general = events(manager, path)
 check("both are in the general calendar of the department", sorted(e["type"] for e in of_case(general, a)), ["HEARING", "TASK"])
-check("a user with no access to the case sees none of it", of_case(events(viewer, path)[1], a), [])
+# The read-only QA role may or may not hold CALENDAR_VIEW (a freshly provisioned qa.viewer does not): either the calendar is refused
+# (403) or it answers without any entry of the case. Both mean "sees none of it".
+viewer_status, viewer_view = events(viewer, path)
+check("a user with no access to the case sees none of it",
+      viewer_status == 403 or (viewer_status == 200 and of_case(viewer_view, a) == []), True)
 status, day = events(staff, "/api/v1/calendar/day?date=%s&userId=me" % iso(soon))
 check("the day view holds them", (status, day["view"], len(of_case(day, a))), (200, "DAY", 2))
 status, week = events(staff, "/api/v1/calendar/week?date=%s&userId=me" % iso(soon))

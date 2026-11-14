@@ -57,6 +57,10 @@ def main(argv=None):
                % rd.persona_hash(admin_password), user=rd.APP_ROLE)
         d.psql(d.src_db, "insert into user_role (user_id, role_id) select u.id, r.id from app_user u, app_role r "
                          "where u.username = 'localadmin' and r.code = 'ADMIN'", user=rd.APP_ROLE)
+        d.psql(d.src_db, "insert into court (code, name_ar, name_en, level, created_by, updated_by) values "
+                         "('SYNTH-C1', 'SYNTH-DOC محكمة أول درجة', 'SYNTH-DOC First-Instance Court', 'FIRST_INSTANCE', gen_random_uuid(), gen_random_uuid()), "
+                         "('SYNTH-C2', 'SYNTH-DOC محكمة الاستئناف', 'SYNTH-DOC Appeal Court', 'APPEAL', gen_random_uuid(), gen_random_uuid()), "
+                         "('SYNTH-C3', 'SYNTH-DOC محكمة التمييز', 'SYNTH-DOC Cassation Court', 'CASSATION', gen_random_uuid(), gen_random_uuid())", user=rd.APP_ROLE)
         qa_dir = d.work / "qa-credentials"
         qa_dir.mkdir(mode=0o700, exist_ok=True)
         pw_file = d.work / "admin.pw"
@@ -82,7 +86,7 @@ def main(argv=None):
             target = out / (Path(name).stem + ".json")
             log = out / (Path(name).stem + ".log")
             with open(log, "wb") as handle:
-                result = subprocess.run([sys.executable, "-I", str(HERE / name), str(target)], env=env, stdout=handle,
+                result = subprocess.run([sys.executable, str(HERE / name), str(target)], env=env, stdout=handle,
                                         stderr=subprocess.STDOUT, timeout=1500)
             text = log.read_text(errors="replace")
             results[name] = {"exit": result.returncode, "pass": text.count("\nPASS ") + (1 if text.startswith("PASS ") else 0),
