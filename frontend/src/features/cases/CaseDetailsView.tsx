@@ -1,12 +1,15 @@
 import type { ReactNode } from 'react';
+import type { MessageKey } from '../../i18n/catalog';
 import { formatNumber } from '../../i18n/format';
 import { useI18n } from '../../i18n/I18nContext';
+import { useListOptions } from '../lists/useListOptions';
 import { formatDate } from './format';
 import type { CaseDetails } from './api';
 
 /** The case record beyond its numbers (requirements section 1): only what was recorded is shown, nothing is filled in. */
 export function CaseDetailsView({ details }: { details: CaseDetails | undefined }) {
   const { t, locale } = useI18n();
+  const importanceList = useListOptions('CASE_IMPORTANCE');
   const rows: [string, ReactNode][] = [];
   const add = (label: string, value: ReactNode | null | undefined) => {
     if (value !== null && value !== undefined && value !== '') rows.push([label, value]);
@@ -22,7 +25,13 @@ export function CaseDetailsView({ details }: { details: CaseDetails | undefined 
           amount: formatNumber(Number(details.claimedAmount), locale, { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
         }),
   );
-  add(t('details.importance'), details?.importance === undefined || details.importance === null ? null : t(`details.importance.${details.importance}`));
+  const importance = details?.importance;
+  add(
+    t('details.importance'),
+    importance === undefined || importance === null
+      ? null
+      : importanceList.label(importance, ['LOW', 'NORMAL', 'HIGH', 'CRITICAL'].includes(importance) ? t(`details.importance.${importance}` as MessageKey) : importance),
+  );
   add(t('details.facts'), details?.facts);
   add(t('details.internalNotes'), details?.internalNotes);
   return (

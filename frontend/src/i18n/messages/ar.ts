@@ -4,6 +4,7 @@ import { adminAr } from './admin.ar';
 import { accessAr } from './access.ar';
 import { casesAr } from './cases.ar';
 import { courtsAr } from './courts.ar';
+import { listsAr } from './lists.ar';
 import { proceedingsAr } from './proceedings.ar';
 import { intakeAr } from './intake.ar';
 import { selectorAr } from './selector.ar';
@@ -70,6 +71,7 @@ export const ar: Messages = {
   ...accessAr,
   ...casesAr,
   ...courtsAr,
+  ...listsAr,
   ...proceedingsAr,
   ...intakeAr,
   ...selectorAr,

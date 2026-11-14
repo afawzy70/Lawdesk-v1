@@ -59,6 +59,7 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
     /** First path segments (after /api/v1) whose records are not owned by a case, with why. */
     private static final Map<String, String> NOT_CASE_BOUND = Map.ofEntries(
             Map.entry("users", "administration of accounts"), Map.entry("roles", "administration of roles"),
+            Map.entry("admin", "the administrator's catalogue of dropdown lists"),
             Map.entry("courts", "reference list"), Map.entry("lists", "managed reference lists"),
             Map.entry("lookups", "managed reference lists"), Map.entry("library", "the department library holds no case data"),
             Map.entry("org-units", "organisation tree"), Map.entry("access-scopes", "administration of scopes"),

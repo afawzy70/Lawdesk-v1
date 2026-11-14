@@ -11,6 +11,7 @@ const TABS: readonly { path: string; label: MessageKey; requires: Permission }[]
   { path: '/admin/org', label: 'admin.tabs.org', requires: 'ORG_MANAGE' },
   { path: '/admin/access', label: 'admin.tabs.access', requires: 'CASE_GRANT_MANAGE' },
   { path: '/admin/lookups', label: 'admin.tabs.lookups', requires: 'LOOKUP_MANAGE' },
+  { path: '/admin/lists', label: 'admin.tabs.lists', requires: 'LIST_ADMIN' },
   { path: '/admin/deadlines', label: 'admin.tabs.deadlines', requires: 'DEADLINE_VIEW' },
   { path: '/admin/archive', label: 'gap.archive.tab', requires: 'DOCUMENT_ARCHIVE_ADMIN' },
   { path: '/admin/audit', label: 'admin.tabs.audit', requires: 'AUDIT_VIEW' },

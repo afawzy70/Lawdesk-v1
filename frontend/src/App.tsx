@@ -23,6 +23,7 @@ import { archiveRoutes } from './features/archive/routes';
 import { libraryRoutes } from './features/library/routes';
 import { NotificationsPage } from './features/followup/NotificationsPage';
 import { LookupsPage } from './features/pleadings/LookupsPage';
+import { ListsAdminPage } from './features/lists/ListsAdminPage';
 import { operationsRoutes } from './features/operations/routes';
 import { reportsRoutes } from './features/reports/routes';
 import { wp9Routes } from './features/wp9/routes';
@@ -65,6 +66,7 @@ export function AppRoutes({ locale }: LocaleProps) {
               <Route path="/admin/org" element={<OrgUnitsPage />} />
               <Route path="/admin/access" element={<AccessScopesPage />} />
               <Route path="/admin/lookups" element={<LookupsPage />} />
+              <Route path="/admin/lists" element={<ListsAdminPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/courts" element={<CourtsPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />

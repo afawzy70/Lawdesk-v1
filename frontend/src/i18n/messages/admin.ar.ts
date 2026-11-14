@@ -143,6 +143,7 @@ export const adminAr: Record<keyof typeof adminEn, string> = {
   'admin.permission.EVIDENCE_VIEW': 'عرض الوقائع والأدلة',
   'admin.permission.EVIDENCE_MANAGE': 'إدارة الوقائع والأدلة',
   'admin.permission.LOOKUP_MANAGE': 'إدارة القوائم المعيارية',
+  'admin.permission.LIST_ADMIN': 'إدارة كل القوائم المنسدلة (للأدمن)',
   'admin.permission.SETTLEMENT_MANAGE': 'تسجيل التسويات وتعديلها',
   'admin.permission.SETTLEMENT_APPROVE': 'اعتماد التسويات أو رفضها',
   'admin.permission.DIRECTIVE_MANAGE': 'إصدار التكليفات وإدارتها',

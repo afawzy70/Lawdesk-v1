@@ -19,6 +19,7 @@ import com.lawdesk.api.FieldErrorException;
 import com.lawdesk.api.NotFoundException;
 import com.lawdesk.api.PageResponse;
 import com.lawdesk.audit.AuditLog;
+import com.lawdesk.pleadings.LookupValues;
 import com.lawdesk.security.ActorRef;
 import com.lawdesk.security.CurrentActor;
 import com.lawdesk.security.Permission;
@@ -46,10 +47,12 @@ class CaseService implements CaseLookup {
     private final AuditLog audit;
     private final UserDirectory users;
     private final CaseClosingCheck closing;
+    private final LookupValues lookups;
 
     CaseService(CaseRepository cases, CaseTimeline timeline, CurrentActor currentActor, CaseAccessPolicy access,
-            AuditLog audit, UserDirectory users, CaseClosingCheck closing) {
+            AuditLog audit, UserDirectory users, CaseClosingCheck closing, LookupValues lookups) {
         this.closing = closing;
+        this.lookups = lookups;
         this.cases = cases;
         this.timeline = timeline;
         this.currentActor = currentActor;
@@ -110,7 +113,7 @@ class CaseService implements CaseLookup {
         if (automatedNoChanged) changed.add("automatedNo");
         boolean detailsChanged = request.details() != null && !request.details().equals(current.details());
         if (detailsChanged) {
-            checkDetails(request.details());
+            checkDetails(request.details(), current.details() == null ? null : current.details().importance());
             changed.add("details");
         }
         boolean claimedChanged = detailsChanged && !sameAmount(current.details().claimedAmount(),
@@ -150,8 +153,16 @@ class CaseService implements CaseLookup {
 
     /** The referring unit, when given, must be an active unit of the authority's tree. */
     void checkDetails(CaseDetails details) {
+        checkDetails(details, null);
+    }
+
+    /** As above; the importance must be an active option of the managed list unless the case already carries it. */
+    void checkDetails(CaseDetails details, String previousImportance) {
         if (details != null && details.referringUnitId() != null && !cases.isActiveAuthorityUnit(details.referringUnitId())) {
             throw new FieldErrorException("details.referringUnitId", "Exists");
+        }
+        if (details != null) {
+            lookups.requireUsable(LookupValues.CASE_IMPORTANCE, details.importance(), previousImportance, "details.importance");
         }
     }
 

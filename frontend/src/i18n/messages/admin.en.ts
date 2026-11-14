@@ -141,6 +141,7 @@ export const adminEn = {
   'admin.permission.EVIDENCE_VIEW': 'View facts and evidence',
   'admin.permission.EVIDENCE_MANAGE': 'Manage facts and evidence',
   'admin.permission.LOOKUP_MANAGE': 'Manage managed lists',
+  'admin.permission.LIST_ADMIN': 'Manage all dropdown lists (administrator)',
   'admin.permission.SETTLEMENT_MANAGE': 'Record and edit settlements',
   'admin.permission.SETTLEMENT_APPROVE': 'Approve or reject settlements',
   'admin.permission.DIRECTIVE_MANAGE': 'Issue and manage directives',
