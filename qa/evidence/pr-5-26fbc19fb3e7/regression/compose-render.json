@@ -1,0 +1,235 @@
+{
+  "name": "lawdesk-qa-validation",
+  "networks": {
+    "edge": {
+      "name": "lawdesk-edge",
+      "ipam": {},
+      "external": true
+    },
+    "internal": {
+      "name": "lawdesk-qa-validation_internal",
+      "ipam": {},
+      "internal": true
+    }
+  },
+  "secrets": {
+    "db_admin_password": {
+      "name": "lawdesk-qa-validation_db_admin_password",
+      "file": "/tmp/lawdesk-qa-pr5-26fbc19fb3e7/deploy/secrets/db_admin_password.txt"
+    },
+    "db_app_password": {
+      "name": "lawdesk-qa-validation_db_app_password",
+      "file": "/tmp/lawdesk-qa-pr5-26fbc19fb3e7/deploy/secrets/db_app_password.txt"
+    }
+  },
+  "services": {
+    "backend": {
+      "restart": "unless-stopped",
+      "cap_drop": [
+        "ALL"
+      ],
+      "command": null,
+      "entrypoint": null,
+      "environment": {
+        "LAWDESK_RELEASE": "26fbc19fb3e7a5911d6689631a3f46e6e6b3daac",
+        "SPRING_CONFIG_IMPORT": "configtree:/run/secrets/",
+        "SPRING_DATASOURCE_URL": "jdbc:postgresql://db:5432/lawdesk",
+        "SPRING_DATASOURCE_USERNAME": "lawdesk_app"
+      },
+      "image": "lawdesk-qa/backend:26fbc19fb3e7a5911d6689631a3f46e6e6b3daac",
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-file": "5",
+          "max-size": "10m"
+        }
+      },
+      "mem_limit": "805306368",
+      "networks": {
+        "internal": null
+      },
+      "read_only": true,
+      "secrets": [
+        {
+          "source": "db_app_password",
+          "target": "spring.datasource.password"
+        }
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "stop_grace_period": "30s",
+      "tmpfs": [
+        "/tmp"
+      ],
+      "depends_on": {
+        "db": {
+          "condition": "service_healthy",
+          "required": true
+        }
+      },
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "wget",
+          "-q",
+          "-O",
+          "/dev/null",
+          "http://127.0.0.1:8080/actuator/health/readiness"
+        ],
+        "timeout": "5s",
+        "interval": "10s",
+        "retries": 6,
+        "start_period": "1m30s"
+      }
+    },
+    "db": {
+      "restart": "unless-stopped",
+      "cap_add": [
+        "CHOWN",
+        "DAC_OVERRIDE",
+        "FOWNER",
+        "SETGID",
+        "SETUID"
+      ],
+      "cap_drop": [
+        "ALL"
+      ],
+      "command": null,
+      "entrypoint": null,
+      "environment": {
+        "LAWDESK_APP_PASSWORD_FILE": "/run/secrets/db_app_password",
+        "POSTGRES_DB": "lawdesk",
+        "POSTGRES_PASSWORD_FILE": "/run/secrets/db_admin_password",
+        "POSTGRES_USER": "postgres"
+      },
+      "image": "postgres:18.6-alpine3.24@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5",
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-file": "5",
+          "max-size": "10m"
+        }
+      },
+      "mem_limit": "536870912",
+      "networks": {
+        "internal": null
+      },
+      "secrets": [
+        {
+          "source": "db_admin_password",
+          "target": "/run/secrets/db_admin_password"
+        },
+        {
+          "source": "db_app_password",
+          "target": "/run/secrets/db_app_password"
+        }
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "db-data",
+          "target": "/var/lib/postgresql",
+          "volume": {}
+        },
+        {
+          "type": "bind",
+          "source": "/tmp/lawdesk-qa-pr5-26fbc19fb3e7/deploy/postgres/init",
+          "target": "/docker-entrypoint-initdb.d",
+          "read_only": true,
+          "bind": {}
+        }
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "pg_isready",
+          "-U",
+          "postgres",
+          "-d",
+          "lawdesk"
+        ],
+        "timeout": "5s",
+        "interval": "10s",
+        "retries": 10,
+        "start_period": "30s"
+      }
+    },
+    "web": {
+      "restart": "unless-stopped",
+      "cap_drop": [
+        "ALL"
+      ],
+      "command": null,
+      "entrypoint": null,
+      "image": "lawdesk-qa/web:26fbc19fb3e7a5911d6689631a3f46e6e6b3daac",
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-file": "5",
+          "max-size": "10m"
+        }
+      },
+      "mem_limit": "67108864",
+      "networks": {
+        "edge": {
+          "aliases": [
+            "lawdesk-web"
+          ]
+        },
+        "internal": {}
+      },
+      "read_only": true,
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "tmpfs": [
+        "/tmp"
+      ],
+      "depends_on": {
+        "backend": {
+          "condition": "service_healthy",
+          "required": true
+        }
+      },
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "wget",
+          "-q",
+          "-O",
+          "/dev/null",
+          "http://127.0.0.1:8080/healthz"
+        ],
+        "timeout": "5s",
+        "interval": "10s",
+        "retries": 3,
+        "start_period": "10s"
+      }
+    }
+  },
+  "volumes": {
+    "db-data": {
+      "name": "lawdesk-qa-validation_db-data"
+    }
+  },
+  "x-hardening": {
+    "cap_drop": [
+      "ALL"
+    ],
+    "logging": {
+      "driver": "json-file",
+      "options": {
+        "max-file": "5",
+        "max-size": "10m"
+      }
+    },
+    "restart": "unless-stopped",
+    "security_opt": [
+      "no-new-privileges:true"
+    ]
+  }
+}

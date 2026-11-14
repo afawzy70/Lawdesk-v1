@@ -1,0 +1,35 @@
+{
+  "utc": "2026-10-24T18:33:03.717510+00:00",
+  "scope": "Lightweight source/security review, not full security acceptance",
+  "frontend_sha": "6e27f5c427380fddb1914872f53ea437eb642fc9",
+  "lockfile_sha256": "b4ab5dd04bd2375611e0d60f706a39608236f6bef0c3d3e7d873d791e6cb9933",
+  "frontend_sca": {
+    "tool": "npm audit --json",
+    "advisories": 0,
+    "dependency_total_reported": 269,
+    "artifact": "npm-audit.json"
+  },
+  "source_review": [
+    {
+      "shas": [
+        "1b302bc8cdf7382777b3a802fba9db5029fa3138",
+        "9879743a5c1badffc79ddc6256c28baa8bc55240"
+      ],
+      "path": "backend/src/main/java/com/lawdesk/experts/ExpertReportQueries.java",
+      "observations": [
+        "UUID input is bound as :ids; no string interpolation into SQL",
+        "Input size capped before query; empty bypasses DB; duplicates deduplicated",
+        "Projection includes id/name/specialty/active, excludes office/phone",
+        "Internal module port; future report/export endpoints must enforce their own permissions"
+      ]
+    }
+  ],
+  "dynamic_followup": "Limited DB role with only SELECT/UPDATE can COMMIT invalid chronology/parent relation; QAD-033 remains open, not a demonstrated remote API bypass.",
+  "not_run": [
+    "Automated full SAST",
+    "Backend dependency advisory scan",
+    "Disruptive DAST/stress/soak"
+  ],
+  "prior_authorization_session_evidence": "qa/evidence/continuous-phase56-20261024/",
+  "counts_as_independent_product_pass": false
+}

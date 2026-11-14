@@ -1,0 +1,1972 @@
+{
+  "tested_sha": "f6bc3e37ee8dd46debd5b9ff5b946b1b731b3a23",
+  "utc": "2026-10-24T05:25:55.529519+00:00",
+  "candidate": "/tmp/lawdesk-qa-pr20-f6bc3e37ee8d",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 54,
+    "FAIL": 3,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "ANON-me",
+      "story_ids": [
+        "LD-007",
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "ANON-me"
+      },
+      "steps": [
+        "GET /api/v1/me",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 401,
+        "rule": null
+      },
+      "actual": {
+        "status": 401,
+        "body": {
+          "type": "about:blank",
+          "title": "Unauthorized",
+          "status": 401
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "ANON-cases",
+      "story_ids": [
+        "LD-007",
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "ANON-cases"
+      },
+      "steps": [
+        "GET /api/v1/cases",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 401,
+        "rule": null
+      },
+      "actual": {
+        "status": 401,
+        "body": {
+          "type": "about:blank",
+          "title": "Unauthorized",
+          "status": 401
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "ANON-courts",
+      "story_ids": [
+        "LD-007",
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "ANON-courts"
+      },
+      "steps": [
+        "GET /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 401,
+        "rule": null
+      },
+      "actual": {
+        "status": 401,
+        "body": {
+          "type": "about:blank",
+          "title": "Unauthorized",
+          "status": 401
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "ANON-users",
+      "story_ids": [
+        "LD-007",
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "ANON-users"
+      },
+      "steps": [
+        "GET /api/v1/users",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 401,
+        "rule": null
+      },
+      "actual": {
+        "status": 401,
+        "body": {
+          "type": "about:blank",
+          "title": "Unauthorized",
+          "status": 401
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "ANON-audit",
+      "story_ids": [
+        "LD-007",
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "ANON-audit"
+      },
+      "steps": [
+        "GET /api/v1/audit",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 401,
+        "rule": null
+      },
+      "actual": {
+        "status": 401,
+        "body": {
+          "type": "about:blank",
+          "title": "Unauthorized",
+          "status": 401
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "LOGIN-USERNAME",
+      "story_ids": [
+        "LD-007"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "LOGIN-USERNAME"
+      },
+      "steps": [
+        "Fetch CSRF",
+        "login with trimmed uppercase username"
+      ],
+      "expected_results": "200; forced-change flag",
+      "actual": {
+        "status": 200,
+        "mustChangePassword": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "SESSION-COOKIE",
+      "story_ids": [
+        "LD-007"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "SESSION-COOKIE"
+      },
+      "steps": [
+        "Login",
+        "inspect Set-Cookie attributes"
+      ],
+      "expected_results": "HttpOnly Secure SameSite=Lax",
+      "actual": {
+        "attributes": [
+          " Path=/; Secure; HttpOnly; SameSite=Lax"
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "FORCED-CHANGE",
+      "story_ids": [
+        "LD-008"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FORCED-CHANGE"
+      },
+      "steps": [
+        "GET /api/v1/cases",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 403,
+        "rule": "PASSWORD_CHANGE_REQUIRED"
+      },
+      "actual": {
+        "status": 403,
+        "body": {
+          "type": "about:blank",
+          "title": "Forbidden",
+          "status": 403,
+          "rule": "PASSWORD_CHANGE_REQUIRED"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CHANGE-PASSWORD",
+      "story_ids": [
+        "LD-008"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CHANGE-PASSWORD"
+      },
+      "steps": [
+        "POST /api/v1/me/password",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 204,
+        "rule": null
+      },
+      "actual": {
+        "status": 204,
+        "body": ""
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "BCRYPT-STORAGE",
+      "story_ids": [
+        "LD-008"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "BCRYPT-STORAGE"
+      },
+      "steps": [
+        "Change password",
+        "query stored encoding"
+      ],
+      "expected_results": "Delegating bcrypt cost12; no plaintext",
+      "actual": "t",
+      "status": "PASS"
+    },
+    {
+      "id": "LOGIN-staff",
+      "story_ids": [
+        "LD-007"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "LOGIN-staff"
+      },
+      "steps": [
+        "Login seeded role user"
+      ],
+      "expected_results": "200",
+      "actual": 200,
+      "status": "PASS"
+    },
+    {
+      "id": "LOGIN-reader",
+      "story_ids": [
+        "LD-007"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "LOGIN-reader"
+      },
+      "steps": [
+        "Login seeded role user"
+      ],
+      "expected_results": "200",
+      "actual": 200,
+      "status": "PASS"
+    },
+    {
+      "id": "LOGIN-manager",
+      "story_ids": [
+        "LD-007"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "LOGIN-manager"
+      },
+      "steps": [
+        "Login seeded role user"
+      ],
+      "expected_results": "200",
+      "actual": 200,
+      "status": "PASS"
+    },
+    {
+      "id": "LOGIN-EMAIL",
+      "story_ids": [
+        "LD-007"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "LOGIN-EMAIL"
+      },
+      "steps": [
+        "Login trimmed case-insensitive email"
+      ],
+      "expected_results": "200",
+      "actual": 200,
+      "status": "PASS"
+    },
+    {
+      "id": "UNIFORM-REFUSAL",
+      "story_ids": [
+        "LD-007"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "UNIFORM-REFUSAL"
+      },
+      "steps": [
+        "Unknown and disabled login",
+        "compare problems"
+      ],
+      "expected_results": "Identical401 bodies",
+      "actual": {
+        "unknown": [
+          401,
+          {
+            "type": "about:blank",
+            "title": "Unauthorized",
+            "status": 401
+          }
+        ],
+        "disabled": [
+          401,
+          {
+            "type": "about:blank",
+            "title": "Unauthorized",
+            "status": 401
+          }
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "READER-DENIED",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "READER-DENIED"
+      },
+      "steps": [
+        "GET /api/v1/cases/00000000-0000-4000-8000-000000000001",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 403,
+        "rule": null
+      },
+      "actual": {
+        "status": 403,
+        "body": {
+          "type": "about:blank",
+          "title": "Forbidden",
+          "status": 403
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "STAFF-COURT-VALID-WRITE-DENIED",
+      "story_ids": [
+        "LD-010",
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "STAFF-COURT-VALID-WRITE-DENIED"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 403,
+        "rule": null
+      },
+      "actual": {
+        "status": 403,
+        "body": {
+          "type": "about:blank",
+          "title": "Forbidden",
+          "status": 403
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "STAFF-COURT-WRITE-DENIED",
+      "story_ids": [
+        "LD-010",
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "STAFF-COURT-WRITE-DENIED"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 403,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/courts",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "field": "nameEn",
+              "code": "NotBlank"
+            },
+            {
+              "field": "nameAr",
+              "code": "NotBlank"
+            },
+            {
+              "field": "level",
+              "code": "NotNull"
+            },
+            {
+              "field": "code",
+              "code": "NotBlank"
+            }
+          ]
+        }
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "CSRF-REQUIRED",
+      "story_ids": [
+        "LD-007",
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CSRF-REQUIRED"
+      },
+      "steps": [
+        "Authenticated POST without X-XSRF-TOKEN"
+      ],
+      "expected_results": "403",
+      "actual": 403,
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-CREATE",
+      "story_ids": [
+        "LD-012"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-CREATE"
+      },
+      "steps": [
+        "POST /api/v1/cases",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "125a3f87-14ce-48fe-b85c-58898aecc6fe",
+          "referenceNo": "LD-2026-00001",
+          "title": "QA قضية أمان",
+          "caseType": "CIVIL",
+          "subject": "synthetic",
+          "openedOn": "2026-01-01",
+          "status": "OPEN",
+          "version": 0,
+          "createdAt": "2026-10-24T05:25:48.357789Z",
+          "createdBy": "2ff57bb4-4fca-485b-8510-65735467c5fe",
+          "updatedAt": "2026-10-24T05:25:48.357789Z",
+          "updatedBy": "2ff57bb4-4fca-485b-8510-65735467c5fe"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-NORMALIZED",
+      "story_ids": [
+        "LD-012"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-NORMALIZED"
+      },
+      "steps": [
+        "Create case",
+        "inspect defaults and actor"
+      ],
+      "expected_results": "Trimmed title; OPEN/version0; actor from session",
+      "actual": {
+        "id": "125a3f87-14ce-48fe-b85c-58898aecc6fe",
+        "referenceNo": "LD-2026-00001",
+        "title": "QA قضية أمان",
+        "caseType": "CIVIL",
+        "subject": "synthetic",
+        "openedOn": "2026-01-01",
+        "status": "OPEN",
+        "version": 0,
+        "createdAt": "2026-10-24T05:25:48.357789Z",
+        "createdBy": "2ff57bb4-4fca-485b-8510-65735467c5fe",
+        "updatedAt": "2026-10-24T05:25:48.357789Z",
+        "updatedBy": "2ff57bb4-4fca-485b-8510-65735467c5fe"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-BLANK",
+      "story_ids": [
+        "LD-012"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-BLANK"
+      },
+      "steps": [
+        "POST /api/v1/cases",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/cases",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "field": "title",
+              "code": "NotBlank"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-FUTURE",
+      "story_ids": [
+        "LD-012"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-FUTURE"
+      },
+      "steps": [
+        "POST /api/v1/cases",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/cases",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "field": "openedOn",
+              "code": "PastOrPresent"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-RESERVED",
+      "story_ids": [
+        "LD-012"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-RESERVED"
+      },
+      "steps": [
+        "POST /api/v1/cases",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": "REFERENCE_NO_RESERVED"
+      },
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/cases",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "REFERENCE_NO_RESERVED"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-INVALID-ATOMIC",
+      "story_ids": [
+        "LD-012"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-INVALID-ATOMIC"
+      },
+      "steps": [
+        "Count cases before and after invalid requests"
+      ],
+      "expected_results": "Count unchanged",
+      "actual": "1",
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-NO-PERMISSION",
+      "story_ids": [
+        "LD-010",
+        "LD-012"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-NO-PERMISSION"
+      },
+      "steps": [
+        "POST /api/v1/cases",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 403,
+        "rule": null
+      },
+      "actual": {
+        "status": 403,
+        "body": {
+          "type": "about:blank",
+          "title": "Forbidden",
+          "status": 403
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-CUSTOM",
+      "story_ids": [
+        "LD-012"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-CUSTOM"
+      },
+      "steps": [
+        "POST /api/v1/cases",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "6f63bf0c-757c-4672-9554-fe425741d548",
+          "referenceNo": "QA-DUP",
+          "title": "QA قضية أمان",
+          "caseType": "CIVIL",
+          "subject": "synthetic",
+          "openedOn": "2026-01-01",
+          "status": "OPEN",
+          "version": 0,
+          "createdAt": "2026-10-24T05:25:48.906526Z",
+          "createdBy": "2ff57bb4-4fca-485b-8510-65735467c5fe",
+          "updatedAt": "2026-10-24T05:25:48.906526Z",
+          "updatedBy": "2ff57bb4-4fca-485b-8510-65735467c5fe"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-CASEFOLD-DUPLICATE",
+      "story_ids": [
+        "LD-012"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-CASEFOLD-DUPLICATE"
+      },
+      "steps": [
+        "POST /api/v1/cases",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 409,
+        "rule": null
+      },
+      "actual": {
+        "status": 409,
+        "body": {
+          "instance": "/api/v1/cases",
+          "status": 409,
+          "title": "Conflict",
+          "type": "about:blank"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-UNKNOWN",
+      "story_ids": [
+        "LD-012"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-UNKNOWN"
+      },
+      "steps": [
+        "GET /api/v1/cases/not-a-uuid",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 404,
+        "rule": null
+      },
+      "actual": {
+        "status": 404,
+        "body": {
+          "instance": "/api/v1/cases/not-a-uuid",
+          "status": 404,
+          "title": "Not Found",
+          "type": "about:blank"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-SEARCH",
+      "story_ids": [
+        "LD-015"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-SEARCH"
+      },
+      "steps": [
+        "GET /api/v1/cases?q=%D9%82%D8%B6%D9%8A%D8%A9",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "id": "6f63bf0c-757c-4672-9554-fe425741d548",
+              "referenceNo": "QA-DUP",
+              "title": "QA قضية أمان",
+              "caseType": "CIVIL",
+              "status": "OPEN",
+              "openedOn": "2026-01-01",
+              "updatedAt": "2026-10-24T05:25:48.906526Z"
+            },
+            {
+              "id": "125a3f87-14ce-48fe-b85c-58898aecc6fe",
+              "referenceNo": "LD-2026-00001",
+              "title": "QA قضية أمان",
+              "caseType": "CIVIL",
+              "status": "OPEN",
+              "openedOn": "2026-01-01",
+              "updatedAt": "2026-10-24T05:25:48.357789Z"
+            }
+          ],
+          "page": 0,
+          "size": 20,
+          "totalItems": 2,
+          "totalPages": 1
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-PAGE-NEGATIVE",
+      "story_ids": [
+        "LD-015"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-PAGE-NEGATIVE"
+      },
+      "steps": [
+        "GET /api/v1/cases?page=-1",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/cases",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "field": "page",
+              "code": "Min"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-SORT-INJECTION",
+      "story_ids": [
+        "LD-015"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-SORT-INJECTION"
+      },
+      "steps": [
+        "GET /api/v1/cases?sort=title%3Bdrop,asc",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 400,
+        "body": {
+          "instance": "/api/v1/cases",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "about:blank",
+          "errors": [
+            {
+              "field": "sort",
+              "code": "Pattern"
+            }
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-EDIT",
+      "story_ids": [
+        "LD-013"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-EDIT"
+      },
+      "steps": [
+        "PUT /api/v1/cases/125a3f87-14ce-48fe-b85c-58898aecc6fe",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "id": "125a3f87-14ce-48fe-b85c-58898aecc6fe",
+          "referenceNo": "LD-2026-00001",
+          "title": "Edited QA",
+          "caseType": "CIVIL",
+          "subject": "synthetic",
+          "openedOn": "2026-01-01",
+          "status": "OPEN",
+          "version": 1,
+          "createdAt": "2026-10-24T05:25:48.357789Z",
+          "createdBy": "2ff57bb4-4fca-485b-8510-65735467c5fe",
+          "updatedAt": "2026-10-24T05:25:49.231177Z",
+          "updatedBy": "2ff57bb4-4fca-485b-8510-65735467c5fe"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CASE-STALE",
+      "story_ids": [
+        "LD-013"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CASE-STALE"
+      },
+      "steps": [
+        "PUT /api/v1/cases/125a3f87-14ce-48fe-b85c-58898aecc6fe",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 409,
+        "rule": null
+      },
+      "actual": {
+        "status": 409,
+        "body": {
+          "instance": "/api/v1/cases/125a3f87-14ce-48fe-b85c-58898aecc6fe",
+          "status": 409,
+          "title": "Conflict",
+          "type": "about:blank"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "COURT-FIRST_INSTANCE",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "COURT-FIRST_INSTANCE"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "0fd0e766-0957-4291-b294-aa911b382319",
+          "code": "QA-FIRST-INSTANCE",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-24T05:25:49.432026Z",
+          "updatedAt": "2026-10-24T05:25:49.432026Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "COURT-APPEAL",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "COURT-APPEAL"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "713b9df3-74d6-440a-b995-c19823650d61",
+          "code": "QA-APPEAL",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "APPEAL",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-24T05:25:49.714887Z",
+          "updatedAt": "2026-10-24T05:25:49.714887Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "COURT-CASSATION",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "COURT-CASSATION"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "539e580f-3258-4324-99a0-cd4275e93590",
+          "code": "QA-CASSATION",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "CASSATION",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-24T05:25:49.782667Z",
+          "updatedAt": "2026-10-24T05:25:49.782667Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "COURT-DUPLICATE",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "COURT-DUPLICATE"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 409,
+        "rule": null
+      },
+      "actual": {
+        "status": 409,
+        "body": {
+          "instance": "/api/v1/courts",
+          "status": 409,
+          "title": "Conflict",
+          "type": "about:blank"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "SQL-CASE-BLANK",
+      "story_ids": [
+        "LD-011",
+        "LD-012",
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "SQL-CASE-BLANK"
+      },
+      "steps": [
+        "update legal_case set title='   ' where id='125a3f87-14ce-48fe-b85c-58898aecc6fe'"
+      ],
+      "expected_results": "Database rejects; nonzero exit",
+      "actual": {
+        "exit": 1,
+        "error": "{'S': 'ERROR', 'V': 'ERROR', 'C': '23514', 'M': 'new row for relation \"legal_case\" violates check constraint \"legal_case_title_check\"', 'D': 'Failing row contains (125a3f87-14ce-48fe-b85c-58898aecc6fe, LD-2026-00001,    , CIVIL, synthetic, 2026-01-01"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "SQL-CASE-ENUM",
+      "story_ids": [
+        "LD-011",
+        "LD-012",
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "SQL-CASE-ENUM"
+      },
+      "steps": [
+        "update legal_case set case_type='INVALID' where id='125a3f87-14ce-48fe-b85c-58898aecc6fe'"
+      ],
+      "expected_results": "Database rejects; nonzero exit",
+      "actual": {
+        "exit": 1,
+        "error": "{'S': 'ERROR', 'V': 'ERROR', 'C': '23514', 'M': 'new row for relation \"legal_case\" violates check constraint \"legal_case_case_type_check\"', 'D': 'Failing row contains (125a3f87-14ce-48fe-b85c-58898aecc6fe, LD-2026-00001, Edited QA, INVALID, synthetic"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "SQL-COURT-LEVEL",
+      "story_ids": [
+        "LD-011",
+        "LD-012",
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "SQL-COURT-LEVEL"
+      },
+      "steps": [
+        "update court set level='INVALID' where id='713b9df3-74d6-440a-b995-c19823650d61'"
+      ],
+      "expected_results": "Database rejects; nonzero exit",
+      "actual": {
+        "exit": 1,
+        "error": "{'S': 'ERROR', 'V': 'ERROR', 'C': '23514', 'M': 'new row for relation \"court\" violates check constraint \"court_level_known\"', 'D': 'Failing row contains (713b9df3-74d6-440a-b995-c19823650d61, QA-APPEAL, محكمة اختبار, QA Court, INVALID, null, t, 0, 20"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "SQL-AUDIT-APPEND-ONLY",
+      "story_ids": [
+        "LD-011",
+        "LD-012",
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "SQL-AUDIT-APPEND-ONLY"
+      },
+      "steps": [
+        "update audit_event set action='CHANGED'"
+      ],
+      "expected_results": "Database rejects; nonzero exit",
+      "actual": {
+        "exit": 1,
+        "error": "{'S': 'ERROR', 'V': 'ERROR', 'C': 'P0001', 'M': 'audit_event is append-only', 'W': 'PL/pgSQL function audit_event_append_only() line 3 at RAISE', 'F': 'pl_exec.c', 'L': '3923', 'R': 'exec_stmt_raise'}"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "USER-LIST-DENIED",
+      "story_ids": [
+        "LD-009",
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "USER-LIST-DENIED"
+      },
+      "steps": [
+        "GET /api/v1/users",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 403,
+        "rule": null
+      },
+      "actual": {
+        "status": 403,
+        "body": {
+          "type": "about:blank",
+          "title": "Forbidden",
+          "status": 403
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "USER-LIST",
+      "story_ids": [
+        "LD-009"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "USER-LIST"
+      },
+      "steps": [
+        "GET /api/v1/users",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "id": "8f7dcee0-ef44-4ae3-814c-6795f634fc8e",
+              "username": "disabled",
+              "email": "disabled@example.invalid",
+              "displayName": "QA disabled",
+              "locale": "ar",
+              "enabled": false,
+              "mustChangePassword": false,
+              "locked": false,
+              "roles": [],
+              "createdAt": "2026-10-24T05:25:44.604645Z",
+              "updatedAt": "2026-10-24T05:25:44.604645Z",
+              "version": 0
+            },
+            {
+              "id": "5c2a9970-ca76-42d1-9561-0f8a5884ac3b",
+              "username": "locktest",
+              "email": "locktest@example.invalid",
+              "displayName": "QA locktest",
+              "locale": "ar",
+              "enabled": true,
+              "mustChangePassword": false,
+              "locked": false,
+              "roles": [],
+              "createdAt": "2026-10-24T05:25:44.665357Z",
+              "updatedAt": "2026-10-24T05:25:44.665357Z",
+              "version": 0
+            },
+            {
+              "id": "4aaf3e56-d4be-4130-9b9e-7dafb19176b1",
+              "username": "manager",
+              "email": "manager@example.invalid",
+              "displayName": "QA manager",
+              "locale": "ar",
+              "enabled": true,
+              "mustChangePassword": false,
+              "locked": false,
+              "roles": [
+                "LEGAL_MANAGER"
+              ],
+              "createdAt": "2026-10-24T05:25:44.410110Z",
+              "updatedAt": "2026-10-24T05:25:44.410110Z",
+              "version": 0
+            },
+            {
+              "id": "fd026655-b3b2-4f6e-a408-c208759413f6",
+              "username": "qaadmin",
+              "email": "qaadmin@example.invalid",
+              "displayName": "Administrator",
+              "locale": "ar",
+              "enabled": true,
+              "mustChangePassword": false,
+              "locked": false,
+              "roles": [
+                "ADMIN"
+              ],
+              "createdAt": "2026-10-24T05:25:41.189780Z",
+              "updatedAt": "2026-10-24T05:25:44.121179Z",
+              "version": 1
+            },
+            {
+              "id": "86e0beb8-709e-4d38-8ada-4e2a5009f231",
+              "username": "reader",
+              "email": "reader@example.invalid",
+              "displayName": "QA reader",
+              "locale": "ar",
+              "enabled": true,
+              "mustChangePassword": false,
+              "locked": false,
+              "roles": [],
+              "createdAt": "2026-10-24T05:25:44.521223Z",
+              "updatedAt": "2026-10-24T05:25:44.521223Z",
+              "version": 0
+            },
+            {
+              "id": "2ff57bb4-4fca-485b-8510-65735467c5fe",
+              "username": "staff",
+              "email": "staff@example.invalid",
+              "displayName": "QA staff",
+              "locale": "ar",
+              "enabled": true,
+              "mustChangePassword": false,
+              "locked": false,
+              "roles": [
+                "LEGAL_STAFF"
+              ],
+              "createdAt": "2026-10-24T05:25:44.299475Z",
+              "updatedAt": "2026-10-24T05:25:44.299475Z",
+              "version": 0
+            }
+          ],
+          "page": 0,
+          "size": 20,
+          "totalItems": 6,
+          "totalPages": 1
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "USER-SEARCH",
+      "story_ids": [
+        "LD-009"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "USER-SEARCH"
+      },
+      "steps": [
+        "GET /api/v1/users?q=qaadmin",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 200,
+        "rule": null
+      },
+      "actual": {
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "id": "fd026655-b3b2-4f6e-a408-c208759413f6",
+              "username": "qaadmin",
+              "email": "qaadmin@example.invalid",
+              "displayName": "Administrator",
+              "locale": "ar",
+              "enabled": true,
+              "mustChangePassword": false,
+              "locked": false,
+              "roles": [
+                "ADMIN"
+              ],
+              "createdAt": "2026-10-24T05:25:41.189780Z",
+              "updatedAt": "2026-10-24T05:25:44.121179Z",
+              "version": 1
+            }
+          ],
+          "page": 0,
+          "size": 20,
+          "totalItems": 1,
+          "totalPages": 1
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "USER-CREATE",
+      "story_ids": [
+        "LD-009"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "USER-CREATE"
+      },
+      "steps": [
+        "POST /api/v1/users",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "50979b42-4a63-4b40-a2e9-0e92ddde3bb8",
+          "username": "newuser",
+          "email": "newuser@example.invalid",
+          "displayName": "QA new user",
+          "locale": "en",
+          "enabled": true,
+          "mustChangePassword": true,
+          "locked": false,
+          "roles": [
+            "LEGAL_STAFF"
+          ],
+          "createdAt": "2026-10-24T05:25:50.490314Z",
+          "updatedAt": "2026-10-24T05:25:50.490314Z",
+          "version": 0
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "USER-DUPLICATE",
+      "story_ids": [
+        "LD-009"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "USER-DUPLICATE"
+      },
+      "steps": [
+        "POST /api/v1/users",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 409,
+        "rule": null
+      },
+      "actual": {
+        "status": 409,
+        "body": {
+          "instance": "/api/v1/users",
+          "status": 409,
+          "title": "Conflict",
+          "type": "about:blank"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "USER-NULL-ROLE",
+      "story_ids": [
+        "LD-009"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "USER-NULL-ROLE"
+      },
+      "steps": [
+        "POST /api/v1/users",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 400,
+        "rule": null
+      },
+      "actual": {
+        "status": 500,
+        "body": {
+          "instance": "/api/v1/users",
+          "status": 500,
+          "title": "Internal Server Error",
+          "type": "about:blank"
+        }
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "USER-SELF-DISABLE",
+      "story_ids": [
+        "LD-009"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "USER-SELF-DISABLE"
+      },
+      "steps": [
+        "PUT /api/v1/users/fd026655-b3b2-4f6e-a408-c208759413f6/enabled",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 422,
+        "rule": "SELF_CHANGE"
+      },
+      "actual": {
+        "status": 422,
+        "body": {
+          "instance": "/api/v1/users/fd026655-b3b2-4f6e-a408-c208759413f6/enabled",
+          "status": 422,
+          "title": "Unprocessable Content",
+          "type": "about:blank",
+          "rule": "SELF_CHANGE"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "USER-STALE",
+      "story_ids": [
+        "LD-009"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "USER-STALE"
+      },
+      "steps": [
+        "PUT /api/v1/users/50979b42-4a63-4b40-a2e9-0e92ddde3bb8",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 409,
+        "rule": null
+      },
+      "actual": {
+        "status": 409,
+        "body": {
+          "instance": "/api/v1/users/50979b42-4a63-4b40-a2e9-0e92ddde3bb8",
+          "status": 409,
+          "title": "Conflict",
+          "type": "about:blank"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "ROLE-REVOCATION",
+      "story_ids": [
+        "LD-007",
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "ROLE-REVOCATION"
+      },
+      "steps": [
+        "GET /api/v1/cases/00000000-0000-4000-8000-000000000001",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 403,
+        "rule": null
+      },
+      "actual": {
+        "status": 403,
+        "body": {
+          "type": "about:blank",
+          "title": "Forbidden",
+          "status": 403
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DISABLE-SESSION",
+      "story_ids": [
+        "LD-007"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DISABLE-SESSION"
+      },
+      "steps": [
+        "GET /api/v1/me",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 401,
+        "rule": null
+      },
+      "actual": {
+        "status": 401,
+        "body": {
+          "type": "about:blank",
+          "title": "Unauthorized",
+          "status": 401
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "LOCKOUT-FIVE",
+      "story_ids": [
+        "LD-008"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "LOCKOUT-FIVE"
+      },
+      "steps": [
+        "Five wrong passwords",
+        "correct password"
+      ],
+      "expected_results": "401; locked_until future",
+      "actual": {
+        "status": 401
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "LOGOUT",
+      "story_ids": [
+        "LD-007"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "LOGOUT"
+      },
+      "steps": [
+        "POST /api/v1/auth/logout",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 204,
+        "rule": null
+      },
+      "actual": {
+        "status": 204,
+        "body": ""
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "LOGOUT-SESSION-INVALID",
+      "story_ids": [
+        "LD-007"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "LOGOUT-SESSION-INVALID"
+      },
+      "steps": [
+        "GET /api/v1/me",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 401,
+        "rule": null
+      },
+      "actual": {
+        "status": 401,
+        "body": {
+          "type": "about:blank",
+          "title": "Unauthorized",
+          "status": 401
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "AUDIT-DENIAL",
+      "story_ids": [
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "AUDIT-DENIAL"
+      },
+      "steps": [
+        "Deny protected operation",
+        "query correlated audit"
+      ],
+      "expected_results": "At least one ACCESS_DENIED",
+      "actual": "6",
+      "status": "PASS"
+    },
+    {
+      "id": "PASSWORD-73-CHAR-BOUNDARY",
+      "story_ids": [
+        "LD-008"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PASSWORD-73-CHAR-BOUNDARY"
+      },
+      "steps": [
+        "POST /api/v1/me/password",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 204,
+        "rule": null
+      },
+      "actual": {
+        "status": 500,
+        "body": {
+          "instance": "/api/v1/me/password",
+          "status": 500,
+          "title": "Internal Server Error",
+          "type": "about:blank"
+        }
+      },
+      "status": "FAIL"
+    }
+  ]
+}

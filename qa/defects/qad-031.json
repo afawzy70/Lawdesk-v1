@@ -1,0 +1,66 @@
+{
+  "environment": "Independent canonical candidate archive; real Spring Boot jar and disposable PostgreSQL18.6 on loopback; Chromium1248",
+  "reported_utc": "2026-10-24T15:25:11.872218+00:00",
+  "status": "OWNER_DECISION_RESOLVED_INDEPENDENTLY_VERIFIED",
+  "owner": "Claude implementation; independent QA verification",
+  "no_customer_data": true,
+  "id": "QAD-031",
+  "title": "Task OPEN to DONE transition differs from proposed lifecycle",
+  "priority": "P3",
+  "severity": "S3",
+  "story_ids": [
+    "LD-027"
+  ],
+  "affected": [
+    "e40dfcb7596f4526ec7c59d3e61d04f3c3e46340"
+  ],
+  "preconditions": [
+    "TASK_MANAGE; newly created synthetic task OPEN/version0"
+  ],
+  "test_data": {
+    "status": "DONE",
+    "version": 0
+  },
+  "steps": [
+    "POST /api/v1/tasks with valid title and enabled assignee",
+    "POST /api/v1/tasks/{id}/status with test_data",
+    "Read persisted status and completedAt"
+  ],
+  "expected": "422 according to docs/delivery/PHASE-5-ACCEPTANCE.md sequence OPEN→IN_PROGRESS→DONE and other moves denied",
+  "actual": "200; persisted DONE with completedAt; TaskStatus.next() explicitly allows direct completion",
+  "evidence": [
+    "qa/evidence/followup-bdd9d424-20261024/pr37/results.json"
+  ],
+  "fix_guidance": "Resolve business intent: align implementation or obtain explicit approved criterion permitting direct completion, then independent retest.",
+  "uat_policy": "Not a security/data-loss blocker to ordinary Dev/UAT; unresolved acceptance inconsistency",
+  "retests": [
+    {
+      "utc": "2026-10-24T18:09:37.823607+00:00",
+      "evidence_root": "qa/evidence/continuous-phase56-20261024",
+      "status": "CONFIRMED_OPEN",
+      "tested_sha": "42fb56433d421a3d2040d78858d47bb81ff6d3b6",
+      "scope": "P3 acceptance inconsistency; nonblocking ordinary synthetic Dev/UAT. No automatic baseline approval."
+    },
+    {
+      "utc": "2026-10-25T12:38:18.543317+00:00",
+      "previous_status": "CONFIRMED_OPEN",
+      "status": "OWNER_DECISION_RESOLVED_RELATED_AUDIT_DEFECT_OPEN",
+      "tested_sha": "0338cac0fca07eb0ce06eb8f2b45a54dd0386f7e",
+      "note": "Owner permits OPEN->DONE. Positive successful audit verified locally and on UAT. QAD040 separately prevents acceptance of rollback audit.",
+      "evidence": [
+        "qa/evidence/final-phase2-6-20261025/owner-policy/results.json"
+      ]
+    },
+    {
+      "utc": "2026-10-25T13:59:50.241933+00:00",
+      "previous_status": "OWNER_DECISION_RESOLVED_RELATED_AUDIT_DEFECT_OPEN",
+      "status": "OWNER_DECISION_RESOLVED_INDEPENDENTLY_VERIFIED",
+      "tested_sha": "2d07a222189f82ddeacf74fdcd28165980cea85d",
+      "note": "DirectOPEN->DONE ownerdecision applied; normal audit and late rollback atomicity independently pass afterQAD040fix. SeparateQAD042/043affect administration/ownpassword, nottaskstatus.",
+      "evidence": [
+        "qa/evidence/pr54-retest-20261025/policy/results.json",
+        "qa/evidence/pr54-retest-20261025/focused-uat/results.json"
+      ]
+    }
+  ]
+}

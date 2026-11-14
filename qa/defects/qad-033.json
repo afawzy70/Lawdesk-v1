@@ -1,0 +1,98 @@
+{
+  "reported_utc": "2026-10-24T18:09:37.823607+00:00",
+  "owner": "Claude implementation; independent QA verification",
+  "environment": "Canonical candidate archive; real Java21 jar and disposable PostgreSQL18.6 on loopback. No customer records or deployment.",
+  "no_customer_data": true,
+  "id": "QAD-033",
+  "title": "Database permits hearing chronology and reverse parent/case inconsistency",
+  "status": "FIX_VERIFIED_ORIGINAL_SCOPE",
+  "priority": "P2",
+  "severity": "S2",
+  "story_ids": [
+    "LD-019",
+    "LD-024"
+  ],
+  "affected": [
+    "6e27f5c427380fddb1914872f53ea437eb642fc9",
+    "e4c8e470f2ad23b4a99714531c35dcf171585817"
+  ],
+  "preconditions": [
+    "Disposable migrated DB owner connection with normal constraints/triggers enabled",
+    "Synthetic cases A/B, proceeding P in A, hearing H in P"
+  ],
+  "test_data": {
+    "filing": "2026-01-02",
+    "hearing": "2026-01-03",
+    "invalid_filing": "2026-01-04",
+    "invalid_hearing": "2026-01-01"
+  },
+  "steps": [
+    "Create valid case/proceeding/hearing through APIs",
+    "In separate BEGIN/ROLLBACK transactions execute UPDATE proceeding SET filing_date='2026-01-04' WHERE id=P",
+    "Execute UPDATE hearing SET hearing_date='2026-01-01' WHERE id=H",
+    "Execute UPDATE proceeding SET case_id=B WHERE id=P",
+    "Compare hearing/proceeding pair inside each transaction before rollback"
+  ],
+  "expected": "Reject each invariant-breaking database statement; preserve dates, relation and history",
+  "actual": "All three SQL statements succeed. Reverse hearing.case_id change is correctly rejected by existing trigger. API guards pass.",
+  "risk_boundary": "Privileged direct SQL / trusted future writer integrity gap, not demonstrated remote API or authorization bypass. QA probes always roll back.",
+  "contract_note": "Separate from fixed QAD-032 API defect; owner explicitly requested database-level integrity. Existing service guard is credited.",
+  "evidence": [
+    "qa/evidence/continuous-phase56-20261024/current/pr33-hearing-chronology/results.json",
+    "qa/evidence/continuous-phase56-20261024/current/pr44-hearing-chronology/results.json",
+    "qa/evidence/priority-qad032-20261024/current/pr33-delta/results.json"
+  ],
+  "handoff": "https://github.com/afawzy70/Lawdesk-v1/pull/33#issuecomment-6387613718",
+  "recommendation": "REQUEST_CHANGES for database-integrity acceptance; unrelated synthetic Dev/UAT development may continue",
+  "retests": [
+    {
+      "utc": "2026-10-24T18:34:11.989922+00:00",
+      "evidence_root": "qa/evidence/priority-qad032-20261024",
+      "status": "CONFIRMED_OPEN",
+      "tested_sha": "6e27f5c427380fddb1914872f53ea437eb642fc9",
+      "note": "All3 counterexamples now COMMIT with NOSUPERUSER/NOCREATEDB/NOCREATEROLE role granted only schema usage and SELECT/UPDATE on hearing/proceeding. New connection observes1 invalid row per probe. Disposable QA DB only; not a remote API authorization bypass."
+    },
+    {
+      "utc": "2026-10-25T09:41:46.243707+00:00",
+      "previous_status": "CONFIRMED_OPEN",
+      "status": "FIX_VERIFIED_ORIGINAL_SCOPE",
+      "tested_sha": "b849b1cabcbebd4df058e4ab989d1e8c1a562899",
+      "note": "All three originally reported non-owner COMMIT violations rejected; V406/V407 original guards verified. Additional adjournment race QAD038 remains blocking; do not claim complete DB chronology acceptance.",
+      "evidence": [
+        "qa/evidence/phase56-acceptance-20261025/dbwriter/results.json",
+        "qa/evidence/phase56-acceptance-20261025/dbextended/results.json",
+        "qa/evidence/phase56-acceptance-20261025/current-db/results.json"
+      ]
+    },
+    {
+      "utc": "2026-10-25T09:49:41.056313+00:00",
+      "previous_status": "CONFIRMED_OPEN",
+      "status": "FIX_VERIFIED_ORIGINAL_SCOPE",
+      "tested_sha": "b849b1cabcbebd4df058e4ab989d1e8c1a562899",
+      "note": "Original three non-owner SQL COMMIT violations independently rejected on current SHA; injected parent-write fault rolls back. Additional QAD038 remains open.",
+      "evidence": [
+        "qa/evidence/phase56-acceptance-20261025/current-dbwriter/results.json"
+      ]
+    },
+    {
+      "utc": "2026-10-25T12:38:18.543317+00:00",
+      "previous_status": "FIX_VERIFIED_ORIGINAL_SCOPE",
+      "status": "FIX_VERIFIED_ORIGINAL_SCOPE",
+      "tested_sha": "0338cac0fca07eb0ce06eb8f2b45a54dd0386f7e",
+      "note": "Original direct SQL guards retained; new concurrent hearing defect QAD038 also verified fixed",
+      "evidence": [
+        "qa/evidence/final-phase2-6-20261025/qad038-db/results.json"
+      ]
+    }
+  ],
+  "latest_verification": {
+    "utc": "2026-10-25T09:49:41.056313+00:00",
+    "previous_status": "CONFIRMED_OPEN",
+    "status": "FIX_VERIFIED_ORIGINAL_SCOPE",
+    "tested_sha": "b849b1cabcbebd4df058e4ab989d1e8c1a562899",
+    "note": "Original three non-owner SQL COMMIT violations independently rejected on current SHA; injected parent-write fault rolls back. Additional QAD038 remains open.",
+    "evidence": [
+      "qa/evidence/phase56-acceptance-20261025/current-dbwriter/results.json"
+    ]
+  }
+}

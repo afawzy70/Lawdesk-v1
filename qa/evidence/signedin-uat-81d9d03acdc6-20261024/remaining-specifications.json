@@ -1,0 +1,259 @@
+{
+  "baseline_sha": "81d9d03acdc6f8d6e3d11475342ac10e49f79a32",
+  "scope": "Explicit gaps beyond the 35 prepared signed-in runner scenarios; no execution claimed",
+  "counts": {
+    "PASS": 0,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 12
+  },
+  "tests": [
+    {
+      "id": "SIGNED-REMAINING-FULL-AUTH-BOUNDARIES",
+      "story_ids": [
+        "LD-007",
+        "LD-008"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Dedicated disposable user and separate browser sessions"
+      ],
+      "test_data": "Generated 72-byte ASCII and 36/37-character Arabic passwords; anonymous session",
+      "steps": [
+        "Verify session rotation, old session rejection, login after each accepted password boundary, logout then browser Back"
+      ],
+      "expected_results": "Accepted 72-byte values authenticate exactly; 74-byte rejected400; logged-out data not exposed",
+      "status": "NOT_RUN",
+      "reason": "Design/remaining scope only; not executed; account handoff required for authenticated scenarios"
+    },
+    {
+      "id": "SIGNED-REMAINING-USER-FORMS",
+      "story_ids": [
+        "LD-009"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Dedicated administrator and newly created QA user only"
+      ],
+      "test_data": "Unique QA username, example.invalid email, generated temporary/reset passwords",
+      "steps": [
+        "Create user in UI",
+        "edit details",
+        "reset password",
+        "login in second browser and change it",
+        "verify old sessions"
+      ],
+      "expected_results": "Forms persist values; reset forces password change and invalidates old sessions as contracted",
+      "status": "NOT_RUN",
+      "reason": "Design/remaining scope only; not executed; account handoff required for authenticated scenarios"
+    },
+    {
+      "id": "SIGNED-REMAINING-ROLE-FORMS",
+      "story_ids": [
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Dedicated administrator; unique custom role and disposable holder"
+      ],
+      "test_data": "New uppercase QA code, CASE_VIEW only, then CASE_VIEW plus CASE_EDIT",
+      "steps": [
+        "Create role in UI",
+        "edit own role permissions",
+        "test same session allowed/denied operations"
+      ],
+      "expected_results": "Permissions update immediately; stale version409; no elevation beyond assigned grants",
+      "status": "NOT_RUN",
+      "reason": "Design/remaining scope only; not executed; account handoff required for authenticated scenarios"
+    },
+    {
+      "id": "SIGNED-REMAINING-PERMISSION-MATRIX",
+      "story_ids": [
+        "LD-009",
+        "LD-010",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Separate newly created users/roles per permission; owned fixtures"
+      ],
+      "test_data": "Each implemented endpoint with valid, malformed, and missing-CSRF requests",
+      "steps": [
+        "Execute least-privilege matrix",
+        "inspect response and owned-resource state after denial"
+      ],
+      "expected_results": "401/403 per contract; forbidden requests do not write; no sensitive error disclosure",
+      "status": "NOT_RUN",
+      "reason": "Design/remaining scope only; not executed; account handoff required for authenticated scenarios"
+    },
+    {
+      "id": "SIGNED-REMAINING-PARTY-STATUS-FORMS",
+      "story_ids": [
+        "LD-014",
+        "LD-016",
+        "LD-017"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Owned case and owned synthetic party, no real national identifier"
+      ],
+      "test_data": "PERSON without ID; unique name; valid status sequence and invalid transitions",
+      "steps": [
+        "Create/link/unlink party in UI",
+        "exercise state transitions and reopen reason",
+        "inspect timeline"
+      ],
+      "expected_results": "UI and API agree; unique link; rejected transitions atomic; history complete",
+      "status": "NOT_RUN",
+      "reason": "Design/remaining scope only; not executed; account handoff required for authenticated scenarios"
+    },
+    {
+      "id": "SIGNED-REMAINING-JUDICIAL-FORMS",
+      "story_ids": [
+        "LD-018",
+        "LD-019",
+        "LD-020",
+        "LD-021",
+        "LD-022",
+        "LD-023"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Owned case and three new QA courts"
+      ],
+      "test_data": "FIRST_INSTANCE Jan2, judgment Jan3, appeal Jan4, judgment Jan5, cassation Jan6",
+      "steps": [
+        "Submit court/proceeding/judgment/appeal/cassation/decision forms in browser",
+        "reload each stage"
+      ],
+      "expected_results": "All submitted forms persist correct parent/case/court; validation and navigation usable",
+      "status": "NOT_RUN",
+      "reason": "Design/remaining scope only; not executed; account handoff required for authenticated scenarios"
+    },
+    {
+      "id": "SIGNED-REMAINING-JUDICIAL-INTEGRITY",
+      "story_ids": [
+        "LD-019",
+        "LD-020",
+        "LD-021",
+        "LD-022"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Two owned cases and complete synthetic chains"
+      ],
+      "test_data": "Cross-case parent; wrong court level; inactive court; future/before-parent dates",
+      "steps": [
+        "Submit each invalid combination",
+        "verify rejected writes absent",
+        "include cassation-parent judgment edit"
+      ],
+      "expected_results": "422 contract rules and unchanged history/versions; no cross-case or chronological corruption",
+      "status": "NOT_RUN",
+      "reason": "Design/remaining scope only; not executed; account handoff required for authenticated scenarios"
+    },
+    {
+      "id": "SIGNED-REMAINING-JUDICIAL-CONCURRENCY",
+      "story_ids": [
+        "LD-020",
+        "LD-021",
+        "LD-022"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Owned parent judgment and two authorized QA sessions"
+      ],
+      "test_data": "Concurrent parent judgment date update and challenge creation",
+      "steps": [
+        "Send synchronized requests",
+        "read both records",
+        "repeat with cassation"
+      ],
+      "expected_results": "Either operation rejected or serialized to a chronologically valid result; no invalid committed pair",
+      "status": "NOT_RUN",
+      "reason": "Design/remaining scope only; not executed; account handoff required for authenticated scenarios"
+    },
+    {
+      "id": "SIGNED-REMAINING-AUDIT-COMPLETE",
+      "story_ids": [
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Owned actors with known login/logout/password/role events"
+      ],
+      "test_data": "Actor/action/outcome/time boundaries and unique request correlation IDs",
+      "steps": [
+        "Compare each action to audit",
+        "page and filter",
+        "check denied viewer",
+        "inspect redaction"
+      ],
+      "expected_results": "Complete correctly attributed events, accurate boundary filtering, no passwords/tokens",
+      "status": "NOT_RUN",
+      "reason": "Design/remaining scope only; not executed; account handoff required for authenticated scenarios"
+    },
+    {
+      "id": "SIGNED-REMAINING-KEYBOARD-AR-EN",
+      "story_ids": [
+        "LD-007",
+        "LD-009",
+        "LD-012",
+        "LD-019",
+        "LD-035",
+        "LD-036",
+        "LD-037"
+      ],
+      "priority": "P2",
+      "preconditions": [
+        "Signed-in browser; owned data; keyboard-only navigation"
+      ],
+      "test_data": "English/Arabic; 375px and desktop; focus/error announcements",
+      "steps": [
+        "Navigate menus and forms without mouse",
+        "submit invalid data",
+        "inspect focus and read labels"
+      ],
+      "expected_results": "No keyboard trap or hidden essential control; correctly localized labels, errors and direction",
+      "status": "NOT_RUN",
+      "reason": "Design/remaining scope only; not executed; account handoff required for authenticated scenarios"
+    },
+    {
+      "id": "SIGNED-REMAINING-MULTIBROWSER",
+      "story_ids": [
+        "LD-035",
+        "LD-036",
+        "LD-037"
+      ],
+      "priority": "P2",
+      "preconditions": [
+        "Approved account and available Firefox/WebKit runtimes"
+      ],
+      "test_data": "Owned case and core login/edit/judicial views",
+      "steps": [
+        "Repeat essential flows at mobile/desktop across browsers"
+      ],
+      "expected_results": "Core functions and readable layout consistent; missing runtime remains BLOCKED",
+      "status": "NOT_RUN",
+      "reason": "Design/remaining scope only; not executed; account handoff required for authenticated scenarios"
+    },
+    {
+      "id": "SIGNED-REMAINING-BACKEND-IDENTITY",
+      "story_ids": [
+        "LD-002",
+        "LD-006"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Authorized read-only runtime attestation provided by deployment owner"
+      ],
+      "test_data": "Expected full baseline SHA and deployed image digest",
+      "steps": [
+        "Compare running backend release/image metadata to expected commit without deployment changes"
+      ],
+      "expected_results": "Exact runtime provenance documented independently of frontend asset match",
+      "status": "NOT_RUN",
+      "reason": "Design/remaining scope only; not executed; account handoff required for authenticated scenarios"
+    }
+  ]
+}

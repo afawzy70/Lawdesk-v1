@@ -1,0 +1,1407 @@
+{
+  "tested_sha": "048ff350211f5620b69269c356e50fe8871b37fd",
+  "integration_base": "91551a3",
+  "utc": "2026-10-23T17:48:37.394450+00:00",
+  "candidate_source": "git archive with every tracked blob verified",
+  "jar_sha256": "0ec59704b0205be08ec362bd3321a14ec796fa86fa79d2620010e4dc46c42c7c",
+  "environment": {
+    "java": "openjdk version \"21.0.12.1\" 2026-08-18 LTS",
+    "bind": "loopback ephemeral port",
+    "postgresql": "disposable PostgreSQL configured"
+  },
+  "contract": "PR #2 docs/delivery/PHASE-1-ACCEPTANCE.md PROPOSED, not approved",
+  "results": [
+    {
+      "id": "P1-BRANCH-INVALID-1",
+      "baseline_case_ids": [
+        "QA-0003"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "branch": "feature/a.lock"
+      },
+      "steps": [
+        "Compare Git's native ref validator with the implementation policy for the same name."
+      ],
+      "expected": "Git-invalid name is rejected by policy",
+      "status": "PASS",
+      "actual": {
+        "git_exit": 128,
+        "policy_errors": [
+          "branch 'feature/a.lock' must look like <prefix>/<slug> with prefix one of feature/, fix/, docs/, qa/, chore/, release/, hotfix/ and a slug of letters, digits, '.', '_' or '-' (e.g. feature/LD-002-backend-bootstrap)"
+        ]
+      }
+    },
+    {
+      "id": "P1-BRANCH-INVALID-2",
+      "baseline_case_ids": [
+        "QA-0003"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "branch": "feature/a."
+      },
+      "steps": [
+        "Compare Git's native ref validator with the implementation policy for the same name."
+      ],
+      "expected": "Git-invalid name is rejected by policy",
+      "status": "PASS",
+      "actual": {
+        "git_exit": 128,
+        "policy_errors": [
+          "branch 'feature/a.' must look like <prefix>/<slug> with prefix one of feature/, fix/, docs/, qa/, chore/, release/, hotfix/ and a slug of letters, digits, '.', '_' or '-' (e.g. feature/LD-002-backend-bootstrap)"
+        ]
+      }
+    },
+    {
+      "id": "P1-BRANCH-INVALID-3",
+      "baseline_case_ids": [
+        "QA-0003"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "branch": "feature/a\n"
+      },
+      "steps": [
+        "Compare Git's native ref validator with the implementation policy for the same name."
+      ],
+      "expected": "Git-invalid name is rejected by policy",
+      "status": "PASS",
+      "actual": {
+        "git_exit": 128,
+        "policy_errors": [
+          "branch 'feature/a\n' must look like <prefix>/<slug> with prefix one of feature/, fix/, docs/, qa/, chore/, release/, hotfix/ and a slug of letters, digits, '.', '_' or '-' (e.g. feature/LD-002-backend-bootstrap)"
+        ]
+      }
+    },
+    {
+      "id": "P1-BRANCH-VALID-feature/LD-002-health",
+      "baseline_case_ids": [
+        "QA-0001"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "branch": "feature/LD-002-health"
+      },
+      "steps": [
+        "Validate a documented allowed branch."
+      ],
+      "expected": "Allowed branch accepted",
+      "status": "PASS",
+      "actual": []
+    },
+    {
+      "id": "P1-BRANCH-VALID-qa/phase-1-review",
+      "baseline_case_ids": [
+        "QA-0001"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "branch": "qa/phase-1-review"
+      },
+      "steps": [
+        "Validate a documented allowed branch."
+      ],
+      "expected": "Allowed branch accepted",
+      "status": "PASS",
+      "actual": []
+    },
+    {
+      "id": "P1-BRANCH-VALID-main",
+      "baseline_case_ids": [
+        "QA-0001"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "branch": "main"
+      },
+      "steps": [
+        "Validate a documented allowed branch."
+      ],
+      "expected": "Allowed branch accepted",
+      "status": "PASS",
+      "actual": []
+    },
+    {
+      "id": "P1-BRANCH-VALID-develop",
+      "baseline_case_ids": [
+        "QA-0001"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "branch": "develop"
+      },
+      "steps": [
+        "Validate a documented allowed branch."
+      ],
+      "expected": "Allowed branch accepted",
+      "status": "PASS",
+      "actual": []
+    },
+    {
+      "id": "P1-COMMIT-71",
+      "baseline_case_ids": [
+        "QA-0003"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "subject": "feat(LD-001): aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "steps": [
+        "Validate Conventional Commit subject at 71/72/73 character boundary."
+      ],
+      "expected": "Only >72 character subject rejected",
+      "status": "PASS",
+      "actual": []
+    },
+    {
+      "id": "P1-COMMIT-72",
+      "baseline_case_ids": [
+        "QA-0003"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "subject": "feat(LD-001): aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "steps": [
+        "Validate Conventional Commit subject at 71/72/73 character boundary."
+      ],
+      "expected": "Only >72 character subject rejected",
+      "status": "PASS",
+      "actual": []
+    },
+    {
+      "id": "P1-COMMIT-73",
+      "baseline_case_ids": [
+        "QA-0003"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "subject": "feat(LD-001): aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "steps": [
+        "Validate Conventional Commit subject at 71/72/73 character boundary."
+      ],
+      "expected": "Only >72 character subject rejected",
+      "status": "PASS",
+      "actual": [
+        "commit subject is 73 characters; keep it within 72"
+      ]
+    },
+    {
+      "id": "P1-FLOW-feature/a-develop",
+      "baseline_case_ids": [
+        "QA-0001",
+        "QA-0005"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "head": "feature/a",
+        "base": "develop"
+      },
+      "steps": [
+        "Validate documented source and target branch flow."
+      ],
+      "expected": "PR flow follows documented policy",
+      "status": "PASS",
+      "actual": []
+    },
+    {
+      "id": "P1-FLOW-qa/a-develop",
+      "baseline_case_ids": [
+        "QA-0001",
+        "QA-0005"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "head": "qa/a",
+        "base": "develop"
+      },
+      "steps": [
+        "Validate documented source and target branch flow."
+      ],
+      "expected": "PR flow follows documented policy",
+      "status": "PASS",
+      "actual": []
+    },
+    {
+      "id": "P1-FLOW-feature/a-main",
+      "baseline_case_ids": [
+        "QA-0001",
+        "QA-0005"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "head": "feature/a",
+        "base": "main"
+      },
+      "steps": [
+        "Validate documented source and target branch flow."
+      ],
+      "expected": "PR flow follows documented policy",
+      "status": "PASS",
+      "actual": [
+        "'feature/a' may not target main; open the pull request against develop (only release/* and hotfix/* branches merge into main)"
+      ]
+    },
+    {
+      "id": "P1-FLOW-release/v1-main",
+      "baseline_case_ids": [
+        "QA-0001",
+        "QA-0005"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "head": "release/v1",
+        "base": "main"
+      },
+      "steps": [
+        "Validate documented source and target branch flow."
+      ],
+      "expected": "PR flow follows documented policy",
+      "status": "PASS",
+      "actual": []
+    },
+    {
+      "id": "P1-FLOW-hotfix/a-main",
+      "baseline_case_ids": [
+        "QA-0001",
+        "QA-0005"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "head": "hotfix/a",
+        "base": "main"
+      },
+      "steps": [
+        "Validate documented source and target branch flow."
+      ],
+      "expected": "PR flow follows documented policy",
+      "status": "PASS",
+      "actual": []
+    },
+    {
+      "id": "P1-FLOW-feature/a-unknown",
+      "baseline_case_ids": [
+        "QA-0001",
+        "QA-0005"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "head": "feature/a",
+        "base": "unknown"
+      },
+      "steps": [
+        "Validate documented source and target branch flow."
+      ],
+      "expected": "PR flow follows documented policy",
+      "status": "PASS",
+      "actual": [
+        "pull requests must target develop or main, not 'unknown'"
+      ]
+    },
+    {
+      "id": "P1-HEALTH-/actuator/health",
+      "baseline_case_ids": [
+        "QA-0009"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/health"
+      },
+      "steps": [
+        "GET public health route without credentials; parse exact health state and inspect details."
+      ],
+      "expected": "200 UP; no components/details",
+      "status": "PASS",
+      "actual": {
+        "status": 200,
+        "headers": {
+          "X-Request-Id": "d4dc025c-6657-41ed-a046-75c43352cc99",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/vnd.spring-boot.actuator.v3+json",
+          "Transfer-Encoding": "chunked",
+          "Date": "Fri, 23 Oct 2026 17:47:07 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"groups\":[\"liveness\",\"readiness\"],\"status\":\"UP\"}"
+      }
+    },
+    {
+      "id": "P1-HEALTH-/actuator/health/liveness",
+      "baseline_case_ids": [
+        "QA-0009"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/health/liveness"
+      },
+      "steps": [
+        "GET public health route without credentials; parse exact health state and inspect details."
+      ],
+      "expected": "200 UP; no components/details",
+      "status": "PASS",
+      "actual": {
+        "status": 200,
+        "headers": {
+          "X-Request-Id": "44ac369f-30a2-4e89-96ae-8c9ae7dabb9f",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/vnd.spring-boot.actuator.v3+json",
+          "Transfer-Encoding": "chunked",
+          "Date": "Fri, 23 Oct 2026 17:47:07 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"status\":\"UP\"}"
+      }
+    },
+    {
+      "id": "P1-HEALTH-/actuator/health/readiness",
+      "baseline_case_ids": [
+        "QA-0009"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/health/readiness"
+      },
+      "steps": [
+        "GET public health route without credentials; parse exact health state and inspect details."
+      ],
+      "expected": "200 UP; no components/details",
+      "status": "PASS",
+      "actual": {
+        "status": 200,
+        "headers": {
+          "X-Request-Id": "73b02b6a-9195-4619-82c5-fadbf8865f86",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/vnd.spring-boot.actuator.v3+json",
+          "Transfer-Encoding": "chunked",
+          "Date": "Fri, 23 Oct 2026 17:47:07 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"status\":\"UP\"}"
+      }
+    },
+    {
+      "id": "P1-INFO-ALLOWLIST",
+      "baseline_case_ids": [
+        "QA-0009"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/info"
+      },
+      "steps": [
+        "GET public info; compare build fields to proposed LD-002 AC2 name/version-only allowlist."
+      ],
+      "expected": "Only build.name and build.version are public (proposed AC2)",
+      "status": "PASS",
+      "actual": {
+        "status": 200,
+        "headers": {
+          "X-Request-Id": "5aa8b39b-9f64-4e4e-a6f2-b2590046afe2",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/vnd.spring-boot.actuator.v3+json",
+          "Content-Length": "63",
+          "Date": "Fri, 23 Oct 2026 17:47:07 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"build\":{\"name\":\"lawdesk-backend\",\"version\":\"0.0.1-SNAPSHOT\"}}"
+      }
+    },
+    {
+      "id": "P1-ANON-/api/v1/cases",
+      "baseline_case_ids": [
+        "QA-0012",
+        "QA-0013"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/api/v1/cases"
+      },
+      "steps": [
+        "GET protected route as anonymous; assert exact 401 RFC9457 JSON, no redirect or internals."
+      ],
+      "expected": "401 application/problem+json; no internals",
+      "status": "PASS",
+      "actual": {
+        "status": 401,
+        "headers": {
+          "X-Request-Id": "c8a19c20-2a79-44c9-9125-7824ad70019f",
+          "Set-Cookie": "JSESSIONID=[REDACTED]; Path=/; HttpOnly",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "58",
+          "Date": "Fri, 23 Oct 2026 17:47:08 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401}"
+      }
+    },
+    {
+      "id": "P1-ANON-/actuator/env",
+      "baseline_case_ids": [
+        "QA-0012",
+        "QA-0013"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/env"
+      },
+      "steps": [
+        "GET protected route as anonymous; assert exact 401 RFC9457 JSON, no redirect or internals."
+      ],
+      "expected": "401 application/problem+json; no internals",
+      "status": "PASS",
+      "actual": {
+        "status": 401,
+        "headers": {
+          "X-Request-Id": "b6fca905-57da-41c5-8ff5-6367eac355fe",
+          "Set-Cookie": "JSESSIONID=[REDACTED]; Path=/; HttpOnly",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "58",
+          "Date": "Fri, 23 Oct 2026 17:47:08 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401}"
+      }
+    },
+    {
+      "id": "P1-ANON-/actuator/beans",
+      "baseline_case_ids": [
+        "QA-0012",
+        "QA-0013"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/beans"
+      },
+      "steps": [
+        "GET protected route as anonymous; assert exact 401 RFC9457 JSON, no redirect or internals."
+      ],
+      "expected": "401 application/problem+json; no internals",
+      "status": "PASS",
+      "actual": {
+        "status": 401,
+        "headers": {
+          "X-Request-Id": "257b08dc-0ecd-4b5a-b92d-016e9a0242b5",
+          "Set-Cookie": "JSESSIONID=[REDACTED]; Path=/; HttpOnly",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "58",
+          "Date": "Fri, 23 Oct 2026 17:47:08 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401}"
+      }
+    },
+    {
+      "id": "P1-ANON-/actuator/configprops",
+      "baseline_case_ids": [
+        "QA-0012",
+        "QA-0013"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/configprops"
+      },
+      "steps": [
+        "GET protected route as anonymous; assert exact 401 RFC9457 JSON, no redirect or internals."
+      ],
+      "expected": "401 application/problem+json; no internals",
+      "status": "PASS",
+      "actual": {
+        "status": 401,
+        "headers": {
+          "X-Request-Id": "5bd5706e-5f11-48d0-a98b-9c71a1dd79e0",
+          "Set-Cookie": "JSESSIONID=[REDACTED]; Path=/; HttpOnly",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "58",
+          "Date": "Fri, 23 Oct 2026 17:47:08 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401}"
+      }
+    },
+    {
+      "id": "P1-ANON-/actuator/heapdump",
+      "baseline_case_ids": [
+        "QA-0012",
+        "QA-0013"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/heapdump"
+      },
+      "steps": [
+        "GET protected route as anonymous; assert exact 401 RFC9457 JSON, no redirect or internals."
+      ],
+      "expected": "401 application/problem+json; no internals",
+      "status": "PASS",
+      "actual": {
+        "status": 401,
+        "headers": {
+          "X-Request-Id": "259ba2b9-9e4e-4613-8bfc-aaf3af8c501f",
+          "Set-Cookie": "JSESSIONID=[REDACTED]; Path=/; HttpOnly",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "58",
+          "Date": "Fri, 23 Oct 2026 17:47:08 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401}"
+      }
+    },
+    {
+      "id": "P1-ANON-/actuator/loggers",
+      "baseline_case_ids": [
+        "QA-0012",
+        "QA-0013"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/loggers"
+      },
+      "steps": [
+        "GET protected route as anonymous; assert exact 401 RFC9457 JSON, no redirect or internals."
+      ],
+      "expected": "401 application/problem+json; no internals",
+      "status": "PASS",
+      "actual": {
+        "status": 401,
+        "headers": {
+          "X-Request-Id": "e7f8ec50-3667-4818-b80e-d675ee9ae7de",
+          "Set-Cookie": "JSESSIONID=[REDACTED]; Path=/; HttpOnly",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "58",
+          "Date": "Fri, 23 Oct 2026 17:47:08 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401}"
+      }
+    },
+    {
+      "id": "P1-ANON-/actuator/mappings",
+      "baseline_case_ids": [
+        "QA-0012",
+        "QA-0013"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/mappings"
+      },
+      "steps": [
+        "GET protected route as anonymous; assert exact 401 RFC9457 JSON, no redirect or internals."
+      ],
+      "expected": "401 application/problem+json; no internals",
+      "status": "PASS",
+      "actual": {
+        "status": 401,
+        "headers": {
+          "X-Request-Id": "b7d83ee5-c94e-4056-bfab-54161130b3db",
+          "Set-Cookie": "JSESSIONID=[REDACTED]; Path=/; HttpOnly",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "58",
+          "Date": "Fri, 23 Oct 2026 17:47:08 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401}"
+      }
+    },
+    {
+      "id": "P1-ANON-/actuator/threaddump",
+      "baseline_case_ids": [
+        "QA-0012",
+        "QA-0013"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/threaddump"
+      },
+      "steps": [
+        "GET protected route as anonymous; assert exact 401 RFC9457 JSON, no redirect or internals."
+      ],
+      "expected": "401 application/problem+json; no internals",
+      "status": "PASS",
+      "actual": {
+        "status": 401,
+        "headers": {
+          "X-Request-Id": "7d27ac42-9c22-44fa-b047-ac06ee5d979f",
+          "Set-Cookie": "JSESSIONID=[REDACTED]; Path=/; HttpOnly",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "58",
+          "Date": "Fri, 23 Oct 2026 17:47:08 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401}"
+      }
+    },
+    {
+      "id": "P1-POST-STATUS-/api/v1/cases",
+      "baseline_case_ids": [
+        "QA-0012"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/api/v1/cases"
+      },
+      "steps": [
+        "POST without session or CSRF token; compare to proposed AC3 exact anonymous 401 rule."
+      ],
+      "expected": "401 for unauthenticated other endpoint per proposed AC3 (CSRF 403 requires contract clarification)",
+      "status": "PASS",
+      "actual": {
+        "status": 401,
+        "headers": {
+          "X-Request-Id": "f4efaba9-ff1c-443f-b6f8-db71bcf8d762",
+          "Set-Cookie": "JSESSIONID=[REDACTED]; Path=/; HttpOnly",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "58",
+          "Date": "Fri, 23 Oct 2026 17:47:08 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401}"
+      }
+    },
+    {
+      "id": "P1-POST-STATUS-/actuator/health",
+      "baseline_case_ids": [
+        "QA-0012"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "method": "POST",
+        "path": "/actuator/health"
+      },
+      "steps": [
+        "POST without session or CSRF token; compare to proposed AC3 exact anonymous 401 rule."
+      ],
+      "expected": "401 for unauthenticated other endpoint per proposed AC3 (CSRF 403 requires contract clarification)",
+      "status": "PASS",
+      "actual": {
+        "status": 401,
+        "headers": {
+          "X-Request-Id": "88d0fc97-4107-4074-912b-3dc773b06e54",
+          "Set-Cookie": "JSESSIONID=[REDACTED]; Path=/; HttpOnly",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "58",
+          "Date": "Fri, 23 Oct 2026 17:47:09 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401}"
+      }
+    },
+    {
+      "id": "P1-HEADERS-/actuator/health",
+      "baseline_case_ids": [
+        "QA-0349"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/health"
+      },
+      "steps": [
+        "Request success, security denial, MVC 404 or firewall rejection and inspect baseline security headers."
+      ],
+      "expected": "All baseline headers including no-store on every response per proposed AC4",
+      "status": "PASS",
+      "actual": {
+        "status": 200,
+        "headers": {
+          "X-Request-Id": "f7f849d1-07f6-4717-9def-b610d3bf4f6f",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/vnd.spring-boot.actuator.v3+json",
+          "Transfer-Encoding": "chunked",
+          "Date": "Fri, 23 Oct 2026 17:47:09 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"groups\":[\"liveness\",\"readiness\"],\"status\":\"UP\"}"
+      }
+    },
+    {
+      "id": "P1-HEADERS-/api/v1/cases",
+      "baseline_case_ids": [
+        "QA-0349"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/api/v1/cases"
+      },
+      "steps": [
+        "Request success, security denial, MVC 404 or firewall rejection and inspect baseline security headers."
+      ],
+      "expected": "All baseline headers including no-store on every response per proposed AC4",
+      "status": "PASS",
+      "actual": {
+        "status": 401,
+        "headers": {
+          "X-Request-Id": "dcc79d00-74e6-4ab7-8d67-93dd1fd3e6e9",
+          "Set-Cookie": "JSESSIONID=[REDACTED]; Path=/; HttpOnly",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "58",
+          "Date": "Fri, 23 Oct 2026 17:47:09 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401}"
+      }
+    },
+    {
+      "id": "P1-HEADERS-/actuator/health/does-not-exist",
+      "baseline_case_ids": [
+        "QA-0349"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "/actuator/health/does-not-exist"
+      },
+      "steps": [
+        "Request success, security denial, MVC 404 or firewall rejection and inspect baseline security headers."
+      ],
+      "expected": "All baseline headers including no-store on every response per proposed AC4",
+      "status": "PASS",
+      "actual": {
+        "status": 404,
+        "headers": {
+          "X-Request-Id": "c081bff0-3058-4a27-bcca-25ec61ff0825",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Length": "0",
+          "Date": "Fri, 23 Oct 2026 17:47:09 GMT",
+          "Connection": "close"
+        },
+        "body": ""
+      }
+    },
+    {
+      "id": "P1-HEADERS-//actuator/health",
+      "baseline_case_ids": [
+        "QA-0349"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "path": "//actuator/health"
+      },
+      "steps": [
+        "Request success, security denial, MVC 404 or firewall rejection and inspect baseline security headers."
+      ],
+      "expected": "All baseline headers including no-store on every response per proposed AC4",
+      "status": "PASS",
+      "actual": {
+        "status": 400,
+        "headers": {
+          "X-Request-Id": "24f795a6-68e8-4632-9cce-20f5136a0346",
+          "X-Content-Type-Options": "nosniff",
+          "X-Frame-Options": "DENY",
+          "Referrer-Policy": "no-referrer",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "Content-Type": "application/problem+json;charset=UTF-8",
+          "Content-Length": "57",
+          "Date": "Fri, 23 Oct 2026 17:47:09 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"type\":\"about:blank\",\"title\":\"Bad Request\",\"status\":400}"
+      }
+    },
+    {
+      "id": "P1-REQUEST-ID-34",
+      "baseline_case_ids": [
+        "QA-0011"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "request_id": "a"
+      },
+      "steps": [
+        "Send X-Request-Id at valid/invalid and 1/64/65 character boundaries."
+      ],
+      "expected": "Valid id echoed; invalid/oversized id replaced by UUID",
+      "status": "PASS",
+      "actual": {
+        "sent": "a",
+        "received": "a",
+        "status": 200
+      }
+    },
+    {
+      "id": "P1-REQUEST-ID-35",
+      "baseline_case_ids": [
+        "QA-0011"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "request_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "steps": [
+        "Send X-Request-Id at valid/invalid and 1/64/65 character boundaries."
+      ],
+      "expected": "Valid id echoed; invalid/oversized id replaced by UUID",
+      "status": "PASS",
+      "actual": {
+        "sent": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "received": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "status": 200
+      }
+    },
+    {
+      "id": "P1-REQUEST-ID-36",
+      "baseline_case_ids": [
+        "QA-0011"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "request_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "steps": [
+        "Send X-Request-Id at valid/invalid and 1/64/65 character boundaries."
+      ],
+      "expected": "Valid id echoed; invalid/oversized id replaced by UUID",
+      "status": "PASS",
+      "actual": {
+        "sent": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "received": "da667f2f-d210-4271-839b-28f4956fe021",
+        "status": 200
+      }
+    },
+    {
+      "id": "P1-REQUEST-ID-37",
+      "baseline_case_ids": [
+        "QA-0011"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "request_id": "bad id"
+      },
+      "steps": [
+        "Send X-Request-Id at valid/invalid and 1/64/65 character boundaries."
+      ],
+      "expected": "Valid id echoed; invalid/oversized id replaced by UUID",
+      "status": "PASS",
+      "actual": {
+        "sent": "bad id",
+        "received": "fc19e93a-0185-49ec-87c8-6acb3ad89a99",
+        "status": 200
+      }
+    },
+    {
+      "id": "P1-REQUEST-ID-38",
+      "baseline_case_ids": [
+        "QA-0011"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "request_id": "QA._-9"
+      },
+      "steps": [
+        "Send X-Request-Id at valid/invalid and 1/64/65 character boundaries."
+      ],
+      "expected": "Valid id echoed; invalid/oversized id replaced by UUID",
+      "status": "PASS",
+      "actual": {
+        "sent": "QA._-9",
+        "received": "QA._-9",
+        "status": 200
+      }
+    },
+    {
+      "id": "P1-CONCURRENT-IDS",
+      "baseline_case_ids": [
+        "QA-0015"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "clients": 20
+      },
+      "steps": [
+        "Send 20 concurrent health requests without caller IDs; assert 20 distinct nonempty UUIDs."
+      ],
+      "expected": "20 successful requests, 20 distinct ids",
+      "status": "PASS",
+      "actual": {
+        "statuses": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ],
+        "ids": [
+          "d22a58b5-d05f-4d3e-990e-571a4ca9b86a",
+          "646848e0-e3e5-49b7-90db-6dd5bff918f8",
+          "25603f92-9272-4531-acc6-f50861794669",
+          "4eb83884-eee9-41d0-a640-1a61dc8e80d1",
+          "96d771b4-eded-44e7-bba0-bd055d94144d",
+          "4a76c4cd-89e0-4365-91dd-f581fabd9315",
+          "022fe4b3-099b-4c4a-95cf-87b799df53bb",
+          "f74d8592-2f7a-44c3-bf95-227eaf22697e",
+          "bf1e6b39-39a4-4dd1-9b61-e47bcf0706f1",
+          "fc8d2bb0-39a0-4e14-905a-e56525a2a1d8",
+          "7819680b-6eda-4ae2-8988-7250320759d0",
+          "2f01e33b-b53f-481b-89b7-36a690501b2b",
+          "2c2b8d47-0a18-4b5d-9a53-4e6d3d31d2cc",
+          "49209340-943e-42e1-a024-eb203ee76ae4",
+          "75e3e6df-9943-4dcc-9750-83f12bf9e8a1",
+          "1884983f-c5c2-4e1a-a795-b23da5baa105",
+          "ee861dff-e44a-4440-9a3a-e7e2a20e3cb1",
+          "08923e6a-2336-49c5-8bfb-127c9f0d0ddd",
+          "368258a2-fb14-4390-9923-0b0729ff6cb9",
+          "f19c01cb-51b4-4fb6-98c2-48d8b1484225"
+        ]
+      }
+    },
+    {
+      "id": "P1-DB-OUTAGE-READINESS",
+      "baseline_case_ids": [
+        "QA-0032"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "dependency": "owned disposable PostgreSQL"
+      },
+      "steps": [
+        "Stop only QA-owned PostgreSQL and observe readiness 503."
+      ],
+      "expected": "Readiness returns503 during real isolated DB outage",
+      "status": "FAIL",
+      "actual": null,
+      "failed_assertion": "Readiness returns503 during real isolated DB outage"
+    },
+    {
+      "id": "P1-DB-OUTAGE-LIVENESS",
+      "baseline_case_ids": [
+        "QA-0032"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {},
+      "steps": [
+        "While QA database is stopped, GET liveness."
+      ],
+      "expected": "Liveness remains200 during DB outage",
+      "status": "PASS",
+      "actual": {
+        "status": 200,
+        "headers": {
+          "X-Request-Id": "8501cdaf-b089-44f4-894e-d3628840b797",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/vnd.spring-boot.actuator.v3+json",
+          "Transfer-Encoding": "chunked",
+          "Date": "Fri, 23 Oct 2026 17:48:31 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"status\":\"UP\"}"
+      }
+    },
+    {
+      "id": "P1-DB-RECOVERY",
+      "baseline_case_ids": [
+        "QA-0032"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {},
+      "steps": [
+        "Restart same owned PostgreSQL and poll readiness recovery."
+      ],
+      "expected": "Readiness recovers200 after database restart",
+      "status": "PASS",
+      "actual": {
+        "status": 200,
+        "headers": {
+          "X-Request-Id": "ce098d78-62da-42d4-b164-922d84aba145",
+          "X-Content-Type-Options": "nosniff",
+          "X-XSS-Protection": "0",
+          "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+          "Referrer-Policy": "no-referrer",
+          "Content-Type": "application/vnd.spring-boot.actuator.v3+json",
+          "Transfer-Encoding": "chunked",
+          "Date": "Fri, 23 Oct 2026 17:48:37 GMT",
+          "Connection": "close"
+        },
+        "body": "{\"status\":\"UP\"}"
+      }
+    },
+    {
+      "id": "P1-LOG-ONE-EVENT",
+      "baseline_case_ids": [
+        "QA-0348"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {
+        "request_id": "QA-INDEPENDENT-LOG-PROBE"
+      },
+      "steps": [
+        "Find exactly one ECS completion event for known request ID."
+      ],
+      "expected": "Exactly one completion event per instrumented request",
+      "status": "PASS",
+      "actual": {
+        "events": 1
+      }
+    },
+    {
+      "id": "P1-LOG-FIELDS",
+      "baseline_case_ids": [
+        "QA-0348"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {},
+      "steps": [
+        "Inspect real JSON completion event shape and duration."
+      ],
+      "expected": "ECS event has method/path/status/nonnegative duration and request ID",
+      "status": "PASS",
+      "actual": {
+        "@timestamp": "2026-10-23T17:47:10.765629499Z",
+        "log": {
+          "level": "INFO",
+          "logger": "com.lawdesk.platform.RequestCorrelationFilter"
+        },
+        "process": {
+          "pid": 862851,
+          "thread": {
+            "name": "http-nio-127.0.0.1-53547-exec-5"
+          }
+        },
+        "service": {
+          "name": "lawdesk-backend",
+          "version": "0.0.1-SNAPSHOT",
+          "node": {}
+        },
+        "message": "request completed",
+        "requestId": "QA-INDEPENDENT-LOG-PROBE",
+        "http": {
+          "request": {
+            "method": "GET"
+          },
+          "response": {
+            "status_code": 200
+          }
+        },
+        "url": {
+          "path": "/actuator/health"
+        },
+        "event": {
+          "duration_ms": 71
+        },
+        "ecs": {
+          "version": "8.11"
+        }
+      }
+    },
+    {
+      "id": "P1-LOG-REDACTION",
+      "baseline_case_ids": [
+        "QA-0348"
+      ],
+      "preconditions": [
+        "Exact candidate tree checked against git object hashes.",
+        "Isolated QA snapshot; synthetic data only."
+      ],
+      "test_data": {},
+      "steps": [
+        "Search captured application log for synthetic query/Authorization sentinels."
+      ],
+      "expected": "Query strings and authorization values absent from logs",
+      "status": "PASS",
+      "actual": {
+        "leaked_markers": []
+      }
+    }
+  ],
+  "assertion_counts": {
+    "PASS": 45,
+    "FAIL": 1,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "baseline_case_promotion": "NONE: these are partial assertions under a proposed contract, not full-case passes",
+  "assessment_note": "Original5-second client never observed outage status; retained FAIL diagnostic. Functional status observation rerun separately at40 seconds and measured30.24 seconds. No5-second/SLA PASS claimed."
+}

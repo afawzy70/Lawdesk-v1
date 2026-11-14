@@ -1,0 +1,177 @@
+{
+  "tested_sha": "f86acb963bccada608336779e7cc64ed56bb1934",
+  "utc": "2026-10-24T17:59:19.330299+00:00",
+  "candidate": "/tmp/lawdesk-continuous2-cumulative-f86acb96",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 6,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "CONCURRENT-REFERENCE-NUMBERS",
+      "story_ids": [
+        "LD-012"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CONCURRENT-REFERENCE-NUMBERS"
+      },
+      "steps": [
+        "Six parallel generated-reference creates"
+      ],
+      "expected_results": "Six201; distinct consecutive generated references",
+      "actual": {
+        "statuses": [
+          201,
+          201,
+          201,
+          201,
+          201,
+          201
+        ],
+        "references": [
+          "LD-2026-00003",
+          "LD-2026-00006",
+          "LD-2026-00002",
+          "LD-2026-00001",
+          "LD-2026-00004",
+          "LD-2026-00005"
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "CONCURRENT-OPTIMISTIC-LOCK",
+      "story_ids": [
+        "LD-013"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CONCURRENT-OPTIMISTIC-LOCK"
+      },
+      "steps": [
+        "Two different writes with version0 in parallel"
+      ],
+      "expected_results": "Exactly one200 and one409",
+      "actual": [
+        200,
+        409
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "CONCURRENT-TIMELINE-ATOMIC",
+      "story_ids": [
+        "LD-013",
+        "LD-014"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "CONCURRENT-TIMELINE-ATOMIC"
+      },
+      "steps": [
+        "Query event count after parallel writes"
+      ],
+      "expected_results": "Exactly one CASE_UPDATED event",
+      "actual": "1",
+      "status": "PASS"
+    },
+    {
+      "id": "TIMELINE-FAILURE-ROLLBACK",
+      "story_ids": [
+        "LD-012",
+        "LD-014"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "TIMELINE-FAILURE-ROLLBACK"
+      },
+      "steps": [
+        "Inject rejecting timeline trigger in QA-only DB",
+        "create case",
+        "compare row and counter"
+      ],
+      "expected_results": "Request fails; no case/counter mutation",
+      "actual": {
+        "status": 500,
+        "case_count_before": "6",
+        "case_count_after": "6",
+        "counter_before": "6",
+        "counter_after": "6"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "REFERENCE-RECOVERY-AFTER-ROLLBACK",
+      "story_ids": [
+        "LD-012"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "REFERENCE-RECOVERY-AFTER-ROLLBACK"
+      },
+      "steps": [
+        "Remove injected trigger",
+        "create again"
+      ],
+      "expected_results": "201 with next gapless reference00007",
+      "actual": {
+        "status": 201,
+        "reference": "LD-2026-00007"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "SQL-TIMELINE-ORPHAN",
+      "story_ids": [
+        "LD-014"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "SQL-TIMELINE-ORPHAN"
+      },
+      "steps": [
+        "Insert timeline row for missing case directly"
+      ],
+      "expected_results": "Foreign key rejects orphan",
+      "actual": {
+        "exit": 1,
+        "error": "{'S': 'ERROR', 'V': 'ERROR', 'C': '23503', 'M': 'insert or update on table \"case_event\" violates foreign key constraint \"case_event_case_id_fkey\"', 'D': 'Key (case_id)=(00000000-0000-4000-8000-000000000099) is not present in table \"legal_case\".', 's'"
+      },
+      "status": "PASS"
+    }
+  ]
+}

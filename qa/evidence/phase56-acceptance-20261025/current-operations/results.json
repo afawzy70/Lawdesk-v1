@@ -1,0 +1,1548 @@
+{
+  "tested_sha": "b849b1cabcbebd4df058e4ab989d1e8c1a562899",
+  "utc": "2026-10-25T09:25:44.168670+00:00",
+  "candidate": "/tmp/lawdesk-acceptance-20261025-phase6-current",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 47,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "0386a293-2a0f-406e-8277-cd052f8b30a6",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-25T09:25:37.137956Z",
+          "updatedAt": "2026-10-25T09:25:37.137956Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-AUTH-hearings-ANON",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-AUTH-hearings-ANON"
+      },
+      "steps": [
+        "GET report as ANON"
+      ],
+      "expected_results": "401",
+      "actual": 401,
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-AUTH-hearings-NONE",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-AUTH-hearings-NONE"
+      },
+      "steps": [
+        "GET report as NONE"
+      ],
+      "expected_results": "403",
+      "actual": 403,
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-AUTH-hearings-STAFF",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-AUTH-hearings-STAFF"
+      },
+      "steps": [
+        "GET report as STAFF"
+      ],
+      "expected_results": "403",
+      "actual": 403,
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-AUTH-hearings-MANAGER",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-AUTH-hearings-MANAGER"
+      },
+      "steps": [
+        "GET report as MANAGER"
+      ],
+      "expected_results": "200",
+      "actual": 200,
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-AUTH-workload-ANON",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-AUTH-workload-ANON"
+      },
+      "steps": [
+        "GET report as ANON"
+      ],
+      "expected_results": "401",
+      "actual": 401,
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-AUTH-workload-NONE",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-AUTH-workload-NONE"
+      },
+      "steps": [
+        "GET report as NONE"
+      ],
+      "expected_results": "403",
+      "actual": 403,
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-AUTH-workload-STAFF",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-AUTH-workload-STAFF"
+      },
+      "steps": [
+        "GET report as STAFF"
+      ],
+      "expected_results": "403",
+      "actual": 403,
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-AUTH-workload-MANAGER",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-AUTH-workload-MANAGER"
+      },
+      "steps": [
+        "GET report as MANAGER"
+      ],
+      "expected_results": "200",
+      "actual": 200,
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-AUTH-experts-ANON",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-AUTH-experts-ANON"
+      },
+      "steps": [
+        "GET report as ANON"
+      ],
+      "expected_results": "401",
+      "actual": 401,
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-AUTH-experts-NONE",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-AUTH-experts-NONE"
+      },
+      "steps": [
+        "GET report as NONE"
+      ],
+      "expected_results": "403",
+      "actual": 403,
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-AUTH-experts-STAFF",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-AUTH-experts-STAFF"
+      },
+      "steps": [
+        "GET report as STAFF"
+      ],
+      "expected_results": "403",
+      "actual": 403,
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-AUTH-experts-MANAGER",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-AUTH-experts-MANAGER"
+      },
+      "steps": [
+        "GET report as MANAGER"
+      ],
+      "expected_results": "200",
+      "actual": 200,
+      "status": "PASS"
+    },
+    {
+      "id": "DASHBOARD-OPERATIONS-EXACT",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DASHBOARD-OPERATIONS-EXACT"
+      },
+      "steps": [
+        "Construct 6 hearings/4 tasks/3 referrals -> read dashboard"
+      ],
+      "expected_results": {
+        "hearingsThisWeek": 2,
+        "hearingsAwaitingResult": 1,
+        "expertReportsOverdue": 1,
+        "overdueTasks": 1,
+        "tasksDueSoon": 1
+      },
+      "actual": {
+        "hearingsThisWeek": 2,
+        "hearingsAwaitingResult": 1,
+        "expertReportsOverdue": 1,
+        "overdueTasks": 1,
+        "tasksDueSoon": 1
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DASHBOARD-INDEPENDENT-SQL",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DASHBOARD-INDEPENDENT-SQL"
+      },
+      "steps": [
+        "Direct aggregate SQL over known fixture records"
+      ],
+      "expected_results": "2,1,1,1",
+      "actual": "2\t1\t1\t1",
+      "status": "PASS"
+    },
+    {
+      "id": "HEARINGS-SUMMARY",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "HEARINGS-SUMMARY"
+      },
+      "steps": [
+        "Read page size2 over six records"
+      ],
+      "expected_results": "page2items total6 summary6 scheduled4 held1 cancelled1 awaiting1",
+      "actual": {
+        "items": [
+          {
+            "id": "15b62412-bfa5-4db6-97c9-80fdfd8c6bb5",
+            "hearingDate": "2026-01-03",
+            "hearingTime": null,
+            "purpose": "PLEADING",
+            "status": "SCHEDULED",
+            "awaitingResult": true,
+            "stage": "FIRST_INSTANCE",
+            "court": {
+              "id": "0386a293-2a0f-406e-8277-cd052f8b30a6",
+              "code": "QA-PH56",
+              "nameAr": "محكمة اختبار",
+              "nameEn": "QA Court"
+            },
+            "courtCaseNumber": "QA2",
+            "courtCaseYear": 2026,
+            "caseId": "348d1c29-6739-4438-b81a-bf21e131b51a",
+            "caseReferenceNo": "QA56-001",
+            "caseTitle": "=1+1"
+          },
+          {
+            "id": "8ea8fd0e-26c8-4c72-9451-0b5a76cd47af",
+            "hearingDate": "2026-01-04",
+            "hearingTime": null,
+            "purpose": "PLEADING",
+            "status": "HELD",
+            "awaitingResult": false,
+            "stage": "FIRST_INSTANCE",
+            "court": {
+              "id": "0386a293-2a0f-406e-8277-cd052f8b30a6",
+              "code": "QA-PH56",
+              "nameAr": "محكمة اختبار",
+              "nameEn": "QA Court"
+            },
+            "courtCaseNumber": "QA2",
+            "courtCaseYear": 2026,
+            "caseId": "348d1c29-6739-4438-b81a-bf21e131b51a",
+            "caseReferenceNo": "QA56-001",
+            "caseTitle": "=1+1"
+          }
+        ],
+        "page": 0,
+        "size": 2,
+        "totalItems": 6,
+        "totalPages": 3,
+        "from": "2026-01-01",
+        "to": "2026-11-01",
+        "summary": {
+          "total": 6,
+          "byStatus": {
+            "SCHEDULED": 4,
+            "HELD": 1,
+            "ADJOURNED": 0,
+            "CANCELLED": 1
+          },
+          "awaitingResult": 1
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "HEARINGS-PAGING-LINKAGE",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "HEARINGS-PAGING-LINKAGE"
+      },
+      "steps": [
+        "Read all3pages; inspect order/enrichment"
+      ],
+      "expected_results": "6 unique sorted rows; same synthetic case and court; private notes absent",
+      "actual": [
+        {
+          "id": "15b62412-bfa5-4db6-97c9-80fdfd8c6bb5",
+          "hearingDate": "2026-01-03",
+          "hearingTime": null,
+          "purpose": "PLEADING",
+          "status": "SCHEDULED",
+          "awaitingResult": true,
+          "stage": "FIRST_INSTANCE",
+          "court": {
+            "id": "0386a293-2a0f-406e-8277-cd052f8b30a6",
+            "code": "QA-PH56",
+            "nameAr": "محكمة اختبار",
+            "nameEn": "QA Court"
+          },
+          "courtCaseNumber": "QA2",
+          "courtCaseYear": 2026,
+          "caseId": "348d1c29-6739-4438-b81a-bf21e131b51a",
+          "caseReferenceNo": "QA56-001",
+          "caseTitle": "=1+1"
+        },
+        {
+          "id": "8ea8fd0e-26c8-4c72-9451-0b5a76cd47af",
+          "hearingDate": "2026-01-04",
+          "hearingTime": null,
+          "purpose": "PLEADING",
+          "status": "HELD",
+          "awaitingResult": false,
+          "stage": "FIRST_INSTANCE",
+          "court": {
+            "id": "0386a293-2a0f-406e-8277-cd052f8b30a6",
+            "code": "QA-PH56",
+            "nameAr": "محكمة اختبار",
+            "nameEn": "QA Court"
+          },
+          "courtCaseNumber": "QA2",
+          "courtCaseYear": 2026,
+          "caseId": "348d1c29-6739-4438-b81a-bf21e131b51a",
+          "caseReferenceNo": "QA56-001",
+          "caseTitle": "=1+1"
+        },
+        {
+          "id": "78d53717-3919-4705-9fcf-c5b1377d728b",
+          "hearingDate": "2026-01-05",
+          "hearingTime": null,
+          "purpose": "PLEADING",
+          "status": "CANCELLED",
+          "awaitingResult": false,
+          "stage": "FIRST_INSTANCE",
+          "court": {
+            "id": "0386a293-2a0f-406e-8277-cd052f8b30a6",
+            "code": "QA-PH56",
+            "nameAr": "محكمة اختبار",
+            "nameEn": "QA Court"
+          },
+          "courtCaseNumber": "QA2",
+          "courtCaseYear": 2026,
+          "caseId": "348d1c29-6739-4438-b81a-bf21e131b51a",
+          "caseReferenceNo": "QA56-001",
+          "caseTitle": "=1+1"
+        },
+        {
+          "id": "8a51dddf-44c3-4d82-b136-3ed54f3951ae",
+          "hearingDate": "2026-10-25",
+          "hearingTime": null,
+          "purpose": "PLEADING",
+          "status": "SCHEDULED",
+          "awaitingResult": false,
+          "stage": "FIRST_INSTANCE",
+          "court": {
+            "id": "0386a293-2a0f-406e-8277-cd052f8b30a6",
+            "code": "QA-PH56",
+            "nameAr": "محكمة اختبار",
+            "nameEn": "QA Court"
+          },
+          "courtCaseNumber": "QA2",
+          "courtCaseYear": 2026,
+          "caseId": "348d1c29-6739-4438-b81a-bf21e131b51a",
+          "caseReferenceNo": "QA56-001",
+          "caseTitle": "=1+1"
+        },
+        {
+          "id": "6ce6763a-ce06-4c58-9759-1b62e70e6396",
+          "hearingDate": "2026-10-31",
+          "hearingTime": null,
+          "purpose": "PLEADING",
+          "status": "SCHEDULED",
+          "awaitingResult": false,
+          "stage": "FIRST_INSTANCE",
+          "court": {
+            "id": "0386a293-2a0f-406e-8277-cd052f8b30a6",
+            "code": "QA-PH56",
+            "nameAr": "محكمة اختبار",
+            "nameEn": "QA Court"
+          },
+          "courtCaseNumber": "QA2",
+          "courtCaseYear": 2026,
+          "caseId": "348d1c29-6739-4438-b81a-bf21e131b51a",
+          "caseReferenceNo": "QA56-001",
+          "caseTitle": "=1+1"
+        },
+        {
+          "id": "54297479-b358-45e7-85b8-7382d990bca9",
+          "hearingDate": "2026-11-01",
+          "hearingTime": null,
+          "purpose": "PLEADING",
+          "status": "SCHEDULED",
+          "awaitingResult": false,
+          "stage": "FIRST_INSTANCE",
+          "court": {
+            "id": "0386a293-2a0f-406e-8277-cd052f8b30a6",
+            "code": "QA-PH56",
+            "nameAr": "محكمة اختبار",
+            "nameEn": "QA Court"
+          },
+          "courtCaseNumber": "QA2",
+          "courtCaseYear": 2026,
+          "caseId": "348d1c29-6739-4438-b81a-bf21e131b51a",
+          "caseReferenceNo": "QA56-001",
+          "caseTitle": "=1+1"
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "HEARINGS-STATUS-FILTER",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "HEARINGS-STATUS-FILTER"
+      },
+      "steps": [
+        "Select held+cancelled"
+      ],
+      "expected_results": "2 rows, awaiting0",
+      "actual": {
+        "items": [
+          {
+            "id": "8ea8fd0e-26c8-4c72-9451-0b5a76cd47af",
+            "hearingDate": "2026-01-04",
+            "hearingTime": null,
+            "purpose": "PLEADING",
+            "status": "HELD",
+            "awaitingResult": false,
+            "stage": "FIRST_INSTANCE",
+            "court": {
+              "id": "0386a293-2a0f-406e-8277-cd052f8b30a6",
+              "code": "QA-PH56",
+              "nameAr": "محكمة اختبار",
+              "nameEn": "QA Court"
+            },
+            "courtCaseNumber": "QA2",
+            "courtCaseYear": 2026,
+            "caseId": "348d1c29-6739-4438-b81a-bf21e131b51a",
+            "caseReferenceNo": "QA56-001",
+            "caseTitle": "=1+1"
+          },
+          {
+            "id": "78d53717-3919-4705-9fcf-c5b1377d728b",
+            "hearingDate": "2026-01-05",
+            "hearingTime": null,
+            "purpose": "PLEADING",
+            "status": "CANCELLED",
+            "awaitingResult": false,
+            "stage": "FIRST_INSTANCE",
+            "court": {
+              "id": "0386a293-2a0f-406e-8277-cd052f8b30a6",
+              "code": "QA-PH56",
+              "nameAr": "محكمة اختبار",
+              "nameEn": "QA Court"
+            },
+            "courtCaseNumber": "QA2",
+            "courtCaseYear": 2026,
+            "caseId": "348d1c29-6739-4438-b81a-bf21e131b51a",
+            "caseReferenceNo": "QA56-001",
+            "caseTitle": "=1+1"
+          }
+        ],
+        "page": 0,
+        "size": 20,
+        "totalItems": 2,
+        "totalPages": 1,
+        "from": "2026-01-01",
+        "to": "2026-11-01",
+        "summary": {
+          "total": 2,
+          "byStatus": {
+            "SCHEDULED": 0,
+            "HELD": 1,
+            "ADJOURNED": 0,
+            "CANCELLED": 1
+          },
+          "awaitingResult": 0
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "HEARINGS-VALIDATION-?page=-1",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "HEARINGS-VALIDATION-?page=-1"
+      },
+      "steps": [
+        "GET ?page=-1"
+      ],
+      "expected_results": "400",
+      "actual": 400,
+      "status": "PASS"
+    },
+    {
+      "id": "HEARINGS-VALIDATION-?size=0",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "HEARINGS-VALIDATION-?size=0"
+      },
+      "steps": [
+        "GET ?size=0"
+      ],
+      "expected_results": "400",
+      "actual": 400,
+      "status": "PASS"
+    },
+    {
+      "id": "HEARINGS-VALIDATION-?sort=hearingDate,desc",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "HEARINGS-VALIDATION-?sort=hearingDate,desc"
+      },
+      "steps": [
+        "GET ?sort=hearingDate,desc"
+      ],
+      "expected_results": "400",
+      "actual": 400,
+      "status": "PASS"
+    },
+    {
+      "id": "HEARINGS-VALIDATION-?status=BAD",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "HEARINGS-VALIDATION-?status=BAD"
+      },
+      "steps": [
+        "GET ?status=BAD"
+      ],
+      "expected_results": "400",
+      "actual": 400,
+      "status": "PASS"
+    },
+    {
+      "id": "HEARINGS-VALIDATION-?from=bad",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "HEARINGS-VALIDATION-?from=bad"
+      },
+      "steps": [
+        "GET ?from=bad"
+      ],
+      "expected_results": "400",
+      "actual": 400,
+      "status": "PASS"
+    },
+    {
+      "id": "WORKLOAD-EXACT",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "WORKLOAD-EXACT"
+      },
+      "steps": [
+        "Read workload against4known tasks"
+      ],
+      "expected_results": "One staff row OPEN1 IN_PROGRESS1 overdue1; status1 each; dueSoon1",
+      "actual": {
+        "items": [
+          {
+            "assigneeId": "921f5cb7-caa6-43c2-b66c-08da59a1feb7",
+            "username": "phase_staff",
+            "displayName": "QA phase_staff",
+            "enabled": true,
+            "open": 1,
+            "inProgress": 1,
+            "overdue": 1
+          }
+        ],
+        "dueSoonDays": 3,
+        "summary": {
+          "byStatus": {
+            "OPEN": 1,
+            "IN_PROGRESS": 1,
+            "DONE": 1,
+            "CANCELLED": 1
+          },
+          "overdue": 1,
+          "dueSoon": 1
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "EXPERTS-EXACT-INACTIVE",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "EXPERTS-EXACT-INACTIVE"
+      },
+      "steps": [
+        "Read registry workload including inactive expert"
+      ],
+      "expected_results": "2 rows; first open1 overdue1; inactive0; total overdue1",
+      "actual": {
+        "items": [
+          {
+            "expertId": "138f8c49-1414-4aae-889c-c6611af30f32",
+            "name": "=2+2",
+            "specialty": "QA محاسبة",
+            "active": true,
+            "open": 1,
+            "overdue": 1
+          },
+          {
+            "expertId": "c773808d-7653-4f79-946b-e8b5eb806726",
+            "name": "QA inactive",
+            "specialty": "QA",
+            "active": false,
+            "open": 0,
+            "overdue": 0
+          }
+        ],
+        "summary": {
+          "byStatus": {
+            "OPEN": 1,
+            "REPORT_SUBMITTED": 1,
+            "CANCELLED": 1
+          },
+          "overdueReports": 1
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "EXPORT-REPORT-VIEW-ONLY-hearings",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "EXPORT-REPORT-VIEW-ONLY-hearings"
+      },
+      "steps": [
+        "REPORT_VIEW without REPORT_EXPORT requests CSV"
+      ],
+      "expected_results": "403",
+      "actual": 403,
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-EXPORT-hearings-csv-en",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-EXPORT-hearings-csv-en"
+      },
+      "steps": [
+        "Export known fixtures; independently parse artifact"
+      ],
+      "expected_results": "200; correct record count for CSV/XLSX; localized workbook; safe formulas; parseable PDF",
+      "actual": {
+        "status": 200,
+        "bytes": 599,
+        "rows": 6,
+        "formula_safe": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-EXPORT-hearings-csv-ar",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-EXPORT-hearings-csv-ar"
+      },
+      "steps": [
+        "Export known fixtures; independently parse artifact"
+      ],
+      "expected_results": "200; correct record count for CSV/XLSX; localized workbook; safe formulas; parseable PDF",
+      "actual": {
+        "status": 200,
+        "bytes": 845,
+        "rows": 6,
+        "formula_safe": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-EXPORT-hearings-xlsx-en",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-EXPORT-hearings-xlsx-en"
+      },
+      "steps": [
+        "Export known fixtures; independently parse artifact"
+      ],
+      "expected_results": "200; correct record count for CSV/XLSX; localized workbook; safe formulas; parseable PDF",
+      "actual": {
+        "status": 200,
+        "bytes": 4212,
+        "rows": 6,
+        "rtl": false,
+        "formulas": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-EXPORT-hearings-xlsx-ar",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-EXPORT-hearings-xlsx-ar"
+      },
+      "steps": [
+        "Export known fixtures; independently parse artifact"
+      ],
+      "expected_results": "200; correct record count for CSV/XLSX; localized workbook; safe formulas; parseable PDF",
+      "actual": {
+        "status": 200,
+        "bytes": 4341,
+        "rows": 6,
+        "rtl": true,
+        "formulas": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-EXPORT-hearings-pdf-en",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-EXPORT-hearings-pdf-en"
+      },
+      "steps": [
+        "Export known fixtures; independently parse artifact"
+      ],
+      "expected_results": "200; correct record count for CSV/XLSX; localized workbook; safe formulas; parseable PDF",
+      "actual": {
+        "status": 200,
+        "bytes": 10244,
+        "pages": 1
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-EXPORT-hearings-pdf-ar",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-EXPORT-hearings-pdf-ar"
+      },
+      "steps": [
+        "Export known fixtures; independently parse artifact"
+      ],
+      "expected_results": "200; correct record count for CSV/XLSX; localized workbook; safe formulas; parseable PDF",
+      "actual": {
+        "status": 200,
+        "bytes": 10862,
+        "pages": 1
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "EXPORT-REPORT-VIEW-ONLY-workload",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "EXPORT-REPORT-VIEW-ONLY-workload"
+      },
+      "steps": [
+        "REPORT_VIEW without REPORT_EXPORT requests CSV"
+      ],
+      "expected_results": "403",
+      "actual": 403,
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-EXPORT-workload-csv-en",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-EXPORT-workload-csv-en"
+      },
+      "steps": [
+        "Export known fixtures; independently parse artifact"
+      ],
+      "expected_results": "200; correct record count for CSV/XLSX; localized workbook; safe formulas; parseable PDF",
+      "actual": {
+        "status": 200,
+        "bytes": 60,
+        "rows": 1,
+        "formula_safe": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-EXPORT-workload-csv-ar",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-EXPORT-workload-csv-ar"
+      },
+      "steps": [
+        "Export known fixtures; independently parse artifact"
+      ],
+      "expected_results": "200; correct record count for CSV/XLSX; localized workbook; safe formulas; parseable PDF",
+      "actual": {
+        "status": 200,
+        "bytes": 91,
+        "rows": 1,
+        "formula_safe": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-EXPORT-workload-xlsx-en",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-EXPORT-workload-xlsx-en"
+      },
+      "steps": [
+        "Export known fixtures; independently parse artifact"
+      ],
+      "expected_results": "200; correct record count for CSV/XLSX; localized workbook; safe formulas; parseable PDF",
+      "actual": {
+        "status": 200,
+        "bytes": 3790,
+        "rows": 1,
+        "rtl": false,
+        "formulas": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-EXPORT-workload-xlsx-ar",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-EXPORT-workload-xlsx-ar"
+      },
+      "steps": [
+        "Export known fixtures; independently parse artifact"
+      ],
+      "expected_results": "200; correct record count for CSV/XLSX; localized workbook; safe formulas; parseable PDF",
+      "actual": {
+        "status": 200,
+        "bytes": 3869,
+        "rows": 1,
+        "rtl": true,
+        "formulas": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-EXPORT-workload-pdf-en",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-EXPORT-workload-pdf-en"
+      },
+      "steps": [
+        "Export known fixtures; independently parse artifact"
+      ],
+      "expected_results": "200; correct record count for CSV/XLSX; localized workbook; safe formulas; parseable PDF",
+      "actual": {
+        "status": 200,
+        "bytes": 8195,
+        "pages": 1
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-EXPORT-workload-pdf-ar",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-EXPORT-workload-pdf-ar"
+      },
+      "steps": [
+        "Export known fixtures; independently parse artifact"
+      ],
+      "expected_results": "200; correct record count for CSV/XLSX; localized workbook; safe formulas; parseable PDF",
+      "actual": {
+        "status": 200,
+        "bytes": 9646,
+        "pages": 1
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "EXPORT-REPORT-VIEW-ONLY-experts",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "EXPORT-REPORT-VIEW-ONLY-experts"
+      },
+      "steps": [
+        "REPORT_VIEW without REPORT_EXPORT requests CSV"
+      ],
+      "expected_results": "403",
+      "actual": 403,
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-EXPORT-experts-csv-en",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-EXPORT-experts-csv-en"
+      },
+      "steps": [
+        "Export known fixtures; independently parse artifact"
+      ],
+      "expected_results": "200; correct record count for CSV/XLSX; localized workbook; safe formulas; parseable PDF",
+      "actual": {
+        "status": 200,
+        "bytes": 113,
+        "rows": 2,
+        "formula_safe": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-EXPORT-experts-csv-ar",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-EXPORT-experts-csv-ar"
+      },
+      "steps": [
+        "Export known fixtures; independently parse artifact"
+      ],
+      "expected_results": "200; correct record count for CSV/XLSX; localized workbook; safe formulas; parseable PDF",
+      "actual": {
+        "status": 200,
+        "bytes": 164,
+        "rows": 2,
+        "formula_safe": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-EXPORT-experts-xlsx-en",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-EXPORT-experts-xlsx-en"
+      },
+      "steps": [
+        "Export known fixtures; independently parse artifact"
+      ],
+      "expected_results": "200; correct record count for CSV/XLSX; localized workbook; safe formulas; parseable PDF",
+      "actual": {
+        "status": 200,
+        "bytes": 3902,
+        "rows": 2,
+        "rtl": false,
+        "formulas": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-EXPORT-experts-xlsx-ar",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-EXPORT-experts-xlsx-ar"
+      },
+      "steps": [
+        "Export known fixtures; independently parse artifact"
+      ],
+      "expected_results": "200; correct record count for CSV/XLSX; localized workbook; safe formulas; parseable PDF",
+      "actual": {
+        "status": 200,
+        "bytes": 3963,
+        "rows": 2,
+        "rtl": true,
+        "formulas": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-EXPORT-experts-pdf-en",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-EXPORT-experts-pdf-en"
+      },
+      "steps": [
+        "Export known fixtures; independently parse artifact"
+      ],
+      "expected_results": "200; correct record count for CSV/XLSX; localized workbook; safe formulas; parseable PDF",
+      "actual": {
+        "status": 200,
+        "bytes": 9563,
+        "pages": 1
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-EXPORT-experts-pdf-ar",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-EXPORT-experts-pdf-ar"
+      },
+      "steps": [
+        "Export known fixtures; independently parse artifact"
+      ],
+      "expected_results": "200; correct record count for CSV/XLSX; localized workbook; safe formulas; parseable PDF",
+      "actual": {
+        "status": 200,
+        "bytes": 9728,
+        "pages": 1
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "OPERATIONS-EXPORT-AUDIT",
+      "story_ids": [
+        "LD-030",
+        "LD-032",
+        "LD-033",
+        "LD-034"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "OPERATIONS-EXPORT-AUDIT"
+      },
+      "steps": [
+        "Count successful exports vs denied requests"
+      ],
+      "expected_results": "18 new export audit rows",
+      "actual": 18,
+      "status": "PASS"
+    }
+  ]
+}
