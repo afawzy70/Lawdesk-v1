@@ -48,6 +48,7 @@ function backend(state: Backend) {
     const url = new URL(request.url, 'http://localhost');
     if (request.method === 'GET' && url.pathname === API) return jsonResponse(state.legalCase);
     if (request.method === 'GET' && url.pathname === `${API}/parties`) return jsonResponse(state.parties);
+    if (request.method === 'GET' && url.pathname === `${API}/requests`) return jsonResponse({ plaintiff: [], defendant: [] });
     if (request.method === 'GET' && url.pathname === `${API}/timeline`) {
       const page = Number(url.searchParams.get('page') ?? '0');
       const items = state.events.slice(page * 20, page * 20 + 20);
@@ -64,6 +65,64 @@ function backend(state: Backend) {
     return problem(500);
   });
 }
+
+describe('case details, LD-DOC-r5 changes', () => {
+  it('has no status field: «متداولة» until a judgment, then the judgment date', async () => {
+    backend({ legalCase: CASE, parties: [], events: [] });
+    renderCases(PATH);
+    expect(await screen.findByText('Pending (in circulation)')).toBeInTheDocument();
+    expect(screen.queryByText('Status')).not.toBeInTheDocument();
+    // The status form (permission and open-items confirmation) stays.
+    expect(screen.getByRole('form', { name: 'Change status' })).toBeInTheDocument();
+  });
+
+  it('says a judgment was issued, with the latest date, once there is one', async () => {
+    backend({
+      legalCase: CASE, parties: [], events: [],
+      answer: (request) => {
+        const url = new URL(request.url, 'http://localhost');
+        if (request.method === 'GET' && url.pathname === `${API}/judgments`) {
+          const items = [{ id: 'j1', judgmentDate: '2026-02-01' }, { id: 'j2', judgmentDate: '2026-04-20' }];
+          return jsonResponse({ items, page: 0, size: 100, totalItems: 2, totalPages: 1 });
+        }
+        return undefined;
+      },
+    });
+    renderCases(PATH);
+    expect(await screen.findByText('Judgment issued on 20/04/2026')).toBeInTheDocument();
+    expect(screen.queryByText('Pending (in circulation)')).not.toBeInTheDocument();
+  });
+
+  it('no longer shows lawyers, explicit grants or case access, and merges units with information requests', async () => {
+    const { requests } = backend({ legalCase: CASE, parties: [], events: [] });
+    renderCases(PATH);
+    await screen.findByRole('heading', { level: 1, name: 'Case LD-2026-00001' });
+    expect(screen.queryByRole('heading', { name: 'Lawyers and agents' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /Access to this case|Explicit grants/i })).not.toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 2, name: 'Administrative units concerned and information requests' })).toBeInTheDocument();
+    expect(requests.some((r) => r.url.includes('/parties/counsel'))).toBe(false);
+    expect(requests.some((r) => r.url.includes('/grants'))).toBe(false);
+  });
+
+  it('shows the requests of both sides and offers no edit to a user without the right', async () => {
+    const { requests } = backend({
+      legalCase: CASE, parties: [], events: [],
+      answer: (request) => {
+        const url = new URL(request.url, 'http://localhost');
+        if (url.pathname !== `${API}/requests`) return undefined;
+        if (request.method === 'GET') return jsonResponse({ plaintiff: ['Annul the decision'], defendant: [] });
+        if (request.method === 'PUT') return jsonResponse(request.body);
+        return undefined;
+      },
+    });
+    renderCases(PATH);
+    const section = await screen.findByRole('region', { name: 'Requests' });
+    expect(await within(section).findByText('Annul the decision')).toBeInTheDocument();
+    expect(within(section).getAllByText('No requests recorded.')).toHaveLength(1);
+    expect(within(section).queryByRole('button', { name: 'Edit requests' })).not.toBeInTheDocument();
+    expect(requests.some((r) => r.method === 'PUT')).toBe(false);
+  });
+});
 
 describe('case details (LD-014)', () => {
   it('shows the case, its parties and its timeline', async () => {

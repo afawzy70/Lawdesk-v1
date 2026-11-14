@@ -4,6 +4,7 @@ import { AuthProvider } from './features/auth/AuthProvider';
 import { ProfilePage } from './features/auth/ProfilePage';
 import { SessionGate } from './features/auth/SessionGate';
 import { AccessScopesPage } from './features/access/AccessScopesPage';
+import { CaseAccessAdminPage } from './features/access/CaseAccessAdminPage';
 import { OrgUnitsPage } from './features/access/OrgUnitsPage';
 import { AuditPage } from './features/admin/AuditPage';
 import { NewUserPage } from './features/admin/NewUserPage';
@@ -64,6 +65,7 @@ export function AppRoutes({ locale }: LocaleProps) {
               <Route path="/admin/audit" element={<AuditPage />} />
               <Route path="/admin/org" element={<OrgUnitsPage />} />
               <Route path="/admin/access" element={<AccessScopesPage />} />
+              <Route path="/admin/case-access" element={<CaseAccessAdminPage />} />
               <Route path="/admin/lookups" element={<LookupsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/courts" element={<CourtsPage />} />

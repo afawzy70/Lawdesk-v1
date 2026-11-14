@@ -1,5 +1,6 @@
 """WP1c journey on UAT (requirements sections 2 and 3, owner decision D4): identifiers shown in part to those who may not
-see them, counsel per party, the cases of a party, and the duplicate warning. Synthetic data only."""
+see them, the cases of a party, the request items of a case and the duplicate warning. (The lawyer and agent endpoints were
+removed by owner decision in LD-DOC-r5.) Synthetic data only."""
 
 import sys
 import time
@@ -7,7 +8,7 @@ import time
 from uat import MARK, Journey, Session
 
 run = time.strftime("%y%m%d%H%M%S")
-journey = Journey("WP1c parties, counsel and duplicates (%s)" % run)
+journey = Journey("WP1c parties, requests and duplicates (%s)" % run)
 manager = Session("manager").login("manager")
 staff = Session("staff").login("staff")
 viewer = Session("viewer").login("viewer")
@@ -52,13 +53,19 @@ check("the party's cases include it for the specialist", any(
 # instead of answering an empty list that would still confirm the party exists.
 check("but not for a reader who cannot see the case: the party is not found", viewer.call("GET", "/api/v1/parties/%s/cases" % pid)[0], 404)
 
-status, counsel = staff.call("POST", "/api/v1/cases/%s/parties/%s/counsel" % (cid, pid),
-                             {"kind": "LAWYER", "name": "محامٍ اختباري", "phone": "22001100"})
-check("counsel is recorded for the party on the case", status, 201)
-check("the case lists it", len(staff.call("GET", "/api/v1/cases/%s/parties/counsel" % cid)[1]), 1)
-check("a reader without access cannot list it", viewer.call("GET", "/api/v1/cases/%s/parties/counsel" % cid)[0], 404)
-status, _ = staff.call("DELETE", "/api/v1/cases/%s/parties/counsel/%s" % (cid, counsel["id"]))
-check("counsel is removed (marked, not erased)", status, 204)
+# LD-DOC-r5: the lawyer and agent endpoints are gone (owner decision); there is nothing to list or record.
+check("the lawyer and agent list is gone", staff.call("GET", "/api/v1/cases/%s/parties/counsel" % cid)[0] in (404, 405), True)
+status, _ = staff.call("POST", "/api/v1/cases/%s/parties/%s/counsel" % (cid, pid), {"kind": "LAWYER", "name": "x"})
+check("recording a lawyer is no longer possible", status in (404, 405), True)
+
+# --- request items of the case, per side -----------------------------------------------------------------------------------
+status, body = staff.call("PUT", "/api/v1/cases/%s/requests" % cid,
+                          {"plaintiff": ["طلب المدعي %s" % run], "defendant": ["طلب المدعى عليه %s" % run]})
+check("the specialist records the request items of both sides", status, 200)
+check("they are read back per side", staff.call("GET", "/api/v1/cases/%s/requests" % cid)[1],
+      {"plaintiff": ["طلب المدعي %s" % run], "defendant": ["طلب المدعى عليه %s" % run]})
+check("a reader without access gets not found", viewer.call("GET", "/api/v1/cases/%s/requests" % cid)[0], 404)
+check("a blank item is refused", staff.call("PUT", "/api/v1/cases/%s/requests" % cid, {"plaintiff": [" "], "defendant": []})[0], 400)
 
 # --- duplicate warning ----------------------------------------------------------------------------------------------------
 again = dict(payload, firstInstance=dict(payload["firstInstance"], courtCaseNumber="8%s" % run[-5:]),

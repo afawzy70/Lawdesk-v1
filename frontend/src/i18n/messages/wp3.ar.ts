@@ -271,4 +271,9 @@ export const wp3Ar: Record<Keys, string> = {
   'wp3.notification.HEARING_NO_NEXT_DATE': 'تأجلت جلسة {hearingDate} في القضية {caseReferenceNo} دون موعد تالٍ.',
   'wp3.notification.RISK_HIGH': 'أصبح مستوى المخاطر في القضية {caseReferenceNo} مرتفعًا ({level}).',
   'wp3.notification.unknown': 'لديك إشعار.',
+  'wp3.requests.unit.involved': 'الجهات الإدارية المعنية بالقضية',
+  'wp3.requests.unit.other': 'جهات أخرى',
+  'wp3.requests.unit.all': 'الجهات',
+  'involveRequests.title': 'الجهات الإدارية المعنية وطلبات الإفادة',
+  'involveRequests.intro': 'يُوجَّه طلب الإفادة إلى الجهات الإدارية المعنية بالقضية المسجلة أدناه.',
 };

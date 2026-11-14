@@ -25,10 +25,13 @@ interface Props {
   caseId: string;
   /** False for an archived case: its units are shown but cannot change. */
   editable: boolean;
+  /** Shown inside the merged section: its heading is one level lower and the parent hears about every change. */
+  embedded?: boolean;
+  onChanged?: () => void;
 }
 
 /** Section 6: the administrative units the case concerns, one primary and any number of supporting. */
-export function CaseInvolvementsSection({ caseId, editable }: Props) {
+export function CaseInvolvementsSection({ caseId, editable, embedded = false, onChanged }: Props) {
   const { t, locale } = useI18n();
   const id = useId();
   const [items, setItems] = useState<Involvement[] | null>(null);
@@ -38,7 +41,8 @@ export function CaseInvolvementsSection({ caseId, editable }: Props) {
   const [generation, setGeneration] = useState(0);
   const reload = useCallback(() => {
     setGeneration((n) => n + 1);
-  }, []);
+    onChanged?.();
+  }, [onChanged]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -107,7 +111,7 @@ export function CaseInvolvementsSection({ caseId, editable }: Props) {
   const name = (unit: OrgUnit) => (locale === 'en' && unit.nameEn !== null ? unit.nameEn : unit.nameAr);
   return (
     <section aria-labelledby={`${id}-h`} className="case-involvements">
-      <h2 id={`${id}-h`}>{t('involve.title')}</h2>
+      {embedded ? <h3 id={`${id}-h`}>{t('involve.title')}</h3> : <h2 id={`${id}-h`}>{t('involve.title')}</h2>}
       {message === null ? null : (
         <p className={message.failed ? 'case-alert' : 'case-notice'} role={message.failed ? 'alert' : 'status'}>
           {t(message.key)}

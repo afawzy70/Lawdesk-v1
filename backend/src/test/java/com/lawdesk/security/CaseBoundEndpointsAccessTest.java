@@ -85,7 +85,7 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
             Map.entry("info-requests", "info_request"), Map.entry("document-links", "document_link"),
             Map.entry("precedents", "case_precedent_link"), Map.entry("followups", "gap_followup"),
             Map.entry("grants", "case_grant"), Map.entry("involvements", "case_org_involvement"),
-            Map.entry("assertions", "proceeding"), Map.entry("versions", "#int"), Map.entry("counsel", "case_party_counsel"),
+            Map.entry("assertions", "proceeding"), Map.entry("versions", "#int"),
             Map.entry("links", "evidence_link"), Map.entry("facts", "case_fact"), Map.entry("parties", "party"));
 
     /**
@@ -111,8 +111,6 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
             Map.entry("DocumentLinkController#add /api/v1/documents/{id}/links POST",
                     (ids, v) -> "{\"targetType\":\"CLAIM\",\"targetId\":\"" + ids.get("claim") + "\",\"note\":\"SYNTH-DOC\"}"),
             Map.entry("InfoRequestController#replyWithDocument /api/v1/info-requests/{id}/replies POST", (ids, v) -> "#multipart"),
-            Map.entry("PartyController#addCounsel /api/v1/cases/{id}/parties/{partyId}/counsel POST",
-                    (ids, v) -> "{\"kind\":\"LAWYER\",\"name\":\"SYNTH-DOC counsel\"}"),
             Map.entry("PartyController#link /api/v1/cases/{id}/parties POST",
                     (ids, v) -> "{\"partyId\":\"" + ids.get("x_party2") + "\",\"role\":\"OPPONENT\"}"),
             Map.entry("ProceedingController#create /api/v1/cases/{caseId}/proceedings POST",
@@ -281,9 +279,6 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
         ids.put("case_org_involvement", insert("""
                 insert into case_org_involvement (case_id, sector_name_snapshot, created_by, updated_by) values (?, 'SYNTH-DOC', ?, ?) returning id""",
                 legalCase, USER, USER));
-        ids.put("case_party_counsel", insert("""
-                insert into case_party_counsel (case_id, party_id, kind, name, created_by) values (?, ?, 'LAWYER', 'SYNTH-DOC', ?)
-                returning id""", legalCase, party, USER));
         UUID expert = insert("""
                 insert into expert (name, specialty, created_by, updated_by) values ('SYNTH-DOC expert', 'SYNTH-DOC', ?, ?) returning id""",
                 USER, USER);

@@ -41,14 +41,16 @@ class IntakeService {
     private final AuditLog audit;
     private final String authorityName;
     private final DuplicateCheck duplicates;
+    private final CaseRequestService requests;
 
     static final String DUPLICATE_SUSPECTED = "DUPLICATE_SUSPECTED";
 
     IntakeService(CaseService caseService, CaseRepository cases, PartyRepository parties, PartyService partyService,
             CaseTimeline timeline, FirstInstanceRecorder firstInstance, UserDirectory users, CurrentActor currentActor,
             AuditLog audit, @Value("${lawdesk.authority.name:الهيئة}") String authorityName,
-            DuplicateCheck duplicates) {
+            DuplicateCheck duplicates, CaseRequestService requests) {
         this.duplicates = duplicates;
+        this.requests = requests;
         this.caseService = caseService;
         this.cases = cases;
         this.parties = parties;
@@ -114,6 +116,7 @@ class IntakeService {
 
         caseService.checkDetails(request.details());
         cases.setDetails(caseId, request.details());
+        requests.recordNew(caseId, request.requests(), actor.id());
         for (DuplicateCheck.Match match : matches) {
             cases.recordDuplicateDecision(caseId, match, request.distinctNote(), actor.id());
         }

@@ -117,17 +117,15 @@ class PartyDirectoryAndDefectsTest extends Wp9TestSupport {
     }
 
     @Test
-    void unlinkingAPartyThatHasCounselIsAConflictNotAServerError() throws Exception {
-        jdbc.update("insert into case_party_counsel (case_id, party_id, kind, name, created_by) values (?, ?, 'LAWYER', 'PDX', ?)",
-                secretCase, hiddenOnly, owner);
-        var refused = mvc.perform(MockMvcRequestBuilders.delete("/api/v1/cases/" + secretCase + "/parties/" + hiddenOnly)
+    void aSecondaryPartyCanAlwaysBeUnlinkedNowThatNoLawyerRowsReferenceTheLink() throws Exception {
+        var first = mvc.perform(MockMvcRequestBuilders.delete("/api/v1/cases/" + secretCase + "/parties/" + hiddenOnly)
                 .with(ownerAs).with(csrf())).andReturn().getResponse();
-        assertThat(refused.getStatus()).as(refused.getContentAsString()).isEqualTo(409);
+        assertThat(first.getStatus()).as(first.getContentAsString()).isEqualTo(204);
         assertThat(jdbc.queryForObject("select count(*) from case_party where case_id = ? and party_id = ?", Long.class,
-                secretCase, hiddenOnly)).isEqualTo(1);
+                secretCase, hiddenOnly)).isZero();
         var plain = mvc.perform(MockMvcRequestBuilders.delete("/api/v1/cases/" + secretCase + "/parties/" + shared)
                 .with(ownerAs).with(csrf())).andReturn().getResponse();
-        assertThat(plain.getStatus()).as("without counsel it still works").isEqualTo(204);
+        assertThat(plain.getStatus()).isEqualTo(204);
     }
 
     @Test

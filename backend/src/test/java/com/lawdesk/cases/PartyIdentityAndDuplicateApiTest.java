@@ -117,32 +117,16 @@ class PartyIdentityAndDuplicateApiTest extends GovernmentIntakeTestSupport {
     }
 
     @Test
-    void counselIsRecordedPerCaseAndPartyAndRemovedWithoutLosingTheRecord() throws Exception {
+    void theLawyerAndAgentEndpointsAreGoneAndTheTableIsDropped() throws Exception {
         UUID person = createParty(party("PERSON", "Client", "nationalId", "999888777", null));
         UUID caseId = registered(clerk, intake(court, specialist, "\"parties\":[{\"partyId\":\"" + person + "\",\"side\":\"PLAINTIFF\"}]"));
         RequestPostProcessor member = scoped(specialist, "sp", List.of("ALL"), Permission.CASE_VIEW, Permission.PARTY_MANAGE);
         String base = "/api/v1/cases/" + caseId + "/parties";
-        String created = mvc.perform(post(base + "/" + person + "/counsel").with(member).with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"kind\":\"LAWYER\",\"name\":\"Adv. Khaled\",\"phone\":\"22001100\",\"notes\":\"agent\"}"))
-                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
-        mvc.perform(get(base + "/counsel").with(member)).andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].name").value("Adv. Khaled"));
-        mvc.perform(post(base + "/" + UUID.randomUUID() + "/counsel").with(member).with(csrf())
-                .contentType(MediaType.APPLICATION_JSON).content("{\"kind\":\"AGENT\",\"name\":\"x\"}"))
-                .andExpect(status().isNotFound());
+        mvc.perform(get(base + "/counsel").with(member)).andExpect(status().is4xxClientError());
         mvc.perform(post(base + "/" + person + "/counsel").with(member).with(csrf())
-                .contentType(MediaType.APPLICATION_JSON).content("{\"kind\":\"BOSS\",\"name\":\"x\"}"))
-                .andExpect(status().isBadRequest());
-        mvc.perform(post(base + "/" + person + "/counsel")
-                .with(scoped(member("Reader"), "rd", List.of("ALL"), Permission.CASE_VIEW, Permission.PARTY_MANAGE)).with(csrf())
-                .contentType(MediaType.APPLICATION_JSON).content("{\"kind\":\"AGENT\",\"name\":\"x\"}"))
-                .andExpect(status().isForbidden());
-        String counselId = JsonPath.read(created, "$.id");
-        mvc.perform(delete(base + "/counsel/" + counselId).with(member).with(csrf())).andExpect(status().isNoContent());
-        mvc.perform(get(base + "/counsel").with(member)).andExpect(jsonPath("$.length()").value(0));
-        assertThat(count("select count(*) from case_party_counsel where id = ?::uuid and removed_at is not null", counselId))
-                .isEqualTo(1);
+                .contentType(MediaType.APPLICATION_JSON).content("{\"kind\":\"LAWYER\",\"name\":\"x\"}"))
+                .andExpect(status().is4xxClientError());
+        assertThat(count("select count(*) from information_schema.tables where table_name = 'case_party_counsel'")).isZero();
     }
 
     @Test

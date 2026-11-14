@@ -50,7 +50,6 @@ public final class OperationsTestData {
         // LD-052: a library judgment used in a case hangs off the case.
         jdbc.update("delete from case_precedent_link");
         jdbc.update("delete from case_duplicate_hint");
-        jdbc.update("delete from case_party_counsel");
         PleadingsTestData.deleteAll(jdbc);
         jdbc.update("delete from case_org_involvement");
         jdbc.update("delete from case_grant");
@@ -74,6 +73,7 @@ public final class OperationsTestData {
         // Phase 3.
         jdbc.update("delete from case_party");
         jdbc.update("delete from case_event");
+        jdbc.update("delete from case_request_item");
         jdbc.update("delete from legal_case");
         jdbc.update("update app_user set org_unit_id = null where org_unit_id is not null");
         jdbc.update("delete from org_unit");

@@ -28,7 +28,6 @@ final class CaseTestData {
         jdbc.update("update managed_list_value set active = true, label_en = null where origin = 'DOCUMENT'");
         jdbc.update("delete from case_precedent_link");
         jdbc.update("delete from case_duplicate_hint");
-        jdbc.update("delete from case_party_counsel");
         // LD-053 (WP3): records that hang off cases, children before parents.
         // LD-054 (WP4): deadlines hang off cases and documents; the test-only rules, holidays and lead times go too.
         jdbc.update("update judgment set appeal_deadline_id = null where appeal_deadline_id is not null");
@@ -54,6 +53,7 @@ final class CaseTestData {
         jdbc.update("delete from case_party");
         jdbc.update("delete from party");
         jdbc.update("delete from case_event");
+        jdbc.update("delete from case_request_item");
         jdbc.update("delete from legal_case");
         jdbc.update("delete from case_reference_counter");
     }
