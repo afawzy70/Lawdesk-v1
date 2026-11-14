@@ -74,17 +74,17 @@ describe('operations routes', () => {
     expect(within(nav).getByRole('link', { name: 'Tasks' })).toHaveAttribute('aria-current', 'page');
   });
 
-  it('opens the hearing calendar from the primary navigation', async () => {
+  it('opens the hearing results page from the primary navigation', async () => {
     calendarApi();
     render(
       <MemoryRouter initialEntries={['/hearings?lang=en']}>
         <AppRoutes />
       </MemoryRouter>,
     );
-    expect(await screen.findByRole('heading', { level: 1, name: 'Hearing calendar' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Hearing results and follow-up' })).toBeInTheDocument();
     const nav = screen.getByRole('navigation', { name: 'Primary' });
     expect(within(nav).getByRole('link', { name: 'Hearings' })).toHaveAttribute('aria-current', 'page');
-    expect(await screen.findByText('No hearings in this period.')).toBeInTheDocument();
+    expect(await screen.findByText('No past hearing is waiting for a result.')).toBeInTheDocument();
   });
 
   it('hides the hearing calendar link from users without HEARING_VIEW', async () => {

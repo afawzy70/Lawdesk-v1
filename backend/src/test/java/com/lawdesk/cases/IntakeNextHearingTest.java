@@ -67,6 +67,25 @@ class IntakeNextHearingTest extends GovernmentIntakeTestSupport {
     }
 
     @Test
+    void theHearingOfAnIntakeCaseIsInvisibleInTheHearingListAndTheCalendarToAUserOutsideTheCase() throws Exception {
+        UUID specialist = member("Dr. Specialist");
+        UUID outsider = member("Outsider");
+        String date = soon().toString();
+        UUID caseId = registered(as(REGISTRAR_ID, "registrar", WITH_HEARINGS), intake(firstInstanceCourt(), specialist,
+                nextHearing("\"hearingDate\":\"" + date + "\"")));
+        RequestPostProcessor other = com.lawdesk.security.TestActors.scoped(outsider, "outsider", java.util.List.of(), Permission.CASE_VIEW, Permission.HEARING_VIEW,
+                Permission.CALENDAR_VIEW);
+
+        mvc.perform(get("/api/v1/hearings").param("from", date).param("to", date).with(other))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalItems").value(0));
+        mvc.perform(get("/api/v1/calendar/events").param("from", date).param("to", date).with(other))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.events.length()").value(0));
+        mvc.perform(get("/api/v1/cases/" + caseId + "/hearings").with(other)).andExpect(status().isNotFound());
+    }
+
+    @Test
     void withoutANextHearingNothingIsScheduledAndNoHearingPermissionIsNeeded() throws Exception {
         UUID specialist = member("Dr. Specialist");
         registered(as(REGISTRAR_ID, "registrar", REGISTRAR), intake(firstInstanceCourt(), specialist, null));
