@@ -52,7 +52,11 @@ export const operationsAr: Record<keyof typeof operationsEn, string> = {
   'operations.hearingStatus.CANCELLED': 'ألغيت',
 
   'operations.hearings.title': 'جدول الجلسات',
-  'operations.hearings.intro': 'جلسات كل القضايا يومًا بيوم. سجّل ما جرى بعد انعقاد الجلسة.',
+  'operations.hearings.pageTitle': 'نتائج الجلسات ومتابعتها',
+  'operations.hearings.intro': 'سجّل ما جرى بعد انعقاد الجلسة، وتابع الجلسات المؤجلة بلا موعد. تُدخل الجلسات الجديدة من صفحة القضية.',
+  'operations.hearings.toSchedule': 'افتح جدول الجلسات في التقويم',
+  'operations.hearings.dueTitle': 'جلسات بانتظار النتيجة',
+  'operations.hearings.dueEmpty': 'لا توجد جلسة منقضية بانتظار نتيجتها.',
   'operations.hearings.from': 'من',
   'operations.hearings.to': 'إلى',
   'operations.hearings.status': 'الحالة',

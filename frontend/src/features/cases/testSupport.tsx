@@ -1,7 +1,9 @@
 import { render } from '@testing-library/react';
 import { Outlet, RouterProvider, createMemoryRouter } from 'react-router';
 import { vi } from 'vitest';
+import type { Permission } from '../../api/permissions';
 import { LocaleProvider } from '../../i18n/LocaleProvider';
+import { AuthContext } from '../auth/AuthContext';
 import { jsonResponse } from '../../test/http';
 import type { LegalCase } from './api';
 import { CaseCreatePage } from './CaseCreatePage';
@@ -11,13 +13,30 @@ import { CaseListPage } from './CaseListPage';
 
 /** Test-only helpers for the case screens: the routes as App.tsx mounts them, and a scripted backend. */
 
-export function renderCases(path: string, state?: unknown) {
+/** `permissions` signs a user in with them; without it the screens render with no session, as before. */
+export function renderCases(path: string, state?: unknown, permissions?: Permission[]) {
   const router = createMemoryRouter(
     [
       {
         element: (
           <LocaleProvider>
-            <Outlet />
+            {permissions === undefined ? (
+              <Outlet />
+            ) : (
+              <AuthContext.Provider
+                value={{
+                  state: {
+                    status: 'signedIn',
+                    me: { id: 'u1', username: 'mona', displayName: 'Mona', email: 'mona@example.invalid', locale: 'en', roles: [], permissions, mustChangePassword: false },
+                  },
+                  signIn: () => Promise.resolve(true),
+                  signOut: () => Promise.resolve(),
+                  refresh: () => Promise.resolve(),
+                }}
+              >
+                <Outlet />
+              </AuthContext.Provider>
+            )}
           </LocaleProvider>
         ),
         children: [

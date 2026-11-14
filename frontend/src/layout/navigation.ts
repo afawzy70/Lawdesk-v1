@@ -23,7 +23,6 @@ export const PLANNED_AREAS: readonly NavItem[] = [
   { path: '/library', label: 'nav.library', requires: 'LIBRARY_VIEW', status: 'ready' },
   { path: '/experts', label: 'nav.experts', requires: 'EXPERT_VIEW', status: 'ready' },
   { path: '/documents', label: 'nav.documents', requires: 'DOCUMENT_VIEW', status: 'ready' },
-  { path: '/deadlines', label: 'nav.deadlines', requires: 'DEADLINE_VIEW', status: 'ready' },
   { path: '/archive', label: 'nav.archive', requires: 'DOCUMENT_VIEW', status: 'ready' },
   { path: '/enforcement', label: 'nav.enforcement', requires: 'ENFORCEMENT_VIEW', status: 'ready' },
   { path: '/tasks', label: 'nav.tasks', requires: 'TASK_VIEW', status: 'ready' },

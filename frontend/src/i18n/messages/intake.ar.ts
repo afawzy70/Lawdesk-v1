@@ -15,6 +15,13 @@ export const intakeAr = {
   'intake.rule.unknown': 'رُفضت البيانات. راجع الحقول وحاول مرة أخرى.',
   'intake.notFound': 'المحكمة أو الطرف المختار لم يعد موجودًا. اختر من جديد.',
 
+  'intake.section.nextHearing': 'موعد الجلسة القادمة',
+  'intake.nextHearing.hint': 'اختياري. أضف موعد الجلسة القادمة إن كان معروفًا؛ يظهر في القضية والتقويم ولوحة المعلومات. بلا تاريخ لا تُنشأ جلسة.',
+  'intake.nextHearing.date': 'تاريخ الجلسة القادمة',
+  'intake.nextHearing.time': 'الوقت (اختياري)',
+  'intake.nextHearing.notes': 'ملاحظات (اختياري)',
+  'intake.rule.HEARING_BEFORE_FILING': 'لا يجوز أن يسبق موعد الجلسة تاريخ القيد بالمحكمة.',
+
   'intake.section.case': 'بيانات القضية',
   'intake.section.stage': 'درجة التقاضي',
   'intake.section.parties': 'موقف الهيئة والأطراف',

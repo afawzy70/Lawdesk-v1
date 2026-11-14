@@ -36,6 +36,7 @@ class IntakeService {
     private final PartyService partyService;
     private final CaseTimeline timeline;
     private final FirstInstanceRecorder firstInstance;
+    private final NextHearingRecorder nextHearing;
     private final UserDirectory users;
     private final CurrentActor currentActor;
     private final AuditLog audit;
@@ -46,7 +47,8 @@ class IntakeService {
     static final String DUPLICATE_SUSPECTED = "DUPLICATE_SUSPECTED";
 
     IntakeService(CaseService caseService, CaseRepository cases, PartyRepository parties, PartyService partyService,
-            CaseTimeline timeline, FirstInstanceRecorder firstInstance, UserDirectory users, CurrentActor currentActor,
+            CaseTimeline timeline, FirstInstanceRecorder firstInstance, NextHearingRecorder nextHearing,
+            UserDirectory users, CurrentActor currentActor,
             AuditLog audit, @Value("${lawdesk.authority.name:الهيئة}") String authorityName,
             DuplicateCheck duplicates, CaseRequestService requests) {
         this.duplicates = duplicates;
@@ -57,6 +59,7 @@ class IntakeService {
         this.partyService = partyService;
         this.timeline = timeline;
         this.firstInstance = firstInstance;
+        this.nextHearing = nextHearing;
         this.users = users;
         this.currentActor = currentActor;
         this.audit = audit;
@@ -82,6 +85,9 @@ class IntakeService {
         requireEligible(request.primaryMemberId(), "primaryMemberId");
         if (request.alternateMemberId() != null) {
             requireEligible(request.alternateMemberId(), "alternateMemberId");
+        }
+        if (request.nextHearing() != null && !currentActor.has(Permission.HEARING_MANAGE)) {
+            throw new AccessDeniedException("a next hearing needs HEARING_MANAGE");
         }
         Side position = Side.valueOf(request.authorityPosition());
         checkParties(request.parties());
@@ -113,6 +119,12 @@ class IntakeService {
         IntakeRequest.FirstInstance stage = request.firstInstance();
         firstInstance.record(caseId, stage.courtId(), stage.courtCaseNumber(), stage.courtCaseYear(),
                 stage.filingDate());
+
+        // Before the assignment: the registrar may still change the case even when the specialist is someone else.
+        if (request.nextHearing() != null) {
+            IntakeRequest.NextHearing next = request.nextHearing();
+            nextHearing.record(caseId, next.hearingDate(), next.hearingTime(), next.notes());
+        }
 
         caseService.checkDetails(request.details());
         cases.setDetails(caseId, request.details());

@@ -7,6 +7,7 @@ import { usePageTitle } from '../../i18n/usePageTitle';
 import { AccessDeniedPage } from '../auth/AccessDeniedPage';
 import { AuthContext } from '../auth/AuthContext';
 import { loadError } from '../operations/formErrors';
+import { HearingsSchedule } from '../operations/hearings/HearingsSchedule';
 import { legalToday } from '../operations/days';
 import { formatDate } from '../proceedings/dates';
 import {
@@ -190,10 +191,13 @@ export function CalendarPage() {
   const state = useContext(AuthContext)?.state;
   const canManage = state?.status === 'signedIn' && state.me.permissions.includes('CALENDAR_MANAGE');
   const canReassign = state?.status === 'signedIn' && state.me.permissions.includes('HEARING_MANAGE');
+  const canSeeHearings = state?.status === 'signedIn' && state.me.permissions.includes('HEARING_VIEW');
   // A link from a notification opens a given day: /calendar?date=2027-03-10&mode=DAY.
   const [search] = useSearchParams();
   const linkedDate = search.get('date');
   const linkedMode = search.get('mode');
+  // The hearings schedule table is the calendar's second view: /calendar?view=hearings.
+  const [showTable, setShowTable] = useState(search.get('view') === 'hearings' && canSeeHearings);
   const [filter, setFilter] = useState<CalendarFilter>({
     mode: MODES.find((m) => m === linkedMode) ?? 'MONTH',
     anchor: linkedDate !== null && /^\d{4}-\d{2}-\d{2}$/.test(linkedDate) ? linkedDate : todayIso(),
@@ -207,6 +211,7 @@ export function CalendarPage() {
   const requestKey = `${JSON.stringify(filter)}#${String(reload)}`;
 
   useEffect(() => {
+    if (showTable) return undefined;
     const controller = new AbortController();
     loadCalendar(filter, controller.signal).then(
       (view) => {
@@ -219,7 +224,7 @@ export function CalendarPage() {
     return () => {
       controller.abort();
     };
-  }, [filter, requestKey]);
+  }, [filter, requestKey, showTable]);
 
   const current = result?.key === requestKey ? result : null;
   if (current !== null && 'error' in current && current.error === 'operations.error.viewForbidden') {
@@ -230,10 +235,33 @@ export function CalendarPage() {
     period.from === period.to ? formatDate(period.from, locale) : `${formatDate(period.from, locale)} – ${formatDate(period.to, locale)}`;
   const byDate = (view: CalendarView, date: string) => view.events.filter((e) => e.date === date);
 
+  const kindToggle = canSeeHearings ? (
+    <div className="ops-actions" role="group" aria-label={t('wp6.calendar.viewKind')}>
+      <button type="button" aria-pressed={!showTable} onClick={() => { setShowTable(false); }}>
+        {t('wp6.calendar.viewKind.calendar')}
+      </button>
+      <button type="button" aria-pressed={showTable} onClick={() => { setShowTable(true); }}>
+        {t('wp6.calendar.viewKind.hearings')}
+      </button>
+    </div>
+  ) : null;
+
+  if (showTable) {
+    return (
+      <>
+        <h1>{t('wp6.calendar.title')}</h1>
+        {kindToggle}
+        <HearingsSchedule />
+      </>
+    );
+  }
+
   return (
     <>
       <h1>{t('wp6.calendar.title')}</h1>
       <p className="case-field-hint">{t('wp6.calendar.zoneNote')}</p>
+
+      {kindToggle}
 
       <div className="ops-toolbar wp6-toolbar">
         <div className="ops-actions" role="group" aria-label={t('wp6.calendar.viewMode')}>

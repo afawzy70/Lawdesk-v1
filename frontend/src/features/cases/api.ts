@@ -400,6 +400,8 @@ export interface IntakeInput {
   financialAmount: string;
   details: DetailsInput;
   requests: CaseRequests;
+  /** The optional next hearing (section 15); only its date is required. */
+  nextHearing?: { date: string; time: string; notes: string };
   /** The registrar saw the duplicate warning and says this is a different case. */
   confirmDistinct?: boolean;
   distinctNote?: string;
@@ -430,6 +432,15 @@ export function registerCase(input: IntakeInput): Promise<LegalCase> {
       ...(input.financialImpact === 'YES' ? { financialAmount: empty(input.financialAmount) } : {}),
       details: detailsBody(input.details),
       requests: input.requests,
+      ...(input.nextHearing === undefined || input.nextHearing.date.trim() === ''
+        ? {}
+        : {
+            nextHearing: {
+              hearingDate: input.nextHearing.date.trim(),
+              hearingTime: empty(input.nextHearing.time),
+              notes: empty(input.nextHearing.notes),
+            },
+          }),
       ...(input.confirmDistinct === true
         ? { confirmDistinct: true, distinctNote: empty(input.distinctNote ?? '') }
         : {}),
