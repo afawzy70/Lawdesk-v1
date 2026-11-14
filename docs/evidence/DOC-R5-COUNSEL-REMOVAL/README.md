@@ -1,13 +1,15 @@
 # LD-DOC-r5 — removal of «المحامون والوكلاء» (lawyers and agents)
 
-Owner decision (2026-11-14): the section, its data and its API are removed permanently. The owner confirmed the removal
-after being told it is irreversible on UAT and touches rules that look at party links.
+Owner decision (2026-11-14): the section and its API are removed and the data is to be deleted permanently. The owner's later
+instruction is that NO existing data is destroyed until the real row count has been reported, a verified backup and restore
+procedure exists and the owner approves the irreversible deletion explicitly. Therefore **migration V880 only renames the table**
+(`case_party_counsel` → `case_party_counsel_retired`); the irreversible drop is a separate later migration that is NOT in this tree.
 
 ## What was removed
 
 | Layer | Removed |
 |---|---|
-| Database | table `case_party_counsel` (migration `V880__LD-DOC-r5_drop_party_counsel.sql`; created by V602). The migration logs the row counts with `RAISE NOTICE` before the drop |
+| Database | table `case_party_counsel` is renamed to `case_party_counsel_retired` by `V880__LD-DOC-r5_retire_party_counsel.sql` (table created by V602); every row is kept. The migration logs the row counts with `RAISE NOTICE` |
 | Backend | `CounselService`; `GET /api/v1/cases/{id}/parties/counsel`, `POST /api/v1/cases/{id}/parties/{partyId}/counsel`, `DELETE /api/v1/cases/{id}/parties/counsel/{counselId}` in `PartyController`; `PartyRepository.hasCounsel`; the 409 refusal in `PartyService.unlink` |
 | Frontend | `CaseCounselSection`, `Counsel` / `listCounsel` / `addCounsel` / `removeCounsel` in `cases/api.ts`, the `counsel.*` messages, the section on the case page |
 | Tests | the counsel API test, the counsel component tests, the walk entries and fixtures in `CaseBoundEndpointsAccessTest`, the clean-up lines in the test data helpers, the unlink-with-counsel conflict test (replaced, see below) |
@@ -29,9 +31,24 @@ still read correctly. Rows already written to `case_timeline` and `audit_event` 
 | Evidence and register documents | History files under `docs/evidence/DOC-RESTORE`, `DOC-RETEST`, `DOC-WP1`, `DOC-R3-*` and the requirement register mention the feature | left as history; the register wording is for the owner of the register to update |
 | New test in this change | `CaseRequestsApiTest.whoSeesACaseIsTheSameAfterTheLawyerAndAgentTableWasDropped` | no function or view source mentions the dropped table; an in-scope user reads and lists the case, an out-of-scope user gets 404 and an empty list, a member keeps access |
 
-## Row counts
+## Row counts on UAT (not obtained by the developer)
 
-The real counts are known only when the migration runs on UAT. They appear in the backend start-up log as
-`LD-DOC-r5: dropping case_party_counsel with N rows (M not marked removed)`. The number must be copied here after the deploy.
+The developer has no database access to UAT, so the real number is **not known yet**. The owner/operator reads it with the read-only
+command in `docs/operations/COUNSEL-RETIREMENT.md` (section 1) and the number is copied here before any deletion is requested:
 
-Not run yet on UAT. Pending Codex coordination of the deploy window.
+| Where | Total | Not marked removed | Read on | By |
+|---|---|---|---|---|
+| UAT | _pending_ | _pending_ | | |
+
+## Drill on a throw-away cluster (SYNTHETIC data) — `tools/restore-drill/counsel_retire_drill.py`
+
+Result file: `drill-result.json` (all 12 checks pass): 600 synthetic counsel rows (480 not removed) → backup `pg_dump -Fc` verified by
+restoring into a side database (`--exit-on-error`, identical row count and digest) → application boot applies V880 → table renamed,
+600/480 rows and digest unchanged, old name gone, cases/parties/links/audit counts unchanged → second boot applies no migration →
+recovery A (rename back) and recovery B (restore from the backup) both give the original rows. This is a drill on synthetic data,
+not a restore of the real UAT database.
+
+## Irreversible deletion
+
+Not done and not scheduled. It needs the owner's explicit approval after the count and the backup check above
+(`docs/operations/COUNSEL-RETIREMENT.md`, section 4).

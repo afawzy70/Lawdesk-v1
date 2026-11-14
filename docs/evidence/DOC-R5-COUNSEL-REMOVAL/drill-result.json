@@ -1,0 +1,156 @@
+{
+  "checks": [
+    {
+      "check": "the source is below V880 and still has case_party_counsel",
+      "ok": true,
+      "detail": "latest=845"
+    },
+    {
+      "check": "synthetic counsel rows exist (active and removed)",
+      "ok": true,
+      "detail": "{\"total\": 600, \"active\": 480, \"digest\": \"560a788034ab6349f86499cf7469dbff\"}"
+    },
+    {
+      "check": "the backup lists the counsel table and its data",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "the restored backup holds exactly the counsel rows counted before V880",
+      "ok": true,
+      "detail": "rc=0 restored={\"total\": 600, \"active\": 480, \"digest\": \"560a788034ab6349f86499cf7469dbff\"}"
+    },
+    {
+      "check": "Flyway applied V880 and every later migration successfully",
+      "ok": true,
+      "detail": "{\"latest\": 881, \"ok\": true}"
+    },
+    {
+      "check": "V880 kept every row: the renamed table equals the table counted before",
+      "ok": true,
+      "detail": "after={\"total\": 600, \"active\": 480, \"digest\": \"560a788034ab6349f86499cf7469dbff\"}"
+    },
+    {
+      "check": "the old table name no longer exists",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "nothing else changed (cases, parties, links, audit)",
+      "ok": true,
+      "detail": "before={\"cases\": 300, \"parties\": 200, \"case_parties\": 600, \"audit\": 3000} after={\"cases\": 300, \"parties\": 200, \"case_parties\": 600, \"audit\": 3000}"
+    },
+    {
+      "check": "the migration reported the row count in the log",
+      "ok": true,
+      "detail": [
+        "{\"@timestamp\":\"2026-11-14T18:19:37.285426241Z\",\"log\":{\"level\":\"INFO\",\"logger\":\"org.flywaydb.core.internal.command.DbMigrate\"},\"process\":{\"pid\":724172,\"thread\":{\"name\":\"main\"}},\"service\":{\"name\":\"lawdesk-backend\",\"version\":\"0.0.1-SNAPSHOT\",\"node\":{}},\"message\":\"Migrating schema \\\"lawdesk\\\" to version \\\"880 - LD-DOC-r5 retire party counsel\\\"\",\"ecs\":{\"version\":\"8.11\"}}"
+      ]
+    },
+    {
+      "check": "the second start-up applies no migration",
+      "ok": true,
+      "detail": "{\"migrations_applied\": 0, \"schema_up_to_date_message\": true}"
+    },
+    {
+      "check": "recovery A: the old name holds every row again",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "recovery B: the verified backup still holds them (side database equals the count before)",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "measurements": {},
+  "target_version": 845,
+  "client_version": "pg_dump (PostgreSQL) 18.6 (Ubuntu 18.6-3.pgdg24.04+1)",
+  "server_version": "18.6",
+  "server_encoding_collation": "C.UTF-8 / UTF8",
+  "counsel_before": {
+    "total": 600,
+    "active": 480,
+    "digest": "560a788034ab6349f86499cf7469dbff"
+  },
+  "other_rows_before": {
+    "cases": 300,
+    "parties": 200,
+    "case_parties": 600,
+    "audit": 3000
+  },
+  "backup": {
+    "bytes": 123851449,
+    "sha256": "d50778254cea3f307044fc1b2fb4b63a9459176527aa2d3b026bc875e68986a7"
+  },
+  "boot_after": {
+    "migrations_applied": 2,
+    "schema_up_to_date_message": false
+  },
+  "boot_again": {
+    "migrations_applied": 0,
+    "schema_up_to_date_message": true
+  },
+  "passed": true,
+  "steps": [
+    {
+      "step": "1 start the throwaway cluster",
+      "ok": true,
+      "seconds": 2.23
+    },
+    {
+      "step": "2 create the database and the application role",
+      "ok": true,
+      "seconds": 0.85
+    },
+    {
+      "step": "3 the application migrates the empty database only up to V845",
+      "ok": true,
+      "seconds": 38.61,
+      "outcome": "flyway finished",
+      "migrations_applied": 68,
+      "application_booted": true
+    },
+    {
+      "step": "4 load SYNTHETIC data (seed.sql)",
+      "ok": true,
+      "seconds": 15.17
+    },
+    {
+      "step": "4b load SYNTHETIC counsel rows (some marked removed)",
+      "ok": true,
+      "seconds": 0.08
+    },
+    {
+      "step": "5 backup: pg_dump -Fc of the source before V880",
+      "ok": true,
+      "seconds": 19.28,
+      "bytes": 123851449,
+      "sha256": "d50778254cea3f307044fc1b2fb4b63a9459176527aa2d3b026bc875e68986a7"
+    },
+    {
+      "step": "6 verify the backup: restore it into a side database (--exit-on-error)",
+      "ok": true,
+      "seconds": 9.59,
+      "rc": 0,
+      "stderr": ""
+    },
+    {
+      "step": "7 boot the application on the source: Flyway applies V880",
+      "ok": true,
+      "seconds": 34.1
+    },
+    {
+      "step": "8 second boot: start-up is repeatable",
+      "ok": true,
+      "seconds": 58.3
+    },
+    {
+      "step": "9 recovery A: rename the table back",
+      "ok": true,
+      "seconds": 0.06
+    }
+  ],
+  "finished": "2026-11-14T18:20:56+00:00",
+  "total_seconds": 180.8
+}
