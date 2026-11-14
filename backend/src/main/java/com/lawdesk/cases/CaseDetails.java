@@ -26,7 +26,7 @@ public record CaseDetails(
         @Size(max = 8000) String facts,
         /** The amount claimed, KWD with three decimals; kept apart from the financial impact and every judged amount. */
         @JsonFormat(shape = JsonFormat.Shape.STRING) @PositiveOrZero @Digits(integer = 12, fraction = 3) BigDecimal claimedAmount,
-        @Pattern(regexp = "LOW|NORMAL|HIGH|CRITICAL") String importance,
+        @Pattern(regexp = "[A-Z][A-Z0-9_]{0,59}") String importance,
         @Size(max = 4000) String internalNotes) {
 
     public static final CaseDetails EMPTY = new CaseDetails(null, null, null, null, null, null, null, null);

@@ -15,6 +15,7 @@ import {
   updateOrgUnit,
 } from './api';
 import { arrange } from './orgTree';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 function explain(error: unknown): MessageKey {
   if (error instanceof ApiError && error.status === 409) return 'access.org.conflict';
@@ -121,8 +122,9 @@ export function OrgUnitsPage() {
             setParentId('');
           }}
         >
-          <option value="LEGAL">{t('access.org.tree.LEGAL')}</option>
-          <option value="AUTHORITY">{t('access.org.tree.AUTHORITY')}</option>
+          {catalogCodes('ORG_TREE', ['LEGAL', 'AUTHORITY'] as const).map((tree) => (
+            <option key={tree} value={tree}>{t(`access.org.tree.${tree}`)}</option>
+          ))}
         </select>
       </div>
       {units === null ? null : rows.length === 0 ? (
@@ -151,7 +153,7 @@ export function OrgUnitsPage() {
               setLevel(e.target.value as OrgLevel);
             }}
           >
-            {ORG_LEVELS.map((option) => (
+            {catalogCodes('ORG_LEVEL', ORG_LEVELS).map((option) => (
               <option key={option} value={option}>
                 {t(`access.org.level.${option}`)}
               </option>

@@ -3,6 +3,7 @@ import { api } from '../../../api/http';
 import { PagedSelect, type PagedResult } from '../../../components/PagedSelect';
 import { useI18n } from '../../../i18n/I18nContext';
 import { PARTY_KINDS, SIDES, type IntakeParty, type Party, type PartyKind, type Side } from '../api';
+import { catalogCodes } from '../../../catalog/catalogStore';
 
 /** A party the user added on the intake screen, with what the list shows and what the request will carry. */
 export interface DraftParty {
@@ -83,7 +84,7 @@ export function IntakePartiesSection(props: Props) {
     <div>
       <fieldset className="case-fieldset" aria-describedby={positionError === undefined ? undefined : `${id}-pos-error`}>
         <legend>{t('intake.position.legend')} *</legend>
-        {SIDES.map((side) => (
+        {catalogCodes('PARTY_SIDE_GROUP', SIDES).map((side) => (
           <label key={side} className="case-radio">
             <input
               type="radio"
@@ -116,7 +117,7 @@ export function IntakePartiesSection(props: Props) {
         </div>
       ) : null}
 
-      {position === '' ? null : <div className="intake-sides">{SIDES.map(column)}</div>}
+      {position === '' ? null : <div className="intake-sides">{catalogCodes('PARTY_SIDE_GROUP', SIDES).map(column)}</div>}
     </div>
   );
 }
@@ -232,7 +233,7 @@ function AddParty({
                 setKind(event.target.value as PartyKind);
               }}
             >
-              {PARTY_KINDS.map((option) => (
+              {catalogCodes('PARTY_KIND', PARTY_KINDS).map((option) => (
                 <option key={option} value={option}>
                   {t(`cases.kind.${option}`)}
                 </option>

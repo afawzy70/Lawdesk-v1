@@ -16,6 +16,7 @@ import {
   type SettableStatus,
 } from './api';
 import { failureKey } from './errors';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 type Panel = null | 'reply' | 'followUp' | 'close' | 'delay';
 
@@ -178,7 +179,7 @@ export function InfoRequestCard({ request, editable, canEscalate, members, onCha
           <div className="case-field">
             <label htmlFor={`${id}-rc`}>{t('wp3.requests.completeness')}</label>
             <select id={`${id}-rc`} value={reply.completeness} onChange={(e) => { setReply({ ...reply, completeness: e.target.value as Completeness }); }}>
-              {COMPLETENESS.map((c) => (
+              {catalogCodes('INFO_COMPLETENESS', COMPLETENESS).map((c) => (
                 <option key={c} value={c}>{t(`wp3.requests.completeness.${c}`)}</option>
               ))}
             </select>
@@ -201,7 +202,7 @@ export function InfoRequestCard({ request, editable, canEscalate, members, onCha
           <div className="case-field">
             <label htmlFor={`${id}-fk`}>{t('wp3.requests.followKind')}</label>
             <select id={`${id}-fk`} value={followUp.kind} onChange={(e) => { setFollowUp({ ...followUp, kind: e.target.value as FollowUpKind }); }}>
-              {escalation.map((kind) => (
+              {catalogCodes('INFO_FOLLOW_UP_KIND', escalation).map((kind) => (
                 <option key={kind} value={kind}>{t(`wp3.requests.followKind.${kind}`)}</option>
               ))}
             </select>

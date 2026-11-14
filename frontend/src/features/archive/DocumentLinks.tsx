@@ -10,6 +10,7 @@ import { useLoad } from '../pleadings/useLoad';
 import { listJudgments } from '../proceedings/proceedingsApi';
 import { addDocumentLink, asList, LINK_TYPES, listDocumentLinks, removeDocumentLink, type LinkType } from './api';
 import { archiveError } from './errors';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 interface Props {
   caseId: string;
@@ -114,7 +115,7 @@ export function DocumentLinks({ caseId, documentId, canManage }: Props) {
               setType(value as LinkType);
               setTarget('');
             }}
-            options={LINK_TYPES.map((x) => [x, t(`wp5.link.${x}`)] as const)}
+            options={catalogCodes('DOCUMENT_LINK_TYPE', LINK_TYPES).map((x) => [x, t(`wp5.link.${x}`)] as const)}
           />
           {targets.data !== null && options.length === 0 ? <p className="archive-meta">{t('wp5.link.noTargets')}</p> : null}
           <ChoiceField label={t('wp5.link.target')} value={target} onChange={setTarget} options={options} empty={t('wp5.choose')} />

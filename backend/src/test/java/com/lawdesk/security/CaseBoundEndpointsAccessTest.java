@@ -59,6 +59,7 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
     /** First path segments (after /api/v1) whose records are not owned by a case, with why. */
     private static final Map<String, String> NOT_CASE_BOUND = Map.ofEntries(
             Map.entry("users", "administration of accounts"), Map.entry("roles", "administration of roles"),
+            Map.entry("admin", "the administrator's catalogue of dropdown lists"),
             Map.entry("courts", "reference list"), Map.entry("lists", "managed reference lists"),
             Map.entry("lookups", "managed reference lists"), Map.entry("library", "the department library holds no case data"),
             Map.entry("org-units", "organisation tree"), Map.entry("access-scopes", "administration of scopes"),
@@ -110,6 +111,14 @@ class CaseBoundEndpointsAccessTest extends PostgresTestSupport {
                             + "\",\"reason\":\"SYNTH-DOC\",\"origin\":\"MANUAL\"}"),
             Map.entry("DocumentLinkController#add /api/v1/documents/{id}/links POST",
                     (ids, v) -> "{\"targetType\":\"CLAIM\",\"targetId\":\"" + ids.get("claim") + "\",\"note\":\"SYNTH-DOC\"}"),
+            Map.entry("ClaimController#create /api/v1/cases/{caseId}/claims POST",
+                    (ids, v) -> "{\"text\":\"SYNTH-DOC claim\",\"kind\":\"PRIMARY\"}"),
+            Map.entry("ClaimController#update /api/v1/claims/{id} PUT",
+                    (ids, v) -> "{\"text\":\"SYNTH-DOC claim\",\"kind\":\"PRIMARY\",\"status\":\"STANDING\",\"version\":" + v + "}"),
+            Map.entry("EvidenceController#add /api/v1/cases/{caseId}/evidence POST",
+                    (ids, v) -> "{\"name\":\"SYNTH-DOC evidence\",\"role\":\"SUPPORTING\",\"importance\":\"LOW\"}"),
+            Map.entry("EvidenceController#update /api/v1/evidence/{id} PUT",
+                    (ids, v) -> "{\"name\":\"SYNTH-DOC evidence\",\"role\":\"SUPPORTING\",\"importance\":\"LOW\",\"version\":" + v + "}"),
             Map.entry("InfoRequestController#replyWithDocument /api/v1/info-requests/{id}/replies POST", (ids, v) -> "#multipart"),
             Map.entry("PartyController#link /api/v1/cases/{id}/parties POST",
                     (ids, v) -> "{\"partyId\":\"" + ids.get("x_party2") + "\",\"role\":\"OPPONENT\"}"),

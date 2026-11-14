@@ -3,7 +3,6 @@ package com.lawdesk.pleadings;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.dao.DuplicateKeyException;
@@ -11,24 +10,26 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.security.access.AccessDeniedException;
+
+import com.lawdesk.api.BusinessRuleException;
 import com.lawdesk.api.ConflictException;
 import com.lawdesk.api.NotFoundException;
 import com.lawdesk.audit.AuditLog;
 import com.lawdesk.security.ActorRef;
 import com.lawdesk.security.CurrentActor;
+import com.lawdesk.security.Permission;
 
 /**
  * Managed lists (owner decision D10): values are added, edited, approved and deactivated, never deleted, and each change
- * keeps the previous state in {@code lookup_value_history}. The lists LD-051 uses are fixed here; a later work package
- * adds its own list code to {@link #LISTS}.
+ * keeps the previous state in {@code lookup_value_history}. The lists are those of {@link ListCatalog}; a value the
+ * system logic depends on (system = true) keeps its code and stays active, a label-only list takes no new value.
  */
 @Service
 class LookupService {
 
-    static final Set<String> LISTS = Set.of("JUDGMENT_TYPE", "JUDGMENT_NATURE", "DOCUMENT_CATEGORY");
-
     private static final String SELECT = """
-            select id, list_code, code, label_ar, label_en, origin, approved_at, active, version from lookup_value""";
+            select id, list_code, code, label_ar, label_en, origin, approved_at, active, version, sort_order, system from lookup_value""";
 
     private final JdbcClient jdbc;
     private final CurrentActor currentActor;
@@ -44,20 +45,36 @@ class LookupService {
     List<LookupRequests.View> list(String listCode, boolean includeInactive) {
         requireList(listCode);
         return jdbc.sql(SELECT + " where list_code = :list" + (includeInactive ? "" : " and active")
-                + " order by created_at, code").param("list", listCode).query(LookupService::view).list();
+                + " order by sort_order, created_at, code").param("list", listCode).query(LookupService::view).list();
+    }
+
+    /** Every catalogue list with its options, active and inactive, in display order: what the screens relabel and order by. */
+    @Transactional(readOnly = true)
+    java.util.Map<String, List<LookupRequests.View>> all() {
+        java.util.Map<String, List<LookupRequests.View>> out = new java.util.LinkedHashMap<>();
+        jdbc.sql(SELECT + " order by list_code, sort_order, created_at, code").query(LookupService::view).list()
+                .forEach((v) -> out.computeIfAbsent(v.listCode(), (k) -> new java.util.ArrayList<>()).add(v));
+        return out;
     }
 
     @Transactional
     LookupRequests.View create(String listCode, LookupRequests.Create request) {
         ActorRef actor = currentActor.require();
         requireList(listCode);
+        requireManager(listCode);
+        if (!ListCatalog.find(listCode).orElseThrow().addable()) {
+            throw new BusinessRuleException("LIST_LABEL_ONLY", "the list " + listCode + " takes no new values");
+        }
         UUID id;
         try {
             id = jdbc.sql("""
-                    insert into lookup_value (list_code, code, label_ar, label_en, origin, created_by, updated_by)
-                    values (:list, :code, :ar, :en, 'PROPOSED', :actor, :actor) returning id""")
+                    insert into lookup_value (list_code, code, label_ar, label_en, origin, sort_order, created_by, updated_by)
+                    values (:list, :code, :ar, :en, 'PROPOSED',
+                            coalesce(:sort, (select coalesce(max(sort_order), 0) + 1 from lookup_value
+                                             where list_code = :list)), :actor, :actor) returning id""")
                     .param("list", listCode).param("code", request.code()).param("ar", request.labelAr())
-                    .param("en", request.labelEn()).param("actor", actor.id()).query(UUID.class).single();
+                    .param("en", request.labelEn()).param("sort", request.sortOrder()).param("actor", actor.id())
+                    .query(UUID.class).single();
         } catch (DuplicateKeyException e) {
             throw new ConflictException("the list " + listCode + " has the value " + request.code() + " already");
         }
@@ -71,9 +88,15 @@ class LookupService {
     LookupRequests.View update(UUID id, LookupRequests.Update request) {
         ActorRef actor = currentActor.require();
         LookupRequests.View current = find(id);
+        requireManager(current.listCode());
+        if (current.system() && !request.active()) {
+            throw new BusinessRuleException("SYSTEM_VALUE_FIXED", "a system value is never deactivated");
+        }
         int changed = jdbc.sql("""
-                update lookup_value set label_ar = :ar, label_en = :en, active = :active, version = version + 1,
+                update lookup_value set label_ar = :ar, label_en = :en, active = :active,
+                       sort_order = coalesce(:sort, sort_order), version = version + 1,
                        updated_at = now(), updated_by = :actor where id = :id and version = :version""")
+                .param("sort", request.sortOrder())
                 .param("ar", request.labelAr()).param("en", request.labelEn()).param("active", request.active())
                 .param("actor", actor.id()).param("id", id).param("version", request.version()).update();
         if (changed == 0) {
@@ -90,6 +113,7 @@ class LookupService {
     LookupRequests.View approve(UUID id) {
         ActorRef actor = currentActor.require();
         LookupRequests.View current = find(id);
+        requireManager(current.listCode());
         if (current.approvedAt() == null) {
             jdbc.sql("""
                     update lookup_value set approved_by = :actor, approved_at = now(), version = version + 1,
@@ -123,8 +147,15 @@ class LookupService {
                 .param("id", id).param("change", change).param("actor", actor.id()).update();
     }
 
+    /** The three original lists stay with LOOKUP_MANAGE (checked by the controller); every other list is the administrator's. */
+    private void requireManager(String listCode) {
+        if (!ListCatalog.ORIGINAL.contains(listCode) && !currentActor.has(Permission.LIST_ADMIN)) {
+            throw new AccessDeniedException("missing LIST_ADMIN");
+        }
+    }
+
     private static void requireList(String listCode) {
-        if (!LISTS.contains(listCode)) {
+        if (!ListCatalog.isLookupList(listCode)) {
             throw new NotFoundException("list");
         }
     }
@@ -140,6 +171,6 @@ class LookupService {
         return new LookupRequests.View(rs.getObject("id", UUID.class), rs.getString("list_code"), rs.getString("code"),
                 rs.getString("label_ar"), rs.getString("label_en"), origin,
                 "PROPOSED".equals(origin) && approved == null, approved == null ? null : approved.toInstant(),
-                rs.getBoolean("active"), rs.getLong("version"));
+                rs.getBoolean("active"), rs.getLong("version"), rs.getInt("sort_order"), rs.getBoolean("system"));
     }
 }

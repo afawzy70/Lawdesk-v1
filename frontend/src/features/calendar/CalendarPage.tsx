@@ -26,6 +26,7 @@ import {
 import { EntryRow } from './EntryRow';
 import { ManualDateForm } from './ManualDateForm';
 import './calendar.css';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 type Result = { key: string; view: CalendarView } | { key: string; error: MessageKey };
 
@@ -309,7 +310,7 @@ export function CalendarPage() {
             }}
           >
             <option value="">{t('operations.all')}</option>
-            {ENTRY_TYPES.map((type) => (
+            {catalogCodes('CALENDAR_ENTRY_TYPE', ENTRY_TYPES).map((type) => (
               <option key={type} value={type}>{t(`wp6.calendar.type.${type}`)}</option>
             ))}
           </select>

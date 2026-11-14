@@ -44,7 +44,7 @@ class PleadingsPermissionsTest extends PleadingsTestSupport {
         }
         // Nothing is generated from the document: every judgment list value is a proposal (the source names none). Later
         // work packages add lists whose values the source does name (LD-055: the kinds of memos, as DOCUMENT).
-        assertThat(count("select count(*) from lookup_value where origin = 'DOCUMENT' and list_code like 'JUDGMENT%'")).isZero();
-        assertThat(count("select count(*) from lookup_value where approved_at is not null and list_code like 'JUDGMENT%'")).isZero();
+        assertThat(count("select count(*) from lookup_value where origin = 'DOCUMENT' and list_code in ('JUDGMENT_TYPE', 'JUDGMENT_NATURE')")).isZero();
+        assertThat(count("select count(*) from lookup_value where approved_at is not null and list_code in ('JUDGMENT_TYPE', 'JUDGMENT_NATURE')")).isZero();
     }
 }

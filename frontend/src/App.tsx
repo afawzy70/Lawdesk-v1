@@ -24,10 +24,12 @@ import { archiveRoutes } from './features/archive/routes';
 import { libraryRoutes } from './features/library/routes';
 import { NotificationsPage } from './features/followup/NotificationsPage';
 import { LookupsPage } from './features/pleadings/LookupsPage';
+import { ListsAdminPage } from './features/lists/ListsAdminPage';
 import { operationsRoutes } from './features/operations/routes';
 import { reportsRoutes } from './features/reports/routes';
 import { wp9Routes } from './features/wp9/routes';
 import { assistantRoutes } from './features/assistant/routes';
+import { CatalogLoader } from './catalog/CatalogLoader';
 import { LocaleProvider } from './i18n/LocaleProvider';
 import { AppLayout } from './layout/AppLayout';
 import { PLANNED_AREAS } from './layout/navigation';
@@ -45,6 +47,7 @@ export function AppRoutes({ locale }: LocaleProps) {
   return (
     <LocaleProvider defaultLocale={locale}>
       <AuthProvider>
+        <CatalogLoader />
         <SessionGate>
           <Routes>
             <Route element={<AppLayout />}>
@@ -67,6 +70,7 @@ export function AppRoutes({ locale }: LocaleProps) {
               <Route path="/admin/access" element={<AccessScopesPage />} />
               <Route path="/admin/case-access" element={<CaseAccessAdminPage />} />
               <Route path="/admin/lookups" element={<LookupsPage />} />
+              <Route path="/admin/lists" element={<ListsAdminPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/courts" element={<CourtsPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />

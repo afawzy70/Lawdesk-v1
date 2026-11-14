@@ -3,6 +3,7 @@ import { useI18n } from '../../i18n/I18nContext';
 import { useFormErrors } from '../operations/formErrors';
 import { Field, FormShell } from '../operations/FormParts';
 import { createManualDate, MANUAL_KINDS, type ManualDate, type ManualDateInput } from './api';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 const FIELDS = ['kind', 'title', 'notes', 'date', 'startTime', 'endTime'] as const;
 type DateField = (typeof FIELDS)[number];
@@ -58,7 +59,7 @@ export function ManualDateForm({ caseId, initialDate, onSaved, onCancel }: Props
     >
       <Field id={form.control('kind').id} label={t('wp6.calendar.kind')} error={form.errors.kind} errorId={form.errorId('kind')}>
         <select {...form.control('kind')} value={values.kind} onChange={(event) => { set('kind')(event.target.value); }}>
-          {MANUAL_KINDS.map((kind) => (
+          {catalogCodes('CALENDAR_ENTRY_TYPE', MANUAL_KINDS).map((kind) => (
             <option key={kind} value={kind}>{t(`wp6.calendar.type.${kind}`)}</option>
           ))}
         </select>

@@ -58,7 +58,8 @@ export interface LegalCase {
 }
 
 export const IMPORTANCE_LEVELS = ['LOW', 'NORMAL', 'HIGH', 'CRITICAL'] as const;
-export type Importance = (typeof IMPORTANCE_LEVELS)[number];
+/** An option of the administrator's CASE_IMPORTANCE list: the four below, or one the administrator added. */
+export type Importance = string;
 
 /** The case record beyond its numbers and parties as the server returns it; every value may be absent. */
 export interface CaseDetails {
@@ -81,7 +82,7 @@ export interface DetailsInput {
   referredBy: string;
   facts: string;
   claimedAmount: string;
-  importance: Importance | '';
+  importance: Importance;
   internalNotes: string;
 }
 

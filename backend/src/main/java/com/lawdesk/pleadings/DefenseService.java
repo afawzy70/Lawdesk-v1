@@ -65,7 +65,7 @@ class DefenseService {
                 order by e.created_at, e.id""").param("id", id)
                 .query((rs, n) -> new DefenseRequests.LinkedEvidence(rs.getObject("id", UUID.class), rs.getString("name"),
                         EvidenceRole.valueOf(rs.getString("role")),
-                        rs.getString("importance") == null ? null : EvidenceImportance.valueOf(rs.getString("importance")),
+                        rs.getString("importance"),
                         rs.getObject("document_id", UUID.class), rs.getBoolean("submitted_to_court")))
                 .list();
         return new DefenseRequests.Detail(find(id), assertions, positions, evidence, precedents(id));

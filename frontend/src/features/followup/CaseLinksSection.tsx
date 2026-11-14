@@ -20,6 +20,7 @@ import {
   type NewLink,
 } from './api';
 import { failureKey, isForbidden } from './errors';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 const EMPTY: NewLink = {
   otherCaseId: '',
@@ -149,7 +150,7 @@ export function CaseLinksSection({ caseId, editable }: Props) {
                     value={link.status}
                     onChange={(e) => void setStatus(link, e.target.value as LinkStatus)}
                   >
-                    {LINK_STATUSES.map((status) => (
+                    {catalogCodes('LINK_STATUS', LINK_STATUSES).map((status) => (
                       <option key={status} value={status}>
                         {t(`wp3.links.status.${status}`)}
                       </option>
@@ -184,7 +185,7 @@ export function CaseLinksSection({ caseId, editable }: Props) {
           <div className="case-field">
             <label htmlFor={`${id}-kind`}>{t('wp3.links.kind')}</label>
             <select id={`${id}-kind`} value={form.kind} onChange={(e) => { set('kind', e.target.value as LinkKind); }}>
-              {LINK_KINDS.map((kind) => (
+              {catalogCodes('LINK_KIND', LINK_KINDS).map((kind) => (
                 <option key={kind} value={kind}>
                   {t(`wp3.links.kind.${kind}`)}
                 </option>

@@ -6,6 +6,7 @@ import { useI18n } from '../../../i18n/I18nContext';
 import { addDays, legalToday } from '../days';
 import { loadError } from '../formErrors';
 import { HearingsTable } from './HearingsTable';
+import { catalogCodes } from '../../../catalog/catalogStore';
 import { HEARING_STATUSES, listCalendar, type CalendarFilter, type HearingPage, type HearingStatus } from './hearingsApi';
 
 /** The default window: today and the next 30 days (ASSUMPTION, PHASE-5-ACCEPTANCE LD-024.6). */
@@ -86,7 +87,7 @@ export function HearingsSchedule() {
           }}
         >
           <option value="">{t('operations.all')}</option>
-          {HEARING_STATUSES.map((status) => (
+          {catalogCodes('HEARING_STATUS', HEARING_STATUSES).map((status) => (
             <option key={status} value={status}>
               {t(`operations.hearingStatus.${status}`)}
             </option>

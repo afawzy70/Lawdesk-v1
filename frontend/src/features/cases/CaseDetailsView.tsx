@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { MessageKey } from '../../i18n/catalog';
 import { formatNumber } from '../../i18n/format';
 import { useI18n } from '../../i18n/I18nContext';
 import { formatDate } from './format';
@@ -22,7 +23,13 @@ export function CaseDetailsView({ details }: { details: CaseDetails | undefined 
           amount: formatNumber(Number(details.claimedAmount), locale, { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
         }),
   );
-  add(t('details.importance'), details?.importance === undefined || details.importance === null ? null : t(`details.importance.${details.importance}`));
+  const importance = details?.importance;
+  add(
+    t('details.importance'),
+    importance === undefined || importance === null
+      ? null
+      : t(`details.importance.${importance}` as MessageKey),
+  );
   add(t('details.facts'), details?.facts);
   add(t('details.internalNotes'), details?.internalNotes);
   return (

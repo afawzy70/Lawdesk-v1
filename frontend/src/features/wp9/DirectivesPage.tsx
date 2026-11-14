@@ -26,6 +26,7 @@ import {
 import { DirectiveForm } from './DirectiveForm';
 import { failureKey } from './errors';
 import './wp9.css';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 type Load = { kind: 'loading' } | { kind: 'forbidden' } | { kind: 'failed' } | { kind: 'loaded'; page: DirectivePage };
 
@@ -132,7 +133,7 @@ export function DirectivesPage() {
             }}
           >
             <option value="">{t('wp9.any')}</option>
-            {DIRECTIVE_STATUSES.map((status) => (
+            {catalogCodes('DIRECTIVE_STATUS', DIRECTIVE_STATUSES).map((status) => (
               <option key={status} value={status}>
                 {t(`wp9.directive.status.${status}`)}
               </option>
@@ -312,7 +313,7 @@ function DirectiveRow({ directive, kindLabel, canMove, onMove }: RowProps) {
               }}
             >
               <option value="">{t('wp9.choose')}</option>
-              {DIRECTIVE_STATUSES.filter((status) => status !== directive.status).map((status) => (
+              {catalogCodes('DIRECTIVE_STATUS', DIRECTIVE_STATUSES.filter((status) => status !== directive.status)).map((status) => (
                 <option key={status} value={status}>
                   {t(`wp9.directive.status.${status}`)}
                 </option>

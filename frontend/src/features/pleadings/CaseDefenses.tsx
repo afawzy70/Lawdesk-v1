@@ -21,6 +21,7 @@ import { DefenseSimilarJudgments } from './DefenseSimilarJudgments';
 import { documentOptions, stageOptions, usePickers } from './pickers';
 import { AreaField, ChoiceField, Notice, TextField } from './ui';
 import { flaggedFields, orNull, saveMessage, useLoad } from './useLoad';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 interface FormState {
   title: string;
@@ -257,7 +258,7 @@ export function CaseDefenses({ caseId, canManage }: Props) {
                           }}
                         >
                           <option value="">{t('pl.notSpecified')}</option>
-                          {ASSERTION_STATUSES.map((s) => (
+                          {catalogCodes('ASSERTION_STATUS', ASSERTION_STATUSES).map((s) => (
                             <option key={s} value={s}>
                               {t(`pl.defenses.assertion.${s}`)}
                             </option>
@@ -331,7 +332,7 @@ export function CaseDefenses({ caseId, canManage }: Props) {
             label={t('pl.defenses.kind')}
             value={form.kind}
             onChange={set('kind')}
-            options={DEFENSE_KINDS.map((k) => [k, t(`pl.defenses.kind.${k}`)] as const)}
+            options={catalogCodes('DEFENSE_KIND', DEFENSE_KINDS).map((k) => [k, t(`pl.defenses.kind.${k}`)] as const)}
           />
           <AreaField label={t('pl.defenses.argument')} value={form.argument} onChange={set('argument')} />
           <AreaField label={t('pl.defenses.legalBasis')} value={form.legalBasis} onChange={set('legalBasis')} />

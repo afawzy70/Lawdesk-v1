@@ -17,6 +17,7 @@ import {
   SCOPE_TYPES,
   type ScopeType,
 } from './api';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 /** LD-050: which cases each role sees beyond the ones its users are members of. */
 export function AccessScopesPage() {
@@ -158,7 +159,7 @@ export function AccessScopesPage() {
               setRef('');
             }}
           >
-            {SCOPE_TYPES.map((option) => (
+            {catalogCodes('ACCESS_SCOPE_TYPE', SCOPE_TYPES).map((option) => (
               <option key={option} value={option}>
                 {t(`access.scopes.type.${option}`)}
               </option>
@@ -182,7 +183,7 @@ export function AccessScopesPage() {
                       {unitName(unit.id)}
                     </option>
                   ))
-                : CASE_TYPES.map((caseType) => (
+                : catalogCodes('CASE_TYPE', CASE_TYPES).map((caseType) => (
                     <option key={caseType} value={caseType}>
                       {t(`cases.type.${caseType}`)}
                     </option>

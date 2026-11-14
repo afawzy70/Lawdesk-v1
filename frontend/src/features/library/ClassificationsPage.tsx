@@ -16,6 +16,7 @@ import {
 } from './api';
 import { dimensionKey } from './labels';
 import './library.css';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 /** The managed classification lists (owner decision D10): document values apart from proposed ones; never deleted. */
 export function ClassificationsPage() {
@@ -118,7 +119,7 @@ export function ClassificationsPage() {
             setDimension(e.target.value as Dimension);
           }}
         >
-          {DIMENSIONS.map((d) => (
+          {catalogCodes('CLASSIFICATION_DIMENSION', DIMENSIONS).map((d) => (
             <option key={d} value={d}>
               {t(dimensionKey(d))}
             </option>

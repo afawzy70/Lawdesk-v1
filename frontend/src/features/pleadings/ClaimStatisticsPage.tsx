@@ -9,6 +9,7 @@ import { claimStatistics, defenseStatistics, STAGES, type StatisticsFilter } fro
 import { ChoiceField, Notice, TextField } from './ui';
 import { useLoad } from './useLoad';
 import './pleadings.css';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 const NO_FILTER: StatisticsFilter = { stage: '', caseType: '', from: '', to: '' };
 
@@ -46,14 +47,14 @@ export function ClaimStatisticsPage() {
           label={t('pl.claims.stage')}
           value={draft.stage}
           onChange={set('stage')}
-          options={STAGES.map((s) => [s, t(`proceedings.stage.${s}`)] as const)}
+          options={catalogCodes('STAGE', STAGES).map((s) => [s, t(`proceedings.stage.${s}`)] as const)}
           empty={t('pl.stats.all')}
         />
         <ChoiceField
           label={t('pl.stats.caseType')}
           value={draft.caseType}
           onChange={set('caseType')}
-          options={CASE_TYPES.map((c) => [c, t(`cases.type.${c}`)] as const)}
+          options={catalogCodes('CASE_TYPE', CASE_TYPES).map((c) => [c, t(`cases.type.${c}`)] as const)}
           empty={t('pl.stats.all')}
         />
         <TextField label={t('pl.stats.from')} type="date" value={draft.from} onChange={set('from')} />

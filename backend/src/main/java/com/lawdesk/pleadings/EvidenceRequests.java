@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /** Bodies and views of the facts and evidence API (requirement section 20). */
@@ -29,7 +30,7 @@ final class EvidenceRequests {
     /** One body for creating and changing an evidence item ({@code version} only when changing). */
     record ItemBody(@NotBlank @Size(max = 300) String name, @Size(max = 100) String docType, LocalDate issuedOn,
             @Size(max = 300) String issuer, LocalDate receivedOn, @Size(max = 300) String source, @NotNull EvidenceRole role,
-            EvidenceImportance importance, UUID documentId, Boolean submittedToCourt, LocalDate submittedOn,
+            @Pattern(regexp = "[A-Z][A-Z0-9_]{0,59}") String importance, UUID documentId, Boolean submittedToCourt, LocalDate submittedOn,
             @Size(max = 300) String submittedIn, Boolean opponentResponded, @Size(max = 2000) String opponentResponse,
             @Size(max = 2000) String courtPosition, @Size(max = 2000) String notes, Long version) {
 
@@ -65,7 +66,7 @@ final class EvidenceRequests {
 
     record ItemView(UUID id, UUID caseId, UUID documentId, String documentTitle, String name, String docType,
             LocalDate issuedOn, String issuer, LocalDate receivedOn, String source, EvidenceRole role,
-            EvidenceImportance importance, boolean submittedToCourt, LocalDate submittedOn, String submittedIn,
+            String importance, boolean submittedToCourt, LocalDate submittedOn, String submittedIn,
             Boolean opponentResponded, String opponentResponse, String courtPosition, String notes, long version,
             List<LinkView> links, List<FollowupView> followups, String gap) {
     }

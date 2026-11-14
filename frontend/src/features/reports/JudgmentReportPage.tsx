@@ -21,6 +21,7 @@ import {
 } from './judgmentApi';
 import { ExportLinks, Field, Pager, ReportSections, Summary } from './ReportParts';
 import './reports.css';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 type Load =
   | { kind: 'loading' }
@@ -121,7 +122,7 @@ export function JudgmentReportPage() {
           <Field label={t('reports.filter.outcome')}>
             <select name="outcome" defaultValue={filter.outcome ?? ''}>
               {anyOption}
-              {OUTCOMES.map((outcome) => (
+              {catalogCodes('JUDGMENT_OUTCOME', OUTCOMES).map((outcome) => (
                 <option key={outcome} value={outcome}>
                   {t(`proceedings.outcome.${outcome}`)}
                 </option>
@@ -131,7 +132,7 @@ export function JudgmentReportPage() {
           <Field label={t('reports.filter.stageAny')}>
             <select name="stage" defaultValue={filter.stage ?? ''}>
               {anyOption}
-              {STAGES.map((stage) => (
+              {catalogCodes('STAGE', STAGES).map((stage) => (
                 <option key={stage} value={stage}>
                   {t(`proceedings.stage.${stage}`)}
                 </option>

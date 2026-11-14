@@ -11,6 +11,7 @@ import { formatDate } from '../cases/format';
 import { casePath } from '../cases/paths';
 import { runSearch, SEARCH_TYPES, type SearchFilters, type SearchGroup, type SearchItem, type SearchResult, type SearchType } from './api';
 import './wp9.css';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 const PAGE = 5;
 const CASE_TYPES = ['CIVIL', 'CRIMINAL', 'COMMERCIAL', 'LABOR', 'FAMILY', 'ADMINISTRATIVE', 'CONSTITUTIONAL', 'OTHER'] as const;
@@ -141,7 +142,7 @@ export function SearchPage() {
             }}
           >
             <option value="">{t('wp9.any')}</option>
-            {CASE_TYPES.map((type) => (
+            {catalogCodes('CASE_TYPE', CASE_TYPES).map((type) => (
               <option key={type} value={type}>
                 {t(`cases.type.${type}`)}
               </option>

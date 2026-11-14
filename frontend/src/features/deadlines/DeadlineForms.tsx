@@ -13,6 +13,7 @@ import {
   type SourceOption,
   type SourceType,
 } from './api';
+import { catalogCodes } from '../../catalog/catalogStore';
 
 interface FieldProps {
   label: string;
@@ -122,7 +123,7 @@ export function NewDeadlineForm({ members, rules, sources, onChooseType, onManua
             onChooseType(type);
           }}
         >
-          {SOURCE_TYPES.map((s) => (
+          {catalogCodes('DEADLINE_SOURCE_TYPE', SOURCE_TYPES).map((s) => (
             <option key={s} value={s}>{t(`wp4.source.${s}`)}</option>
           ))}
         </select>

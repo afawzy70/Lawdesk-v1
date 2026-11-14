@@ -102,7 +102,7 @@ class ResultService {
                     String result = rs.getString("result");
                     long version = rs.getLong("version");
                     return new ResultRequests.ClaimResultView(rs.getObject("id", UUID.class), rs.getInt("seq"),
-                            rs.getString("text"), ClaimKind.valueOf(rs.getString("kind")),
+                            rs.getString("text"), rs.getString("kind"),
                             ClaimStatus.valueOf(rs.getString("status")), result == null ? null : ClaimResult.valueOf(result),
                             rs.getString("operative"), rs.getString("reasons"), rs.getBigDecimal("awarded_amount"),
                             rs.getString("notes"), result == null ? null : version);
