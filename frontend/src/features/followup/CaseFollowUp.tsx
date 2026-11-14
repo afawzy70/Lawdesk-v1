@@ -3,7 +3,6 @@ import { AuthContext } from '../auth/AuthContext';
 import { CaseDeadlinesSection } from '../deadlines/CaseDeadlinesSection';
 import { CaseLinksSection } from './CaseLinksSection';
 import { CaseTimelinePanel } from './CaseTimelinePanel';
-import { InfoRequestsSection } from './InfoRequestsSection';
 import { RiskSection } from './RiskSection';
 import './followup.css';
 
@@ -14,7 +13,7 @@ interface Props {
 }
 
 /**
- * WP3 sections of the case page (LD-053): linked cases, information requests, risk assessment and the unified timeline.
+ * WP3 sections of the case page (LD-053): linked cases, risk assessment and the unified timeline.
  * A section the user holds no permission for is not shown; the backend checks every permission and every case anyway.
  */
 export function CaseFollowUp({ caseId, archived, generation }: Props) {
@@ -24,13 +23,6 @@ export function CaseFollowUp({ caseId, archived, generation }: Props) {
   return (
     <>
       <CaseLinksSection caseId={caseId} editable={!archived && granted.has('CASE_LINK_MANAGE')} />
-      {!granted.has('INFO_REQUEST_VIEW') ? null : (
-        <InfoRequestsSection
-          caseId={caseId}
-          editable={!archived && granted.has('INFO_REQUEST_MANAGE')}
-          canEscalate={granted.has('INFO_REQUEST_ESCALATE')}
-        />
-      )}
       {!granted.has('RISK_VIEW') ? null : <RiskSection caseId={caseId} editable={!archived && granted.has('RISK_MANAGE')} />}
       {!granted.has('DEADLINE_VIEW') ? null : (
         <CaseDeadlinesSection

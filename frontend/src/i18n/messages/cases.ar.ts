@@ -159,4 +159,7 @@ export const casesAr: Record<keyof typeof casesEn, string> = {
   'cases.event.COUNSEL_REMOVED': 'إزالة محامٍ أو وكيل',
   'cases.event.DUPLICATE_REVIEWED': 'مراجعة تنبيه التكرار',
   'cases.event.other': 'حدث آخر',
+  'cases.circulation.pending': 'متداولة',
+  'cases.circulation.judged': 'صدر حكم بتاريخ {date}',
+  'cases.event.REQUESTS_CHANGED': 'تحديث طلبات القضية',
 };

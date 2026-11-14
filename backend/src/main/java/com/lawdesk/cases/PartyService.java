@@ -175,10 +175,6 @@ class PartyService {
         if (current.authority()) {
             throw new BusinessRuleException(PARTY_IS_AUTHORITY, "the authority stays on its case");
         }
-        if (parties.hasCounsel(caseId, partyId)) {
-            // case_party_counsel keeps its rows (removal is a mark) and references this link: refuse cleanly, not with a 500.
-            throw new ConflictException("the party has a lawyer or agent recorded on the case; it cannot be removed from it");
-        }
         CaseParty removed = parties.unlink(caseId, partyId).orElseThrow(() -> new NotFoundException("case party"));
         timeline.append(caseId, CaseTimeline.PARTY_REMOVED, removed.name() + " removed as "
                 + (removed.side() == null ? removed.role() : removed.side()), actor.id());

@@ -10,6 +10,20 @@ interface Props {
   onChange: (next: DetailsInput) => void;
   /** The key of the message under the claimed amount when it is malformed. */
   amountError?: MessageKey | undefined;
+  /** False where the chamber is asked under the litigation degree instead (registration). */
+  showChamber?: boolean;
+}
+
+/** «الدائرة المختصة»: the chamber, asked right under the litigation degree. */
+export function ChamberField({ value, onChange }: { value: DetailsInput; onChange: (next: DetailsInput) => void }) {
+  const { t } = useI18n();
+  const id = useId();
+  return (
+    <div className="case-field">
+      <label htmlFor={`${id}-chamber`}>{t('details.chamber')}</label>
+      <input id={`${id}-chamber`} type="text" maxLength={100} value={value.chamber} onChange={(e) => { onChange({ ...value, chamber: e.target.value }); }} />
+    </div>
+  );
 }
 
 /**
@@ -17,7 +31,7 @@ interface Props {
  * who referred it, the facts, the amount claimed, the importance and internal notes. All of it is optional; what is left
  * empty is stored as "not specified", never filled in.
  */
-export function CaseDetailsFields({ value, onChange, amountError }: Props) {
+export function CaseDetailsFields({ value, onChange, amountError, showChamber = true }: Props) {
   const { t, locale } = useI18n();
   const id = useId();
   const [units, setUnits] = useState<OrgUnit[]>([]);
@@ -45,10 +59,7 @@ export function CaseDetailsFields({ value, onChange, amountError }: Props) {
   return (
     <fieldset className="case-details-fields">
       <legend>{t('details.legend')}</legend>
-      <div className="case-field">
-        <label htmlFor={`${id}-chamber`}>{t('details.chamber')}</label>
-        <input id={`${id}-chamber`} type="text" maxLength={100} value={value.chamber} onChange={(e) => { set('chamber')(e.target.value); }} />
-      </div>
+      {showChamber ? <ChamberField value={value} onChange={onChange} /> : null}
       <div className="case-field">
         <label htmlFor={`${id}-received`}>{t('details.receivedOn')}</label>
         <input id={`${id}-received`} type="date" value={value.receivedOn} onChange={(e) => { set('receivedOn')(e.target.value); }} />

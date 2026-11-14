@@ -3,7 +3,7 @@ import type { MessageKey } from '../../i18n/catalog';
 import { useI18n } from '../../i18n/I18nContext';
 import { listOrgUnits, type OrgUnit } from '../access/api';
 import { arrange } from '../access/orgTree';
-import { listCaseMembers, type MemberRef } from '../cases/api';
+import { type Involvement, listCaseMembers, listInvolvements, type MemberRef } from '../cases/api';
 import { createRequest, listCaseRequests, type InfoRequest, type NewRequest } from './api';
 import { failureKey, isForbidden } from './errors';
 import { InfoRequestCard } from './InfoRequestCard';
@@ -15,16 +15,21 @@ interface Props {
   /** Holds INFO_REQUEST_MANAGE and the case is not archived. */
   editable: boolean;
   canEscalate: boolean;
+  /** Shown inside the merged «الجهات الإدارية المعنية» section: one heading level lower. */
+  embedded?: boolean;
+  /** Changes whenever the case's involved units change, so the addressee choices follow. */
+  involvedVersion?: number;
 }
 
 /** Section 18: the requests the legal department addressed to the authority's units for this case, with replies and follow-up. */
-export function InfoRequestsSection({ caseId, editable, canEscalate }: Props) {
+export function InfoRequestsSection({ caseId, editable, canEscalate, embedded = false, involvedVersion = 0 }: Props) {
   const { t, locale } = useI18n();
   const id = useId();
   const [requests, setRequests] = useState<InfoRequest[] | null>(null);
   const [hidden, setHidden] = useState(false);
   const [units, setUnits] = useState<OrgUnit[]>([]);
   const [members, setMembers] = useState<MemberRef[]>([]);
+  const [involved, setInvolved] = useState<Involvement[]>([]);
   const [form, setForm] = useState(EMPTY);
   const [message, setMessage] = useState<{ key: MessageKey; failed: boolean } | null>(null);
   const [generation, setGeneration] = useState(0);
@@ -73,6 +78,22 @@ export function InfoRequestsSection({ caseId, editable, canEscalate }: Props) {
     };
   }, [editable]);
 
+  useEffect(() => {
+    if (!editable) return undefined;
+    const controller = new AbortController();
+    listInvolvements(caseId, controller.signal).then(
+      (found) => {
+        if (!controller.signal.aborted) setInvolved(found);
+      },
+      () => {
+        // Without the involved units every unit of the structure is still offered.
+      },
+    );
+    return () => {
+      controller.abort();
+    };
+  }, [caseId, editable, involvedVersion]);
+
   if (hidden) return null;
 
   const submit = async (event: SyntheticEvent) => {
@@ -92,10 +113,13 @@ export function InfoRequestsSection({ caseId, editable, canEscalate }: Props) {
     }
   };
 
+  // The request goes to the administrative units the case concerns; the rest of the structure stays available.
+  const involvedIds = new Set(involved.map((item) => item.orgUnitId).filter((unitId): unitId is string => unitId !== null));
+  const involvedUnits = units.filter((unit) => involvedIds.has(unit.id));
   const name = (unit: OrgUnit) => (locale === 'en' && unit.nameEn !== null ? unit.nameEn : unit.nameAr);
   return (
     <section aria-labelledby={`${id}-h`} className="wp3-section">
-      <h2 id={`${id}-h`}>{t('wp3.requests.title')}</h2>
+      {embedded ? <h3 id={`${id}-h`}>{t('wp3.requests.title')}</h3> : <h2 id={`${id}-h`}>{t('wp3.requests.title')}</h2>}
       {message === null ? null : (
         <p className={message.failed ? 'case-alert' : 'case-notice'} role={message.failed ? 'alert' : 'status'}>
           {t(message.key)}
@@ -133,9 +157,18 @@ export function InfoRequestsSection({ caseId, editable, canEscalate }: Props) {
             <label htmlFor={`${id}-unit`}>{t('wp3.requests.unit')}</label>
             <select id={`${id}-unit`} value={form.unitId} onChange={(e) => { setForm({ ...form, unitId: e.target.value }); }}>
               <option value="">{t('wp3.notSpecified')}</option>
-              {arrange(units).map(({ unit }) => (
-                <option key={unit.id} value={unit.id}>{name(unit)}</option>
-              ))}
+              {involvedUnits.length === 0 ? null : (
+                <optgroup label={t('wp3.requests.unit.involved')}>
+                  {involvedUnits.map((unit) => (
+                    <option key={unit.id} value={unit.id}>{name(unit)}</option>
+                  ))}
+                </optgroup>
+              )}
+              <optgroup label={involvedUnits.length === 0 ? t('wp3.requests.unit.all') : t('wp3.requests.unit.other')}>
+                {arrange(units).filter(({ unit }) => !involvedIds.has(unit.id)).map(({ unit }) => (
+                  <option key={unit.id} value={unit.id}>{name(unit)}</option>
+                ))}
+              </optgroup>
             </select>
           </div>
           <div className="case-field">

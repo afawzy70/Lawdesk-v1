@@ -8,8 +8,9 @@ import { withLang } from '../../i18n/locale';
 import { usePageTitle } from '../../i18n/usePageTitle';
 import { listCourtsPage } from '../proceedings/proceedingsApi';
 import type { Court } from '../courts/courtsApi';
-import { CASE_TYPES, checkDuplicates, claimedAmountValid, type DuplicateResult, EMPTY_DETAILS, registerCase, type IntakeInput, type Side } from './api';
-import { CaseDetailsFields } from './intake/CaseDetailsFields';
+import { CASE_TYPES, checkDuplicates, claimedAmountValid, type DuplicateResult, EMPTY_DETAILS, EMPTY_REQUESTS, registerCase, type IntakeInput, type Side } from './api';
+import { CaseDetailsFields, ChamberField } from './intake/CaseDetailsFields';
+import { RequestItemsEditor } from './RequestItemsEditor';
 import { DuplicateWarning } from './DuplicateWarning';
 import { FinancialImpactFields, type FinancialValue } from './intake/FinancialImpactFields';
 import { IntakePartiesSection, type DraftParty } from './intake/IntakePartiesSection';
@@ -125,7 +126,7 @@ export function CaseCreatePage() {
   const [values, setValues] = useState<IntakeInput>(() => ({
     automatedNo: '', title: '', caseType: '', subject: '', openedOn: todayIso(), courtId: '', courtCaseNumber: '',
     courtCaseYear: '', filingDate: '', authorityPosition: '', parties: [], primaryMemberId: '', alternateMemberId: '',
-    financialImpact: '', financialAmount: '', details: EMPTY_DETAILS,
+    financialImpact: '', financialAmount: '', details: EMPTY_DETAILS, requests: EMPTY_REQUESTS,
   }));
   const [drafts, setDrafts] = useState<DraftParty[]>([]);
   const [reviewPending, setReviewPending] = useState(false);
@@ -271,6 +272,7 @@ export function CaseCreatePage() {
               <p>{t('intake.stage.FIRST_INSTANCE')}</p>
               <p className="case-field-hint">{t('intake.field.stageHint')}</p>
             </div>
+            <ChamberField value={values.details} onChange={(next) => { setValues((c) => ({ ...c, details: next })); }} />
             {field('courtId', 'intake.field.court', (props) => (
               <PagedSelect<Court>
                 selectProps={props}
@@ -322,6 +324,12 @@ export function CaseCreatePage() {
             amountError={errors.financialAmount}
           />
         ))}
+        {section('intake.section.requests', (
+          <>
+            <p className="case-field-hint">{t('requests.intro')}</p>
+            <RequestItemsEditor value={values.requests} onChange={(next) => { setValues((c) => ({ ...c, requests: next })); }} />
+          </>
+        ))}
         {duplicates === null ? null : (
           <DuplicateWarning
             result={duplicates}
@@ -336,6 +344,7 @@ export function CaseCreatePage() {
           value={values.details}
           onChange={(next) => { setValues((c) => ({ ...c, details: next })); }}
           amountError={errors.claimedAmount}
+          showChamber={false}
         />
         <div className="case-actions">
           <button type="submit" className="primary" disabled={saving}>

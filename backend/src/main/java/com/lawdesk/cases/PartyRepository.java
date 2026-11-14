@@ -148,12 +148,6 @@ class PartyRepository {
         return linked;
     }
 
-    /** True when a lawyer or agent was ever recorded for the party on the case (removed ones stay as marked rows). */
-    boolean hasCounsel(UUID caseId, UUID partyId) {
-        return jdbc.sql("select exists (select 1 from case_party_counsel where case_id = :caseId and party_id = :partyId)")
-                .param("caseId", caseId).param("partyId", partyId).query(Boolean.class).single();
-    }
-
     Optional<CaseParty> linked(UUID caseId, UUID partyId) {
         return jdbc.sql(CASE_PARTIES + " where cp.case_id = :caseId and cp.party_id = :partyId")
                 .param("caseId", caseId).param("partyId", partyId).query(PartyRepository::caseParty).optional();

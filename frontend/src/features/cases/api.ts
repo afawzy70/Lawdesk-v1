@@ -399,6 +399,7 @@ export interface IntakeInput {
   financialImpact: FinancialImpact | '';
   financialAmount: string;
   details: DetailsInput;
+  requests: CaseRequests;
   /** The registrar saw the duplicate warning and says this is a different case. */
   confirmDistinct?: boolean;
   distinctNote?: string;
@@ -428,6 +429,7 @@ export function registerCase(input: IntakeInput): Promise<LegalCase> {
       financialImpact: input.financialImpact === '' ? null : input.financialImpact,
       ...(input.financialImpact === 'YES' ? { financialAmount: empty(input.financialAmount) } : {}),
       details: detailsBody(input.details),
+      requests: input.requests,
       ...(input.confirmDistinct === true
         ? { confirmDistinct: true, distinctNote: empty(input.distinctNote ?? '') }
         : {}),
@@ -517,34 +519,26 @@ export function checkDuplicates(input: IntakeInput, signal?: AbortSignal): Promi
   return api(`${BASE}/duplicate-check?${params.toString()}`, signal === undefined ? {} : { signal });
 }
 
-/** The lawyer or agent of a party on one case (section 2). */
-export interface Counsel {
-  id: string;
-  partyId: string;
-  kind: 'LAWYER' | 'AGENT';
-  name: string;
-  phone: string | null;
-  email: string | null;
-  notes: string | null;
+/** «الطلبات» of a case: request items of each side. */
+export interface CaseRequests {
+  plaintiff: string[];
+  defendant: string[];
 }
 
-export const listCounsel = (caseId: string, signal?: AbortSignal): Promise<Counsel[]> =>
-  api(`${BASE}/${encodeURIComponent(caseId)}/parties/counsel`, signal === undefined ? {} : { signal });
+export const EMPTY_REQUESTS: CaseRequests = { plaintiff: [], defendant: [] };
 
-export function addCounsel(
-  caseId: string,
-  partyId: string,
-  value: { kind: 'LAWYER' | 'AGENT'; name: string; phone: string; email: string; notes: string },
-): Promise<Counsel> {
-  const empty = (text: string) => (text.trim() === '' ? null : text.trim());
-  return api(`${BASE}/${encodeURIComponent(caseId)}/parties/${encodeURIComponent(partyId)}/counsel`, {
-    method: 'POST',
-    body: { kind: value.kind, name: value.name, phone: empty(value.phone), email: empty(value.email), notes: empty(value.notes) },
-  });
-}
+export const MAX_REQUEST_ITEMS = 20;
 
-export const removeCounsel = (caseId: string, id: string): Promise<void> =>
-  api(`${BASE}/${encodeURIComponent(caseId)}/parties/counsel/${encodeURIComponent(id)}`, { method: 'DELETE' });
+const requestsOf = (value: Partial<CaseRequests> | null | undefined): CaseRequests => ({
+  plaintiff: value?.plaintiff ?? [],
+  defendant: value?.defendant ?? [],
+});
+
+export const getCaseRequests = (caseId: string, signal?: AbortSignal): Promise<CaseRequests> =>
+  api<Partial<CaseRequests>>(`${BASE}/${encodeURIComponent(caseId)}/requests`, signal === undefined ? {} : { signal }).then(requestsOf);
+
+export const saveCaseRequests = (caseId: string, value: CaseRequests): Promise<CaseRequests> =>
+  api<Partial<CaseRequests>>(`${BASE}/${encodeURIComponent(caseId)}/requests`, { method: 'PUT', body: value }).then(requestsOf);
 
 /** A case a party is on, as the party's page lists it (only cases the viewer may see). */
 export interface PartyCase {

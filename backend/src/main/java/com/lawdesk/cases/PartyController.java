@@ -28,11 +28,9 @@ import com.lawdesk.security.Permission;
 class PartyController {
 
     private final PartyService service;
-    private final CounselService counsel;
 
-    PartyController(PartyService service, CounselService counsel) {
+    PartyController(PartyService service) {
         this.service = service;
-        this.counsel = counsel;
     }
 
     @PostMapping("/api/v1/parties")
@@ -86,26 +84,5 @@ class PartyController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void unlink(@PathVariable String id, @PathVariable String partyId) {
         service.unlink(Text.id(id, "case"), Text.id(partyId, "case party"));
-    }
-
-    @GetMapping("/api/v1/cases/{id}/parties/counsel")
-    @PreAuthorize(Permission.Codes.CASE_VIEW)
-    List<CounselService.View> counsel(@PathVariable String id) {
-        return counsel.list(Text.id(id, "case"));
-    }
-
-    @PostMapping("/api/v1/cases/{id}/parties/{partyId}/counsel")
-    @PreAuthorize(Permission.Codes.PARTY_MANAGE)
-    @ResponseStatus(HttpStatus.CREATED)
-    CounselService.View addCounsel(@PathVariable String id, @PathVariable String partyId,
-            @Valid @RequestBody CounselService.Create request) {
-        return counsel.add(Text.id(id, "case"), Text.id(partyId, "party"), request);
-    }
-
-    @DeleteMapping("/api/v1/cases/{id}/parties/counsel/{counselId}")
-    @PreAuthorize(Permission.Codes.PARTY_MANAGE)
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    void removeCounsel(@PathVariable String id, @PathVariable String counselId) {
-        counsel.remove(Text.id(id, "case"), Text.id(counselId, "counsel"));
     }
 }

@@ -45,7 +45,8 @@ describe('WP3 sections of the case page', () => {
     const all = ['CASE_VIEW', 'CASE_LINK_MANAGE', 'INFO_REQUEST_VIEW', 'INFO_REQUEST_MANAGE', 'INFO_REQUEST_ESCALATE', 'RISK_VIEW', 'RISK_MANAGE'] as const;
     const first = mount(<CaseFollowUp caseId={CASE} archived={false} generation={0} />, [...all]);
     expect(await screen.findByRole('form', { name: 'Add a link' })).toBeInTheDocument();
-    expect(await screen.findByRole('form', { name: 'New request' })).toBeInTheDocument();
+    // The information requests moved to the merged «administrative units concerned» section (LD-DOC-r5).
+    expect(screen.queryByRole('form', { name: 'New request' })).not.toBeInTheDocument();
     expect(await screen.findByRole('form', { name: 'Record a new version' })).toBeInTheDocument();
     first.unmount();
     mount(<CaseFollowUp caseId={CASE} archived generation={0} />, [...all]);

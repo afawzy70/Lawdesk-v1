@@ -151,7 +151,7 @@ describe('the registration screen paths', () => {
     renderCases('/cases/new');
     await user.click(await screen.findByRole('radio', { name: 'Plaintiff' }));
     await user.click(screen.getByRole('radio', { name: 'Plaintiff' }));
-    const group = screen.getByRole('group', { name: 'Add a party' });
+    const group = screen.getByRole('group', { name: 'Add a party to the Defendants' });
     await user.click(within(group).getByRole('button', { name: 'Add to the case' }));
     expect(within(group).getByRole('alert')).toHaveTextContent('Enter the party’s name.');
     await user.type(within(group).getByLabelText('Name'), 'Opponent{Enter}');
@@ -170,7 +170,7 @@ describe('the registration screen paths', () => {
     intakeServer(() => jsonResponse([]));
     renderCases('/cases/new');
     await user.click(await screen.findByRole('radio', { name: 'Plaintiff' }));
-    const group = screen.getByRole('group', { name: 'Add a party' });
+    const group = screen.getByRole('group', { name: 'Add a party to the Defendants' });
     await user.type(within(group).getByLabelText('Name'), 'Opponent');
     await user.click(within(group).getByRole('button', { name: 'Add to the case' }));
     await user.click(screen.getByRole('radio', { name: 'Defendant' }));
