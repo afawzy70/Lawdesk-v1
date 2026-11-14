@@ -424,3 +424,48 @@ describe('the registration screen in Arabic', () => {
     expect(screen.getByRole('textbox', { name: /مبلغ الأثر المالي \(دينار كويتي\)/ })).toBeInTheDocument();
   });
 });
+
+describe('the optional next hearing', () => {
+  it('sends the next hearing with the registration when its date is given', async () => {
+    const user = userEvent.setup();
+    const { requests } = serve();
+    renderCases('/cases/new', undefined, ['HEARING_MANAGE']);
+    await fillRequired(user);
+    await user.type(screen.getByLabelText('Next hearing date'), '2026-12-01');
+    await user.type(screen.getByLabelText('Time (optional)'), '09:30');
+    await user.type(screen.getByLabelText('Notes (optional)'), 'bring the file');
+    await user.click(submit());
+    expect(await screen.findByText('Case LD-2026-00001 created.')).toBeInTheDocument();
+    expect(intakeBody(requests)).toMatchObject({
+      nextHearing: { hearingDate: '2026-12-01', hearingTime: '09:30', notes: 'bring the file' },
+    });
+  });
+
+  it('sends no hearing when the date is left empty', async () => {
+    const user = userEvent.setup();
+    const { requests } = serve();
+    renderCases('/cases/new', undefined, ['HEARING_MANAGE']);
+    await fillRequired(user);
+    await user.type(screen.getByLabelText('Notes (optional)'), 'ignored without a date');
+    await user.click(submit());
+    expect(await screen.findByText('Case LD-2026-00001 created.')).toBeInTheDocument();
+    expect(intakeBody(requests)).not.toHaveProperty('nextHearing');
+  });
+
+  it('shows a refused hearing date next to its field', async () => {
+    const user = userEvent.setup();
+    serve(() => problem(400, { errors: [{ field: 'nextHearing.hearingDate', code: 'Range' }] }));
+    renderCases('/cases/new', undefined, ['HEARING_MANAGE']);
+    await fillRequired(user);
+    await user.type(screen.getByLabelText('Next hearing date'), '2031-12-01');
+    await user.click(submit());
+    expect(await screen.findByText('This value is not valid.')).toBeInTheDocument();
+  });
+
+  it('offers no next hearing to a user without HEARING_MANAGE', async () => {
+    serve();
+    renderCases('/cases/new', undefined, ['CASE_CREATE']);
+    await screen.findByRole('radio', { name: 'Plaintiff' });
+    expect(screen.queryByLabelText('Next hearing date')).not.toBeInTheDocument();
+  });
+});

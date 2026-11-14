@@ -2,9 +2,11 @@ package com.lawdesk.cases;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Max;
@@ -39,6 +41,8 @@ record IntakeRequest(
         @Positive @Digits(integer = 12, fraction = 3) BigDecimal financialAmount,
         /** Chamber, receipt, referral, facts, claimed amount, importance and notes; all optional. */
         @Valid CaseDetails details,
+        /** The next hearing, when one is known at registration; it is scheduled in the first stage in the same transaction. */
+        @Valid NextHearing nextHearing,
         /** The registrar saw the warning about a possible duplicate and says the case is a different one. */
         Boolean confirmDistinct,
         @Size(max = 500) String distinctNote) {
@@ -61,6 +65,17 @@ record IntakeRequest(
 
         FirstInstance {
             courtCaseNumber = Text.trimToNull(courtCaseNumber);
+        }
+    }
+
+    /** The date (and optional time and note) of the next hearing; its purpose is "other" and its court that of the first stage. */
+    record NextHearing(
+            @NotNull LocalDate hearingDate,
+            @JsonFormat(pattern = "HH:mm") LocalTime hearingTime,
+            @Size(max = 2000) String notes) {
+
+        NextHearing {
+            notes = Text.trimToNull(notes);
         }
     }
 

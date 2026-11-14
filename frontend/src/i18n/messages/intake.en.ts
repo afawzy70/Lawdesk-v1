@@ -15,6 +15,13 @@ export const intakeEn = {
   'intake.rule.unknown': 'The data was refused. Check the fields and try again.',
   'intake.notFound': 'The chosen court or party no longer exists. Choose again.',
 
+  'intake.section.nextHearing': 'Next hearing',
+  'intake.nextHearing.hint': 'Optional. Add the date of the next hearing if it is known; it appears in the case, the calendar and the dashboard. Without a date no hearing is created.',
+  'intake.nextHearing.date': 'Next hearing date',
+  'intake.nextHearing.time': 'Time (optional)',
+  'intake.nextHearing.notes': 'Notes (optional)',
+  'intake.rule.HEARING_BEFORE_FILING': 'The hearing cannot be dated before the filing date at the court.',
+
   'intake.section.case': 'Case details',
   'intake.section.stage': 'Litigation stage',
   'intake.section.parties': 'The authority’s position and the parties',

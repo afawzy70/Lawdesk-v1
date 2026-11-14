@@ -83,7 +83,7 @@ export function DashboardWorkspace({ canCases, canHearings }: { canCases: boolea
               <h2 id="mc-diary-heading">{t('reports.dashboard.diary')}</h2>
               <p>{t('reports.dashboard.diaryPeriod')}</p>
             </div>
-            <Link to={withLang('/hearings', locale)}>{t('reports.dashboard.viewCalendar')}</Link>
+            <Link to={withLang('/calendar', locale)}>{t('reports.dashboard.viewCalendar')}</Link>
           </div>
           {hearings.kind === 'loading' && <p>{t('reports.dashboard.loadingHearings')}</p>}
           {hearings.kind === 'failed' && <p>{t('reports.dashboard.unavailableHearings')}</p>}

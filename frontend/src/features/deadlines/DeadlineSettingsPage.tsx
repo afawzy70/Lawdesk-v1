@@ -20,7 +20,7 @@ export function DeadlineSettingsPage() {
       <AdminTabs />
       <h1>{t('wp4.settings.title')}</h1>
       <p className="case-notice">{t('wp4.settings.disclaimer')}</p>
-      <p><Link to={withLang('/deadlines', locale)}>{t('wp4.settings.toRegister')}</Link></p>
+      <p><Link to={withLang('/calendar', locale)}>{t('wp4.settings.toCalendar')}</Link></p>
       <RulesPanel canManage={granted.has('DEADLINE_MANAGE')} canApprove={granted.has('DEADLINE_APPROVE')} />
       <HolidaysPanel canManage={granted.has('DEADLINE_MANAGE')} canApprove={granted.has('DEADLINE_APPROVE')} />
       <RemindersPanel canApprove={granted.has('DEADLINE_APPROVE')} />

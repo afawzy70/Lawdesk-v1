@@ -35,9 +35,10 @@ describe('visibleNav', () => {
       '/experts': 'EXPERT_VIEW',
       '/documents': 'DOCUMENT_VIEW',
       '/tasks': 'TASK_VIEW',
-      '/deadlines': 'DEADLINE_VIEW',
       '/calendar': 'CALENDAR_VIEW',
       '/reports': 'REPORT_VIEW',
     });
+    // The legal-deadlines register is gone: its settings are in the administration, its dates in the calendar.
+    expect(requires).not.toHaveProperty('/deadlines');
   });
 });

@@ -14,6 +14,9 @@ import { DuplicateWarning } from './DuplicateWarning';
 import { FinancialImpactFields, type FinancialValue } from './intake/FinancialImpactFields';
 import { IntakePartiesSection, type DraftParty } from './intake/IntakePartiesSection';
 import { MemberFields } from './intake/MemberFields';
+import { NextHearingFields } from './intake/NextHearingFields';
+import { NO_NEXT_HEARING } from './intake/nextHearing';
+import { usePermissions } from '../archive/usePermissions';
 import { todayIso } from './format';
 import { CASES_PATH, casePath } from './paths';
 import { problemMessage } from './problems';
@@ -27,7 +30,7 @@ export interface CreatedState {
 type Field =
   | 'automatedNo' | 'title' | 'caseType' | 'subject' | 'openedOn' | 'courtId' | 'courtCaseNumber' | 'courtCaseYear'
   | 'filingDate' | 'authorityPosition' | 'parties' | 'primaryMemberId' | 'alternateMemberId' | 'financialImpact'
-  | 'financialAmount' | 'claimedAmount';
+  | 'financialAmount' | 'claimedAmount' | 'nextHearingDate';
 type Errors = Partial<Record<Field, MessageKey>>;
 
 const SERVER_FIELDS: Record<string, Field> = {
@@ -36,7 +39,7 @@ const SERVER_FIELDS: Record<string, Field> = {
   'firstInstance.courtCaseYear': 'courtCaseYear', 'firstInstance.filingDate': 'filingDate',
   firstInstance: 'courtId', authorityPosition: 'authorityPosition', primaryMemberId: 'primaryMemberId',
   alternateMemberId: 'alternateMemberId', financialImpact: 'financialImpact', financialAmount: 'financialAmount',
-  'details.claimedAmount': 'claimedAmount',
+  'details.claimedAmount': 'claimedAmount', 'nextHearing.hearingDate': 'nextHearingDate',
 };
 
 const CODES: Record<string, MessageKey> = {
@@ -82,6 +85,7 @@ const intakeRuleKeys: Partial<Record<MessageKey, true>> = {
   'intake.rule.COURT_LEVEL_MISMATCH': true,
   'intake.rule.MEMBER_NOT_ELIGIBLE': true,
   'intake.rule.PARTY_IS_AUTHORITY': true,
+  'intake.rule.HEARING_BEFORE_FILING': true,
 };
 
 const AMOUNT = /^\d{1,12}([.,]\d{1,3})?$/;
@@ -121,11 +125,12 @@ export function CaseCreatePage() {
   const { locale, t } = useI18n();
   const navigate = useNavigate();
   const formId = useId();
+  const canScheduleHearing = usePermissions().has('HEARING_MANAGE');
   usePageTitle(t('intake.title'));
   const [values, setValues] = useState<IntakeInput>(() => ({
     automatedNo: '', title: '', caseType: '', subject: '', openedOn: todayIso(), courtId: '', courtCaseNumber: '',
     courtCaseYear: '', filingDate: '', authorityPosition: '', parties: [], primaryMemberId: '', alternateMemberId: '',
-    financialImpact: '', financialAmount: '', details: EMPTY_DETAILS,
+    financialImpact: '', financialAmount: '', details: EMPTY_DETAILS, nextHearing: NO_NEXT_HEARING,
   }));
   const [drafts, setDrafts] = useState<DraftParty[]>([]);
   const [reviewPending, setReviewPending] = useState(false);
@@ -290,6 +295,13 @@ export function CaseCreatePage() {
             ))}
           </>
         ))}
+        {canScheduleHearing ? (
+          <NextHearingFields
+            value={values.nextHearing ?? NO_NEXT_HEARING}
+            onChange={(next) => { setValues((c) => ({ ...c, nextHearing: next })); }}
+            dateError={errors.nextHearingDate}
+          />
+        ) : null}
         {section('intake.section.parties', (
           <>
             <IntakePartiesSection

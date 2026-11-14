@@ -1,6 +1,5 @@
 /** WP4 messages (LD-054, requirements section 10, decision D6): legal deadlines, their rules, holidays and reminders. */
 export const deadlinesEn = {
-  'nav.deadlines': 'Legal deadlines',
   'admin.tabs.deadlines': 'Deadline rules',
 
   'wp4.title': 'Legal deadlines',
@@ -94,12 +93,6 @@ export const deadlinesEn = {
   'wp4.calc.rolledFrom': 'Period ended on a closed day',
   'wp4.calc.result': 'Proposed last day',
 
-  'wp4.register.title': 'Legal deadlines register',
-  'wp4.register.hint': 'The deadlines of every case you may see. A deadline stays open until a user completes it; nothing closes by itself.',
-  'wp4.register.settings': 'Deadline rules, holidays and reminders',
-  'wp4.register.filters': 'Filter the deadlines',
-  'wp4.register.none': 'No deadline matches.',
-  'wp4.register.count': '{count} deadlines',
   'wp4.filter.all': 'All',
   'wp4.filter.status': 'State',
   'wp4.filter.calc': 'Approval',
@@ -127,7 +120,7 @@ export const deadlinesEn = {
   'wp4.settings.title': 'Legal deadline rules',
   'wp4.settings.disclaimer':
     'LawDesk states no statutory period, counting method or holiday of its own. Everything below is entered by your specialists with its legal source and approved by a competent member before the system uses it.',
-  'wp4.settings.toRegister': 'Back to the deadlines register',
+  'wp4.settings.toCalendar': 'Back to the calendar',
   'wp4.setting.DRAFT': 'draft',
   'wp4.setting.APPROVED': 'approved',
   'wp4.setting.RETIRED': 'retired',
