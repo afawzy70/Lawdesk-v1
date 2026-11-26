@@ -1,0 +1,144 @@
+# Independent R6 M0 review — PR #115
+
+**Verdict: REJECT.** Reviewed PR head `865ee1c67a819f1dd6863671cd0e67f07a14fab3` against `develop` `18822a83bff8e2a38b83db4370674a9f69919d81` on 2026-11-26. PR #114 head `c583333e33bab9a84987b1d1432b225f35714ceb` is open, unmerged, and owner-reported independently rejected. This is a design review, not a runtime acceptance test. R6 M0 changes only documentation and a read-only checker; no R6 behavior is implemented.
+
+**Assessment:** The package has useful coverage and explicit legal gates, but its security assumptions conflict with the actual Spring principal, its M1 deadline and appeal models do not reconcile with existing records, and the referral design can expose confidential complaint data through the linked case. Correct these before an M1 implementation branch is started. Source fidelity to `البرنامج.docx` is **BLOCKED** because the original DOCX was not accessible. The numbered extract was reviewed as unverified secondary evidence; its text must not be treated as authenticated source content.
+
+Evidence labels used below: **VERIFIED** = directly read at the stated SHA or counted independently; **INFERRED** = design consequence of verified code and proposal, requiring implementation proof; **BLOCKED** = evidence unavailable. Findings are risks in a proposal, not claims that an unimplemented R6 vulnerability is live.
+
+## 1. Source and requirements traceability
+
+The original `البرنامج.docx` was absent from the repository trees and accessible local workspace. The DOCX page count, exact Arabic wording and completeness of the extract are **BLOCKED**. The register's statement that the DOCX has seven pages is therefore unverified. The extract itself contains 209 consecutively numbered paragraphs. An independent parser counted 55 unique requirement IDs: PJ 20, ST 8, AL 6, PC 21. It found 176 cited paragraph numbers and 33 uncited numbers, exactly the list in `tools/docs/r6_m0_check.py:22-23`; paragraph 203 is cited twice (PC-08 and PC-16), appropriately for calculation and no hard-coded duration. These are **VERIFIED internal counts**, not a source-fidelity PASS.
+
+| Extract section | Paragraphs | Cited | Uncited as structural | Requirement mapping | Assessment |
+|---|---:|---:|---:|---|---|
+| Post-judgment rules and outcomes | 1–60 | 52 | 8 | PJ-01–PJ-16 | Internal references complete; source fidelity BLOCKED |
+| Appeal settings | 61–97 | 32 | 5 | ST-01–ST-08 | Internal references complete; source fidelity BLOCKED |
+| Statuses and stage data | 98–129 | 30 | 2 | PJ-17–PJ-19 | Internal references complete; source fidelity BLOCKED |
+| Alerts | 130–147 | 12 | 6 | AL-01–AL-06 | Acceptance criteria absent in AL register rows |
+| Delivery safeguards | 148–165 | 17 | 1 | PJ-20 | Seventeen substantive paragraphs compressed into one broad row |
+| Prosecution complaints | 166–209 | 33 | 11 | PC-01–PC-21 | PC-01 has no test; acceptance criteria absent in PC rows |
+| **Total** | **209** | **176** | **33** | **55 IDs** | **Internal arithmetic VERIFIED; original fidelity BLOCKED** |
+
+Stable IDs, source paragraph references, proposed behavior and the global “Not started” status exist. The register's `Existing` column describes baseline state, not R6 implementation status (`LD-DOC-R6-01:6,85-87`). For every substantive requirement to be testable, add row-level acceptance criteria and executable test IDs, particularly AL/PC rows and PC-01; replace `T-X01..` with explicit tests and separate the preservation and release criteria in PJ-20. Validate all rows against the actual DOCX after it is supplied. The first registration pass must also correct PJ-02: `judgment.operative_text` already exists in V621 and `Judgment.java:51-52`, so the proposed new operative-text field is misclassified. No independent evidence establishes missing content beyond the extract.
+
+The companion [requirement-by-requirement audit](TRACEABILITY.md) records all 55 IDs, extract references, register tests, acceptance status and row-specific notes.
+
+## 2. Architecture and domain model
+
+**VERIFIED baseline:** V302 restricts judgment to one per proceeding, with outcome, summary and an informational `final` boolean. V621 adds operative text and `judgment_status`. V843 links one existing `deadline` to a judgment; `JudgmentService:91-103` exposes it. V301 and `ProceedingService` already model a parent proceeding for an appeal or cassation. `case_position` is refreshed from proceeding rows by V803. V680/V681 provide approved rules, holidays, deadlines and audits; `DeadlineCalculator` and `DeadlineReminderRun` are existing services. `CaseAccessPolicy` and database `case_visible` protect case-bound data. R6 must preserve all those surfaces and historical rows.
+
+**INFERRED gaps:** `LD-DOC-R6-02:27-42` introduces `judgment_party_deadline`, `judgment_appeal` and a separate procedural record but does not specify how they synchronize with the existing `deadline`, `judgment.appeal_deadline_id`, parent `proceeding`, `case_position`, calendar, reports and notification jobs. Two party deadlines cannot both fit the one existing judgment deadline pointer. Define one source of truth, migration of existing records, historical association, and read behavior before M1. The M1 schema choice (“separate table or columns”, `LD-DOC-R6-02:29`) is also left to M1 review despite M0 being the architecture gate.
+
+The proposed party-specific deadline and separate CITRA decision, opponent position and judicial status are appropriate concepts. The state matrix correctly forbids automatic finality on expiry. It lacks a defined transition for simultaneous appeals and does not state how one next proceeding is shared or how distinct court filings map to its unique court number. `ProceedingService` has a strict first-instance → appeal → cassation ladder; exceptional remedies and remands remain blocked under D-08. A finality transaction must lock the judgment and both party deadline rows, recheck filed appeals and approvals, append history and commit atomically. Optimistic `version` alone is not a complete serialization rule for concurrent insert of an appeal versus finality. Require an adversarial transaction test.
+
+Settings need a PostgreSQL constraint or equivalent serializable transaction that handles `ALL` versus a specific case type, appeal type, effective date bounds, active state and replacement versions. The proposed exclusion-key description omits a precise representation of `ALL`; a simple equality exclusion would allow conflicting active records. Historical deadline snapshots should include the selected rule version, calculated due date and arithmetic/holiday evidence, and recalculation must retain both complete versions. D-01–D-05 and D-16 remain legal activation gates. A manual duration when no setting matches is also legally sensitive: it must not silently bypass those gates.
+
+Alerts must be independent per party and recipient, checked for current visibility before creation and presentation, and idempotent across multi-instance retry. The explicit manager mapping in D-14 is a sound proposed prerequisite; researcher-only delivery is a restricted interim behavior and does not satisfy the source's manager recipient. Document the retry key's lifecycle for changed offsets, corrected deadlines and revoked access; the existing notification publisher must not leak content in its payload.
+
+The complaint aggregate covers respondents, sessions, requests, decisions, grievance and referral in outline. The bidirectional complaint/case link is shown as two writable unique foreign keys (`LD-DOC-R6-02:41`), which do not prove reciprocal equality. Prefer one authoritative unique link and derive the reverse navigation, or enforce reciprocity transactionally. The existing intake requires automated number, case type, opened date, first-instance court number/year/filing date, financial-impact choice, party side, and a legal primary member (`IntakeRequest:24-43,56-69`), while referral source ¶194-196 supplies only some of these. Specify the adapter, lawful source of missing fields, document ownership/copy semantics and duplicate detection before M5. A single transaction plus a unique complaint-to-case key is required for retry and concurrency.
+
+## 3. Legal and owner decisions — all 24 checked
+
+The table audits the design's classification, not Kuwaiti law. **No legal approval record was supplied or independently verified.** “Source” below means the unverified numbered extract. `S` is expressly present in that extract; `L` is a baseline mechanism, not legal approval; `O` requires a decision. A source-specified workflow may still need legal parameters before activation.
+
+| Decision | Review of classification and state | Required owner or CITRA Legal Affairs action |
+|---|---|---|
+| D-01 | S+O, BLOCKED is appropriate; 30/15/30 are illustrative seeds only (¶75-91). | Legal Affairs approve each duration/applicability and source citation. |
+| D-02 | L+O, BLOCKED; baseline calculator supports both methods, not a legal choice. | Legal Affairs choose counting method per setting. |
+| D-03 | L+O, BLOCKED; holiday table exists, extension rule unspecified. | Legal Affairs approve weekends, holiday source and extension behavior. |
+| D-04 | L+O, BLOCKED; `counts_start_day` exists. | Legal Affairs approve inclusive/exclusive boundary and end-day rule. |
+| D-05 | S+O, opponent rule BLOCKED; ¶13/44 allow different triggers. “Implemented as written” at `04:29` is inaccurate in M0. | Legal Affairs approve per-party trigger, unknown notice date and evidence. |
+| D-06 | S, OPEN-SPEC; independent party deadlines are stated at ¶13. | Verify with original DOCX; no further rule inferred. |
+| D-07 | O, BLOCKED correctly; `03:78-82` gives only a proposed floor. | Legal Affairs approve finality conditions and exceptional evidence. |
+| D-08 | O, BLOCKED; highest stage/remand/exceptional remedy remains undefined. | Legal Affairs and owner approve stage model before activation. |
+| D-09 | O, OWNER-PENDING; maker/checker and delegation are not source-specified. | Owner designate legal approver, delegation, scope and audit; legal authority must approve any statutory rule. |
+| D-10 | O, BLOCKED; grievance basis/eligibility absent from extract. | Legal Affairs approve trigger, period and eligibility. |
+| D-11 | S+O, post-grievance BLOCKED; current closure matrix may close a filed grievance after expiry. | Owner/Legal Affairs decide pending-grievance state, closure and referral path. |
+| D-12 | S+O; six named capacities supported by extract, other capacities pending. | Owner approve future capacities and exact case mapping. |
+| D-13 | O, OWNER-PENDING; manual no-match duration authorization is not specified. | Owner/Legal Affairs approve maker/checker and safety gate. |
+| D-14 | O, OWNER-PENDING; no direct-manager data exists; disabled default is safe. | Owner approve mapping stewardship, delegation and recipient policy. |
+| D-15 | L, OPEN-SPEC for in-app channel; baseline notification mechanism exists. | Owner confirm channel and delivery semantics if source needs more. |
+| D-16 | O, PROVISIONAL; `ALL`/specific overlap interpretation is not a legal approval. | Owner/Legal Affairs approve conflict and precedence rule. |
+| D-17 | O, OWNER-PENDING; old DISMISSED/OTHER records exist. | Owner decide legacy display and workflow treatment. |
+| D-18 | L as a reuse proposal; baseline party identifier handling does not prove complaint field protection. | Owner confirm field-level complaint access, redaction and export. |
+| D-19 | O, PROVISIONAL; retention/no hard delete is a conservative proposal. | Owner approve retention schedule and correction procedure. |
+| D-20 | O, OWNER-PENDING; explicit scope proposal is incomplete at referral. | Owner approve complaint visibility and confidentiality inheritance. |
+| D-21 | O, OWNER-PENDING; proposed label may misstate a resolved CITRA choice. | Owner select label with separate decision display. |
+| D-22 | O, OWNER-PENDING; source gives states without every transition. | Owner decide investigation entry/skip authority. |
+| D-23 | O, PROVISIONAL; activity definition and window are proposals. | Owner approve qualifying actions and inactivity threshold. |
+| D-24 | O, PROVISIONAL; reopen forbidden by default, correction path not designed. | Owner/Legal Affairs decide audited correction/reopening authority. |
+
+Decisions requiring recorded **Legal Affairs** approval before the respective behavior is active: D-01–D-05, D-07, D-08, D-10, D-11, and legal aspects of D-13/D-16/D-24 if adopted. Owner decisions still open: D-09, D-12–D-14, D-17–D-24 as applicable. D-06 and D-15 are specified/baseline-supported only to the limited extent described. Proposed defaults must stay inactive and server-side gates must check a versioned approval record and specific authority; a UI switch alone is insufficient. Schema can support later approval if it records authority, scope, legal citation, effective range, setting version, maker/checker identities and immutable history; M0 has not fully specified those relationships.
+
+## 4. Security and authorization
+
+**VERIFIED conflict:** `LawdeskUser.java:20-46` grants every `Permission` enum value to any account with ADMIN. Adding `POSTJ_APPROVE`, `APPEAL_SETTINGS_APPROVE`, `COMPLAINT_VIEW` or `COMPLAINT_APPROVE` to that enum automatically grants them to ADMIN, contrary to `LD-DOC-R6-03:38,55` and D-09/D-20. A case scope check may prevent some content access but does not remove the legal authority, and technical administrators may be able to grant themselves scopes. A revised principal/permission grant model and role migration are required before any R6 endpoint is enabled. Tests must exercise actual ADMIN, LEGAL_MANAGER, preparer, delegated checker, out-of-scope and revoked-session accounts, with state-before/after assertions on all denied writes.
+
+**INFERRED referral leak:** `CaseAccessPolicy` permits a scoped manager to see an unrestricted case; `LEGAL_MANAGER` has `ALL` by V600:79-80. R6 says the complaint keeps a tighter rule but copies parties, facts and documents into a linked case (`02:49-50`, `03:64`). Without creating that case as RESTRICTED and transferring only authorized data, hidden complaint content becomes visible through the case, search, reports, attachments, timeline and alerts. Define an atomic confidentiality-inheritance rule and test every surface before referral is enabled. A linked case must never reveal complaint existence to a viewer outside complaint scope through its reverse link.
+
+The proposed matrix correctly calls for distinct maker/checker users, case scope, 404 equivalence and hidden-record isolation. It lacks an explicit test for role/permission grant and revoke audit, stale sessions after authority change, and attachment/document ownership once copied to a case. Require server checks before validation and persistence; ensure no unauthorized request mutates any new or existing table. The existing `CaseVisibilityPredicateEquivalenceTest` is useful baseline coverage, not proof for new complaint predicates.
+
+## 5. Migrations, PostgreSQL 18 and recovery
+
+**VERIFIED allocation snapshot:** On 2026-11-26 the GitHub branches endpoint listed 62 branches. Independent inspection of each branch's migration directory found V881 highest (R5 C and integrated R5), V861 on R5 A, V845 on develop and R6 M0. Two early branches (`main`, `qa/phase-1-independent-review`) returned no migration directory. V900–V949 are currently unused in this snapshot; they are planning numbers, never reservations. Recheck remote branches and open PRs immediately before writing any migration. A local CLI fetch from the isolated clone was unavailable due DNS; the GitHub connector supplied the branch scan.
+
+`LD-DOC-R6-03:5-34` correctly requires additive migrations, inactive legal seeds, existing-data reconciliation, PostgreSQL 18.x restore drills, previous-release jar startup and forward recovery. These are planned, not executed. `application.yaml:17,23-24` contains `ddl-auto: validate`, `out-of-order: true` and `*:future`. Those settings are **not** proof that an older app will run against an R6-migrated database: a real previous-release startup, CRUD smoke and background-job test on the migrated schema is mandatory. Likewise, `out-of-order` does not prove R5/R6 migrations can be applied in either order; Flyway validation, interdependencies and data effects must be exercised on both clean and upgraded databases. Preserve historical rows; do not use drop/truncate as routine rollback. A restore loses all writes after backup and needs reconciliation and owner approval. No R6 migration or database runtime was available to test in M0.
+
+## 6. R5 conflict and coexistence matrix
+
+R5 is **not accepted or merged**; its earlier independent REJECT is owner-provided context, not independently re-adjudicated here. Actual PR #114 diff has 195 changed files, including V860/V861/V880/V881, `Permission.java`, `IntakeRequest/IntakeService`, case screens, `App.tsx`, `AdminTabs.tsx`, deadline UI and `ProceedingForms.tsx`. R6 currently changes documents only. The matrix concerns proposed M1–M6 implementation.
+
+| Area | R6 on develop alone | R6 with unmerged R5 changes | Required coordination |
+|---|---|---|---|
+| Migration numbers | V900+ free in current snapshot | No numeric collision with V860/861/880/881 | Test both installation orders and previous-release runtime; no automatic “either order clean” claim. |
+| Permission enum/roles | New sensitive authorities conflict with ADMIN auto-grant | R5 adds `LIST_ADMIN` in same enum and role catalog | Reconcile text merge and change ADMIN semantics without breaking R5 role administration. |
+| Judgment/case status UI | Existing `final` and `case_position` must remain intelligible | R5 removes a case status row and adds a circulation banner | Agree distinct judgment, procedural and case-state labels; test both bases. |
+| Deadline pages/settings | Existing `/deadlines` and `/admin/deadlines` | R5 removes register screen and redirects `/deadlines`; edits settings page, forms and rules panel | Allocate new settings route; preserve legacy links and test navigation on both bases. |
+| Routes and navigation | R6 needs complaint and post-judgment routes | R5 edits `App.tsx` and `AdminTabs.tsx` | Rebase with reviewed route/permission diff and RTL/LTR browser tests. |
+| Case registration/referral | Intake has required first-instance and finance fields | R5 adds requests and optional hearing to intake DTO/service | Define referral adapter for both signatures; do not fill unknown values by guess. |
+| Case view and access | Complaint link and visibility need new components | R5 moves grants to admin, removes counsel and merges case sections | Test complaint link and confidentiality on both layouts. |
+| Shared data | Judgment, deadline and case tables stay | R5 renames counsel table and adds case requests | R6 must not depend on retired counsel; run migration and data-preservation drills. |
+| Existing judgment workflow | Parent proceedings and old deadline pointer remain | R5 does not change judgment/deadline backend | Reconcile R6 models on develop first; independently retest after any R5 acceptance. |
+
+`LD-DOC-R6-02:59` overstates order independence, and `:62` understates R5 deadline-file edits. Do not rebase R6 on R5 until R5's separate QA findings are resolved and owner direction is recorded.
+
+## 7. TDD and milestone readiness
+
+The test-first sequence, branch isolation, independent QA gates, PostgreSQL 18.6 integration, browser E2E, Arabic RTL/English LTR and restore drills in `LD-DOC-R6-04:58-102` are directionally suitable. They are proposals; no RED test, runtime migration proof or browser run was delivered for R6. Add explicit tests for the findings below, especially an actual ADMIN principal, simultaneous appeal/finality races, grievance-pending closure, cross-surface hidden complaint leakage, old-app compatibility and R5 merge order. Test that a denied action leaves **all** affected rows unchanged.
+
+M1 may be constructed before D-01 and D-07 legal approval **only after M0 correction** and only with all deadline calculation, manual override, appeal filing that relies on unapproved due dates, finality, and automatic next-stage creation disabled at the server. Its schema/history and explicit draft capture can be built and tested with synthetic approved fixtures. The current M1 row (`04:95`) calls manual durations and appeals “unblocked” despite D-01/D-05/D-13 and the deadline integration gap. That is unsafe. M1 readiness: **NO** at this reviewed SHA. M2–M6 require their own decisions and gates; M6 cannot compensate for an unsafe M1 model.
+
+## 8. Findings (each blocks owner acceptance of M0)
+
+| ID | Severity | Requirement / decision | File and line | Expected; observed; evidence | Correction | Blocks M1 |
+|---|---|---|---|---|---|---|
+| QA-R6-M0-001 | **P0** | D-09, D-20; all legal approvals | `LD-DOC-R6-03:38,55`; `backend/src/main/java/com/lawdesk/security/LawdeskUser.java:20-46` | **VERIFIED:** ADMIN must not inherit legal approval or complaint view; actual principal grants every enum permission to ADMIN. | Specify and test a real exception or separate authority model, grant migration, delegation and case scope before defining R6 authorities. | **YES** |
+| QA-R6-M0-002 | **P0** | PC-11/15, D-20 | `LD-DOC-R6-02:41,49-50`; `LD-DOC-R6-03:60-66`; `V600__LD-050_access_foundation.sql:79-80` | **INFERRED:** hidden complaint content must stay hidden after referral; design copies it to a case visible to ALL-scoped LEGAL_MANAGER unless confidentiality inheritance is explicit. | Make linked case restricted atomically; specify party/document visibility and reverse-link filtering; cross-surface leak tests. | **NO** (blocks M5) |
+| QA-R6-M0-003 | **P1** | All source-derived requirements | `LD-DOC-R6-00:15-16`; `docs/evidence/DOC-R6-M0/README.md:3` | **BLOCKED:** the source DOCX was unavailable; 209/176/33 counts prove only extract consistency. | Supply immutable DOCX/hash and independently compare every paragraph and page against the extract/register. | **YES** |
+| QA-R6-M0-004 | **P1** | PJ-03/05/16, ST-05 | `LD-DOC-R6-02:27-35,45-51`; `V843__LD-054_judgment_appeal_deadline.sql:1-20` | **VERIFIED/INFERRED:** existing one-deadline pointer and general deadline/calendar models are not reconciled with two new party deadlines. | Choose authoritative rows, define legacy migration/display, calendar/report/job integration and full snapshot history; test old records. | **YES** |
+| QA-R6-M0-005 | **P1** | PJ-08/17/19, D-08 | `LD-DOC-R6-03:74-83`; `V301__LD-019_proceeding.sql:5-30` | **INFERRED:** two appeal rows and simultaneous appeals lack a deterministic mapping to existing parent proceedings and their unique court/stage number. | Specify filing-to-proceeding cardinality, shared stage rules, case-position update and transactional locking; add dual-appeal race tests. | **YES** |
+| QA-R6-M0-006 | **P1** | D-01–D-07, D-13 | `LD-DOC-R6-04:21,25-37,94-96`; `LD-DOC-R6-01:16,45` | **VERIFIED:** M1 proposes an active manual duration path and appeals while legal setting/trigger/override authority is blocked; approval gates are only described generically. | Rewrite M1 as schema/draft-only until versioned legal approval; server-refuse every dependent action; test negative gates. | **YES** |
+| QA-R6-M0-007 | **P1** | PC-09/14, D-11 | `LD-DOC-R6-03:101-104`; extract ¶192,201 | **INFERRED:** closure on deadline expiry can occur despite a grievance filed before expiry, while post-grievance status is undefined. | Add a `grievance_pending` guard and owner-approved path; forbid closure until disposition, with tests. | **NO** (blocks M5) |
+| QA-R6-M0-008 | **P1** | ST-02/04, D-16 | `LD-DOC-R6-01:40-43`; `LD-DOC-R6-04:40`; `LD-DOC-R6-02:35` | **INFERRED:** an equality-based exclusion on case-type scope misses `ALL` versus specific rows; precedence and end-boundary rules undefined. | Specify exact PostgreSQL 18 constraint/transaction, half-open ranges, overlap and lookup precedence tests; keep inactive pending decision. | **NO** (blocks M2) |
+| QA-R6-M0-009 | **P1** | PC-11, D-12 | `LD-DOC-R6-02:49`; `backend/src/main/java/com/lawdesk/cases/IntakeRequest.java:24-43,56-69` | **VERIFIED/INFERRED:** referral fields cannot satisfy mandatory intake fields without an adapter or invented values. | Define legally sourced mapping, dedicated service boundary, party/document transfer and atomic idempotency constraint; test with both R5 states. | **NO** (blocks M5) |
+| QA-R6-M0-010 | **P1** | PJ-20, AL-01–06, PC-01–21 | `LD-DOC-R6-01:33,50-83` | **VERIFIED:** AL/PC rows lack acceptance column, PC-01 lacks a test, and PJ-20 uses an open-ended test range. | Add row-level expected behavior and stable test IDs for every substantive item; separate grouped safeguards. | **YES** |
+| QA-R6-M0-011 | **P1** | R5 compatibility, recovery | `LD-DOC-R6-02:59-68`; `LD-DOC-R6-03:11-16` | **INFERRED:** Flyway `out-of-order` and future-ignore do not establish either merge order or previous-app runtime compatibility. | Require fresh/upgraded DB matrix in both orders and previous-release jar smoke before any release claim. | **YES** (migration design gate) |
+| QA-R6-M0-012 | **P2** | PJ-02 | `LD-DOC-R6-01:15`; `V621__LD-051_claims_and_judgments.sql:64`; `Judgment.java:51-52` | **VERIFIED:** operative text already exists; register calls it a proposed new field. | Mark existing/partial accurately and use the existing field unless a justified distinct one is approved. | **YES** |
+| QA-R6-M0-013 | **P2** | AL-01/05/06, D-14/15 | `LD-DOC-R6-02:37,78`; `LD-DOC-R6-04:50-53`; `LD-DOC-R6-03:66` | **INFERRED:** alert idempotency key and disabled manager policy are described, but offset change, recalculation, retry and revoked recipient behavior are not fully specified. | Define event version and visibility recheck; test retries, policy flips and missing mappings. | **NO** (blocks M3) |
+| QA-R6-M0-014 | **P2** | D-09/14/20; security | `LD-DOC-R6-03:40-55,66`; `LD-DOC-R6-04:80-85` | **VERIFIED:** test plan covers approvals, not the audit and stale-session behavior of permission/scope grants and revokes. | Add grant/revoke audit, former recipient, delegated checker, stale session and no-write tests. | **YES** |
+| QA-R6-M0-015 | **P2** | ST-05/08, PJ-16, D-03 | `LD-DOC-R6-02:45-46,51`; `LD-DOC-R6-03:5-6` | **INFERRED:** snapshot lacks an explicit immutable holiday/arithmetic trace needed to reproduce historical due dates after holiday edits. | Store applied calculation inputs/result and holiday revision or evidence; test change then audit/recalculation. | **NO** (blocks M2) |
+| QA-R6-M0-016 | **P2** | D-05, implementation status | `LD-DOC-R6-04:29-30`; `LD-DOC-R6-00:3,11` | **VERIFIED:** “Implemented as written” contradicts the M0 documentation-only and none-implemented statements. | Replace with “PROPOSED”; distinguish existing calculator support from R6 behavior. | **YES** |
+
+**Finding counts:** P0 2; P1 9; P2 5; P3 0. There is no PASS for original source fidelity, R6 runtime behavior, PostgreSQL migration execution, previous-release compatibility or browser E2E.
+
+## 9. Remediation handoff for Claude and owner
+
+1. Obtain `البرنامج.docx` with provenance and digest, compare it to the 209-line extract, and correct the register with row-level acceptance/test traceability. Keep all R6 statuses “not started.”
+2. Fix the actual ADMIN authority inheritance before adding sensitive permissions; document legal approver identity, delegation, case scope, audit and a real maker/checker test matrix. Record D-09 and D-20 owner decisions.
+3. Resolve M1 schema: existing deadline versus party deadlines; old judgment pointer; appeal-to-proceeding cardinality; `case_position`; concurrent appeal/finality writes; historical snapshots. Publish exact keys, constraints and transaction order.
+4. Rewrite M1 gate so D-01/D-05/D-07/D-13-dependent actions cannot run until recorded legal approval. No seeded value, no manual override and no fallback can activate a legal deadline on its own.
+5. Repair later-milestone designs for complaint confidentiality inheritance, grievance-pending closure, referral intake mapping, bidirectional link integrity, `ALL` overlap and alert recipient lifecycle. Preserve R5's separate rejected status and test both base combinations if it is later accepted.
+6. Update migration/recovery claims to require the old-jar runtime test, PostgreSQL 18 fresh/upgrade matrix, data reconciliation and restore/forward-recovery drills. Recheck migration numbers at implementation time.
+
+**Owner recommendation:** return PR #115 to the author for M0 correction and a new independent review at a new SHA. Do not merge, deploy or start M1 from this version. The review makes no legal interpretation of Kuwaiti periods or finality.
