@@ -85,6 +85,9 @@ def main():
     for g in sorted(gates):
         if not re.search(r"\b" + g + r"\b", docs["LD-DOC-R6-05-authoritative-design.md"]) :
             problems.append("gate %s is not defined in 05" % g)
+    for pol in sorted(set(re.findall(r"\bP-[A-Z]+\b", everything))):
+        if not re.search(r"`" + pol + r"`", docs["LD-DOC-R6-05-authoritative-design.md"]):
+            problems.append("owner policy %s is not defined in 05" % pol)
     # Terminology: in a documentation-only milestone nothing is called implemented (the vocabulary line that explains the ban is allowed).
     ALLOWED = ("not implemented", "none implemented", "built in r6", "is not used", "not used for r6", "\"implemented as written\"")
     for name, text in docs.items():

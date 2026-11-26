@@ -28,4 +28,6 @@
 
 ## Change log
 * `6fc1efa` first package. `865ee1c` first correction (owner review). **QA REJECT** of `865ee1c` (16 findings).
-* This revision: authorization redesign from the real `LawdeskUser`; referral confidentiality model; one authoritative judgment/deadline/appeal/stage model; legal gates with DB-level enforcement; M1 reduced to schema/history/draft; register rebuilt with acceptance criteria and executable test ids for all 55 rows; PJ-02 corrected; D-25 added; recovery and compatibility claims corrected; R5 matrix corrected.
+* `48e39d9`: **QA REJECT (Round 2)** — nine findings closed, seven open (3 P0, 3 P1, 1 P2).
+* Round 3 revision (this): sensitive-authority model with seven layers and a first-custodian bootstrap; case-confidentiality guards and owner policies; legacy write-path inventory with database invariants; litigant/filing/capacity model; mandatory atomic referral; one-transaction alert publication. Register now 222 test ids.
+* `48e39d9` revision (previous): authorization redesign from the real `LawdeskUser`; referral confidentiality model; one authoritative judgment/deadline/appeal/stage model; legal gates with DB-level enforcement; M1 reduced to schema/history/draft; register rebuilt with acceptance criteria and executable test ids for all 55 rows; PJ-02 corrected; D-25 added; recovery and compatibility claims corrected; R5 matrix corrected.

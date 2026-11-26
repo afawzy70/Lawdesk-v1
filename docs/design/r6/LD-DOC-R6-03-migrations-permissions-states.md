@@ -5,14 +5,14 @@ Nothing here is built. Authorization mechanics, the data model, gates, alerts an
 ## 1. Migrations, recovery and compatibility
 
 ### 1.1 Rules for every R6 migration
-Additive only. No existing column or table altered destructively; no historical row rewritten; no backfill. New tables carry a primary key, `version` and audit columns; constraints are named; legal seeds are inserted DRAFT/inactive and never approved by a migration. The only change to an existing table in the whole plan is the nullable `proceeding.citra_capacity` (M1). (`legal_case` receives **no** new column: the complaint↔case link is a separate table, 05 §B.4.) No migration is written in M0.
+Additive only. No existing column or table altered destructively; no historical row rewritten; no backfill. New tables carry a primary key, `version` and audit columns; constraints are named; legal seeds are inserted DRAFT/inactive and never approved by a migration. **No existing table receives a new column** in the whole plan (capacity is per filing in `judgment_appeal`; the complaint↔case link is a separate table, 05 §B.2). Existing tables receive only **triggers** (I-1…I-6 on `judgment`/`deadline`, the `role_permission` guard, the `legal_case` declassification guard), which change no stored row. No migration is written in M0.
 
 ### 1.2 Migration numbers: a plan, not a reservation
 Planning allocation only: V900–V909 M1, V910–V919 M2, V920–V929 M3, V930–V939 M4, V940–V949 M5. It binds nobody. **Immediately before creating each migration file** run `python3 tools/docs/r6_m0_check.py` (scans every remote branch), check open PRs and branch heads on GitHub, and take a number only if it is above the highest version found anywhere and unused; paste the output in the milestone PR. Snapshot at this revision: highest anywhere V881 (R5), develop V845; V900–V949 unused.
 
 ### 1.3 Compatibility with previously deployed releases
 `application.yaml:17-24` sets `ddl-auto: validate`, `out-of-order: true`, `ignore-migration-patterns: "*:future"`. This is **necessary but not sufficient**: it shows that Flyway validation is configured to tolerate newer migrations, not that an older release runs correctly on an R6 schema, and it says nothing about coexistence with R5's migrations. Required proof (not yet done): **T-MIG-3** — start the previous release jar (the SHA UAT serves) on a database migrated by the milestone, log in, run case/judgment/deadline CRUD smoke and one `DeadlineReminderRun` cycle **with R6 tables populated**; **T-MIG-1/2/4** — fresh PostgreSQL 18 database, restored synthetic pre-milestone dump with unchanged digests of every pre-existing table, second start applies nothing; **T-MIG-5** — installation orders if R5 is later accepted. Compatibility is one-directional: new code on an old schema is unsupported.
-Known hazard (stated, not hidden): the previous release can still edit or complete a `deadline` that an R6 party row points to, bypassing R6 rules. This exists only after an application rollback; it is detected by a reconciliation query comparing `deadline.due_on` with the latest evidence row and reported before roll-forward.
+Previous release and R6 triggers (revised in Round 3): the database triggers of `LD-DOC-R6-05` §I apply to **every** writer, including the previous release jar. A legacy write to an R6-linked judgment or deadline therefore fails closed with no side effect (the old release's HTTP status for that failure is not asserted); unlinked records work as before. This replaces the earlier hazard statement that an old release could silently edit an R6-linked deadline. Only a database superuser can bypass the triggers; the reconciliation of §I.2 (I-7) detects it.
 
 ### 1.4 Three different recovery mechanisms (never conflated)
 | Mechanism | When | What it does | What it loses |
@@ -33,12 +33,12 @@ Nothing in this list is performed in M0.
 
 ## 2. Permissions (PROPOSED; final allocation PENDING owner approval — D-09)
 
-Principle: **technical administration is not legal authority.** ADMIN administers configuration, users and roles; it does not hold legal approval or complaint content by role. Mechanism (non-inherited authorities, grants, delegation, audit): `LD-DOC-R6-05` §A.
+Principle: **technical administration is not legal authority.** ADMIN administers configuration, users and roles; it does not hold legal approval or complaint content by role. Mechanism (sensitive authorities only in `legal_authority_grant`; never from the enum, role rows, role creation, role assignment, direct assignment or delegation; first-custodian bootstrap; seven enforcement layers): `LD-DOC-R6-05` §A. The "no" entries below mean exactly that.
 
 | Authority | Meaning | Inherited by ADMIN? |
 |---|---|---|
 | `POSTJ_VIEW` | read party deadlines, appeals, decisions, alert history (case-scoped) | yes (existing pattern; case scope still applies) |
-| `POSTJ_PREPARE` | register/edit deadlines and filings, confirm opponent position, prepare decision/finality/recalculation | yes (preparing is not approving) |
+| `POSTJ_PREPARE` | register/edit litigants, deadlines and filings, confirm each opposing litigant's position, prepare decision/finality/recalculation | yes (preparing is not approving) |
 | `POSTJ_APPROVE` | approve/reject prepared decisions, finality, recalculations | **no** |
 | `APPEAL_SETTINGS_VIEW`, `APPEAL_SETTINGS_MANAGE` | setting screen; source ST-01: administrator or legal affairs manager | yes |
 | `APPEAL_SETTINGS_APPROVE` | records the legal authority's approval that makes a setting usable | **no** |
@@ -57,18 +57,18 @@ Maker-checker for every approval: preparer ≠ approver; approver holds the auth
 |---|---|---|---|
 | — | register, IN_FAVOUR | في انتظار انقضاء ميعاد الطعن | — |
 | — | register, AGAINST or PARTIAL | جاري إعداد الطعن | — |
-| في انتظار انقضاء ميعاد الطعن | opponent filing recorded | منظورة استئناف / منظورة تمييز | child proceeding mapped (05 §C.2); CITRA capacity مستأنف ضدها / مطعون ضدها |
+| في انتظار انقضاء ميعاد الطعن | an opposing litigant's filing recorded | منظورة استئناف / منظورة تمييز | child proceeding mapped (05 §C.2; own child unless an approved joinder); capacity of that filing مستأنف ضدها / مطعون ضدها |
 | جاري إعداد الطعن | CITRA filing recorded before expiry | منظورة استئناف / منظورة تمييز | capacity مستأنفة / طاعنة |
-| any pending status | **a second filing** by the other party | (unchanged: منظورة …) | independent row; both party deadlines resolve independently |
-| في انتظار انقضاء ميعاد الطعن | finality approved | حكم نهائي | G-FINAL satisfied (D-07), all party deadlines resolved/elapsed, opponent position confirmed «no appeal», no non-VOID filing |
+| any pending status | **another filing** by any other litigant (CITRA or another opposing litigant) | (unchanged: منظورة …) | independent row; every litigant's deadline resolves independently |
+| في انتظار انقضاء ميعاد الطعن | finality approved | حكم نهائي | G-FINAL satisfied (D-07), every litigant resolved, all party deadlines resolved/elapsed, each opposing litigant's position confirmed «no appeal», no non-VOID filing, no unmapped child proceeding (I-6) |
 | جاري إعداد الطعن | finality approved | حكم نهائي (قبول الحكم) | as above and CITRA decision NOT_APPEAL approved |
 | any non-final | deadline expiry | **no change** (alert only) | PJ-09 |
 
-Forbidden (stable rule codes, no side effect): final → any other status (reopening, D-24); filing on a final judgment (`JUDGMENT_FINAL`); finality while a party deadline is running, a non-VOID filing exists (`APPEAL_FILED`) or the opponent position is UNRESOLVED; non-appeal after a CITRA filing; a second non-VOID filing by the same party and type; any transition not listed.
+Forbidden (stable rule codes, no side effect): final → any other status (reopening, D-24); filing on a final judgment (`JUDGMENT_FINAL`); finality while a party deadline is running, a non-VOID filing exists (`APPEAL_FILED`) or any opposing litigant's position is UNRESOLVED; non-appeal after a CITRA filing; a second non-VOID filing by the same litigant and appeal type; any transition not listed.
 Held open: label while an approved non-appeal waits for the opponent's period (D-21).
 
 ### 3.2 Parallel positions (separate columns, never overwritten)
-CITRA decision `UNDECIDED → APPEAL | NOT_APPEAL` (reason, approver, date). Opponent position `UNRESOLVED → APPEALED | NO_APPEAL_CONFIRMED`. Judicial status `DEADLINE_RUNNING → APPEAL_FILED → FINAL`. Changing one leaves the other two untouched (T-PJ14-1).
+CITRA decision `UNDECIDED → APPEAL | NOT_APPEAL` (reason, approver, date). Position of **each** opposing litigant `UNRESOLVED → APPEALED | NO_APPEAL_CONFIRMED` (on `judgment_litigant`). Judicial status `DEADLINE_RUNNING → APPEAL_FILED → FINAL`. Changing one leaves the other two untouched (T-PJ14-1).
 
 ### 3.3 Complaint status
 | From | To | Condition |
@@ -76,7 +76,7 @@ CITRA decision `UNDECIDED → APPEAL | NOT_APPEAL` (reason, approver, date). Opp
 | (new) | مقدمة للنيابة | on submission |
 | مقدمة للنيابة | قيد التحقيق بالنيابة | first session/request or explicit action (D-22) |
 | قيد التحقيق بالنيابة | محفوظة | preservation decision recorded |
-| قيد التحقيق بالنيابة | محالة للمحكمة | referral recorded; one linked case created or `PENDING_DATA` (05 §B.4) |
+| قيد التحقيق بالنيابة | محالة للمحكمة | **only by the atomic completion of a referral** (05 §B.4): all mandatory data present, manifest approved, owner policy P-MANIFEST and D-25 approved; the linked case is created in the same transaction. While any value is missing the complaint **stays «قيد التحقيق بالنيابة»** with a referral draft and a list of missing fields. Invariant R-1: this status ⇔ exactly one linked case |
 | مقدمة للنيابة | محفوظة / محالة للمحكمة | only if D-22 approves skipping investigation |
 | محفوظة | مغلقة | explicit action by an authorised user, **only if no grievance is PENDING** and (a non-grievance decision is approved **or** the grievance deadline elapsed with no grievance filed) |
 | محفوظة | (stays) | a grievance is filed → recorded PENDING; path after disposition is D-11 (BLOCKED) |
