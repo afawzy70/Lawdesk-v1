@@ -2,7 +2,7 @@
 
 Baseline: `origin/develop` = `18822a83bff8e2a38b83db4370674a9f69919d81` (the SHA served by UAT; develop has not moved since). R6 branches from it. PR #114 (R5) is **not** in this base and is not touched.
 
-## 1. What develop already has (verified by reading the tree)
+## 1. EXISTING on develop (verified by reading the tree; nothing here is R6)
 
 | Area | Found | Consequence for R6 |
 |---|---|---|
@@ -22,7 +22,7 @@ Missing entirely: per-party deadlines, appeals as separate records with parties,
 Partial: judgment outcome mapping, capacity of CITRA per stage, reminder offsets (global today), counting method (present in rules, not tied to settings).
 Conflicts between the document and the repository are listed in `LD-DOC-R6-04` §A.
 
-## 3. Domain model proposal (tables new unless stated; all `uuid` ids, `version` for optimistic locking, `created_*/updated_*`)
+## 3. Domain model — PROPOSED, NOT IMPLEMENTED (tables new unless stated; all `uuid` ids, `version` for optimistic locking, `created_*/updated_*`)
 
 ```
 judgment (existing) 1──* judgment_party_deadline            (party CITRA|OPPONENT)
@@ -50,13 +50,24 @@ Principles:
 * Authorization: every endpoint goes through the existing `CaseAccessPolicy` (hidden → 404 with a body identical to an unknown id); a complaint not yet linked to a case has its own visibility rule (D-20).
 * Counting reuses `DeadlineCalculator` with the method chosen by the approved setting (calendar/working, holidays) — no period literal in code (T-X03).
 
-## 4. Compatibility with R5 (documented before any code)
+## 4. Compatibility with R5 (matrix built from the actual R5 diff, `develop...feature/LD-DOC-r5-screens`, 195 files)
 
-* R6 branches from **develop**, not from `feature/LD-DOC-r5-screens`. R5's open state: #114 is an unaccepted draft; I found no recorded QA verdict in the PR or in #104 (the owner reports an independent REJECT; I treat that as given and do not touch #114 or its branches).
-* Migration numbers: develop ends at V845; R2/R3 use V801-V803 and V850; R5 uses V860, V861, V880, V881. **R6 reserves V900–V949** (V900-V909 M1, V910-V919 M2, V920-V929 M3, V930-V939 M4, V940-V949 M5), re-checked against every remote branch before each merge request. Because R6 numbers are above every number used on any branch, they apply after all of them in either merge order.
-* Shared UI/code touch points with R5 that will conflict at merge time: the case view page and tabs (R5 removes the lawyers section and the «الحالة» field, merges administrative bodies), the admin navigation and `/deadlines` (R5 deletes the register screen; R6 needs deadline *rules/holidays/settings* reachable from `/admin`), `IntakeRequest`/`CaseCreatePage` (R5 adds requests and next hearing; R6 referral reuses intake), the catalogue lists (R5 makes ~58 lists admin-editable). Strategy: R6 adds new files and routes; edits to shared files stay minimal and are listed per milestone in the PR so the later rebase is mechanical. R6 does **not** depend on any R5 behaviour; the post-R5 rebase is a separate, reviewed step after the owner decides R5.
-* One real dependency to flag: if R5 is merged first, the `/deadlines` register disappears while R6 relies on the deadline rules/holidays administration. Rules and holidays are API-level in develop (`DeadlineSettingsController`); R6 puts its settings screen under `/admin` so it survives either order.
-* `case_party_counsel` (R5 V880) is irrelevant to R6; R6 does not read or write it.
+State of R5: PR #114 is an unaccepted Draft and, per the owner, independently **QA-rejected**. GitHub shows no review or comment on #114 (the verdict is owner-stated; recorded here as given). Nothing from R5 is assumed merged; R6 branches from develop `18822a8` and must work with or without R5.
+
+| Area | R5 change (in #114, unmerged) | R6 touch (PROPOSED) | Conflict | Mitigation / order independence |
+|---|---|---|---|---|
+| Migrations | V860, V861 (lists), V880 (rename counsel table), V881 (case requests) | M1+ new numbers | Number clash only if R6 picks one R5 uses | Plan range V900+; script rescan before each migration (03 §1.2). Flyway `out-of-order` makes either merge order apply cleanly |
+| `Permission.java` | +`LIST_ADMIN` (2 lines) | + R6 authorities | Textual merge conflict in the same enum/constants block | Add R6 entries in their own block at the end; resolve mechanically on rebase |
+| `App.tsx`, `AdminTabs.tsx` | +6 / +2 lines (routes/tabs for lists, case access) | New routes (settings, complaints, post-judgment) | Textual conflict, same files | New route files; one-line registrations placed in separate hunks |
+| Deadlines UI (`features/deadlines/*`) | **Deletes the `/deadlines` register screen**; rules/holidays move to `/admin`; messages `deadlines.*` edited | Settings screen needs rules/holidays/settings | If R6 edited `DeadlineSettingsPage`/`RulesPanel` it would conflict with R5's move/deletion | R6 does **not** edit any file under `features/deadlines`; its settings screen is a new component under `/admin`. Backend `DeadlineSettingsController` is unchanged by R5 (not in the diff) |
+| Proceedings UI (`ProceedingForms.tsx`) | edited | M1 adds capacity/appeal UI | Possible textual conflict | R6 adds new components; if the form must change, the edit is isolated in its own commit |
+| Case view and registration (`CaseDetails*`, `CaseCreatePage`, `IntakeRequest`, `IntakeService`, `CaseService`, `CaseDetails.java`) | Removes status/lawyers sections, merges bodies, adds requests and next hearing, new fields in `IntakeRequest` | M5 referral calls case intake; case view gains complaint link and post-judgment panel | Same classes and DTO | M5 uses the case-intake **service interface** and adds only a new optional field; no R6 code reads R5-only fields. Referral integration test runs on both bases (develop and develop+R5) before M5 is submitted |
+| Case access (`features/access/*`) | Moves grants/confidentiality to `/admin/case-access` | Complaint access list reuses the grant concept | UI only | R6 backend reuses `CaseAccessPolicy` unchanged; no UI file shared |
+| Catalogue (`catalog/*`, lists) | ~58 lists admin-managed | New code lists (appeal type, complaint kinds) | R6 lists would be catalogue-managed only if R5 lands | R6 registers its lists through the develop mechanism (`lookup_value`) and does not depend on the R5 registry; reconcile on rebase |
+| Judgments/deadlines/notifications backend | **Not in the R5 diff** | Core of R6 | None | — |
+| Tests | R5 changes `CaseVisibilityApiTest`, `CaseTestData` | R6 adds own tests | Fixture edits | R6 does not edit shared fixtures; uses its own builders |
+
+Rule: R6 never rebases onto R5 until the owner decides R5 and Codex accepts it; the post-R5 rebase is a separate reviewed step. If R5 is rejected and reworked, R6 is unaffected. R6 does not read or write `case_party_counsel`.
 
 ## 5. Risks
 

@@ -1,42 +1,69 @@
 # LD-DOC-R6-03 — Migration plan, permission matrix, state-transition matrices (M0)
 
-## 1. Migration and rollback plan
+## 1. Migrations, recovery and compatibility (PROPOSED; nothing here exists yet)
 
-Rules: additive only; no existing column or table altered destructively; no historical row rewritten; every new table has a primary key, a `version` column and audit columns; CHECK/EXCLUDE constraints carry names; seeds are inserted **inactive/DRAFT**.
+### 1.1 Rules for every R6 migration
+Additive only. No existing column or table altered destructively; no historical row rewritten; new tables carry a primary key, `version` and audit columns; constraints are named; legal seeds are inserted **inactive/DRAFT**. No migration is written in M0.
 
-| Range | Milestone | Content |
-|---|---|---|
-| V900–V909 | M1 | `judgment_party_deadline`, `judgment_appeal`, `judgment_appeal_document`, procedural status + history, `citra_capacity` on stages, applied-duration snapshot columns |
-| V910–V919 | M2 | `deadline_setting` + history + overlap exclusion constraint, `appeal_decision`, `deadline_recalculation`, finality record, three DRAFT seed rows |
-| V920–V929 | M3 | `case_alert`, alert offsets setting, notification types |
-| V930–V939 | M4 | complaint aggregate tables |
-| V940–V949 | M5 | decision/grievance/referral tables, `legal_case.origin_complaint_id` (nullable, unique) |
+### 1.2 Migration numbers: a plan, not a reservation
+Planning allocation only: V900–V909 M1, V910–V919 M2, V920–V929 M3, V930–V939 M4, V940–V949 M5. It binds nobody. **Immediately before creating each migration file** the developer runs `python3 tools/docs/r6_m0_check.py` (scans every remote branch) and checks open PRs; the number is taken only if it is above the highest version found anywhere and no other branch has the same one; the result is pasted into the milestone PR. State at this revision: highest anywhere V881 (R5), develop V845.
 
-Rollback: each milestone ships a documented reverse (drop of the new tables in reverse dependency order), proven on a restored copy; because nothing existing is altered, rolling back application code alone leaves the database valid (new tables simply unused). For `legal_case.origin_complaint_id` (the only change to an existing table) the reverse is `drop column`, safe while it is null for all pre-existing rows.
-Verification per milestone: (a) empty database migrates; (b) a PostgreSQL 18 database restored from a pre-milestone synthetic dump migrates, row counts and digests of all pre-existing tables unchanged; (c) second start applies nothing; (d) the restore drill (`tools/restore-drill`) is extended with the new tables. Production-like numbers are never used; UAT is not touched.
-Backfill: none. Existing judgments get no party deadline unless a user creates one; the existing `deadline` and `appeal_deadline_id` stay valid and are shown as "previous record".
+### 1.3 Compatibility with previously deployed releases (EXISTING configuration, verified)
+`application.yaml` sets Flyway `out-of-order: true` and `ignore-migration-patterns: "*:future"` ("future versions stay ignored when an older release runs (rollback)"). Consequences:
+* An older application release started against a database that already has R6 migrations does **not** fail Flyway validation; it ignores them.
+* R6 tables are new and unknown to older code; older code never reads them. The only change to an existing table is a nullable `legal_case.origin_complaint_id` (M5), invisible to older code because Hibernate runs `ddl-auto: validate` against its own entities only (unmapped columns are not validated).
+* Each milestone must **prove** this, not assume it: start the previous release jar (the SHA UAT serves) against a database migrated by the milestone, run its smoke journey, and record the result (T-M02).
+* Compatibility does not work in the other direction: newer code against an older schema is not supported; migrations always run before the new code serves.
 
-## 2. Permissions (proposed; names to be confirmed in M1 review)
+### 1.4 Three different recovery mechanisms (never conflated)
+| Mechanism | When | What it does | What it loses |
+|---|---|---|---|
+| **Application rollback** | A defect is found after deployment, data are valid | Redeploy the previous release jar; R6 tables stay in place, untouched and unused (1.3). R6 behaviour is switched off by the activation gates (D-gates in 04) where applicable | R6 screens/jobs stop; R6 data written so far remain stored, not deleted |
+| **Database restore** | Data corruption or a failed migration; last resort | Restore the verified pre-deployment backup into a clean database, switch over after reconciliation | **Everything written after the backup.** Needs explicit owner approval and a window agreed with Codex |
+| **Forward recovery** | Normal way to fix an R6 data or schema defect | A corrective migration or hotfix release moves forward (new migration number, new code); populated tables are corrected, never dropped | Nothing |
 
-New authorities (existing `CASE_*`, `JUDGMENT_*`, `DEADLINE_*`, `AUDIT_VIEW` unchanged):
+**Never**: dropping or truncating a populated R6 table as a "routine rollback". Retiring a table, if ever wanted, follows the R5 counsel pattern: rename (`*_retired`), keep the rows, final deletion only with separate explicit owner approval, recorded counts and a verified backup.
+Restore drills and reversal scripts that drop tables may exist **only** for empty or synthetic databases, are labelled as such and are not a production procedure.
+
+### 1.5 Evidence required before any R6 milestone can reach UAT (owner approval and Codex window also required)
+1. Verified backup of the target database (`pg_dump -Fc`, restored into a side database, row counts and digests equal).
+2. Restore drill on PostgreSQL 18.x with a synthetic pre-milestone dump (`tools/restore-drill`, extended per milestone): migrate, start, second start applies nothing, previous release jar starts against the migrated database.
+3. Data reconciliation report: row counts and digests of **every pre-existing table** before vs after (must be identical except documented additive columns), plus counts of new tables.
+4. Real row counts on the target environment for any table a milestone reads for backfill (none planned in R6: no backfill).
+5. Forward-recovery rehearsal: a deliberately failing step in a transaction leaves no partial R6 data.
+Nothing in this list is performed in M0.
+
+## 2. Permissions (PROPOSED; names confirmed in M1 review; final authority allocation PENDING owner approval — D-09)
+
+Principle: **technical administration is not legal approval authority.** ADMIN (system administrator) administers configuration, users and roles; it does **not** automatically hold the right to approve a legal decision or to read complaint content. Legal approval is a separate set of authorities granted to roles/users the owner designates (proposal: LEGAL_MANAGER).
+
+Maker-checker workflow (PROPOSED): the responsible researcher **prepares** (a draft record: non-appeal decision, finality confirmation request, recalculation, non-grievance decision, complaint closure, referral) → an authorised legal manager **approves or rejects** with a reason → only the approval changes the status. The approver must differ from the preparer, must hold the approval authority **and** have case access (case-scoped), and their identity and date are stored as the document requires («صاحب الموافقة»).
 
 | Authority | Meaning |
 |---|---|
-| `POSTJ_VIEW` | read party deadlines, appeals, decisions, alert history |
-| `POSTJ_MANAGE` | register/edit party deadlines and appeals, confirm opponent position |
-| `POSTJ_DECIDE` | record and approve an appeal decision (incl. non-appeal) |
-| `POSTJ_FINALITY` | confirm finality |
-| `POSTJ_RECALC` | recalculate a deadline with a reason |
-| `APPEAL_SETTINGS_MANAGE` | appeal/grievance setting screen (create, update, deactivate); ADMIN and LEGAL_MANAGER only (ST-01) |
-| `APPEAL_SETTINGS_VIEW` | read settings |
-| `COMPLAINT_VIEW` / `COMPLAINT_CREATE` / `COMPLAINT_EDIT` | complaint read / submit / edit sessions, requests, documents |
-| `COMPLAINT_DECIDE` | record prosecution decision, referral |
-| `COMPLAINT_APPROVE` | approve non-grievance decision, closure |
-| audit | existing `AUDIT_VIEW` serves both workflows |
+| `POSTJ_VIEW` | read party deadlines, appeals, decisions, alert history (case-scoped) |
+| `POSTJ_PREPARE` | register/edit deadlines and appeals, confirm opponent position, prepare decision/finality/recalculation requests |
+| `POSTJ_APPROVE` | approve or reject prepared decisions, finality and recalculations (legal approval; ≠ ADMIN) |
+| `APPEAL_SETTINGS_VIEW` / `APPEAL_SETTINGS_MANAGE` | setting screen. **Source-specified (ST-01):** system administrator or legal affairs manager only. Managing a setting is not approving its legal content (see activation gates, 04) |
+| `APPEAL_SETTINGS_APPROVE` | records the legal authority's approval that makes a setting usable (legal approval) |
+| `COMPLAINT_VIEW` | read complaints **within scope** (below) |
+| `COMPLAINT_CREATE` / `COMPLAINT_EDIT` | submit; edit sessions, requests, documents |
+| `COMPLAINT_PREPARE_DECISION` | prepare prosecution decision, grievance decision, closure, referral |
+| `COMPLAINT_APPROVE` | approve those (legal approval) |
+| `AUDIT_VIEW` (existing) | audit rows for workflows the viewer may see; hidden records excluded |
 
-Role mapping (proposal, subject to D-09): ADMIN all; LEGAL_MANAGER all; LEGAL_STAFF: VIEW/MANAGE/CREATE/EDIT on cases they can access, no DECIDE/FINALITY/APPROVE/RECALC/SETTINGS; QA_READ_ONLY: VIEW only.
+Proposed default mapping, **not final**: ADMIN: `APPEAL_SETTINGS_*` (except APPROVE), no POSTJ/COMPLAINT content authorities. LEGAL_MANAGER: all POSTJ, COMPLAINT, APPEAL_SETTINGS authorities within scope. LEGAL_STAFF: VIEW/PREPARE/CREATE/EDIT within scope; no APPROVE. QA_READ_ONLY: VIEW within scope.
 
-Visibility: every post-judgment record is reached only through its case; `CaseAccessPolicy.requireView` → 404 identical to an unknown id; `requireChange` → 403. Access is checked before validation. A complaint with no case yet: visible to its responsible researcher, LEGAL_MANAGER and ADMIN only (D-20); after referral it follows the linked case's rules. Worklists and alert history are filtered with the same predicate (a user never sees an alert row for a hidden case).
+### 2.1 Visibility of post-judgment records
+Reached only through the case: `CaseAccessPolicy.requireView` → 404 identical (status and normalised body) to an unknown id; `requireChange` → 403; access is checked before validation. Worklists, alert history, counts, search results and dashboards use the same predicate.
+
+### 2.2 Complaint confidentiality (D-20; PROPOSED)
+A complaint is visible only to a user who has `COMPLAINT_VIEW` **and** is in scope:
+* the responsible researcher and users explicitly added to the complaint (access list, like case grants);
+* users whose organisational scope (existing LEGAL org-unit tree and access scopes) covers the complaint's owning unit and who hold `COMPLAINT_VIEW` (a manager sees their unit's complaints, not all of them);
+* after referral, the linked case's rules also apply to the linked case; the complaint keeps its own rule.
+ADMIN does **not** see complaints merely by role. If the owner wants administrative oversight it is granted explicitly (for example metadata-only audit) and decided separately.
+Hidden-record isolation is required on **every** surface; each is a named test (T-S02): complaint read/list/search endpoints, sessions, requests, respondents, documents and download/preview/OCR text endpoints (404 identical to unknown id), worklists and dashboard counts (excluded, never "N hidden"), alerts and notifications (created only for users in scope; the text carries no respondent name or incident detail beyond what the recipient may read; alert history filtered), audit viewer, exports and reports, timeline of a linked case (shows the link only if the viewer may see the complaint), and recipient changes (removing a user's scope removes their pending alerts).
 
 ## 3. State-transition matrices
 

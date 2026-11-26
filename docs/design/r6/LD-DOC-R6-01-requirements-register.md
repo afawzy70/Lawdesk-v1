@@ -3,18 +3,19 @@
 Source: `البرنامج.docx` (uploaded 2026-11-26; 209 non-empty paragraphs). Its two parts are *«تطوير منطق ما بعد صدور الحكم»* and *«إضافة جديدة مع القضايا»* (prosecution complaints).
 Page numbers: the file carries no page markers in its text layer, so each row cites **section and paragraph** (`§` = the document's own heading; `¶` = paragraph number in the extracted text, kept in the M0 evidence extract). The reader maps them to the printed pages.
 
-Status key: **Exists** (already in develop `18822a8`) · **Partial** · **Missing**. Decision column points to `LD-DOC-R6-04` (D-xx).
+**Reading rule (M0 is documentation only).** Three things are kept apart in every row: the **Existing** column states only behaviour verified in the develop tree at `18822a8`; the **Gap → proposal** column is *proposed design, not implemented*; nothing in R6 is implemented yet (all rows "Not started"). Status key for Existing: **Exists** · **Partial** · **Missing** · **Compliant by design**. Decision column points to `LD-DOC-R6-04` (D-xx).
+`docProps/app.xml` of the source reports 7 pages; the text layer has no page markers (see `LD-DOC-R6-00`).
 Terminology is kept exactly as in the source («الهيئة» = CITRA). Nothing below changes the legal wording.
 
 ## Module A — post-judgment workflow
 
 | ID | Source (Arabic, faithful) | § / ¶ | Existing | Gap → proposal | Depends | Acceptance (summary) | Tests | Decision |
 |---|---|---|---|---|---|---|---|---|
-| PJ-01 | قاعدة عامة بعد أي حكم في أي درجة: أول درجة ← استئناف، استئناف ← تمييز | §1 ¶4-6 | Partial: `judgment` (one per proceeding), `proceeding.stage` | Next-stage rule table configurable by level; no stage after the highest configured level | R5-free | Judgment at stage S offers only the configured appeal type | T-A01 | D-08 |
+| PJ-01 | قاعدة عامة بعد أي حكم في أي درجة: أول درجة ← استئناف، استئناف ← تمييز | §1 ¶4-6 | Partial: `judgment` (one per proceeding), `proceeding.stage` | Next-stage rule table configurable by level; no stage after the highest configured level | — | Judgment at stage S offers only the configured appeal type | T-A01 | D-08 |
 | PJ-02 | تسجيل منطوق الحكم وتاريخه ونتيجته (لصالح / ضد / لصالح جزئيًا) | §1 ¶7-8 | Partial: `judgment.summary`, `judgment_date`, `outcome` has IN_FAVOUR/AGAINST/PARTIAL/DISMISSED/OTHER | Operative text field distinct from `summary`; map DISMISSED/OTHER | — | Three source outcomes selectable; existing rows unchanged | T-A02 | D-17 |
-| PJ-03 | انتهاء الميعاد = بدء الميعاد + المدة، المدة من «إعدادات مواعيد الطعن» حسب الدرجة ونوع الدعوى | §1 ¶9-11 | Partial: `deadline`, `DeadlineCalculator`, `deadline_rule` (no level/case-type/basis) | New versioned setting (Module B) feeds a per-party deadline | ST-02 | Due date equals start + configured days using the approved counting method | T-A03 | D-01,02,04 |
+| PJ-03 | انتهاء الميعاد = بدء الميعاد + المدة، المدة من «إعدادات مواعيد الطعن» حسب الدرجة ونوع الدعوى | §1 ¶9-11 | Partial: `deadline`, `DeadlineCalculator`, `deadline_rule` (no level/case-type/basis) | New versioned setting (Module B) feeds a per-party deadline | ST-02 | Due date equals start + configured days using the approved counting method | T-A03 | D-01, D-02, D-03, D-04 |
 | PJ-04 | تحديد الحالة الإجرائية للحكم وفق نتيجته | §1 ¶12 | Missing (`judgment.status` ISSUED/NOTIFIED/CHALLENGED/OTHER is a different thing) | New `judgment_procedural_status`; do not reuse case or old status | PJ-17 | Status set on registration by outcome | T-A04 | — |
-| PJ-05 | احتساب مستقل لكل طرف؛ تاريخ بدء مختلف بحسب الإعلان | §1 ¶13 | Missing | `judgment_party_deadline` rows for CITRA and OPPONENT | PJ-03 | Two deadlines, different starts, independent | T-A05, T-A07 | D-05 |
+| PJ-05 | احتساب مستقل لكل طرف؛ تاريخ بدء مختلف بحسب الإعلان | §1 ¶13 | Missing | `judgment_party_deadline` rows for CITRA and OPPONENT | PJ-03 | Two deadlines, different starts, independent | T-A05, T-A07 | D-05, D-06 |
 | PJ-06 | لصالح الهيئة: «في انتظار انقضاء ميعاد الطعن»؛ عند الانتهاء يطلب النظام تأكيد الباحث لموقف الخصم؛ لا نهائي تلقائيًا؛ بعد تأكيد عدم الطعن والتحقق من شروط النهائية ← «حكم نهائي» ثم تنفيذ أو إغلاق؛ عند طعن الخصم تُفتح الدرجة التالية وصفة الهيئة «مستأنف ضدها» (استئناف) / «مطعون ضدها» (تمييز) | §2أ ¶16-21 | Missing (enforcement module exists) | Workflow service + opponent-position confirmation + next-stage creation + enforcement/closure routing | PJ-05, PJ-19 | Scenarios 1 and 2 of §8 | T-A10, T-A11 | D-07, D-12 |
 | PJ-07 | ضد الهيئة: «جاري إعداد الطعن»؛ الطعن قبل الانتهاء يفتح الدرجة التالية بصفة «مستأنفة» / «طاعنة»؛ عدم الطعن يلزم سببًا مكتوبًا + صاحب الموافقة + تاريخ القرار في جدول «قرارات الطعن»؛ لا نهائية تلقائية ما دام ميعاد الخصم قائمًا أو له طعن؛ بعد انتهاء كل المواعيد وعدم وجود طعن وبعد التأكيد ← «حكم نهائي (قبول الحكم)» | §2ب ¶23-29 | Missing | `appeal_decision` table; finality service | PJ-05 | Scenarios 3, 4, 6 of §8 | T-A12-T-A14 | D-07, D-09, D-21 |
 | PJ-08 | جزئيًا: يُعامل كالصادر ضد الهيئة؛ طعن مستقل لكل طرف على الحكم ذاته؛ أحدهما لا يمنع الآخر؛ ست حالات | §2ج ¶31-41 | Missing | `judgment_appeal` supports both parties; six combinations covered in one parametrised suite | PJ-19 | Each of the six combinations reaches the right state | T-A15 (×6) | — |
@@ -60,7 +61,7 @@ Terminology is kept exactly as in the source («الهيئة» = CITRA). Nothing
 | ID | Source | § / ¶ | Existing | Proposal | Tests | Decision |
 |---|---|---|---|---|---|---|
 | PC-01 | النطاق: من تقديم الشكوى إلى قرار النيابة (حفظ أو إحالة) | ¶168 | Missing | New aggregate `prosecution_complaint` linked to cases | — | — |
-| PC-02 | تقديم الشكوى: رقم داخلي تلقائي، رقم الشكوى والسنة، النيابة المختصة، تاريخ التقديم، مشكو في حقه (أكثر من واحد؛ اسم/جهة/رقم مدني أو تجاري)، ملخص الواقعة وتاريخها، التكييف القانوني، الباحث المسؤول، النسخة والمرفقات | §ثانيًا-1 ¶171-180 | Missing | `complaint`, `complaint_respondent`, document links | T-D01 | D-18 |
+| PC-02 | تقديم الشكوى: رقم داخلي تلقائي، رقم الشكوى والسنة، النيابة المختصة، تاريخ التقديم، مشكو في حقه (أكثر من واحد؛ اسم/جهة/رقم مدني أو تجاري)، ملخص الواقعة وتاريخها، التكييف القانوني، الباحث المسؤول، النسخة والمرفقات | §ثانيًا-1 ¶171-180 | Missing | `complaint`, `complaint_respondent`, document links | T-D01 | D-18, D-19 |
 | PC-03 | الحالة «مقدمة للنيابة» | ¶181 | Missing | Initial status | T-D01 | — |
 | PC-04 | جلسات التحقيق: التاريخ، الحاضرون من الهيئة، ما تم، الموعد التالي، المطلوب قبله | §2 ¶183 | Missing | `complaint_session` | T-D02 | — |
 | PC-05 | طلبات النيابة (مستندات/تقارير فنية/شهود)، تاريخ الطلب وتاريخ الرد | ¶184 | Missing | `complaint_request` | T-D03 | — |
