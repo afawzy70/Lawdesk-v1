@@ -1,0 +1,12 @@
+-- Executed as lawdesk_legal (the only role with EXECUTE on the writer). Each numbered block is one transaction.
+-- (a) P-MANIFEST is still OFF: refused before anything is written (the case insert is rolled back with the transaction)
+begin
+;;
+insert into lawdesk.legal_case (id, reference_no, title, case_type, opened_on, confidentiality, created_by, updated_by) values ('00000000-0000-0000-0000-00000000c301', 'LD-2026-90301', 'referred A', 'CIVIL', current_date, 'RESTRICTED', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+;;
+select lawdesk.r6_complete_referral('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-00000000c301', '00000000-0000-0000-0000-0000000000a2')
+;;
+rollback
+;;
+select (select count(*) from lawdesk.legal_case where id = '00000000-0000-0000-0000-00000000c301') as case_rows_after_rollback
+;;

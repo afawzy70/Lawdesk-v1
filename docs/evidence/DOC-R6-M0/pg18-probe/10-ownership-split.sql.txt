@@ -1,0 +1,38 @@
+-- PROBE ONLY (disposable PostgreSQL 18.6, scratch data directory). NOT a migration. Models what the owner-run
+-- deploy step would do, as superuser, to an existing install whose objects are owned by lawdesk_app.
+create role lawdesk_owner    login nosuperuser nocreatedb nocreaterole noreplication nobypassrls
+;;
+create role lawdesk_dml      nologin nosuperuser nocreatedb nocreaterole noreplication nobypassrls
+;;
+create role lawdesk_legal    login nosuperuser nocreatedb nocreaterole noreplication nobypassrls in role lawdesk_dml
+;;
+create role lawdesk_operator login nosuperuser nocreatedb nocreaterole noreplication nobypassrls
+;;
+grant lawdesk_dml to lawdesk_app
+;;
+reassign owned by lawdesk_app to lawdesk_owner
+;;
+grant connect on database lawdesk to lawdesk_owner, lawdesk_legal, lawdesk_operator
+;;
+revoke temporary on database lawdesk from lawdesk_app
+;;
+grant usage on schema lawdesk to lawdesk_dml, lawdesk_operator
+;;
+grant select, insert, update, delete on all tables in schema lawdesk to lawdesk_dml
+;;
+grant usage, select on all sequences in schema lawdesk to lawdesk_dml
+;;
+revoke insert, update, delete, truncate on lawdesk.flyway_schema_history from lawdesk_dml
+;;
+alter default privileges for role lawdesk_owner in schema lawdesk grant select, insert, update, delete on tables to lawdesk_dml
+;;
+alter default privileges for role lawdesk_owner in schema lawdesk grant usage, select on sequences to lawdesk_dml
+;;
+alter default privileges for role lawdesk_owner revoke execute on functions from public
+;;
+alter role lawdesk_owner set search_path = lawdesk
+;;
+alter role lawdesk_legal set search_path = lawdesk
+;;
+alter role lawdesk_operator set search_path = lawdesk
+;;

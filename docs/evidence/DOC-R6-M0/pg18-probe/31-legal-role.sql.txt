@@ -1,0 +1,22 @@
+-- Executed as lawdesk_legal (second runtime login: same DML group, plus EXECUTE on the Tier A writer functions).
+-- ===== before any Tier B fact exists =====
+select lawdesk.r6_activate_party_deadline('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a2', date '2026-08-01', '{"rule":"probe"}'::jsonb)
+;;
+select lawdesk.r6_declassify_linked_case('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000a2')
+;;
+-- ===== the legal role is not the operator and not the owner =====
+select lawdesk.r6_op_record_legal_approval('G-CALC', 1)
+;;
+select lawdesk.r6_op_grant_authority('00000000-0000-0000-0000-0000000000a2', 'POSTJ_APPROVE')
+;;
+insert into lawdesk.legal_approval (gate, version) values ('G-CALC', 1)
+;;
+alter table lawdesk.judgment disable trigger r6_guard_judgment
+;;
+set session_replication_role = replica
+;;
+-- ===== the legal role holds DML rights, not a bypass: legacy writes are refused for it as well =====
+update lawdesk.judgment set final = true where id = '00000000-0000-0000-0000-0000000000e1'
+;;
+update lawdesk.legal_case set confidentiality = 'NORMAL' where id = '00000000-0000-0000-0000-0000000000c1'
+;;

@@ -1,0 +1,24 @@
+##### 26a as lawdesk_owner
+OK   -- as lawdesk_owner: layer 5 of 05 A.2 on the REAL role_permission table. The guard applies to every role, the owner included.
+OK   insert into lawdesk.sensitive_permission values ('POSTJ_APPROVE'), ('APPEAL_SETTINGS_APPROVE'), ('LEGAL_GATE_APPROVE'), ('LEGAL_AUTHORITY_CUSTODIAN'), ('COMPLAINT_VIEW'), ('COMPLAINT_CREATE'), ('COMPLAINT_EDIT'), ('COMPLAINT_PREPARE_DECISION'), ('COMPLAINT_APPROVE')
+OK   revoke insert, update, delete, truncate on lawdesk.sensitive_permission from lawdesk_dml
+OK   create function lawdesk.r6_guard_role_permission() returns trigger language plpgsql set search_path = pg_catalog, lawdesk, pg_temp as $$
+OK   create trigger r6_guard_role_permission before insert or update on lawdesk.role_permission for each row execute function lawdesk.r6_guard_role_permission()
+DENY -- the owner itself is refused too
+     -> [LD060] ERROR: permission LEGAL_AUTHORITY_CUSTODIAN is a sensitive legal authority and cannot be attached to a role
+##### 26b as lawdesk_app
+DENY -- as lawdesk_app: what RoleAdministration (or direct SQL, or the previous release) could try
+     -> [LD060] ERROR: permission POSTJ_APPROVE is a sensitive legal authority and cannot be attached to a role
+DENY insert into lawdesk.role_permission (role_id, permission) select id, 'COMPLAINT_APPROVE' from lawdesk.app_role where code = 'LEGAL_STAFF'
+     -> [LD060] ERROR: permission COMPLAINT_APPROVE is a sensitive legal authority and cannot be attached to a role
+DENY update lawdesk.role_permission set permission = 'LEGAL_GATE_APPROVE' where permission = (select permission from lawdesk.role_permission rp join lawdesk.app_role r on r.id = rp.role_id where r.code = 'LEGAL_MANAGER' limit 1) and role_id = (select id from lawdesk.app_role where code = 'LEGAL_MANAGER')
+     -> [LD060] ERROR: permission LEGAL_GATE_APPROVE is a sensitive legal authority and cannot be attached to a role
+DENY -- the guard cannot be removed or edited by the runtime role
+     -> [42501] ERROR: must be owner of table role_permission
+DENY delete from lawdesk.sensitive_permission
+     -> [42501] ERROR: permission denied for table sensitive_permission
+DENY insert into lawdesk.sensitive_permission values ('X')
+     -> [42501] ERROR: permission denied for table sensitive_permission
+OK   -- ordinary (non-sensitive) role management keeps working
+OK   select count(*) as sensitive_rows_in_role_permission from lawdesk.role_permission where permission in (select code from lawdesk.sensitive_permission)
+     -> 0

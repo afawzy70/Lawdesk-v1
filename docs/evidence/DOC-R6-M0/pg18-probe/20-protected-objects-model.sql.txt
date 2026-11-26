@@ -1,0 +1,108 @@
+-- PROBE ONLY: a reduced model of the PROPOSED protected objects, created as lawdesk_owner (the migration owner) on the
+-- real develop schema. Names and shapes follow LD-DOC-R6-05 / -07; the real R6 migrations do not exist in M0.
+-- ---- Tier B authority tables (written only by operator functions) ----
+create table lawdesk.legal_authority_grant (
+  id uuid primary key default gen_random_uuid(), user_id uuid not null, authority text not null,
+  state text not null default 'ACTIVE' check (state in ('ACTIVE','REVOKED')), recorded_by_role name not null default session_user)
+;;
+create table lawdesk.legal_approval (
+  id uuid primary key default gen_random_uuid(), gate text not null, version int not null,
+  state text not null default 'ACTIVE' check (state in ('ACTIVE','WITHDRAWN')), recorded_by_role name not null default session_user)
+;;
+create table lawdesk.owner_policy (policy text primary key, enabled boolean not null default false, changed_by_role name not null default session_user)
+;;
+insert into lawdesk.owner_policy values ('P-DECLASS', false, 'lawdesk_owner'), ('P-MANIFEST', false, 'lawdesk_owner')
+;;
+-- ---- Tier A data ----
+create table lawdesk.judgment_procedural (judgment_id uuid primary key references lawdesk.judgment(id), final_confirmed boolean not null default false)
+;;
+create table lawdesk.deadline_calculation_evidence (
+  id uuid primary key default gen_random_uuid(), deadline_id uuid not null references lawdesk.deadline(id), inputs jsonb not null,
+  output_due date not null, recorded_by_role name not null default session_user, recorded_at timestamptz not null default now())
+;;
+create table lawdesk.complaint (id uuid primary key default gen_random_uuid(), status text not null default 'UNDER_INVESTIGATION' check (status in ('UNDER_INVESTIGATION','REFERRED','PRESERVED','CLOSED')))
+;;
+create table lawdesk.complaint_case_link (
+  complaint_id uuid not null unique references lawdesk.complaint(id), case_id uuid not null unique references lawdesk.legal_case(id),
+  primary key (complaint_id))
+;;
+-- DML defaults (granted by ALTER DEFAULT PRIVILEGES) are withdrawn from the runtime group on every protected table.
+revoke insert, update, delete, truncate on lawdesk.legal_authority_grant, lawdesk.legal_approval, lawdesk.owner_policy,
+  lawdesk.deadline_calculation_evidence, lawdesk.complaint_case_link from lawdesk_dml
+;;
+revoke insert, update, delete, truncate on lawdesk.judgment_procedural from lawdesk_dml
+;;
+-- ---- Guards: INVOKER-rights trigger functions that test current_user ----
+create function lawdesk.r6_guard_judgment() returns trigger language plpgsql set search_path = pg_catalog, lawdesk, pg_temp as $$
+begin
+  if current_user <> 'lawdesk_owner' and exists (select 1 from lawdesk.judgment_procedural p where p.judgment_id = old.id)
+     and (new.final is distinct from old.final or new.appeal_deadline_id is distinct from old.appeal_deadline_id
+          or new.judgment_date is distinct from old.judgment_date or new.outcome is distinct from old.outcome) then
+    raise exception 'judgment % is protected by R6', old.id using errcode = 'LD001';
+  end if;
+  return new;
+end $$
+;;
+create trigger r6_guard_judgment before update on lawdesk.judgment for each row execute function lawdesk.r6_guard_judgment()
+;;
+create function lawdesk.r6_guard_deadline() returns trigger language plpgsql set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare linked boolean;
+begin
+  if current_user = 'lawdesk_owner' then return coalesce(new, old); end if;
+  select exists (select 1 from lawdesk.judgment_procedural p where p.judgment_id = coalesce(new.source_id, old.source_id)) into linked;
+  if linked and coalesce(new.source_type, old.source_type) = 'JUDGMENT' then
+    raise exception 'deadline runs from an R6-protected judgment' using errcode = 'LD002';
+  end if;
+  return coalesce(new, old);
+end $$
+;;
+create trigger r6_guard_deadline before insert or update or delete on lawdesk.deadline for each row execute function lawdesk.r6_guard_deadline()
+;;
+-- Contrast: a SECURITY DEFINER trigger function always sees current_user = owner, so it cannot discriminate callers.
+create function lawdesk.probe_whoami() returns trigger language plpgsql security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+begin raise notice 'definer-trigger sees current_user=% session_user=%', current_user, session_user; return new; end $$
+;;
+-- ---- Tier A writer: one transaction, owner-owned, executable only by lawdesk_legal ----
+create function lawdesk.r6_activate_party_deadline(p_judgment uuid, p_preparer uuid, p_approver uuid, p_due date, p_inputs jsonb)
+returns uuid language plpgsql security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare j lawdesk.judgment%rowtype; c uuid; d uuid;
+begin
+  if p_preparer = p_approver then raise exception 'preparer and approver must differ' using errcode = 'LD003'; end if;
+  if not exists (select 1 from lawdesk.legal_approval a where a.gate = 'G-CALC' and a.state = 'ACTIVE') then
+    raise exception 'gate G-CALC is not active' using errcode = 'LD004'; end if;
+  if not exists (select 1 from lawdesk.legal_authority_grant g where g.user_id = p_approver and g.authority = 'POSTJ_APPROVE' and g.state = 'ACTIVE') then
+    raise exception 'approver holds no active POSTJ_APPROVE grant' using errcode = 'LD005'; end if;
+  select * into j from lawdesk.judgment where id = p_judgment for update;
+  if not found then raise exception 'judgment not found' using errcode = 'LD006'; end if;
+  select p.case_id into c from lawdesk.proceeding p where p.id = j.proceeding_id;
+  insert into lawdesk.deadline (case_id, source_type, source_id, starts_on, period_days, due_on, action, calc_status, approved_by, approved_at, created_by, updated_by)
+    values (c, 'JUDGMENT', p_judgment, j.judgment_date, 60, p_due, 'appeal', 'APPROVED', p_approver, now(), p_preparer, p_approver) returning id into d;
+  insert into lawdesk.deadline_calculation_evidence (deadline_id, inputs, output_due) values (d, p_inputs, p_due);
+  update lawdesk.judgment set appeal_deadline_id = d where id = p_judgment;
+  return d;
+end $$
+;;
+-- ---- Tier B operator functions ----
+create function lawdesk.r6_op_record_legal_approval(p_gate text, p_version int) returns uuid language plpgsql security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare i uuid; begin insert into lawdesk.legal_approval (gate, version) values (p_gate, p_version) returning id into i; return i; end $$
+;;
+create function lawdesk.r6_op_grant_authority(p_user uuid, p_authority text) returns uuid language plpgsql security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare i uuid; begin insert into lawdesk.legal_authority_grant (user_id, authority) values (p_user, p_authority) returning id into i; return i; end $$
+;;
+create function lawdesk.r6_op_set_policy(p_policy text, p_on boolean) returns void language plpgsql security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+begin update lawdesk.owner_policy set enabled = p_on, changed_by_role = session_user where policy = p_policy; end $$
+;;
+revoke all on function lawdesk.r6_activate_party_deadline(uuid, uuid, uuid, date, jsonb) from public
+;;
+revoke all on function lawdesk.r6_op_record_legal_approval(text, int), lawdesk.r6_op_grant_authority(uuid, text), lawdesk.r6_op_set_policy(text, boolean) from public
+;;
+grant execute on function lawdesk.r6_activate_party_deadline(uuid, uuid, uuid, date, jsonb) to lawdesk_legal
+;;
+grant execute on function lawdesk.r6_op_record_legal_approval(text, int), lawdesk.r6_op_grant_authority(uuid, text), lawdesk.r6_op_set_policy(text, boolean) to lawdesk_operator
+;;
+-- The R6 link of the synthetic judgment (a protected record from now on).
+insert into lawdesk.judgment_procedural (judgment_id) values ('00000000-0000-0000-0000-0000000000e1')
+;;

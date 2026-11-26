@@ -1,0 +1,57 @@
+-- Executed as lawdesk_legal, P-MANIFEST ON (a synthetic switch in a disposable database; in the product it stays off until D-20/D-25).
+-- (b) incomplete draft (missing: opposing party): refused, nothing written
+begin
+;;
+insert into lawdesk.legal_case (id, reference_no, title, case_type, opened_on, confidentiality, created_by, updated_by) values ('00000000-0000-0000-0000-00000000c302', 'LD-2026-90302', 'referred B', 'CIVIL', current_date, 'RESTRICTED', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+;;
+select lawdesk.r6_complete_referral('00000000-0000-0000-0000-00000000f302', '00000000-0000-0000-0000-00000000c302', '00000000-0000-0000-0000-0000000000a2')
+;;
+rollback
+;;
+-- (c) the case was created NORMAL: refused
+begin
+;;
+insert into lawdesk.legal_case (id, reference_no, title, case_type, opened_on, created_by, updated_by) values ('00000000-0000-0000-0000-00000000c303', 'LD-2026-90303', 'referred C', 'CIVIL', current_date, '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+;;
+select lawdesk.r6_complete_referral('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-00000000c303', '00000000-0000-0000-0000-0000000000a2')
+;;
+rollback
+;;
+-- (d) the case is a PRE-EXISTING restricted case (not created in this transaction): refused
+begin
+;;
+select lawdesk.r6_complete_referral('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000a2')
+;;
+rollback
+;;
+-- (e) actor without COMPLAINT_APPROVE grant: refused
+begin
+;;
+insert into lawdesk.legal_case (id, reference_no, title, case_type, opened_on, confidentiality, created_by, updated_by) values ('00000000-0000-0000-0000-00000000c304', 'LD-2026-90304', 'referred D', 'CIVIL', current_date, 'RESTRICTED', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+;;
+select lawdesk.r6_complete_referral('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-00000000c304', '00000000-0000-0000-0000-0000000000a9')
+;;
+rollback
+;;
+-- (f) THE SUCCESSFUL SEQUENCE: case INSERT as RESTRICTED, then writer (lock complaint, checks, link, status), COMMIT (deferred invariant runs here)
+begin
+;;
+insert into lawdesk.legal_case (id, reference_no, title, case_type, opened_on, confidentiality, created_by, updated_by) values ('00000000-0000-0000-0000-00000000c305', 'LD-2026-90305', 'referred E', 'CIVIL', current_date, 'RESTRICTED', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+;;
+select lawdesk.r6_complete_referral('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-00000000c305', '00000000-0000-0000-0000-0000000000a2')
+;;
+commit
+;;
+select c.status, l.case_id = '00000000-0000-0000-0000-00000000c305' as linked_to_new_case, k.confidentiality from lawdesk.complaint c join lawdesk.complaint_case_link l on l.complaint_id = c.id join lawdesk.legal_case k on k.id = l.case_id where c.id = '00000000-0000-0000-0000-00000000f301'
+;;
+-- (g) duplicate request / retry for the same complaint after completion: refused, no second case survives
+begin
+;;
+insert into lawdesk.legal_case (id, reference_no, title, case_type, opened_on, confidentiality, created_by, updated_by) values ('00000000-0000-0000-0000-00000000c306', 'LD-2026-90306', 'referred F', 'CIVIL', current_date, 'RESTRICTED', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+;;
+select lawdesk.r6_complete_referral('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-00000000c306', '00000000-0000-0000-0000-0000000000a2')
+;;
+rollback
+;;
+select (select count(*) from lawdesk.legal_case where id in ('00000000-0000-0000-0000-00000000c302','00000000-0000-0000-0000-00000000c303','00000000-0000-0000-0000-00000000c304','00000000-0000-0000-0000-00000000c306')) as orphan_cases_from_failed_attempts, (select count(*) from lawdesk.complaint_case_link) as links_total
+;;

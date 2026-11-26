@@ -1,0 +1,66 @@
+-- PROBE ONLY (as lawdesk_owner). Part 1: the QA-identified contradiction, reproduced. Two IMMEDIATE checks that require each other.
+create table lawdesk.probe_c (id uuid primary key, status text not null)
+;;
+create table lawdesk.probe_l (c uuid not null unique references lawdesk.probe_c(id), k uuid not null unique)
+;;
+create function lawdesk.probe_link_needs_referred() returns trigger language plpgsql as $$
+begin if (select status from lawdesk.probe_c where id = new.c) <> 'REFERRED' then raise exception 'link insert needs status REFERRED' using errcode = 'LD030'; end if; return new; end $$
+;;
+create function lawdesk.probe_status_needs_link() returns trigger language plpgsql as $$
+begin if new.status = 'REFERRED' and not exists (select 1 from lawdesk.probe_l where c = new.id) then raise exception 'status REFERRED needs the link' using errcode = 'LD031'; end if; return new; end $$
+;;
+create trigger probe_l_chk before insert on lawdesk.probe_l for each row execute function lawdesk.probe_link_needs_referred()
+;;
+create trigger probe_c_chk before update on lawdesk.probe_c for each row execute function lawdesk.probe_status_needs_link()
+;;
+insert into lawdesk.probe_c values ('00000000-0000-0000-0000-00000000f201', 'UNDER_INVESTIGATION')
+;;
+-- Part 2: the PROPOSED form. One owner-owned writer; the invariant "REFERRED <=> exactly one link" is a DEFERRED constraint trigger evaluated at COMMIT.
+create table lawdesk.referral_draft (complaint_id uuid primary key references lawdesk.complaint(id), missing text[] not null default '{}', manifest_approved boolean not null default false)
+;;
+revoke all on lawdesk.referral_draft from lawdesk_dml
+;;
+grant select on lawdesk.referral_draft to lawdesk_legal
+;;
+create function lawdesk.r6_check_referral_invariant() returns trigger language plpgsql security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare cid uuid; st text; n int;
+begin
+  if tg_table_name = 'complaint' then cid := coalesce(new.id, old.id); else cid := coalesce(new.complaint_id, old.complaint_id); end if;
+  select status into st from lawdesk.complaint where id = cid;
+  select count(*) into n from lawdesk.complaint_case_link where complaint_id = cid;
+  if st is null then return null; end if;
+  if (st = 'REFERRED') <> (n = 1) or n > 1 then
+    raise exception 'invariant R-1 violated for complaint %: status=% links=%', cid, st, n using errcode = 'LD032'; end if;
+  return null;
+end $$
+;;
+create constraint trigger r6_referral_invariant_c after insert or update of status on lawdesk.complaint deferrable initially deferred for each row execute function lawdesk.r6_check_referral_invariant()
+;;
+create constraint trigger r6_referral_invariant_l after insert or update or delete on lawdesk.complaint_case_link deferrable initially deferred for each row execute function lawdesk.r6_check_referral_invariant()
+;;
+create function lawdesk.r6_complete_referral(p_complaint uuid, p_case uuid, p_actor uuid) returns void language plpgsql security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare st text; cs lawdesk.legal_case%rowtype; d lawdesk.referral_draft%rowtype;
+begin
+  select status into st from lawdesk.complaint where id = p_complaint for update;
+  if st is null then raise exception 'complaint not found' using errcode = 'LD020'; end if;
+  if st = 'REFERRED' then raise exception 'complaint already referred' using errcode = 'LD021'; end if;
+  if st <> 'UNDER_INVESTIGATION' then raise exception 'complaint status % cannot be referred', st using errcode = 'LD022'; end if;
+  if not exists (select 1 from lawdesk.owner_policy where policy = 'P-MANIFEST' and enabled) then raise exception 'policy P-MANIFEST is off' using errcode = 'LD023'; end if;
+  select * into d from lawdesk.referral_draft where complaint_id = p_complaint;
+  if not found or not d.manifest_approved or cardinality(d.missing) > 0 then raise exception 'referral draft is incomplete or unapproved' using errcode = 'LD024'; end if;
+  if not exists (select 1 from lawdesk.legal_authority_grant g where g.user_id = p_actor and g.authority = 'COMPLAINT_APPROVE' and g.state = 'ACTIVE') then raise exception 'actor lacks COMPLAINT_APPROVE' using errcode = 'LD005'; end if;
+  select * into cs from lawdesk.legal_case where id = p_case for update;
+  if not found or cs.confidentiality <> 'RESTRICTED' or cs.created_at <> transaction_timestamp() then
+    raise exception 'case must be inserted RESTRICTED in this very transaction' using errcode = 'LD025'; end if;
+  insert into lawdesk.complaint_case_link (complaint_id, case_id) values (p_complaint, p_case);
+  update lawdesk.complaint set status = 'REFERRED' where id = p_complaint;
+end $$
+;;
+revoke all on function lawdesk.r6_complete_referral(uuid, uuid, uuid) from public
+;;
+grant execute on function lawdesk.r6_complete_referral(uuid, uuid, uuid) to lawdesk_legal
+;;
+insert into lawdesk.complaint (id, status) values ('00000000-0000-0000-0000-00000000f301', 'UNDER_INVESTIGATION'), ('00000000-0000-0000-0000-00000000f302', 'UNDER_INVESTIGATION'), ('00000000-0000-0000-0000-00000000f303', 'UNDER_INVESTIGATION')
+;;
+insert into lawdesk.referral_draft values ('00000000-0000-0000-0000-00000000f301', '{}', true), ('00000000-0000-0000-0000-00000000f302', '{opposing party}', true), ('00000000-0000-0000-0000-00000000f303', '{}', true)
+;;

@@ -1,0 +1,15 @@
+-- Executed as lawdesk_app AFTER an effective R6 deadline exists: legacy API paths against it.
+update lawdesk.deadline set due_on = date '2027-01-01' where source_type = 'JUDGMENT'
+;;
+update lawdesk.deadline set calc_status = 'MANUAL', approved_by = null, approved_at = null where source_type = 'JUDGMENT'
+;;
+update lawdesk.deadline set status = 'COMPLETED', completed_on = current_date where source_type = 'JUDGMENT'
+;;
+delete from lawdesk.deadline where source_type = 'JUDGMENT'
+;;
+update lawdesk.judgment set appeal_deadline_id = null where id = '00000000-0000-0000-0000-0000000000e1'
+;;
+select count(*) as other_deadlines_still_writable from lawdesk.deadline where source_type = 'TEXT'
+;;
+update lawdesk.deadline set notes = 'edited' where source_type = 'TEXT'
+;;

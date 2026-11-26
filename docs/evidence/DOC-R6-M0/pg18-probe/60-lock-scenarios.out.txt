@@ -1,0 +1,47 @@
+##### scenario inverted
+  + 490ms update ok    select 1 from proceeding where id = '00000000-0000-0000-0000-0000000000b4' for update
+  + 576ms final  ok    select 1 from proceeding where id = '00000000-0000-0000-0000-0000000000b1' for update
+  +1925ms final  ok    select 1 from proceeding where id = '00000000-0000-0000-0000-0000000000b4' for update
+  +1949ms final  COMMIT parent then child
+  +1976ms update ROLLBACK [40P01] ERROR: deadlock detected
+RESULT inverted: 40P01 / commit
+##### scenario unified
+  + 389ms update ok    select id from proceeding where parent_proceeding_id = '00000000-0000-0000-0000-0000000000b1
+  + 799ms update ok    select 1 from proceeding where id = '00000000-0000-0000-0000-0000000000b1' for update
+  + 827ms final  ok    select id from proceeding where parent_proceeding_id = '00000000-0000-0000-0000-0000000000b1
+  + 828ms update COMMIT children then parent
+  +1252ms final  ok    select 1 from proceeding where id = '00000000-0000-0000-0000-0000000000b1' for update
+  +1269ms final  COMMIT children then parent
+RESULT unified: commit / commit
+##### scenario phantom
+  + 374ms final  ok    select id from proceeding where parent_proceeding_id = '00000000-0000-0000-0000-0000000000b1
+  + 498ms filing ok    select 1 from proceeding where id = '00000000-0000-0000-0000-0000000000b1' for update
+  + 527ms filing ok    insert into proceeding (id, case_id, stage, court_id, court_case_number, court_case_year, fi
+  + 531ms filing COMMIT child b9 created
+  + 988ms final  ok    select 1 from proceeding where id = '00000000-0000-0000-0000-0000000000b1' for update
+  + 994ms final  children visible AFTER the parent lock: 3
+  +1022ms final  ROLLBACK [LD040] a child proceeding appeared: finality refused (APPEAL_FILED)
+RESULT phantom: LD040 / commit
+##### scenario referral
+  + 393ms refA   ok    insert into legal_case (id, reference_no, title, case_type, opened_on, confidentiality, crea
+  + 419ms refA   ok    select r6_complete_referral('00000000-0000-0000-0000-00000000f303', '00000000-0000-0000-0000
+  + 552ms refB   ok    insert into legal_case (id, reference_no, title, case_type, opened_on, confidentiality, crea
+  + 926ms refA   COMMIT referral completed
+  + 951ms refB   ROLLBACK [LD021] ERROR: complaint already referred
+RESULT referral: commit / LD021
+RESULT referral state: links_for_complaint=1 cases_surviving=1
+##### scenario closure
+-- round 1: the R6 write first, closure second
+  + 390ms r6     ok    select 1 from legal_case where id = '00000000-0000-0000-0000-0000000000c1' for share
+  +1011ms r6     case status seen under the share lock: OPEN
+  +1040ms r6     COMMIT party deadline written
+  +1071ms close  ok    update legal_case set status = 'CLOSED' where id = '00000000-0000-0000-0000-0000000000c1'
+  +1391ms close  COMMIT case closed
+RESULT closure round 1: r6=commit close=commit
+-- round 2: closure first, the R6 write second
+  +1507ms close  ok    update legal_case set status = 'CLOSED' where id = '00000000-0000-0000-0000-0000000000c1'
+  +1810ms close  COMMIT case closed
+  +1811ms r6     ok    select 1 from legal_case where id = '00000000-0000-0000-0000-0000000000c1' for share
+  +1814ms r6     case status seen under the share lock: CLOSED
+  +1820ms r6     ROLLBACK [LD041] case is closed: R6 write refused (CASE_READ_ONLY)
+RESULT closure round 2: r6=LD041 close=commit

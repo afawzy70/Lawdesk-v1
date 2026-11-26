@@ -1,0 +1,33 @@
+-- as lawdesk_owner
+create table lawdesk.op_request (id uuid primary key default gen_random_uuid(), kind text not null, payload jsonb not null, requested_by name not null default session_user, confirmed_by name, state text not null default 'OPEN' check (state in ('OPEN','CONFIRMED','EXECUTED')), check (confirmed_by is null or confirmed_by <> requested_by))
+;;
+revoke all on lawdesk.op_request from lawdesk_dml
+;;
+create function lawdesk.r6_op_request(p_kind text, p_payload jsonb) returns uuid language plpgsql security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare i uuid; begin insert into lawdesk.op_request (kind, payload) values (p_kind, p_payload) returning id into i; return i; end $$
+;;
+create function lawdesk.r6_op_confirm(p_id uuid) returns void language plpgsql security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare r lawdesk.op_request%rowtype; begin
+  select * into r from lawdesk.op_request where id = p_id for update;
+  if not found then raise exception 'no such request' using errcode = 'LD051'; end if;
+  if r.requested_by = session_user then raise exception 'a request cannot be confirmed by its requester' using errcode = 'LD050'; end if;
+  update lawdesk.op_request set confirmed_by = session_user, state = 'CONFIRMED' where id = p_id and state = 'OPEN'; end $$
+;;
+create function lawdesk.r6_op_revoke_authority(p_request uuid) returns void language plpgsql security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare r lawdesk.op_request%rowtype; begin
+  select * into r from lawdesk.op_request where id = p_request and kind = 'REVOKE' and state = 'CONFIRMED' for update;
+  if not found then raise exception 'revocation needs a confirmed request' using errcode = 'LD052'; end if;
+  update lawdesk.legal_authority_grant set state = 'REVOKED' where user_id = (r.payload->>'user')::uuid and authority = r.payload->>'authority';
+  update lawdesk.op_request set state = 'EXECUTED' where id = p_request; end $$
+;;
+revoke all on function lawdesk.r6_op_request(text, jsonb), lawdesk.r6_op_confirm(uuid), lawdesk.r6_op_revoke_authority(uuid) from public
+;;
+grant execute on function lawdesk.r6_op_request(text, jsonb), lawdesk.r6_op_confirm(uuid), lawdesk.r6_op_revoke_authority(uuid) to lawdesk_operator
+;;
+create function lawdesk.r6_op_list() returns table (id uuid, kind text, state text, requested_by name, confirmed_by name) language sql stable security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+  select r.id, r.kind, r.state, r.requested_by, r.confirmed_by from lawdesk.op_request r order by r.id $$
+;;
+revoke all on function lawdesk.r6_op_list() from public
+;;
+grant execute on function lawdesk.r6_op_list() to lawdesk_operator
+;;

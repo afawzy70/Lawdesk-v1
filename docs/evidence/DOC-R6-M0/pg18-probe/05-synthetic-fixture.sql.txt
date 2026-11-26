@@ -1,0 +1,26 @@
+-- PROBE ONLY. Synthetic rows (no real data) written as the CURRENT runtime role before the split, so the split is
+-- exercised on a populated schema. Ids are fixed so later probes can refer to them.
+insert into lawdesk.legal_case (id, reference_no, title, case_type, opened_on, created_by, updated_by)
+values ('00000000-0000-0000-0000-0000000000c1', 'LD-2026-90001', 'synthetic case A', 'CIVIL', date '2026-01-01',
+        '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+;;
+insert into lawdesk.court (id, code, name_ar, name_en, level, created_by, updated_by)
+values ('00000000-0000-0000-0000-0000000000d1', 'SYN-FI', 'synthetic', 'synthetic', 'FIRST_INSTANCE',
+        '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+;;
+insert into lawdesk.proceeding (id, case_id, stage, court_id, court_case_number, court_case_year, filing_date, created_by, updated_by)
+values ('00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-0000000000c1', 'FIRST_INSTANCE',
+        '00000000-0000-0000-0000-0000000000d1', '100', 2026, date '2026-01-10',
+        '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+;;
+insert into lawdesk.judgment (id, proceeding_id, judgment_date, outcome, created_by, updated_by)
+values ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000b1', date '2026-06-01', 'AGAINST',
+        '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+;;
+-- The probe runner is not Flyway, so a stand-in for Flyway's history table (owned, like the real one, by the role that ran Flyway).
+create table lawdesk.flyway_schema_history (installed_rank integer primary key, version varchar(50), success boolean not null)
+;;
+insert into lawdesk.flyway_schema_history values (1, '1', true)
+;;
+select (select count(*) from lawdesk.judgment) as judgments, (select count(*) from lawdesk.proceeding) as proceedings
+;;

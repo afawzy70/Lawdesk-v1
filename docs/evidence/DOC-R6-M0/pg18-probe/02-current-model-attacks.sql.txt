@@ -1,0 +1,16 @@
+-- Run as lawdesk_app (the CURRENT runtime credential, owner of the schema). Each statement SUCCEEDS today.
+-- E1.1 disable the pointer guard trigger on judgment
+alter table lawdesk.judgment disable trigger judgment_appeal_deadline_runs_from_judgment
+;;
+-- E1.2 drop the guard trigger
+drop trigger judgment_appeal_deadline_runs_from_judgment on lawdesk.judgment
+;;
+-- E1.3 replace a guard function body
+create or replace function lawdesk.judgment_appeal_deadline_runs_from_judgment() returns trigger language plpgsql as $$ begin return new; end $$
+;;
+-- E1.4 create a policy-like table in the schema
+create table lawdesk.forged_policy (x int)
+;;
+-- E1.5 what it still cannot do (no CREATEROLE): create a role
+create role probe_other nologin
+;;

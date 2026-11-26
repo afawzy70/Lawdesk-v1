@@ -1,0 +1,9 @@
+-- as postgres (superuser): per-person operator identities, members of the operator group.
+create role op_alice login nosuperuser nocreaterole in role lawdesk_operator
+;;
+create role op_bob   login nosuperuser nocreaterole in role lawdesk_operator
+;;
+alter role op_alice set search_path = lawdesk
+;;
+alter role op_bob set search_path = lawdesk
+;;

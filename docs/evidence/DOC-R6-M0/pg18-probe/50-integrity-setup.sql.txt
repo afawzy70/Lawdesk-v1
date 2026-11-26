@@ -1,0 +1,102 @@
+-- PROBE ONLY (as lawdesk_owner). Integrity keys of the PROPOSED R6 data model on the REAL develop tables.
+-- Existing tables receive only IMPLIED-UNIQUE indexes (their primary key already makes the wider key unique); no column is added.
+create unique index probe_proceeding_id_case on lawdesk.proceeding (id, case_id)
+;;
+create unique index probe_proceeding_chain on lawdesk.proceeding (id, case_id, parent_proceeding_id, stage)
+;;
+create unique index probe_judgment_id_proceeding on lawdesk.judgment (id, proceeding_id)
+;;
+create unique index probe_case_party_role on lawdesk.case_party (id, case_id, role)
+;;
+create unique index probe_deadline_id_case on lawdesk.deadline (id, case_id)
+;;
+create table lawdesk.x_procedural (
+  judgment_id uuid primary key, proceeding_id uuid not null, case_id uuid not null,
+  constraint x_proc_judgment foreign key (judgment_id, proceeding_id) references lawdesk.judgment (id, proceeding_id),
+  constraint x_proc_proceeding foreign key (proceeding_id, case_id) references lawdesk.proceeding (id, case_id),
+  constraint x_proc_case unique (judgment_id, case_id), constraint x_proc_parent unique (judgment_id, proceeding_id))
+;;
+create table lawdesk.x_litigant (
+  id uuid primary key default gen_random_uuid(), judgment_id uuid not null, case_id uuid not null,
+  kind varchar(8) not null check (kind in ('CITRA','OPPOSING')), case_party_id uuid not null, party_role varchar(16) not null,
+  constraint x_lit_procedural foreign key (judgment_id, case_id) references lawdesk.x_procedural (judgment_id, case_id),
+  constraint x_lit_party foreign key (case_party_id, case_id, party_role) references lawdesk.case_party (id, case_id, role),
+  constraint x_lit_kind_role check ((kind = 'CITRA' and party_role = 'CLIENT') or (kind = 'OPPOSING' and party_role = 'OPPONENT')),
+  constraint x_lit_in_judgment unique (id, judgment_id), constraint x_lit_party_once unique (judgment_id, case_party_id))
+;;
+create unique index x_lit_one_citra on lawdesk.x_litigant (judgment_id) where kind = 'CITRA'
+;;
+create table lawdesk.x_party_deadline (
+  id uuid primary key default gen_random_uuid(), judgment_id uuid not null, litigant_id uuid not null, case_id uuid not null,
+  status varchar(12) not null check (status in ('DRAFT','EFFECTIVE','SUPERSEDED','VOID')), deadline_id uuid unique,
+  constraint x_pd_litigant foreign key (litigant_id, judgment_id) references lawdesk.x_litigant (id, judgment_id),
+  constraint x_pd_procedural foreign key (judgment_id, case_id) references lawdesk.x_procedural (judgment_id, case_id),
+  constraint x_pd_deadline foreign key (deadline_id, case_id) references lawdesk.deadline (id, case_id),
+  constraint x_pd_shape check ((status = 'DRAFT' and deadline_id is null) or (status in ('EFFECTIVE','SUPERSEDED') and deadline_id is not null) or status = 'VOID'))
+;;
+create unique index x_pd_one_live on lawdesk.x_party_deadline (litigant_id) where status in ('DRAFT','EFFECTIVE')
+;;
+create table lawdesk.x_joinder (
+  id uuid primary key default gen_random_uuid(), proceeding_id uuid not null references lawdesk.proceeding (id),
+  court_record_ref varchar(200) not null check (length(btrim(court_record_ref)) > 0), constraint x_joinder_key unique (id, proceeding_id))
+;;
+create table lawdesk.x_appeal (
+  id uuid primary key default gen_random_uuid(), judgment_id uuid not null, litigant_id uuid not null, case_id uuid not null,
+  parent_proceeding_id uuid not null, appeal_type varchar(10) not null check (appeal_type in ('APPEAL','CASSATION')),
+  status varchar(10) not null check (status in ('DRAFT','FILED','WITHDRAWN','VOID')),
+  proceeding_id uuid, child_stage varchar(20), link_kind varchar(6) check (link_kind in ('OWN','JOINED')), joinder_id uuid,
+  capacity varchar(40) not null,
+  constraint x_ap_litigant foreign key (litigant_id, judgment_id) references lawdesk.x_litigant (id, judgment_id),
+  constraint x_ap_procedural foreign key (judgment_id, case_id) references lawdesk.x_procedural (judgment_id, case_id),
+  constraint x_ap_parent foreign key (judgment_id, parent_proceeding_id) references lawdesk.x_procedural (judgment_id, proceeding_id),
+  constraint x_ap_child foreign key (proceeding_id, case_id, parent_proceeding_id, child_stage) references lawdesk.proceeding (id, case_id, parent_proceeding_id, stage),
+  constraint x_ap_joinder foreign key (joinder_id, proceeding_id) references lawdesk.x_joinder (id, proceeding_id),
+  constraint x_ap_stage check (child_stage is null or child_stage = appeal_type),
+  constraint x_ap_mapped check ((proceeding_id is null) = (child_stage is null) and (proceeding_id is null) = (link_kind is null)),
+  constraint x_ap_draft check (status = 'VOID' or (status = 'DRAFT') = (proceeding_id is null)),
+  constraint x_ap_joined check ((link_kind = 'JOINED') = (joinder_id is not null)))
+;;
+create unique index x_ap_one_own_filing on lawdesk.x_appeal (proceeding_id) where link_kind = 'OWN' and status in ('FILED','WITHDRAWN')
+;;
+create unique index x_ap_once_per_litigant_type on lawdesk.x_appeal (litigant_id, appeal_type) where status in ('DRAFT','FILED','WITHDRAWN')
+;;
+revoke insert, update, delete, truncate on lawdesk.x_procedural, lawdesk.x_litigant, lawdesk.x_party_deadline, lawdesk.x_joinder, lawdesk.x_appeal from lawdesk_dml
+;;
+-- ---- synthetic fixture: case c1 (judgment e1), a second case c2 with its own judgment, parties, courts, proceedings ----
+insert into lawdesk.party (id, kind, name, created_by, updated_by) values
+ ('00000000-0000-0000-0000-0000000a0001','ORGANIZATION','CITRA synthetic','00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a1'),
+ ('00000000-0000-0000-0000-0000000a0002','PERSON','opponent one','00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a1'),
+ ('00000000-0000-0000-0000-0000000a0003','PERSON','opponent two','00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a1'),
+ ('00000000-0000-0000-0000-0000000a0004','PERSON','opponent of case two','00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a1')
+;;
+insert into lawdesk.legal_case (id, reference_no, title, case_type, opened_on, created_by, updated_by) values ('00000000-0000-0000-0000-0000000000c2','LD-2026-90002','synthetic case B','CIVIL',date '2026-01-01','00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a1')
+;;
+insert into lawdesk.case_party (id, case_id, party_id, role, created_by) values
+ ('00000000-0000-0000-0000-0000000b0001','00000000-0000-0000-0000-0000000000c1','00000000-0000-0000-0000-0000000a0001','CLIENT','00000000-0000-0000-0000-0000000000a1'),
+ ('00000000-0000-0000-0000-0000000b0002','00000000-0000-0000-0000-0000000000c1','00000000-0000-0000-0000-0000000a0002','OPPONENT','00000000-0000-0000-0000-0000000000a1'),
+ ('00000000-0000-0000-0000-0000000b0003','00000000-0000-0000-0000-0000000000c1','00000000-0000-0000-0000-0000000a0003','OPPONENT','00000000-0000-0000-0000-0000000000a1'),
+ ('00000000-0000-0000-0000-0000000b0004','00000000-0000-0000-0000-0000000000c2','00000000-0000-0000-0000-0000000a0004','OPPONENT','00000000-0000-0000-0000-0000000000a1')
+;;
+insert into lawdesk.court (id, code, name_ar, name_en, level, created_by, updated_by) values
+ ('00000000-0000-0000-0000-0000000000d2','SYN-AP','synthetic','synthetic','APPEAL','00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a1'),
+ ('00000000-0000-0000-0000-0000000000d3','SYN-CA','synthetic','synthetic','CASSATION','00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a1')
+;;
+insert into lawdesk.proceeding (id, case_id, stage, court_id, court_case_number, court_case_year, filing_date, parent_proceeding_id, created_by, updated_by) values
+ ('00000000-0000-0000-0000-0000000000b2','00000000-0000-0000-0000-0000000000c2','FIRST_INSTANCE','00000000-0000-0000-0000-0000000000d1','200',2026,date '2026-01-10',null,'00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a1'),
+ ('00000000-0000-0000-0000-0000000000b3','00000000-0000-0000-0000-0000000000c1','FIRST_INSTANCE','00000000-0000-0000-0000-0000000000d1','101',2026,date '2026-01-11',null,'00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a1'),
+ ('00000000-0000-0000-0000-0000000000b4','00000000-0000-0000-0000-0000000000c1','APPEAL','00000000-0000-0000-0000-0000000000d2','300',2026,date '2026-07-01','00000000-0000-0000-0000-0000000000b1','00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a1'),
+ ('00000000-0000-0000-0000-0000000000b5','00000000-0000-0000-0000-0000000000c1','APPEAL','00000000-0000-0000-0000-0000000000d2','301',2026,date '2026-07-02','00000000-0000-0000-0000-0000000000b1','00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a1'),
+ ('00000000-0000-0000-0000-0000000000b6','00000000-0000-0000-0000-0000000000c2','APPEAL','00000000-0000-0000-0000-0000000000d2','302',2026,date '2026-07-03','00000000-0000-0000-0000-0000000000b2','00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a1'),
+ ('00000000-0000-0000-0000-0000000000b7','00000000-0000-0000-0000-0000000000c1','APPEAL','00000000-0000-0000-0000-0000000000d2','303',2026,date '2026-07-04','00000000-0000-0000-0000-0000000000b3','00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a1'),
+ ('00000000-0000-0000-0000-0000000000b8','00000000-0000-0000-0000-0000000000c1','CASSATION','00000000-0000-0000-0000-0000000000d3','400',2026,date '2026-08-01','00000000-0000-0000-0000-0000000000b4','00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a1')
+;;
+insert into lawdesk.judgment (id, proceeding_id, judgment_date, outcome, created_by, updated_by) values ('00000000-0000-0000-0000-0000000000e2','00000000-0000-0000-0000-0000000000b2',date '2026-06-01','AGAINST','00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a1')
+;;
+insert into lawdesk.x_procedural values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000000b1','00000000-0000-0000-0000-0000000000c1'),('00000000-0000-0000-0000-0000000000e2','00000000-0000-0000-0000-0000000000b2','00000000-0000-0000-0000-0000000000c2')
+;;
+insert into lawdesk.x_litigant (id, judgment_id, case_id, kind, case_party_id, party_role) values
+ ('00000000-0000-0000-0000-0000000e0001','00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000000c1','CITRA','00000000-0000-0000-0000-0000000b0001','CLIENT'),
+ ('00000000-0000-0000-0000-0000000e0002','00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000000c1','OPPOSING','00000000-0000-0000-0000-0000000b0002','OPPONENT'),
+ ('00000000-0000-0000-0000-0000000e0003','00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000000c1','OPPOSING','00000000-0000-0000-0000-0000000b0003','OPPONENT'),
+ ('00000000-0000-0000-0000-0000000e0004','00000000-0000-0000-0000-0000000000e2','00000000-0000-0000-0000-0000000000c2','OPPOSING','00000000-0000-0000-0000-0000000b0004','OPPONENT')
+;;

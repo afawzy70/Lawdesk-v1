@@ -1,0 +1,13 @@
+-- Run as postgres on the database right after the develop migrations were applied as lawdesk_app (the CURRENT deployment model).
+-- E0.1 schema owner
+select nspname, pg_get_userbyid(nspowner) from pg_namespace where nspname = 'lawdesk'
+;;
+-- E0.2 owners of relations in schema lawdesk, by kind (r table, S sequence, i index)
+select c.relkind, pg_get_userbyid(c.relowner) as owner, count(*) from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'lawdesk' and c.relkind in ('r','S','i') group by 1,2 order by 1
+;;
+-- E0.3 owners of functions
+select pg_get_userbyid(p.proowner) as fn_owner, count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'lawdesk' group by 1
+;;
+-- E0.4 user triggers on judgment / legal_case
+select tgrelid::regclass, tgname from pg_trigger where not tgisinternal and tgrelid in ('lawdesk.judgment'::regclass, 'lawdesk.legal_case'::regclass) order by 1, 2
+;;

@@ -1,0 +1,13 @@
+OK   -- Run as postgres on the database right after the develop migrations were applied as lawdesk_app (the CURRENT deployment model).
+     -> lawdesk | lawdesk_app
+OK   -- E0.2 owners of relations in schema lawdesk, by kind (r table, S sequence, i index)
+     -> S | lawdesk_app | 6
+        i | lawdesk_app | 293
+        r | lawdesk_app | 92
+OK   -- E0.3 owners of functions
+     -> lawdesk_app | 59
+OK   -- E0.4 user triggers on judgment / legal_case
+     -> lawdesk.legal_case | search_case_insert
+        lawdesk.legal_case | search_case_update
+        lawdesk.judgment | judgment_appeal_deadline_runs_from_judgment
+        lawdesk.judgment | search_vec_judgment

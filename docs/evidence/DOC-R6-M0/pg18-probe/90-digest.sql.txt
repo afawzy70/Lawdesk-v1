@@ -1,0 +1,21 @@
+-- Digests of the PROTECTED parts only (columns/rows an unauthorised writer must never change).
+select 'judgment(protected columns)' t, md5(coalesce(string_agg(row(x.id, x.proceeding_id, x.judgment_date, x.outcome, x.final, x.appeal_deadline_id)::text, ',' order by x.id), '')) from lawdesk.judgment x
+;;
+select 'deadline(source JUDGMENT)' t, md5(coalesce(string_agg(x::text, ',' order by x.id), '')) from lawdesk.deadline x where x.source_type = 'JUDGMENT'
+;;
+select 'legal_case(confidentiality)' t, md5(coalesce(string_agg(row(x.id, x.confidentiality)::text, ',' order by x.id), '')) from lawdesk.legal_case x
+;;
+select 'legal_approval' t, md5(coalesce(string_agg(x::text, ',' order by x.id), '')) from lawdesk.legal_approval x
+;;
+select 'legal_authority_grant' t, md5(coalesce(string_agg(x::text, ',' order by x.id), '')) from lawdesk.legal_authority_grant x
+;;
+select 'owner_policy' t, md5(coalesce(string_agg(x::text, ',' order by x.policy), '')) from lawdesk.owner_policy x
+;;
+select 'deadline_calculation_evidence' t, md5(coalesce(string_agg(x::text, ',' order by x.id), '')) from lawdesk.deadline_calculation_evidence x
+;;
+select 'complaint_case_link' t, md5(coalesce(string_agg(x::text, ',' order by x.complaint_id), '')) from lawdesk.complaint_case_link x
+;;
+select 'triggers_on_protected_tables' t, md5(string_agg(tgrelid::regclass::text || ':' || tgname::text || ':' || tgenabled::text, ',' order by tgrelid::regclass::text, tgname::text)) from pg_trigger where not tgisinternal and tgrelid::regclass::text in ('judgment','deadline','legal_case','lawdesk.judgment','lawdesk.deadline','lawdesk.legal_case')
+;;
+select 'guard_function_bodies' t, md5(string_agg(proname::text || prosrc, ',' order by proname::text)) from pg_proc where proname::text like 'r6_%'
+;;

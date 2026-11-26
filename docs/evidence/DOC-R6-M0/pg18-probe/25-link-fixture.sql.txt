@@ -1,0 +1,47 @@
+-- PROBE ONLY: as owner, link a synthetic complaint to the synthetic case and make the case RESTRICTED, then install the declassification guard.
+insert into lawdesk.complaint (id, status) values ('00000000-0000-0000-0000-0000000000f1', 'REFERRED')
+;;
+update lawdesk.legal_case set confidentiality = 'RESTRICTED' where id = '00000000-0000-0000-0000-0000000000c1'
+;;
+insert into lawdesk.complaint_case_link (complaint_id, case_id) values ('00000000-0000-0000-0000-0000000000f1', '00000000-0000-0000-0000-0000000000c1')
+;;
+-- Complaint tables are CONFIDENTIAL (class C): the runtime group holds no privilege on them, not even SELECT.
+revoke all on lawdesk.complaint, lawdesk.complaint_case_link from lawdesk_dml
+;;
+grant select on lawdesk.complaint, lawdesk.complaint_case_link to lawdesk_legal
+;;
+-- The guard needs one boolean from them: a definer-rights helper returns only that boolean.
+create function lawdesk.r6_case_is_complaint_linked(p_case uuid) returns boolean language sql stable security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+  select exists (select 1 from lawdesk.complaint_case_link l where l.case_id = p_case) $$
+;;
+revoke all on function lawdesk.r6_case_is_complaint_linked(uuid) from public
+;;
+grant execute on function lawdesk.r6_case_is_complaint_linked(uuid) to lawdesk_dml
+;;
+create function lawdesk.r6_guard_case_confidentiality() returns trigger language plpgsql set search_path = pg_catalog, lawdesk, pg_temp as $$
+begin
+  if current_user <> 'lawdesk_owner' and old.confidentiality = 'RESTRICTED' and new.confidentiality <> 'RESTRICTED'
+     and lawdesk.r6_case_is_complaint_linked(old.id) then
+    raise exception 'case % is linked to a complaint and cannot be declassified here', old.id using errcode = 'LD010';
+  end if;
+  return new;
+end $$
+;;
+create trigger r6_guard_case_confidentiality before update of confidentiality on lawdesk.legal_case
+  for each row execute function lawdesk.r6_guard_case_confidentiality()
+;;
+-- Tier A declassification function: owner-owned, executable by lawdesk_legal only; requires the owner policy (Tier B) AND an active grant.
+create function lawdesk.r6_declassify_linked_case(p_case uuid, p_approver uuid) returns void language plpgsql security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+begin
+  if not exists (select 1 from lawdesk.owner_policy where policy = 'P-DECLASS' and enabled) then
+    raise exception 'policy P-DECLASS is off' using errcode = 'LD011'; end if;
+  if not exists (select 1 from lawdesk.legal_authority_grant g where g.user_id = p_approver and g.authority = 'COMPLAINT_APPROVE' and g.state = 'ACTIVE') then
+    raise exception 'approver holds no COMPLAINT_APPROVE grant' using errcode = 'LD005'; end if;
+  update lawdesk.legal_case set confidentiality = 'NORMAL' where id = p_case;
+end $$
+;;
+revoke all on function lawdesk.r6_declassify_linked_case(uuid, uuid) from public
+;;
+grant execute on function lawdesk.r6_declassify_linked_case(uuid, uuid) to lawdesk_legal
+;;

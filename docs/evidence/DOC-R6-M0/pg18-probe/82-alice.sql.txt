@@ -1,0 +1,6 @@
+-- as op_alice (requester)
+select lawdesk.r6_op_request('REVOKE', '{"user":"00000000-0000-0000-0000-0000000000a2","authority":"POSTJ_APPROVE"}') is not null as request_opened
+;;
+-- same identity tries to confirm her own request
+select lawdesk.r6_op_confirm((select id from lawdesk.r6_op_list() where state = 'OPEN' limit 1))
+;;
