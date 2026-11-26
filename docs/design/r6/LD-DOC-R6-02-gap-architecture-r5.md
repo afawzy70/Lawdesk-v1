@@ -22,33 +22,9 @@ Missing entirely: per-party deadlines, appeals as separate records with parties,
 Partial: judgment outcome mapping, capacity of CITRA per stage, reminder offsets (global today), counting method (present in rules, not tied to settings).
 Conflicts between the document and the repository are listed in `LD-DOC-R6-04` §A.
 
-## 3. Domain model — PROPOSED, NOT IMPLEMENTED (tables new unless stated; all `uuid` ids, `version` for optimistic locking, `created_*/updated_*`)
+## 3. Domain model — PROPOSED, NOT IMPLEMENTED
 
-```
-judgment (existing) 1──* judgment_party_deadline            (party CITRA|OPPONENT)
-judgment 1──1 judgment_procedural (status, citra_decision, finality fields)   -- or columns on judgment; decided in M1 review
-judgment 1──* judgment_status_history
-judgment_party_deadline 1──* deadline_recalculation          (before/after, reason, user)
-judgment 1──* judgment_appeal (party, type, number, filed_on, court, chamber, citra_capacity, next_proceeding_id)
-judgment_appeal 1──* judgment_appeal_document
-judgment_party_deadline 1──0..1 appeal_decision              (decision, reason, approver, decided_on)
-deadline_setting (kind APPEAL|GRIEVANCE, level, appeal_type, case_type|ALL, days, start_basis, legal_ref, status, effective_from/to, version_no, supersedes_id)
-deadline_setting_history
-post_judgment_alert / complaint_alert  -> one table `case_alert` (kind, subject_type, subject_id, offset_key unique with recipient) — idempotency by unique key
-prosecution_complaint 1──* complaint_respondent
-prosecution_complaint 1──* complaint_session, complaint_request, complaint_document(link)
-prosecution_complaint 1──0..1 complaint_decision (SAVED|REFERRED) 1──* complaint_grievance_decision
-prosecution_complaint 0..1──1 legal_case (linked_case_id, unique)  and legal_case.origin_complaint_id (unique)
-complaint_status_history
-```
-
-Principles:
-* Each party deadline stores a **snapshot**: days applied, start basis, count method, setting id and version, legal reference. A later setting edit never recalculates; recalculation is a separate audited action with a mandatory reason (PJ-16, ST-05).
-* Judgment finality is a distinct explicit record (who, when, which conditions were evaluated); it is never computed from dates (PJ-09).
-* An unknown opponent position is a state (`UNRESOLVED`), not "no appeal" (the document: §3 ¶43).
-* Referral creates the case through the existing case-intake service in the same transaction, guarded by a unique constraint on `legal_case.origin_complaint_id` and an idempotency key on the request, so a retry returns the same case.
-* Authorization: every endpoint goes through the existing `CaseAccessPolicy` (hidden → 404 with a body identical to an unknown id); a complaint not yet linked to a case has its own visibility rule (D-20).
-* Counting reuses `DeadlineCalculator` with the method chosen by the approved setting (calendar/working, holidays) — no period literal in code (T-X03).
+The authoritative model (which table is the source of truth for due dates, how party deadlines relate to `deadline` and `judgment.appeal_deadline_id`, how appeal filings map to `proceeding`, lock order, evidence, legal gates, alerts, complaint confidentiality and the referral adapter) is specified in **`LD-DOC-R6-05`**. It replaces the first sketch that was in this section. In one paragraph: the existing `deadline` row stays the only store of due date/status/approval; `judgment_party_deadline` is an extension whose `deadline_id` is NULL until a legally effective calculation exists; `judgment_procedural` is a separate table; `judgment_appeal` records filings and maps them to child `proceeding` rows through the existing ladder service; complaints are a separate aggregate linked to a case by one authoritative link table and created RESTRICTED.
 
 ## 4. Compatibility with R5 (matrix built from the actual R5 diff, `develop...feature/LD-DOC-r5-screens`, 195 files)
 
@@ -56,10 +32,10 @@ State of R5: PR #114 is an unaccepted Draft and, per the owner, independently **
 
 | Area | R5 change (in #114, unmerged) | R6 touch (PROPOSED) | Conflict | Mitigation / order independence |
 |---|---|---|---|---|
-| Migrations | V860, V861 (lists), V880 (rename counsel table), V881 (case requests) | M1+ new numbers | Number clash only if R6 picks one R5 uses | Plan range V900+; script rescan before each migration (03 §1.2). Flyway `out-of-order` makes either merge order apply cleanly |
+| Migrations | V860, V861 (lists), V880 (rename counsel table), V881 (case requests) | M1+ new numbers | Number clash only if R6 picks one R5 uses; **order independence is not claimed** | Planning range V900+, rescanned by script before each migration (03 §1.2); both installation orders must be *proven* (T-MIG-5) before any release if R5 is later accepted |
 | `Permission.java` | +`LIST_ADMIN` (2 lines) | + R6 authorities | Textual merge conflict in the same enum/constants block | Add R6 entries in their own block at the end; resolve mechanically on rebase |
 | `App.tsx`, `AdminTabs.tsx` | +6 / +2 lines (routes/tabs for lists, case access) | New routes (settings, complaints, post-judgment) | Textual conflict, same files | New route files; one-line registrations placed in separate hunks |
-| Deadlines UI (`features/deadlines/*`) | **Deletes the `/deadlines` register screen**; rules/holidays move to `/admin`; messages `deadlines.*` edited | Settings screen needs rules/holidays/settings | If R6 edited `DeadlineSettingsPage`/`RulesPanel` it would conflict with R5's move/deletion | R6 does **not** edit any file under `features/deadlines`; its settings screen is a new component under `/admin`. Backend `DeadlineSettingsController` is unchanged by R5 (not in the diff) |
+| Deadlines UI (`features/deadlines/*`) | **Deletes the `/deadlines` register screen** (`DeadlinesPage`, `DeadlinesPage.test`, `DeadlinesRoute.test`, `routes.tsx` changed), **edits `DeadlineSettingsPage.tsx`, `DeadlineForms.tsx`, `RulesPanel.tsx`**, messages `deadlines.ar/en.ts`; old `/deadlines` redirects to `/calendar` | Settings screen needs rules/holidays/settings | If R6 edited `DeadlineSettingsPage`/`RulesPanel` it would conflict with R5's move/deletion | R6 does **not** edit any file under `features/deadlines` (R5 edits six of them, so any R6 edit would conflict); its settings screen is a new component under `/admin`. Backend `DeadlineSettingsController` is unchanged by R5 (not in the diff) |
 | Proceedings UI (`ProceedingForms.tsx`) | edited | M1 adds capacity/appeal UI | Possible textual conflict | R6 adds new components; if the form must change, the edit is isolated in its own commit |
 | Case view and registration (`CaseDetails*`, `CaseCreatePage`, `IntakeRequest`, `IntakeService`, `CaseService`, `CaseDetails.java`) | Removes status/lawyers sections, merges bodies, adds requests and next hearing, new fields in `IntakeRequest` | M5 referral calls case intake; case view gains complaint link and post-judgment panel | Same classes and DTO | M5 uses the case-intake **service interface** and adds only a new optional field; no R6 code reads R5-only fields. Referral integration test runs on both bases (develop and develop+R5) before M5 is submitted |
 | Case access (`features/access/*`) | Moves grants/confidentiality to `/admin/case-access` | Complaint access list reuses the grant concept | UI only | R6 backend reuses `CaseAccessPolicy` unchanged; no UI file shared |
@@ -67,12 +43,12 @@ State of R5: PR #114 is an unaccepted Draft and, per the owner, independently **
 | Judgments/deadlines/notifications backend | **Not in the R5 diff** | Core of R6 | None | — |
 | Tests | R5 changes `CaseVisibilityApiTest`, `CaseTestData` | R6 adds own tests | Fixture edits | R6 does not edit shared fixtures; uses its own builders |
 
-Rule: R6 never rebases onto R5 until the owner decides R5 and Codex accepts it; the post-R5 rebase is a separate reviewed step. If R5 is rejected and reworked, R6 is unaffected. R6 does not read or write `case_party_counsel`.
+Rule: R6 never rebases onto R5 until the owner decides R5 and Codex accepts it; the post-R5 rebase is a separate reviewed step. R5's rejected status is not re-adjudicated here. **Coexistence is a test obligation, not a claim**: T-R5-1/T-R5-2/T-MIG-5 run on develop and on develop+R5 once R5 is accepted; until then only the develop base is supported. R6 does not read or write `case_party_counsel`.
 
 ## 5. Risks
 
 1. Direct-manager data does not exist (D-14).
 2. Legal parameters are unapproved; seeded values stay inactive (D-01..D-04).
-3. `judgment` one-per-proceeding fits the document (judgment plus its appeals), but a re-judgment after remand would need a second judgment per stage — not requested; recorded under D-08.
+3. `judgment` is one-per-proceeding; a re-judgment after remand would need a second judgment per stage — not requested; recorded under D-08.
 4. Rebase friction with R5 (§4).
 5. Scheduled jobs: must be idempotent across restarts and multiple instances (unique alert key plus advisory lock).
