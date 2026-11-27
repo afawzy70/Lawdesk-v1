@@ -71,6 +71,12 @@ BEGIN
     FROM pg_proc p WHERE p.pronamespace = to_regnamespace('lawdesk') AND p.prosecdef
       AND (has_function_privilege('lawdesk_app', p.oid, 'EXECUTE') OR has_function_privilege('lawdesk_dml', p.oid, 'EXECUTE'));
 
+  -- 5. stored settings: PostgreSQL lets a role change its own, which survives restarts; only the search path is expected
+  SELECT found || coalesce(array_agg('role ' || r2.rolname || ' has the stored setting ' || c.setting), '{}') INTO found
+    FROM pg_db_role_setting s JOIN pg_roles r2 ON r2.oid = s.setrole CROSS JOIN LATERAL unnest(s.setconfig) AS c(setting)
+    WHERE r2.rolname = ANY (runtime || 'lawdesk_owner'::text)
+      AND NOT (c.setting = 'search_path=lawdesk' AND s.setdatabase = 0);
+
   IF cardinality(found) > 0 THEN
     RAISE EXCEPTION 'privilege audit failed: %', array_to_string(found, '; ');
   END IF;

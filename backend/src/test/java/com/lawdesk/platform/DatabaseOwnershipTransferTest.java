@@ -73,6 +73,11 @@ class DatabaseOwnershipTransferTest {
                 {"alter role " + RUNTIME + " createdb", "alter role " + RUNTIME + " nocreatedb"},
                 {"alter role lawdesk_legal login", "alter role lawdesk_legal nologin"},
                 {"alter role lawdesk_operator login", "alter role lawdesk_operator nologin"},
+                // PostgreSQL lets a role change its own stored settings, so the audit has to notice
+                {"alter role " + RUNTIME + " set statement_timeout = 1", "alter role " + RUNTIME + " reset statement_timeout"},
+                {"alter role " + RUNTIME + " in database " + name + " set search_path = public",
+                        "alter role " + RUNTIME + " in database " + name + " reset search_path"},
+                {"alter role " + RUNTIME + " set search_path = public", "alter role " + RUNTIME + " set search_path = lawdesk"},
                 {"create function drift() returns int language sql security definer as 'select 1'", "drop function drift()"},
                 {"grant select on legal_case to " + RUNTIME + " with grant option", "revoke grant option for select on legal_case from " + RUNTIME},
         };
