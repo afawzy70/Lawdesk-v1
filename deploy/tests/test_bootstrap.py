@@ -79,6 +79,8 @@ class BootstrapTest(unittest.TestCase):
         self.bootstrap(str(self.ci_pub))
         admin = (self.home / "secrets" / "db_admin_password.txt").read_text(encoding="utf-8")
         app = (self.home / "secrets" / "db_app_password.txt").read_text(encoding="utf-8")
+        owner = (self.home / "secrets" / "db_owner_password.txt").read_text(encoding="utf-8")
+        self.assertEqual(3, len({admin, app, owner}))
 
         self.bootstrap(str(self.ci_pub))
 

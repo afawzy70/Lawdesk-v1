@@ -56,7 +56,7 @@ install -d -m 700 "$home/secrets" "$home/backups"
     > "$home/staging.env"
 
 echo "== database passwords (generated once, never printed)"
-for name in db_admin_password db_app_password; do
+for name in db_admin_password db_app_password db_owner_password; do
     file=$home/secrets/$name.txt
     if [[ ! -f $file ]]; then
         (umask 022 && openssl rand -hex 32 > "$file")

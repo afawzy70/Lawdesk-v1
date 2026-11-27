@@ -1,0 +1,64 @@
+PASS p1-previous-legacy: backend becomes ready
+PASS p1-previous-legacy: admin changes the temporary password
+PASS p1-previous-legacy: admin signs in
+PASS p1-previous-legacy: drill.staff1 changes the temporary password
+PASS p1-previous-legacy: drill.staff1 signs in
+PASS p1-previous-legacy: 28 API calls of the existing product succeed
+PASS p1-previous-legacy: every earlier case is still listed (0 -> 2)
+PASS p1-previous-legacy: no permission error in the backend log
+PASS restored copy: identical to the source before any change
+PASS restored copy: migration job (owner) succeeds and exits
+PASS restored copy: privilege audit passes
+PASS restored copy: 91 tables, row counts and content digests unchanged by transfer and migration
+PASS p3-previous-under-load: backend becomes ready
+PASS p3-previous-under-load: admin signs in
+PASS in place, previous release serving: migration job (owner) succeeds and exits
+PASS transfer while serving: 168 requests, none failed
+PASS p3-previous-under-load: admin signs in
+PASS p3-previous-under-load: drill.staff2 changes the temporary password
+PASS p3-previous-under-load: drill.staff2 signs in
+PASS p3-previous-under-load: 28 API calls of the existing product succeed
+PASS p3-previous-under-load: every earlier case is still listed (2 -> 4)
+PASS p3-previous-under-load: no permission error in the backend log
+PASS p4-previous-on-split: backend becomes ready
+PASS p4-previous-on-split: admin signs in
+PASS p4-previous-on-split: drill.staff3 changes the temporary password
+PASS p4-previous-on-split: drill.staff3 signs in
+PASS p4-previous-on-split: 28 API calls of the existing product succeed
+PASS p4-previous-on-split: every earlier case is still listed (4 -> 6)
+PASS p4-previous-on-split: no permission error in the backend log
+PASS p5-current-flyway-off: backend becomes ready
+PASS p5-current-flyway-off: admin signs in
+PASS p5-current-flyway-off: drill.staff4 changes the temporary password
+PASS p5-current-flyway-off: drill.staff4 signs in
+PASS p5-current-flyway-off: 28 API calls of the existing product succeed
+PASS p5-current-flyway-off: every earlier case is still listed (6 -> 8)
+PASS p5-current-flyway-off: no permission error in the backend log
+PASS p6-previous-after-old-role-script: backend becomes ready
+PASS p6-previous-after-old-role-script: admin signs in
+PASS p6-previous-after-old-role-script: drill.staff5 changes the temporary password
+PASS p6-previous-after-old-role-script: drill.staff5 signs in
+PASS p6-previous-after-old-role-script: 28 API calls of the existing product succeed
+PASS p6-previous-after-old-role-script: every earlier case is still listed (8 -> 10)
+PASS p6-previous-after-old-role-script: no permission error in the backend log
+PASS next deployment after a rollback: migration job (owner) succeeds and exits
+PASS next deployment after a rollback: privilege audit passes
+PASS next deployment: TEMPORARY withdrawn again
+PASS restore of the split database: privilege audit passes
+PASS restore of the split database: 91 tables identical
+PASS p7-current-on-restored: backend becomes ready
+PASS p7-current-on-restored: admin signs in
+PASS p7-current-on-restored: drill.staff6 changes the temporary password
+PASS p7-current-on-restored: drill.staff6 signs in
+PASS p7-current-on-restored: 28 API calls of the existing product succeed
+PASS p7-current-on-restored: every earlier case is still listed (10 -> 12)
+PASS p7-current-on-restored: no permission error in the backend log
+PASS limit: an old release with a pending DDL migration does NOT start on the split schema
+PASS limit: its failure changed no data and no history
+PASS p8-previous-after-revert: backend becomes ready
+PASS emergency revert: that release can then run its DDL
+PASS re-split after the emergency revert: migration job (owner) succeeds and exits
+PASS re-split after the emergency revert: privilege audit passes
+PASS re-split: the object the old release created now belongs to the owner
+
+RESULT passed=62 failed=0

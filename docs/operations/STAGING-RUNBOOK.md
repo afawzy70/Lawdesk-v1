@@ -223,6 +223,21 @@ for h in app ops api id media; do curl -sS -o /dev/null -w "$h %{http_code}\n" h
 Disk: release directories and `lawdesk-local/*` images accumulate (≈ 400 MB per release). Prune old ones by hand,
 never the current or previous release: `docker image rm lawdesk-local/backend:<old> lawdesk-local/web:<old>`.
 
+## Database ownership (M1-pre; read `deploy/README.md` "Database ownership" first)
+
+**The first deployment that carries it changes the shared database** (ownership transfer) and recreates the `db`
+container (a new secret is mounted; the volume is kept), so expect a short interruption. Before merging it:
+
+1. Owner approval and an agreed window (merging into `develop` deploys automatically).
+2. Take the read-only inventory and keep it:
+   `docker compose -p lawdesk-staging -f <current release>/deploy/compose.yaml exec -T db psql -U postgres -d lawdesk < inspect-ownership.sql`
+3. Rehearse on a restored copy of the latest backup (`tools/db-split/compat_drill.py` covers the synthetic case; the
+   copy of real data is not yet rehearsed).
+4. Confirm a current backup exists and is readable (`pg_restore --list`).
+
+After it: `lawdesk-deploy-gate status`, then `audit.sql`. If the new release fails, `deploy.sh` rolls back to the running
+release by itself; the transfer stays in place and the old release works on it.
+
 ## Isolation summary
 
 | Boundary | How it is enforced | Checked by |
@@ -230,7 +245,7 @@ never the current or previous release: `docker image rm lawdesk-local/backend:<o
 | No host ports | services publish nothing | `deploy/tests/test_compose.py` |
 | DB and API unreachable from the proxy | `internal` network; only `web` joins `lawdesk-edge` | `test_compose.py` |
 | `lawdesk-edge` has no route out | created `--internal` | `test_bootstrap.py` |
-| Least-privilege DB role | backend connects as `lawdesk_app` (no superuser/createdb/createrole) | CI stack job |
+| Least-privilege DB role | backend connects as `lawdesk_app`: owns nothing, no DDL, no migration history writes; migrations run as `lawdesk_owner` in a one-shot job | CI stack job, `postgres/audit.sql` on every deploy, `RuntimeRolePrivilegeTest` |
 | Hardened containers | `cap_drop: ALL`, `no-new-privileges`, read-only roots, memory limits | `test_compose.py` |
 | CI cannot run arbitrary commands | forced command + exact request regex | `test_gate.py`, `test_cd_workflow.py` |
 | Only merged code deploys | CI condition + host-side `merge-base --is-ancestor` | `test_cd_workflow.py`, `test_gate.py` |

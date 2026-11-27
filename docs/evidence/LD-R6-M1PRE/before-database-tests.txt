@@ -1,0 +1,83 @@
+[ERROR] Tests run: 3, Failures: 1, Errors: 1, Skipped: 0, Time elapsed: 26.57 s <<< FAILURE! -- in com.lawdesk.platform.DatabaseOwnershipTransferTest
+[ERROR] com.lawdesk.platform.DatabaseOwnershipTransferTest.theAuditRefusesEveryKindOfDrift -- Time elapsed: 12.38 s <<< ERROR!
+[ERROR] com.lawdesk.platform.DatabaseOwnershipTransferTest.theReferenceCounterOnlyMovesForwardOneStepForTheRuntimeRole -- Time elapsed: 4.247 s <<< FAILURE!
+[ERROR] Tests run: 3, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 12.26 s <<< FAILURE! -- in com.lawdesk.platform.GuardedTableCatalogTest
+[ERROR] com.lawdesk.platform.GuardedTableCatalogTest.onlyTheReviewedTriggersRunOnGuardedTablesInThisOrder -- Time elapsed: 0.058 s <<< FAILURE!
+    "case_document BEFORE search_vec_case_document O",
+    "judgment BEFORE judgment_appeal_deadline_runs_from_judgment O",
+    "judgment BEFORE search_vec_judgment O",
+    "legal_case AFTER search_case_insert O",
+    "legal_case AFTER search_case_update O"]
+    "case_document BEFORE search_vec_case_document O",
+    "case_reference_counter BEFORE case_reference_counter_guard O",
+    "judgment BEFORE judgment_appeal_deadline_runs_from_judgment O",
+    "judgment BEFORE search_vec_judgment O",
+    "legal_case AFTER search_case_insert O",
+    "legal_case AFTER search_case_update O"]
+[ERROR] Tests run: 5, Failures: 4, Errors: 0, Skipped: 0, Time elapsed: 3.865 s <<< FAILURE! -- in com.lawdesk.platform.RuntimeRolePrivilegeTest
+[ERROR] com.lawdesk.platform.RuntimeRolePrivilegeTest.theRuntimeRoleOwnsNothingInTheSchema -- Time elapsed: 0.019 s <<< FAILURE!
+[ERROR] com.lawdesk.platform.RuntimeRolePrivilegeTest.theRuntimeRoleCannotAlterDisableReplaceOrCreateAnything -- Time elapsed: 0.372 s <<< FAILURE!
+Expecting empty but was: ["ALLOWED: alter table judgment disable trigger judgment_appeal_deadline_runs_from_judgment",
+    "ALLOWED: drop trigger judgment_appeal_deadline_runs_from_judgment on judgment",
+    "ALLOWED: create or replace function archive_purge_guard() returns trigger language plpgsql as 'begin return old; end'",
+    "ALLOWED: create function probe() returns int language sql as 'select 1'",
+    "ALLOWED: create table probe (k int)",
+    "ALLOWED: create temporary table probe (k int)",
+    "ALLOWED: alter table legal_case add column probe int",
+    "ALLOWED: alter table legal_case owner to lawdesk_app",
+    "ALLOWED: drop table audit_event",
+    "ALLOWED: truncate audit_event",
+    "ALLOWED: create index probe on legal_case (title)",
+    "ALLOWED: create trigger probe before insert on legal_case for each row execute function archive_purge_guard()"]
+[ERROR] com.lawdesk.platform.RuntimeRolePrivilegeTest.theRuntimeRoleCannotEscalate -- Time elapsed: 0.189 s <<< FAILURE!
+    "22023 (not a privilege refusal): set session authorization lawdesk_owner -> ERROR: role "lawdesk_owner" does not exist",
+    "42704 (not a privilege refusal): grant lawdesk_owner to lawdesk_app -> ERROR: role "lawdesk_owner" does not exist",
+    "42704 (not a privilege refusal): alter role lawdesk_owner password 'x' -> ERROR: role "lawdesk_owner" does not exist",
+    "ALLOWED: alter default privileges grant select on tables to public"]
+[ERROR] com.lawdesk.platform.RuntimeRolePrivilegeTest.theRuntimeRoleCannotChangeTheMigrationHistory -- Time elapsed: 0.061 s <<< FAILURE!
+Expecting empty but was: ["ALLOWED: update flyway_schema_history set success = false",
+    "ALLOWED: delete from flyway_schema_history",
+    "ALLOWED: insert into flyway_schema_history (installed_rank, description, type, script, installed_by, execution_time, success) values (999999, 'x', 'SQL', 'x', 'x', 0, true)"]
+[ERROR] Failures:
+[ERROR]   DatabaseOwnershipTransferTest.theReferenceCounterOnlyMovesForwardOneStepForTheRuntimeRole:104
+[ERROR]   GuardedTableCatalogTest.onlyTheReviewedTriggersRunOnGuardedTablesInThisOrder:41
+    "case_document BEFORE search_vec_case_document O",
+    "judgment BEFORE judgment_appeal_deadline_runs_from_judgment O",
+    "judgment BEFORE search_vec_judgment O",
+    "legal_case AFTER search_case_insert O",
+    "legal_case AFTER search_case_update O"]
+    "case_document BEFORE search_vec_case_document O",
+    "case_reference_counter BEFORE case_reference_counter_guard O",
+    "judgment BEFORE judgment_appeal_deadline_runs_from_judgment O",
+    "judgment BEFORE search_vec_judgment O",
+    "legal_case AFTER search_case_insert O",
+    "legal_case AFTER search_case_update O"]
+[ERROR]   RuntimeRolePrivilegeTest.theRuntimeRoleCannotAlterDisableReplaceOrCreateAnything:44->refused:110
+Expecting empty but was: ["ALLOWED: alter table judgment disable trigger judgment_appeal_deadline_runs_from_judgment",
+    "ALLOWED: drop trigger judgment_appeal_deadline_runs_from_judgment on judgment",
+    "ALLOWED: create or replace function archive_purge_guard() returns trigger language plpgsql as 'begin return old; end'",
+    "ALLOWED: create function probe() returns int language sql as 'select 1'",
+    "ALLOWED: create table probe (k int)",
+    "ALLOWED: create temporary table probe (k int)",
+    "ALLOWED: alter table legal_case add column probe int",
+    "ALLOWED: alter table legal_case owner to lawdesk_app",
+    "ALLOWED: drop table audit_event",
+    "ALLOWED: truncate audit_event",
+    "ALLOWED: create index probe on legal_case (title)",
+    "ALLOWED: create trigger probe before insert on legal_case for each row execute function archive_purge_guard()"]
+[ERROR]   RuntimeRolePrivilegeTest.theRuntimeRoleCannotChangeTheMigrationHistory:77->refused:110
+Expecting empty but was: ["ALLOWED: update flyway_schema_history set success = false",
+    "ALLOWED: delete from flyway_schema_history",
+    "ALLOWED: insert into flyway_schema_history (installed_rank, description, type, script, installed_by, execution_time, success) values (999999, 'x', 'SQL', 'x', 'x', 0, true)"]
+[ERROR]   RuntimeRolePrivilegeTest.theRuntimeRoleCannotEscalate:62->refused:110
+    "22023 (not a privilege refusal): set session authorization lawdesk_owner -> ERROR: role "lawdesk_owner" does not exist",
+    "42704 (not a privilege refusal): grant lawdesk_owner to lawdesk_app -> ERROR: role "lawdesk_owner" does not exist",
+    "42704 (not a privilege refusal): alter role lawdesk_owner password 'x' -> ERROR: role "lawdesk_owner" does not exist",
+    "ALLOWED: alter default privileges grant select on tables to public"]
+[ERROR]   RuntimeRolePrivilegeTest.theRuntimeRoleOwnsNothingInTheSchema:32
+[ERROR] Errors:
+[ERROR]   DatabaseOwnershipTransferTest.theAuditRefusesEveryKindOfDrift:84 » BadSqlGrammar StatementCallback; bad SQL grammar [alter table legal_case owner to lawdesk_owner]
+[ERROR] Tests run: 11, Failures: 6, Errors: 1, Skipped: 0
+[ERROR] BUILD FAILURE
+[ERROR] See <repo>/backend/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.

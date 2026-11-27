@@ -9,4 +9,4 @@ if [[ -z $previous ]]; then
     echo "rollback: no previous release recorded in $state_dir" >&2
     exit 2
 fi
-exec "$(dirname "${BASH_SOURCE[0]}")/deploy.sh" "$previous"
+LAWDESK_ROLLBACK=1 exec "$(dirname "${BASH_SOURCE[0]}")/deploy.sh" "$previous"

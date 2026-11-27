@@ -28,9 +28,10 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD_FILE: /run/secrets/db_admin_password
       LAWDESK_APP_PASSWORD_FILE: /run/secrets/db_app_password
-    secrets: [db_admin_password, db_app_password]
+    # The owner password is mounted here only so that deploy/postgres/passwords.sql can set it.
+    secrets: [db_admin_password, db_app_password, db_owner_password]
     volumes:
-      # The least-privilege app role is ensured by deploy/scripts/deploy.sh (deploy/postgres/app-role.sql), not by an
+      # Roles, ownership and privileges are ensured by deploy/scripts/deploy.sh (deploy/postgres/*.sql), not by an
       # init script, so initialisation does not depend on host file permissions.
       - db-data:/var/lib/postgresql
     networks: [internal]
@@ -42,6 +43,31 @@ services:
       retries: 10
       start_period: 30s
 
+  # One-shot: applies the database migrations as the schema owner and exits. deploy.sh runs it explicitly
+  # (`compose run --rm migrate`) before the backend; `compose up` never starts it.
+  migrate:
+    <<: *hardening
+    restart: "no"
+    profiles: [migrate]
+    image: ${LAWDESK_REGISTRY:?set LAWDESK_REGISTRY}/backend:${LAWDESK_TAG:?set LAWDESK_TAG to the release commit SHA}
+    command: ["migrate"]
+    read_only: true
+    tmpfs:
+      - /tmp
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/lawdesk
+      SPRING_DATASOURCE_USERNAME: lawdesk_owner
+      # The password is read from /run/secrets/spring.datasource.password.
+      SPRING_CONFIG_IMPORT: configtree:/run/secrets/
+    secrets:
+      - source: db_owner_password
+        target: spring.datasource.password
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [internal]
+    mem_limit: 768m
+
   backend:
     <<: *hardening
     image: ${LAWDESK_REGISTRY:?set LAWDESK_REGISTRY}/backend:${LAWDESK_TAG:?set LAWDESK_TAG to the release commit SHA}
@@ -51,6 +77,8 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/lawdesk
       SPRING_DATASOURCE_USERNAME: lawdesk_app
+      # lawdesk_app owns nothing and cannot change the schema: migrations run only in the `migrate` job.
+      SPRING_FLYWAY_ENABLED: "false"
       # The deployed commit, recorded in app_release and the start log line.
       LAWDESK_RELEASE: ${LAWDESK_TAG:?set LAWDESK_TAG to the release commit SHA}
       # The password is read from /run/secrets/spring.datasource.password.
@@ -112,5 +140,7 @@ secrets:
     file: ${LAWDESK_SECRETS_DIR:-./secrets}/db_admin_password.txt
   db_app_password:
     file: ${LAWDESK_SECRETS_DIR:-./secrets}/db_app_password.txt
+  db_owner_password:
+    file: ${LAWDESK_SECRETS_DIR:-./secrets}/db_owner_password.txt
   admin_bootstrap_password:
     file: ${LAWDESK_SECRETS_DIR:-./secrets}/admin_bootstrap_password.txt
