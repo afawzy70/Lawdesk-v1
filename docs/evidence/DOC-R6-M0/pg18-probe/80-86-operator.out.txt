@@ -1,0 +1,47 @@
+##### 80 roles (postgres)
+##### 81 as lawdesk_app
+DENY -- as lawdesk_app (and the same file is replayed as lawdesk_legal): neither can open, confirm or execute an operator request
+     -> [42501] ERROR: permission denied for function r6_op_request
+DENY select lawdesk.r6_op_confirm(gen_random_uuid())
+     -> [42501] ERROR: permission denied for function r6_op_confirm
+DENY select lawdesk.r6_op_revoke_authority(gen_random_uuid())
+     -> [42501] ERROR: permission denied for function r6_op_revoke_authority
+DENY select count(*) from lawdesk.op_request
+     -> [42501] ERROR: permission denied for table op_request
+##### 81 as lawdesk_legal
+DENY -- as lawdesk_app (and the same file is replayed as lawdesk_legal): neither can open, confirm or execute an operator request
+     -> [42501] ERROR: permission denied for function r6_op_request
+DENY select lawdesk.r6_op_confirm(gen_random_uuid())
+     -> [42501] ERROR: permission denied for function r6_op_confirm
+DENY select lawdesk.r6_op_revoke_authority(gen_random_uuid())
+     -> [42501] ERROR: permission denied for function r6_op_revoke_authority
+DENY select count(*) from lawdesk.op_request
+     -> [42501] ERROR: permission denied for table op_request
+##### 82 as op_alice
+OK   -- as op_alice (requester)
+     -> t
+DENY -- same identity tries to confirm her own request
+     -> [LD050] ERROR: a request cannot be confirmed by its requester
+DENY select count(*) as operator_cannot_read_requests_directly from lawdesk.op_request
+     -> [42501] ERROR: permission denied for table op_request
+##### 83 as op_bob
+DENY -- as op_bob (confirmer, different person)
+     -> [LD052] ERROR: revocation needs a confirmed request
+OK   select lawdesk.r6_op_confirm((select id from lawdesk.r6_op_list() where state = 'OPEN' limit 1))
+     -> 
+OK   select lawdesk.r6_op_revoke_authority((select id from lawdesk.r6_op_list() where state = 'CONFIRMED' limit 1))
+     -> 
+OK   select id, kind, state, requested_by, confirmed_by from lawdesk.r6_op_list()
+     -> 2bc3737e-2042-4bc8-856d-42037f6f8577 | REVOKE | EXECUTED | op_alice | op_bob
+##### 84 as lawdesk_legal after revocation
+DENY -- as lawdesk_legal: the revoked approver can no longer approve; no partial write
+     -> [LD005] ERROR: approver holds no active POSTJ_APPROVE grant
+OK   select count(*) as deadlines_from_judgment_still from lawdesk.deadline where source_type = 'JUDGMENT' and source_id = '00000000-0000-0000-0000-0000000000e1'
+     -> 1
+##### 85 containment as postgres
+OK   -- as postgres: contain a suspected compromise of the legal credential (does not need the application or the legal credential)
+OK   select count(pg_terminate_backend(pid)) as sessions_terminated from pg_stat_activity where usename = 'lawdesk_legal' and pid <> pg_backend_pid()
+     -> 0
+##### 85 new connection as lawdesk_legal
+CONNECT-DENY as lawdesk_legal
+     -> [28000] FATAL: role "lawdesk_legal" is not permitted to log in

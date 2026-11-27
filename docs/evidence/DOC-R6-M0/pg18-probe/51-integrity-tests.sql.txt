@@ -1,0 +1,93 @@
+-- as lawdesk_owner (the writer-function owner). The keys are enforced for EVERY role; the owner is used because the runtime roles hold no DML on these tables (see 52).
+;;
+-- [T-DATA-1a EXPECT DENY x_lit_party] litigant whose case_party belongs to another case
+insert into lawdesk.x_litigant (judgment_id, case_id, kind, case_party_id, party_role) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000000c1','OPPOSING','00000000-0000-0000-0000-0000000b0004','OPPONENT')
+;;
+-- [T-DATA-1b EXPECT DENY x_lit_procedural] litigant claiming case c2 for a judgment of case c1
+insert into lawdesk.x_litigant (judgment_id, case_id, kind, case_party_id, party_role) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000000c2','OPPOSING','00000000-0000-0000-0000-0000000b0004','OPPONENT')
+;;
+-- [T-DATA-1c EXPECT DENY x_lit_kind_role] OPPOSING litigant bound to the authority's own CLIENT party
+insert into lawdesk.x_litigant (judgment_id, case_id, kind, case_party_id, party_role) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000000c1','OPPOSING','00000000-0000-0000-0000-0000000b0001','CLIENT')
+;;
+-- [T-DATA-1d EXPECT DENY x_lit_kind_role] CITRA litigant bound to an OPPONENT party
+insert into lawdesk.x_litigant (judgment_id, case_id, kind, case_party_id, party_role) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000000c1','CITRA','00000000-0000-0000-0000-0000000b0002','OPPONENT')
+;;
+-- [T-DATA-1e EXPECT DENY x_lit_party_once] the same case party twice in one judgment
+insert into lawdesk.x_litigant (judgment_id, case_id, kind, case_party_id, party_role) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000000c1','OPPOSING','00000000-0000-0000-0000-0000000b0002','OPPONENT')
+;;
+-- [T-DATA-2a EXPECT DENY x_pd_litigant] party deadline of judgment e2 naming a litigant of judgment e1
+insert into lawdesk.x_party_deadline (judgment_id, litigant_id, case_id, status) values ('00000000-0000-0000-0000-0000000000e2','00000000-0000-0000-0000-0000000e0002','00000000-0000-0000-0000-0000000000c2','DRAFT')
+;;
+-- [T-DATA-2b EXPECT DENY x_pd_deadline] party deadline of case c2 pointing at a deadline row of case c1
+insert into lawdesk.x_party_deadline (judgment_id, litigant_id, case_id, status, deadline_id) values ('00000000-0000-0000-0000-0000000000e2','00000000-0000-0000-0000-0000000e0004','00000000-0000-0000-0000-0000000000c2','EFFECTIVE',(select id from lawdesk.deadline where source_type='JUDGMENT' limit 1))
+;;
+-- [T-DATA-2c EXPECT OK] two opposing litigants and CITRA each get their own DRAFT party deadline
+insert into lawdesk.x_party_deadline (judgment_id, litigant_id, case_id, status) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000e0002','00000000-0000-0000-0000-0000000000c1','DRAFT')
+;;
+insert into lawdesk.x_party_deadline (judgment_id, litigant_id, case_id, status) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000e0003','00000000-0000-0000-0000-0000000000c1','DRAFT')
+;;
+-- [T-DATA-2d EXPECT DENY x_pd_one_live] a second live party deadline for the same litigant
+insert into lawdesk.x_party_deadline (judgment_id, litigant_id, case_id, status) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000e0002','00000000-0000-0000-0000-0000000000c1','DRAFT')
+;;
+-- [T-DATA-2e EXPECT OK] CITRA litigant: EFFECTIVE party deadline linked to the existing deadline row of the same case
+insert into lawdesk.x_party_deadline (judgment_id, litigant_id, case_id, status, deadline_id) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000e0001','00000000-0000-0000-0000-0000000000c1','EFFECTIVE',(select id from lawdesk.deadline where source_type='JUDGMENT' limit 1))
+;;
+-- [T-DATA-3a EXPECT DENY x_ap_child] filing mapped to a child proceeding of ANOTHER case (b6 belongs to c2)
+insert into lawdesk.x_appeal (judgment_id, litigant_id, case_id, parent_proceeding_id, appeal_type, status, proceeding_id, child_stage, link_kind, joinder_id, capacity) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000e0001','00000000-0000-0000-0000-0000000000c1','00000000-0000-0000-0000-0000000000b1','APPEAL','FILED','00000000-0000-0000-0000-0000000000b6','APPEAL','OWN',null,'APPELLANT')
+;;
+-- [T-DATA-3b EXPECT DENY x_ap_child] filing mapped to a child that attacks a DIFFERENT first-instance proceeding of the same case (b7 -> b3)
+insert into lawdesk.x_appeal (judgment_id, litigant_id, case_id, parent_proceeding_id, appeal_type, status, proceeding_id, child_stage, link_kind, joinder_id, capacity) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000e0001','00000000-0000-0000-0000-0000000000c1','00000000-0000-0000-0000-0000000000b1','APPEAL','FILED','00000000-0000-0000-0000-0000000000b7','APPEAL','OWN',null,'APPELLANT')
+;;
+-- [T-DATA-3c EXPECT DENY x_ap_stage] filing type CASSATION mapped to an APPEAL-stage proceeding
+insert into lawdesk.x_appeal (judgment_id, litigant_id, case_id, parent_proceeding_id, appeal_type, status, proceeding_id, child_stage, link_kind, joinder_id, capacity) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000e0001','00000000-0000-0000-0000-0000000000c1','00000000-0000-0000-0000-0000000000b1','CASSATION','FILED','00000000-0000-0000-0000-0000000000b4','APPEAL','OWN',null,'APPELLANT')
+;;
+-- [T-DATA-3d EXPECT DENY x_ap_litigant] filing naming a litigant of another judgment
+insert into lawdesk.x_appeal (judgment_id, litigant_id, case_id, parent_proceeding_id, appeal_type, status, capacity) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000e0004','00000000-0000-0000-0000-0000000000c1','00000000-0000-0000-0000-0000000000b1','APPEAL','DRAFT','APPELLANT')
+;;
+-- [T-DATA-3e EXPECT DENY x_ap_joined] JOINED link without a joinder record
+insert into lawdesk.x_appeal (judgment_id, litigant_id, case_id, parent_proceeding_id, appeal_type, status, proceeding_id, child_stage, link_kind, joinder_id, capacity) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000e0003','00000000-0000-0000-0000-0000000000c1','00000000-0000-0000-0000-0000000000b1','APPEAL','FILED','00000000-0000-0000-0000-0000000000b4','APPEAL','JOINED',null,'RESPONDENT')
+;;
+-- [T-DATA-4a EXPECT OK] opponent one files: own child proceeding b4
+insert into lawdesk.x_appeal (judgment_id, litigant_id, case_id, parent_proceeding_id, appeal_type, status, proceeding_id, child_stage, link_kind, joinder_id, capacity) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000e0002','00000000-0000-0000-0000-0000000000c1','00000000-0000-0000-0000-0000000000b1','APPEAL','FILED','00000000-0000-0000-0000-0000000000b4','APPEAL','OWN',null,'RESPONDENT')
+;;
+-- [T-DATA-4b EXPECT OK] opponent two files at the same time: own child proceeding b5, independent of opponent one
+insert into lawdesk.x_appeal (judgment_id, litigant_id, case_id, parent_proceeding_id, appeal_type, status, proceeding_id, child_stage, link_kind, joinder_id, capacity) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000e0003','00000000-0000-0000-0000-0000000000c1','00000000-0000-0000-0000-0000000000b1','APPEAL','FILED','00000000-0000-0000-0000-0000000000b5','APPEAL','OWN',null,'RESPONDENT')
+;;
+-- [T-DATA-4c EXPECT OK] CITRA's filing stays a DRAFT (no proceeding yet); three filings now exist on the judgment
+insert into lawdesk.x_appeal (judgment_id, litigant_id, case_id, parent_proceeding_id, appeal_type, status, capacity) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000e0001','00000000-0000-0000-0000-0000000000c1','00000000-0000-0000-0000-0000000000b1','APPEAL','DRAFT','APPELLANT')
+;;
+select count(*) as filings_on_judgment_e1 from lawdesk.x_appeal where judgment_id = '00000000-0000-0000-0000-0000000000e1'
+;;
+-- [T-DATA-4d EXPECT DENY x_ap_one_own_filing] a second OWN filing on proceeding b4 
+insert into lawdesk.x_appeal (judgment_id, litigant_id, case_id, parent_proceeding_id, appeal_type, status, proceeding_id, child_stage, link_kind, joinder_id, capacity) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000e0001','00000000-0000-0000-0000-0000000000c1','00000000-0000-0000-0000-0000000000b1','APPEAL','FILED','00000000-0000-0000-0000-0000000000b4','APPEAL','OWN',null,'APPELLANT')
+;;
+-- [T-DATA-4e EXPECT DENY x_ap_once_per_litigant_type] the same litigant, the same type, a second live filing
+insert into lawdesk.x_appeal (judgment_id, litigant_id, case_id, parent_proceeding_id, appeal_type, status, capacity) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000e0002','00000000-0000-0000-0000-0000000000c1','00000000-0000-0000-0000-0000000000b1','APPEAL','DRAFT','RESPONDENT')
+;;
+insert into lawdesk.x_joinder (id, proceeding_id, court_record_ref) values ('00000000-0000-0000-0000-0000000f0001','00000000-0000-0000-0000-0000000000b5','court decision 12/2026 (synthetic)'), ('00000000-0000-0000-0000-0000000f0002','00000000-0000-0000-0000-0000000000b4','court decision 13/2026 (synthetic)')
+;;
+-- [T-DATA-5pre EXPECT OK] CITRA's DRAFT filing is VOIDed (history kept) so a mapped filing can be recorded
+update lawdesk.x_appeal set status = 'VOID' where litigant_id = '00000000-0000-0000-0000-0000000e0001' and status = 'DRAFT'
+;;
+-- [T-DATA-5a EXPECT DENY x_ap_joinder] JOINED to b4 with a joinder record that belongs to b5
+insert into lawdesk.x_appeal (judgment_id, litigant_id, case_id, parent_proceeding_id, appeal_type, status, proceeding_id, child_stage, link_kind, joinder_id, capacity) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000e0001','00000000-0000-0000-0000-0000000000c1','00000000-0000-0000-0000-0000000000b1','APPEAL','FILED','00000000-0000-0000-0000-0000000000b4','APPEAL','JOINED','00000000-0000-0000-0000-0000000f0001','APPELLANT')
+;;
+-- [T-DATA-5b EXPECT OK] CITRA joins b4 with the approved joinder record OF b4 (G-STAGE evidence: court decision reference)
+insert into lawdesk.x_appeal (judgment_id, litigant_id, case_id, parent_proceeding_id, appeal_type, status, proceeding_id, child_stage, link_kind, joinder_id, capacity) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000e0001','00000000-0000-0000-0000-0000000000c1','00000000-0000-0000-0000-0000000000b1','APPEAL','FILED','00000000-0000-0000-0000-0000000000b4','APPEAL','JOINED','00000000-0000-0000-0000-0000000f0002','APPELLANT')
+;;
+-- [T-DATA-6a EXPECT OK] VOID keeps history: CITRA now has one VOID and one FILED row
+select status, count(*) from lawdesk.x_appeal where litigant_id = '00000000-0000-0000-0000-0000000e0001' group by 1 order by 1
+;;
+-- [T-DATA-6b EXPECT OK] opponent two withdraws; the row stays
+update lawdesk.x_appeal set status = 'WITHDRAWN' where litigant_id = '00000000-0000-0000-0000-0000000e0003'
+;;
+-- [T-DATA-6c EXPECT DENY x_ap_one_own_filing + x_ap_once_per_litigant_type, either index blocks it] a WITHDRAWN filing keeps the litigant/type slot (no legal re-filing rule is invented)
+insert into lawdesk.x_appeal (judgment_id, litigant_id, case_id, parent_proceeding_id, appeal_type, status, proceeding_id, child_stage, link_kind, joinder_id, capacity) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000e0003','00000000-0000-0000-0000-0000000000c1','00000000-0000-0000-0000-0000000000b1','APPEAL','FILED','00000000-0000-0000-0000-0000000000b5','APPEAL','OWN',null,'RESPONDENT')
+;;
+-- [T-DATA-6d EXPECT OK] opponent two VOIDed by mistake, opponent two's slot reopens, the proceeding slot is reusable by an OWN filing
+update lawdesk.x_appeal set status = 'VOID' where litigant_id = '00000000-0000-0000-0000-0000000e0003'
+;;
+insert into lawdesk.x_appeal (judgment_id, litigant_id, case_id, parent_proceeding_id, appeal_type, status, proceeding_id, child_stage, link_kind, joinder_id, capacity) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000e0003','00000000-0000-0000-0000-0000000000c1','00000000-0000-0000-0000-0000000000b1','APPEAL','FILED','00000000-0000-0000-0000-0000000000b5','APPEAL','OWN',null,'RESPONDENT')
+;;
+select l.kind, a.status, a.link_kind, a.proceeding_id is not null as mapped from lawdesk.x_appeal a join lawdesk.x_litigant l on l.id = a.litigant_id where a.judgment_id = '00000000-0000-0000-0000-0000000000e1' order by l.kind, a.status, a.link_kind
+;;

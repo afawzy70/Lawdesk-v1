@@ -1,0 +1,18 @@
+DENY -- Executed as lawdesk_legal (second runtime login: same DML group, plus EXECUTE on the Tier A writer functions).
+     -> [LD004] ERROR: gate G-CALC is not active
+DENY select lawdesk.r6_declassify_linked_case('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000a2')
+     -> [LD011] ERROR: policy P-DECLASS is off
+DENY -- ===== the legal role is not the operator and not the owner =====
+     -> [42501] ERROR: permission denied for function r6_op_record_legal_approval
+DENY select lawdesk.r6_op_grant_authority('00000000-0000-0000-0000-0000000000a2', 'POSTJ_APPROVE')
+     -> [42501] ERROR: permission denied for function r6_op_grant_authority
+DENY insert into lawdesk.legal_approval (gate, version) values ('G-CALC', 1)
+     -> [42501] ERROR: permission denied for table legal_approval
+DENY alter table lawdesk.judgment disable trigger r6_guard_judgment
+     -> [42501] ERROR: must be owner of table judgment
+DENY set session_replication_role = replica
+     -> [42501] ERROR: permission denied to set parameter "session_replication_role"
+DENY -- ===== the legal role holds DML rights, not a bypass: legacy writes are refused for it as well =====
+     -> [LD001] ERROR: judgment 00000000-0000-0000-0000-0000000000e1 is protected by R6
+DENY update lawdesk.legal_case set confidentiality = 'NORMAL' where id = '00000000-0000-0000-0000-0000000000c1'
+     -> [LD010] ERROR: case 00000000-0000-0000-0000-0000000000c1 is linked to a complaint and cannot be declassified here

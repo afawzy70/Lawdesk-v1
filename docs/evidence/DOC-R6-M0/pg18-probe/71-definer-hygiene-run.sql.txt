@@ -1,0 +1,24 @@
+-- Executed as lawdesk_app / lawdesk_legal (see the transcript for which line ran as whom).
+-- 1) the runtime role cannot execute the guard functions directly, yet the guard fires on its DML
+select has_function_privilege('lawdesk_app', 'lawdesk.r6_guard_judgment()', 'execute') as app_can_execute_guard_fn
+;;
+select has_function_privilege('lawdesk_app', 'lawdesk.r6_activate_party_deadline(uuid,uuid,uuid,date,jsonb)', 'execute') as app_can_execute_writer
+;;
+select has_function_privilege('lawdesk_legal', 'lawdesk.r6_activate_party_deadline(uuid,uuid,uuid,date,jsonb)', 'execute') as legal_can_execute_writer
+;;
+select has_function_privilege('lawdesk_operator', 'lawdesk.r6_activate_party_deadline(uuid,uuid,uuid,date,jsonb)', 'execute') as operator_can_execute_writer
+;;
+select has_function_privilege('public', 'lawdesk.r6_op_set_policy(text,boolean)', 'execute') as public_can_execute_operator_fn
+;;
+-- 2) current_user inside triggers: invoker-rights trigger from a direct write
+update lawdesk.probe_t set v = 'y' where k = 1
+;;
+-- 3) definer-rights trigger always reports the owner, so it cannot tell a runtime caller from the owner's own function
+update lawdesk.probe_t set v = 'y' where k = 2
+;;
+-- 4) the SAME invoker trigger when the write happens inside an owner-owned definer function: current_user is the owner
+select lawdesk.probe_write_inside_definer()
+;;
+-- 5) temp-schema shadowing (needs TEMPORARY; revoked from the runtime roles, so it is also refused here)
+create temp table legal_approval (gate text, state text)
+;;

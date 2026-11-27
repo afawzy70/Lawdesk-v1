@@ -1,0 +1,78 @@
+DENY -- Executed as lawdesk_app (the application runtime credential). Every line marked EXPECT DENY must fail.
+     -> [42501] ERROR: must be owner of table judgment
+DENY alter table lawdesk.judgment disable trigger all
+     -> [42501] ERROR: must be owner of table judgment
+DENY drop trigger r6_guard_judgment on lawdesk.judgment
+     -> [42501] ERROR: must be owner of relation judgment
+DENY create or replace function lawdesk.r6_guard_judgment() returns trigger language plpgsql as $$ begin return new; end $$
+     -> [42501] ERROR: permission denied for schema lawdesk
+DENY alter table lawdesk.judgment add column forged int
+     -> [42501] ERROR: must be owner of table judgment
+DENY create table lawdesk.forged_policy(x int)
+     -> [42501] ERROR: permission denied for schema lawdesk
+DENY create trigger sneaky before update on lawdesk.judgment for each row execute function lawdesk.r6_guard_judgment()
+     -> [42501] ERROR: permission denied for table judgment
+DENY truncate lawdesk.judgment
+     -> [42501] ERROR: permission denied for table judgment
+DENY drop table lawdesk.legal_approval
+     -> [42501] ERROR: must be owner of table legal_approval
+DENY alter table lawdesk.legal_approval owner to lawdesk_app
+     -> [42501] ERROR: must be owner of table legal_approval
+DENY alter function lawdesk.r6_activate_party_deadline(uuid, uuid, uuid, date, jsonb) set search_path = public
+     -> [42501] ERROR: must be owner of function lawdesk.r6_activate_party_deadline
+DENY set session_replication_role = replica
+     -> [42501] ERROR: permission denied to set parameter "session_replication_role"
+DENY set role lawdesk_owner
+     -> [42501] ERROR: permission denied to set role "lawdesk_owner"
+DENY grant lawdesk_owner to lawdesk_app
+     -> [42501] ERROR: permission denied to grant role "lawdesk_owner"
+DENY alter role lawdesk_app superuser
+     -> [42501] ERROR: permission denied to alter role
+DENY create role forged_role
+     -> [42501] ERROR: permission denied to create role
+DENY update lawdesk.flyway_schema_history set success = false
+     -> [42501] ERROR: permission denied for table flyway_schema_history
+DENY -- ===== B. forging approvals, grants, policy =====
+     -> [42501] ERROR: permission denied for table legal_approval
+DENY insert into lawdesk.legal_authority_grant (user_id, authority) values ('00000000-0000-0000-0000-0000000000a1', 'POSTJ_APPROVE')
+     -> [42501] ERROR: permission denied for table legal_authority_grant
+DENY update lawdesk.owner_policy set enabled = true where policy = 'P-DECLASS'
+     -> [42501] ERROR: permission denied for table owner_policy
+DENY delete from lawdesk.legal_approval
+     -> [42501] ERROR: permission denied for table legal_approval
+DENY select lawdesk.r6_op_record_legal_approval('G-CALC', 1)
+     -> [42501] ERROR: permission denied for function r6_op_record_legal_approval
+DENY select lawdesk.r6_op_grant_authority('00000000-0000-0000-0000-0000000000a1', 'POSTJ_APPROVE')
+     -> [42501] ERROR: permission denied for function r6_op_grant_authority
+DENY select lawdesk.r6_op_set_policy('P-DECLASS', true)
+     -> [42501] ERROR: permission denied for function r6_op_set_policy
+DENY select lawdesk.r6_activate_party_deadline('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a2', date '2026-08-01', '{}'::jsonb)
+     -> [42501] ERROR: permission denied for function r6_activate_party_deadline
+DENY select lawdesk.r6_declassify_linked_case('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000a2')
+     -> [42501] ERROR: permission denied for function r6_declassify_linked_case
+DENY insert into lawdesk.complaint_case_link (complaint_id, case_id) values (gen_random_uuid(), '00000000-0000-0000-0000-0000000000c1')
+     -> [42501] ERROR: permission denied for table complaint_case_link
+DENY insert into lawdesk.deadline_calculation_evidence (deadline_id, inputs, output_due) values (gen_random_uuid(), '{}', date '2026-01-01')
+     -> [42501] ERROR: permission denied for table deadline_calculation_evidence
+DENY -- ===== B2. reading confidential complaint data with the runtime credential =====
+     -> [42501] ERROR: permission denied for table complaint
+DENY select * from lawdesk.complaint_case_link
+     -> [42501] ERROR: permission denied for table complaint_case_link
+OK   select lawdesk.r6_case_is_complaint_linked('00000000-0000-0000-0000-0000000000c1') as only_a_boolean_is_exposed
+     -> t
+DENY -- ===== C. declassify a linked complaint case =====
+     -> [LD010] ERROR: case 00000000-0000-0000-0000-0000000000c1 is linked to a complaint and cannot be declassified here
+DENY -- ===== D. legacy writes against the R6-linked judgment =====
+     -> [LD001] ERROR: judgment 00000000-0000-0000-0000-0000000000e1 is protected by R6
+DENY update lawdesk.judgment set outcome = 'IN_FAVOUR' where id = '00000000-0000-0000-0000-0000000000e1'
+     -> [LD001] ERROR: judgment 00000000-0000-0000-0000-0000000000e1 is protected by R6
+DENY update lawdesk.judgment set judgment_date = date '2026-07-01' where id = '00000000-0000-0000-0000-0000000000e1'
+     -> [LD001] ERROR: judgment 00000000-0000-0000-0000-0000000000e1 is protected by R6
+DENY insert into lawdesk.deadline (case_id, source_type, source_id, starts_on, period_days, due_on, action, calc_status, approved_by, approved_at, created_by, updated_by) values ('00000000-0000-0000-0000-0000000000c1', 'JUDGMENT', '00000000-0000-0000-0000-0000000000e1', date '2026-06-01', 60, date '2026-08-01', 'x', 'APPROVED', '00000000-0000-0000-0000-0000000000a1', now(), '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+     -> [LD002] ERROR: deadline runs from an R6-protected judgment
+OK   -- (digest check follows in 90-digest; legitimate unprotected writes below change only unprotected columns)
+OK   -- ===== E. things that MUST still work for the runtime role (legacy, unlinked behaviour) =====
+OK   insert into lawdesk.deadline (case_id, source_type, source_text, due_on, action, calc_status, created_by, updated_by) values ('00000000-0000-0000-0000-0000000000c1', 'TEXT', 'manual', date '2026-09-01', 'manual deadline', 'MANUAL', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+OK   update lawdesk.legal_case set title = 'synthetic case A (edited)' where id = '00000000-0000-0000-0000-0000000000c1'
+OK   select count(*) as rows_visible_to_runtime from lawdesk.legal_authority_grant
+     -> 0

@@ -1,0 +1,521 @@
+applied 68 migrations as lawdesk_app
+server_version 18.6 | model r5 | mode chain
+##### 05-synthetic-fixture.sql.txt as lawdesk_app
+OK   -- PROBE ONLY. Synthetic rows (no real data) written as the CURRENT runtime role before the split, so the split is
+OK   insert into lawdesk.court (id, code, name_ar, name_en, level, created_by, updated_by)
+OK   insert into lawdesk.proceeding (id, case_id, stage, court_id, court_case_number, court_case_year, filing_date, created_by, updated_by)
+OK   insert into lawdesk.judgment (id, proceeding_id, judgment_date, outcome, created_by, updated_by)
+OK   -- The probe runner is not Flyway, so a stand-in for Flyway's history table (owned, like the real one, by the role that ran Flyway).
+OK   insert into lawdesk.flyway_schema_history values (1, '1', true)
+OK   select (select count(*) from lawdesk.judgment) as judgments, (select count(*) from lawdesk.proceeding) as proceedings
+     -> 1 | 1
+##### 10-ownership-split.sql.txt as postgres
+OK   -- PROBE ONLY (disposable PostgreSQL 18.6, scratch data directory). NOT a migration. Models what the owner-run
+OK   create role lawdesk_dml      nologin nosuperuser nocreatedb nocreaterole noreplication nobypassrls
+OK   create role lawdesk_legal    login nosuperuser nocreatedb nocreaterole noreplication nobypassrls in role lawdesk_dml
+OK   create role lawdesk_operator login nosuperuser nocreatedb nocreaterole noreplication nobypassrls
+OK   grant lawdesk_dml to lawdesk_app
+OK   reassign owned by lawdesk_app to lawdesk_owner
+OK   grant connect on database lawdesk to lawdesk_owner, lawdesk_legal, lawdesk_operator
+OK   revoke temporary on database lawdesk from lawdesk_app
+OK   grant usage on schema lawdesk to lawdesk_dml, lawdesk_operator
+OK   grant select, insert, update, delete on all tables in schema lawdesk to lawdesk_dml
+OK   grant usage, select on all sequences in schema lawdesk to lawdesk_dml
+OK   revoke insert, update, delete, truncate on lawdesk.flyway_schema_history from lawdesk_dml
+OK   alter default privileges for role lawdesk_owner in schema lawdesk grant select, insert, update, delete on tables to lawdesk_dml
+OK   alter default privileges for role lawdesk_owner in schema lawdesk grant usage, select on sequences to lawdesk_dml
+OK   alter default privileges for role lawdesk_owner revoke execute on functions from public
+OK   alter role lawdesk_owner set search_path = lawdesk
+OK   alter role lawdesk_legal set search_path = lawdesk
+OK   alter role lawdesk_operator set search_path = lawdesk
+##### 12-operator-logins.sql.txt as postgres
+OK   -- PROBE ONLY (as postgres, after 10). The operator GROUP cannot log in; each person has an own login (QA-R6-M0-001).
+OK   create role op_alice login nosuperuser nocreaterole nocreatedb in role lawdesk_operator
+OK   create role op_bob   login nosuperuser nocreaterole nocreatedb in role lawdesk_operator
+OK   create role op_dave  login nosuperuser nocreaterole nocreatedb in role lawdesk_operator
+OK   -- a login that is a member of the group but was never registered as a person
+OK   alter role op_alice set search_path = lawdesk
+OK   alter role op_bob set search_path = lawdesk
+OK   alter role op_dave set search_path = lawdesk
+OK   alter role op_carol set search_path = lawdesk
+##### 20-protected-model.sql.txt as lawdesk_owner
+OK   -- PROBE ONLY: Round-5 reduced model of the PROPOSED protected objects (replaces pg18-probe/20), created as lawdesk_owner on the
+OK   create table lawdesk.op_request (
+OK   create table lawdesk.legal_authority_grant (
+OK   create table lawdesk.legal_approval (
+OK   create unique index legal_approval_one_active on lawdesk.legal_approval (gate) where state = 'ACTIVE'
+OK   create table lawdesk.owner_policy (policy text primary key, enabled boolean not null default false,
+OK   insert into lawdesk.owner_policy (policy, enabled, changed_by_role) values ('P-DECLASS', false, 'lawdesk_owner'), ('P-MANIFEST', false, 'lawdesk_owner')
+OK   create table lawdesk.legal_bootstrap (
+OK   create table lawdesk.legal_bootstrap_nominee (
+OK   -- ===================== Tier A data =====================
+OK   create table lawdesk.deadline_calculation_evidence (
+OK   create table lawdesk.judgment_party_deadline (
+OK   -- No application role writes any of these (class R). operator_identity and op_request are not even readable by them.
+OK   revoke all on lawdesk.operator_identity, lawdesk.op_request, lawdesk.legal_bootstrap, lawdesk.legal_bootstrap_nominee from lawdesk_dml
+OK   -- ===================== op_request: immutable content, one-way state (applies to EVERY role, the owner included) =====================
+OK   create trigger r6_op_request_immutable before insert or update or delete on lawdesk.op_request
+OK   -- ===================== operator request handling =====================
+OK   -- The person behind session_user (the LOGIN; SET ROLE does not change it). Refuses unregistered or disabled logins.
+OK   create function lawdesk.r6_op_check_payload(p_kind text, p jsonb) returns void language plpgsql immutable
+OK   create function lawdesk.r6_op_request(p_kind text, p_payload jsonb, p_doc_ref text, p_doc_sha256 text) returns uuid
+OK   -- The confirmer states the hash of what they reviewed.
+OK   create function lawdesk.r6_op_cancel(p_request uuid) returns void language plpgsql security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+OK   create function lawdesk.r6_op_list() returns table (id uuid, kind text, payload jsonb, payload_sha256 text, doc_ref text, doc_sha256 text,
+OK   -- What an operator must see to write a payload and to review one (identifiers and states only; no case or complaint content).
+OK   -- PRIVATE (no grant): the only way an executor obtains a payload. Locks the request, validates everything, marks it EXECUTED.
+OK   -- ===================== executors: each takes ONLY a request id =====================
+OK   create function lawdesk.r6_op_activate_gate(p_request uuid) returns void language plpgsql security definer
+OK   create function lawdesk.r6_op_withdraw_legal_approval(p_request uuid) returns void language plpgsql security definer
+OK   create function lawdesk.r6_op_grant_authority(p_request uuid) returns uuid language plpgsql security definer
+OK   create function lawdesk.r6_op_revoke_authority(p_request uuid) returns void language plpgsql security definer
+OK   create function lawdesk.r6_op_set_policy(p_request uuid) returns void language plpgsql security definer
+OK   create function lawdesk.r6_op_bootstrap_open(p_request uuid) returns uuid language plpgsql security definer
+OK   create function lawdesk.r6_op_bootstrap_complete(p_request uuid) returns void language plpgsql security definer
+OK   create function lawdesk.r6_op_bootstrap_revoke(p_request uuid) returns void language plpgsql security definer
+OK   -- Tier A: a nominee proves possession of the one-time token. A wrong token RETURNS false (so the attempt counter persists).
+OK   -- ===================== Tier A writer =====================
+OK   -- ===================== guards =====================
+OK   create trigger r6_guard_judgment before update or delete on lawdesk.judgment for each row execute function lawdesk.r6_guard_judgment()
+OK   -- A deadline is protected if the OLD or the NEW row is: sourced from a linked judgment, or referenced by a party deadline, by
+OK   create trigger r6_guard_deadline before insert or update or delete on lawdesk.deadline for each row execute function lawdesk.r6_guard_deadline()
+OK   -- ===================== grants =====================
+OK   revoke all on function lawdesk.r6_op_request(text, jsonb, text, text), lawdesk.r6_op_confirm(uuid, text), lawdesk.r6_op_cancel(uuid), lawdesk.r6_op_list(), lawdesk.r6_op_facts(),
+OK   grant execute on function lawdesk.r6_op_request(text, jsonb, text, text), lawdesk.r6_op_confirm(uuid, text), lawdesk.r6_op_cancel(uuid), lawdesk.r6_op_list(), lawdesk.r6_op_facts(),
+OK   grant execute on function lawdesk.r6_bootstrap_confirm(text, uuid), lawdesk.r6_activate_party_deadline(uuid, uuid, uuid, date, jsonb) to lawdesk_legal
+OK   -- The R6 link of the synthetic judgment (a protected record from now on).
+##### 22-identities-fixture.sql.txt as lawdesk_owner
+OK   -- PROBE ONLY (as lawdesk_owner): synthetic users, units and the operator registry (in the product: written at provisioning, D-09).
+OK   insert into lawdesk.app_user (id, username, email, display_name, password_hash, enabled, created_by, updated_by)
+OK   insert into lawdesk.operator_identity (login, person_ref) values ('op_alice','synthetic-person-1'), ('op_bob','synthetic-person-2'), ('op_dave','synthetic-person-3')
+##### 25-complaint-model.sql.txt as lawdesk_owner
+OK   -- PROBE ONLY (as lawdesk_owner): class-C complaint tables, owner-owned read functions and the referral writer (replaces pg18-probe/25 and the
+OK   create table lawdesk.complaint_access (complaint_id uuid not null references lawdesk.complaint(id), user_id uuid not null, primary key (complaint_id, user_id))
+OK   create table lawdesk.complaint_case_link (
+OK   create table lawdesk.referral_draft (
+OK   -- Class C: NO application credential holds any privilege on these tables, not even SELECT (QA-R6-M0-002).
+OK   -- ===================== scope and visibility (private: no grant, so they are not a membership oracle) =====================
+OK   create function lawdesk.r6_complaint_visible(p_complaint uuid, p_actor uuid) returns boolean language sql stable security definer
+OK   -- ===================== read functions: the ONLY way the legal credential sees complaint data =====================
+OK   create function lawdesk.r6_complaint_get(p_actor uuid, p_complaint uuid) returns table (id uuid, status text, reference text, responsible_user_id uuid, owning_unit_id uuid)
+OK   -- Returns the case identifier to a complaint-visible actor; the application still applies the CASE visibility rule before showing it.
+OK   -- Reverse direction: NULL both for "no complaint" and for "a complaint you may not see".
+OK   create function lawdesk.r6_referral_draft_get(p_actor uuid, p_complaint uuid) returns table (missing text[], manifest_approved boolean, intake jsonb)
+OK   -- ===================== the confidentiality guard (unchanged rule; writer discriminator of 20) =====================
+OK   create function lawdesk.r6_guard_case_confidentiality() returns trigger language plpgsql set search_path = pg_catalog, lawdesk, pg_temp as $$
+OK   create function lawdesk.r6_declassify_linked_case(p_case uuid, p_approver uuid) returns void language plpgsql security definer
+OK   -- synthetic linked complaint on the synthetic case (as the author's pg18-probe/25 did; inserted BEFORE the invariant exists)
+OK   insert into lawdesk.complaint_case_link (complaint_id, case_id) values ('00000000-0000-0000-0000-0000000000f1', '00000000-0000-0000-0000-0000000000c1')
+OK   update lawdesk.legal_case set confidentiality = 'RESTRICTED' where id = '00000000-0000-0000-0000-0000000000c1'
+OK   -- ===================== invariant R-1 at COMMIT =====================
+OK   create constraint trigger r6_referral_invariant_c after insert or update of status on lawdesk.complaint deferrable initially deferred for each row execute function lawdesk.r6_check_referral_invariant()
+OK   create constraint trigger r6_referral_invariant_l after insert or update or delete on lawdesk.complaint_case_link deferrable initially deferred for each row execute function lawdesk.r6_check_referral_invariant()
+OK   -- ===================== the referral writer: it CREATES the case; no case identifier is ever accepted (QA-R6-M0-009) =====================
+OK   -- ===================== grants =====================
+OK   grant execute on function lawdesk.r6_complaint_list(uuid), lawdesk.r6_complaint_get(uuid, uuid), lawdesk.r6_complaint_case(uuid, uuid),
+OK   -- the confidentiality guard needs one boolean
+OK   create trigger r6_guard_case_confidentiality before update of confidentiality on lawdesk.legal_case
+##### 26a-role-permission-guard-setup.sql.txt as lawdesk_owner
+OK   -- as lawdesk_owner: layer 5 of 05 A.2 on the REAL role_permission table. The guard applies to every role, the owner included.
+OK   insert into lawdesk.sensitive_permission values ('POSTJ_APPROVE'), ('APPEAL_SETTINGS_APPROVE'), ('LEGAL_GATE_APPROVE'), ('LEGAL_AUTHORITY_CUSTODIAN'), ('COMPLAINT_VIEW'), ('COMPLAINT_CREATE'), ('COMPLAINT_EDIT'), ('COMPLAINT_PREPARE_DECISION'), ('COMPLAINT_APPROVE')
+OK   revoke insert, update, delete, truncate on lawdesk.sensitive_permission from lawdesk_dml
+OK   create function lawdesk.r6_guard_role_permission() returns trigger language plpgsql set search_path = pg_catalog, lawdesk, pg_temp as $$
+OK   create trigger r6_guard_role_permission before insert or update on lawdesk.role_permission for each row execute function lawdesk.r6_guard_role_permission()
+DENY -- the owner itself is refused too
+     -> LD060 permission LEGAL_AUTHORITY_CUSTODIAN is a sensitive legal authority and cannot be attached to a role
+##### 26b-role-permission-guard-runtime.sql.txt as lawdesk_app
+DENY -- as lawdesk_app: what RoleAdministration (or direct SQL, or the previous release) could try
+     -> LD060 permission POSTJ_APPROVE is a sensitive legal authority and cannot be attached to a role
+DENY insert into lawdesk.role_permission (role_id, permission) select id, 'COMPLAINT_APPROVE' from lawdesk.app_role where code = 'LEGAL_STAFF'
+     -> LD060 permission COMPLAINT_APPROVE is a sensitive legal authority and cannot be attached to a role
+DENY update lawdesk.role_permission set permission = 'LEGAL_GATE_APPROVE' where permission = (select permission from lawdesk.role_permission rp join lawdesk.app_role r on r.id = rp.role_id where r.code = 'LEGAL_MANAGER' limit 1) and role_id = (select id from lawdesk.app_role where code = 'LEGAL_MANAGER')
+     -> LD060 permission LEGAL_GATE_APPROVE is a sensitive legal authority and cannot be attached to a role
+DENY -- the guard cannot be removed or edited by the runtime role
+     -> 42501 must be owner of table role_permission
+DENY delete from lawdesk.sensitive_permission
+     -> 42501 permission denied for table sensitive_permission
+DENY insert into lawdesk.sensitive_permission values ('X')
+     -> 42501 permission denied for table sensitive_permission
+OK   -- ordinary (non-sensitive) role management keeps working
+OK   select count(*) as sensitive_rows_in_role_permission from lawdesk.role_permission where permission in (select code from lawdesk.sensitive_permission)
+     -> 0
+##### 30-runtime-role-attacks.sql.txt as lawdesk_app
+DENY -- Executed as lawdesk_app (the application runtime credential). Every line marked EXPECT DENY must fail.
+     -> 42501 must be owner of table judgment
+DENY alter table lawdesk.judgment disable trigger all
+     -> 42501 must be owner of table judgment
+DENY drop trigger r6_guard_judgment on lawdesk.judgment
+     -> 42501 must be owner of relation judgment
+DENY create or replace function lawdesk.r6_guard_judgment() returns trigger language plpgsql as $$ begin return new; end $$
+     -> 42501 permission denied for schema lawdesk
+DENY alter table lawdesk.judgment add column forged int
+     -> 42501 must be owner of table judgment
+DENY create table lawdesk.forged_policy(x int)
+     -> 42501 permission denied for schema lawdesk
+DENY create trigger sneaky before update on lawdesk.judgment for each row execute function lawdesk.r6_guard_judgment()
+     -> 42501 permission denied for table judgment
+DENY truncate lawdesk.judgment
+     -> 42501 permission denied for table judgment
+DENY drop table lawdesk.legal_approval
+     -> 42501 must be owner of table legal_approval
+DENY alter table lawdesk.legal_approval owner to lawdesk_app
+     -> 42501 must be owner of table legal_approval
+DENY alter function lawdesk.r6_activate_party_deadline(uuid, uuid, uuid, date, jsonb) set search_path = public
+     -> 42501 must be owner of function lawdesk.r6_activate_party_deadline
+DENY set session_replication_role = replica
+     -> 42501 permission denied to set parameter "session_replication_role"
+DENY set role lawdesk_owner
+     -> 42501 permission denied to set role "lawdesk_owner"
+DENY grant lawdesk_owner to lawdesk_app
+     -> 42501 permission denied to grant role "lawdesk_owner"
+DENY alter role lawdesk_app superuser
+     -> 42501 permission denied to alter role
+DENY create role forged_role
+     -> 42501 permission denied to create role
+DENY update lawdesk.flyway_schema_history set success = false
+     -> 42501 permission denied for table flyway_schema_history
+DENY -- ===== B. forging approvals, grants, policy =====
+     -> 42501 permission denied for table legal_approval
+DENY insert into lawdesk.legal_authority_grant (user_id, authority) values ('00000000-0000-0000-0000-0000000000a1', 'POSTJ_APPROVE')
+     -> 42501 permission denied for table legal_authority_grant
+DENY update lawdesk.owner_policy set enabled = true where policy = 'P-DECLASS'
+     -> 42501 permission denied for table owner_policy
+DENY delete from lawdesk.legal_approval
+     -> 42501 permission denied for table legal_approval
+DENY select lawdesk.r6_op_record_legal_approval('G-CALC', 1)
+     -> 42883 function lawdesk.r6_op_record_legal_approval(unknown, integer) does not exist
+DENY select lawdesk.r6_op_grant_authority('00000000-0000-0000-0000-0000000000a1', 'POSTJ_APPROVE')
+     -> 42883 function lawdesk.r6_op_grant_authority(unknown, unknown) does not exist
+DENY select lawdesk.r6_op_set_policy('P-DECLASS', true)
+     -> 42883 function lawdesk.r6_op_set_policy(unknown, boolean) does not exist
+DENY select lawdesk.r6_activate_party_deadline('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a2', date '2026-08-01', '{}'::jsonb)
+     -> 42501 permission denied for function r6_activate_party_deadline
+DENY select lawdesk.r6_declassify_linked_case('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000a2')
+     -> 42501 permission denied for function r6_declassify_linked_case
+DENY insert into lawdesk.complaint_case_link (complaint_id, case_id) values (gen_random_uuid(), '00000000-0000-0000-0000-0000000000c1')
+     -> 42501 permission denied for table complaint_case_link
+DENY insert into lawdesk.deadline_calculation_evidence (deadline_id, inputs, output_due) values (gen_random_uuid(), '{}', date '2026-01-01')
+     -> 42501 permission denied for table deadline_calculation_evidence
+DENY -- ===== B2. reading confidential complaint data with the runtime credential =====
+     -> 42501 permission denied for table complaint
+DENY select * from lawdesk.complaint_case_link
+     -> 42501 permission denied for table complaint_case_link
+OK   select lawdesk.r6_case_is_complaint_linked('00000000-0000-0000-0000-0000000000c1') as only_a_boolean_is_exposed
+     -> True
+DENY -- ===== C. declassify a linked complaint case =====
+     -> LD010 case 00000000-0000-0000-0000-0000000000c1 is linked to a complaint and cannot be declassified here
+DENY -- ===== D. legacy writes against the R6-linked judgment =====
+     -> LD001 judgment 00000000-0000-0000-0000-0000000000e1 is protected by R6
+DENY update lawdesk.judgment set outcome = 'IN_FAVOUR' where id = '00000000-0000-0000-0000-0000000000e1'
+     -> LD001 judgment 00000000-0000-0000-0000-0000000000e1 is protected by R6
+DENY update lawdesk.judgment set judgment_date = date '2026-07-01' where id = '00000000-0000-0000-0000-0000000000e1'
+     -> LD001 judgment 00000000-0000-0000-0000-0000000000e1 is protected by R6
+DENY insert into lawdesk.deadline (case_id, source_type, source_id, starts_on, period_days, due_on, action, calc_status, approved_by, approved_at, created_by, updated_by) values ('00000000-0000-0000-0000-0000000000c1', 'JUDGMENT', '00000000-0000-0000-0000-0000000000e1', date '2026-06-01', 60, date '2026-08-01', 'x', 'APPROVED', '00000000-0000-0000-0000-0000000000a1', now(), '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+     -> LD002 deadline runs from an R6-protected judgment
+DENY -- (digest check follows in 90-digest; legitimate unprotected writes below change only unprotected columns)
+     -> None can't execute an empty query
+OK   -- ===== E. things that MUST still work for the runtime role (legacy, unlinked behaviour) =====
+OK   insert into lawdesk.deadline (case_id, source_type, source_text, due_on, action, calc_status, created_by, updated_by) values ('00000000-0000-0000-0000-0000000000c1', 'TEXT', 'manual', date '2026-09-01', 'manual deadline', 'MANUAL', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+OK   update lawdesk.legal_case set title = 'synthetic case A (edited)' where id = '00000000-0000-0000-0000-0000000000c1'
+OK   select count(*) as rows_visible_to_runtime from lawdesk.legal_authority_grant
+     -> 0
+##### 31-legal-role.sql.txt as lawdesk_legal
+DENY -- Executed as lawdesk_legal (second runtime login: same DML group, plus EXECUTE on the Tier A writer functions).
+     -> LD004 gate G-CALC is not active
+DENY select lawdesk.r6_declassify_linked_case('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000a2')
+     -> LD011 policy P-DECLASS is off
+DENY -- ===== the legal role is not the operator and not the owner =====
+     -> 42883 function lawdesk.r6_op_record_legal_approval(unknown, integer) does not exist
+DENY select lawdesk.r6_op_grant_authority('00000000-0000-0000-0000-0000000000a2', 'POSTJ_APPROVE')
+     -> 42883 function lawdesk.r6_op_grant_authority(unknown, unknown) does not exist
+DENY insert into lawdesk.legal_approval (gate, version) values ('G-CALC', 1)
+     -> 42501 permission denied for table legal_approval
+DENY alter table lawdesk.judgment disable trigger r6_guard_judgment
+     -> 42501 must be owner of table judgment
+DENY set session_replication_role = replica
+     -> 42501 permission denied to set parameter "session_replication_role"
+DENY -- ===== the legal role holds DML rights, not a bypass: legacy writes are refused for it as well =====
+     -> LD001 judgment 00000000-0000-0000-0000-0000000000e1 is protected by R6
+DENY update lawdesk.legal_case set confidentiality = 'NORMAL' where id = '00000000-0000-0000-0000-0000000000c1'
+     -> LD010 case 00000000-0000-0000-0000-0000000000c1 is linked to a complaint and cannot be declassified here
+##### 32-two-operator-facts.sql.txt as op_alice+op_bob
+DENY -- @login op_alice
+     -> 42883 function lawdesk.r6_op_set_policy(unknown, boolean) does not exist
+OK   -- @login op_alice
+     -> True
+DENY -- @login op_alice
+     -> LD052 request is OPEN, not CONFIRMED
+DENY -- @login op_alice
+     -> LD050 a request cannot be confirmed by its requester
+DENY -- @login op_carol
+     -> LD057 login op_carol is not a registered, active operator
+OK   -- @login op_bob
+     -> LEGAL_APPROVAL_RECORD | {'gate': 'G-CALC', 'version': 1} | c31439188698d9f0b7c132ce985ed01dab320ad580543f77cc826d99ab6f11b5 | synthetic-doc-calc | op_alice
+OK   -- @login op_bob
+     ->
+DENY -- @login op_dave
+     -> LD057 only the requester or the confirmer may execute
+OK   -- @login op_bob
+     -> True
+DENY -- @login op_bob
+     -> LD052 request is EXECUTED, not CONFIRMED
+OK   -- @login op_alice
+     -> True
+OK   -- @login op_bob
+     ->
+OK   -- @login op_bob
+     ->
+OK   -- @login op_alice
+     -> True
+OK   -- @login op_bob
+     ->
+OK   -- @login op_bob
+     -> True
+OK   -- @login op_alice
+     -> True
+OK   -- @login op_bob
+     ->
+OK   -- @login op_bob
+     -> True
+OK   -- @login op_alice
+     -> True
+OK   -- @login op_bob
+     ->
+OK   -- @login op_bob
+     -> True
+OK   -- @login op_bob
+     -> approval | {'gate': 'G-CALC', 'state': 'ACTIVE', 'version': 1} || grant | {'basis': 'NORMAL', 'state': 'ACTIVE', 'user_id': '00000000-0000-0000-0000-0000000000a2', 'authority': 'COMPLAINT_APPROVE', 'scope_ref': '00000000-0000-0000-0000-0000000000f1', 'scope_type': 'UNIT'} || grant | {'basis': 'NORMAL', 'state': 'ACTIVE', 'user_id': '00000000-0000-0000-0000-0000000000a2', 'authority': 'COMPLAINT_VIEW', 'scope_ref': '00000000-0000-0000-0000-0000000000f1', 'scope_type': 'UNIT'} || grant | {'basis': 'NORMAL', 'state': 'ACTIVE', 'user_id': '00000000-0000-0000-0000-0000000000a2', 'authority': 'POSTJ_APPROVE', 'scope_ref': None, 'scope_type': 'ALL'} || policy | {'enabled': False} || policy | {'enabled': False}
+##### 33-legal-role-after-tier-b.sql.txt as lawdesk_legal
+OK   -- Executed as lawdesk_legal AFTER the operator recorded the gate approval and the grants.
+     -> True
+DENY -- ===== rejection paths (each must leave no partial write) =====
+     -> LD003 preparer and approver must differ
+DENY select lawdesk.r6_activate_party_deadline('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a9', date '2026-08-01', '{}'::jsonb)
+     -> LD005 approver holds no active POSTJ_APPROVE grant
+DENY select lawdesk.r6_activate_party_deadline('00000000-0000-0000-0000-0000000000ee', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a2', date '2026-08-01', '{}'::jsonb)
+     -> LD006 judgment not found
+DENY -- declassification stays refused while the owner policy P-DECLASS is off, even with a valid COMPLAINT_APPROVE grant
+     -> LD011 policy P-DECLASS is off
+OK   select count(*) as deadlines_from_judgment, count(*) filter (where calc_status = 'APPROVED') as approved from lawdesk.deadline where source_type = 'JUDGMENT'
+     -> 1 | 1
+OK   select (select count(*) from lawdesk.deadline_calculation_evidence) as evidence_rows, (select appeal_deadline_id is not null from lawdesk.judgment where id = '00000000-0000-0000-0000-0000000000e1') as pointer_set
+     -> 1 | True
+##### 34-runtime-after.sql.txt as lawdesk_app
+DENY -- Executed as lawdesk_app AFTER an effective R6 deadline exists: legacy API paths against it.
+     -> LD002 deadline is protected by R6
+DENY update lawdesk.deadline set calc_status = 'MANUAL', approved_by = null, approved_at = null where source_type = 'JUDGMENT'
+     -> LD002 deadline is protected by R6
+DENY update lawdesk.deadline set status = 'COMPLETED', completed_on = current_date where source_type = 'JUDGMENT'
+     -> LD002 deadline is protected by R6
+DENY delete from lawdesk.deadline where source_type = 'JUDGMENT'
+     -> LD002 deadline is protected by R6
+DENY update lawdesk.judgment set appeal_deadline_id = null where id = '00000000-0000-0000-0000-0000000000e1'
+     -> LD001 judgment 00000000-0000-0000-0000-0000000000e1 is protected by R6
+OK   select count(*) as other_deadlines_still_writable from lawdesk.deadline where source_type = 'TEXT'
+     -> 1
+OK   update lawdesk.deadline set notes = 'edited' where source_type = 'TEXT'
+##### 40-referral-fixture.sql.txt as lawdesk_owner
+OK   -- PROBE ONLY (as lawdesk_owner): three synthetic complaints; f301 complete, f302 incomplete, f303 complete. Responsible researcher a2,
+OK   insert into lawdesk.referral_draft (complaint_id, missing, manifest_approved, intake, prepared_by, approved_by)
+##### 42-referral-sequence.sql.txt as lawdesk_legal
+DENY -- @login lawdesk_legal
+     -> LD023 policy P-MANIFEST is off
+OK   -- @login op_alice
+     -> True
+OK   -- @login op_bob
+     ->
+OK   -- @login op_bob
+     ->
+DENY -- @login lawdesk_legal
+     -> LD024 referral draft is incomplete or unapproved
+DENY -- @login lawdesk_legal
+     -> LD020 complaint not found
+OK   -- @login lawdesk_legal
+     -> 64443295-09b4-492a-8920-d47fa85b5be1 | LD-2026-00001 | False
+OK   -- @login lawdesk_legal
+     -> 64443295-09b4-492a-8920-d47fa85b5be1 | LD-2026-00001 | True
+DENY -- @login lawdesk_legal
+     -> LD021 complaint already referred
+DENY -- @login lawdesk_legal
+     -> 42883 function lawdesk.r6_complete_referral(unknown, unknown, unknown) does not exist
+DENY -- @login lawdesk_legal
+     -> 42501 permission denied for table complaint_case_link
+OK   -- @login lawdesk_legal
+     -> REFERRED | True
+DENY -- @login lawdesk_app
+     -> 42501 permission denied for function r6_open_referral_case
+OK   -- @login lawdesk_owner
+     -> RESTRICTED | REFERRED | True
+OK   -- @login lawdesk_owner
+     -> 2
+##### 45-invariant-at-commit.sql.txt as lawdesk_owner
+OK   -- as lawdesk_owner: the deferred invariant itself (R-1), exercised directly, because the owner is the only role that can write these tables.
+OK   insert into lawdesk.legal_case (id, reference_no, title, case_type, opened_on, confidentiality, created_by, updated_by) values ('00000000-0000-0000-0000-00000000c307', 'LD-2026-90307', 'orphan link case', 'CIVIL', current_date, 'RESTRICTED', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+OK   insert into lawdesk.complaint_case_link (complaint_id, case_id) values ('00000000-0000-0000-0000-00000000f303', '00000000-0000-0000-0000-00000000c307')
+DENY commit
+     -> LD032 invariant R-1 violated for complaint 00000000-0000-0000-0000-00000000f303: status=UNDER_INVESTIGATION links=1
+OK   -- (i) status REFERRED without a link: the COMMIT fails
+OK   update lawdesk.complaint set status = 'REFERRED' where id = '00000000-0000-0000-0000-00000000f303'
+DENY commit
+     -> LD032 invariant R-1 violated for complaint 00000000-0000-0000-0000-00000000f303: status=REFERRED links=0
+OK   select status as status_of_f303_after_failed_commits, (select count(*) from lawdesk.complaint_case_link where complaint_id = '00000000-0000-0000-0000-00000000f303') as links from lawdesk.complaint where id = '00000000-0000-0000-0000-00000000f303'
+     -> UNDER_INVESTIGATION | 0
+DENY -- (j) a second link row for an already referred complaint / a second complaint for the same case: unique constraints
+     -> 23505 duplicate key value violates unique constraint "complaint_case_link_pkey"
+DENY insert into lawdesk.complaint_case_link (complaint_id, case_id) values ('00000000-0000-0000-0000-00000000f303', '00000000-0000-0000-0000-00000000c305')
+     -> 23503 insert or update on table "complaint_case_link" violates foreign key constraint "complaint_case_link_case_id_fkey"
+##### 50-integrity-setup.sql.txt as lawdesk_owner
+OK   -- PROBE ONLY (as lawdesk_owner). Integrity keys of the PROPOSED R6 data model on the REAL develop tables.
+OK   create unique index probe_proceeding_chain on lawdesk.proceeding (id, case_id, parent_proceeding_id, stage)
+OK   create unique index probe_judgment_id_proceeding on lawdesk.judgment (id, proceeding_id)
+OK   create unique index probe_case_party_role on lawdesk.case_party (id, case_id, role)
+OK   create unique index probe_deadline_id_case on lawdesk.deadline (id, case_id)
+OK   create table lawdesk.x_procedural (
+OK   create table lawdesk.x_litigant (
+OK   create unique index x_lit_one_citra on lawdesk.x_litigant (judgment_id) where kind = 'CITRA'
+OK   create table lawdesk.x_party_deadline (
+OK   create unique index x_pd_one_live on lawdesk.x_party_deadline (litigant_id) where status in ('DRAFT','EFFECTIVE')
+OK   create table lawdesk.x_joinder (
+OK   create table lawdesk.x_appeal (
+OK   create unique index x_ap_one_own_filing on lawdesk.x_appeal (proceeding_id) where link_kind = 'OWN' and status in ('FILED','WITHDRAWN')
+OK   create unique index x_ap_once_per_litigant_type on lawdesk.x_appeal (litigant_id, appeal_type) where status in ('DRAFT','FILED','WITHDRAWN')
+OK   revoke insert, update, delete, truncate on lawdesk.x_procedural, lawdesk.x_litigant, lawdesk.x_party_deadline, lawdesk.x_joinder, lawdesk.x_appeal from lawdesk_dml
+OK   -- ---- synthetic fixture: case c1 (judgment e1), a second case c2 with its own judgment, parties, courts, proceedings ----
+OK   insert into lawdesk.legal_case (id, reference_no, title, case_type, opened_on, created_by, updated_by) values ('00000000-0000-0000-0000-0000000000c2','LD-2026-90002','synthetic case B','CIVIL',date '2026-01-01','00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a1')
+OK   insert into lawdesk.case_party (id, case_id, party_id, role, created_by) values
+OK   insert into lawdesk.court (id, code, name_ar, name_en, level, created_by, updated_by) values
+OK   insert into lawdesk.proceeding (id, case_id, stage, court_id, court_case_number, court_case_year, filing_date, parent_proceeding_id, created_by, updated_by) values
+OK   insert into lawdesk.judgment (id, proceeding_id, judgment_date, outcome, created_by, updated_by) values ('00000000-0000-0000-0000-0000000000e2','00000000-0000-0000-0000-0000000000b2',date '2026-06-01','AGAINST','00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a1')
+OK   insert into lawdesk.x_procedural values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000000b1','00000000-0000-0000-0000-0000000000c1'),('00000000-0000-0000-0000-0000000000e2','00000000-0000-0000-0000-0000000000b2','00000000-0000-0000-0000-0000000000c2')
+OK   insert into lawdesk.x_litigant (id, judgment_id, case_id, kind, case_party_id, party_role) values
+##### 51-integrity-tests.sql.txt as lawdesk_owner
+DENY -- as lawdesk_owner (the writer-function owner). The keys are enforced for EVERY role; the owner is used because the runtime roles hold no DML on these tables (see 52).
+     -> None can't execute an empty query
+DENY -- [T-DATA-1a EXPECT DENY x_lit_party] litigant whose case_party belongs to another case
+     -> 23503 insert or update on table "x_litigant" violates foreign key constraint "x_lit_party"
+DENY -- [T-DATA-1b EXPECT DENY x_lit_procedural] litigant claiming case c2 for a judgment of case c1
+     -> 23503 insert or update on table "x_litigant" violates foreign key constraint "x_lit_procedural"
+DENY -- [T-DATA-1c EXPECT DENY x_lit_kind_role] OPPOSING litigant bound to the authority's own CLIENT party
+     -> 23514 new row for relation "x_litigant" violates check constraint "x_lit_kind_role"
+DENY -- [T-DATA-1d EXPECT DENY x_lit_kind_role] CITRA litigant bound to an OPPONENT party
+     -> 23514 new row for relation "x_litigant" violates check constraint "x_lit_kind_role"
+DENY -- [T-DATA-1e EXPECT DENY x_lit_party_once] the same case party twice in one judgment
+     -> 23505 duplicate key value violates unique constraint "x_lit_party_once"
+DENY -- [T-DATA-2a EXPECT DENY x_pd_litigant] party deadline of judgment e2 naming a litigant of judgment e1
+     -> 23503 insert or update on table "x_party_deadline" violates foreign key constraint "x_pd_litigant"
+DENY -- [T-DATA-2b EXPECT DENY x_pd_deadline] party deadline of case c2 pointing at a deadline row of case c1
+     -> 23503 insert or update on table "x_party_deadline" violates foreign key constraint "x_pd_deadline"
+OK   -- [T-DATA-2c EXPECT OK] two opposing litigants and CITRA each get their own DRAFT party deadline
+OK   insert into lawdesk.x_party_deadline (judgment_id, litigant_id, case_id, status) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000e0003','00000000-0000-0000-0000-0000000000c1','DRAFT')
+DENY -- [T-DATA-2d EXPECT DENY x_pd_one_live] a second live party deadline for the same litigant
+     -> 23505 duplicate key value violates unique constraint "x_pd_one_live"
+OK   -- [T-DATA-2e EXPECT OK] CITRA litigant: EFFECTIVE party deadline linked to the existing deadline row of the same case
+DENY -- [T-DATA-3a EXPECT DENY x_ap_child] filing mapped to a child proceeding of ANOTHER case (b6 belongs to c2)
+     -> 23503 insert or update on table "x_appeal" violates foreign key constraint "x_ap_child"
+DENY -- [T-DATA-3b EXPECT DENY x_ap_child] filing mapped to a child that attacks a DIFFERENT first-instance proceeding of the same case (b7 -> b3)
+     -> 23503 insert or update on table "x_appeal" violates foreign key constraint "x_ap_child"
+DENY -- [T-DATA-3c EXPECT DENY x_ap_stage] filing type CASSATION mapped to an APPEAL-stage proceeding
+     -> 23514 new row for relation "x_appeal" violates check constraint "x_ap_stage"
+DENY -- [T-DATA-3d EXPECT DENY x_ap_litigant] filing naming a litigant of another judgment
+     -> 23503 insert or update on table "x_appeal" violates foreign key constraint "x_ap_litigant"
+DENY -- [T-DATA-3e EXPECT DENY x_ap_joined] JOINED link without a joinder record
+     -> 23514 new row for relation "x_appeal" violates check constraint "x_ap_joined"
+OK   -- [T-DATA-4a EXPECT OK] opponent one files: own child proceeding b4
+OK   -- [T-DATA-4b EXPECT OK] opponent two files at the same time: own child proceeding b5, independent of opponent one
+OK   -- [T-DATA-4c EXPECT OK] CITRA's filing stays a DRAFT (no proceeding yet); three filings now exist on the judgment
+OK   select count(*) as filings_on_judgment_e1 from lawdesk.x_appeal where judgment_id = '00000000-0000-0000-0000-0000000000e1'
+     -> 3
+DENY -- [T-DATA-4d EXPECT DENY x_ap_one_own_filing] a second OWN filing on proceeding b4
+     -> 23505 duplicate key value violates unique constraint "x_ap_one_own_filing"
+DENY -- [T-DATA-4e EXPECT DENY x_ap_once_per_litigant_type] the same litigant, the same type, a second live filing
+     -> 23505 duplicate key value violates unique constraint "x_ap_once_per_litigant_type"
+OK   insert into lawdesk.x_joinder (id, proceeding_id, court_record_ref) values ('00000000-0000-0000-0000-0000000f0001','00000000-0000-0000-0000-0000000000b5','court decision 12/2026 (synthetic)'), ('00000000-0000-0000-0000-0000000f0002','00000000-0000-0000-0000-0000000000b4','court decision 13/2026 (synthetic)')
+OK   -- [T-DATA-5pre EXPECT OK] CITRA's DRAFT filing is VOIDed (history kept) so a mapped filing can be recorded
+DENY -- [T-DATA-5a EXPECT DENY x_ap_joinder] JOINED to b4 with a joinder record that belongs to b5
+     -> 23503 insert or update on table "x_appeal" violates foreign key constraint "x_ap_joinder"
+OK   -- [T-DATA-5b EXPECT OK] CITRA joins b4 with the approved joinder record OF b4 (G-STAGE evidence: court decision reference)
+OK   -- [T-DATA-6a EXPECT OK] VOID keeps history: CITRA now has one VOID and one FILED row
+     -> FILED | 1 || VOID | 1
+OK   -- [T-DATA-6b EXPECT OK] opponent two withdraws; the row stays
+DENY -- [T-DATA-6c EXPECT DENY x_ap_one_own_filing + x_ap_once_per_litigant_type, either index blocks it] a WITHDRAWN filing keeps the litigant/type slot (no legal re-filing rule is invented)
+     -> 23505 duplicate key value violates unique constraint "x_ap_one_own_filing"
+OK   -- [T-DATA-6d EXPECT OK] opponent two VOIDed by mistake, opponent two's slot reopens, the proceeding slot is reusable by an OWN filing
+OK   insert into lawdesk.x_appeal (judgment_id, litigant_id, case_id, parent_proceeding_id, appeal_type, status, proceeding_id, child_stage, link_kind, joinder_id, capacity) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000e0003','00000000-0000-0000-0000-0000000000c1','00000000-0000-0000-0000-0000000000b1','APPEAL','FILED','00000000-0000-0000-0000-0000000000b5','APPEAL','OWN',null,'RESPONDENT')
+OK   select l.kind, a.status, a.link_kind, a.proceeding_id is not null as mapped from lawdesk.x_appeal a join lawdesk.x_litigant l on l.id = a.litigant_id where a.judgment_id = '00000000-0000-0000-0000-0000000000e1' order by l.kind, a.status, a.link_kind
+     -> CITRA | FILED | JOINED | True || CITRA | VOID | None | False || OPPOSING | FILED | OWN | True || OPPOSING | FILED | OWN | True || OPPOSING | VOID | OWN | True
+##### 52-integrity-runtime.sql.txt as lawdesk_app
+DENY -- as lawdesk_app
+     -> 42501 permission denied for table x_appeal
+DENY update lawdesk.x_appeal set status = 'VOID'
+     -> 42501 permission denied for table x_appeal
+DENY insert into lawdesk.x_litigant (judgment_id, case_id, kind, case_party_id, party_role) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000000c1','OPPOSING','00000000-0000-0000-0000-0000000b0003','OPPONENT')
+     -> 42501 permission denied for table x_litigant
+OK   select count(*) as rows_still_there from lawdesk.x_appeal
+     -> 5
+##### 53-legacy-unlinked-runtime.sql.txt as lawdesk_app
+OK   -- as lawdesk_app: legacy behaviour that MUST be unchanged for records that are NOT R6-linked (judgment e2 has no judgment_procedural row), and what Flyway of a previous release reads.
+     -> 1 | 1 | True
+OK   update lawdesk.judgment set final = true, outcome = 'IN_FAVOUR', judgment_date = date '2026-06-05', summary = 'legacy edit' where id = '00000000-0000-0000-0000-0000000000e2'
+OK   insert into lawdesk.deadline (case_id, source_type, source_id, starts_on, period_days, due_on, action, calc_status, approved_by, approved_at, created_by, updated_by) values ('00000000-0000-0000-0000-0000000000c2', 'JUDGMENT', '00000000-0000-0000-0000-0000000000e2', date '2026-06-01', 60, date '2026-08-01', 'legacy appeal deadline', 'APPROVED', '00000000-0000-0000-0000-0000000000a1', now(), '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+OK   update lawdesk.judgment set appeal_deadline_id = (select id from lawdesk.deadline where source_id = '00000000-0000-0000-0000-0000000000e2') where id = '00000000-0000-0000-0000-0000000000e2'
+OK   update lawdesk.deadline set status = 'COMPLETED', completed_on = current_date where source_id = '00000000-0000-0000-0000-0000000000e2'
+OK   -- Flyway of the previous release: it may SELECT the history and take an advisory lock, but cannot write the history
+     -> True
+DENY insert into lawdesk.flyway_schema_history values (2, '2', true)
+     -> 42501 permission denied for table flyway_schema_history
+DENY create table lawdesk.flyway_would_create(x int)
+     -> 42501 permission denied for schema lawdesk
+##### 70-definer-hygiene-setup.sql.txt as lawdesk_owner
+OK   -- PROBE ONLY (as lawdesk_owner): objects that show how current_user / session_user / search_path behave.
+OK   create function lawdesk.probe_inv() returns trigger language plpgsql set search_path = pg_catalog, lawdesk, pg_temp as $$
+OK   create function lawdesk.probe_def() returns trigger language plpgsql security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+OK   create trigger t_inv before update on lawdesk.probe_t for each row when (new.k = 1) execute function lawdesk.probe_inv()
+OK   create trigger t_def before update on lawdesk.probe_t for each row when (new.k = 2) execute function lawdesk.probe_def()
+OK   insert into lawdesk.probe_t values (1, 'a'), (2, 'b')
+OK   create function lawdesk.probe_write_inside_definer() returns void language plpgsql security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+OK   revoke all on function lawdesk.probe_write_inside_definer() from public
+OK   grant execute on function lawdesk.probe_write_inside_definer() to lawdesk_legal
+OK   -- A deliberately BAD definer function: no pinned search_path, unqualified names.
+OK   grant execute on function lawdesk.probe_bad_definer(text) to lawdesk_legal
+OK   -- The GOOD form used by the proposal: pinned search_path (pg_temp last), schema-qualified names.
+OK   grant execute on function lawdesk.probe_good_definer(text) to lawdesk_legal
+##### 71-definer-hygiene-run.sql.txt as lawdesk_app
+OK   -- Executed as lawdesk_app / lawdesk_legal (see the transcript for which line ran as whom).
+     -> False
+OK   select has_function_privilege('lawdesk_app', 'lawdesk.r6_activate_party_deadline(uuid,uuid,uuid,date,jsonb)', 'execute') as app_can_execute_writer
+     -> False
+OK   select has_function_privilege('lawdesk_legal', 'lawdesk.r6_activate_party_deadline(uuid,uuid,uuid,date,jsonb)', 'execute') as legal_can_execute_writer
+     -> True
+OK   select has_function_privilege('lawdesk_operator', 'lawdesk.r6_activate_party_deadline(uuid,uuid,uuid,date,jsonb)', 'execute') as operator_can_execute_writer
+     -> False
+DENY select has_function_privilege('public', 'lawdesk.r6_op_set_policy(text,boolean)', 'execute') as public_can_execute_operator_fn
+     -> 42883 function "lawdesk.r6_op_set_policy(text,boolean)" does not exist
+DENY -- 2) current_user inside triggers: invoker-rights trigger from a direct write
+     -> LD099 INVOKER trigger sees current_user=lawdesk_app session_user=lawdesk_app
+DENY -- 3) definer-rights trigger always reports the owner, so it cannot tell a runtime caller from the owner's own function
+     -> LD098 DEFINER trigger sees current_user=lawdesk_owner session_user=lawdesk_app
+DENY -- 4) the SAME invoker trigger when the write happens inside an owner-owned definer function: current_user is the owner
+     -> 42501 permission denied for function probe_write_inside_definer
+DENY -- 5) temp-schema shadowing (needs TEMPORARY; revoked from the runtime roles, so it is also refused here)
+     -> 42501 permission denied to create temporary tables in database "lawdesk"
+##### 90-digest.sql.txt as lawdesk_owner
+OK   -- Digests of the PROTECTED parts only (columns/rows an unauthorised writer must never change).
+     -> judgment(protected columns) | 988247163a5b8e8e9890a15f42053510
+OK   select 'deadline(source JUDGMENT)' t, md5(coalesce(string_agg(x::text, ',' order by x.id), '')) from lawdesk.deadline x where x.source_type = 'JUDGMENT'
+     -> deadline(source JUDGMENT) | 95cd3fcc8e3cf9ff3fa53e3d241e5982
+OK   select 'legal_case(confidentiality)' t, md5(coalesce(string_agg(row(x.id, x.confidentiality)::text, ',' order by x.id), '')) from lawdesk.legal_case x
+     -> legal_case(confidentiality) | ad393b2011b57d00443cb31f7d12bc27
+OK   select 'legal_approval' t, md5(coalesce(string_agg(x::text, ',' order by x.id), '')) from lawdesk.legal_approval x
+     -> legal_approval | 859a43110784c8b1cba646bd31495c08
+OK   select 'legal_authority_grant' t, md5(coalesce(string_agg(x::text, ',' order by x.id), '')) from lawdesk.legal_authority_grant x
+     -> legal_authority_grant | d63ed6b5562274200c4439c40575b202
+OK   select 'owner_policy' t, md5(coalesce(string_agg(x::text, ',' order by x.policy), '')) from lawdesk.owner_policy x
+     -> owner_policy | d389f9cea04b7b316a3d985f948c1b54
+OK   select 'deadline_calculation_evidence' t, md5(coalesce(string_agg(x::text, ',' order by x.id), '')) from lawdesk.deadline_calculation_evidence x
+     -> deadline_calculation_evidence | 7361055695999b76c5a4470a241e2e1b
+OK   select 'complaint_case_link' t, md5(coalesce(string_agg(x::text, ',' order by x.complaint_id), '')) from lawdesk.complaint_case_link x
+     -> complaint_case_link | a2040dd003a853b4f09bddad192e58fa
+OK   select 'triggers_on_protected_tables' t, md5(string_agg(tgrelid::regclass::text || ':' || tgname::text || ':' || tgenabled::text, ',' order by tgrelid::regclass::text, tgname::text)) from pg_trigger where not tgisinternal and tgrelid::regclass::text in ('judgment','deadline','legal_case','lawdesk.judgment','lawdesk.deadline','lawdesk.legal_case')
+     -> triggers_on_protected_tables | 096c1455c7316cea61d5ae80176901dc
+OK   select 'guard_function_bodies' t, md5(string_agg(proname::text || prosrc, ',' order by proname::text)) from pg_proc where proname::text like 'r6_%'
+     -> guard_function_bodies | 6bd3e54a793df6dff8647a0ff9a31f6a

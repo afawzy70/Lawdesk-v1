@@ -1,0 +1,18 @@
+-- Executed as lawdesk_legal AFTER the operator recorded the gate approval and the grants.
+-- ===== authorised path =====
+select lawdesk.r6_activate_party_deadline('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a2', date '2026-08-01', '{"rule":"probe"}'::jsonb) is not null as deadline_created
+;;
+-- ===== rejection paths (each must leave no partial write) =====
+select lawdesk.r6_activate_party_deadline('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-0000000000a2', date '2026-08-01', '{}'::jsonb)
+;;
+select lawdesk.r6_activate_party_deadline('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a9', date '2026-08-01', '{}'::jsonb)
+;;
+select lawdesk.r6_activate_party_deadline('00000000-0000-0000-0000-0000000000ee', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a2', date '2026-08-01', '{}'::jsonb)
+;;
+-- declassification stays refused while the owner policy P-DECLASS is off, even with a valid COMPLAINT_APPROVE grant
+select lawdesk.r6_declassify_linked_case('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000a2')
+;;
+select count(*) as deadlines_from_judgment, count(*) filter (where calc_status = 'APPROVED') as approved from lawdesk.deadline where source_type = 'JUDGMENT'
+;;
+select (select count(*) from lawdesk.deadline_calculation_evidence) as evidence_rows, (select appeal_deadline_id is not null from lawdesk.judgment where id = '00000000-0000-0000-0000-0000000000e1') as pointer_set
+;;

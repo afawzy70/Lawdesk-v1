@@ -1,0 +1,5 @@
+-- as lawdesk_legal: the revoked approver can no longer approve; no partial write
+select lawdesk.r6_activate_party_deadline('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a2', date '2026-08-02', '{}'::jsonb)
+;;
+select count(*) as deadlines_from_judgment_still from lawdesk.deadline where source_type = 'JUDGMENT' and source_id = '00000000-0000-0000-0000-0000000000e1'
+;;

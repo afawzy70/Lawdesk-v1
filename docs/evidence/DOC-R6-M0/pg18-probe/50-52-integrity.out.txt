@@ -1,0 +1,68 @@
+OK   -- as lawdesk_owner (the writer-function owner). The keys are enforced for EVERY role; the owner is used because the runtime roles hold no DML on these tables (see 52).
+DENY -- [T-DATA-1a EXPECT DENY x_lit_party] litigant whose case_party belongs to another case
+     -> [23503] ERROR: insert or update on table "x_litigant" violates foreign key constraint "x_lit_party"
+DENY -- [T-DATA-1b EXPECT DENY x_lit_procedural] litigant claiming case c2 for a judgment of case c1
+     -> [23503] ERROR: insert or update on table "x_litigant" violates foreign key constraint "x_lit_procedural"
+DENY -- [T-DATA-1c EXPECT DENY x_lit_kind_role] OPPOSING litigant bound to the authority's own CLIENT party
+     -> [23514] ERROR: new row for relation "x_litigant" violates check constraint "x_lit_kind_role"
+DENY -- [T-DATA-1d EXPECT DENY x_lit_kind_role] CITRA litigant bound to an OPPONENT party
+     -> [23514] ERROR: new row for relation "x_litigant" violates check constraint "x_lit_kind_role"
+DENY -- [T-DATA-1e EXPECT DENY x_lit_party_once] the same case party twice in one judgment
+     -> [23505] ERROR: duplicate key value violates unique constraint "x_lit_party_once"
+DENY -- [T-DATA-2a EXPECT DENY x_pd_litigant] party deadline of judgment e2 naming a litigant of judgment e1
+     -> [23503] ERROR: insert or update on table "x_party_deadline" violates foreign key constraint "x_pd_litigant"
+DENY -- [T-DATA-2b EXPECT DENY x_pd_deadline] party deadline of case c2 pointing at a deadline row of case c1
+     -> [23503] ERROR: insert or update on table "x_party_deadline" violates foreign key constraint "x_pd_deadline"
+OK   -- [T-DATA-2c EXPECT OK] two opposing litigants and CITRA each get their own DRAFT party deadline
+OK   insert into lawdesk.x_party_deadline (judgment_id, litigant_id, case_id, status) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000e0003','00000000-0000-0000-0000-0000000000c1','DRAFT')
+DENY -- [T-DATA-2d EXPECT DENY x_pd_one_live] a second live party deadline for the same litigant
+     -> [23505] ERROR: duplicate key value violates unique constraint "x_pd_one_live"
+OK   -- [T-DATA-2e EXPECT OK] CITRA litigant: EFFECTIVE party deadline linked to the existing deadline row of the same case
+DENY -- [T-DATA-3a EXPECT DENY x_ap_child] filing mapped to a child proceeding of ANOTHER case (b6 belongs to c2)
+     -> [23503] ERROR: insert or update on table "x_appeal" violates foreign key constraint "x_ap_child"
+DENY -- [T-DATA-3b EXPECT DENY x_ap_child] filing mapped to a child that attacks a DIFFERENT first-instance proceeding of the same case (b7 -> b3)
+     -> [23503] ERROR: insert or update on table "x_appeal" violates foreign key constraint "x_ap_child"
+DENY -- [T-DATA-3c EXPECT DENY x_ap_stage] filing type CASSATION mapped to an APPEAL-stage proceeding
+     -> [23514] ERROR: new row for relation "x_appeal" violates check constraint "x_ap_stage"
+DENY -- [T-DATA-3d EXPECT DENY x_ap_litigant] filing naming a litigant of another judgment
+     -> [23503] ERROR: insert or update on table "x_appeal" violates foreign key constraint "x_ap_litigant"
+DENY -- [T-DATA-3e EXPECT DENY x_ap_joined] JOINED link without a joinder record
+     -> [23514] ERROR: new row for relation "x_appeal" violates check constraint "x_ap_joined"
+OK   -- [T-DATA-4a EXPECT OK] opponent one files: own child proceeding b4
+OK   -- [T-DATA-4b EXPECT OK] opponent two files at the same time: own child proceeding b5, independent of opponent one
+OK   -- [T-DATA-4c EXPECT OK] CITRA's filing stays a DRAFT (no proceeding yet); three filings now exist on the judgment
+OK   select count(*) as filings_on_judgment_e1 from lawdesk.x_appeal where judgment_id = '00000000-0000-0000-0000-0000000000e1'
+     -> 3
+DENY -- [T-DATA-4d EXPECT DENY x_ap_one_own_filing] a second OWN filing on proceeding b4 
+     -> [23505] ERROR: duplicate key value violates unique constraint "x_ap_one_own_filing"
+DENY -- [T-DATA-4e EXPECT DENY x_ap_once_per_litigant_type] the same litigant, the same type, a second live filing
+     -> [23505] ERROR: duplicate key value violates unique constraint "x_ap_once_per_litigant_type"
+OK   insert into lawdesk.x_joinder (id, proceeding_id, court_record_ref) values ('00000000-0000-0000-0000-0000000f0001','00000000-0000-0000-0000-0000000000b5','court decision 12/2026 (synthetic)'), ('00000000-0000-0000-0000-0000000f0002','00000000-0000-0000-0000-0000000000b4','court decision 13/2026 (synthetic)')
+OK   -- [T-DATA-5pre EXPECT OK] CITRA's DRAFT filing is VOIDed (history kept) so a mapped filing can be recorded
+DENY -- [T-DATA-5a EXPECT DENY x_ap_joinder] JOINED to b4 with a joinder record that belongs to b5
+     -> [23503] ERROR: insert or update on table "x_appeal" violates foreign key constraint "x_ap_joinder"
+OK   -- [T-DATA-5b EXPECT OK] CITRA joins b4 with the approved joinder record OF b4 (G-STAGE evidence: court decision reference)
+OK   -- [T-DATA-6a EXPECT OK] VOID keeps history: CITRA now has one VOID and one FILED row
+     -> FILED | 1
+        VOID | 1
+OK   -- [T-DATA-6b EXPECT OK] opponent two withdraws; the row stays
+DENY -- [T-DATA-6c EXPECT DENY x_ap_one_own_filing + x_ap_once_per_litigant_type, either index blocks it] a WITHDRAWN filing keeps the litigant/type slot (no legal re-filing rule is invented)
+     -> [23505] ERROR: duplicate key value violates unique constraint "x_ap_one_own_filing"
+OK   -- [T-DATA-6d EXPECT OK] opponent two VOIDed by mistake, opponent two's slot reopens, the proceeding slot is reusable by an OWN filing
+OK   insert into lawdesk.x_appeal (judgment_id, litigant_id, case_id, parent_proceeding_id, appeal_type, status, proceeding_id, child_stage, link_kind, joinder_id, capacity) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000e0003','00000000-0000-0000-0000-0000000000c1','00000000-0000-0000-0000-0000000000b1','APPEAL','FILED','00000000-0000-0000-0000-0000000000b5','APPEAL','OWN',null,'RESPONDENT')
+OK   select l.kind, a.status, a.link_kind, a.proceeding_id is not null as mapped from lawdesk.x_appeal a join lawdesk.x_litigant l on l.id = a.litigant_id where a.judgment_id = '00000000-0000-0000-0000-0000000000e1' order by l.kind, a.status, a.link_kind
+     -> CITRA | FILED | JOINED | t
+        CITRA | VOID | null | f
+        OPPOSING | FILED | OWN | t
+        OPPOSING | FILED | OWN | t
+        OPPOSING | VOID | OWN | t
+
+##### 52 as lawdesk_app
+DENY -- as lawdesk_app
+     -> [42501] ERROR: permission denied for table x_appeal
+DENY update lawdesk.x_appeal set status = 'VOID'
+     -> [42501] ERROR: permission denied for table x_appeal
+DENY insert into lawdesk.x_litigant (judgment_id, case_id, kind, case_party_id, party_role) values ('00000000-0000-0000-0000-0000000000e1','00000000-0000-0000-0000-0000000000c1','OPPOSING','00000000-0000-0000-0000-0000000b0003','OPPONENT')
+     -> [42501] ERROR: permission denied for table x_litigant
+OK   select count(*) as rows_still_there from lawdesk.x_appeal
+     -> 5

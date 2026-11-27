@@ -1,0 +1,459 @@
+-- PROBE ONLY: Round-5 reduced model of the PROPOSED protected objects (replaces pg18-probe/20), created as lawdesk_owner on the
+-- real develop schema. NOT a migration. Names and shapes follow LD-DOC-R6-08.
+-- ===================== Tier B facts =====================
+create table lawdesk.operator_identity (
+  login name primary key, person_ref text not null unique check (length(btrim(person_ref)) > 0), active boolean not null default true)
+;;
+create table lawdesk.op_request (
+  id uuid primary key default gen_random_uuid(),
+  kind text not null, payload jsonb not null, payload_sha256 text not null,
+  doc_ref text not null, doc_sha256 text not null,
+  requested_by name not null, requested_at timestamptz not null default now(), expires_at timestamptz not null,
+  confirmed_by name, confirmed_at timestamptz, executed_by name, executed_at timestamptz,
+  state text not null default 'OPEN' check (state in ('OPEN','CONFIRMED','EXECUTED','CANCELLED')),
+  check (confirmed_by is null or confirmed_by <> requested_by),
+  check (state not in ('CONFIRMED','EXECUTED') or confirmed_by is not null))
+;;
+create table lawdesk.legal_authority_grant (
+  id uuid primary key default gen_random_uuid(), user_id uuid not null,
+  authority text not null check (authority in ('POSTJ_APPROVE','APPEAL_SETTINGS_APPROVE','LEGAL_GATE_APPROVE','LEGAL_AUTHORITY_CUSTODIAN',
+    'COMPLAINT_VIEW','COMPLAINT_CREATE','COMPLAINT_EDIT','COMPLAINT_PREPARE_DECISION','COMPLAINT_APPROVE')),
+  -- default UNIT with no unit reaches nothing: a row written without an explicit scope fails closed
+  scope_type text not null default 'UNIT' check (scope_type in ('ALL','UNIT','CASE_TYPE')), scope_ref text,
+  state text not null default 'ACTIVE' check (state in ('ACTIVE','REVOKED')),
+  basis text not null default 'NORMAL' check (basis in ('NORMAL','BOOTSTRAP')), bootstrap_id uuid, approved_by_user uuid,
+  request_id uuid references lawdesk.op_request(id), recorded_by_role name not null default session_user)
+;;
+create table lawdesk.legal_approval (
+  id uuid primary key default gen_random_uuid(),
+  gate text not null check (gate in ('G-CALC','G-SETTING','G-OPPONENT','G-FINAL','G-OVERRIDE','G-ALERT','G-GRIEVANCE','G-STAGE','G-REOPEN')),
+  version int not null, state text not null default 'RECORDED' check (state in ('RECORDED','ACTIVE','WITHDRAWN')),
+  request_id uuid references lawdesk.op_request(id), recorded_by_role name not null default session_user, unique (gate, version))
+;;
+create unique index legal_approval_one_active on lawdesk.legal_approval (gate) where state = 'ACTIVE'
+;;
+create table lawdesk.owner_policy (policy text primary key, enabled boolean not null default false,
+  changed_by_role name not null default session_user, request_id uuid references lawdesk.op_request(id))
+;;
+insert into lawdesk.owner_policy (policy, enabled, changed_by_role) values ('P-DECLASS', false, 'lawdesk_owner'), ('P-MANIFEST', false, 'lawdesk_owner')
+;;
+create table lawdesk.legal_bootstrap (
+  id uuid primary key default gen_random_uuid(), state text not null default 'OPEN' check (state in ('OPEN','COMPLETED','REVOKED')),
+  owner_auth_ref text not null, owner_auth_sha256 text not null, open_request_id uuid not null references lawdesk.op_request(id))
+;;
+create table lawdesk.legal_bootstrap_nominee (
+  bootstrap_id uuid not null references lawdesk.legal_bootstrap(id), user_id uuid not null, token_sha256 text not null,
+  expires_at timestamptz not null, attempts int not null default 0, confirmed_at timestamptz, primary key (bootstrap_id, user_id))
+;;
+-- ===================== Tier A data =====================
+create table lawdesk.judgment_procedural (judgment_id uuid primary key references lawdesk.judgment(id), final_confirmed boolean not null default false)
+;;
+create table lawdesk.deadline_calculation_evidence (
+  id uuid primary key default gen_random_uuid(), deadline_id uuid not null references lawdesk.deadline(id), inputs jsonb not null,
+  output_due date not null, recorded_by_role name not null default session_user, recorded_at timestamptz not null default now())
+;;
+create table lawdesk.judgment_party_deadline (
+  id uuid primary key default gen_random_uuid(), judgment_id uuid not null references lawdesk.judgment(id),
+  deadline_id uuid unique references lawdesk.deadline(id), status text not null check (status in ('DRAFT','EFFECTIVE','SUPERSEDED','VOID')))
+;;
+-- No application role writes any of these (class R). operator_identity and op_request are not even readable by them.
+revoke insert, update, delete, truncate on lawdesk.legal_authority_grant, lawdesk.legal_approval, lawdesk.owner_policy,
+  lawdesk.judgment_procedural, lawdesk.deadline_calculation_evidence, lawdesk.judgment_party_deadline from lawdesk_dml
+;;
+revoke all on lawdesk.operator_identity, lawdesk.op_request, lawdesk.legal_bootstrap, lawdesk.legal_bootstrap_nominee from lawdesk_dml
+;;
+-- ===================== op_request: immutable content, one-way state (applies to EVERY role, the owner included) =====================
+create function lawdesk.r6_op_request_immutable() returns trigger language plpgsql set search_path = pg_catalog, lawdesk, pg_temp as $$
+begin
+  if tg_op = 'DELETE' then raise exception 'operator requests are never deleted' using errcode = 'LD055'; end if;
+  if tg_op = 'INSERT' then
+    if new.state <> 'OPEN' or new.confirmed_by is not null or new.executed_by is not null then
+      raise exception 'a request starts OPEN and unconfirmed' using errcode = 'LD055'; end if;
+    return new;
+  end if;
+  if row(new.id, new.kind, new.payload, new.payload_sha256, new.doc_ref, new.doc_sha256, new.requested_by, new.requested_at, new.expires_at)
+     is distinct from row(old.id, old.kind, old.payload, old.payload_sha256, old.doc_ref, old.doc_sha256, old.requested_by, old.requested_at, old.expires_at) then
+    raise exception 'the content of a request cannot change' using errcode = 'LD055'; end if;
+  if not ((old.state = 'OPEN' and new.state in ('CONFIRMED','CANCELLED')) or (old.state = 'CONFIRMED' and new.state in ('EXECUTED','CANCELLED'))) then
+    raise exception 'request state % cannot become %', old.state, new.state using errcode = 'LD055'; end if;
+  if old.confirmed_by is not null and row(new.confirmed_by, new.confirmed_at) is distinct from row(old.confirmed_by, old.confirmed_at) then
+    raise exception 'the confirmation cannot change' using errcode = 'LD055'; end if;
+  return new;
+end $$
+;;
+create trigger r6_op_request_immutable before insert or update or delete on lawdesk.op_request
+  for each row execute function lawdesk.r6_op_request_immutable()
+;;
+-- ===================== operator request handling =====================
+create function lawdesk.r6_op_hash(p_kind text, p_payload jsonb, p_doc_ref text, p_doc_sha256 text) returns text language sql immutable
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+  select encode(sha256(convert_to(jsonb_build_array(p_kind, p_payload, p_doc_ref, p_doc_sha256)::text, 'UTF8')), 'hex') $$
+;;
+-- The person behind session_user (the LOGIN; SET ROLE does not change it). Refuses unregistered or disabled logins.
+create function lawdesk.r6_op_identity(p_login name) returns text language plpgsql stable security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare p text;
+begin
+  select i.person_ref into p from lawdesk.operator_identity i where i.login = p_login and i.active
+     and pg_has_role(p_login, 'lawdesk_operator', 'member');
+  if p is null then raise exception 'login % is not a registered, active operator', p_login using errcode = 'LD057'; end if;
+  return p;
+end $$
+;;
+create function lawdesk.r6_op_check_payload(p_kind text, p jsonb) returns void language plpgsql immutable
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare
+  keys text; ok boolean := false;
+  uid constant text := '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$';
+  hex constant text := '^[0-9a-f]{64}$';
+  gates constant text[] := '{G-CALC,G-SETTING,G-OPPONENT,G-FINAL,G-OVERRIDE,G-ALERT,G-GRIEVANCE,G-STAGE,G-REOPEN}';
+  authorities constant text[] := '{POSTJ_APPROVE,APPEAL_SETTINGS_APPROVE,LEGAL_GATE_APPROVE,LEGAL_AUTHORITY_CUSTODIAN,COMPLAINT_VIEW,COMPLAINT_CREATE,COMPLAINT_EDIT,COMPLAINT_PREPARE_DECISION,COMPLAINT_APPROVE}';
+begin
+  if p is null or jsonb_typeof(p) <> 'object' then raise exception 'payload must be an object' using errcode = 'LD053'; end if;
+  select string_agg(k, ',' order by k collate "C") into keys from jsonb_object_keys(p) k;
+  case p_kind
+    when 'LEGAL_APPROVAL_RECORD' then
+      ok := keys = 'gate,version' and p->>'gate' = any(gates) and jsonb_typeof(p->'version') = 'number' and p->>'version' ~ '^[1-9][0-9]{0,6}$';
+    when 'GATE_ACTIVATE', 'LEGAL_APPROVAL_WITHDRAW' then
+      ok := keys = 'approval_id,gate,version' and p->>'approval_id' ~ uid and p->>'gate' = any(gates) and p->>'version' ~ '^[1-9][0-9]{0,6}$';
+    when 'AUTHORITY_GRANT' then
+      -- a custodian is created only by the bootstrap ceremony
+      ok := keys = 'authority,scope_ref,scope_type,user_id' and p->>'user_id' ~ uid and p->>'authority' = any(authorities)
+            and p->>'authority' <> 'LEGAL_AUTHORITY_CUSTODIAN' and p->>'scope_type' in ('ALL','UNIT','CASE_TYPE')
+            and (p->>'scope_type' = 'ALL') = (p->>'scope_ref' is null);
+    when 'AUTHORITY_REVOKE' then
+      ok := keys = 'authority,user_id' and p->>'user_id' ~ uid and p->>'authority' = any(authorities);
+    when 'POLICY_SET' then
+      ok := keys = 'enabled,policy' and p->>'policy' in ('P-DECLASS','P-MANIFEST') and jsonb_typeof(p->'enabled') = 'boolean';
+    when 'BOOTSTRAP_OPEN' then
+      ok := keys = 'nominee1,nominee2,token1_sha256,token2_sha256' and p->>'nominee1' ~ uid and p->>'nominee2' ~ uid
+            and p->>'nominee1' <> p->>'nominee2' and p->>'token1_sha256' ~ hex and p->>'token2_sha256' ~ hex
+            and p->>'token1_sha256' <> p->>'token2_sha256';
+    when 'BOOTSTRAP_COMPLETE', 'BOOTSTRAP_REVOKE' then
+      ok := keys = 'bootstrap_id' and p->>'bootstrap_id' ~ uid;
+    else ok := false;
+  end case;
+  if ok is not true then raise exception 'payload does not match request kind %', p_kind using errcode = 'LD053'; end if;
+end $$
+;;
+create function lawdesk.r6_op_request(p_kind text, p_payload jsonb, p_doc_ref text, p_doc_sha256 text) returns uuid
+language plpgsql security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare i uuid;
+begin
+  perform lawdesk.r6_op_identity(session_user);
+  perform lawdesk.r6_op_check_payload(p_kind, p_payload);
+  if p_doc_ref is null or length(btrim(p_doc_ref)) = 0 or p_doc_sha256 is null or p_doc_sha256 !~ '^[0-9a-f]{64}$' then
+    raise exception 'a signed document reference and its SHA-256 are required' using errcode = 'LD053'; end if;
+  insert into lawdesk.op_request (kind, payload, payload_sha256, doc_ref, doc_sha256, requested_by, expires_at)
+    values (p_kind, p_payload, lawdesk.r6_op_hash(p_kind, p_payload, p_doc_ref, p_doc_sha256), p_doc_ref, p_doc_sha256,
+            session_user, now() + interval '24 hours') returning id into i;
+  return i;
+end $$
+;;
+-- The confirmer states the hash of what they reviewed.
+create function lawdesk.r6_op_confirm(p_request uuid, p_sha256 text) returns void language plpgsql security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare r lawdesk.op_request%rowtype; me text;
+begin
+  me := lawdesk.r6_op_identity(session_user);
+  select * into r from lawdesk.op_request where id = p_request for update;
+  if not found then raise exception 'no such request' using errcode = 'LD051'; end if;
+  if r.state <> 'OPEN' then raise exception 'request is %', r.state using errcode = 'LD052'; end if;
+  if r.expires_at <= now() then raise exception 'request expired' using errcode = 'LD056'; end if;
+  if r.requested_by = session_user or lawdesk.r6_op_identity(r.requested_by) = me then
+    raise exception 'a request cannot be confirmed by its requester' using errcode = 'LD050'; end if;
+  if p_sha256 is distinct from r.payload_sha256 then raise exception 'confirmed hash does not match the request' using errcode = 'LD054'; end if;
+  update lawdesk.op_request set state = 'CONFIRMED', confirmed_by = session_user, confirmed_at = now() where id = p_request;
+end $$
+;;
+create function lawdesk.r6_op_cancel(p_request uuid) returns void language plpgsql security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+begin
+  perform lawdesk.r6_op_identity(session_user);
+  update lawdesk.op_request set state = 'CANCELLED' where id = p_request and state in ('OPEN','CONFIRMED');
+  if not found then raise exception 'no cancellable request' using errcode = 'LD052'; end if;
+end $$
+;;
+create function lawdesk.r6_op_list() returns table (id uuid, kind text, payload jsonb, payload_sha256 text, doc_ref text, doc_sha256 text,
+  state text, requested_by name, confirmed_by name, expires_at timestamptz) language sql stable security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+  select r.id, r.kind, r.payload, r.payload_sha256, r.doc_ref, r.doc_sha256, r.state, r.requested_by, r.confirmed_by, r.expires_at
+  from lawdesk.op_request r order by r.requested_at, r.id $$
+;;
+-- What an operator must see to write a payload and to review one (identifiers and states only; no case or complaint content).
+create function lawdesk.r6_op_facts() returns table (fact text, id text, detail jsonb) language sql stable security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+  select 'approval', a.id::text, jsonb_build_object('gate', a.gate, 'version', a.version, 'state', a.state) from lawdesk.legal_approval a
+  union all select 'grant', g.id::text, jsonb_build_object('user_id', g.user_id, 'authority', g.authority, 'scope_type', g.scope_type,
+    'scope_ref', g.scope_ref, 'state', g.state, 'basis', g.basis) from lawdesk.legal_authority_grant g
+  union all select 'policy', o.policy, jsonb_build_object('enabled', o.enabled) from lawdesk.owner_policy o
+  union all select 'bootstrap', b.id::text, jsonb_build_object('state', b.state,
+    'confirmed', (select count(*) from lawdesk.legal_bootstrap_nominee n where n.bootstrap_id = b.id and n.confirmed_at is not null)) from lawdesk.legal_bootstrap b $$
+;;
+-- PRIVATE (no grant): the only way an executor obtains a payload. Locks the request, validates everything, marks it EXECUTED.
+-- If the executor then fails, the whole transaction (this mark included) rolls back.
+create function lawdesk.r6_op_consume(p_request uuid, p_kind text) returns jsonb language plpgsql security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare r lawdesk.op_request%rowtype;
+begin
+  perform lawdesk.r6_op_identity(session_user);
+  select * into r from lawdesk.op_request where id = p_request for update;
+  if not found then raise exception 'no such request' using errcode = 'LD051'; end if;
+  if r.kind <> p_kind then raise exception 'request is of kind %, not %', r.kind, p_kind using errcode = 'LD052'; end if;
+  if r.state <> 'CONFIRMED' then raise exception 'request is %, not CONFIRMED', r.state using errcode = 'LD052'; end if;
+  if r.expires_at <= now() then raise exception 'request expired' using errcode = 'LD056'; end if;
+  if session_user <> r.requested_by and session_user <> r.confirmed_by then
+    raise exception 'only the requester or the confirmer may execute' using errcode = 'LD057'; end if;
+  if lawdesk.r6_op_identity(r.requested_by) = lawdesk.r6_op_identity(r.confirmed_by) then
+    raise exception 'requester and confirmer are the same person' using errcode = 'LD050'; end if;
+  if lawdesk.r6_op_hash(r.kind, r.payload, r.doc_ref, r.doc_sha256) <> r.payload_sha256 then
+    raise exception 'request content does not match its hash' using errcode = 'LD054'; end if;
+  perform lawdesk.r6_op_check_payload(r.kind, r.payload);
+  update lawdesk.op_request set state = 'EXECUTED', executed_by = session_user, executed_at = now() where id = p_request;
+  return r.payload;
+end $$
+;;
+-- ===================== executors: each takes ONLY a request id =====================
+create function lawdesk.r6_op_record_legal_approval(p_request uuid) returns uuid language plpgsql security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare p jsonb; i uuid;
+begin
+  p := lawdesk.r6_op_consume(p_request, 'LEGAL_APPROVAL_RECORD');
+  insert into lawdesk.legal_approval (gate, version, request_id) values (p->>'gate', (p->>'version')::int, p_request) returning id into i;
+  return i;
+end $$
+;;
+create function lawdesk.r6_op_activate_gate(p_request uuid) returns void language plpgsql security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare p jsonb;
+begin
+  p := lawdesk.r6_op_consume(p_request, 'GATE_ACTIVATE');
+  update lawdesk.legal_approval set state = 'ACTIVE'
+    where id = (p->>'approval_id')::uuid and gate = p->>'gate' and version = (p->>'version')::int and state = 'RECORDED';
+  if not found then raise exception 'no recorded approval matches the request' using errcode = 'LD059'; end if;
+end $$
+;;
+create function lawdesk.r6_op_withdraw_legal_approval(p_request uuid) returns void language plpgsql security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare p jsonb;
+begin
+  p := lawdesk.r6_op_consume(p_request, 'LEGAL_APPROVAL_WITHDRAW');
+  update lawdesk.legal_approval set state = 'WITHDRAWN'
+    where id = (p->>'approval_id')::uuid and gate = p->>'gate' and version = (p->>'version')::int and state <> 'WITHDRAWN';
+  if not found then raise exception 'no approval matches the request' using errcode = 'LD059'; end if;
+  -- a confirmed but not yet executed activation must not survive the withdrawal
+  update lawdesk.op_request set state = 'CANCELLED'
+    where state in ('OPEN','CONFIRMED') and kind = 'GATE_ACTIVATE' and payload->>'approval_id' = p->>'approval_id';
+end $$
+;;
+create function lawdesk.r6_op_grant_authority(p_request uuid) returns uuid language plpgsql security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare p jsonb; i uuid;
+begin
+  p := lawdesk.r6_op_consume(p_request, 'AUTHORITY_GRANT');
+  perform pg_advisory_xact_lock(hashtext('r6-grant:' || (p->>'user_id')));
+  if exists (select 1 from lawdesk.legal_authority_grant g where g.user_id = (p->>'user_id')::uuid and g.authority = p->>'authority' and g.state = 'ACTIVE') then
+    raise exception 'an active grant already exists' using errcode = 'LD059'; end if;
+  insert into lawdesk.legal_authority_grant (user_id, authority, scope_type, scope_ref, request_id)
+    values ((p->>'user_id')::uuid, p->>'authority', p->>'scope_type', p->>'scope_ref', p_request) returning id into i;
+  return i;
+end $$
+;;
+create function lawdesk.r6_op_revoke_authority(p_request uuid) returns void language plpgsql security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare p jsonb;
+begin
+  p := lawdesk.r6_op_consume(p_request, 'AUTHORITY_REVOKE');
+  perform pg_advisory_xact_lock(hashtext('r6-grant:' || (p->>'user_id')));
+  update lawdesk.legal_authority_grant set state = 'REVOKED'
+    where user_id = (p->>'user_id')::uuid and authority = p->>'authority' and state = 'ACTIVE';
+  if not found then raise exception 'no active grant to revoke' using errcode = 'LD059'; end if;
+  -- an older confirmed grant must not be able to undo this revocation
+  update lawdesk.op_request set state = 'CANCELLED' where state in ('OPEN','CONFIRMED') and kind = 'AUTHORITY_GRANT'
+    and payload->>'user_id' = p->>'user_id' and payload->>'authority' = p->>'authority';
+end $$
+;;
+create function lawdesk.r6_op_set_policy(p_request uuid) returns void language plpgsql security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare p jsonb;
+begin
+  p := lawdesk.r6_op_consume(p_request, 'POLICY_SET');
+  update lawdesk.owner_policy set enabled = (p->>'enabled')::boolean, changed_by_role = session_user, request_id = p_request
+    where policy = p->>'policy';
+  if not found then raise exception 'unknown policy' using errcode = 'LD059'; end if;
+  -- any other pending decision on this policy is stale from now on
+  update lawdesk.op_request set state = 'CANCELLED'
+    where state in ('OPEN','CONFIRMED') and kind = 'POLICY_SET' and payload->>'policy' = p->>'policy';
+end $$
+;;
+create function lawdesk.r6_op_bootstrap_open(p_request uuid) returns uuid language plpgsql security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare p jsonb; r lawdesk.op_request%rowtype; i uuid;
+begin
+  p := lawdesk.r6_op_consume(p_request, 'BOOTSTRAP_OPEN');
+  perform pg_advisory_xact_lock(hashtext('r6-bootstrap'));
+  if exists (select 1 from lawdesk.legal_authority_grant g where g.authority = 'LEGAL_AUTHORITY_CUSTODIAN' and g.state = 'ACTIVE') then
+    raise exception 'an active custodian exists' using errcode = 'LD059'; end if;
+  if exists (select 1 from lawdesk.legal_bootstrap b where b.state = 'OPEN') then
+    raise exception 'a bootstrap is already open' using errcode = 'LD059'; end if;
+  if (select count(*) from lawdesk.app_user u where u.id in ((p->>'nominee1')::uuid, (p->>'nominee2')::uuid) and u.enabled) <> 2 then
+    raise exception 'both nominees must be enabled users' using errcode = 'LD059'; end if;
+  select * into r from lawdesk.op_request where id = p_request;
+  insert into lawdesk.legal_bootstrap (owner_auth_ref, owner_auth_sha256, open_request_id) values (r.doc_ref, r.doc_sha256, p_request) returning id into i;
+  insert into lawdesk.legal_bootstrap_nominee (bootstrap_id, user_id, token_sha256, expires_at) values
+    (i, (p->>'nominee1')::uuid, p->>'token1_sha256', now() + interval '24 hours'),
+    (i, (p->>'nominee2')::uuid, p->>'token2_sha256', now() + interval '24 hours');
+  return i;
+end $$
+;;
+create function lawdesk.r6_op_bootstrap_complete(p_request uuid) returns void language plpgsql security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare p jsonb; b uuid;
+begin
+  p := lawdesk.r6_op_consume(p_request, 'BOOTSTRAP_COMPLETE');
+  perform pg_advisory_xact_lock(hashtext('r6-bootstrap'));
+  select id into b from lawdesk.legal_bootstrap where id = (p->>'bootstrap_id')::uuid and state = 'OPEN' for update;
+  if b is null then raise exception 'no open bootstrap' using errcode = 'LD059'; end if;
+  if (select count(*) from lawdesk.legal_bootstrap_nominee n where n.bootstrap_id = b and n.confirmed_at is not null) <> 2 then
+    raise exception 'both nominees must have confirmed' using errcode = 'LD058'; end if;
+  if exists (select 1 from lawdesk.legal_authority_grant g where g.authority = 'LEGAL_AUTHORITY_CUSTODIAN' and g.state = 'ACTIVE') then
+    raise exception 'an active custodian exists' using errcode = 'LD059'; end if;
+  insert into lawdesk.legal_authority_grant (user_id, authority, scope_type, basis, bootstrap_id, approved_by_user, request_id)
+    select n.user_id, 'LEGAL_AUTHORITY_CUSTODIAN', 'ALL', 'BOOTSTRAP', b, o.user_id, p_request
+    from lawdesk.legal_bootstrap_nominee n join lawdesk.legal_bootstrap_nominee o on o.bootstrap_id = n.bootstrap_id and o.user_id <> n.user_id
+    where n.bootstrap_id = b;
+  update lawdesk.legal_bootstrap set state = 'COMPLETED' where id = b;
+end $$
+;;
+create function lawdesk.r6_op_bootstrap_revoke(p_request uuid) returns void language plpgsql security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare p jsonb; b uuid;
+begin
+  p := lawdesk.r6_op_consume(p_request, 'BOOTSTRAP_REVOKE');
+  perform pg_advisory_xact_lock(hashtext('r6-bootstrap'));
+  select id into b from lawdesk.legal_bootstrap where id = (p->>'bootstrap_id')::uuid and state <> 'REVOKED' for update;
+  if b is null then raise exception 'no bootstrap to revoke' using errcode = 'LD059'; end if;
+  update lawdesk.legal_authority_grant set state = 'REVOKED' where bootstrap_id = b and state = 'ACTIVE';
+  update lawdesk.legal_bootstrap set state = 'REVOKED' where id = b;
+  update lawdesk.op_request set state = 'CANCELLED' where state in ('OPEN','CONFIRMED') and kind = 'BOOTSTRAP_COMPLETE'
+    and payload->>'bootstrap_id' = p->>'bootstrap_id';
+end $$
+;;
+-- Tier A: a nominee proves possession of the one-time token. A wrong token RETURNS false (so the attempt counter persists).
+create function lawdesk.r6_bootstrap_confirm(p_token text, p_user uuid) returns boolean language plpgsql security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare n lawdesk.legal_bootstrap_nominee%rowtype;
+begin
+  select x.* into n from lawdesk.legal_bootstrap_nominee x join lawdesk.legal_bootstrap b on b.id = x.bootstrap_id and b.state = 'OPEN'
+    where x.user_id = p_user for update of x;
+  if not found or n.confirmed_at is not null or n.expires_at <= now() or n.attempts >= 5 then return false; end if;
+  if encode(sha256(convert_to(p_token, 'UTF8')), 'hex') <> n.token_sha256 then
+    update lawdesk.legal_bootstrap_nominee set attempts = attempts + 1 where bootstrap_id = n.bootstrap_id and user_id = p_user;
+    return false;
+  end if;
+  update lawdesk.legal_bootstrap_nominee set confirmed_at = now() where bootstrap_id = n.bootstrap_id and user_id = p_user;
+  return true;
+end $$
+;;
+-- ===================== Tier A writer =====================
+create function lawdesk.r6_activate_party_deadline(p_judgment uuid, p_preparer uuid, p_approver uuid, p_due date, p_inputs jsonb)
+returns uuid language plpgsql security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare j lawdesk.judgment%rowtype; c uuid; d uuid;
+begin
+  if p_preparer = p_approver then raise exception 'preparer and approver must differ' using errcode = 'LD003'; end if;
+  if not exists (select 1 from lawdesk.legal_approval a where a.gate = 'G-CALC' and a.state = 'ACTIVE') then
+    raise exception 'gate G-CALC is not active' using errcode = 'LD004'; end if;
+  if not exists (select 1 from lawdesk.legal_authority_grant g where g.user_id = p_approver and g.authority = 'POSTJ_APPROVE' and g.state = 'ACTIVE') then
+    raise exception 'approver holds no active POSTJ_APPROVE grant' using errcode = 'LD005'; end if;
+  select * into j from lawdesk.judgment where id = p_judgment for update;
+  if not found or not exists (select 1 from lawdesk.judgment_procedural p where p.judgment_id = p_judgment) then
+    raise exception 'judgment not found' using errcode = 'LD006'; end if;
+  select p.case_id into c from lawdesk.proceeding p where p.id = j.proceeding_id;
+  insert into lawdesk.deadline (case_id, source_type, source_id, starts_on, period_days, due_on, action, calc_status, approved_by, approved_at, created_by, updated_by)
+    values (c, 'JUDGMENT', p_judgment, j.judgment_date, 60, p_due, 'appeal', 'APPROVED', p_approver, now(), p_preparer, p_approver) returning id into d;
+  insert into lawdesk.deadline_calculation_evidence (deadline_id, inputs, output_due) values (d, p_inputs, p_due);
+  insert into lawdesk.judgment_party_deadline (judgment_id, deadline_id, status) values (p_judgment, d, 'EFFECTIVE');
+  update lawdesk.judgment set appeal_deadline_id = d where id = p_judgment;
+  return d;
+end $$
+;;
+-- ===================== guards =====================
+-- A write is a WRITER write only if it is issued directly by an owner-owned function or migration: current_user is the owner AND the
+-- guard is not nested inside another trigger. Referential actions (ON DELETE SET NULL / CASCADE) run as the table owner but arrive
+-- nested (pg_trigger_depth() > 1), so they are judged like any application write.
+create function lawdesk.r6_guard_judgment() returns trigger language plpgsql set search_path = pg_catalog, lawdesk, pg_temp as $$
+begin
+  if current_user = 'lawdesk_owner' and pg_trigger_depth() = 1 then
+    if tg_op = 'DELETE' then return old; end if;
+    return new;
+  end if;
+  if exists (select 1 from lawdesk.judgment_procedural p where p.judgment_id = old.id) then
+    if tg_op = 'DELETE' then raise exception 'judgment % is protected by R6', old.id using errcode = 'LD001'; end if;
+    if row(new.id, new.proceeding_id, new.judgment_date, new.outcome, new.final, new.appeal_deadline_id)
+       is distinct from row(old.id, old.proceeding_id, old.judgment_date, old.outcome, old.final, old.appeal_deadline_id) then
+      raise exception 'judgment % is protected by R6', old.id using errcode = 'LD001';
+    end if;
+  end if;
+  if tg_op = 'DELETE' then return old; end if;
+  return new;
+end $$
+;;
+create trigger r6_guard_judgment before update or delete on lawdesk.judgment for each row execute function lawdesk.r6_guard_judgment()
+;;
+-- A deadline is protected if the OLD or the NEW row is: sourced from a linked judgment, or referenced by a party deadline, by
+-- calculation evidence, or by a linked judgment's appeal pointer. On a protected row only the listed non-legal columns may change,
+-- so a column added later is protected by default.
+create function lawdesk.r6_guard_deadline() returns trigger language plpgsql set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare
+  editable constant text[] := array['notes','owner_id','version','updated_at','updated_by'];
+  protected boolean := false;
+begin
+  if current_user = 'lawdesk_owner' and pg_trigger_depth() = 1 then
+    if tg_op = 'DELETE' then return old; end if;
+    return new;
+  end if;
+  if tg_op in ('UPDATE','DELETE') then
+    protected := (old.source_type = 'JUDGMENT' and exists (select 1 from lawdesk.judgment_procedural p where p.judgment_id = old.source_id))
+      or exists (select 1 from lawdesk.judgment_party_deadline x where x.deadline_id = old.id)
+      or exists (select 1 from lawdesk.deadline_calculation_evidence e where e.deadline_id = old.id)
+      or exists (select 1 from lawdesk.judgment j join lawdesk.judgment_procedural p on p.judgment_id = j.id where j.appeal_deadline_id = old.id);
+  end if;
+  if tg_op = 'DELETE' then
+    if protected then raise exception 'deadline is protected by R6' using errcode = 'LD002'; end if;
+    return old;
+  end if;
+  if new.source_type = 'JUDGMENT' then
+    -- an insert holds no deadline row lock yet: wait for a concurrent registration of the source judgment, then look again
+    if tg_op = 'INSERT' then perform 1 from lawdesk.judgment j where j.id = new.source_id for share; end if;
+    if exists (select 1 from lawdesk.judgment_procedural p where p.judgment_id = new.source_id) then
+      if tg_op = 'INSERT' then raise exception 'deadline runs from an R6-protected judgment' using errcode = 'LD002'; end if;
+      protected := true;
+    end if;
+  end if;
+  if tg_op = 'UPDATE' and protected and (to_jsonb(new) - editable) is distinct from (to_jsonb(old) - editable) then
+    raise exception 'deadline is protected by R6' using errcode = 'LD002';
+  end if;
+  return new;
+end $$
+;;
+create trigger r6_guard_deadline before insert or update or delete on lawdesk.deadline for each row execute function lawdesk.r6_guard_deadline()
+;;
+-- ===================== grants =====================
+revoke all on function lawdesk.r6_op_hash(text, jsonb, text, text), lawdesk.r6_op_identity(name), lawdesk.r6_op_check_payload(text, jsonb),
+  lawdesk.r6_op_consume(uuid, text), lawdesk.r6_op_request_immutable() from public
+;;
+revoke all on function lawdesk.r6_op_request(text, jsonb, text, text), lawdesk.r6_op_confirm(uuid, text), lawdesk.r6_op_cancel(uuid), lawdesk.r6_op_list(), lawdesk.r6_op_facts(),
+  lawdesk.r6_op_record_legal_approval(uuid), lawdesk.r6_op_activate_gate(uuid), lawdesk.r6_op_withdraw_legal_approval(uuid),
+  lawdesk.r6_op_grant_authority(uuid), lawdesk.r6_op_revoke_authority(uuid), lawdesk.r6_op_set_policy(uuid),
+  lawdesk.r6_op_bootstrap_open(uuid), lawdesk.r6_op_bootstrap_complete(uuid), lawdesk.r6_op_bootstrap_revoke(uuid),
+  lawdesk.r6_bootstrap_confirm(text, uuid), lawdesk.r6_activate_party_deadline(uuid, uuid, uuid, date, jsonb),
+  lawdesk.r6_guard_judgment(), lawdesk.r6_guard_deadline() from public
+;;
+grant execute on function lawdesk.r6_op_request(text, jsonb, text, text), lawdesk.r6_op_confirm(uuid, text), lawdesk.r6_op_cancel(uuid), lawdesk.r6_op_list(), lawdesk.r6_op_facts(),
+  lawdesk.r6_op_record_legal_approval(uuid), lawdesk.r6_op_activate_gate(uuid), lawdesk.r6_op_withdraw_legal_approval(uuid),
+  lawdesk.r6_op_grant_authority(uuid), lawdesk.r6_op_revoke_authority(uuid), lawdesk.r6_op_set_policy(uuid),
+  lawdesk.r6_op_bootstrap_open(uuid), lawdesk.r6_op_bootstrap_complete(uuid), lawdesk.r6_op_bootstrap_revoke(uuid) to lawdesk_operator
+;;
+grant execute on function lawdesk.r6_bootstrap_confirm(text, uuid), lawdesk.r6_activate_party_deadline(uuid, uuid, uuid, date, jsonb) to lawdesk_legal
+;;
+-- The R6 link of the synthetic judgment (a protected record from now on).
+insert into lawdesk.judgment_procedural (judgment_id) values ('00000000-0000-0000-0000-0000000000e1')

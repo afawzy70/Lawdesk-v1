@@ -1,0 +1,32 @@
+### 71 as lawdesk_app
+     -> f
+OK   select has_function_privilege('lawdesk_app', 'lawdesk.r6_activate_party_deadline(uuid,uuid,uuid,date,jsonb)', 'execute') as app_can_execute_writer
+     -> f
+OK   select has_function_privilege('lawdesk_legal', 'lawdesk.r6_activate_party_deadline(uuid,uuid,uuid,date,jsonb)', 'execute') as legal_can_execute_writer
+     -> t
+OK   select has_function_privilege('lawdesk_operator', 'lawdesk.r6_activate_party_deadline(uuid,uuid,uuid,date,jsonb)', 'execute') as operator_can_execute_writer
+     -> f
+OK   select has_function_privilege('public', 'lawdesk.r6_op_set_policy(text,boolean)', 'execute') as public_can_execute_operator_fn
+     -> f
+DENY -- 2) current_user inside triggers: invoker-rights trigger from a direct write
+     -> [LD099] ERROR: INVOKER trigger sees current_user=lawdesk_app session_user=lawdesk_app
+DENY -- 3) definer-rights trigger always reports the owner, so it cannot tell a runtime caller from the owner's own function
+     -> [LD098] ERROR: DEFINER trigger sees current_user=lawdesk_owner session_user=lawdesk_app
+DENY -- 4) the SAME invoker trigger when the write happens inside an owner-owned definer function: current_user is the owner
+     -> [42501] ERROR: permission denied for function probe_write_inside_definer
+DENY -- 5) temp-schema shadowing (needs TEMPORARY; revoked from the runtime roles, so it is also refused here)
+     -> [42501] ERROR: permission denied to create temporary tables in database "lawdesk"
+
+### 71/4 as lawdesk_legal
+DENY select lawdesk.probe_write_inside_definer()
+     -> [LD099] ERROR: INVOKER trigger sees current_user=lawdesk_owner session_user=lawdesk_legal
+### 72 as lawdesk_legal with TEMPORARY re-granted
+OK   -- Executed as lawdesk_legal after TEMPORARY was deliberately re-granted to it for this one probe, to show why the pinned search_path matters.
+OK   insert into pg_temp.legal_approval values ('G-FINAL', 'ACTIVE')
+OK   -- the attacker lets the definer's owner read the shadow table (without this the call fails with permission denied, which still proves the name was captured)
+OK   -- gate G-FINAL has NO real approval row (the real table only holds G-CALC)
+     -> t
+OK   select lawdesk.probe_good_definer('G-FINAL') as good_definer_fooled_by_temp_table
+     -> f
+OK   select lawdesk.probe_good_definer('G-CALC') as good_definer_sees_real_row
+     -> t

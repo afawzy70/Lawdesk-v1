@@ -1,0 +1,14 @@
+-- as lawdesk_owner: the previous design's two immediate checks. Order 1: link first, then status (the order in 05 B.2 (3)).
+begin
+;;
+insert into lawdesk.probe_l values ('00000000-0000-0000-0000-00000000f201', gen_random_uuid())
+;;
+rollback
+;;
+-- Order 2: status first, then link.
+begin
+;;
+update lawdesk.probe_c set status = 'REFERRED' where id = '00000000-0000-0000-0000-00000000f201'
+;;
+rollback
+;;

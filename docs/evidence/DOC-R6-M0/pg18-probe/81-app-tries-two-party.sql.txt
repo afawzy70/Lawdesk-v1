@@ -1,0 +1,9 @@
+-- as lawdesk_app (and the same file is replayed as lawdesk_legal): neither can open, confirm or execute an operator request
+select lawdesk.r6_op_request('REVOKE', '{"user":"00000000-0000-0000-0000-0000000000a2","authority":"POSTJ_APPROVE"}')
+;;
+select lawdesk.r6_op_confirm(gen_random_uuid())
+;;
+select lawdesk.r6_op_revoke_authority(gen_random_uuid())
+;;
+select count(*) from lawdesk.op_request
+;;

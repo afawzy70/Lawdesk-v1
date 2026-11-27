@@ -1,0 +1,70 @@
+##### 41 contradiction (lawdesk_owner)
+OK   -- as lawdesk_owner: the previous design's two immediate checks. Order 1: link first, then status (the order in 05 B.2 (3)).
+DENY insert into lawdesk.probe_l values ('00000000-0000-0000-0000-00000000f201', gen_random_uuid())
+     -> [LD030] ERROR: link insert needs status REFERRED
+OK   rollback
+OK   -- Order 2: status first, then link.
+DENY update lawdesk.probe_c set status = 'REFERRED' where id = '00000000-0000-0000-0000-00000000f201'
+     -> [LD031] ERROR: status REFERRED needs the link
+OK   rollback
+##### 42 (lawdesk_legal) P-MANIFEST off
+OK   -- Executed as lawdesk_legal (the only role with EXECUTE on the writer). Each numbered block is one transaction.
+OK   insert into lawdesk.legal_case (id, reference_no, title, case_type, opened_on, confidentiality, created_by, updated_by) values ('00000000-0000-0000-0000-00000000c301', 'LD-2026-90301', 'referred A', 'CIVIL', current_date, 'RESTRICTED', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+DENY select lawdesk.r6_complete_referral('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-00000000c301', '00000000-0000-0000-0000-0000000000a2')
+     -> [LD023] ERROR: policy P-MANIFEST is off
+OK   rollback
+OK   select (select count(*) from lawdesk.legal_case where id = '00000000-0000-0000-0000-00000000c301') as case_rows_after_rollback
+     -> 0
+##### 43 operator switches P-MANIFEST on
+OK   select lawdesk.r6_op_set_policy('P-MANIFEST', true)
+     -> 
+##### 44 (lawdesk_legal)
+OK   -- Executed as lawdesk_legal, P-MANIFEST ON (a synthetic switch in a disposable database; in the product it stays off until D-20/D-25).
+OK   insert into lawdesk.legal_case (id, reference_no, title, case_type, opened_on, confidentiality, created_by, updated_by) values ('00000000-0000-0000-0000-00000000c302', 'LD-2026-90302', 'referred B', 'CIVIL', current_date, 'RESTRICTED', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+DENY select lawdesk.r6_complete_referral('00000000-0000-0000-0000-00000000f302', '00000000-0000-0000-0000-00000000c302', '00000000-0000-0000-0000-0000000000a2')
+     -> [LD024] ERROR: referral draft is incomplete or unapproved
+OK   rollback
+OK   -- (c) the case was created NORMAL: refused
+OK   insert into lawdesk.legal_case (id, reference_no, title, case_type, opened_on, created_by, updated_by) values ('00000000-0000-0000-0000-00000000c303', 'LD-2026-90303', 'referred C', 'CIVIL', current_date, '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+DENY select lawdesk.r6_complete_referral('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-00000000c303', '00000000-0000-0000-0000-0000000000a2')
+     -> [LD025] ERROR: case must be inserted RESTRICTED in this very transaction
+OK   rollback
+OK   -- (d) the case is a PRE-EXISTING restricted case (not created in this transaction): refused
+DENY select lawdesk.r6_complete_referral('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000a2')
+     -> [LD025] ERROR: case must be inserted RESTRICTED in this very transaction
+OK   rollback
+OK   -- (e) actor without COMPLAINT_APPROVE grant: refused
+OK   insert into lawdesk.legal_case (id, reference_no, title, case_type, opened_on, confidentiality, created_by, updated_by) values ('00000000-0000-0000-0000-00000000c304', 'LD-2026-90304', 'referred D', 'CIVIL', current_date, 'RESTRICTED', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+DENY select lawdesk.r6_complete_referral('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-00000000c304', '00000000-0000-0000-0000-0000000000a9')
+     -> [LD005] ERROR: actor lacks COMPLAINT_APPROVE
+OK   rollback
+OK   -- (f) THE SUCCESSFUL SEQUENCE: case INSERT as RESTRICTED, then writer (lock complaint, checks, link, status), COMMIT (deferred invariant runs here)
+OK   insert into lawdesk.legal_case (id, reference_no, title, case_type, opened_on, confidentiality, created_by, updated_by) values ('00000000-0000-0000-0000-00000000c305', 'LD-2026-90305', 'referred E', 'CIVIL', current_date, 'RESTRICTED', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+OK   select lawdesk.r6_complete_referral('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-00000000c305', '00000000-0000-0000-0000-0000000000a2')
+     -> 
+OK   commit
+OK   select c.status, l.case_id = '00000000-0000-0000-0000-00000000c305' as linked_to_new_case, k.confidentiality from lawdesk.complaint c join lawdesk.complaint_case_link l on l.complaint_id = c.id join lawdesk.legal_case k on k.id = l.case_id where c.id = '00000000-0000-0000-0000-00000000f301'
+     -> REFERRED | t | RESTRICTED
+OK   -- (g) duplicate request / retry for the same complaint after completion: refused, no second case survives
+OK   insert into lawdesk.legal_case (id, reference_no, title, case_type, opened_on, confidentiality, created_by, updated_by) values ('00000000-0000-0000-0000-00000000c306', 'LD-2026-90306', 'referred F', 'CIVIL', current_date, 'RESTRICTED', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+DENY select lawdesk.r6_complete_referral('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-00000000c306', '00000000-0000-0000-0000-0000000000a2')
+     -> [LD021] ERROR: complaint already referred
+OK   rollback
+OK   select (select count(*) from lawdesk.legal_case where id in ('00000000-0000-0000-0000-00000000c302','00000000-0000-0000-0000-00000000c303','00000000-0000-0000-0000-00000000c304','00000000-0000-0000-0000-00000000c306')) as orphan_cases_from_failed_attempts, (select count(*) from lawdesk.complaint_case_link) as links_total
+     -> 0 | 2
+##### 45 invariant at commit (lawdesk_owner)
+OK   -- as lawdesk_owner: the deferred invariant itself (R-1), exercised directly, because the owner is the only role that can write these tables.
+OK   insert into lawdesk.legal_case (id, reference_no, title, case_type, opened_on, confidentiality, created_by, updated_by) values ('00000000-0000-0000-0000-00000000c307', 'LD-2026-90307', 'orphan link case', 'CIVIL', current_date, 'RESTRICTED', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+OK   insert into lawdesk.complaint_case_link (complaint_id, case_id) values ('00000000-0000-0000-0000-00000000f303', '00000000-0000-0000-0000-00000000c307')
+DENY commit
+     -> [LD032] ERROR: invariant R-1 violated for complaint 00000000-0000-0000-0000-00000000f303: status=UNDER_INVESTIGATION links=1
+OK   -- (i) status REFERRED without a link: the COMMIT fails
+OK   update lawdesk.complaint set status = 'REFERRED' where id = '00000000-0000-0000-0000-00000000f303'
+DENY commit
+     -> [LD032] ERROR: invariant R-1 violated for complaint 00000000-0000-0000-0000-00000000f303: status=REFERRED links=0
+OK   select status as status_of_f303_after_failed_commits, (select count(*) from lawdesk.complaint_case_link where complaint_id = '00000000-0000-0000-0000-00000000f303') as links from lawdesk.complaint where id = '00000000-0000-0000-0000-00000000f303'
+     -> UNDER_INVESTIGATION | 0
+DENY -- (j) a second link row for an already referred complaint / a second complaint for the same case: unique constraints
+     -> [23505] ERROR: duplicate key value violates unique constraint "complaint_case_link_pkey"
+DENY insert into lawdesk.complaint_case_link (complaint_id, case_id) values ('00000000-0000-0000-0000-00000000f303', '00000000-0000-0000-0000-00000000c305')
+     -> [23505] ERROR: duplicate key value violates unique constraint "complaint_case_link_case_id_key"

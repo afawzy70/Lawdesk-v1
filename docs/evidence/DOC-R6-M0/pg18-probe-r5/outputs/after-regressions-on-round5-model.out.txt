@@ -1,0 +1,72 @@
+applied 68 migrations as lawdesk_app
+server_version 18.6 | model r5 | mode tests
+test_authority_grant_by_one_operator (test_attacks.QaFinding001SingleOperator.test_authority_grant_by_one_operator) ... ok
+test_every_operator_function_beyond_request_handling_takes_only_a_request_id (test_attacks.QaFinding001SingleOperator.test_every_operator_function_beyond_request_handling_takes_only_a_request_id) ... ok
+test_gate_approval_by_one_operator (test_attacks.QaFinding001SingleOperator.test_gate_approval_by_one_operator) ... ok
+test_policy_by_one_operator (test_attacks.QaFinding001SingleOperator.test_policy_by_one_operator) ... ok
+test_shared_operator_group_cannot_log_in (test_attacks.QaFinding001SingleOperator.test_shared_operator_group_cannot_log_in) ... ok
+test_legal_credential_cannot_select_confidential_tables (test_attacks.QaFinding002ComplaintReads.test_legal_credential_cannot_select_confidential_tables) ... ok
+test_no_column_or_table_select_on_any_confidential_table (test_attacks.QaFinding002ComplaintReads.test_no_column_or_table_select_on_any_confidential_table) ... ok
+test_runtime_credential_cannot_select_confidential_tables (test_attacks.QaFinding002ComplaintReads.test_runtime_credential_cannot_select_confidential_tables) ... ok
+test_linked_judgment_cannot_be_moved_to_another_proceeding (test_attacks.QaFinding006DeadlineGuard.test_linked_judgment_cannot_be_moved_to_another_proceeding) ... ok
+test_protected_through_judgment_pointer_only (test_attacks.QaFinding006DeadlineGuard.test_protected_through_judgment_pointer_only) ... ok
+test_protected_through_party_deadline_association_only (test_attacks.QaFinding006DeadlineGuard.test_protected_through_party_deadline_association_only) ... ok
+test_qa_change_source_id (test_attacks.QaFinding006DeadlineGuard.test_qa_change_source_id) ... ok
+test_qa_change_source_type (test_attacks.QaFinding006DeadlineGuard.test_qa_change_source_type) ... ok
+test_qa_rewrite_to_text_source_and_new_due_date (test_attacks.QaFinding006DeadlineGuard.test_qa_rewrite_to_text_source_and_new_due_date) ... ok
+test_referential_action_cannot_erase_completion_proof (test_attacks.QaFinding006DeadlineGuard.test_referential_action_cannot_erase_completion_proof) ... ok
+test_two_statements_in_one_transaction (test_attacks.QaFinding006DeadlineGuard.test_two_statements_in_one_transaction) ... ok
+test_no_application_function_accepts_a_case_id_and_writes_the_link (test_attacks.QaFinding009ReferralProvenance.test_no_application_function_accepts_a_case_id_and_writes_the_link) ... ok
+test_pre_existing_case_cannot_be_linked_by_forging_created_at (test_attacks.QaFinding009ReferralProvenance.test_pre_existing_case_cannot_be_linked_by_forging_created_at) ... ok
+test_RESIDUAL_the_actor_id_is_supplied_by_the_caller (test_complaint_reads.StatedResidual.test_RESIDUAL_the_actor_id_is_supplied_by_the_caller)
+NOT a protection: documents what remains. A holder of the legal credential can name any authorised user, and can find ... ok
+test_hidden_and_unknown_are_indistinguishable (test_complaint_reads.Visibility.test_hidden_and_unknown_are_indistinguishable) ... ok
+test_only_the_legal_credential_may_call_the_readers (test_complaint_reads.Visibility.test_only_the_legal_credential_may_call_the_readers) ... ok
+test_revoked_and_disabled_actors_see_nothing (test_complaint_reads.Visibility.test_revoked_and_disabled_actors_see_nothing) ... ok
+test_visibility_matrix (test_complaint_reads.Visibility.test_visibility_matrix) ... ok
+test_ownership_and_no_application_writes_on_protected_tables (test_guards.CatalogAudit.test_ownership_and_no_application_writes_on_protected_tables) ... ok
+test_security_definer_functions (test_guards.CatalogAudit.test_security_definer_functions) ... ok
+test_archive_purge_of_a_proof_document_of_an_unlinked_deadline_still_works (test_guards.Compatibility.test_archive_purge_of_a_proof_document_of_an_unlinked_deadline_still_works) ... ok
+test_allowed_columns_stay_editable (test_guards.Deadlines.test_allowed_columns_stay_editable) ... ok
+test_every_column_outside_the_allow_list_is_refused (test_guards.Deadlines.test_every_column_outside_the_allow_list_is_refused) ... ok
+test_evidence_association_alone_protects (test_guards.Deadlines.test_evidence_association_alone_protects) ... ok
+test_insert_and_move_onto_a_linked_judgment_are_refused (test_guards.Deadlines.test_insert_and_move_onto_a_linked_judgment_are_refused) ... ok
+test_linked_judgment_pointer_delete_and_unlink (test_guards.Deadlines.test_linked_judgment_pointer_delete_and_unlink) ... ok
+test_unlinked_records_behave_as_before (test_guards.Deadlines.test_unlinked_records_behave_as_before) ... ok
+test_upsert_cannot_rewrite_a_protected_row (test_guards.Deadlines.test_upsert_cannot_rewrite_a_protected_row) ... ok
+test_legacy_insert_waits_for_a_concurrent_registration (test_guards.Races.test_legacy_insert_waits_for_a_concurrent_registration) ... ok
+test_legacy_update_waits_for_a_concurrent_adoption (test_guards.Races.test_legacy_update_waits_for_a_concurrent_adoption) ... ok
+test_a_nested_write_by_the_owner_is_not_a_writer_write (test_guards.ReferentialActions.test_a_nested_write_by_the_owner_is_not_a_writer_write) ... ok
+test_every_referential_write_into_a_guarded_table_is_known (test_guards.ReferentialActions.test_every_referential_write_into_a_guarded_table_is_known)
+A new cascading or SET NULL/DEFAULT key into a guarded table fails here until its guard behaviour is proved. ... ok
+test_concurrent_referrals (test_referral.Referral.test_concurrent_referrals) ... ok
+test_every_refusal_writes_nothing (test_referral.Referral.test_every_refusal_writes_nothing) ... ok
+test_numbering_shares_the_ordinary_intake_counter (test_referral.Referral.test_numbering_shares_the_ordinary_intake_counter) ... ok
+test_one_new_restricted_case_in_the_callers_transaction (test_referral.Referral.test_one_new_restricted_case_in_the_callers_transaction) ... ok
+test_retry_returns_the_same_case_and_nothing_else_does (test_referral.Referral.test_retry_returns_the_same_case_and_nothing_else_does) ... ok
+test_rollback_after_the_writer_leaves_nothing (test_referral.Referral.test_rollback_after_the_writer_leaves_nothing) ... ok
+test_the_link_cannot_be_written_or_moved_by_any_application_role (test_referral.Referral.test_the_link_cannot_be_written_or_moved_by_any_application_role) ... ok
+test_a_policy_change_cancels_the_other_pending_decisions (test_two_party.AuthorisedPaths.test_a_policy_change_cancels_the_other_pending_decisions) ... ok
+test_activation_must_name_the_recorded_approval (test_two_party.AuthorisedPaths.test_activation_must_name_the_recorded_approval) ... ok
+test_bootstrap_full_ceremony_and_revocation (test_two_party.AuthorisedPaths.test_bootstrap_full_ceremony_and_revocation) ... ok
+test_bootstrap_revocation_cancels_a_pending_completion (test_two_party.AuthorisedPaths.test_bootstrap_revocation_cancels_a_pending_completion) ... ok
+test_expired_bootstrap_token (test_two_party.AuthorisedPaths.test_expired_bootstrap_token) ... ok
+test_gate_record_activate_withdraw_and_stale_activation (test_two_party.AuthorisedPaths.test_gate_record_activate_withdraw_and_stale_activation) ... ok
+test_policy_on_then_off (test_two_party.AuthorisedPaths.test_policy_on_then_off) ... ok
+test_revocation_cancels_a_pending_grant (test_two_party.AuthorisedPaths.test_revocation_cancels_a_pending_grant) ... ok
+test_concurrent_double_execution_has_one_effect (test_two_party.ContentIsImmutableAndSingleUse.test_concurrent_double_execution_has_one_effect) ... ok
+test_content_that_no_longer_matches_its_hash_is_not_executed (test_two_party.ContentIsImmutableAndSingleUse.test_content_that_no_longer_matches_its_hash_is_not_executed) ... ok
+test_expired_request (test_two_party.ContentIsImmutableAndSingleUse.test_expired_request) ... ok
+test_nobody_edits_a_confirmed_request (test_two_party.ContentIsImmutableAndSingleUse.test_nobody_edits_a_confirmed_request) ... ok
+test_application_credentials_reach_no_operator_function_or_table (test_two_party.EveryKindNeedsTwoPeople.test_application_credentials_reach_no_operator_function_or_table) ... ok
+test_every_kind_refuses_the_single_operator_paths (test_two_party.EveryKindNeedsTwoPeople.test_every_kind_refuses_the_single_operator_paths) ... ok
+test_payload_shape_is_validated (test_two_party.EveryKindNeedsTwoPeople.test_payload_shape_is_validated) ... ok
+test_unregistered_disabled_and_same_person_logins (test_two_party.EveryKindNeedsTwoPeople.test_unregistered_disabled_and_same_person_logins) ... ok
+test_wrong_kind_cannot_be_executed_by_another_executor (test_two_party.EveryKindNeedsTwoPeople.test_wrong_kind_cannot_be_executed_by_another_executor) ... ok
+
+----------------------------------------------------------------------
+Ran 61 tests in 32.144s
+
+OK
+model setup refusals (the two intended ones: owner attaching a sensitive role code, R4's old-design probe):
+   DENY -- the owner itself is refused too

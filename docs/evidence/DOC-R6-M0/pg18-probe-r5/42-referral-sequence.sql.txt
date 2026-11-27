@@ -1,0 +1,55 @@
+-- @login lawdesk_legal
+-- PROBE ONLY: the referral writer creates the case itself (replaces pg18-probe/42-44). (a) P-MANIFEST is off
+select case_id, reference_no, replayed from lawdesk.r6_open_referral_case('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-000000000001')
+;;
+-- @login op_alice
+-- synthetic switch in a disposable database only; in the product it stays OFF until D-20/D-25
+select lawdesk.r6_op_request('POLICY_SET', '{"policy":"P-MANIFEST","enabled":true}', 'synthetic-policy', repeat('b', 64)) is not null as requested
+;;
+-- @login op_bob
+select lawdesk.r6_op_confirm(id, payload_sha256) from lawdesk.r6_op_list() where kind = 'POLICY_SET' and state = 'OPEN'
+;;
+-- @login op_bob
+select lawdesk.r6_op_set_policy((select id from lawdesk.r6_op_list() where kind = 'POLICY_SET' and state = 'CONFIRMED'))
+;;
+-- @login lawdesk_legal
+-- (b) incomplete draft
+select case_id, reference_no, replayed from lawdesk.r6_open_referral_case('00000000-0000-0000-0000-00000000f302', '00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-000000000002')
+;;
+-- @login lawdesk_legal
+-- (c) actor who cannot see the complaint: same answer as an unknown complaint
+select case_id, reference_no, replayed from lawdesk.r6_open_referral_case('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-0000000000a9', '00000000-0000-0000-0000-000000000001')
+;;
+-- @login lawdesk_legal
+-- (d) success
+select case_id, reference_no, replayed from lawdesk.r6_open_referral_case('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-000000000001')
+;;
+-- @login lawdesk_legal
+-- (e) retry with the same key returns the same case
+select case_id, reference_no, replayed from lawdesk.r6_open_referral_case('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-000000000001')
+;;
+-- @login lawdesk_legal
+-- (f) another key for the referred complaint
+select case_id, reference_no, replayed from lawdesk.r6_open_referral_case('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-000000000009')
+;;
+-- @login lawdesk_legal
+-- (g) the Round-4 entry point that accepted a case id no longer exists
+select lawdesk.r6_complete_referral('00000000-0000-0000-0000-00000000f303', '00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000a2')
+;;
+-- @login lawdesk_legal
+-- (h) direct read
+select * from lawdesk.complaint_case_link
+;;
+-- @login lawdesk_legal
+-- (i) the read function
+select status, lawdesk.r6_complaint_case('00000000-0000-0000-0000-0000000000a2', id) is not null as has_case from lawdesk.r6_complaint_get('00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-00000000f301')
+;;
+-- @login lawdesk_app
+-- (j) the runtime credential cannot call the writer
+select case_id, reference_no, replayed from lawdesk.r6_open_referral_case('00000000-0000-0000-0000-00000000f303', '00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-000000000003')
+;;
+-- @login lawdesk_owner
+select k.confidentiality, c.status, k.created_by = l.actor_id as created_by_actor from lawdesk.complaint c join lawdesk.complaint_case_link l on l.complaint_id = c.id join lawdesk.legal_case k on k.id = l.case_id where c.id = '00000000-0000-0000-0000-00000000f301'
+;;
+-- @login lawdesk_owner
+select count(*) as links_total from lawdesk.complaint_case_link

@@ -1,0 +1,16 @@
+OK   -- Executed as lawdesk_operator (host-side operator credential; not mounted in any application container).
+     -> t
+OK   select lawdesk.r6_op_grant_authority('00000000-0000-0000-0000-0000000000a2', 'POSTJ_APPROVE') is not null as grant_recorded
+     -> t
+OK   select lawdesk.r6_op_grant_authority('00000000-0000-0000-0000-0000000000a2', 'COMPLAINT_APPROVE') is not null as grant2_recorded
+     -> t
+DENY -- ===== what the operator can NOT do =====
+     -> [42501] ERROR: permission denied for function r6_activate_party_deadline
+DENY insert into lawdesk.legal_approval (gate, version) values ('G-FINAL', 1)
+     -> [42501] ERROR: permission denied for table legal_approval
+DENY update lawdesk.judgment set final = true where id = '00000000-0000-0000-0000-0000000000e1'
+     -> [42501] ERROR: permission denied for table judgment
+DENY alter table lawdesk.legal_approval disable trigger all
+     -> [42501] ERROR: must be owner of table legal_approval
+DENY create table lawdesk.x(y int)
+     -> [42501] ERROR: permission denied for schema lawdesk

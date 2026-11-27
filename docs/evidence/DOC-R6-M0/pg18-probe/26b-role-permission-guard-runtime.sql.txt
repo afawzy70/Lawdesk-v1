@@ -1,0 +1,19 @@
+-- as lawdesk_app: what RoleAdministration (or direct SQL, or the previous release) could try
+insert into lawdesk.role_permission (role_id, permission) select id, 'POSTJ_APPROVE' from lawdesk.app_role where code = 'ADMIN'
+;;
+insert into lawdesk.role_permission (role_id, permission) select id, 'COMPLAINT_APPROVE' from lawdesk.app_role where code = 'LEGAL_STAFF'
+;;
+update lawdesk.role_permission set permission = 'LEGAL_GATE_APPROVE' where permission = (select permission from lawdesk.role_permission rp join lawdesk.app_role r on r.id = rp.role_id where r.code = 'LEGAL_MANAGER' limit 1) and role_id = (select id from lawdesk.app_role where code = 'LEGAL_MANAGER')
+;;
+-- the guard cannot be removed or edited by the runtime role
+alter table lawdesk.role_permission disable trigger r6_guard_role_permission
+;;
+delete from lawdesk.sensitive_permission
+;;
+insert into lawdesk.sensitive_permission values ('X')
+;;
+-- ordinary (non-sensitive) role management keeps working
+insert into lawdesk.role_permission (role_id, permission) select id, 'CASE_VIEW' from lawdesk.app_role where code = 'LEGAL_STAFF' on conflict do nothing
+;;
+select count(*) as sensitive_rows_in_role_permission from lawdesk.role_permission where permission in (select code from lawdesk.sensitive_permission)
+;;

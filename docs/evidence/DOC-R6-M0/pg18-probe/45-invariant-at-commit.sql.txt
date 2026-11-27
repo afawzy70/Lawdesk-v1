@@ -1,0 +1,24 @@
+-- as lawdesk_owner: the deferred invariant itself (R-1), exercised directly, because the owner is the only role that can write these tables.
+-- (h) link without status change: the COMMIT fails
+begin
+;;
+insert into lawdesk.legal_case (id, reference_no, title, case_type, opened_on, confidentiality, created_by, updated_by) values ('00000000-0000-0000-0000-00000000c307', 'LD-2026-90307', 'orphan link case', 'CIVIL', current_date, 'RESTRICTED', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+;;
+insert into lawdesk.complaint_case_link (complaint_id, case_id) values ('00000000-0000-0000-0000-00000000f303', '00000000-0000-0000-0000-00000000c307')
+;;
+commit
+;;
+-- (i) status REFERRED without a link: the COMMIT fails
+begin
+;;
+update lawdesk.complaint set status = 'REFERRED' where id = '00000000-0000-0000-0000-00000000f303'
+;;
+commit
+;;
+select status as status_of_f303_after_failed_commits, (select count(*) from lawdesk.complaint_case_link where complaint_id = '00000000-0000-0000-0000-00000000f303') as links from lawdesk.complaint where id = '00000000-0000-0000-0000-00000000f303'
+;;
+-- (j) a second link row for an already referred complaint / a second complaint for the same case: unique constraints
+insert into lawdesk.complaint_case_link (complaint_id, case_id) values ('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-0000000000c1')
+;;
+insert into lawdesk.complaint_case_link (complaint_id, case_id) values ('00000000-0000-0000-0000-00000000f303', '00000000-0000-0000-0000-00000000c305')
+;;

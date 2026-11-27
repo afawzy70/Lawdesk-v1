@@ -1,0 +1,34 @@
+-- PROBE ONLY (as lawdesk_owner): objects that show how current_user / session_user / search_path behave.
+create table lawdesk.probe_t (k int primary key, v text)
+;;
+create function lawdesk.probe_inv() returns trigger language plpgsql set search_path = pg_catalog, lawdesk, pg_temp as $$
+begin raise exception 'INVOKER trigger sees current_user=% session_user=%', current_user, session_user using errcode='LD099'; end $$
+;;
+create function lawdesk.probe_def() returns trigger language plpgsql security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+begin raise exception 'DEFINER trigger sees current_user=% session_user=%', current_user, session_user using errcode='LD098'; end $$
+;;
+create trigger t_inv before update on lawdesk.probe_t for each row when (new.k = 1) execute function lawdesk.probe_inv()
+;;
+create trigger t_def before update on lawdesk.probe_t for each row when (new.k = 2) execute function lawdesk.probe_def()
+;;
+insert into lawdesk.probe_t values (1, 'a'), (2, 'b')
+;;
+create function lawdesk.probe_write_inside_definer() returns void language plpgsql security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+begin update lawdesk.probe_t set v = 'x' where k = 1; end $$
+;;
+revoke all on function lawdesk.probe_write_inside_definer() from public
+;;
+grant execute on function lawdesk.probe_write_inside_definer() to lawdesk_legal
+;;
+-- A deliberately BAD definer function: no pinned search_path, unqualified names.
+create function lawdesk.probe_bad_definer(p_gate text) returns boolean language plpgsql security definer as $$
+begin return exists (select 1 from legal_approval a where a.gate = p_gate and a.state = 'ACTIVE'); end $$
+;;
+grant execute on function lawdesk.probe_bad_definer(text) to lawdesk_legal
+;;
+-- The GOOD form used by the proposal: pinned search_path (pg_temp last), schema-qualified names.
+create function lawdesk.probe_good_definer(p_gate text) returns boolean language plpgsql security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+begin return exists (select 1 from lawdesk.legal_approval a where a.gate = p_gate and a.state = 'ACTIVE'); end $$
+;;
+grant execute on function lawdesk.probe_good_definer(text) to lawdesk_legal
+;;

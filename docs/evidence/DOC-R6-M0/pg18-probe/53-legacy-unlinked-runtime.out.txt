@@ -1,0 +1,12 @@
+OK   -- as lawdesk_app: legacy behaviour that MUST be unchanged for records that are NOT R6-linked (judgment e2 has no judgment_procedural row), and what Flyway of a previous release reads.
+     -> 1 | 1 | t
+OK   update lawdesk.judgment set final = true, outcome = 'IN_FAVOUR', judgment_date = date '2026-06-05', summary = 'legacy edit' where id = '00000000-0000-0000-0000-0000000000e2'
+OK   insert into lawdesk.deadline (case_id, source_type, source_id, starts_on, period_days, due_on, action, calc_status, approved_by, approved_at, created_by, updated_by) values ('00000000-0000-0000-0000-0000000000c2', 'JUDGMENT', '00000000-0000-0000-0000-0000000000e2', date '2026-06-01', 60, date '2026-08-01', 'legacy appeal deadline', 'APPROVED', '00000000-0000-0000-0000-0000000000a1', now(), '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1')
+OK   update lawdesk.judgment set appeal_deadline_id = (select id from lawdesk.deadline where source_id = '00000000-0000-0000-0000-0000000000e2') where id = '00000000-0000-0000-0000-0000000000e2'
+OK   update lawdesk.deadline set status = 'COMPLETED', completed_on = current_date where source_id = '00000000-0000-0000-0000-0000000000e2'
+OK   -- Flyway of the previous release: it may SELECT the history and take an advisory lock, but cannot write the history
+     -> t
+DENY insert into lawdesk.flyway_schema_history values (2, '2', true)
+     -> [42501] ERROR: permission denied for table flyway_schema_history
+DENY create table lawdesk.flyway_would_create(x int)
+     -> [42501] ERROR: permission denied for schema lawdesk

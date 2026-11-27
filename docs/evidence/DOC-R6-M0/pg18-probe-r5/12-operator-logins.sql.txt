@@ -1,0 +1,19 @@
+-- PROBE ONLY (as postgres, after 10). The operator GROUP cannot log in; each person has an own login (QA-R6-M0-001).
+alter role lawdesk_operator nologin
+;;
+create role op_alice login nosuperuser nocreaterole nocreatedb in role lawdesk_operator
+;;
+create role op_bob   login nosuperuser nocreaterole nocreatedb in role lawdesk_operator
+;;
+create role op_dave  login nosuperuser nocreaterole nocreatedb in role lawdesk_operator
+;;
+-- a login that is a member of the group but was never registered as a person
+create role op_carol login nosuperuser nocreaterole nocreatedb in role lawdesk_operator
+;;
+alter role op_alice set search_path = lawdesk
+;;
+alter role op_bob set search_path = lawdesk
+;;
+alter role op_dave set search_path = lawdesk
+;;
+alter role op_carol set search_path = lawdesk

@@ -1,0 +1,15 @@
+-- Executed as lawdesk_legal after TEMPORARY was deliberately re-granted to it for this one probe, to show why the pinned search_path matters.
+create temp table legal_approval (gate text, state text)
+;;
+insert into pg_temp.legal_approval values ('G-FINAL', 'ACTIVE')
+;;
+-- the attacker lets the definer's owner read the shadow table (without this the call fails with permission denied, which still proves the name was captured)
+grant select on pg_temp.legal_approval to public
+;;
+-- gate G-FINAL has NO real approval row (the real table only holds G-CALC)
+select lawdesk.probe_bad_definer('G-FINAL') as bad_definer_fooled_by_temp_table
+;;
+select lawdesk.probe_good_definer('G-FINAL') as good_definer_fooled_by_temp_table
+;;
+select lawdesk.probe_good_definer('G-CALC') as good_definer_sees_real_row
+;;
