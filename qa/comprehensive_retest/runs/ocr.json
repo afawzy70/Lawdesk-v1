@@ -1,0 +1,363 @@
+{
+  "journey": "OCR: Arabic scans are read, searchable and access-restricted (261110042840)",
+  "base": "https://lawdesk.167-86-90-174.sslip.io",
+  "steps": [
+    {
+      "step": "deployed release",
+      "value": {
+        "release": "352277571426bd4d135ea4acb0e12489aa09fc3c"
+      }
+    },
+    {
+      "step": "the archive settings are readable",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "OCR engine on this server",
+      "value": {
+        "available": true,
+        "engine": "tesseract",
+        "languages": "ara+eng",
+        "detail": null
+      }
+    },
+    {
+      "step": "the server has Tesseract with Arabic and English data",
+      "expected": [
+        true,
+        "tesseract"
+      ],
+      "actual": [
+        true,
+        "tesseract"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the languages are ara+eng",
+      "expected": "ara+eng",
+      "actual": "ara+eng",
+      "ok": true
+    },
+    {
+      "step": "intake registers the synthetic case",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "ocr-clear-ar.png is archived",
+      "expected": [
+        201,
+        "image/png"
+      ],
+      "actual": [
+        201,
+        "image/png"
+      ],
+      "ok": true
+    },
+    {
+      "step": "ocr-clear-ar.png waits for recognition (the scan is stored first)",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "ocr-scan-skew.jpg is archived",
+      "expected": [
+        201,
+        "image/jpeg"
+      ],
+      "actual": [
+        201,
+        "image/jpeg"
+      ],
+      "ok": true
+    },
+    {
+      "step": "ocr-scan-skew.jpg waits for recognition (the scan is stored first)",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "ocr-mixed.png is archived",
+      "expected": [
+        201,
+        "image/png"
+      ],
+      "actual": [
+        201,
+        "image/png"
+      ],
+      "ok": true
+    },
+    {
+      "step": "ocr-mixed.png waits for recognition (the scan is stored first)",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "ocr-clear-ar.png: OCR completed",
+      "expected": [
+        "OCR_DONE",
+        "OCR",
+        "tesseract"
+      ],
+      "actual": [
+        "OCR_DONE",
+        "OCR",
+        "tesseract"
+      ],
+      "ok": true
+    },
+    {
+      "step": "ocr-scan-skew.jpg: OCR completed",
+      "expected": [
+        "OCR_DONE",
+        "OCR",
+        "tesseract"
+      ],
+      "actual": [
+        "OCR_DONE",
+        "OCR",
+        "tesseract"
+      ],
+      "ok": true
+    },
+    {
+      "step": "ocr-mixed.png: OCR completed",
+      "expected": [
+        "OCR_DONE",
+        "OCR",
+        "tesseract"
+      ],
+      "actual": [
+        "OCR_DONE",
+        "OCR",
+        "tesseract"
+      ],
+      "ok": true
+    },
+    {
+      "step": "ocr-clear-ar.png: share of ground-truth words found in the read text (dpi 200, skew 0.0)",
+      "value": 0.95
+    },
+    {
+      "step": "ocr-clear-ar.png: at least 85% of the words were read",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "ocr-clear-ar.png: ground-truth words the engine did not return",
+      "value": [
+        "الكويتي"
+      ]
+    },
+    {
+      "step": "ocr-scan-skew.jpg: share of ground-truth words found in the read text (dpi 300, skew 3.0)",
+      "value": 1.0
+    },
+    {
+      "step": "ocr-scan-skew.jpg: at least 85% of the words were read",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "ocr-scan-skew.jpg: ground-truth words the engine did not return",
+      "value": []
+    },
+    {
+      "step": "ocr-mixed.png: share of ground-truth words found in the read text (dpi 300, skew 0.0)",
+      "value": 0.92
+    },
+    {
+      "step": "ocr-mixed.png: at least 85% of the words were read",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "ocr-mixed.png: ground-truth words the engine did not return",
+      "value": [
+        "ld",
+        "045"
+      ]
+    },
+    {
+      "step": "archive search 'مذكرة دفاع' finds ocr-clear-ar.png",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "archive search 'مذكره دفاع' finds ocr-clear-ar.png",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "archive search 'القانون المدني' finds ocr-clear-ar.png",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "archive search 'OCRJOURNEYONE' finds ocr-clear-ar.png",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "unified search 'OCRJOURNEYONE' finds ocr-clear-ar.png through its text",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "unified search says the match is in the file text",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "archive search 'صحيفة استئناف' finds ocr-scan-skew.jpg",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "archive search 'صحيفه استئناف' finds ocr-scan-skew.jpg",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "archive search 'محكمة أول درجة' finds ocr-scan-skew.jpg",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "archive search 'OCRJOURNEYTWO' finds ocr-scan-skew.jpg",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "unified search 'OCRJOURNEYTWO' finds ocr-scan-skew.jpg through its text",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "unified search says the match is in the file text",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "archive search 'عقد الإيجار' finds ocr-mixed.png",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "archive search 'عقد الايجار' finds ocr-mixed.png",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "archive search 'ABC Trading' finds ocr-mixed.png",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "archive search '1,250.500' finds ocr-mixed.png",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "archive search 'OCRJOURNEYTHREE' finds ocr-mixed.png",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "unified search 'OCRJOURNEYTHREE' finds ocr-mixed.png through its text",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "unified search says the match is in the file text",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "a user outside the case does not find ocr-clear-ar.png in the archive search",
+      "expected": false,
+      "actual": false,
+      "ok": true
+    },
+    {
+      "step": "nor read its text",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "a user outside the case does not find ocr-scan-skew.jpg in the archive search",
+      "expected": false,
+      "actual": false,
+      "ok": true
+    },
+    {
+      "step": "nor read its text",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "a user outside the case does not find ocr-mixed.png in the archive search",
+      "expected": false,
+      "actual": false,
+      "ok": true
+    },
+    {
+      "step": "nor read its text",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "ocr-clear-ar.png is still downloadable byte for byte",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "ocr-scan-skew.jpg is still downloadable byte for byte",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "ocr-mixed.png is still downloadable byte for byte",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    }
+  ],
+  "passed": true
+}

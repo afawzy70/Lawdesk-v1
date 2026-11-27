@@ -1,0 +1,607 @@
+{
+  "journey": "WP2 claims, judgment results, defences and evidence (261110052939)",
+  "base": "https://lawdesk.167-86-90-174.sslip.io",
+  "steps": [
+    {
+      "step": "deployed release",
+      "value": {
+        "release": "aea33fa3d8e1f92a5b8bde5ad6f34c99e4bf1bfa"
+      }
+    },
+    {
+      "step": "intake registers the synthetic case",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the specialist adds claim 1",
+      "expected": [
+        201,
+        1
+      ],
+      "actual": [
+        201,
+        1
+      ],
+      "ok": true
+    },
+    {
+      "step": "the specialist adds claim 2",
+      "expected": [
+        201,
+        2
+      ],
+      "actual": [
+        201,
+        2
+      ],
+      "ok": true
+    },
+    {
+      "step": "the specialist adds claim 3",
+      "expected": [
+        201,
+        3
+      ],
+      "actual": [
+        201,
+        3
+      ],
+      "ok": true
+    },
+    {
+      "step": "the case lists its three claims in order",
+      "expected": [
+        1,
+        2,
+        3
+      ],
+      "actual": [
+        1,
+        2,
+        3
+      ],
+      "ok": true
+    },
+    {
+      "step": "the specialist amends claim 1",
+      "expected": [
+        200,
+        "AMENDED",
+        2
+      ],
+      "actual": [
+        200,
+        "AMENDED",
+        2
+      ],
+      "ok": true
+    },
+    {
+      "step": "both versions are kept, newest first",
+      "expected": [
+        2,
+        1
+      ],
+      "actual": [
+        2,
+        1
+      ],
+      "ok": true
+    },
+    {
+      "step": "the previous text is kept verbatim",
+      "expected": "تعويض عن الضررين المادي والأدبي (SYNTH-DOC)",
+      "actual": "تعويض عن الضررين المادي والأدبي (SYNTH-DOC)",
+      "ok": true
+    },
+    {
+      "step": "the change records the user and the date",
+      "expected": [
+        "192454be-232b-469f-8051-3deea347837b",
+        true
+      ],
+      "actual": [
+        "192454be-232b-469f-8051-3deea347837b",
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "a stale amendment is refused",
+      "expected": 409,
+      "actual": 409,
+      "ok": true
+    },
+    {
+      "step": "the specialist records a defence linked to a memo",
+      "expected": [
+        201,
+        "SYNTH-DOC مذكرة الدفاع"
+      ],
+      "actual": [
+        201,
+        "SYNTH-DOC مذكرة الدفاع"
+      ],
+      "ok": true
+    },
+    {
+      "step": "a second defence gets the next number",
+      "expected": [
+        201,
+        2
+      ],
+      "actual": [
+        201,
+        2
+      ],
+      "ok": true
+    },
+    {
+      "step": "the specialist records a fact",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "a document becomes evidence with a role and an importance",
+      "expected": [
+        201,
+        "SUPPORTING"
+      ],
+      "actual": [
+        201,
+        "SUPPORTING"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the same document is linked to a fact and to a defence",
+      "expected": [
+        201,
+        201
+      ],
+      "actual": [
+        201,
+        201
+      ],
+      "ok": true
+    },
+    {
+      "step": "linking twice is refused",
+      "expected": 409,
+      "actual": 409,
+      "ok": true
+    },
+    {
+      "step": "the defence lists the document that supports it",
+      "expected": [
+        "كشف الاستلام (SYNTH-DOC)"
+      ],
+      "actual": [
+        "كشف الاستلام (SYNTH-DOC)"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the case file shows the document as evidence with both links",
+      "expected": 2,
+      "actual": 2,
+      "ok": true
+    },
+    {
+      "step": "the case file shows the memo and the claim's source",
+      "expected": [
+        true,
+        true
+      ],
+      "actual": [
+        true,
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "a required document not yet obtained is a gap",
+      "expected": "NOT_OBTAINED",
+      "actual": "NOT_OBTAINED",
+      "ok": true
+    },
+    {
+      "step": "a document obtained but not submitted to the court is a gap",
+      "expected": "NOT_SUBMITTED",
+      "actual": "NOT_SUBMITTED",
+      "ok": true
+    },
+    {
+      "step": "a follow-up task is created for the case",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the gap is linked to its follow-up task",
+      "expected": [
+        201,
+        "348576fd-5384-4420-a4c2-f0dadc445d8d"
+      ],
+      "actual": [
+        201,
+        "348576fd-5384-4420-a4c2-f0dadc445d8d"
+      ],
+      "ok": true
+    },
+    {
+      "step": "submitting the document to the court is recorded",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "a submitted document is no longer a gap",
+      "expected": false,
+      "actual": false,
+      "ok": true
+    },
+    {
+      "step": "every seeded judgment type is a proposal awaiting approval",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the manager proposes a new value",
+      "expected": [
+        201,
+        true
+      ],
+      "actual": [
+        201,
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "the manager records the extended judgment",
+      "expected": [
+        201,
+        "120.000"
+      ],
+      "actual": [
+        201,
+        "120.000"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the judgment type carries its label from the managed list",
+      "expected": "حكم في الاختصاص",
+      "actual": "حكم في الاختصاص",
+      "ok": true
+    },
+    {
+      "step": "before recording, every claim is listed without a result",
+      "expected": [
+        null,
+        null,
+        null
+      ],
+      "actual": [
+        null,
+        null,
+        null
+      ],
+      "ok": true
+    },
+    {
+      "step": "each claim gets its own result",
+      "expected": [
+        "REJECTED",
+        "ACCEPTED",
+        "PARTIAL"
+      ],
+      "actual": [
+        "REJECTED",
+        "ACCEPTED",
+        "PARTIAL"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the awarded amount keeps three decimals as text",
+      "expected": [
+        null,
+        "75.125",
+        "10.000"
+      ],
+      "actual": [
+        null,
+        "75.125",
+        "10.000"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the court's position is recorded on each defence",
+      "expected": [
+        "REJECTED",
+        "ACCEPTED"
+      ],
+      "actual": [
+        "REJECTED",
+        "ACCEPTED"
+      ],
+      "ok": true
+    },
+    {
+      "step": "an appeal is recorded against the first-instance proceeding",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the appeal judgment is recorded (legacy request, no details)",
+      "expected": [
+        201,
+        null
+      ],
+      "actual": [
+        201,
+        null
+      ],
+      "ok": true
+    },
+    {
+      "step": "the appeal gives its own results",
+      "expected": [
+        "ACCEPTED",
+        "NOT_DECIDED",
+        null
+      ],
+      "actual": [
+        "ACCEPTED",
+        "NOT_DECIDED",
+        null
+      ],
+      "ok": true
+    },
+    {
+      "step": "the first-instance results are unchanged",
+      "expected": [
+        "REJECTED",
+        "ACCEPTED",
+        "PARTIAL"
+      ],
+      "actual": [
+        "REJECTED",
+        "ACCEPTED",
+        "PARTIAL"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the defence is re-asserted in the appeal",
+      "expected": [
+        200,
+        "APPEAL",
+        "RE_ASSERTED"
+      ],
+      "actual": [
+        200,
+        "APPEAL",
+        "RE_ASSERTED"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the case shows five results across the two stages, in stage order",
+      "expected": [
+        [
+          "FIRST_INSTANCE",
+          1,
+          "REJECTED"
+        ],
+        [
+          "FIRST_INSTANCE",
+          2,
+          "ACCEPTED"
+        ],
+        [
+          "FIRST_INSTANCE",
+          3,
+          "PARTIAL"
+        ],
+        [
+          "APPEAL",
+          1,
+          "ACCEPTED"
+        ],
+        [
+          "APPEAL",
+          2,
+          "NOT_DECIDED"
+        ]
+      ],
+      "actual": [
+        [
+          "FIRST_INSTANCE",
+          1,
+          "REJECTED"
+        ],
+        [
+          "FIRST_INSTANCE",
+          2,
+          "ACCEPTED"
+        ],
+        [
+          "FIRST_INSTANCE",
+          3,
+          "PARTIAL"
+        ],
+        [
+          "APPEAL",
+          1,
+          "ACCEPTED"
+        ],
+        [
+          "APPEAL",
+          2,
+          "NOT_DECIDED"
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "step": "the defence keeps the court's position in each stage",
+      "expected": [
+        [
+          "FIRST_INSTANCE",
+          "REJECTED"
+        ],
+        [
+          "APPEAL",
+          "ACCEPTED"
+        ]
+      ],
+      "actual": [
+        [
+          "FIRST_INSTANCE",
+          "REJECTED"
+        ],
+        [
+          "APPEAL",
+          "ACCEPTED"
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "step": "a legacy update without details keeps the extended fields",
+      "expected": [
+        200,
+        "منطوق اختباري (SYNTH-DOC)"
+      ],
+      "actual": [
+        200,
+        "منطوق اختباري (SYNTH-DOC)"
+      ],
+      "ok": true
+    },
+    {
+      "step": "the statistics grew by the five results recorded",
+      "expected": 5,
+      "actual": 5,
+      "ok": true
+    },
+    {
+      "step": "... two of them accepted",
+      "expected": 2,
+      "actual": 2,
+      "ok": true
+    },
+    {
+      "step": "a user who cannot see the case counts none of it",
+      "expected": 0,
+      "actual": 0,
+      "ok": true
+    },
+    {
+      "step": "the viewer is told claims do not exist",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the viewer is told defences do not exist",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the viewer is told facts do not exist",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the viewer is told evidence do not exist",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the viewer is told evidence gaps do not exist",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the viewer is told claim results do not exist",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the viewer is told document usage do not exist",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the viewer is told one claim do not exist",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the viewer is told claim revisions do not exist",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the viewer is told one defence do not exist",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the viewer is told judgment results do not exist",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the viewer cannot add a claim",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "the viewer cannot record results",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "the synthetic managed-list value is deactivated again",
+      "expected": 200,
+      "actual": 200,
+      "ok": true
+    },
+    {
+      "step": "its history keeps the creation and the deactivation",
+      "expected": [
+        "DEACTIVATED",
+        "CREATED"
+      ],
+      "actual": [
+        "DEACTIVATED",
+        "CREATED"
+      ],
+      "ok": true
+    }
+  ],
+  "passed": true
+}

@@ -1,0 +1,19 @@
+{
+  "applicationSourceSha": "18822a83bff8e2a38b83db4370674a9f69919d81",
+  "environment": "isolated embedded PostgreSQL; no UAT account edits",
+  "firstSuite": {
+    "tests": 46,
+    "passed": 45,
+    "failures": 1,
+    "errors": 0,
+    "failure": "CaseVisibilityApiTest.aGrantGivesViewOrContributeUntilItIsWithdrawn:190: global audit_event count expected 2, observed 6"
+  },
+  "singleMethodRerun": {
+    "tests": 1,
+    "passed": 1,
+    "failures": 0,
+    "errors": 0
+  },
+  "diagnosis": "The test counts all CASE_GRANT_CREATE/REVOKE events in audit_event. GovernmentIntakeTestSupport.removeData calls OperationsTestData.deleteAll, which does not remove audit_event; other tests in the shared database can leave matching rows. This is a test-isolation failure observed in the full suite, not evidence of a UAT grant leak. The original failure is preserved in this summary, not replaced by the rerun.",
+  "uatCrossCheck": "grant-session-window2.json: the live viewer session was 404 before a grant, 200 read/403 write after grant, and 404 after revoke on a marked case"
+}
