@@ -1,0 +1,128 @@
+{
+  "expected_deployed_sha": "8b0928ba10eb9b02ac3822ac33eca5b8778195b6",
+  "counts": {
+    "PASS": 0,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 6
+  },
+  "tests": [
+    {
+      "id": "REMAINING-MULTIBROWSER-DEVICES",
+      "story_ids": [
+        "LD-035",
+        "LD-036"
+      ],
+      "priority": "P2",
+      "preconditions": [
+        "Firefox/WebKit and real mobile device runtimes"
+      ],
+      "test_data": "Own QA case and four roles",
+      "steps": [
+        "Repeat essential login, case and judicial journeys on each available browser/device"
+      ],
+      "expected_results": "Equivalent functionality and readable layout; current Chromium results cannot be transferred",
+      "status": "NOT_RUN",
+      "note": "Not executed in this live UAT round; no PASS inferred from prior local tests"
+    },
+    {
+      "id": "REMAINING-MANUAL-ACCESSIBILITY-LOCALIZATION",
+      "story_ids": [
+        "LD-035",
+        "LD-036",
+        "LD-037"
+      ],
+      "priority": "P2",
+      "preconditions": [
+        "Screen reader and detailed bilingual review session"
+      ],
+      "test_data": "Arabic/English forms, errors, tables, chronology labels",
+      "steps": [
+        "Review announcements, reading order, terminology and every essential control manually"
+      ],
+      "expected_results": "Accessible and correctly translated screens; axe and menu-keyboard smoke alone are insufficient",
+      "status": "NOT_RUN",
+      "note": "Not executed in this live UAT round; no PASS inferred from prior local tests"
+    },
+    {
+      "id": "REMAINING-EXHAUSTIVE-PERMISSION-PERMUTATIONS",
+      "story_ids": [
+        "LD-009",
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Isolated owned custom roles and fixtures; separate sessions"
+      ],
+      "test_data": "Every individual permission, endpoint verb, malformed identifier and grant combination",
+      "steps": [
+        "Extend focused four-role matrix to all permutations and object-boundary cases"
+      ],
+      "expected_results": "No unauthorized reads/writes or privilege escalation",
+      "status": "NOT_RUN",
+      "note": "Not executed in this live UAT round; no PASS inferred from prior local tests"
+    },
+    {
+      "id": "REMAINING-LAST-ADMIN-CONCURRENCY-ISOLATED",
+      "story_ids": [
+        "LD-009"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Disposable local database; do not change the four approved UAT accounts or seeded roles"
+      ],
+      "test_data": "Two synthetic enabled ADMIN accounts and concurrent removals",
+      "steps": [
+        "Race role removal/disable in disposable environment and inspect committed rows"
+      ],
+      "expected_results": "At least one enabled administrator remains; no mutation of UAT administrator population",
+      "status": "NOT_RUN",
+      "note": "Not executed in this live UAT round; no PASS inferred from prior local tests"
+    },
+    {
+      "id": "REMAINING-UAT-DATABASE-FAULT-INJECTION",
+      "story_ids": [
+        "LD-003",
+        "LD-012",
+        "LD-014",
+        "LD-019"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Separate disposable database at current SHA; fault injection must not target shared UAT"
+      ],
+      "test_data": "Trigger/transaction failures and constraints",
+      "steps": [
+        "Force event persistence failure and inspect database rollback",
+        "compare with live API integrity results"
+      ],
+      "expected_results": "Business data, counters and history roll back atomically; current live tests use persisted API reads, not direct DB proof",
+      "status": "NOT_RUN",
+      "note": "Not executed in this live UAT round; no PASS inferred from prior local tests"
+    },
+    {
+      "id": "REMAINING-JUDICIAL-HIGH-CARDINALITY",
+      "story_ids": [
+        "LD-018",
+        "LD-019",
+        "LD-020",
+        "LD-021",
+        "LD-022",
+        "LD-023"
+      ],
+      "priority": "P2",
+      "preconditions": [
+        "Dedicated synthetic dataset beyond100 rows without touching real records"
+      ],
+      "test_data": "101 active courts per level or101 proceedings/judgments/decisions",
+      "steps": [
+        "Verify all choices/records remain reachable beyond the first100",
+        "inspect pagination"
+      ],
+      "expected_results": "No silent omission; current frontend fetches size100 and uses items only, an unexecuted boundary risk",
+      "status": "NOT_RUN",
+      "note": "Not executed in this live UAT round; no PASS inferred from prior local tests"
+    }
+  ],
+  "historical_baseline": "qa/reports/baseline-open-findings.json is unchanged; these focused gaps do not replace all351 baseline cases"
+}

@@ -1,0 +1,405 @@
+{
+  "expected_deployed_sha": "aed1f7d68597cf1da5da9d8aa658d1b6036960bd",
+  "backend_runtime_sha_attested": true,
+  "observed_backend_runtime_sha": "aed1f7d68597cf1da5da9d8aa658d1b6036960bd",
+  "utc": "2026-10-25T16:52:42.899Z",
+  "prefix": "QAUI4C4A29BCA8",
+  "scope": "Independent live browser form submissions; real API persistence checks",
+  "owned": {
+    "roles": [
+      "39fad117-e8a3-4c84-b914-4fdabe772879"
+    ],
+    "users": [
+      "0de9baa1-03ee-4b89-8ac9-2f6c6fd27dcd"
+    ],
+    "cases": [
+      "7ef8cc6c-4289-4c37-bea7-aaa874ccdc84"
+    ],
+    "parties": [
+      "67295b5b-615a-41f4-9614-9028f619779c"
+    ],
+    "courts": [
+      "b7a7d4bb-2d17-4255-a0a1-e92f9a36cdd9",
+      "fb41c517-ca77-41fd-860a-f0d389e9fbb8",
+      "50d5a419-4db6-415e-89e5-8589e58de806"
+    ],
+    "proceedings": [
+      "efe4d45b-41c3-4ea6-801a-d77df3e8fceb",
+      "a9e56abc-d74b-405d-a8d4-c527cc93c5f6",
+      "8665fff2-6c7e-4144-afa5-dff1b20bc913"
+    ],
+    "judgments": [
+      "5086a6b4-c8a7-44dd-bca8-0dbfab4b5456",
+      "184d562b-fc9e-4d48-af22-23851e0bae00"
+    ],
+    "decisions": [
+      "5627eb1e-77ba-4d84-b5be-1c87acdeb323"
+    ]
+  },
+  "counts": {
+    "PASS": 16,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FORM-LOGIN",
+      "story_ids": [
+        "LD-007"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA administrator; verified HTTPS; owned synthetic data only"
+      ],
+      "test_data": {
+        "prefix": "QAUI4C4A29BCA8"
+      },
+      "steps": [
+        "Browser login with approved admin"
+      ],
+      "expected_results": "200; administrator session",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "FORM-ROLE-CREATE-EDIT",
+      "story_ids": [
+        "LD-009",
+        "LD-010"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA administrator; verified HTTPS; owned synthetic data only"
+      ],
+      "test_data": {
+        "prefix": "QAUI4C4A29BCA8"
+      },
+      "steps": [
+        "Open new role",
+        "Enter unique code/name",
+        "Check View cases",
+        "Create",
+        "Edit name and save"
+      ],
+      "expected_results": "Role201 and edit200; exact persisted permission set",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "FORM-USER-CREATE-EDIT",
+      "story_ids": [
+        "LD-009"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA administrator; verified HTTPS; owned synthetic data only"
+      ],
+      "test_data": {
+        "prefix": "QAUI4C4A29BCA8"
+      },
+      "steps": [
+        "Open new user",
+        "Fill unique identity and generated temporary password",
+        "Assign owned role",
+        "Create",
+        "Edit display name"
+      ],
+      "expected_results": "201/200; owned role and edited display name persisted",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "FORM-CASE-CREATE",
+      "story_ids": [
+        "LD-012"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA administrator; verified HTTPS; owned synthetic data only"
+      ],
+      "test_data": {
+        "prefix": "QAUI4C4A29BCA8"
+      },
+      "steps": [
+        "Open new case",
+        "Fill synthetic title/reference/date",
+        "Create"
+      ],
+      "expected_results": "201 and owned case detail route",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "FORM-PARTY-STATUS",
+      "story_ids": [
+        "LD-014",
+        "LD-016",
+        "LD-017"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA administrator; verified HTTPS; owned synthetic data only"
+      ],
+      "test_data": {
+        "prefix": "QAUI4C4A29BCA8"
+      },
+      "steps": [
+        "Own case",
+        "New synthetic person",
+        "Add as client",
+        "Change OPEN to ACTIVE",
+        "Inspect timeline"
+      ],
+      "expected_results": "Party linkage201; status200; timeline persisted",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "FORM-COURT-FIRST_INSTANCE",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA administrator; verified HTTPS; owned synthetic data only"
+      ],
+      "test_data": {
+        "prefix": "QAUI4C4A29BCA8"
+      },
+      "steps": [
+        "Open courts",
+        "New court",
+        "Fill unique code, Arabic/English names and level",
+        "Save"
+      ],
+      "expected_results": "201; active court persisted",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "FORM-COURT-APPEAL",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA administrator; verified HTTPS; owned synthetic data only"
+      ],
+      "test_data": {
+        "prefix": "QAUI4C4A29BCA8"
+      },
+      "steps": [
+        "Open courts",
+        "New court",
+        "Fill unique code, Arabic/English names and level",
+        "Save"
+      ],
+      "expected_results": "201; active court persisted",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "FORM-COURT-CASSATION",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA administrator; verified HTTPS; owned synthetic data only"
+      ],
+      "test_data": {
+        "prefix": "QAUI4C4A29BCA8"
+      },
+      "steps": [
+        "Open courts",
+        "New court",
+        "Fill unique code, Arabic/English names and level",
+        "Save"
+      ],
+      "expected_results": "201; active court persisted",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "FORM-PROCEEDING-FIRST_INSTANCE",
+      "story_ids": [
+        "LD-019"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA administrator; verified HTTPS; owned synthetic data only"
+      ],
+      "test_data": {
+        "prefix": "QAUI4C4A29BCA8"
+      },
+      "steps": [
+        "Own case",
+        "Record proceeding",
+        "Choose owned court/parent",
+        "Fill number/year/date",
+        "Save"
+      ],
+      "expected_results": "201; correct same-case stage/parent; row rendered",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "FORM-JUDGMENT-FIRST_INSTANCE",
+      "story_ids": [
+        "LD-022"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA administrator; verified HTTPS; owned synthetic data only"
+      ],
+      "test_data": {
+        "prefix": "QAUI4C4A29BCA8"
+      },
+      "steps": [
+        "Locate owned proceeding",
+        "Record judgment",
+        "Fill date/outcome/summary",
+        "Save"
+      ],
+      "expected_results": "201; judgment visible on same case",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "FORM-PROCEEDING-APPEAL",
+      "story_ids": [
+        "LD-020"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA administrator; verified HTTPS; owned synthetic data only"
+      ],
+      "test_data": {
+        "prefix": "QAUI4C4A29BCA8"
+      },
+      "steps": [
+        "Own case",
+        "Record proceeding",
+        "Choose owned court/parent",
+        "Fill number/year/date",
+        "Save"
+      ],
+      "expected_results": "201; correct same-case stage/parent; row rendered",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "FORM-JUDGMENT-APPEAL",
+      "story_ids": [
+        "LD-022"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA administrator; verified HTTPS; owned synthetic data only"
+      ],
+      "test_data": {
+        "prefix": "QAUI4C4A29BCA8"
+      },
+      "steps": [
+        "Locate owned proceeding",
+        "Record judgment",
+        "Fill date/outcome/summary",
+        "Save"
+      ],
+      "expected_results": "201; judgment visible on same case",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "FORM-PROCEEDING-CASSATION",
+      "story_ids": [
+        "LD-021"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA administrator; verified HTTPS; owned synthetic data only"
+      ],
+      "test_data": {
+        "prefix": "QAUI4C4A29BCA8"
+      },
+      "steps": [
+        "Own case",
+        "Record proceeding",
+        "Choose owned court/parent",
+        "Fill number/year/date",
+        "Save"
+      ],
+      "expected_results": "201; correct same-case stage/parent; row rendered",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "FORM-SPECIAL-DECISION",
+      "story_ids": [
+        "LD-023"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA administrator; verified HTTPS; owned synthetic data only"
+      ],
+      "test_data": {
+        "prefix": "QAUI4C4A29BCA8"
+      },
+      "steps": [
+        "Own appeal",
+        "Record special decision",
+        "Choose suspension, judgment and Jan7",
+        "Save"
+      ],
+      "expected_results": "201; owned proceeding/judgment linked",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "FORM-PASSWORD-RESET-UI",
+      "story_ids": [
+        "LD-008",
+        "LD-009"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA administrator; verified HTTPS; owned synthetic data only"
+      ],
+      "test_data": {
+        "prefix": "QAUI4C4A29BCA8"
+      },
+      "steps": [
+        "Login disposable user in session A",
+        "Complete forced change",
+        "Admin resets through user form"
+      ],
+      "expected_results": "UI reset204; old session revoked with401",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    },
+    {
+      "id": "FORM-RESET-SESSION-REPLAY",
+      "story_ids": [
+        "LD-007",
+        "LD-008",
+        "LD-009"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Approved QA administrator; verified HTTPS; owned synthetic data only"
+      ],
+      "test_data": {
+        "prefix": "QAUI4C4A29BCA8"
+      },
+      "steps": [
+        "Fresh session B logs in using reset password",
+        "Completes forced change",
+        "Old session A opens owned case without reauthentication"
+      ],
+      "expected_results": "Old session remains invalid after recovery, according to revised session-revocation contract",
+      "status": "PASS",
+      "actual": "All specified assertions satisfied"
+    }
+  ]
+}

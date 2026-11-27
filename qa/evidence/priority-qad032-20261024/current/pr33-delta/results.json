@@ -1,0 +1,197 @@
+{
+  "tested_sha": "6e27f5c427380fddb1914872f53ea437eb642fc9",
+  "utc": "2026-10-24T18:28:01.377587+00:00",
+  "candidate": "/tmp/lawdesk-continuous2-pr33-6e27f5c4",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 3,
+    "FAIL": 3,
+    "BLOCKED": 1,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "c72076e3-5ee8-481f-a452-258c93411037",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-24T18:27:57.025720Z",
+          "updatedAt": "2026-10-24T18:27:57.025720Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "PARENT-UPDATE-DB-FAILURE-ROLLBACK",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "PARENT-UPDATE-DB-FAILURE-ROLLBACK"
+      },
+      "steps": [
+        "After-update trigger raises in disposable DB; submit otherwise valid same-day filing correction; compare full rows/history"
+      ],
+      "expected_results": "500; complete transaction rollback",
+      "actual": {
+        "status": 500,
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "DB-WRITER-PRIVILEGES",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "DB-WRITER-PRIVILEGES"
+      },
+      "steps": [
+        "Inspect dedicated QA SQL role"
+      ],
+      "expected_results": "Not superuser; cannot create DB or roles",
+      "actual": "f\tf\tf",
+      "status": "PASS"
+    },
+    {
+      "id": "LIMITED-WRITER-COMMIT-PARENT-DATE",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "LIMITED-WRITER-COMMIT-PARENT-DATE"
+      },
+      "steps": [
+        "update proceeding set filing_date='2026-01-04' where id='fb9145f8-7440-4abf-83c6-a9366fe5a803'; COMMIT; then query joined hearing/proceeding in a new connection"
+      ],
+      "expected_results": "Database rejects invalid write even at commit; no invalid pair",
+      "actual": {
+        "rejected": false,
+        "sqlstate": null,
+        "committed_invalid_rows": 1
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "LIMITED-WRITER-COMMIT-HEARING-DATE",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "LIMITED-WRITER-COMMIT-HEARING-DATE"
+      },
+      "steps": [
+        "update hearing set hearing_date='2026-01-01' where id='be68738c-7d5a-41e4-af69-a5a38d170652'; COMMIT; then query joined hearing/proceeding in a new connection"
+      ],
+      "expected_results": "Database rejects invalid write even at commit; no invalid pair",
+      "actual": {
+        "rejected": false,
+        "sqlstate": null,
+        "committed_invalid_rows": 1
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "LIMITED-WRITER-COMMIT-PARENT-CASE",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "LIMITED-WRITER-COMMIT-PARENT-CASE"
+      },
+      "steps": [
+        "update proceeding set case_id='f5c485a3-57fe-4e99-96a2-a74dfd3fbf92' where id='5e7e76c1-0661-4901-9882-0bf0052544ae'; COMMIT; then query joined hearing/proceeding in a new connection"
+      ],
+      "expected_results": "Database rejects invalid write even at commit; no invalid pair",
+      "actual": {
+        "rejected": false,
+        "sqlstate": null,
+        "committed_invalid_rows": 1
+      },
+      "status": "FAIL"
+    },
+    {
+      "id": "PR33-EXPERT-REFERRAL-INTEGRATION",
+      "story_ids": [
+        "LD-019",
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Expert referral implementation integrated with proceeding date guard"
+      ],
+      "test_data": {
+        "filing": "2026-01-02",
+        "referral": "2026-01-03",
+        "new_filing": "2026-01-04"
+      },
+      "steps": [
+        "Create expert/referral",
+        "Correct parent filing date concurrently",
+        "Read persisted chronology and history"
+      ],
+      "expected_results": "Reject incompatible writes; preserve history",
+      "status": "BLOCKED",
+      "actual": "Expert implementation is absent from PR33. Existing independent PR43 and cumulative evidence covers implemented expert integration separately."
+    }
+  ]
+}

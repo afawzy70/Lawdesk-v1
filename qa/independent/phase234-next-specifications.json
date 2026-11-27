@@ -1,0 +1,497 @@
+{
+  "utc": "2026-10-24T05:21:23.336672+00:00",
+  "scope": "LD-007..LD-023 remaining focused coverage",
+  "tests": [
+    {
+      "id": "P234-PLAN-SESSION-FIXATION",
+      "story_id": "LD-007",
+      "baseline_case_ids": [
+        "QA-0049",
+        "QA-0050",
+        "QA-0051",
+        "QA-0052",
+        "QA-0053",
+        "QA-0054",
+        "QA-0055",
+        "QA-0056"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Have one anonymous pre-login session and CSRF cookie",
+        "Exact tested SHA and isolated synthetic DB; proposed domain assumptions remain explicit"
+      ],
+      "test_data": "Login through real HTTPS using a valid synthetic user and existing session cookie",
+      "steps": [
+        "Capture session id before login",
+        "POST login",
+        "compare cookie",
+        "try old id on /me"
+      ],
+      "expected_results": "New session id; old id cannot authenticate; no token in browser storage",
+      "status": "NOT_RUN",
+      "automation_status": "DESIGNED",
+      "execution_note": "Design only; no execution/phase acceptance claimed. Existing narrower assertions are linked separately, not duplicated."
+    },
+    {
+      "id": "P234-PLAN-UNICODE-BCRYPT-BOUNDARY",
+      "story_id": "LD-008",
+      "baseline_case_ids": [
+        "QA-0057",
+        "QA-0058",
+        "QA-0059",
+        "QA-0060",
+        "QA-0061",
+        "QA-0062",
+        "QA-0063",
+        "QA-0064"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Signed-in synthetic user with known current password",
+        "Exact tested SHA and isolated synthetic DB; proposed domain assumptions remain explicit"
+      ],
+      "test_data": "Arabic password of36 and37 characters (72/74 UTF8 bytes), ASCII72/73/128/129",
+      "steps": [
+        "Change password separately for each boundary",
+        "inspect status, authenticate with exact new value, verify stored hash"
+      ],
+      "expected_results": "Consistent documented policy; no500 or silently truncated/colliding password",
+      "status": "NOT_RUN",
+      "automation_status": "DESIGNED",
+      "execution_note": "Design only; no execution/phase acceptance claimed. Existing narrower assertions are linked separately, not duplicated."
+    },
+    {
+      "id": "P234-PLAN-LAST-ADMIN-CONCURRENCY",
+      "story_id": "LD-009",
+      "baseline_case_ids": [
+        "QA-0065",
+        "QA-0066",
+        "QA-0067",
+        "QA-0068",
+        "QA-0069",
+        "QA-0070",
+        "QA-0071",
+        "QA-0072"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Two enabled ADMIN users plus a manager account with USER_MANAGE but no ROLE_MANAGE",
+        "Exact tested SHA and isolated synthetic DB; proposed domain assumptions remain explicit"
+      ],
+      "test_data": "Two concurrent requests removing/disabling the other admin",
+      "steps": [
+        "Send both requests simultaneously",
+        "read users/roles in PostgreSQL",
+        "attempt grant of ADMIN by manager"
+      ],
+      "expected_results": "At least one enabled ADMIN remains; forbidden grant403; exactly committed changes audited",
+      "status": "NOT_RUN",
+      "automation_status": "DESIGNED",
+      "execution_note": "Design only; no execution/phase acceptance claimed. Existing narrower assertions are linked separately, not duplicated."
+    },
+    {
+      "id": "P234-PLAN-PERMISSION-MATRIX",
+      "story_id": "LD-010",
+      "baseline_case_ids": [
+        "QA-0073",
+        "QA-0074",
+        "QA-0075",
+        "QA-0076",
+        "QA-0077",
+        "QA-0078",
+        "QA-0079",
+        "QA-0080"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Separate role with exactly one permission; real sessions and CSRF",
+        "Exact tested SHA and isolated synthetic DB; proposed domain assumptions remain explicit"
+      ],
+      "test_data": "Every implemented GET/POST/PUT/DELETE in endpoint inventory",
+      "steps": [
+        "Call valid request with/without permission",
+        "repeat malformed JSON and invalid UUID",
+        "query mutation/audit state"
+      ],
+      "expected_results": "Anonymous401; denied403 or documented hidden404; no writes; correlated denial event",
+      "status": "NOT_RUN",
+      "automation_status": "DESIGNED",
+      "execution_note": "Design only; no execution/phase acceptance claimed. Existing narrower assertions are linked separately, not duplicated."
+    },
+    {
+      "id": "P234-PLAN-AUDIT-FILTER-AND-REDACTION",
+      "story_id": "LD-011",
+      "baseline_case_ids": [
+        "QA-0081",
+        "QA-0082",
+        "QA-0083",
+        "QA-0084",
+        "QA-0085",
+        "QA-0086",
+        "QA-0087",
+        "QA-0088"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Login/logout/password-reset/role-change events with distinct request ids; audit API implemented",
+        "Exact tested SHA and isolated synthetic DB; proposed domain assumptions remain explicit"
+      ],
+      "test_data": "Filter actor/action/outcome/from/to; raw password/session/CSRF markers",
+      "steps": [
+        "GET /audit as AUDIT_VIEW then no permission",
+        "inspect all returned fields and logs",
+        "query immutable rows"
+      ],
+      "expected_results": "Accurate bounded filtering;403 without permission; no credential/hash/session leakage; append-only",
+      "status": "NOT_RUN",
+      "automation_status": "DESIGNED",
+      "execution_note": "Design only; no execution/phase acceptance claimed. Existing narrower assertions are linked separately, not duplicated."
+    },
+    {
+      "id": "P234-PLAN-CASE-TEXT-BOUNDARIES",
+      "story_id": "LD-012",
+      "baseline_case_ids": [
+        "QA-0089",
+        "QA-0090",
+        "QA-0091",
+        "QA-0092",
+        "QA-0093",
+        "QA-0094",
+        "QA-0095",
+        "QA-0096"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "CASE_CREATE session; snapshot initial row/event counts",
+        "Exact tested SHA and isolated synthetic DB; proposed domain assumptions remain explicit"
+      ],
+      "test_data": "Title200/201; subject4000/4001; whitespace optional subject",
+      "steps": [
+        "POST each boundary with unique fixture reference",
+        "compare API/stored lengths/case_event count"
+      ],
+      "expected_results": "Boundary accepted; over-limit400; trim/null normalization; failed request stores no case/event",
+      "status": "NOT_RUN",
+      "automation_status": "DESIGNED",
+      "execution_note": "Design only; no execution/phase acceptance claimed. Existing narrower assertions are linked separately, not duplicated."
+    },
+    {
+      "id": "P234-PLAN-NOOP-AND-CLOSED-EDIT",
+      "story_id": "LD-013",
+      "baseline_case_ids": [
+        "QA-0097",
+        "QA-0098",
+        "QA-0099",
+        "QA-0100",
+        "QA-0101",
+        "QA-0102",
+        "QA-0103",
+        "QA-0104"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Case version0 with CASE_EDIT session; ability to close case",
+        "Exact tested SHA and isolated synthetic DB; proposed domain assumptions remain explicit"
+      ],
+      "test_data": "Identical update; changed update; closed-case update",
+      "steps": [
+        "PUT exact current content",
+        "compare version/event count",
+        "close",
+        "attempt change with current version"
+      ],
+      "expected_results": "No-op200 with same version/no event; closed edit422 CASE_READ_ONLY without mutation",
+      "status": "NOT_RUN",
+      "automation_status": "DESIGNED",
+      "execution_note": "Design only; no execution/phase acceptance claimed. Existing narrower assertions are linked separately, not duplicated."
+    },
+    {
+      "id": "P234-PLAN-TIMELINE-STABLE-PAGING",
+      "story_id": "LD-014",
+      "baseline_case_ids": [
+        "QA-0105",
+        "QA-0106",
+        "QA-0107",
+        "QA-0108",
+        "QA-0109",
+        "QA-0110",
+        "QA-0111",
+        "QA-0112"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Case with more than100 events, some sharing timestamp, and CASE_VIEW",
+        "Exact tested SHA and isolated synthetic DB; proposed domain assumptions remain explicit"
+      ],
+      "test_data": "page0/1,size100,negativepage,unknowncase",
+      "steps": [
+        "GET timeline pages repeatedly",
+        "compare ids/order and disjoint sets",
+        "read for unknown case"
+      ],
+      "expected_results": "Stable newest-first seq ordering; no duplicate/missing events between pages; invalid page400; unknown404",
+      "status": "NOT_RUN",
+      "automation_status": "DESIGNED",
+      "execution_note": "Design only; no execution/phase acceptance claimed. Existing narrower assertions are linked separately, not duplicated."
+    },
+    {
+      "id": "P234-PLAN-LITERAL-SEARCH-AND-TIES",
+      "story_id": "LD-015",
+      "baseline_case_ids": [
+        "QA-0113",
+        "QA-0114",
+        "QA-0115",
+        "QA-0116",
+        "QA-0117",
+        "QA-0118",
+        "QA-0119",
+        "QA-0120"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Cases with literal percent/underscore and identical updatedAt, Arabic titles",
+        "Exact tested SHA and isolated synthetic DB; proposed domain assumptions remain explicit"
+      ],
+      "test_data": "q=%25,q=_,status repeated, inclusive openedFrom/openedTo",
+      "steps": [
+        "Search through API and real /cases route",
+        "page through equal sort keys",
+        "reload URL"
+      ],
+      "expected_results": "Literal wildcard characters; combined filters AND; stable id tie-break; reload preserves exact filters",
+      "status": "NOT_RUN",
+      "automation_status": "DESIGNED",
+      "execution_note": "Design only; no execution/phase acceptance claimed. Existing narrower assertions are linked separately, not duplicated."
+    },
+    {
+      "id": "P234-PLAN-ARCHIVED-PARTY-INTEGRITY",
+      "story_id": "LD-016",
+      "baseline_case_ids": [
+        "QA-0121",
+        "QA-0122",
+        "QA-0123",
+        "QA-0124",
+        "QA-0125",
+        "QA-0126",
+        "QA-0127",
+        "QA-0128"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Two cases, PERSON/ORGANIZATION fixtures, archived case; PARTY_MANAGE",
+        "Exact tested SHA and isolated synthetic DB; proposed domain assumptions remain explicit"
+      ],
+      "test_data": "Duplicate nationalId; mismatched kind identifier; unlink archived party",
+      "steps": [
+        "POST/PUT duplicate/mismatched party",
+        "link/unlink archived case",
+        "compare relationships and event counts"
+      ],
+      "expected_results": "409 duplicate;422 PARTY_KIND_MISMATCH/CASE_READ_ONLY; no orphan/link/event mutation",
+      "status": "NOT_RUN",
+      "automation_status": "DESIGNED",
+      "execution_note": "Design only; no execution/phase acceptance claimed. Existing narrower assertions are linked separately, not duplicated."
+    },
+    {
+      "id": "P234-PLAN-LIFECYCLE-ALL-PAIRS",
+      "story_id": "LD-017",
+      "baseline_case_ids": [
+        "QA-0129",
+        "QA-0130",
+        "QA-0131",
+        "QA-0132",
+        "QA-0133",
+        "QA-0134",
+        "QA-0135",
+        "QA-0136"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "One fresh case per source state and CASE_STATUS_CHANGE; synthetic actor",
+        "Exact tested SHA and isolated synthetic DB; proposed domain assumptions remain explicit"
+      ],
+      "test_data": "All25 source/target pairs; reopen CLOSED with missing/500/501char reason",
+      "steps": [
+        "Create source state via valid path",
+        "POST target with current version and reason",
+        "inspect case_event"
+      ],
+      "expected_results": "Only documented transitions; reopening requires reason; archived terminal; denial/stale leaves state/events unchanged",
+      "status": "NOT_RUN",
+      "automation_status": "DESIGNED",
+      "execution_note": "Design only; no execution/phase acceptance claimed. Existing narrower assertions are linked separately, not duplicated."
+    },
+    {
+      "id": "P234-PLAN-DEACTIVATED-COURT-HISTORY",
+      "story_id": "LD-018",
+      "baseline_case_ids": [
+        "QA-0137",
+        "QA-0138",
+        "QA-0139",
+        "QA-0140",
+        "QA-0141",
+        "QA-0142",
+        "QA-0143",
+        "QA-0144"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Court referenced by proceeding; COURT_MANAGE session",
+        "Exact tested SHA and isolated synthetic DB; proposed domain assumptions remain explicit"
+      ],
+      "test_data": "Deactivate referenced court; stale court version; move proceeding to another inactive court",
+      "steps": [
+        "PUT court activefalse",
+        "read old proceeding",
+        "create/move new proceeding referencing inactive court"
+      ],
+      "expected_results": "History readable; new assignment422 COURT_INACTIVE; stale court409; no deleted reference",
+      "status": "NOT_RUN",
+      "automation_status": "DESIGNED",
+      "execution_note": "Design only; no execution/phase acceptance claimed. Existing narrower assertions are linked separately, not duplicated."
+    },
+    {
+      "id": "P234-PLAN-EVENT-FAILURE-ATOMIC",
+      "story_id": "LD-019",
+      "baseline_case_ids": [
+        "QA-0145",
+        "QA-0146",
+        "QA-0147",
+        "QA-0148",
+        "QA-0149",
+        "QA-0150",
+        "QA-0151",
+        "QA-0152"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "QA-owned DB; CASE_VIEW and PROCEEDING_MANAGE; injected rejecting timeline trigger",
+        "Exact tested SHA and isolated synthetic DB; proposed domain assumptions remain explicit"
+      ],
+      "test_data": "Valid first-instance creation while case_event insert fails",
+      "steps": [
+        "Inject trigger only in disposable DB",
+        "POST proceeding",
+        "query proceeding/event counts",
+        "remove trigger and retry"
+      ],
+      "expected_results": "Failure stores no proceeding/event; subsequent valid retry201 and exactly one timeline event",
+      "status": "NOT_RUN",
+      "automation_status": "DESIGNED",
+      "execution_note": "Design only; no execution/phase acceptance claimed. Existing narrower assertions are linked separately, not duplicated."
+    },
+    {
+      "id": "P234-PLAN-PARENT-EDIT-RACE",
+      "story_id": "LD-020",
+      "baseline_case_ids": [
+        "QA-0153",
+        "QA-0154",
+        "QA-0155",
+        "QA-0156",
+        "QA-0157",
+        "QA-0158",
+        "QA-0159",
+        "QA-0160"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "First instance has judgmentJan3; valid appeal payloadJan4",
+        "Exact tested SHA and isolated synthetic DB; proposed domain assumptions remain explicit"
+      ],
+      "test_data": "Concurrent parent judgment editJan10 and appeal createJan4",
+      "steps": [
+        "Submit both requests using separate real sessions",
+        "query joined judgment/proceeding dates"
+      ],
+      "expected_results": "Never committed child filing before parent judgment; one operation rejected atomically",
+      "status": "NOT_RUN",
+      "automation_status": "DESIGNED",
+      "execution_note": "Design only; no execution/phase acceptance claimed. Existing narrower assertions are linked separately, not duplicated."
+    },
+    {
+      "id": "P234-PLAN-CASSATION-WRONG-PARENT",
+      "story_id": "LD-021",
+      "baseline_case_ids": [
+        "QA-0161",
+        "QA-0162",
+        "QA-0163",
+        "QA-0164",
+        "QA-0165",
+        "QA-0166",
+        "QA-0167",
+        "QA-0168"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Two cases with first-instance and appeal proceedings; judgments",
+        "Exact tested SHA and isolated synthetic DB; proposed domain assumptions remain explicit"
+      ],
+      "test_data": "Cassation referencing first-instance, unjudged appeal, or other-case appeal",
+      "steps": [
+        "POST each candidate to case proceedings endpoint",
+        "inspect response and row/event counts"
+      ],
+      "expected_results": "422 CASSATION_PARENT_NOT_APPEAL / CASSATION_REQUIRES_APPEAL_JUDGMENT / PARENT_PROCEEDING_OTHER_CASE; no mutations",
+      "status": "NOT_RUN",
+      "automation_status": "DESIGNED",
+      "execution_note": "Design only; no execution/phase acceptance claimed. Existing narrower assertions are linked separately, not duplicated."
+    },
+    {
+      "id": "P234-PLAN-JUDGMENT-CONCURRENT-DUPLICATE",
+      "story_id": "LD-022",
+      "baseline_case_ids": [
+        "QA-0169",
+        "QA-0170",
+        "QA-0171",
+        "QA-0172",
+        "QA-0173",
+        "QA-0174",
+        "QA-0175",
+        "QA-0176"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "One unjudged proceeding and two JUDGMENT_MANAGE sessions",
+        "Exact tested SHA and isolated synthetic DB; proposed domain assumptions remain explicit"
+      ],
+      "test_data": "Two simultaneous judgmentPOSTs then parent/child chronology edits",
+      "steps": [
+        "POST same proceeding judgment twice concurrently",
+        "query judgment uniqueness/timeline",
+        "attempt invalid chronological edit"
+      ],
+      "expected_results": "Exactly one201 and one409; one judgment/event; chronology cannot be invalidated on edit",
+      "status": "NOT_RUN",
+      "automation_status": "DESIGNED",
+      "execution_note": "Design only; no execution/phase acceptance claimed. Existing narrower assertions are linked separately, not duplicated."
+    },
+    {
+      "id": "P234-PLAN-SUSPENSION-FOREIGN-JUDGMENT",
+      "story_id": "LD-023",
+      "baseline_case_ids": [
+        "QA-0177",
+        "QA-0178",
+        "QA-0179",
+        "QA-0180",
+        "QA-0181",
+        "QA-0182",
+        "QA-0183",
+        "QA-0184"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Two cases each with proceeding and judgment; JUDGMENT_MANAGE",
+        "Exact tested SHA and isolated synthetic DB; proposed domain assumptions remain explicit"
+      ],
+      "test_data": "Suspension references other-case judgment; decision before judgment; granted/refused effects",
+      "steps": [
+        "POST special decision with each invalid reference/date",
+        "then valid decision and inspect derived suspension state"
+      ],
+      "expected_results": "Foreign reference/date rejected422; valid effect tracked correctly; no case-status side effect or invalid event",
+      "status": "NOT_RUN",
+      "automation_status": "DESIGNED",
+      "execution_note": "Design only; no execution/phase acceptance claimed. Existing narrower assertions are linked separately, not duplicated."
+    }
+  ]
+}

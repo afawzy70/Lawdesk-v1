@@ -1,0 +1,86 @@
+{
+  "tested_sha": "1e74945961a77fcf5a67fc26f3a51d0715660628",
+  "utc": "2026-10-25T15:36:15.179905+00:00",
+  "candidate": "/tmp/lawdesk-r57-candidate",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 2,
+    "FAIL": 0,
+    "BLOCKED": 1,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "aff81292-83e8-43f4-8430-f0e15c2a0749",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-25T15:35:27.625235Z",
+          "updatedAt": "2026-10-25T15:35:27.625235Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "COURTS-SECOND-PAGE-API",
+      "story_ids": [
+        "LD-018",
+        "LD-019"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "COURTS-SECOND-PAGE-API"
+      },
+      "steps": [
+        "Seed 101 synthetic active courts plus fixture court",
+        "read both API pages"
+      ],
+      "expected_results": "102 total; target QA-EDGE-101 reachable on page1",
+      "actual": {
+        "total": 102,
+        "page0": 100,
+        "page1": 2,
+        "target_id": "f38cdc10-9a9f-46b2-bc21-0673c5943eb4"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "FIXTURE-EXECUTION",
+      "status": "BLOCKED",
+      "reason": "'Edges' object has no attribute 'parallel'"
+    }
+  ]
+}

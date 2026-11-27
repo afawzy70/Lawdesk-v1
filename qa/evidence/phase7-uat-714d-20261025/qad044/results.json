@@ -1,0 +1,207 @@
+{
+  "tested_sha": "714d2f3b0c3ed7239b85c79966426d5fe27d2d1d",
+  "utc": "2026-10-25T16:27:26.755004+00:00",
+  "candidate": "/tmp/lawdesk-p7-714d-candidate",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 6,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "da3ee316-fb7e-41a5-8b30-27be4fa501f9",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-25T16:26:49.509109Z",
+          "updatedAt": "2026-10-25T16:26:49.509109Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "COURTS-SECOND-PAGE-API",
+      "story_ids": [
+        "LD-018",
+        "LD-019"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "COURTS-SECOND-PAGE-API"
+      },
+      "steps": [
+        "Seed 101 synthetic active courts plus fixture court",
+        "read both API pages"
+      ],
+      "expected_results": "102 total; target QA-EDGE-101 reachable on page1",
+      "actual": {
+        "total": 102,
+        "page0": 100,
+        "page1": 2,
+        "target_id": "28d471d6-aeeb-4753-96a9-7402281e3dc1"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "JUDICIAL-SECOND-PAGE-API",
+      "story_ids": [
+        "LD-019",
+        "LD-024",
+        "LD-025"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "JUDICIAL-SECOND-PAGE-API"
+      },
+      "steps": [
+        "Seed 101 chronological synthetic proceedings",
+        "read page1"
+      ],
+      "expected_results": "101 total; remaining proceeding reachable via API",
+      "actual": {
+        "total": 101,
+        "page1_count": 1
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "LAST-ADMIN-CONCURRENT-DISABLE",
+      "story_ids": [
+        "LD-009",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "LAST-ADMIN-CONCURRENT-DISABLE"
+      },
+      "steps": [
+        "Two operator sessions concurrently remove/disable distinct last two ADMIN holders",
+        "query committed rows and audit"
+      ],
+      "expected_results": "200/422 LAST_ADMIN; one enabled ADMIN; one committed success audit",
+      "actual": {
+        "statuses": [
+          200,
+          422
+        ],
+        "denied_rules": [
+          "LAST_ADMIN"
+        ],
+        "enabled_admins": 1,
+        "success_delta": 1
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "LAST-ADMIN-CONCURRENT-ROLES",
+      "story_ids": [
+        "LD-009",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "LAST-ADMIN-CONCURRENT-ROLES"
+      },
+      "steps": [
+        "Two operator sessions concurrently remove/disable distinct last two ADMIN holders",
+        "query committed rows and audit"
+      ],
+      "expected_results": "200/422 LAST_ADMIN; one enabled ADMIN; one committed success audit",
+      "actual": {
+        "statuses": [
+          200,
+          422
+        ],
+        "denied_rules": [
+          "LAST_ADMIN"
+        ],
+        "enabled_admins": 1,
+        "success_delta": 1
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "LAST-ADMIN-CONCURRENT-MIXED",
+      "story_ids": [
+        "LD-009",
+        "LD-011"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "LAST-ADMIN-CONCURRENT-MIXED"
+      },
+      "steps": [
+        "Two operator sessions concurrently remove/disable distinct last two ADMIN holders",
+        "query committed rows and audit"
+      ],
+      "expected_results": "200/422 LAST_ADMIN; one enabled ADMIN; one committed success audit",
+      "actual": {
+        "statuses": [
+          200,
+          422
+        ],
+        "denied_rules": [
+          "LAST_ADMIN"
+        ],
+        "enabled_admins": 1,
+        "success_delta": 1
+      },
+      "status": "PASS"
+    }
+  ]
+}

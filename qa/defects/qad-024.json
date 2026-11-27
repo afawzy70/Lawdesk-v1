@@ -1,0 +1,55 @@
+{
+  "id": "QAD-024",
+  "title": "Editing parent judgment permits appeal before judgment it challenges",
+  "priority": "P1",
+  "severity": "S1",
+  "stories": [
+    "LD-020",
+    "LD-021",
+    "LD-022"
+  ],
+  "affected": [
+    "0ea8d99742a747ed42e1ad1714d288569cbbed07",
+    "175881a2fe6054eea8f9ab5ec135abe65d397c6e",
+    "45590ab0669c0b030bd22cfa5947fcfc96a799c5"
+  ],
+  "steps": [
+    "Create case and FIRST_INSTANCE/APPEAL courts with correct levels",
+    "POST /api/v1/cases/{caseId}/proceedings FIRST_INSTANCE filingDate2026-01-02",
+    "POST /api/v1/proceedings/{firstId}/judgment judgmentDate2026-01-03 outcomeIN_FAVOUR",
+    "POST appeal referencing firstId filingDate2026-01-04; verify201",
+    "PUT /api/v1/judgments/{judgmentId} judgmentDate2026-01-10 with current version0"
+  ],
+  "expected": "Reject date change atomically with422 while a child appeal would predate its parent judgment; original date/version remain",
+  "actual": "200 with judgmentDate2026-01-10 and version1, while existing appeal filing remains2026-01-04",
+  "uat_policy": "Critical judicial data-integrity defect: REQUEST_CHANGES on affected functionality; do not count phase acceptance or expose to real legal data. Existing merged UAT functionality need not stop",
+  "status": "FIX_VERIFIED_IN_UAT",
+  "environment": "Ubuntu24.04 Java21 PostgreSQL18.6; QA-owned loopback services; React Vitest/jsdom for QAD023",
+  "preconditions": [
+    "Use synthetic data and exact indicated SHA",
+    "Use QA independent scripts, not developer MockMvc tests"
+  ],
+  "evidence": "qa/evidence/phase234-20261024/",
+  "first_confirmed_utc": "2026-10-24T05:17:19.379929+00:00",
+  "latest_retest_utc": "2026-10-24T12:29:58.147459+00:00",
+  "latest_retest": {
+    "status": "PASS",
+    "expected_deployed_sha": "8b0928ba10eb9b02ac3822ac33eca5b8778195b6",
+    "backend_runtime_sha_attested": false,
+    "evidence": "qa/evidence/signedin-uat-8b0928b-20261024/journeys/results.json",
+    "test_id": "SIGNED-PARENT-CHRONOLOGY",
+    "note": "Real authenticated UAT; workflow-reported deployment identity, application source identical to81d9d03. Original failed evidence and affected SHAs retained."
+  },
+  "directly_reproduced_stories": [
+    "LD-020",
+    "LD-022"
+  ],
+  "related_risk_not_separately_reproduced": "Same parent-edit issue may affect cassation (LD-021); direct defect reproduction is the first-instance judgment/appeal chronology.",
+  "history": [
+    {
+      "status": "CONFIRMED_OPEN",
+      "latest_retest": "Still reproduced at applicable current HEAD; old evidence retained",
+      "latest_retest_utc": "2026-10-24T05:27:30.953370+00:00"
+    }
+  ]
+}

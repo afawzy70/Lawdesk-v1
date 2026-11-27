@@ -12,8 +12,8 @@ select case_id, id, d, case when k = 0 then time '10:00' end,
        case when st <> 'SCHEDULED' then '00000000-0000-0000-0000-000000000000'::uuid end,
        '00000000-0000-0000-0000-000000000000', '00000000-0000-0000-0000-000000000000'
 from (select p.case_id, p.id, k, row_number() over (order by p.id) rn,
-             -- Spread over 2015-2027 so the calendar windows around "today" hold a realistic share.
-             date '2015-03-01' + ((hashtext(p.id::text || k) & 2147483647) % 4700) as d
+             -- V406 requires each hearing to follow its proceeding filing date.
+             p.filing_date + 30 + ((hashtext(p.id::text || k) & 2147483647) % 540) as d
       from proceeding p cross join generate_series(0, 1) k) s
 cross join lateral (select case when d >= current_date then 'SCHEDULED'
                                 when random() < 0.05 then 'SCHEDULED'

@@ -1,0 +1,243 @@
+{
+  "tested_sha": "fb60c26884fc6ca25143526bc6edcf857716bf22",
+  "scope": "Independent local browser against real candidate API/PostgreSQL; NOT deployed UAT",
+  "counts": {
+    "PASS": 9,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "BROWSER-LOGIN",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "96f4772a-44bf-4161-853f-2581ff185d6b",
+        "proceedingId": "fb53aa11-7dc0-4199-a3f7-b5c4b22acedc"
+      },
+      "steps": [
+        "Open candidate",
+        "Enter local synthetic credentials",
+        "GET /me"
+      ],
+      "expected_results": "Real browser authenticated",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "HEARING-UI-SCHEDULE",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "96f4772a-44bf-4161-853f-2581ff185d6b",
+        "proceedingId": "fb53aa11-7dc0-4199-a3f7-b5c4b22acedc"
+      },
+      "steps": [
+        "Own case",
+        "Schedule hearing form",
+        "Select proceeding/date/purpose",
+        "Submit"
+      ],
+      "expected_results": "201; real API hearing matches case/proceeding",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "HEARING-UI-ADJOURN",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "96f4772a-44bf-4161-853f-2581ff185d6b",
+        "proceedingId": "fb53aa11-7dc0-4199-a3f7-b5c4b22acedc"
+      },
+      "steps": [
+        "Locate newly scheduled hearing",
+        "Record result ADJOURNED",
+        "Set next date",
+        "Submit",
+        "Read child"
+      ],
+      "expected_results": "200; same-case successor persisted",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "LAYOUT-/hearings-en-320",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "96f4772a-44bf-4161-853f-2581ff185d6b",
+        "proceedingId": "fb53aa11-7dc0-4199-a3f7-b5c4b22acedc"
+      },
+      "steps": [
+        "Open real /hearings?from=2026-01-01&to=2026-03-31 in en at320px",
+        "Check content, direction and viewport",
+        "axe"
+      ],
+      "expected_results": "Data renders; locale/direction correct; no overflow or A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "en",
+        "dir": "ltr",
+        "viewport": 320,
+        "width": 320
+      }
+    },
+    {
+      "id": "LAYOUT-/hearings-en-375",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "96f4772a-44bf-4161-853f-2581ff185d6b",
+        "proceedingId": "fb53aa11-7dc0-4199-a3f7-b5c4b22acedc"
+      },
+      "steps": [
+        "Open real /hearings?from=2026-01-01&to=2026-03-31 in en at375px",
+        "Check content, direction and viewport",
+        "axe"
+      ],
+      "expected_results": "Data renders; locale/direction correct; no overflow or A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "en",
+        "dir": "ltr",
+        "viewport": 375,
+        "width": 375
+      }
+    },
+    {
+      "id": "LAYOUT-/hearings-en-1366",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "96f4772a-44bf-4161-853f-2581ff185d6b",
+        "proceedingId": "fb53aa11-7dc0-4199-a3f7-b5c4b22acedc"
+      },
+      "steps": [
+        "Open real /hearings?from=2026-01-01&to=2026-03-31 in en at1366px",
+        "Check content, direction and viewport",
+        "axe"
+      ],
+      "expected_results": "Data renders; locale/direction correct; no overflow or A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "en",
+        "dir": "ltr",
+        "viewport": 1366,
+        "width": 1366
+      }
+    },
+    {
+      "id": "LAYOUT-/hearings-ar-320",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "96f4772a-44bf-4161-853f-2581ff185d6b",
+        "proceedingId": "fb53aa11-7dc0-4199-a3f7-b5c4b22acedc"
+      },
+      "steps": [
+        "Open real /hearings?from=2026-01-01&to=2026-03-31 in ar at320px",
+        "Check content, direction and viewport",
+        "axe"
+      ],
+      "expected_results": "Data renders; locale/direction correct; no overflow or A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "ar",
+        "dir": "rtl",
+        "viewport": 320,
+        "width": 320
+      }
+    },
+    {
+      "id": "LAYOUT-/hearings-ar-375",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "96f4772a-44bf-4161-853f-2581ff185d6b",
+        "proceedingId": "fb53aa11-7dc0-4199-a3f7-b5c4b22acedc"
+      },
+      "steps": [
+        "Open real /hearings?from=2026-01-01&to=2026-03-31 in ar at375px",
+        "Check content, direction and viewport",
+        "axe"
+      ],
+      "expected_results": "Data renders; locale/direction correct; no overflow or A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "ar",
+        "dir": "rtl",
+        "viewport": 375,
+        "width": 375
+      }
+    },
+    {
+      "id": "LAYOUT-/hearings-ar-1366",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate source; disposable DB; local synthetic administrator"
+      ],
+      "test_data": {
+        "caseId": "96f4772a-44bf-4161-853f-2581ff185d6b",
+        "proceedingId": "fb53aa11-7dc0-4199-a3f7-b5c4b22acedc"
+      },
+      "steps": [
+        "Open real /hearings?from=2026-01-01&to=2026-03-31 in ar at1366px",
+        "Check content, direction and viewport",
+        "axe"
+      ],
+      "expected_results": "Data renders; locale/direction correct; no overflow or A/AA violations",
+      "status": "PASS",
+      "actual": {
+        "lang": "ar",
+        "dir": "rtl",
+        "viewport": 1366,
+        "width": 1366
+      }
+    }
+  ]
+}

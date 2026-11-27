@@ -186,7 +186,8 @@ class CaseVisibilityApiTest extends GovernmentIntakeTestSupport {
         assertThat(codeOf(reader(grantee), "/api/v1/cases/" + caseId)).isEqualTo(404);
         mvc.perform(delete("/api/v1/cases/" + caseId + "/grants/" + grantId).with(owner).with(csrf()))
                 .andExpect(status().isUnprocessableEntity());
-        assertThat(count("select count(*) from audit_event where action in ('CASE_GRANT_CREATE', 'CASE_GRANT_REVOKE')"))
+        assertThat(count("select count(*) from audit_event where action in ('CASE_GRANT_CREATE', 'CASE_GRANT_REVOKE')"
+                + " and target_type = 'CASE' and target_id = ?", caseId.toString()))
                 .isEqualTo(2);
     }
 

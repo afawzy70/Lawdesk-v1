@@ -1,0 +1,92 @@
+{
+  "sha": "2d07a222189f82ddeacf74fdcd28165980cea85d",
+  "applicable_paged_routes": [
+    {
+      "test_index": 0,
+      "path": "/api/v1/users"
+    },
+    {
+      "test_index": 1,
+      "path": "/api/v1/parties"
+    },
+    {
+      "test_index": 2,
+      "path": "/api/v1/audit"
+    },
+    {
+      "test_index": 3,
+      "path": "/api/v1/courts"
+    },
+    {
+      "test_index": 4,
+      "path": "/api/v1/experts"
+    },
+    {
+      "test_index": 5,
+      "path": "/api/v1/hearings"
+    },
+    {
+      "test_index": 6,
+      "path": "/api/v1/documents"
+    },
+    {
+      "test_index": 7,
+      "path": "/api/v1/tasks"
+    },
+    {
+      "test_index": 8,
+      "path": "/api/v1/cases"
+    },
+    {
+      "test_index": 9,
+      "path": "/api/v1/cases/{ownedCaseId}/hearings"
+    },
+    {
+      "test_index": 10,
+      "path": "/api/v1/cases/{ownedCaseId}/notes"
+    },
+    {
+      "test_index": 11,
+      "path": "/api/v1/cases/{ownedCaseId}/timeline"
+    },
+    {
+      "test_index": 12,
+      "path": "/api/v1/cases/{ownedCaseId}/proceedings"
+    },
+    {
+      "test_index": 13,
+      "path": "/api/v1/cases/{ownedCaseId}/judgments"
+    },
+    {
+      "test_index": 14,
+      "path": "/api/v1/cases/{ownedCaseId}/special-decisions"
+    },
+    {
+      "test_index": 15,
+      "path": "/api/v1/reports/cases"
+    },
+    {
+      "test_index": 16,
+      "path": "/api/v1/reports/judgments"
+    },
+    {
+      "test_index": 17,
+      "path": "/api/v1/reports/hearings"
+    }
+  ],
+  "basis": "Controller inspection: Pageable parameters or query records with page/size; independently enumerated18routes, including parties/timeline/report lists.",
+  "not_paged": [
+    "/api/v1/roles",
+    "/api/v1/permissions",
+    "/api/v1/users/directory",
+    "/api/v1/cases/{id}/parties",
+    "/api/v1/cases/{id}/documents (bounded10 items)",
+    "/api/v1/cases/{id}/expert-referrals (unpaged)",
+    "/api/v1/reports/experts",
+    "/api/v1/reports/workload",
+    "/api/v1/reports/dashboard",
+    "export routes"
+  ],
+  "original_policy": "Missing0/20; size1..100; page>=0; empty,whitespace-only,nonnumeric,out-of-range and duplicate-invalid values400; auth401/403beforevalidation",
+  "new_issue": "QAD041: high individually-valid page and size causes offset overflow in4 JPA lists; others200empty. No owner clarification remains for empty/size>100."
+}

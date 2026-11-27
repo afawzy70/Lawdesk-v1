@@ -1,0 +1,1876 @@
+{
+  "schema": "phase1-review-v1",
+  "count": 48,
+  "status": "PROPOSED; not approved and not execution results",
+  "test_cases": [
+    {
+      "id": "QA-0001",
+      "story_ids": [
+        "LD-001"
+      ],
+      "title": "Valid repository policy inputs",
+      "priority": "P1",
+      "preconditions": [
+        "Immutable candidate snapshot; blob hashes checked; synthetic data only.",
+        "Proposed acceptance contract must be signed before full-case acceptance."
+      ],
+      "test_data": {
+        "branches": [
+          "main",
+          "develop",
+          "feature/LD-002-health",
+          "qa/phase-1-review"
+        ],
+        "flows": [
+          [
+            "feature/a",
+            "develop"
+          ],
+          [
+            "release/v1",
+            "main"
+          ]
+        ]
+      },
+      "steps": [
+        "Run branch and PR-flow policy on each input.",
+        "Check required files are present; inspect PR template and CODEOWNERS."
+      ],
+      "expected_results": [
+        "Allowed inputs exit 0; required artifacts are nonempty and document independent review."
+      ],
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "Full case and accepted story contract not yet independently verified."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "traceability": {
+        "baseline_id": "QA-0001",
+        "proposal": "PR #2 docs/delivery/PHASE-1-ACCEPTANCE.md",
+        "implementation_sha": "15998539edd621dd8cc0fb7990b43c0f975b499a"
+      }
+    },
+    {
+      "id": "QA-0002",
+      "story_ids": [
+        "LD-001"
+      ],
+      "title": "Missing repository inputs",
+      "priority": "P1",
+      "preconditions": [
+        "Immutable candidate snapshot; blob hashes checked; synthetic data only.",
+        "Proposed acceptance contract must be signed before full-case acceptance."
+      ],
+      "test_data": {
+        "branches": [
+          ""
+        ],
+        "messages": [
+          "",
+          "# comment\n"
+        ]
+      },
+      "steps": [
+        "Call policy on each empty input; run layout against empty temporary directory."
+      ],
+      "expected_results": [
+        "Exit 1 and actionable errors; empty directory unchanged."
+      ],
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "Full case and accepted story contract not yet independently verified."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "traceability": {
+        "baseline_id": "QA-0002",
+        "proposal": "PR #2 docs/delivery/PHASE-1-ACCEPTANCE.md",
+        "implementation_sha": "15998539edd621dd8cc0fb7990b43c0f975b499a"
+      }
+    },
+    {
+      "id": "QA-0003",
+      "story_ids": [
+        "LD-001"
+      ],
+      "title": "Git name validity and commit length boundary",
+      "priority": "P1",
+      "preconditions": [
+        "Immutable candidate snapshot; blob hashes checked; synthetic data only.",
+        "Proposed acceptance contract must be signed before full-case acceptance."
+      ],
+      "test_data": {
+        "branches": [
+          "feature/a.lock",
+          "feature/a.",
+          "feature/a\n",
+          "feature/../x"
+        ],
+        "subject_lengths": [
+          71,
+          72,
+          73
+        ]
+      },
+      "steps": [
+        "Compare branch result with git check-ref-format --branch.",
+        "Submit feat(LD-001): prefix padded to each subject length."
+      ],
+      "expected_results": [
+        "All Git-invalid names rejected; 71/72 accepted and 73 rejected."
+      ],
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "Full case and accepted story contract not yet independently verified."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "traceability": {
+        "baseline_id": "QA-0003",
+        "proposal": "PR #2 docs/delivery/PHASE-1-ACCEPTANCE.md",
+        "implementation_sha": "15998539edd621dd8cc0fb7990b43c0f975b499a"
+      }
+    },
+    {
+      "id": "QA-0004",
+      "story_ids": [
+        "LD-001"
+      ],
+      "title": "Protected branch access",
+      "priority": "P0",
+      "preconditions": [
+        "Immutable candidate snapshot; blob hashes checked; synthetic data only.",
+        "Proposed acceptance contract must be signed before full-case acceptance."
+      ],
+      "test_data": {
+        "target_branches": [
+          "main",
+          "develop"
+        ],
+        "actors": [
+          "untrusted contributor",
+          "author"
+        ]
+      },
+      "steps": [
+        "Read repository protection/ruleset evidence.",
+        "In an owner-approved disposable repo attempt unauthorized push, self approval and merge without QA checks."
+      ],
+      "expected_results": [
+        "Required controls prevent each operation; process policy alone cannot verify enforcement."
+      ],
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "B4: branch protection unavailable; no authorized disposable enforcement fixture."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "traceability": {
+        "baseline_id": "QA-0004",
+        "proposal": "PR #2 docs/delivery/PHASE-1-ACCEPTANCE.md",
+        "implementation_sha": "15998539edd621dd8cc0fb7990b43c0f975b499a"
+      }
+    },
+    {
+      "id": "QA-0005",
+      "story_ids": [
+        "LD-001"
+      ],
+      "title": "Restricted PR target",
+      "priority": "P0",
+      "preconditions": [
+        "Immutable candidate snapshot; blob hashes checked; synthetic data only.",
+        "Proposed acceptance contract must be signed before full-case acceptance."
+      ],
+      "test_data": {
+        "flows": [
+          [
+            "feature/a",
+            "main"
+          ],
+          [
+            "qa/a",
+            "main"
+          ],
+          [
+            "feature/a",
+            "unknown"
+          ]
+        ]
+      },
+      "steps": [
+        "Run PR flow CLI for each pair; inspect stderr and exit code."
+      ],
+      "expected_results": [
+        "All forbidden targets exit 1 with develop/main guidance; server enforcement remains separate."
+      ],
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "Full case and accepted story contract not yet independently verified."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "traceability": {
+        "baseline_id": "QA-0005",
+        "proposal": "PR #2 docs/delivery/PHASE-1-ACCEPTANCE.md",
+        "implementation_sha": "15998539edd621dd8cc0fb7990b43c0f975b499a"
+      }
+    },
+    {
+      "id": "QA-0006",
+      "story_ids": [
+        "LD-001"
+      ],
+      "title": "Policy has no repository mutations",
+      "priority": "P1",
+      "preconditions": [
+        "Immutable candidate snapshot; blob hashes checked; synthetic data only.",
+        "Proposed acceptance contract must be signed before full-case acceptance."
+      ],
+      "test_data": {
+        "layout": "fresh empty temporary directory"
+      },
+      "steps": [
+        "Snapshot file paths/content.",
+        "Run invalid layout and branch checks; compare complete snapshot afterward."
+      ],
+      "expected_results": [
+        "No file change; all missing required files enumerated."
+      ],
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "Full case and accepted story contract not yet independently verified."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "traceability": {
+        "baseline_id": "QA-0006",
+        "proposal": "PR #2 docs/delivery/PHASE-1-ACCEPTANCE.md",
+        "implementation_sha": "15998539edd621dd8cc0fb7990b43c0f975b499a"
+      }
+    },
+    {
+      "id": "QA-0007",
+      "story_ids": [
+        "LD-001"
+      ],
+      "title": "Deterministic repeated policy checks",
+      "priority": "P1",
+      "preconditions": [
+        "Immutable candidate snapshot; blob hashes checked; synthetic data only.",
+        "Proposed acceptance contract must be signed before full-case acceptance."
+      ],
+      "test_data": {
+        "input": "feature/a.lock",
+        "repetitions": 20
+      },
+      "steps": [
+        "Run same CLI input in 20 independent processes.",
+        "Compare exit status and stderr for all invocations."
+      ],
+      "expected_results": [
+        "Consistent rejection on every run; no generated files."
+      ],
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "Full case and accepted story contract not yet independently verified."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "traceability": {
+        "baseline_id": "QA-0007",
+        "proposal": "PR #2 docs/delivery/PHASE-1-ACCEPTANCE.md",
+        "implementation_sha": "15998539edd621dd8cc0fb7990b43c0f975b499a"
+      }
+    },
+    {
+      "id": "QA-0008",
+      "story_ids": [
+        "LD-001"
+      ],
+      "title": "CLI success/violation/usage contract",
+      "priority": "P1",
+      "preconditions": [
+        "Immutable candidate snapshot; blob hashes checked; synthetic data only.",
+        "Proposed acceptance contract must be signed before full-case acceptance."
+      ],
+      "test_data": {
+        "commands": [
+          "branch qa/a",
+          "branch bad name",
+          "unknown-command"
+        ]
+      },
+      "steps": [
+        "Run each command as argument array; capture stdout/stderr and status."
+      ],
+      "expected_results": [
+        "Success 0; violation 1; usage 2; no traceback; UI is not applicable to this repository-only story."
+      ],
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "Full case and accepted story contract not yet independently verified."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "traceability": {
+        "baseline_id": "QA-0008",
+        "proposal": "PR #2 docs/delivery/PHASE-1-ACCEPTANCE.md",
+        "implementation_sha": "15998539edd621dd8cc0fb7990b43c0f975b499a"
+      }
+    },
+    {
+      "id": "QA-0009",
+      "story_ids": [
+        "LD-002"
+      ],
+      "title": "Public health and minimal info",
+      "priority": "P1",
+      "preconditions": [
+        "Immutable candidate snapshot; blob hashes checked; synthetic data only.",
+        "Proposed acceptance contract must be signed before full-case acceptance."
+      ],
+      "test_data": {
+        "paths": [
+          "/actuator/health",
+          "/actuator/health/liveness",
+          "/actuator/health/readiness",
+          "/actuator/info"
+        ]
+      },
+      "steps": [
+        "Build from exact candidate SHA with committed wrapper.",
+        "Start jar bound to 127.0.0.1 random unused port.",
+        "GET each path without credentials and parse JSON."
+      ],
+      "expected_results": [
+        "Health returns 200 and status UP without components/details.",
+        "Proposed AC2: info exposes build.name/version only; exact allowlist needs product signoff."
+      ],
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "B5: info field allowlist not approved."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "traceability": {
+        "baseline_id": "QA-0009",
+        "proposal": "PR #2 docs/delivery/PHASE-1-ACCEPTANCE.md",
+        "implementation_sha": "15998539edd621dd8cc0fb7990b43c0f975b499a"
+      }
+    },
+    {
+      "id": "QA-0010",
+      "story_ids": [
+        "LD-002"
+      ],
+      "title": "Unknown health group and no internals",
+      "priority": "P1",
+      "preconditions": [
+        "Immutable candidate snapshot; blob hashes checked; synthetic data only.",
+        "Proposed acceptance contract must be signed before full-case acceptance."
+      ],
+      "test_data": {
+        "path": "/actuator/health/does-not-exist"
+      },
+      "steps": [
+        "GET path without credentials; inspect status, body and headers."
+      ],
+      "expected_results": [
+        "404; no stack, exception class, password or internal path; baseline headers."
+      ],
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "Full case and accepted story contract not yet independently verified."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "traceability": {
+        "baseline_id": "QA-0010",
+        "proposal": "PR #2 docs/delivery/PHASE-1-ACCEPTANCE.md",
+        "implementation_sha": "15998539edd621dd8cc0fb7990b43c0f975b499a"
+      }
+    },
+    {
+      "id": "QA-0011",
+      "story_ids": [
+        "LD-002"
+      ],
+      "title": "Request correlation boundaries",
+      "priority": "P1",
+      "preconditions": [
+        "Immutable candidate snapshot; blob hashes checked; synthetic data only.",
+        "Proposed acceptance contract must be signed before full-case acceptance."
+      ],
+      "test_data": {
+        "X-Request-Id": [
+          "a",
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "bad id",
+          "QA._-9"
+        ]
+      },
+      "steps": [
+        "GET health independently with each header.",
+        "Compare returned correlation ID."
+      ],
+      "expected_results": [
+        "Valid [A-Za-z0-9._-]{1,64} echoed; invalid value replaced by fresh UUID."
+      ],
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "Full case and accepted story contract not yet independently verified."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "traceability": {
+        "baseline_id": "QA-0011",
+        "proposal": "PR #2 docs/delivery/PHASE-1-ACCEPTANCE.md",
+        "implementation_sha": "15998539edd621dd8cc0fb7990b43c0f975b499a"
+      }
+    },
+    {
+      "id": "QA-0012",
+      "story_ids": [
+        "LD-002"
+      ],
+      "title": "Anonymous API and write denial",
+      "priority": "P0",
+      "preconditions": [
+        "Immutable candidate snapshot; blob hashes checked; synthetic data only.",
+        "Proposed acceptance contract must be signed before full-case acceptance."
+      ],
+      "test_data": {
+        "GET": [
+          "/api/v1/cases"
+        ],
+        "POST": [
+          "/api/v1/cases",
+          "/actuator/health"
+        ],
+        "credentials": "none",
+        "csrf": "none"
+      },
+      "steps": [
+        "Send each method/path without credentials; disable redirects.",
+        "Parse RFC9457 JSON and compare exact status/content type."
+      ],
+      "expected_results": [
+        "Protected reads 401 problem+json without internals.",
+        "Writes denied; product must choose exact CSRF 403 versus anonymous 401 precedence."
+      ],
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "B5: proposed AC3 requires 401 but developer test allows 401/403."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "traceability": {
+        "baseline_id": "QA-0012",
+        "proposal": "PR #2 docs/delivery/PHASE-1-ACCEPTANCE.md",
+        "implementation_sha": "15998539edd621dd8cc0fb7990b43c0f975b499a"
+      }
+    },
+    {
+      "id": "QA-0013",
+      "story_ids": [
+        "LD-002"
+      ],
+      "title": "Sensitive actuator and role denial",
+      "priority": "P0",
+      "preconditions": [
+        "Immutable candidate snapshot; blob hashes checked; synthetic data only.",
+        "Proposed acceptance contract must be signed before full-case acceptance."
+      ],
+      "test_data": {
+        "paths": [
+          "/actuator/env",
+          "/actuator/beans",
+          "/actuator/configprops",
+          "/actuator/heapdump",
+          "/actuator/loggers",
+          "/actuator/mappings",
+          "/actuator/threaddump"
+        ]
+      },
+      "steps": [
+        "GET each path anonymously; inspect no sensitive body.",
+        "Repeat protected API as authenticated user without required permission after Phase 2 seed exists."
+      ],
+      "expected_results": [
+        "No sensitive endpoint content; deny by default.",
+        "Role test must remain BLOCKED until real identity/permission fixtures exist."
+      ],
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "LD-009/LD-010 not implemented."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "traceability": {
+        "baseline_id": "QA-0013",
+        "proposal": "PR #2 docs/delivery/PHASE-1-ACCEPTANCE.md",
+        "implementation_sha": "15998539edd621dd8cc0fb7990b43c0f975b499a"
+      }
+    },
+    {
+      "id": "QA-0014",
+      "story_ids": [
+        "LD-002"
+      ],
+      "title": "Rejected write integrity scope",
+      "priority": "P0",
+      "preconditions": [
+        "Immutable candidate snapshot; blob hashes checked; synthetic data only.",
+        "Proposed acceptance contract must be signed before full-case acceptance."
+      ],
+      "test_data": {
+        "path": "/api/v1/cases",
+        "method": "POST",
+        "body": {
+          "title": "QA-NO-MUTATION"
+        }
+      },
+      "steps": [
+        "Verify candidate has no persistence layer.",
+        "Reject write at security boundary; do not infer DB integrity from 4xx.",
+        "When LD-004 arrives snapshot DB and repeat, proving unchanged rows."
+      ],
+      "expected_results": [
+        "No claim of transaction/DB integrity in LD-002; scope replacement/N/A requires reviewed decision."
+      ],
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "Persistence absent; N/A not approved."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "traceability": {
+        "baseline_id": "QA-0014",
+        "proposal": "PR #2 docs/delivery/PHASE-1-ACCEPTANCE.md",
+        "implementation_sha": "15998539edd621dd8cc0fb7990b43c0f975b499a"
+      }
+    },
+    {
+      "id": "QA-0015",
+      "story_ids": [
+        "LD-002"
+      ],
+      "title": "Concurrent correlation IDs",
+      "priority": "P1",
+      "preconditions": [
+        "Immutable candidate snapshot; blob hashes checked; synthetic data only.",
+        "Proposed acceptance contract must be signed before full-case acceptance."
+      ],
+      "test_data": {
+        "requests": 20,
+        "path": "/actuator/health",
+        "caller_id": "absent"
+      },
+      "steps": [
+        "Run 20 GET requests with independent clients in parallel.",
+        "Compare all statuses and request IDs."
+      ],
+      "expected_results": [
+        "20 successful responses with 20 distinct nonempty IDs.",
+        "Caller-supplied duplicate valid IDs are not required to become distinct; clarify AC wording."
+      ],
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "Full case and accepted story contract not yet independently verified."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "traceability": {
+        "baseline_id": "QA-0015",
+        "proposal": "PR #2 docs/delivery/PHASE-1-ACCEPTANCE.md",
+        "implementation_sha": "15998539edd621dd8cc0fb7990b43c0f975b499a"
+      }
+    },
+    {
+      "id": "QA-0016",
+      "story_ids": [
+        "LD-002"
+      ],
+      "title": "API errors and future UI status",
+      "priority": "P1",
+      "preconditions": [
+        "Immutable candidate snapshot; blob hashes checked; synthetic data only.",
+        "Proposed acceptance contract must be signed before full-case acceptance."
+      ],
+      "test_data": {
+        "paths": [
+          "/api/v1/cases",
+          "/actuator/health"
+        ],
+        "ui": "LD-003 status indicator"
+      },
+      "steps": [
+        "Compare API JSON success/error and content types.",
+        "Once shell is available simulate API healthy/unavailable/unauthenticated and verify accessible status, focus and retry."
+      ],
+      "expected_results": [
+        "API returns safe structured error; UI distinguishes loading/healthy/unavailable and retry.",
+        "API-only success never certifies the complete API-to-UI scenario."
+      ],
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "LD-003 not present at reviewed SHA."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "traceability": {
+        "baseline_id": "QA-0016",
+        "proposal": "PR #2 docs/delivery/PHASE-1-ACCEPTANCE.md",
+        "implementation_sha": "15998539edd621dd8cc0fb7990b43c0f975b499a"
+      }
+    },
+    {
+      "id": "QA-0017",
+      "story_ids": [
+        "LD-003"
+      ],
+      "title": "Shell and live API status",
+      "priority": "P1",
+      "preconditions": [
+        "Pinned candidate frontend dependencies installed in isolated snapshot.",
+        "Real App modules with only network transport controlled.",
+        "Proposed LD-003 contract not yet signed."
+      ],
+      "test_data": {
+        "path": "/",
+        "locale": "en",
+        "health": {
+          "status": "UP"
+        }
+      },
+      "steps": [
+        "Render real App; assert banner, Primary navigation, one main and footer package version.",
+        "Resolve controlled health response and observe polite status region."
+      ],
+      "expected_results": [
+        "Checking API… transitions to API online; no confidential response content rendered."
+      ],
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "Full scenario acceptance requires approved scope and independent integration evidence."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0017",
+        "proposal": "PR #2 LD-003 acceptance section",
+        "implementation_sha": "663677dff5182a6d2a5e85e76d062f19271cc6d6"
+      }
+    },
+    {
+      "id": "QA-0018",
+      "story_ids": [
+        "LD-003"
+      ],
+      "title": "Required health payload field",
+      "priority": "P1",
+      "preconditions": [
+        "Pinned candidate frontend dependencies installed in isolated snapshot.",
+        "Real App modules with only network transport controlled.",
+        "Proposed LD-003 contract not yet signed."
+      ],
+      "test_data": {
+        "payloads": [
+          {},
+          {
+            "status": null
+          },
+          {
+            "status": [
+              "UP"
+            ]
+          }
+        ]
+      },
+      "steps": [
+        "Resolve each payload as 200 JSON; inspect status.",
+        "Record that no user forms exist; keep no-form applicability decision explicit."
+      ],
+      "expected_results": [
+        "All invalid health payloads yield unavailable; no inferred user-form validation coverage."
+      ],
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "Full scenario acceptance requires approved scope and independent integration evidence."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0018",
+        "proposal": "PR #2 LD-003 acceptance section",
+        "implementation_sha": "663677dff5182a6d2a5e85e76d062f19271cc6d6"
+      }
+    },
+    {
+      "id": "QA-0019",
+      "story_ids": [
+        "LD-003"
+      ],
+      "title": "Unknown route and locale/input boundaries",
+      "priority": "P1",
+      "preconditions": [
+        "Pinned candidate frontend dependencies installed in isolated snapshot.",
+        "Real App modules with only network transport controlled.",
+        "Proposed LD-003 contract not yet signed."
+      ],
+      "test_data": {
+        "routes": [
+          "/qa-unknown-route"
+        ],
+        "locales": [
+          "ar-EG",
+          "en",
+          "unsupported",
+          ""
+        ],
+        "health_payloads": [
+          "malformed JSON",
+          {
+            "status": "DOWN"
+          }
+        ]
+      },
+      "steps": [
+        "Open unknown route within real shell.",
+        "Apply each locale and inspect html lang/dir.",
+        "Use malformed/DOWN health and inspect unavailable state."
+      ],
+      "expected_results": [
+        "Unknown route has generic home recovery; ar-EG→ar/rtl, invalid→en/ltr; no raw error."
+      ],
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "Full scenario acceptance requires approved scope and independent integration evidence."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0019",
+        "proposal": "PR #2 LD-003 acceptance section",
+        "implementation_sha": "663677dff5182a6d2a5e85e76d062f19271cc6d6"
+      }
+    },
+    {
+      "id": "QA-0020",
+      "story_ids": [
+        "LD-003"
+      ],
+      "title": "Authentication scope remains blocked",
+      "priority": "P1",
+      "preconditions": [
+        "Pinned candidate frontend dependencies installed in isolated snapshot.",
+        "Real App modules with only network transport controlled.",
+        "Proposed LD-003 contract not yet signed."
+      ],
+      "test_data": {
+        "response_status": 401
+      },
+      "steps": [
+        "Simulate 401 health and inspect unavailable state.",
+        "When Phase2 exists run actual anonymous protected navigation and backend checks."
+      ],
+      "expected_results": [
+        "Unavailable label is safe; 401 UI handling does not verify authentication."
+      ],
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "Full scenario acceptance requires approved scope and independent integration evidence."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0020",
+        "proposal": "PR #2 LD-003 acceptance section",
+        "implementation_sha": "663677dff5182a6d2a5e85e76d062f19271cc6d6"
+      }
+    },
+    {
+      "id": "QA-0021",
+      "story_ids": [
+        "LD-003"
+      ],
+      "title": "Permission scope remains blocked",
+      "priority": "P1",
+      "preconditions": [
+        "Pinned candidate frontend dependencies installed in isolated snapshot.",
+        "Real App modules with only network transport controlled.",
+        "Proposed LD-003 contract not yet signed."
+      ],
+      "test_data": {
+        "response_status": 403
+      },
+      "steps": [
+        "Simulate 403 health and inspect unavailable state.",
+        "After real roles exist attempt protected route and direct API as denied user."
+      ],
+      "expected_results": [
+        "Unavailable label is safe; no claim of permission enforcement from component mock."
+      ],
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "Full scenario acceptance requires approved scope and independent integration evidence."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0021",
+        "proposal": "PR #2 LD-003 acceptance section",
+        "implementation_sha": "663677dff5182a6d2a5e85e76d062f19271cc6d6"
+      }
+    },
+    {
+      "id": "QA-0022",
+      "story_ids": [
+        "LD-003"
+      ],
+      "title": "Browser persistence and recovery scope",
+      "priority": "P1",
+      "preconditions": [
+        "Pinned candidate frontend dependencies installed in isolated snapshot.",
+        "Real App modules with only network transport controlled.",
+        "Proposed LD-003 contract not yet signed."
+      ],
+      "test_data": {
+        "storage": [
+          "localStorage",
+          "sessionStorage"
+        ],
+        "exception": "QA-PRIVATE-MARKER"
+      },
+      "steps": [
+        "Spy on storage writes while rendering real App.",
+        "Force child render exception; inspect generic alert and recovery.",
+        "Document no data records exist in shell."
+      ],
+      "expected_results": [
+        "No storage writes or private exception shown; no inferred database integrity coverage."
+      ],
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "Full scenario acceptance requires approved scope and independent integration evidence."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0022",
+        "proposal": "PR #2 LD-003 acceptance section",
+        "implementation_sha": "663677dff5182a6d2a5e85e76d062f19271cc6d6"
+      }
+    },
+    {
+      "id": "QA-0023",
+      "story_ids": [
+        "LD-003"
+      ],
+      "title": "Abort and stale responses",
+      "priority": "P1",
+      "preconditions": [
+        "Pinned candidate frontend dependencies installed in isolated snapshot.",
+        "Real App modules with only network transport controlled.",
+        "Proposed LD-003 contract not yet signed."
+      ],
+      "test_data": {
+        "requests": 2,
+        "mode": "StrictMode",
+        "timeout_ms": 5000
+      },
+      "steps": [
+        "Unmount ApiStatus while real fetch promise is pending; inspect signal.",
+        "Under StrictMode resolve old request after fresh request; advance fake clock to4999/5000/5001."
+      ],
+      "expected_results": [
+        "Old request is aborted and cannot overwrite fresh state; timeout unavailable; no residual timers."
+      ],
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "Full scenario acceptance requires approved scope and independent integration evidence."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0023",
+        "proposal": "PR #2 LD-003 acceptance section",
+        "implementation_sha": "663677dff5182a6d2a5e85e76d062f19271cc6d6"
+      }
+    },
+    {
+      "id": "QA-0024",
+      "story_ids": [
+        "LD-003"
+      ],
+      "title": "API errors become safe UI states",
+      "priority": "P1",
+      "preconditions": [
+        "Pinned candidate frontend dependencies installed in isolated snapshot.",
+        "Real App modules with only network transport controlled.",
+        "Proposed LD-003 contract not yet signed."
+      ],
+      "test_data": {
+        "statuses": [
+          301,
+          401,
+          403,
+          404,
+          500,
+          503
+        ],
+        "error_marker": "QA-PRIVATE-MARKER"
+      },
+      "steps": [
+        "Inject each non-success, redirect, bad JSON, network error and timeout.",
+        "Assert one polite unavailable status and no body/stack marker.",
+        "Verify actual dev proxy/backend failure separately from mocked component test."
+      ],
+      "expected_results": [
+        "No false online state or sensitive content; production proxy/deep-link behavior remains separate integration evidence."
+      ],
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "Full scenario acceptance requires approved scope and independent integration evidence."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0024",
+        "proposal": "PR #2 LD-003 acceptance section",
+        "implementation_sha": "663677dff5182a6d2a5e85e76d062f19271cc6d6"
+      }
+    },
+    {
+      "id": "QA-0025",
+      "story_ids": [
+        "LD-004"
+      ],
+      "title": "Migration and startup evidence",
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate SHA and seed/migration checksums recorded.",
+        "Exclusive disposable QA PostgreSQL18.6; never shared database.",
+        "Acceptance decisions still PROPOSED."
+      ],
+      "test_data": {
+        "database": "empty independent PostgreSQL18.6 cluster",
+        "query": "select version,success from flyway_schema_history"
+      },
+      "steps": [
+        "Build and start exact SHA against disposable empty PostgreSQL.",
+        "Inspect Flyway V1 checksum/success, app_release table and startup build row.",
+        "Restart same artifact and inspect history and startup row count."
+      ],
+      "expected_results": [
+        "V1 applied once; one build row per successful start; no Hibernate-generated schema."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "Full-case acceptance, deployment roles or dependent UI not verified; partial assertion results recorded separately."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0025",
+        "proposal": "PR #2 LD-004 proposed criteria",
+        "implementation_sha": "e1efac1927ecc353a1757f9d160e73d2c46f4237"
+      }
+    },
+    {
+      "id": "QA-0026",
+      "story_ids": [
+        "LD-004"
+      ],
+      "title": "Null and all whitespace versions",
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate SHA and seed/migration checksums recorded.",
+        "Exclusive disposable QA PostgreSQL18.6; never shared database.",
+        "Acceptance decisions still PROPOSED."
+      ],
+      "test_data": {
+        "versions": [
+          null,
+          "",
+          " ",
+          "\t",
+          "\n",
+          "\r\n",
+          " "
+        ]
+      },
+      "steps": [
+        "Through real repository bean validation submit each input.",
+        "Bypass application with parameterized JDBC insert for each input on fresh transaction.",
+        "Compare row counts and clean synthetic rows."
+      ],
+      "expected_results": [
+        "Bean validation and PostgreSQL reject every blank input; no rejected row persists."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "Full-case acceptance, deployment roles or dependent UI not verified; partial assertion results recorded separately."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0026",
+        "proposal": "PR #2 LD-004 proposed criteria",
+        "implementation_sha": "e1efac1927ecc353a1757f9d160e73d2c46f4237"
+      }
+    },
+    {
+      "id": "QA-0027",
+      "story_ids": [
+        "LD-004"
+      ],
+      "title": "Version length boundary",
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate SHA and seed/migration checksums recorded.",
+        "Exclusive disposable QA PostgreSQL18.6; never shared database.",
+        "Acceptance decisions still PROPOSED."
+      ],
+      "test_data": {
+        "lengths": [
+          0,
+          1,
+          63,
+          64,
+          65
+        ]
+      },
+      "steps": [
+        "Submit synthetic version strings at each length via repository and raw JDBC.",
+        "Check exact persisted value for valid strings and row counts after rejection."
+      ],
+      "expected_results": [
+        "1/63/64 accepted; 0/65 rejected; validation consistent at both boundaries."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "Full-case acceptance, deployment roles or dependent UI not verified; partial assertion results recorded separately."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0027",
+        "proposal": "PR #2 LD-004 proposed criteria",
+        "implementation_sha": "e1efac1927ecc353a1757f9d160e73d2c46f4237"
+      }
+    },
+    {
+      "id": "QA-0028",
+      "story_ids": [
+        "LD-004"
+      ],
+      "title": "No unauthorized DB/API access",
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate SHA and seed/migration checksums recorded.",
+        "Exclusive disposable QA PostgreSQL18.6; never shared database.",
+        "Acceptance decisions still PROPOSED."
+      ],
+      "test_data": {
+        "actors": [
+          "anonymous HTTP",
+          "unprivileged DB role"
+        ]
+      },
+      "steps": [
+        "Verify deny-by-default HTTP for API namespace.",
+        "When deployment role exists attempt DB login without credential and with wrong credential."
+      ],
+      "expected_results": [
+        "No protected API data; DB requires approved authentication in deployment.",
+        "Embedded test trust configuration cannot verify production authentication."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "Full-case acceptance, deployment roles or dependent UI not verified; partial assertion results recorded separately."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0028",
+        "proposal": "PR #2 LD-004 proposed criteria",
+        "implementation_sha": "e1efac1927ecc353a1757f9d160e73d2c46f4237"
+      }
+    },
+    {
+      "id": "QA-0029",
+      "story_ids": [
+        "LD-004"
+      ],
+      "title": "Least-privilege deployment role",
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate SHA and seed/migration checksums recorded.",
+        "Exclusive disposable QA PostgreSQL18.6; never shared database.",
+        "Acceptance decisions still PROPOSED."
+      ],
+      "test_data": {
+        "role": "approved future LawDesk runtime role"
+      },
+      "steps": [
+        "Inspect role grants in disposable deployment-equivalent DB.",
+        "Attempt create role, access foreign schemas and mutate migration history as runtime user."
+      ],
+      "expected_results": [
+        "Runtime role cannot administer server or access unrelated data; migration/runtime duties defined."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "Full-case acceptance, deployment roles or dependent UI not verified; partial assertion results recorded separately."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0029",
+        "proposal": "PR #2 LD-004 proposed criteria",
+        "implementation_sha": "e1efac1927ecc353a1757f9d160e73d2c46f4237"
+      }
+    },
+    {
+      "id": "QA-0030",
+      "story_ids": [
+        "LD-004"
+      ],
+      "title": "Atomic writes, migration failure and upgrade",
+      "priority": "P0",
+      "preconditions": [
+        "Exact candidate SHA and seed/migration checksums recorded.",
+        "Exclusive disposable QA PostgreSQL18.6; never shared database.",
+        "Acceptance decisions still PROPOSED."
+      ],
+      "test_data": {
+        "first_version": "QA-INDEPENDENT-ATOMIC",
+        "second_version": null,
+        "migration": "test-only CREATE then failing SQL"
+      },
+      "steps": [
+        "Insert valid version then null within one transaction; verify rollback.",
+        "Apply test-only failing migration in disposable schema; inspect object/history rollback.",
+        "Upgrade previous-schema fixture then start previous artifact and verify actual business queries."
+      ],
+      "expected_results": [
+        "No partial row/schema/history success; upgrade preserves data; rollback proven with actual prior artifact, not validation alone."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "Full-case acceptance, deployment roles or dependent UI not verified; partial assertion results recorded separately."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0030",
+        "proposal": "PR #2 LD-004 proposed criteria",
+        "implementation_sha": "e1efac1927ecc353a1757f9d160e73d2c46f4237"
+      }
+    },
+    {
+      "id": "QA-0031",
+      "story_ids": [
+        "LD-004"
+      ],
+      "title": "Concurrency and repeat migration",
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate SHA and seed/migration checksums recorded.",
+        "Exclusive disposable QA PostgreSQL18.6; never shared database.",
+        "Acceptance decisions still PROPOSED."
+      ],
+      "test_data": {
+        "parallel_inserts": 20,
+        "version_prefix": "QA-INDEPENDENT-"
+      },
+      "steps": [
+        "Synchronize 20 independent DB connections inserting valid versions.",
+        "Collect IDs/timestamps and compare persisted row count.",
+        "Rerun Flyway and verify V1 remains one successful entry."
+      ],
+      "expected_results": [
+        "20 unique IDs, correct row count and timestamps; migration rerun has no duplicate effects."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "Full-case acceptance, deployment roles or dependent UI not verified; partial assertion results recorded separately."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0031",
+        "proposal": "PR #2 LD-004 proposed criteria",
+        "implementation_sha": "e1efac1927ecc353a1757f9d160e73d2c46f4237"
+      }
+    },
+    {
+      "id": "QA-0032",
+      "story_ids": [
+        "LD-004"
+      ],
+      "title": "Real DB outage readiness versus liveness",
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate SHA and seed/migration checksums recorded.",
+        "Exclusive disposable QA PostgreSQL18.6; never shared database.",
+        "Acceptance decisions still PROPOSED."
+      ],
+      "test_data": {
+        "dependency": "QA-owned PostgreSQL process",
+        "paths": [
+          "/actuator/health/readiness",
+          "/actuator/health/liveness"
+        ]
+      },
+      "steps": [
+        "Start API and dedicated DB; verify both probes healthy.",
+        "Stop only QA-owned DB; request probes with defined timeout.",
+        "Restart QA DB and verify readiness recovery; verify frontend unavailable status once LD-003 exists."
+      ],
+      "expected_results": [
+        "DB outage degrades readiness but not liveness; recovery occurs; UI reflects actual outage.",
+        "Membership of db health group alone does not prove outage behavior."
+      ],
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "execution_status": "BLOCKED",
+      "blockers": [
+        "Full-case acceptance, deployment roles or dependent UI not verified; partial assertion results recorded separately."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0032",
+        "proposal": "PR #2 LD-004 proposed criteria",
+        "implementation_sha": "e1efac1927ecc353a1757f9d160e73d2c46f4237"
+      }
+    },
+    {
+      "id": "QA-0033",
+      "story_ids": [
+        "LD-005"
+      ],
+      "title": "Required CI suite on candidate",
+      "priority": "P1",
+      "preconditions": [
+        "Read-only GitHub access and exact candidate SHA.",
+        "Any destructive/negative enforcement experiment limited to authorized disposable repository."
+      ],
+      "test_data": {
+        "jobs": [
+          "Repository policy",
+          "Backend (Java 21, embedded PostgreSQL 18.6)",
+          "Backend against postgres:18.6 image",
+          "Frontend (Node 22)",
+          "Secret scan (gitleaks 8.30.1)"
+        ]
+      },
+      "steps": [
+        "Read CI workflow and latest check runs for exact head SHA.",
+        "Verify each required job ran rather than skipped and inspect commands."
+      ],
+      "expected_results": [
+        "Every required job success at exact SHA; includes full frontend/backend and secret scan; not a substitute for independent QA."
+      ],
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "Full gate/branch enforcement and deployment evidence not complete."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0033",
+        "proposal": "PR #2 LD-005 acceptance section",
+        "implementation_sha": "ffd3c8a297db0172d78ac5840a51a67d7fffcfbb"
+      }
+    },
+    {
+      "id": "QA-0034",
+      "story_ids": [
+        "LD-005"
+      ],
+      "title": "Missing CI evidence blocks release",
+      "priority": "P1",
+      "preconditions": [
+        "Read-only GitHub access and exact candidate SHA.",
+        "Any destructive/negative enforcement experiment limited to authorized disposable repository."
+      ],
+      "test_data": {
+        "missing_items": [
+          "head SHA",
+          "required job result",
+          "QA report"
+        ]
+      },
+      "steps": [
+        "Evaluate gate with each required evidence item absent in disposable fixture."
+      ],
+      "expected_results": [
+        "Missing evidence is BLOCKED; existence of workflow YAML is insufficient."
+      ],
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "Full gate/branch enforcement and deployment evidence not complete."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0034",
+        "proposal": "PR #2 LD-005 acceptance section",
+        "implementation_sha": "ffd3c8a297db0172d78ac5840a51a67d7fffcfbb"
+      }
+    },
+    {
+      "id": "QA-0035",
+      "story_ids": [
+        "LD-005"
+      ],
+      "title": "Negative CI boundaries",
+      "priority": "P1",
+      "preconditions": [
+        "Read-only GitHub access and exact candidate SHA.",
+        "Any destructive/negative enforcement experiment limited to authorized disposable repository."
+      ],
+      "test_data": {
+        "fixtures": [
+          "failing unit test",
+          "bad branch flow",
+          "overlong commit",
+          "synthetic secret sentinel"
+        ]
+      },
+      "steps": [
+        "Use approved disposable negative-check PR or recorded exact-SHA run evidence; do not publish real secrets.",
+        "Inspect failed check names and correct after minimal fix."
+      ],
+      "expected_results": [
+        "Relevant gate fails and does not silently skip; corrected SHA reruns; scanner output redacts fixtures."
+      ],
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "Full gate/branch enforcement and deployment evidence not complete."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0035",
+        "proposal": "PR #2 LD-005 acceptance section",
+        "implementation_sha": "ffd3c8a297db0172d78ac5840a51a67d7fffcfbb"
+      }
+    },
+    {
+      "id": "QA-0036",
+      "story_ids": [
+        "LD-005"
+      ],
+      "title": "Untrusted PR execution boundary",
+      "priority": "P0",
+      "preconditions": [
+        "Read-only GitHub access and exact candidate SHA.",
+        "Any destructive/negative enforcement experiment limited to authorized disposable repository."
+      ],
+      "test_data": {
+        "actor": "untrusted fork/contributor",
+        "workflow_events": [
+          "pull_request",
+          "push"
+        ]
+      },
+      "steps": [
+        "Inspect workflow event types, token permissions, credential exposure and execution of untrusted input.",
+        "Verify no deployment credentials or production access are present in PR jobs."
+      ],
+      "expected_results": [
+        "Read-only default token; no privileged pull_request_target execution of untrusted code; deployment secrets withheld."
+      ],
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "Full gate/branch enforcement and deployment evidence not complete."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0036",
+        "proposal": "PR #2 LD-005 acceptance section",
+        "implementation_sha": "ffd3c8a297db0172d78ac5840a51a67d7fffcfbb"
+      }
+    },
+    {
+      "id": "QA-0037",
+      "story_ids": [
+        "LD-005"
+      ],
+      "title": "Required checks enforcement",
+      "priority": "P0",
+      "preconditions": [
+        "Read-only GitHub access and exact candidate SHA.",
+        "Any destructive/negative enforcement experiment limited to authorized disposable repository."
+      ],
+      "test_data": {
+        "actors": [
+          "PR author",
+          "unprivileged contributor"
+        ],
+        "gate": "missing or failing independent QA"
+      },
+      "steps": [
+        "Inspect actual branch rules/settings evidence.",
+        "In authorized disposable repository attempt merge with missing/failed checks or self approval."
+      ],
+      "expected_results": [
+        "Server refuses invalid merge; process-only policy remains B4 BLOCKED."
+      ],
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "Full gate/branch enforcement and deployment evidence not complete."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0037",
+        "proposal": "PR #2 LD-005 acceptance section",
+        "implementation_sha": "ffd3c8a297db0172d78ac5840a51a67d7fffcfbb"
+      }
+    },
+    {
+      "id": "QA-0038",
+      "story_ids": [
+        "LD-005"
+      ],
+      "title": "CI and deployment atomicity",
+      "priority": "P0",
+      "preconditions": [
+        "Read-only GitHub access and exact candidate SHA.",
+        "Any destructive/negative enforcement experiment limited to authorized disposable repository."
+      ],
+      "test_data": {
+        "build": "failed verify",
+        "artifact": "unverified digest"
+      },
+      "steps": [
+        "Inspect pipeline dependencies and published/deployed artifact paths.",
+        "Observe no deploy or release artifact promotion on failed gate in isolated CI fixture."
+      ],
+      "expected_results": [
+        "No unverified candidate deploys; LD-006 absence remains explicit blocker for deployment part."
+      ],
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "Full gate/branch enforcement and deployment evidence not complete."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0038",
+        "proposal": "PR #2 LD-005 acceptance section",
+        "implementation_sha": "ffd3c8a297db0172d78ac5840a51a67d7fffcfbb"
+      }
+    },
+    {
+      "id": "QA-0039",
+      "story_ids": [
+        "LD-005"
+      ],
+      "title": "Cancelled/stale candidate runs",
+      "priority": "P1",
+      "preconditions": [
+        "Read-only GitHub access and exact candidate SHA.",
+        "Any destructive/negative enforcement experiment limited to authorized disposable repository."
+      ],
+      "test_data": {
+        "pushes": [
+          "SHA-A",
+          "SHA-B"
+        ],
+        "order": "B after A"
+      },
+      "steps": [
+        "Inspect CI concurrency cancel-in-progress and check provenance.",
+        "On disposable PR push two revisions; inspect cancellation and deployment candidate identity."
+      ],
+      "expected_results": [
+        "Stale SHA cannot count as verification of B; cancelled jobs are not PASS."
+      ],
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "Full gate/branch enforcement and deployment evidence not complete."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0039",
+        "proposal": "PR #2 LD-005 acceptance section",
+        "implementation_sha": "ffd3c8a297db0172d78ac5840a51a67d7fffcfbb"
+      }
+    },
+    {
+      "id": "QA-0040",
+      "story_ids": [
+        "LD-005"
+      ],
+      "title": "CI operator diagnostics",
+      "priority": "P1",
+      "preconditions": [
+        "Read-only GitHub access and exact candidate SHA.",
+        "Any destructive/negative enforcement experiment limited to authorized disposable repository."
+      ],
+      "test_data": {
+        "run": "failed check with sanitized report"
+      },
+      "steps": [
+        "Inspect failing run logs and uploaded test reports.",
+        "Verify artifact upload failure does not replace or hide original test status; record retention."
+      ],
+      "expected_results": [
+        "Failed assertion and exact SHA discoverable; no secrets/real legal data; upload best effort preserves original failure."
+      ],
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "Full gate/branch enforcement and deployment evidence not complete."
+      ],
+      "traceability": {
+        "baseline_id": "QA-0040",
+        "proposal": "PR #2 LD-005 acceptance section",
+        "implementation_sha": "ffd3c8a297db0172d78ac5840a51a67d7fffcfbb"
+      }
+    },
+    {
+      "id": "QA-0041",
+      "story_ids": [
+        "LD-006"
+      ],
+      "original_scenario": "authorized happy path",
+      "title": "Inspect LawDesk deployment manifest and hostname routing evidence without changing shared proxy — authorized happy path",
+      "priority": "P1",
+      "preconditions": [
+        "Build and dependency versions recorded at exact tested SHA.",
+        "Disposable LawDesk-only environment; synthetic fixtures; no production/shared proxy writes.",
+        "Signed story contract resolves: Hostname, deployment owner, readiness and rollback procedure",
+        "Seed qa.allowed, qa.no-permission, qa.readonly and out-of-scope record B where applicable."
+      ],
+      "test_data": {
+        "story_fixture": "LawDesk host; unknown host; expired certificate fixture; isolated network manifest",
+        "edge_fixture": "Restart LawDesk in dedicated disposable environment while routing stays isolated",
+        "run_id": "QA-<sha12>-<case-id>-<attempt>"
+      },
+      "steps": [
+        "Inspect LawDesk deployment manifest and hostname routing evidence without changing shared proxy",
+        "Reload authoritative record/output and compare each fixture value."
+      ],
+      "expected_results": [
+        "LawDesk uses dedicated upstream and secrets; no competing 443 listener; unknown host cannot leak app data"
+      ],
+      "acceptance_trace": [
+        "LD-006#AC-1"
+      ],
+      "level": "repository/operations",
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "No product implementation at baseline SHA.",
+        "Unresolved story contract: Hostname, deployment owner, readiness and rollback procedure"
+      ],
+      "automation_status": "PLANNED",
+      "evidence_required": [
+        "tested SHA and environment",
+        "fixture values and seed digest",
+        "command/request/UI actions",
+        "actual response and state comparison",
+        "redacted assertion/log evidence"
+      ]
+    },
+    {
+      "id": "QA-0042",
+      "story_ids": [
+        "LD-006"
+      ],
+      "original_scenario": "required-field validation",
+      "title": "Inspect LawDesk deployment manifest and hostname routing evidence without changing shared proxy — required-field validation",
+      "priority": "P1",
+      "preconditions": [
+        "Build and dependency versions recorded at exact tested SHA.",
+        "Disposable LawDesk-only environment; synthetic fixtures; no production/shared proxy writes.",
+        "Signed story contract resolves: Hostname, deployment owner, readiness and rollback procedure",
+        "Seed qa.allowed, qa.no-permission, qa.readonly and out-of-scope record B where applicable."
+      ],
+      "test_data": {
+        "story_fixture": "LawDesk host; unknown host; expired certificate fixture; isolated network manifest",
+        "edge_fixture": "Restart LawDesk in dedicated disposable environment while routing stays isolated",
+        "run_id": "QA-<sha12>-<case-id>-<attempt>"
+      },
+      "steps": [
+        "Enumerate mandatory inputs/evidence from signed contract.",
+        "Omit each mandatory item independently, then submit whitespace and null separately.",
+        "Retry with the complete valid fixture."
+      ],
+      "expected_results": [
+        "Each missing item has the approved field-specific rejection; no partial effect.",
+        "LawDesk uses dedicated upstream and secrets; no competing 443 listener; unknown host cannot leak app data"
+      ],
+      "acceptance_trace": [
+        "LD-006#AC-2"
+      ],
+      "level": "repository/operations",
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "No product implementation at baseline SHA.",
+        "Unresolved story contract: Hostname, deployment owner, readiness and rollback procedure"
+      ],
+      "automation_status": "PLANNED",
+      "evidence_required": [
+        "tested SHA and environment",
+        "fixture values and seed digest",
+        "command/request/UI actions",
+        "actual response and state comparison",
+        "redacted assertion/log evidence"
+      ]
+    },
+    {
+      "id": "QA-0043",
+      "story_ids": [
+        "LD-006"
+      ],
+      "original_scenario": "invalid input boundary",
+      "title": "Inspect LawDesk deployment manifest and hostname routing evidence without changing shared proxy — invalid input boundary",
+      "priority": "P1",
+      "preconditions": [
+        "Build and dependency versions recorded at exact tested SHA.",
+        "Disposable LawDesk-only environment; synthetic fixtures; no production/shared proxy writes.",
+        "Signed story contract resolves: Hostname, deployment owner, readiness and rollback procedure",
+        "Seed qa.allowed, qa.no-permission, qa.readonly and out-of-scope record B where applicable."
+      ],
+      "test_data": {
+        "story_fixture": "LawDesk host; unknown host; expired certificate fixture; isolated network manifest",
+        "edge_fixture": "Restart LawDesk in dedicated disposable environment while routing stays isolated",
+        "run_id": "QA-<sha12>-<case-id>-<attempt>"
+      },
+      "steps": [
+        "Run these edge fixtures independently: Restart LawDesk in dedicated disposable environment while routing stays isolated",
+        "For every contract limit L, test L-1, L, L+1; record exact values and results.",
+        "Compare state before/after each rejected operation."
+      ],
+      "expected_results": [
+        "Boundary matches signed rule; invalid input cannot corrupt state.",
+        "LawDesk uses dedicated upstream and secrets; no competing 443 listener; unknown host cannot leak app data"
+      ],
+      "acceptance_trace": [
+        "LD-006#AC-2"
+      ],
+      "level": "repository/operations",
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "No product implementation at baseline SHA.",
+        "Unresolved story contract: Hostname, deployment owner, readiness and rollback procedure"
+      ],
+      "automation_status": "PLANNED",
+      "evidence_required": [
+        "tested SHA and environment",
+        "fixture values and seed digest",
+        "command/request/UI actions",
+        "actual response and state comparison",
+        "redacted assertion/log evidence"
+      ]
+    },
+    {
+      "id": "QA-0044",
+      "story_ids": [
+        "LD-006"
+      ],
+      "original_scenario": "unauthenticated access",
+      "title": "Inspect LawDesk deployment manifest and hostname routing evidence without changing shared proxy — unauthenticated access",
+      "priority": "P0",
+      "preconditions": [
+        "Build and dependency versions recorded at exact tested SHA.",
+        "Disposable LawDesk-only environment; synthetic fixtures; no production/shared proxy writes.",
+        "Signed story contract resolves: Hostname, deployment owner, readiness and rollback procedure",
+        "Seed qa.allowed, qa.no-permission, qa.readonly and out-of-scope record B where applicable."
+      ],
+      "test_data": {
+        "story_fixture": "LawDesk host; unknown host; expired certificate fixture; isolated network manifest",
+        "edge_fixture": "Restart LawDesk in dedicated disposable environment while routing stays isolated",
+        "run_id": "QA-<sha12>-<case-id>-<attempt>"
+      },
+      "steps": [
+        "Run the operation without session/credential or protected repository access.",
+        "Repeat with expired/replayed credential and inspect returned data and side effects."
+      ],
+      "expected_results": [
+        "Protected operation denied using documented transport status; no confidential data or mutation.",
+        "Explicitly public surfaces follow approved exposure policy."
+      ],
+      "acceptance_trace": [
+        "LD-006#AC-3"
+      ],
+      "level": "repository/operations",
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "No product implementation at baseline SHA.",
+        "Unresolved story contract: Hostname, deployment owner, readiness and rollback procedure"
+      ],
+      "automation_status": "PLANNED",
+      "evidence_required": [
+        "tested SHA and environment",
+        "fixture values and seed digest",
+        "command/request/UI actions",
+        "actual response and state comparison",
+        "redacted assertion/log evidence"
+      ]
+    },
+    {
+      "id": "QA-0045",
+      "story_ids": [
+        "LD-006"
+      ],
+      "original_scenario": "insufficient permission",
+      "title": "Inspect LawDesk deployment manifest and hostname routing evidence without changing shared proxy — insufficient permission",
+      "priority": "P0",
+      "preconditions": [
+        "Build and dependency versions recorded at exact tested SHA.",
+        "Disposable LawDesk-only environment; synthetic fixtures; no production/shared proxy writes.",
+        "Signed story contract resolves: Hostname, deployment owner, readiness and rollback procedure",
+        "Seed qa.allowed, qa.no-permission, qa.readonly and out-of-scope record B where applicable."
+      ],
+      "test_data": {
+        "story_fixture": "LawDesk host; unknown host; expired certificate fixture; isolated network manifest",
+        "edge_fixture": "Restart LawDesk in dedicated disposable environment while routing stays isolated",
+        "run_id": "QA-<sha12>-<case-id>-<attempt>"
+      },
+      "steps": [
+        "Run as qa.no-permission then qa.readonly, including direct request bypassing UI.",
+        "Substitute out-of-scope record IDs in path, query and body where applicable.",
+        "For repository/operations stories use insufficient repository/operator privileges."
+      ],
+      "expected_results": [
+        "Permission and scope enforced at authoritative boundary; no partial writes or privileged data."
+      ],
+      "acceptance_trace": [
+        "LD-006#AC-3"
+      ],
+      "level": "repository/operations",
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "No product implementation at baseline SHA.",
+        "Unresolved story contract: Hostname, deployment owner, readiness and rollback procedure"
+      ],
+      "automation_status": "PLANNED",
+      "evidence_required": [
+        "tested SHA and environment",
+        "fixture values and seed digest",
+        "command/request/UI actions",
+        "actual response and state comparison",
+        "redacted assertion/log evidence"
+      ]
+    },
+    {
+      "id": "QA-0046",
+      "story_ids": [
+        "LD-006"
+      ],
+      "original_scenario": "record integrity and rollback",
+      "title": "Inspect LawDesk deployment manifest and hostname routing evidence without changing shared proxy — record integrity and rollback",
+      "priority": "P0",
+      "preconditions": [
+        "Build and dependency versions recorded at exact tested SHA.",
+        "Disposable LawDesk-only environment; synthetic fixtures; no production/shared proxy writes.",
+        "Signed story contract resolves: Hostname, deployment owner, readiness and rollback procedure",
+        "Seed qa.allowed, qa.no-permission, qa.readonly and out-of-scope record B where applicable."
+      ],
+      "test_data": {
+        "story_fixture": "LawDesk host; unknown host; expired certificate fixture; isolated network manifest",
+        "edge_fixture": "Restart LawDesk in dedicated disposable environment while routing stays isolated",
+        "run_id": "QA-<sha12>-<case-id>-<attempt>"
+      },
+      "steps": [
+        "Snapshot affected records, relationship counts and external effects.",
+        "Inspect LawDesk deployment manifest and hostname routing evidence without changing shared proxy",
+        "At an approved QA fault point interrupt a multi-step write and retry readback; for read-only operations compare state before/after."
+      ],
+      "expected_results": [
+        "Transaction is atomic or documented compensation completes; no orphan rows, files or duplicate external effects.",
+        "Read-only operations do not change business state."
+      ],
+      "acceptance_trace": [
+        "LD-006#AC-2"
+      ],
+      "level": "repository/operations",
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "No product implementation at baseline SHA.",
+        "Unresolved story contract: Hostname, deployment owner, readiness and rollback procedure"
+      ],
+      "automation_status": "PLANNED",
+      "evidence_required": [
+        "tested SHA and environment",
+        "fixture values and seed digest",
+        "command/request/UI actions",
+        "actual response and state comparison",
+        "redacted assertion/log evidence"
+      ]
+    },
+    {
+      "id": "QA-0047",
+      "story_ids": [
+        "LD-006"
+      ],
+      "original_scenario": "concurrent or repeat request behavior",
+      "title": "Inspect LawDesk deployment manifest and hostname routing evidence without changing shared proxy — concurrent or repeat request behavior",
+      "priority": "P0",
+      "preconditions": [
+        "Build and dependency versions recorded at exact tested SHA.",
+        "Disposable LawDesk-only environment; synthetic fixtures; no production/shared proxy writes.",
+        "Signed story contract resolves: Hostname, deployment owner, readiness and rollback procedure",
+        "Seed qa.allowed, qa.no-permission, qa.readonly and out-of-scope record B where applicable."
+      ],
+      "test_data": {
+        "story_fixture": "LawDesk host; unknown host; expired certificate fixture; isolated network manifest",
+        "edge_fixture": "Restart LawDesk in dedicated disposable environment while routing stays isolated",
+        "run_id": "QA-<sha12>-<case-id>-<attempt>"
+      },
+      "steps": [
+        "Use two independent clients synchronized at the same starting state.",
+        "Execute Restart LawDesk in dedicated disposable environment while routing stays isolated",
+        "Repeat identical input after timeout; inspect persisted output and history."
+      ],
+      "expected_results": [
+        "Approved conflict/idempotency semantics hold; no silent overwrite, duplicate effect or scope leak.",
+        "LawDesk uses dedicated upstream and secrets; no competing 443 listener; unknown host cannot leak app data"
+      ],
+      "acceptance_trace": [
+        "LD-006#AC-2"
+      ],
+      "level": "repository/operations",
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "No product implementation at baseline SHA.",
+        "Unresolved story contract: Hostname, deployment owner, readiness and rollback procedure"
+      ],
+      "automation_status": "PLANNED",
+      "evidence_required": [
+        "tested SHA and environment",
+        "fixture values and seed digest",
+        "command/request/UI actions",
+        "actual response and state comparison",
+        "redacted assertion/log evidence"
+      ]
+    },
+    {
+      "id": "QA-0048",
+      "story_ids": [
+        "LD-006"
+      ],
+      "original_scenario": "API-to-UI state and error handling",
+      "title": "Inspect LawDesk deployment manifest and hostname routing evidence without changing shared proxy — API-to-UI state and error handling",
+      "priority": "P1",
+      "preconditions": [
+        "Build and dependency versions recorded at exact tested SHA.",
+        "Disposable LawDesk-only environment; synthetic fixtures; no production/shared proxy writes.",
+        "Signed story contract resolves: Hostname, deployment owner, readiness and rollback procedure",
+        "Seed qa.allowed, qa.no-permission, qa.readonly and out-of-scope record B where applicable."
+      ],
+      "test_data": {
+        "story_fixture": "LawDesk host; unknown host; expired certificate fixture; isolated network manifest",
+        "edge_fixture": "Restart LawDesk in dedicated disposable environment while routing stays isolated",
+        "run_id": "QA-<sha12>-<case-id>-<attempt>"
+      },
+      "steps": [
+        "Inspect LawDesk deployment manifest and hostname routing evidence without changing shared proxy",
+        "Inject documented timeout, validation rejection, unauthenticated and forbidden responses in the QA client/environment.",
+        "Retry once and verify focus, displayed state and authoritative record; for non-UI stories inspect operator/CI output instead."
+      ],
+      "expected_results": [
+        "Loading/error/success are distinguishable and actionable; no raw secret/stack trace; retry follows approved semantics.",
+        "LawDesk uses dedicated upstream and secrets; no competing 443 listener; unknown host cannot leak app data"
+      ],
+      "acceptance_trace": [
+        "LD-006#AC-1"
+      ],
+      "level": "repository/operations",
+      "execution_status": "BLOCKED",
+      "design_status": "PROPOSED_REQUIRES_CONTRACT",
+      "blockers": [
+        "No product implementation at baseline SHA.",
+        "Unresolved story contract: Hostname, deployment owner, readiness and rollback procedure"
+      ],
+      "automation_status": "PLANNED",
+      "evidence_required": [
+        "tested SHA and environment",
+        "fixture values and seed digest",
+        "command/request/UI actions",
+        "actual response and state comparison",
+        "redacted assertion/log evidence"
+      ]
+    }
+  ],
+  "reviewed_sha": "ffd3c8a297db0172d78ac5840a51a67d7fffcfbb"
+}

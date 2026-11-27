@@ -1,0 +1,274 @@
+{
+  "tested_sha": "26fbc19fb3e7a5911d6689631a3f46e6e6b3daac",
+  "utc": "2026-10-23T20:04:46.818Z",
+  "browser": "156.0.8078.4",
+  "scope": "Chromium security probes; CSP mirrored on QA fixture; health401 synthetic; not authentication or real-container verification.",
+  "results": [
+    {
+      "id": "UNTRUSTED-LOCALE-en",
+      "expected": "Untrusted locale markup falls back to English without executing or reflecting HTML.",
+      "steps": [
+        "Open URL with encoded SVG-onload locale and a real browser."
+      ],
+      "actual": {
+        "lang": "en",
+        "xss": null,
+        "reflected": false
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-003"
+      ],
+      "preconditions": [
+        "Exact SHA; QA-owned isolated synthetic fixture."
+      ],
+      "test_data": {
+        "sha": "26fbc19fb3e7a5911d6689631a3f46e6e6b3daac",
+        "assertion": "UNTRUSTED-LOCALE-en"
+      },
+      "expected_results": [
+        "Untrusted locale markup falls back to English without executing or reflecting HTML."
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "PRIVATE-ERROR-en",
+      "expected": "401 health marker is never rendered; localized unavailable label remains.",
+      "steps": [
+        "Intercept health with synthetic private marker and401.",
+        "Open actual preview and inspect status/body."
+      ],
+      "actual": {
+        "status": "API unavailable",
+        "leak": false
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-003"
+      ],
+      "preconditions": [
+        "Exact SHA; QA-owned isolated synthetic fixture."
+      ],
+      "test_data": {
+        "sha": "26fbc19fb3e7a5911d6689631a3f46e6e6b3daac",
+        "assertion": "PRIVATE-ERROR-en"
+      },
+      "expected_results": [
+        "401 health marker is never rendered; localized unavailable label remains."
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "READONLY-SAME-ORIGIN-en",
+      "expected": "Preview makes only same-origin GET requests; no feature mutation.",
+      "steps": [
+        "Inspect every browser request generated in the two sessions."
+      ],
+      "actual": [
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/assets/index-8ozSYkyf.js"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/assets/index-CnM4Yna7.css"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/actuator/health"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/assets/index-8ozSYkyf.js"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/assets/index-CnM4Yna7.css"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/actuator/health"
+        }
+      ],
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-003"
+      ],
+      "preconditions": [
+        "Exact SHA; QA-owned isolated synthetic fixture."
+      ],
+      "test_data": {
+        "sha": "26fbc19fb3e7a5911d6689631a3f46e6e6b3daac",
+        "assertion": "READONLY-SAME-ORIGIN-en"
+      },
+      "expected_results": [
+        "Preview makes only same-origin GET requests; no feature mutation."
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "UNTRUSTED-LOCALE-ar",
+      "expected": "Untrusted locale markup falls back to English without executing or reflecting HTML.",
+      "steps": [
+        "Open URL with encoded SVG-onload locale and a real browser."
+      ],
+      "actual": {
+        "lang": "en",
+        "xss": null,
+        "reflected": false
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-003"
+      ],
+      "preconditions": [
+        "Exact SHA; QA-owned isolated synthetic fixture."
+      ],
+      "test_data": {
+        "sha": "26fbc19fb3e7a5911d6689631a3f46e6e6b3daac",
+        "assertion": "UNTRUSTED-LOCALE-ar"
+      },
+      "expected_results": [
+        "Untrusted locale markup falls back to English without executing or reflecting HTML."
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "PRIVATE-ERROR-ar",
+      "expected": "401 health marker is never rendered; localized unavailable label remains.",
+      "steps": [
+        "Intercept health with synthetic private marker and401.",
+        "Open actual preview and inspect status/body."
+      ],
+      "actual": {
+        "status": "الواجهة البرمجية غير متاحة",
+        "leak": false
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-003"
+      ],
+      "preconditions": [
+        "Exact SHA; QA-owned isolated synthetic fixture."
+      ],
+      "test_data": {
+        "sha": "26fbc19fb3e7a5911d6689631a3f46e6e6b3daac",
+        "assertion": "PRIVATE-ERROR-ar"
+      },
+      "expected_results": [
+        "401 health marker is never rendered; localized unavailable label remains."
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "READONLY-SAME-ORIGIN-ar",
+      "expected": "Preview makes only same-origin GET requests; no feature mutation.",
+      "steps": [
+        "Inspect every browser request generated in the two sessions."
+      ],
+      "actual": [
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/assets/index-8ozSYkyf.js"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/assets/index-CnM4Yna7.css"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/actuator/health"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/assets/index-8ozSYkyf.js"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/assets/index-CnM4Yna7.css"
+        },
+        {
+          "method": "GET",
+          "origin": "http://127.0.0.1:18765",
+          "path": "/actuator/health"
+        }
+      ],
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-003"
+      ],
+      "preconditions": [
+        "Exact SHA; QA-owned isolated synthetic fixture."
+      ],
+      "test_data": {
+        "sha": "26fbc19fb3e7a5911d6689631a3f46e6e6b3daac",
+        "assertion": "READONLY-SAME-ORIGIN-ar"
+      },
+      "expected_results": [
+        "Preview makes only same-origin GET requests; no feature mutation."
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    }
+  ],
+  "diagnostics": [
+    {
+      "lang": "en",
+      "table": {
+        "tabindex": "0",
+        "programmaticFocus": true,
+        "scrollWidth": 406,
+        "clientWidth": 307
+      }
+    },
+    {
+      "lang": "ar",
+      "table": {
+        "tabindex": "0",
+        "programmaticFocus": true,
+        "scrollWidth": 377,
+        "clientWidth": 307
+      }
+    }
+  ],
+  "counts": {
+    "PASS": 6,
+    "FAIL": 0
+  }
+}
