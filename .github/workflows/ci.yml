@@ -333,7 +333,8 @@ jobs:
           }
           owner() { db "select pg_get_userbyid(nspowner) from pg_namespace where nspname = 'lawdesk'"; }
           env "${host_env[@]}" "$home/releases/$previous/deploy/scripts/deploy.sh" "$previous"
-          db "insert into lawdesk.legal_case (reference_no, title, case_type, opened_on, created_by, updated_by)
+          # as the application connects: with search_path = lawdesk (the search triggers call their functions unqualified)
+          db "set search_path = lawdesk; insert into legal_case (reference_no, title, case_type, opened_on, created_by, updated_by)
               select 'UP-' || n, 'upgrade rehearsal ' || n, 'CIVIL', date '2026-01-01', gen_random_uuid(), gen_random_uuid() from generate_series(1, 500) n"
           before=$(owner)
           digest > "$home/before.txt"
