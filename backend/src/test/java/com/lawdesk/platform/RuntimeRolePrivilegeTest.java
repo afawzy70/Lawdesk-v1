@@ -66,7 +66,10 @@ class RuntimeRolePrivilegeTest {
                 "alter role " + RUNTIME + " superuser",
                 "alter role lawdesk_owner password 'x'",
                 "create role probe_role",
-                "alter default privileges grant select on tables to public");
+                // PostgreSQL always lets a role set defaults for objects it creates itself (it can create none); what matters is
+                // that it cannot touch the owner's defaults.
+                "alter default privileges for role lawdesk_owner grant select on tables to public",
+                "alter default privileges for role lawdesk_owner in schema lawdesk grant all on tables to " + RUNTIME);
         assertThat(admin.queryForObject("""
                 select rolsuper or rolcreaterole or rolcreatedb or rolreplication or rolbypassrls from pg_roles where rolname = ?""",
                 Boolean.class, RUNTIME)).isFalse();

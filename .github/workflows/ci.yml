@@ -185,11 +185,14 @@ jobs:
       LAWDESK_TAG: ${{ github.sha }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
       - name: Remove leftovers of an earlier run
         # The runner and its Docker daemon persist between jobs; an interrupted run may have left the stack behind.
         run: |
           docker compose -p lawdesk-staging -f deploy/compose.yaml down -v --remove-orphans > /dev/null 2>&1 || true
           docker network rm lawdesk-edge > /dev/null 2>&1 || true
+          git fetch --quiet --no-tags origin develop
       - name: Build images
         run: |
           docker build -f backend/Dockerfile --label "org.opencontainers.image.revision=$LAWDESK_TAG" \
@@ -210,14 +213,21 @@ jobs:
           mkdir -p deploy/secrets
           openssl rand -hex 24 > deploy/secrets/db_admin_password.txt
           openssl rand -hex 24 > deploy/secrets/db_app_password.txt
+          openssl rand -hex 24 > deploy/secrets/db_owner_password.txt
           openssl rand -hex 16 > deploy/secrets/admin_bootstrap_password.txt
           docker network inspect lawdesk-edge > /dev/null 2>&1 || docker network create lawdesk-edge
       - name: Start the stack and wait for health checks
         run: |
-          # Same order as deploy/scripts/deploy.sh: database, its least-privilege role, then everything.
+          # Same order as deploy/scripts/deploy.sh: database, roles and ownership, the owner's migration job, the privilege
+          # audit, then everything.
           compose() { docker compose -p lawdesk-staging -f deploy/compose.yaml "$@"; }
+          run_sql() { local db=$1; shift; cat "$@" | compose exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d "$db" -q; }
+          sql=deploy/postgres
           compose up -d --wait --wait-timeout 300 db
-          compose exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d postgres -q < deploy/postgres/app-role.sql
+          run_sql postgres $sql/database.sql $sql/roles.sql $sql/ownership.sql $sql/passwords.sql
+          compose run --rm -T migrate
+          run_sql lawdesk $sql/ownership.sql
+          run_sql lawdesk $sql/audit.sql
           compose up -d --wait --wait-timeout 300
       - name: Smoke test
         run: deploy/scripts/smoke.sh
@@ -243,6 +253,13 @@ jobs:
             | grep -qx f
           docker compose -p lawdesk-staging -f deploy/compose.yaml exec -T db \
             psql -U postgres -d lawdesk -tAc "select count(*) from lawdesk.app_release where version = '$LAWDESK_TAG'" | grep -qx 1
+          # The schema belongs to the migration owner, and the backend container holds no credential of that owner.
+          docker compose -p lawdesk-staging -f deploy/compose.yaml exec -T db \
+            psql -U postgres -d lawdesk -tAc "select pg_get_userbyid(nspowner) from pg_namespace where nspname = 'lawdesk'" \
+            | grep -qx lawdesk_owner
+          secrets=$(docker compose -p lawdesk-staging -f deploy/compose.yaml exec -T backend ls /run/secrets | sort | tr '\n' ' ')
+          echo "backend secrets: $secrets"
+          [ "$secrets" = "admin_bootstrap_password spring.datasource.password " ]
       - name: Readiness follows a database outage and recovery
         run: |
           compose() { docker compose -p lawdesk-staging -f deploy/compose.yaml "$@"; }
@@ -285,6 +302,53 @@ jobs:
           LAWDESK_HOME=$home "$release/deploy/host/rollback-drill.sh" | tee "$RUNNER_TEMP/drill.log"
           grep -q "DRILL PASSED" "$RUNNER_TEMP/drill.log"
           cat "$home/state/history.log"
+      - name: Upgrade from the currently deployed release, roll back to it, and deploy again
+        # M1-pre: the previous release's own images and scripts create an installation; this release transfers ownership in
+        # place; rollback.sh brings the previous release back on the split schema; this release deploys again.
+        run: |
+          docker compose -p lawdesk-staging -f deploy/compose.yaml down -v
+          if [ "$GITHUB_REF" = refs/heads/develop ]; then previous=$(git rev-parse HEAD^1); else previous=$(git merge-base origin/develop HEAD); fi
+          echo "previous release $previous"
+          echo "PREVIOUS_RELEASE=$previous" >> "$GITHUB_ENV"
+          home=$RUNNER_TEMP/upgrade
+          mkdir -p "$home/releases/$previous" "$home/releases/$LAWDESK_TAG" "$home/state" "$home/src"
+          git archive "$previous" backend frontend | tar -x -C "$home/src"
+          docker build -f "$home/src/backend/Dockerfile" --label "org.opencontainers.image.revision=$previous" \
+            -t "$LAWDESK_REGISTRY/backend:$previous" "$home/src/backend"
+          docker build -f "$home/src/frontend/Dockerfile" --label "org.opencontainers.image.revision=$previous" \
+            -t "$LAWDESK_REGISTRY/web:$previous" "$home/src/frontend"
+          git archive "$previous" deploy | tar -x -C "$home/releases/$previous"
+          git archive HEAD deploy | tar -x -C "$home/releases/$LAWDESK_TAG"
+          mkdir -m 700 "$home/secrets"
+          cp deploy/secrets/db_admin_password.txt deploy/secrets/db_app_password.txt deploy/secrets/admin_bootstrap_password.txt "$home/secrets/"
+          touch "$home/staging.env"
+          host_env=(LAWDESK_IMAGE_SOURCE=local "LAWDESK_STATE_DIR=$home/state" "LAWDESK_RELEASES_DIR=$home/releases"
+                    "LAWDESK_ENV_FILE=$home/staging.env" "LAWDESK_BACKUP_DIR=$home/backups" "LAWDESK_SECRETS_DIR=$home/secrets")
+          db() { docker compose -p lawdesk-staging -f deploy/compose.yaml exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d lawdesk -tAc "$1"; }
+          export LAWDESK_SECRETS_DIR="$home/secrets"
+          digest() {
+            for t in $(db "select tablename from pg_tables where schemaname = 'lawdesk' and tablename not in ('flyway_schema_history', 'app_release') order by 1"); do
+              echo "$t $(db "select count(*) || ':' || md5(coalesce(string_agg(x::text, ',' order by x::text), '')) from lawdesk.$t x")"
+            done
+          }
+          owner() { db "select pg_get_userbyid(nspowner) from pg_namespace where nspname = 'lawdesk'"; }
+          env "${host_env[@]}" "$home/releases/$previous/deploy/scripts/deploy.sh" "$previous"
+          db "insert into lawdesk.legal_case (reference_no, title, case_type, opened_on, created_by, updated_by)
+              select 'UP-' || n, 'upgrade rehearsal ' || n, 'CIVIL', date '2026-01-01', gen_random_uuid(), gen_random_uuid() from generate_series(1, 500) n"
+          before=$(owner)
+          digest > "$home/before.txt"
+          env "${host_env[@]}" "$home/releases/$LAWDESK_TAG/deploy/scripts/deploy.sh" "$LAWDESK_TAG"
+          digest > "$home/after.txt"
+          echo "schema owner: $before -> $(owner)"
+          diff "$home/before.txt" "$home/after.txt"
+          echo "data unchanged by the transfer: $(wc -l < "$home/after.txt") tables"
+          [ "$(owner)" = lawdesk_owner ]
+          env "${host_env[@]}" "$home/releases/$LAWDESK_TAG/deploy/scripts/rollback.sh"
+          grep -qx "$previous" "$home/state/current-release"
+          db "select count(*) from lawdesk.legal_case" | grep -qx 500
+          env "${host_env[@]}" "$home/releases/$LAWDESK_TAG/deploy/scripts/deploy.sh" "$LAWDESK_TAG"
+          [ "$(owner)" = lawdesk_owner ]
+          cat "$home/state/history.log"
       - name: Stack logs
         if: always()
         run: docker compose -p lawdesk-staging -f deploy/compose.yaml logs --no-color --tail 200
@@ -296,6 +360,9 @@ jobs:
         run: |
           docker network rm lawdesk-edge > /dev/null 2>&1 || true
           docker image rm -f "$LAWDESK_REGISTRY/backend:$LAWDESK_TAG" "$LAWDESK_REGISTRY/web:$LAWDESK_TAG" > /dev/null 2>&1 || true
+          if [ -n "${PREVIOUS_RELEASE:-}" ]; then
+            docker image rm -f "$LAWDESK_REGISTRY/backend:$PREVIOUS_RELEASE" "$LAWDESK_REGISTRY/web:$PREVIOUS_RELEASE" > /dev/null 2>&1 || true
+          fi
           docker image prune -f > /dev/null 2>&1 || true
 
   secrets:

@@ -39,12 +39,12 @@ Placeholders: `DUMP` the file, `NEWDB` a name that does not exist yet, connectio
    sed "s/^CREATE FUNCTION lawdesk\.library_trigrams(p_text text) RETURNS text\[\]\$/&\n    SET search_path TO 'lawdesk'/" /tmp/old.sql > /tmp/old-repaired.sql
    diff /tmp/old.sql /tmp/old-repaired.sql      # must show exactly one added line: SET search_path TO 'lawdesk'
    ```
-3. Create an EMPTY database (no schema, no `app-role.sql` before the restore; the role `lawdesk_app` must exist in the cluster) and load the repaired script, stopping at the first error:
+3. Create an EMPTY database (no schema before the restore; the roles must exist in the cluster: run `deploy/postgres/roles.sql` first) and load the repaired script, stopping at the first error:
    ```bash
    createdb NEWDB
    psql -X -q -v ON_ERROR_STOP=1 -d NEWDB -f /tmp/old-repaired.sql      # must print nothing
    ```
-4. Afterwards, as in the handbook: re-apply `deploy/postgres/app-role.sql` for `NEWDB`, then `ANALYZE`.
+4. Afterwards, connected to `NEWDB` as superuser: `deploy/postgres/ownership.sql` (an old dump is owned by `lawdesk_app`; this transfers it), `passwords.sql`, then `ANALYZE`. After the application has migrated, run `ownership.sql` again and `audit.sql`.
 5. Check before anything is switched: `select count(*) from lawdesk.library_judgment` equals the count you expect from the old database; row counts and file hashes as in the handbook (step 5 there).
 6. Start the application on `NEWDB`. Flyway applies V800 and every later migration (V800 sets the search path on `library_trigrams` for good). A restore of a pre-V800 file therefore ends with the application healthy and `proconfig` of `library_trigrams` set.
 7. Switching the application to `NEWDB` remains a separate decision with the owner (handbook step 6).

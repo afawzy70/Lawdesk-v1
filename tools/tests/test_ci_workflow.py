@@ -128,7 +128,8 @@ class RequiredGatesTest(unittest.TestCase):
         self.assertEqual("lawdesk-local", job["env"]["LAWDESK_REGISTRY"], "the drill and gate use lawdesk-local")
         self.assertEqual(2, commands.count('--label "org.opencontainers.image.revision=$LAWDESK_TAG"'))
         self.assertIn("LAWDESK_IMAGE_SOURCE=local", commands)
-        self.assertEqual(2, commands.count('deploy/scripts/deploy.sh" "$LAWDESK_TAG"'), "first deploy and a repeat")
+        drill_run = next(s["run"] for s in job["steps"] if "rollback drill" in s.get("name", ""))
+        self.assertEqual(2, drill_run.count('deploy/scripts/deploy.sh" "$LAWDESK_TAG"'), "first deploy and a repeat")
         self.assertIn("deploy/host/rollback-drill.sh", commands)
         # First install as on Contabo: fresh volume, release unpacked under the gate's restrictive umask.
         self.assertIn('(umask 027 && git archive HEAD deploy | tar -x -C "$release")', commands)
@@ -138,6 +139,26 @@ class RequiredGatesTest(unittest.TestCase):
         drill = next(i for i, n in enumerate(names) if "rollback drill" in n)
         teardown = names.index("Tear down")
         self.assertLess(drill, teardown)
+
+    def test_stack_gate_follows_the_deploy_order_of_the_separated_ownership(self):
+        commands = run_commands(self.jobs["stack"])
+        order = ["$sql/database.sql $sql/roles.sql $sql/ownership.sql $sql/passwords.sql", "compose run --rm -T migrate",
+                 "run_sql lawdesk $sql/audit.sql", "deploy/scripts/smoke.sh"]
+        positions = [commands.index(step) for step in order]
+        self.assertEqual(sorted(positions), positions)
+        self.assertIn("openssl rand -hex 24 > deploy/secrets/db_owner_password.txt", commands)
+
+    def test_stack_gate_rehearses_upgrade_rollback_and_redeploy_from_the_deployed_release(self):
+        job = self.jobs["stack"]
+        step = next(s for s in job["steps"] if s.get("name", "").startswith("Upgrade from the currently deployed release"))
+        run = step["run"]
+        self.assertIn("git merge-base origin/develop HEAD", run)
+        self.assertIn('"$home/releases/$previous/deploy/scripts/deploy.sh" "$previous"', run)
+        self.assertIn('diff "$home/before.txt" "$home/after.txt"', run)
+        self.assertIn("deploy/scripts/rollback.sh", run)
+        self.assertEqual(2, run.count('"$home/releases/$LAWDESK_TAG/deploy/scripts/deploy.sh" "$LAWDESK_TAG"'))
+        checkout = next(s for s in job["steps"] if "actions/checkout" in s.get("uses", ""))
+        self.assertEqual(0, checkout["with"]["fetch-depth"])
 
     def test_stack_gate_requires_readiness_to_detect_a_database_outage_within_five_seconds(self):
         # Owner decision 2026-10-23: the first readiness probe after the database stops answers 503 in under 5 s.

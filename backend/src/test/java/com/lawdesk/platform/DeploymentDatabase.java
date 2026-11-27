@@ -12,8 +12,8 @@ import org.flywaydb.core.Flyway;
 import org.postgresql.ds.PGSimpleDataSource;
 
 /**
- * A fresh database prepared the way the deployment prepares the real one, so tests judge the credentials the deployed backend
- * actually uses. Today that is deploy/postgres/app-role.sql followed by Flyway as the runtime role itself.
+ * A fresh database prepared the way the deployment prepares the real one (the real scripts of deploy/postgres and the real
+ * migration job), so tests judge the credentials the deployed backend actually uses.
  */
 final class DeploymentDatabase {
 
@@ -27,35 +27,53 @@ final class DeploymentDatabase {
         admin.setCurrentSchema("lawdesk");
     }
 
-    /** An installation as it exists today: every object owned by the runtime role. */
-    static DeploymentDatabase legacy() {
-        return deploy();
-    }
-
-    /** Role provisioning and ownership transfer: today's deployment has none. */
-    void split() {
-    }
-
-    void applyOwnership() {
-    }
-
-    void migrateAsOwner() {
-        migrate();
-    }
-
-    /** The deploy-time privilege audit: today's deployment has none, so nothing is ever refused. */
-    void audit() {
-    }
-
+    /** A fresh installation, exactly as deploy.sh prepares it: roles and ownership, migrations as the owner, ownership again. */
     static DeploymentDatabase deploy() {
         DeploymentDatabase database = new DeploymentDatabase((PGSimpleDataSource) PostgresTestSupport.freshDatabase());
-        database.prepare();
-        database.migrate();
+        database.split();
+        database.migrateAsOwner();
+        database.applyOwnership();
         return database;
     }
 
+    /** An installation from before the split: deploy/postgres/app-role.sql, and migrations run by the runtime role itself. */
+    static DeploymentDatabase legacy() {
+        DeploymentDatabase database = new DeploymentDatabase((PGSimpleDataSource) PostgresTestSupport.freshDatabase());
+        database.legacyRole();
+        Flyway.configure().dataSource(database.as(RUNTIME)).locations("classpath:db/migration").outOfOrder(true)
+                .target("845").load().migrate();
+        return database;
+    }
+
+    /** deploy/postgres/roles.sql and ownership.sql, then the passwords (passwords.sql needs psql). */
+    void split() {
+        runScript("roles.sql");
+        runScript("ownership.sql");
+        execute(admin, "ALTER ROLE " + RUNTIME + " PASSWORD '" + PASSWORD + "'", "ALTER ROLE lawdesk_owner PASSWORD '" + PASSWORD + "'");
+    }
+
+    void applyOwnership() {
+        runScript("ownership.sql");
+    }
+
+    /** The production migration job, as the owner. */
+    void migrateAsOwner() {
+        PGSimpleDataSource owner = as("lawdesk_owner");
+        MigrateOnly.run("--spring.datasource.url=" + owner.getUrl(), "--spring.datasource.username=lawdesk_owner",
+                "--spring.datasource.password=" + PASSWORD, "--spring.datasource.hikari.minimum-idle=0");
+    }
+
+    /** deploy/postgres/audit.sql; throws with its list of findings. */
+    void audit() {
+        runScript("audit.sql");
+    }
+
+    void runScript(String name) {
+        execute(admin, read("deploy/postgres/" + name));
+    }
+
     /** The statements of deploy/postgres/app-role.sql (that file needs psql: it reads a secret and switches database). */
-    private void prepare() {
+    private void legacyRole() {
         String name = catalog();
         execute(admin,
                 "DO $$ BEGIN CREATE ROLE " + RUNTIME + "; EXCEPTION WHEN duplicate_object THEN NULL; END $$",
@@ -65,10 +83,6 @@ final class DeploymentDatabase {
                 "REVOKE ALL ON SCHEMA public FROM PUBLIC",
                 "CREATE SCHEMA IF NOT EXISTS lawdesk AUTHORIZATION " + RUNTIME,
                 "ALTER ROLE " + RUNTIME + " SET search_path = lawdesk");
-    }
-
-    private void migrate() {
-        Flyway.configure().dataSource(as(RUNTIME)).locations("classpath:db/migration").outOfOrder(true).load().migrate();
     }
 
     PGSimpleDataSource as(String role) {

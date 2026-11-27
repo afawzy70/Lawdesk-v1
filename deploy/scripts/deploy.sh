@@ -11,6 +11,7 @@
 #                         previous release with its own compose file
 #   LAWDESK_ENV_FILE      optional compose --env-file (default deploy/staging.env when present)
 #   LAWDESK_BACKUP_DIR    optional; the database is dumped there before a new release starts (newest 10 kept)
+#   LAWDESK_ROLLBACK      set by rollback.sh: privilege audit findings are logged, not fatal
 # Exit codes: 0 deployed, 1 failed (rolled back when possible), 2 usage, 3 another deployment running,
 # 4 failed and the rollback failed too. Every docker call is scoped to the lawdesk-staging project.
 set -euo pipefail
@@ -81,6 +82,29 @@ local_images_match() {
     done
 }
 
+# Runs the given SQL files (in order, one psql session) as the database superuser inside the db container.
+run_sql() {
+    local tag=$1 database=$2
+    shift 2
+    cat "$@" | LAWDESK_TAG=$tag "${compose[@]}" exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d "$database" -q
+}
+
+# Separated ownership (M1-pre): roles and ownership, migrations as the owner, then the privilege audit; only then may the
+# backend start. The running backend is untouched until the final `up`, so a failure here leaves it serving.
+# During a rollback an audit finding is reported but does not keep staging down.
+prepare_split_database() {
+    local tag=$1 mode=$2 sql=$compose_dir/postgres
+    run_sql "$tag" postgres "$sql/database.sql" "$sql/roles.sql" "$sql/ownership.sql" "$sql/passwords.sql" &&
+        LAWDESK_TAG=$tag timeout --foreground 600 "${compose[@]}" run --rm -T migrate &&
+        run_sql "$tag" lawdesk "$sql/ownership.sql" || return 1
+    if ! run_sql "$tag" lawdesk "$sql/audit.sql"; then
+        if [[ $mode != rollback ]]; then
+            return 1
+        fi
+        log "privilege audit reported findings for $tag during a rollback; recovery continues, investigate"
+    fi
+}
+
 # Starts a release with its own compose file and verifies it with its own smoke test, so a rollback target is checked
 # against its own contract and not the failed release's (QAD-021).
 start_release() {
@@ -94,26 +118,32 @@ start_release() {
     else
         local_images_match "$1" || return 1
     fi
-    # Database first, then its least-privilege role (idempotent; repairs a volume whose role is missing), then the rest.
-    # A release older than this step has no app-role.sql of its own; the running release's copy is used for it.
-    local role_sql=$compose_dir/postgres/app-role.sql
-    [[ -f $role_sql ]] || role_sql=$deploy_dir/postgres/app-role.sql
-    LAWDESK_TAG=$1 "${compose[@]}" up -d --wait --wait-timeout 240 db &&
-        LAWDESK_TAG=$1 "${compose[@]}" exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d postgres -q < "$role_sql" &&
-        LAWDESK_TAG=$1 "${compose[@]}" up -d --wait --wait-timeout 240 &&
+    # Database first, then its roles (idempotent; repairs a volume whose roles are missing), then the rest.
+    LAWDESK_TAG=$1 "${compose[@]}" up -d --wait --wait-timeout 240 db || return 1
+    if [[ -f $compose_dir/postgres/ownership.sql ]]; then
+        prepare_split_database "$1" "${2:-deploy}" || return 1
+    else
+        # A release from before the separated ownership: its own role script and its own migrations at start-up. It works on a
+        # split database as long as it needs no migration of its own. One older still has no script: the running copy is used.
+        local role_sql=$compose_dir/postgres/app-role.sql
+        [[ -f $role_sql ]] || role_sql=$deploy_dir/postgres/app-role.sql
+        run_sql "$1" postgres "$role_sql" || return 1
+    fi
+    LAWDESK_TAG=$1 "${compose[@]}" up -d --wait --wait-timeout 240 &&
         LAWDESK_TAG=$1 LAWDESK_ENV_FILE=$env_file "$smoke"
 }
 
-# LD-008.4: the first administrator's password file, generated once in the secrets directory (0700) and never
-# printed; the operator reads it once and the administrator must change it at first sign-in.
-ensure_admin_secret() {
-    local dir=${LAWDESK_SECRETS_DIR:-$deploy_dir/secrets} file
-    file=$dir/admin_bootstrap_password.txt
+# A password file generated once in the secrets directory (0700) and never printed. The first administrator's (LD-008.4:
+# the operator reads it once; it must be changed at first sign-in) and the schema owner's, so that an existing host needs
+# no manual step for the separated ownership.
+ensure_secret() {
+    local name=$1 bytes=$2 dir=${LAWDESK_SECRETS_DIR:-$deploy_dir/secrets} file
+    file=$dir/$name.txt
     if [[ -f $file || ! -d $dir ]]; then
         return 0
     fi
-    (umask 022 && openssl rand -hex 16 > "$file.partial" && mv -- "$file.partial" "$file")
-    log "generated the first administrator password file $file"
+    (umask 022 && openssl rand -hex "$bytes" > "$file.partial" && mv -- "$file.partial" "$file")
+    log "generated the password file $file"
 }
 
 # Dumps the running database before a new release can migrate it. Migrations are forward-only, so this dump is the
@@ -136,7 +166,8 @@ backup_database() {
 
 current=$(read_state current-release)
 log "deploying $release (current: ${current:-none})"
-ensure_admin_secret
+ensure_secret admin_bootstrap_password 16
+ensure_secret db_owner_password 32
 
 if [[ $image_source == local ]] && ! local_images_match "$release"; then
     log "refused $release: its images are not built on this host with revision $release"
@@ -147,7 +178,7 @@ if [[ -n $backup_dir && -n $current ]] && ! backup_database "$current"; then
     exit 1
 fi
 
-if start_release "$release"; then
+if start_release "$release" "${LAWDESK_ROLLBACK:+rollback}"; then
     if [[ $release != "$current" ]]; then
         [[ -n $current ]] && echo "$current" > "$state_dir/previous-release"
         echo "$release" > "$state_dir/current-release"
@@ -166,7 +197,7 @@ if [[ -z $target || $target == "$release" ]]; then
     echo "deploy: no previous release to roll back to; staging needs attention" >&2
     exit 1
 fi
-if start_release "$target"; then
+if start_release "$target" rollback; then
     if [[ $target != "$current" ]]; then
         echo "$target" > "$state_dir/current-release"
         rm -f "$state_dir/previous-release"

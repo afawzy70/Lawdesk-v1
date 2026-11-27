@@ -88,6 +88,26 @@ class DatabaseOwnershipTransferTest {
     }
 
     @Test
+    void anOperatorLoginGetsNoDataAccessAndTheInspectionScriptOnlyReads() {
+        DeploymentDatabase database = DeploymentDatabase.deploy();
+        JdbcTemplate admin = new JdbcTemplate(database.admin);
+        // run by hand only (D-09 pending): the login is synthetic and removed again
+        DeploymentDatabase.execute(database.admin, "set lawdesk.operator_login = 'op_synthetic'",
+                DeploymentDatabase.read("deploy/postgres/operator-login.sql"));
+        try {
+            database.audit();
+            assertThat(admin.queryForObject("select has_table_privilege('op_synthetic', 'lawdesk.legal_case', 'select')"
+                    + " or has_schema_privilege('op_synthetic', 'lawdesk', 'usage')", Boolean.class)).isFalse();
+            String catalog = catalog(admin);
+            database.runScript("inspect-ownership.sql");
+            assertThat(catalog(admin)).isEqualTo(catalog);
+        } finally {
+            admin.execute("revoke connect on database " + database.catalog() + " from op_synthetic");
+            admin.execute("drop role op_synthetic");
+        }
+    }
+
+    @Test
     void theReferenceCounterOnlyMovesForwardOneStepForTheRuntimeRole() {
         DeploymentDatabase database = DeploymentDatabase.deploy();
         JdbcTemplate runtime = new JdbcTemplate(database.as(RUNTIME));
