@@ -1,0 +1,345 @@
+{
+  "journey": "WP10 legal assistant, non-production test mode (261110061337)",
+  "base": "https://lawdesk.167-86-90-174.sslip.io",
+  "steps": [
+    {
+      "step": "deployed release",
+      "value": {
+        "release": "03ff08ed053402744b5160409e5e851e0565fed6"
+      }
+    },
+    {
+      "step": "the status says not operational, no approved provider, non-production test",
+      "expected": [
+        200,
+        false,
+        "NO_APPROVED_PROVIDER",
+        "NON_PRODUCTION_TEST"
+      ],
+      "actual": [
+        200,
+        false,
+        "NO_APPROVED_PROVIDER",
+        "NON_PRODUCTION_TEST"
+      ],
+      "ok": true
+    },
+    {
+      "step": "no provider is approved and nothing leaves the system",
+      "expected": [
+        0,
+        false,
+        false
+      ],
+      "actual": [
+        0,
+        false,
+        false
+      ],
+      "ok": true
+    },
+    {
+      "step": "every future integration is disabled, with no endpoint and no credential",
+      "expected": [
+        200,
+        [
+          "DISABLED"
+        ],
+        false
+      ],
+      "actual": [
+        200,
+        [
+          "DISABLED"
+        ],
+        false
+      ],
+      "ok": true
+    },
+    {
+      "step": "intake registers the synthetic case 1",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "intake registers the synthetic case 2",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the member records a note",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "a note worded like an instruction is recorded",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the manager records a note on the other case",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "the member records a request",
+      "expected": 201,
+      "actual": 201,
+      "ok": true
+    },
+    {
+      "step": "an answer is given with its sources",
+      "expected": [
+        200,
+        "ANSWERED",
+        true
+      ],
+      "actual": [
+        200,
+        "ANSWERED",
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "every quotation names listed sources",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the answer is marked non-production and not operational",
+      "expected": [
+        false,
+        "NON_PRODUCTION_TEST",
+        true,
+        false
+      ],
+      "actual": [
+        false,
+        "NON_PRODUCTION_TEST",
+        true,
+        false
+      ],
+      "ok": true
+    },
+    {
+      "step": "with nothing adequate the assistant refuses and returns no source",
+      "expected": [
+        200,
+        "INSUFFICIENT_SOURCES",
+        [],
+        []
+      ],
+      "actual": [
+        200,
+        "INSUFFICIENT_SOURCES",
+        [],
+        []
+      ],
+      "ok": true
+    },
+    {
+      "step": "asking about a case the account may not see is a 404",
+      "expected": 404,
+      "actual": 404,
+      "ok": true
+    },
+    {
+      "step": "and the refusal carries nothing of that case",
+      "expected": false,
+      "actual": false,
+      "ok": true
+    },
+    {
+      "step": "a reader without the assistant permission is refused",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    },
+    {
+      "step": "words of the other case never reach an answer about this one",
+      "expected": [
+        200,
+        false
+      ],
+      "actual": [
+        200,
+        false
+      ],
+      "ok": true
+    },
+    {
+      "step": "an instruction inside a note is quoted as data and marked",
+      "expected": [
+        200,
+        true
+      ],
+      "actual": [
+        200,
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "nothing was deleted or changed by it",
+      "expected": {
+        "cases": 458,
+        "own notes": 2,
+        "own claims": 1,
+        "other notes": 1
+      },
+      "actual": {
+        "cases": 458,
+        "own notes": 2,
+        "own claims": 1,
+        "other notes": 1
+      },
+      "ok": true
+    },
+    {
+      "step": "the summary quotes the case's records with sources",
+      "expected": [
+        200,
+        "ANSWERED",
+        true
+      ],
+      "actual": [
+        200,
+        "ANSWERED",
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "a memorandum draft is kept as a non-final draft",
+      "expected": [
+        200,
+        true,
+        false
+      ],
+      "actual": [
+        200,
+        true,
+        false
+      ],
+      "ok": true
+    },
+    {
+      "step": "the draft is DRAFT, not final and non-production",
+      "expected": [
+        200,
+        "DRAFT",
+        false,
+        true
+      ],
+      "actual": [
+        200,
+        "DRAFT",
+        false,
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "another account cannot read the draft",
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    {
+      "step": "the member reviews the draft; it is still not final",
+      "expected": [
+        200,
+        "USER_APPROVED",
+        false
+      ],
+      "actual": [
+        200,
+        "USER_APPROVED",
+        false
+      ],
+      "ok": true
+    },
+    {
+      "step": "a draft cannot be reviewed twice",
+      "expected": 422,
+      "actual": 422,
+      "ok": true
+    },
+    {
+      "step": "the precedent search answers or refuses, never errors",
+      "expected": [
+        200,
+        true
+      ],
+      "actual": [
+        200,
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "no task changed a record",
+      "expected": {
+        "cases": 458,
+        "own notes": 2,
+        "own claims": 1,
+        "other notes": 1
+      },
+      "actual": {
+        "cases": 458,
+        "own notes": 2,
+        "own claims": 1,
+        "other notes": 1
+      },
+      "ok": true
+    },
+    {
+      "step": "every query is logged for its asker, with the outcome and the sources used",
+      "expected": [
+        200,
+        true,
+        true,
+        true
+      ],
+      "actual": [
+        200,
+        true,
+        true,
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "the log holds identifiers, not the text of sources",
+      "expected": false,
+      "actual": false,
+      "ok": true
+    },
+    {
+      "step": "the refused query about the other case is in the asker's own log",
+      "expected": [
+        200,
+        true
+      ],
+      "actual": [
+        200,
+        true
+      ],
+      "ok": true
+    },
+    {
+      "step": "a reader cannot read the log",
+      "expected": 403,
+      "actual": 403,
+      "ok": true
+    }
+  ],
+  "passed": true
+}

@@ -1,0 +1,500 @@
+{
+  "tested_sha": "13297c0a27738fb69f6ad90bf1135678e09b8880",
+  "utc": "2026-10-23T20:03:45.398253+00:00",
+  "scope": "Independent native render and static CI checks. No Docker daemon/container, role or deployment PASS is implied.",
+  "results": [
+    {
+      "id": "COMPOSE-NATIVE-RENDER",
+      "expected": "Native CLI renders the exact candidate without daemon mutations.",
+      "actual": {
+        "exit": 0,
+        "stderr": ""
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-006"
+      ],
+      "preconditions": [
+        "Exact SHA; QA-owned isolated synthetic fixture."
+      ],
+      "test_data": {
+        "sha": "13297c0a27738fb69f6ad90bf1135678e09b8880",
+        "assertion": "COMPOSE-NATIVE-RENDER"
+      },
+      "steps": [
+        "Execute the named QA runner and inspect this assertion."
+      ],
+      "expected_results": [
+        "Native CLI renders the exact candidate without daemon mutations."
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "COMPOSE-NO-HOST-PORTS",
+      "expected": "No service publishes a host port.",
+      "actual": {
+        "backend": [],
+        "db": [],
+        "web": []
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-006"
+      ],
+      "preconditions": [
+        "Exact SHA; QA-owned isolated synthetic fixture."
+      ],
+      "test_data": {
+        "sha": "13297c0a27738fb69f6ad90bf1135678e09b8880",
+        "assertion": "COMPOSE-NO-HOST-PORTS"
+      },
+      "steps": [
+        "Execute the named QA runner and inspect this assertion."
+      ],
+      "expected_results": [
+        "No service publishes a host port."
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "COMPOSE-DB-API-ISOLATION",
+      "expected": "DB/backend use only internal network; only web has edge.",
+      "actual": {
+        "backend": [
+          "internal"
+        ],
+        "db": [
+          "internal"
+        ],
+        "web": [
+          "edge",
+          "internal"
+        ]
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-006"
+      ],
+      "preconditions": [
+        "Exact SHA; QA-owned isolated synthetic fixture."
+      ],
+      "test_data": {
+        "sha": "13297c0a27738fb69f6ad90bf1135678e09b8880",
+        "assertion": "COMPOSE-DB-API-ISOLATION"
+      },
+      "steps": [
+        "Execute the named QA runner and inspect this assertion."
+      ],
+      "expected_results": [
+        "DB/backend use only internal network; only web has edge."
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "COMPOSE-READONLY-APP",
+      "expected": "Backend and web read-only with writable tmpfs only.",
+      "actual": {
+        "backend": {
+          "read_only": true,
+          "tmpfs": [
+            "/tmp"
+          ]
+        },
+        "web": {
+          "read_only": true,
+          "tmpfs": [
+            "/tmp"
+          ]
+        }
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-006"
+      ],
+      "preconditions": [
+        "Exact SHA; QA-owned isolated synthetic fixture."
+      ],
+      "test_data": {
+        "sha": "13297c0a27738fb69f6ad90bf1135678e09b8880",
+        "assertion": "COMPOSE-READONLY-APP"
+      },
+      "steps": [
+        "Execute the named QA runner and inspect this assertion."
+      ],
+      "expected_results": [
+        "Backend and web read-only with writable tmpfs only."
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "COMPOSE-HARDENING",
+      "expected": "All drop ALL and prohibit privilege gain; DB has explicit documented bootstrap capability exceptions.",
+      "actual": {
+        "backend": {
+          "drop": [
+            "ALL"
+          ],
+          "add": [],
+          "options": [
+            "no-new-privileges:true"
+          ]
+        },
+        "db": {
+          "drop": [
+            "ALL"
+          ],
+          "add": [
+            "CHOWN",
+            "DAC_OVERRIDE",
+            "FOWNER",
+            "SETGID",
+            "SETUID"
+          ],
+          "options": [
+            "no-new-privileges:true"
+          ]
+        },
+        "web": {
+          "drop": [
+            "ALL"
+          ],
+          "add": [],
+          "options": [
+            "no-new-privileges:true"
+          ]
+        }
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-006"
+      ],
+      "preconditions": [
+        "Exact SHA; QA-owned isolated synthetic fixture."
+      ],
+      "test_data": {
+        "sha": "13297c0a27738fb69f6ad90bf1135678e09b8880",
+        "assertion": "COMPOSE-HARDENING"
+      },
+      "steps": [
+        "Execute the named QA runner and inspect this assertion."
+      ],
+      "expected_results": [
+        "All drop ALL and prohibit privilege gain; DB has explicit documented bootstrap capability exceptions."
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "COMPOSE-IMMUTABLE-IMAGE-SELECTORS",
+      "expected": "DB digest-pinned; app selectors end with exact SHA.",
+      "actual": {
+        "backend": "lawdesk-qa/backend:13297c0a27738fb69f6ad90bf1135678e09b8880",
+        "db": "postgres:18.6-alpine3.24@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5",
+        "web": "lawdesk-qa/web:13297c0a27738fb69f6ad90bf1135678e09b8880"
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-006"
+      ],
+      "preconditions": [
+        "Exact SHA; QA-owned isolated synthetic fixture."
+      ],
+      "test_data": {
+        "sha": "13297c0a27738fb69f6ad90bf1135678e09b8880",
+        "assertion": "COMPOSE-IMMUTABLE-IMAGE-SELECTORS"
+      },
+      "steps": [
+        "Execute the named QA runner and inspect this assertion."
+      ],
+      "expected_results": [
+        "DB digest-pinned; app selectors end with exact SHA."
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "COMPOSE-RESOURCE-LOG-HEALTH-BOUNDS",
+      "expected": "All have memory limits, bounded logs and health checks.",
+      "actual": {
+        "backend": {
+          "memory": "805306368",
+          "logging": {
+            "driver": "json-file",
+            "options": {
+              "max-file": "5",
+              "max-size": "10m"
+            }
+          },
+          "health": {
+            "test": [
+              "CMD",
+              "wget",
+              "-q",
+              "-O",
+              "/dev/null",
+              "http://127.0.0.1:8080/actuator/health/readiness"
+            ],
+            "timeout": "5s",
+            "interval": "10s",
+            "retries": 6,
+            "start_period": "1m30s"
+          }
+        },
+        "db": {
+          "memory": "536870912",
+          "logging": {
+            "driver": "json-file",
+            "options": {
+              "max-file": "5",
+              "max-size": "10m"
+            }
+          },
+          "health": {
+            "test": [
+              "CMD",
+              "pg_isready",
+              "-U",
+              "postgres",
+              "-d",
+              "lawdesk"
+            ],
+            "timeout": "5s",
+            "interval": "10s",
+            "retries": 10,
+            "start_period": "30s"
+          }
+        },
+        "web": {
+          "memory": "67108864",
+          "logging": {
+            "driver": "json-file",
+            "options": {
+              "max-file": "5",
+              "max-size": "10m"
+            }
+          },
+          "health": {
+            "test": [
+              "CMD",
+              "wget",
+              "-q",
+              "-O",
+              "/dev/null",
+              "http://127.0.0.1:8080/healthz"
+            ],
+            "timeout": "5s",
+            "interval": "10s",
+            "retries": 3,
+            "start_period": "10s"
+          }
+        }
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-006"
+      ],
+      "preconditions": [
+        "Exact SHA; QA-owned isolated synthetic fixture."
+      ],
+      "test_data": {
+        "sha": "13297c0a27738fb69f6ad90bf1135678e09b8880",
+        "assertion": "COMPOSE-RESOURCE-LOG-HEALTH-BOUNDS"
+      },
+      "steps": [
+        "Execute the named QA runner and inspect this assertion."
+      ],
+      "expected_results": [
+        "All have memory limits, bounded logs and health checks."
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "COMPOSE-MISSING-RELEASE",
+      "expected": "Missing release selector rejects before runtime.",
+      "actual": {
+        "exit": 1,
+        "stderr": "error while interpolating services.backend.environment.LAWDESK_RELEASE: required variable LAWDESK_TAG is missing a value: set LAWDESK_TAG to the release commit SHA\nerror while interpolating services.backend.image: required variable LAWDESK_TAG is missing a value: set LAWDESK_TAG to the release commit SHA\nerror while interpolating services.web.image: required variable LAWDESK_TAG is missing a value: set LAWDESK_TAG to the release commit SHA\n"
+      },
+      "status": "PASS",
+      "priority": "P1",
+      "story_ids": [
+        "LD-006"
+      ],
+      "preconditions": [
+        "Exact SHA; QA-owned isolated synthetic fixture."
+      ],
+      "test_data": {
+        "sha": "13297c0a27738fb69f6ad90bf1135678e09b8880",
+        "assertion": "COMPOSE-MISSING-RELEASE"
+      },
+      "steps": [
+        "Execute the named QA runner and inspect this assertion."
+      ],
+      "expected_results": [
+        "Missing release selector rejects before runtime."
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "CI-PR-TRIGGERS",
+      "expected": "PR jobs target develop/main with read-only token and no privileged PR event.",
+      "actual": {
+        "events": {
+          "pull_request": {
+            "branches": [
+              "develop",
+              "main"
+            ]
+          },
+          "push": {
+            "branches": [
+              "develop",
+              "main"
+            ]
+          },
+          "workflow_dispatch": null
+        },
+        "permissions": {
+          "contents": "read"
+        }
+      },
+      "status": "PASS",
+      "priority": "P0",
+      "story_ids": [
+        "LD-005"
+      ],
+      "preconditions": [
+        "Exact SHA; QA-owned isolated synthetic fixture."
+      ],
+      "test_data": {
+        "sha": "13297c0a27738fb69f6ad90bf1135678e09b8880",
+        "assertion": "CI-PR-TRIGGERS"
+      },
+      "steps": [
+        "Execute the named QA runner and inspect this assertion."
+      ],
+      "expected_results": [
+        "PR jobs target develop/main with read-only token and no privileged PR event."
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "CI-ACTION-PINS",
+      "expected": "Every action uses a full immutable SHA.",
+      "actual": [
+        "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0",
+        "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad",
+        "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+        "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad",
+        "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+        "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+      ],
+      "status": "PASS",
+      "priority": "P0",
+      "story_ids": [
+        "LD-005"
+      ],
+      "preconditions": [
+        "Exact SHA; QA-owned isolated synthetic fixture."
+      ],
+      "test_data": {
+        "sha": "13297c0a27738fb69f6ad90bf1135678e09b8880",
+        "assertion": "CI-ACTION-PINS"
+      },
+      "steps": [
+        "Execute the named QA runner and inspect this assertion."
+      ],
+      "expected_results": [
+        "Every action uses a full immutable SHA."
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "CI-BOUNDED-CANCELLED-RUNS",
+      "expected": "Jobs including reusable-workflow callees bounded<=30min; PR supersession cancels, deployments may queue without cancellation.",
+      "actual": {
+        "timeouts": {
+          "policy": 10,
+          "backend": 20,
+          "backend-postgres-image": 20,
+          "frontend": 15,
+          "stack": 25,
+          "secrets": 10
+        },
+        "concurrency": {
+          "group": "ci-${{ github.ref }}",
+          "cancel-in-progress": true
+        }
+      },
+      "status": "PASS",
+      "priority": "P0",
+      "story_ids": [
+        "LD-005"
+      ],
+      "preconditions": [
+        "Exact SHA; QA-owned isolated synthetic fixture."
+      ],
+      "test_data": {
+        "sha": "13297c0a27738fb69f6ad90bf1135678e09b8880",
+        "assertion": "CI-BOUNDED-CANCELLED-RUNS"
+      },
+      "steps": [
+        "Execute the named QA runner and inspect this assertion."
+      ],
+      "expected_results": [
+        "Jobs including reusable-workflow callees bounded<=30min; PR supersession cancels, deployments may queue without cancellation."
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    },
+    {
+      "id": "CI-SIX-GATE-CONFIG",
+      "expected": "All six expected gates configured; this does not certify their execution or server enforcement.",
+      "actual": [
+        "policy",
+        "backend",
+        "backend-postgres-image",
+        "frontend",
+        "stack",
+        "secrets"
+      ],
+      "status": "PASS",
+      "priority": "P0",
+      "story_ids": [
+        "LD-005"
+      ],
+      "preconditions": [
+        "Exact SHA; QA-owned isolated synthetic fixture."
+      ],
+      "test_data": {
+        "sha": "13297c0a27738fb69f6ad90bf1135678e09b8880",
+        "assertion": "CI-SIX-GATE-CONFIG"
+      },
+      "steps": [
+        "Execute the named QA runner and inspect this assertion."
+      ],
+      "expected_results": [
+        "All six expected gates configured; this does not certify their execution or server enforcement."
+      ],
+      "traceability": "Approved provisional Phase1 baseline / PREVIEW / CD contract, as applicable; not a full-case PASS promotion."
+    }
+  ],
+  "counts": {
+    "PASS": 12,
+    "FAIL": 0,
+    "BLOCKED": 0
+  },
+  "runtime_blockers": [
+    "Docker local socket permission denied, including escalated read-only retry.",
+    "No changes to socket permissions, daemon, shared proxy or other applications."
+  ]
+}

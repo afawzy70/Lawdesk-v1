@@ -84,6 +84,88 @@ class StoredSearchDocumentsTest extends Wp9TestSupport {
                 Integer.class, first)).isEqualTo(1);
     }
 
+    /** The stored documents must equal a full recomputation; refreshing them changes nothing when they are already right. */
+    private void assertDocumentsEqualFullRecomputation(String after) {
+        var kept = documents();
+        var keptLinks = linkDocuments();
+        jdbc.queryForObject("select search_case_refresh(array(select id from legal_case))", Object.class);
+        jdbc.queryForObject("select search_link_refresh(array(select id from case_link))", Object.class);
+        assertThat(documents()).as("documents after: " + after).isEqualTo(kept);
+        assertThat(linkDocuments()).as("link documents after: " + after).isEqualTo(keptLinks);
+    }
+
+    /**
+     * V845 refreshes a document only when a searchable column changed. Each searchable column is changed on its own, to and
+     * from NULL, and by multi-row statements that touch some rows and not others (QA review of #101).
+     */
+    @Test
+    void everySearchableColumnToAndFromNullAndMultiRowUpdatesKeepTheDocumentsEqualToARecomputation() {
+        UUID owner = user("Owner");
+        UUID other = user("Other Member");
+        UUID unit = authorityUnit("إدارة العقود");
+        UUID unit2 = authorityUnit("إدارة الشؤون");
+        UUID[] cases = {legalCase(owner, null), legalCase(owner, other), legalCase(owner, null)};
+        for (UUID c : cases) {
+            proceeding(c, "70" + (cases[0].equals(c) ? "1" : cases[1].equals(c) ? "2" : "3"));
+            jdbc.update("insert into case_org_involvement (case_id, org_unit_id, is_primary, created_by, updated_by)"
+                    + " values (?, ?, true, gen_random_uuid(), gen_random_uuid())", c, unit);
+        }
+        assertDocumentsEqualFullRecomputation("setup");
+
+        String[][] caseColumns = {{"reference_no", "'LD-V845-NEW'"}, {"automated_no", "'V845AUTO'"}, {"title", "'عنوان v845'"},
+                {"subject", "'موضوع v845'"}, {"facts", "'وقائع v845'"}, {"chamber", "'دائرة v845'"}};
+        for (String[] column : caseColumns) {
+            jdbc.update("update legal_case set " + column[0] + " = " + column[1] + " where id = ?", cases[0]);
+            assertDocumentsEqualFullRecomputation(column[0] + " set");
+        }
+        // The nullable ones go to NULL and come back.
+        for (String column : new String[] {"automated_no", "subject", "facts", "chamber"}) {
+            jdbc.update("update legal_case set " + column + " = null where id = ?", cases[0]);
+            assertDocumentsEqualFullRecomputation(column + " to null");
+            jdbc.update("update legal_case set " + column + " = 'back-' || ? where id = ?", column, cases[0]);
+            assertDocumentsEqualFullRecomputation(column + " from null");
+        }
+        jdbc.update("update legal_case set alternate_member_id = ? where id = ?", other, cases[0]);
+        assertDocumentsEqualFullRecomputation("alternate member set");
+        jdbc.update("update legal_case set alternate_member_id = null where id = ?", cases[0]);
+        assertDocumentsEqualFullRecomputation("alternate member to null");
+        jdbc.update("update legal_case set primary_member_id = ? where id = ?", other, cases[0]);
+        assertDocumentsEqualFullRecomputation("primary member changed");
+
+        // The involvement: department, section, contact, the unit and its removal, each alone and to NULL.
+        jdbc.update("update case_org_involvement set department_name_snapshot = 'V845 dept' where case_id = ?", cases[1]);
+        assertDocumentsEqualFullRecomputation("department snapshot");
+        jdbc.update("update case_org_involvement set section_name_snapshot = 'V845 section' where case_id = ?", cases[1]);
+        assertDocumentsEqualFullRecomputation("section snapshot");
+        jdbc.update("update case_org_involvement set contact_name = 'V845 contact' where case_id = ?", cases[1]);
+        assertDocumentsEqualFullRecomputation("contact name");
+        jdbc.update("update case_org_involvement set contact_name = null, section_name_snapshot = null,"
+                + " department_name_snapshot = null where case_id = ?", cases[1]);
+        assertDocumentsEqualFullRecomputation("involvement texts to null");
+        jdbc.update("update case_org_involvement set org_unit_id = ? where case_id = ?", unit2, cases[1]);
+        assertDocumentsEqualFullRecomputation("unit changed");
+        jdbc.update("update proceeding set court_case_number = '8801' where case_id = ?", cases[2]);
+        assertDocumentsEqualFullRecomputation("court case number");
+        jdbc.update("update proceeding set court_case_year = 2032 where case_id = ?", cases[2]);
+        assertDocumentsEqualFullRecomputation("court case year");
+
+        // Multi-row statements: one UPDATE that changes a searchable column on some rows and only a non-searchable one on others.
+        jdbc.update("update legal_case set title = case when id = ? then 'bulk-changed' else title end, claimed_amount = 9", cases[0]);
+        assertDocumentsEqualFullRecomputation("bulk case update, one row changes text");
+        jdbc.update("update legal_case set subject = 'bulk subject ' || reference_no");
+        assertDocumentsEqualFullRecomputation("bulk case update, every row changes text");
+        jdbc.update("update proceeding set court_case_number = court_case_number || 'x'");
+        assertDocumentsEqualFullRecomputation("bulk proceeding update");
+        jdbc.update("update case_org_involvement set contact_name = 'bulk contact' where case_id <> ?", cases[2]);
+        assertDocumentsEqualFullRecomputation("bulk involvement update");
+        // A statement that changes nothing searchable leaves every document as it was.
+        var before = documents();
+        jdbc.update("update legal_case set status = status, claimed_amount = 1");
+        jdbc.update("update proceeding set filing_date = filing_date");
+        assertThat(documents()).isEqualTo(before);
+        assertDocumentsEqualFullRecomputation("updates with nothing searchable");
+    }
+
     @Test
     void theSubstringFilterOfTheCaseListFindsEverythingItDidBeforeTheTrigramPrefilter() throws Exception {
         UUID owner = user("Owner");

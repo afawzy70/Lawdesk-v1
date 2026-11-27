@@ -1,0 +1,175 @@
+{
+  "tested_sha": "c0da6910884a7e85ee17e80a78416aac51de216c",
+  "results": [
+    {
+      "id": "migrationIsAppliedOnceAndNoFailedHistoryRemains",
+      "status": "PASS",
+      "failed_assertion": null,
+      "priority": "P1",
+      "story_ids": [
+        "LD-004"
+      ],
+      "traceability": "Proposed LD-004 AC1/3/4",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "database": "fresh isolated PostgreSQL18.6",
+        "migration_version": "1"
+      },
+      "steps": [
+        "Run the matching QA command documented in qa/independent/CONTINUATION-EXECUTION.md and compare this assertion."
+      ],
+      "expected_results": [
+        "Exactly one successful V1 history entry, zero failed entries, PostgreSQL server_version_num in180000..189999."
+      ]
+    },
+    {
+      "id": "databaseRejectsWhitespaceOnlyVersionLikeBeanValidation(String)[1]",
+      "status": "FAIL",
+      "failed_assertion": "[Database accepted whitespace-only version; actual persisted bytes] \nExpecting empty but was: {\"length\"=1, \"utf8_hex\"=\"09\"}",
+      "priority": "P1",
+      "story_ids": [
+        "LD-004"
+      ],
+      "traceability": "Proposed LD-004 AC1/3/4",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "version": "\t",
+        "utf8_hex": "09"
+      },
+      "steps": [
+        "Run the matching QA command documented in qa/independent/CONTINUATION-EXECUTION.md and compare this assertion."
+      ],
+      "expected_results": [
+        "Raw JDBC INSERT is rejected with DataIntegrityViolationException; no whitespace-only row persists."
+      ]
+    },
+    {
+      "id": "databaseRejectsWhitespaceOnlyVersionLikeBeanValidation(String)[2]",
+      "status": "FAIL",
+      "failed_assertion": "[Database accepted whitespace-only version; actual persisted bytes] \nExpecting empty but was: {\"length\"=1, \"utf8_hex\"=\"0a\"}",
+      "priority": "P1",
+      "story_ids": [
+        "LD-004"
+      ],
+      "traceability": "Proposed LD-004 AC1/3/4",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "version": "\n",
+        "utf8_hex": "0a"
+      },
+      "steps": [
+        "Run the matching QA command documented in qa/independent/CONTINUATION-EXECUTION.md and compare this assertion."
+      ],
+      "expected_results": [
+        "Raw JDBC INSERT is rejected with DataIntegrityViolationException; no whitespace-only row persists."
+      ]
+    },
+    {
+      "id": "databaseRejectsWhitespaceOnlyVersionLikeBeanValidation(String)[3]",
+      "status": "FAIL",
+      "failed_assertion": "[Database accepted whitespace-only version; actual persisted bytes] \nExpecting empty but was: {\"length\"=2, \"utf8_hex\"=\"0d0a\"}",
+      "priority": "P1",
+      "story_ids": [
+        "LD-004"
+      ],
+      "traceability": "Proposed LD-004 AC1/3/4",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "version": "\r\n",
+        "utf8_hex": "0d0a"
+      },
+      "steps": [
+        "Run the matching QA command documented in qa/independent/CONTINUATION-EXECUTION.md and compare this assertion."
+      ],
+      "expected_results": [
+        "Raw JDBC INSERT is rejected with DataIntegrityViolationException; no whitespace-only row persists."
+      ]
+    },
+    {
+      "id": "databaseRejectsWhitespaceOnlyVersionLikeBeanValidation(String)[4]",
+      "status": "FAIL",
+      "failed_assertion": "[Database accepted whitespace-only version; actual persisted bytes] \nExpecting empty but was: {\"length\"=1, \"utf8_hex\"=\"e28083\"}",
+      "priority": "P1",
+      "story_ids": [
+        "LD-004"
+      ],
+      "traceability": "Proposed LD-004 AC1/3/4",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "version": " ",
+        "utf8_hex": "e28083"
+      },
+      "steps": [
+        "Run the matching QA command documented in qa/independent/CONTINUATION-EXECUTION.md and compare this assertion."
+      ],
+      "expected_results": [
+        "Raw JDBC INSERT is rejected with DataIntegrityViolationException; no whitespace-only row persists."
+      ]
+    },
+    {
+      "id": "rejectedSecondWriteRollsBackFirstWrite",
+      "status": "PASS",
+      "failed_assertion": null,
+      "priority": "P1",
+      "story_ids": [
+        "LD-004"
+      ],
+      "traceability": "Proposed LD-004 AC1/3/4",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "first_version": "QA-INDEPENDENT-ATOMIC",
+        "second_version": null
+      },
+      "steps": [
+        "Run the matching QA command documented in qa/independent/CONTINUATION-EXECUTION.md and compare this assertion."
+      ],
+      "expected_results": [
+        "Second insert violates NOT NULL and whole transaction rolls back; count of first synthetic version stays0."
+      ]
+    },
+    {
+      "id": "sixtyFourCharactersAcceptedAndSixtyFiveRejected",
+      "status": "PASS",
+      "failed_assertion": null,
+      "priority": "P1",
+      "story_ids": [
+        "LD-004"
+      ],
+      "traceability": "Proposed LD-004 AC1/3/4",
+      "preconditions": [
+        "Exact tested candidate SHA; disposable QA fixtures; approved execution scope."
+      ],
+      "test_data": {
+        "version_lengths": [
+          64,
+          65
+        ],
+        "prefix": "QA-INDEPENDENT-"
+      },
+      "steps": [
+        "Run the matching QA command documented in qa/independent/CONTINUATION-EXECUTION.md and compare this assertion."
+      ],
+      "expected_results": [
+        "64-character value persists exactly once;65-character value rejected by database."
+      ]
+    }
+  ],
+  "counts": {
+    "PASS": 3,
+    "FAIL": 4,
+    "BLOCKED": 0
+  },
+  "note": "Same seven tests; actual SQL length and UTF8 hex added, not seven additional tests."
+}

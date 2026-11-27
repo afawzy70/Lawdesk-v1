@@ -1,0 +1,21 @@
+app.qa.invalid {
+ respond "QA app"
+}
+# BEGIN lawdesk-staging (managed by LawDesk deploy/proxy/attach.sh; remove with detach.sh)
+lawdesk.qa.invalid {
+	route {
+		header {
+			Strict-Transport-Security "max-age=31536000"
+			X-Robots-Tag "noindex, nofollow"
+			-Server
+		}
+		# Only health probes of the actuator are public; the web container enforces the same.
+		@lawdesk_internal {
+			path /actuator /actuator/*
+			not path /actuator/health /actuator/health/liveness /actuator/health/readiness
+		}
+		respond @lawdesk_internal 404
+		reverse_proxy lawdesk-web:8080
+	}
+}
+# END lawdesk-staging

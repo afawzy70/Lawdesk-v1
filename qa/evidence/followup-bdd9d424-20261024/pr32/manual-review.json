@@ -1,0 +1,39 @@
+{
+  "tested_sha": "63bc2d8320ab50b343a0dd89fb60d0b09c9e9991",
+  "scope": "Independent visual review of captured live local browser evidence, not developer tests",
+  "counts": {
+    "PASS": 0,
+    "FAIL": 1,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "DASHBOARD-DATA-ORIGIN-LABEL",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P3",
+      "preconditions": [
+        "Independent local live browser/API/PostgreSQL fixtures; six stored QA cases"
+      ],
+      "test_data": {
+        "cases": 6,
+        "open": 4,
+        "closed": 2
+      },
+      "steps": [
+        "Open dashboard in English and Arabic",
+        "Compare dashboard data-origin introduction and real API counts with the shared UAT banner",
+        "Inspect saved dashboard screenshots and the exact-head translation keys"
+      ],
+      "expected_results": "UAT warning remains but does not label real database-derived statistics as sample figures",
+      "actual": "Banner says dashboard shows sample figures while page introduction says figures are computed from stored records; six real fixture cases rendered",
+      "status": "FAIL",
+      "evidence": [
+        "browser/dashboard-en-1366.png",
+        "browser/dashboard-ar-1366.png"
+      ]
+    }
+  ]
+}

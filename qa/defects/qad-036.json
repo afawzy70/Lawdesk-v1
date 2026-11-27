@@ -1,0 +1,84 @@
+{
+  "reported_utc": "2026-10-24T18:09:37.823607+00:00",
+  "owner": "Claude implementation; independent QA verification",
+  "environment": "Canonical candidate archive; real Java21 jar and disposable PostgreSQL18.6 on loopback. No customer records or deployment.",
+  "no_customer_data": true,
+  "id": "QAD-036",
+  "title": "Arabic PDF neutral expressions reverse leading operators",
+  "status": "FIX_VERIFIED_UAT_VISUAL",
+  "priority": "P3",
+  "severity": "S3",
+  "story_ids": [
+    "LD-034"
+  ],
+  "affected": [
+    "5762bee77347e5fba3fe91316ce41faccdc1d11d"
+  ],
+  "preconditions": [
+    "REPORT_EXPORT; synthetic cases with neutral expression titles"
+  ],
+  "test_data": {
+    "titles": [
+      "=1+1",
+      "-1+1"
+    ],
+    "lang": "ar"
+  },
+  "steps": [
+    "Export cases to PDF in Arabic",
+    "Render exported artifact and compare title with stored value and English PDF"
+  ],
+  "expected": "QA fidelity oracle preserves logical direction of neutral numeric expressions",
+  "actual": "Arabic visual/extracted =1+1 becomes1+1=; -1+1 becomes1+1-. English preserves markers.",
+  "contract_note": "Implementation explicitly uses RTL fallback for text without a strong directional character. Basic Arabic shaping and RTL table order pass. This is a product-fidelity clarification, not proven formula execution or a security vulnerability.",
+  "evidence": [
+    "qa/evidence/continuous-phase56-20261024/current/pr41-formats-final/artifacts/ar-page1.png",
+    "qa/evidence/continuous-phase56-20261024/current/pr41-formats-final/artifacts/en-page1.png",
+    "qa/evidence/continuous-phase56-20261024/current/pr41-formats-final/results.json"
+  ],
+  "fix_guidance": "Agree intended neutral-expression direction or preserve semantic markers in rendering; keep original FAIL until resolved. Nonblocking for ordinary synthetic Dev/UAT iteration.",
+  "retests": [
+    {
+      "utc": "2026-10-25T09:41:46.243707+00:00",
+      "previous_status": "ACCEPTANCE_CLARIFICATION_OPEN",
+      "status": "FIX_VERIFIED_UAT",
+      "tested_sha": "b849b1cabcbebd4df058e4ab989d1e8c1a562899",
+      "note": "Neutral expression =1+1 preserved in actual Arabic/English deployed PDF; rendered Arabic shaping/RTL visually inspected",
+      "evidence": [
+        "qa/evidence/phase56-acceptance-20261025/current-formats/results.json",
+        "qa/evidence/phase56-acceptance-20261025/uat-artifacts-verified/results.json"
+      ]
+    },
+    {
+      "utc": "2026-10-25T12:38:18.543317+00:00",
+      "previous_status": "FIX_VERIFIED_UAT",
+      "status": "FIX_VERIFIED_UAT",
+      "tested_sha": "0338cac0fca07eb0ce06eb8f2b45a54dd0386f7e",
+      "note": "Fresh deployed Arabic/English PDF preserves =1+1; Arabic visual inspection and font checks",
+      "evidence": [
+        "qa/evidence/final-phase2-6-20261025/uat-artifacts/results.json"
+      ]
+    },
+    {
+      "utc": "2026-10-25T13:54:17.408746+00:00",
+      "previous_status": "FIX_VERIFIED_UAT",
+      "status": "FIX_VERIFIED_UAT_VISUAL",
+      "tested_sha": "2d07a222189f82ddeacf74fdcd28165980cea85d",
+      "note": "New actual Arabic/English PDFs manually inspected, including3mixed Arabic/Latin/numeric titles,2pages perlanguage; neutral expression and RTL table correct.",
+      "evidence": [
+        "qa/evidence/pr54-retest-20261025/pdf-visual/results.json"
+      ]
+    }
+  ],
+  "latest_verification": {
+    "utc": "2026-10-25T09:41:46.243707+00:00",
+    "previous_status": "ACCEPTANCE_CLARIFICATION_OPEN",
+    "status": "FIX_VERIFIED_UAT",
+    "tested_sha": "b849b1cabcbebd4df058e4ab989d1e8c1a562899",
+    "note": "Neutral expression =1+1 preserved in actual Arabic/English deployed PDF; rendered Arabic shaping/RTL visually inspected",
+    "evidence": [
+      "qa/evidence/phase56-acceptance-20261025/current-formats/results.json",
+      "qa/evidence/phase56-acceptance-20261025/uat-artifacts-verified/results.json"
+    ]
+  }
+}

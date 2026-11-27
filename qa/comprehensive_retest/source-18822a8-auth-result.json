@@ -1,0 +1,161 @@
+{
+  "applicationSourceSha": "18822a83bff8e2a38b83db4370674a9f69919d81",
+  "environment": "isolated embedded PostgreSQL and local HTTP/1.1 + h2c; no UAT account mutations",
+  "command": "mvn test -Dtest=CasePageConcurrencyTest,CasePageConcurrencyHttp2Test,PoolExhaustionTest,DatabaseUnavailableTest,SessionRevocationTest,RolePermissionsTakeEffectTest,CaseVisibilityApiTest,CaseBoundSurfacesAccessTest",
+  "suiteResults": {
+    "CasePageConcurrencyTest": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "DatabaseUnavailableTest": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "PoolExhaustionTest": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "CaseBoundSurfacesAccessTest": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "CasePageConcurrencyHttp2Test": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "SessionRevocationTest": {
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "RolePermissionsTakeEffectTest": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "CaseVisibilityApiTest": {
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "CaseBoundEndpointsAccessTest": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "PartyDirectoryAndDefectsTest": {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "PermissionContractTest": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "totals": {
+    "tests": 46,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "initialSandboxAttempt": "33 errors were environment-only: local PostgreSQL socket bind Operation not permitted; rerun outside restrictive sandbox passed",
+  "qaInterpretation": "Source regression only; UAT seven-role matrix and admin account remain unverified",
+  "caseBoundWalks": [
+    {
+      "checked": 168,
+      "unseeded": "[]",
+      "unresolved": "[]",
+      "validCustomBodies": 13
+    },
+    {
+      "checked": 168,
+      "unseeded": "[]",
+      "unresolved": "[]",
+      "validCustomBodies": 13
+    },
+    {
+      "checked": 168,
+      "unseeded": "[]",
+      "unresolved": "[]",
+      "validCustomBodies": 0
+    }
+  ],
+  "scope": "Targeted source regression; 46 tests with embedded PostgreSQL, including 3 case-bound API walks and 13 valid custom bodies in each of two mutation walks; UAT admin/seven-role acceptance remains open",
+  "frontendRegression": {
+    "environment": "isolated Vitest, TZ=America/Los_Angeles",
+    "suites": [
+      "src/features/cases/CaseDetailsPage.test.tsx",
+      "src/features/cases/CaseMobileLayout.test.tsx",
+      "src/features/operations/kuwaitBoundary.test.ts"
+    ],
+    "tests": 66,
+    "passed": 66,
+    "failed": 0,
+    "note": "Case page/mobile layout and pinned Kuwait boundary tests; not a live UAT midnight observation"
+  },
+  "databaseAndKuwaitRegression": {
+    "environment": "isolated embedded PostgreSQL, restricted app role, pinned clock; no UAT clock change",
+    "suiteResults": {
+      "RestrictedRoleApplicationTest": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "DatabaseMigrationTest": {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "NoPublicSchemaReferenceTest": {
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "KuwaitBoundaryDeadlinesTest": {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "KuwaitBoundaryInstantsTest": {
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "KuwaitBoundaryReportsTest": {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "totals": {
+      "tests": 35,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  }
+}
