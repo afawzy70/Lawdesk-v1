@@ -2,6 +2,8 @@
 
 Scope: the six findings still open after Round 3 — **QA-R6-M0-001, -002, -006 (P0)** and **-004, -005, -009 (P1)**. Nothing here is built; there is no application code, migration or merge. Where this appendix contradicts `LD-DOC-R6-05`, **this appendix governs** and the superseded passage of 05 carries a pointer. Findings are not closed by the author; the ten findings already CLOSED by Codex are not reopened (§7).
 
+**Round 5 (`LD-DOC-R6-08` governs).** Independent QA Round 4 found four P1 defects in this appendix and its probe. Superseded and kept only for traceability: the class-C `SELECT` of `lawdesk_legal` (§2.2, §2.4); the Tier B function list and single-call operator functions (§2.7, §2.8); §2.10 rows S1–S4; the guard discriminator (§2.5) and invariant I-4 (§3.2); §5.3 steps 4–6, §5.4 as far as the case INSERT, the retry row of §5.6, and `r6_complete_referral`. Everything else stands.
+
 ## 0. How the claims are labelled, and what was actually run
 
 | Label | Meaning |
@@ -37,7 +39,7 @@ The probe is **a reduced model** of the proposed R6 objects (names and shapes fo
 | `lawdesk_owner` | yes (migrate job only) | **schema, every table, sequence, function, trigger** | all on its own objects; no superuser/CREATEROLE/CREATEDB/REPLICATION/BYPASSRLS | `db_owner_password`, mounted **only in the migrate job** | Flyway; owner of all `SECURITY DEFINER` functions |
 | `lawdesk_dml` | no (group) | nothing | `USAGE` on schema; `SELECT/INSERT/UPDATE/DELETE` on legacy tables; `USAGE/SELECT` on sequences; **no** `TRIGGER/TRUNCATE/REFERENCES/CREATE`; **no** `TEMPORARY` | — | membership group |
 | `lawdesk_app` | yes | nothing | member of `lawdesk_dml`; no EXECUTE on any R6 function; no SELECT on class-C tables (§2.4) | `db_app_password` (backend container) | normal runtime pool; **the previous release** |
-| `lawdesk_legal` | yes | nothing | member of `lawdesk_dml`; `EXECUTE` on **Tier A** functions; `SELECT` on class-C tables | `db_legal_password` (backend container) | the **legal pool**: every R6 write and every complaint read/write |
+| `lawdesk_legal` | yes | nothing | member of `lawdesk_dml`; `EXECUTE` on **Tier A** functions; ~~`SELECT` on class-C tables~~ **none (08 §2)** | `db_legal_password` (backend container) | the **legal pool**: every R6 write and every complaint read/write |
 | `lawdesk_operator` | no (group) | nothing | `EXECUTE` on **Tier B** functions only; no table privilege | — | membership group |
 | `op_<person>` | yes, one per person | nothing | member of `lawdesk_operator` | host operator store (mode 0600), **never in a container** | the two-person operator procedure (§2.7) |
 
@@ -53,7 +55,7 @@ Memberships and attributes are fixed by `deploy/postgres/roles.sql` (the success
 |---|---|---|---|---|
 | L legacy | every table that exists on develop and the R5/other-workstream tables | SELECT/INSERT/UPDATE/DELETE, **except** the guarded columns of §3.3 and §5.5 | same | legacy services |
 | R R6-protected | `legal_approval`, `legal_authority_grant`, `legal_authority_delegation`, `owner_policy`, `sensitive_permission`, bootstrap tables, `security_event` chain, `deadline_calculation_evidence`, `judgment_procedural`, `judgment_litigant`, `judgment_party_deadline`, `judgment_appeal`, `proceeding_joinder`, `judgment_finality`, `appeal_decision`, history tables, `complaint_case_link` | **SELECT only** (not on class C) | SELECT only | owner-owned functions only (Tier A or B) |
-| C confidential | `complaint*`, `complaint_case_link`, `referral_draft`, complaint documents/search rows | **nothing, not even SELECT** | SELECT | owner-owned functions only |
+| C confidential | `complaint*`, `complaint_case_link`, `referral_draft`, complaint documents/search rows | **nothing, not even SELECT** | ~~SELECT~~ **nothing (08 §2)** | owner-owned functions only |
 
 Reasoning: if *every* R6 write goes through a function, then a stolen or injected runtime credential can neither forge nor tamper with R6 data, and the **legal pool** is the only door. **VERIFIED-PG18 (`30`, `31`):** as `lawdesk_app` and as `lawdesk_legal`, `INSERT/UPDATE/DELETE` on `legal_approval`, `legal_authority_grant`, `owner_policy`, `deadline_calculation_evidence`, `complaint_case_link` all answer `42501`; `SELECT` on `complaint` and `complaint_case_link` answers `42501` for `lawdesk_app`.
 
@@ -100,6 +102,7 @@ The database cannot identify the human behind a `lawdesk_legal` connection; it c
 * **Recovery.** Backup and restore keep ownership (`pg_dump -Fc` records owners and ACLs; restore as superuser into a database where the roles already exist), then **the privilege audit of §2.3 runs before the application starts** (T-DB-12). The old `app-role.sql` that an older release carries only does `CREATE SCHEMA IF NOT EXISTS` (a no-op on an existing schema), `ALTER ROLE lawdesk_app …` and `GRANT CONNECT, TEMPORARY`; it neither reverts ownership nor removes a grant, but it **re-grants `TEMPORARY`**, harmless to pinned functions (§2.6.3) and corrected by the next audit.
 
 ### 2.10 What is and is not protected if a credential is compromised
+**[Rows S1–S4 superseded by 08 §5: this table understated what a legal credential can read.]**
 | Scenario | Attacker can | Attacker cannot | Residual / mitigation |
 |---|---|---|---|
 | **S1** runtime credential `lawdesk_app` stolen, or SQL injection under it (**VERIFIED-PG18**) | read and write legacy tables, subject to the guards of §3.3/§5.5 | alter/disable/replace any trigger, function, table or default privilege; write any class-R or class-C table; read class C; execute any Tier A/B function; declassify a linked case; change a protected judgment/deadline column; create a role | none beyond legacy data integrity; digests unchanged in `30`/`34` |

@@ -58,3 +58,16 @@ Codex Round 3 closed QA-R6-M0-013; ten of sixteen findings are CLOSED (003, 007,
 | QA-R6-M0-009 | P1 | The link trigger required a status that is set after the link; restricted-case insert path unspecified | 07 §5.2 deferred invariant R-1 at COMMIT, §5.3 eight-step sequence, §5.4 `RestrictedReferralAdapter` over `IntakeService`/`CaseRepository` overloads on the legal pool, §5.6 failure/duplicate/concurrency table; D-20, D-25, `P-MANIFEST`, `P-DECLASS` unchanged and OFF | `40`–`45`, `60` S4 | T-REF-1…10 | submitted for retest |
 
 Regression statement (Round 4): the 55 requirements, 25 decisions (same ids; D-09 text extended, still OWNER-PENDING) and nine gates are unchanged; source fidelity untouched (`source-extract.txt` and `verify-source.txt` not edited); the ten CLOSED findings are not reopened but **011, 014, 015** rest partly on statements that 07 revises (previous-release behaviour, authority model, evidence immutability) and are listed in 07 §7 for re-check. Test ids rose from 222 to 273 (no valid test deleted; the wording of T-DATA-5, T-DATA-6, T-GATE-3, T-GATE-7, T-SEC-16, T-CONF-14 was corrected). R5 isolation: no R5 file touched; R5's migrations keep working through default privileges (02 §4).
+
+## Round 5 — four P1 findings open after `de23b53` (independent QA `ROUND-4.md`; correction in `LD-DOC-R6-08`)
+
+Round 4 closed 004 and 005; twelve of sixteen findings are closed. **The author closes none of the four below**; closure belongs to the independent QA session. Evidence: `docs/evidence/DOC-R6-M0/pg18-probe-r5/`.
+
+| ID | Severity | What QA found | Correction (08 section) | Tests added | State |
+|---|---|---|---|---|---|
+| QA-R6-M0-001 | P1 | One operator alone activated a policy, granted an authority and recorded a gate approval | §1: every operator executor takes only a confirmed request id; kind, payload, hash, persons, state, expiry and single use checked in the function; immutable requests; `NOLOGIN` group; operator list shows payload and hash | T-DB-14 | submitted for retest |
+| QA-R6-M0-002 | P1 | The legal credential read every complaint table; the design did not say so | §2: no application role holds `SELECT` on class C; owner-owned read functions with the visibility rule; residual (caller-supplied actor id) stated; D-09 pending | T-CONF-19, T-CONF-20 | submitted for retest |
+| QA-R6-M0-006 | P1 | The runtime credential rewrote an approved deadline by changing its source first | §3: guard decides from OLD, NEW and associations with a column allow-list; other guards reviewed; developer finding DEV-R5-1 (referential action ran as owner) corrected | T-DL-11, T-DB-15 | submitted for retest |
+| QA-R6-M0-009 | P1 | A pre-existing case was linked after forging `created_at` | §4: the writer creates the RESTRICTED case itself and accepts no case id; the old function is removed | T-REF-11, T-REF-12 | submitted for retest |
+
+Regression statement (Round 5): 55 requirements, 25 decisions (same ids; D-09 text extended, still OWNER-PENDING), nine legal gates, source files and earlier test ids unchanged. Register 273 → 280 test ids (seven added; wording of T-DB-4, T-CONF-18, T-REF-1 corrected; none deleted). The twelve closed findings are not reopened; 004 and 005 should be re-checked only where 08 touches them (guard and writer changes). The Round-4 probe directory is unedited.

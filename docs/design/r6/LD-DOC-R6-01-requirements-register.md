@@ -238,7 +238,7 @@ Generated from `tools/docs/r6_register_data.py` by `tools/docs/r6_register_build
 | `T-DB-1` | ownership audit: schema, every table, sequence and function owned by lawdesk_owner; no object owned by a runtime, legal or operator role; none of them superuser/CREATEROLE/CREATEDB/REPLICATION/BYPASSRLS, none a member of the owner role, none holds CREATE on the schema or database |
 | `T-DB-2` | runtime and legal roles: ALTER TABLE (incl. DISABLE TRIGGER), DROP TRIGGER/TABLE/FUNCTION, CREATE TRIGGER/TABLE/OR REPLACE FUNCTION, TRUNCATE on every protected object refused; definitions, trigger flags and function bodies unchanged (digest) |
 | `T-DB-3` | SET session_replication_role, SET ROLE owner, GRANT owner role, ALTER ROLE, CREATE ROLE refused for the runtime, legal and operator roles |
-| `T-DB-4` | runtime and legal roles: INSERT/UPDATE/DELETE on every class-R table refused; class-C tables unreadable by the runtime role; protected digests unchanged |
+| `T-DB-4` | runtime and legal roles: INSERT/UPDATE/DELETE on every class-R table refused; class-C tables unreadable by every application role; protected digests unchanged |
 | `T-DB-5` | function privilege matrix: runtime role executes no Tier A or Tier B function; legal role executes no Tier B function; operator executes no Tier A function; PUBLIC executes none |
 | `T-DB-6` | SECURITY DEFINER catalog audit: owner, no PUBLIC EXECUTE, pinned search_path with pg_temp last, no dynamic SQL, every object schema-qualified; the audit fails the build and the deploy on drift |
 | `T-DB-7` | temp-schema shadowing against Tier A/B functions (TEMPORARY re-granted for the test) cannot change a result |
@@ -248,10 +248,14 @@ Generated from `tools/docs/r6_register_data.py` by `tools/docs/r6_register_build
 | `T-DB-11` | credential containment: legal role set NOLOGIN and its sessions terminated; the application keeps serving legacy operations, every R6 write fails closed, re-enabling restores service; no data change |
 | `T-DB-12` | deploy runs the privilege audit after migrations and after a restore; a deliberate drift fails the deploy before smoke |
 | `T-DB-13` | compose test: the backend container holds neither the owner nor an operator secret; the migrate job holds only the owner secret; operator secrets live outside every container |
+| `T-DB-14` | two-person operator operations: every operator executor takes only a request id; kind, payload, hash, identities, confirmation, expiry and single use are checked inside the function; single-operator, replay, post-confirmation change and concurrent execution are refused for every kind including bootstrap and revocation |
+| `T-DB-15` | no referential action can write a guarded table as a writer: the set of cascading or SET NULL/DEFAULT keys into guarded tables is pinned and each is refused on a protected row |
 | `T-SEC-17` | operator two-party: a request opened by one operator identity is confirmed only by a different one (session_user); same identity, non-operator, runtime and legal roles refused |
 | `T-SEC-18` | bootstrap token: stored as SHA-256, expires, attempt-limited, single-use; the runtime role cannot read the token table |
 | `T-SEC-19` | every Tier B action appends a hash-chained security_event; a verify script detects an altered or removed row against the exported chain head |
-| `T-CONF-18` | the runtime role cannot read complaint, link or referral-draft tables; the only exposed fact is the boolean guard helper, which is called only from the confidentiality guard |
+| `T-CONF-18` | neither the runtime nor the legal role can SELECT complaint, access, link or referral-draft tables; the runtime role's only exposed fact is the boolean guard helper |
+| `T-CONF-19` | complaint read functions: visibility matrix (grant, researcher, access list, unit scope, disabled, revoked); hidden equals unknown; not executable by the runtime or operator roles |
+| `T-CONF-20` | the application passes only the authenticated principal id to the complaint functions: no request input can choose it (API test and architecture rule) |
 | `T-DL-1` | draft transaction: gates closed, no approval: creates a party-deadline draft only; no deadline row, no evidence, no pointer change; deadline/judgment digests unchanged |
 | `T-DL-2` | activation succeeds in one transaction: exactly one deadline row (APPROVED), one evidence row, party row EFFECTIVE, litigant link, pointer set only for the CITRA litigant; statement order as in 07 §B.4 |
 | `T-DL-3` | activation refusals with stable codes and zero partial writes: gate inactive, setting version not applicable, approver without grant or scope, preparer = approver, judgment final, litigant of another judgment, already effective, case closed |
@@ -262,6 +266,7 @@ Generated from `tools/docs/r6_register_data.py` by `tools/docs/r6_register_build
 | `T-DL-8` | adoption of a legacy deadline as a litigant's deadline: reason, evidence and audit; the legacy row is unchanged except its link |
 | `T-DL-9` | recalculation: the old deadline becomes SUPERSEDED and stays, new evidence is appended, one live deadline per litigant; alerts keyed to the new version |
 | `T-DL-10` | completing a party deadline through the filing/non-appeal writer; the legacy status endpoint is refused for it |
+| `T-DL-11` | deadline guard decides from OLD and NEW and from associations: source rewrite, one and several statements, pointer-only, party-only and evidence-only protection, every column outside the allow-list, races with registration and adoption |
 | `T-DATA-15` | litigant keys: case party of another case, wrong role for the kind, duplicate party, second CITRA litigant: each refused by a constraint |
 | `T-DATA-16` | party-deadline keys: litigant of another judgment, deadline of another case, second live row for a litigant: each refused by a constraint |
 | `T-DATA-17` | appeal keys: litigant of another judgment, child proceeding of another case or attacking another first-instance proceeding, appeal type not matching the child stage: each refused by a constraint |
@@ -275,7 +280,7 @@ Generated from `tools/docs/r6_register_data.py` by `tools/docs/r6_register_build
 | `T-LOCK-5` | ProceedingService.update (child then parent) vs appeal filing and vs finality: no deadlock; filing-date rules re-evaluated under the lock |
 | `T-LOCK-6` | case closure vs R6 writes in both orders: a write started first completes and closure waits; a write after closure is refused with CASE_READ_ONLY |
 | `T-LOCK-7` | 100 randomised mixed operations on one judgment tree with 8 connections: zero 40P01 |
-| `T-REF-1` | completion sequence: statement capture shows one INSERT of the case with confidentiality RESTRICTED, no later UPDATE of confidentiality, then transfers, link, status, in the order of 07 §D.4 |
+| `T-REF-1` | completion sequence: statement capture shows one INSERT of the case with confidentiality RESTRICTED, no later UPDATE of confidentiality, then transfers, link, status, by the writer that creates the case itself (08 §4) |
 | `T-REF-2` | incomplete data: the referral stays a draft with the list of missing fields; no case, no link, status unchanged, case-reference counter unchanged |
 | `T-REF-3` | P-MANIFEST off, D-25 unapproved or manifest unapproved: refused before any write |
 | `T-REF-4` | fault injection after each step (lock, case insert, parties, facts, documents, link, status): everything rolls back including the reference number (counter is gapless) |
@@ -285,3 +290,5 @@ Generated from `tools/docs/r6_register_data.py` by `tools/docs/r6_register_build
 | `T-REF-8` | deferred invariant R-1: a commit with a link and no REFERRED status, or REFERRED and no link, fails; both orders of the two writes inside the writer pass |
 | `T-REF-9` | after completion the old APIs cannot change the case: confidentiality, grants and assignment refused or invisible as in 05 §B.5 |
 | `T-REF-10` | adapter parity: the same validation, duplicate check, numbering, parties, first-instance record, assignment, timeline and audit as the ordinary intake; a duplicate suspicion keeps the referral a draft |
+| `T-REF-11` | reference numbers of referral and ordinary intake come from one counter with one format, gapless under rollback and concurrency |
+| `T-REF-12` | no application-executable function accepts a case identifier and writes the complaint link; a pre-existing case with forged timestamps stays unlinked |
