@@ -155,6 +155,7 @@ def main():
     ap.add_argument("--sha", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--map")
+    ap.add_argument("--portal-commit", default="", help="commit of the portal branch that produced this build (recorded in build.json)")
     ap.add_argument("--audience", choices=["internal", "public"], default="internal")
     a = ap.parse_args()
     if not re.fullmatch(r"[0-9a-f]{40}", a.sha):
@@ -213,9 +214,8 @@ def main():
     if a.map and Path(a.map).is_file():
         shutil.copy(a.map, out / "map" / "lawdesk-map.html")
         mapfile = "lawdesk-map.html"
-    mshell = ('<h1>خريطة المعمارية (Floorplan)</h1><p>هذه خريطة تفاعلية مولَّدة من الكود الفعلي بإضافة Floorplan الرسمية. أسماء الأجزاء ووصفها بالعربية. أزرار الخريطة نفسها بالإنجليزية لأن الإضافة لا تدعم العربية؛ دليلها بالعربية أدناه.</p>'
-              '<div class="card"><b>دليل الأزرار:</b> <b>Screens</b> = ابدأ من شاشة تعرفها · <b>Flows</b> = مسارات إرشادية · <b>Filters</b> = إظهار التفاصيل التقنية · <b>Search</b> = بحث · انقر مرتين على أي جزء لتفتحه. '
-              'خاصية <b>Ask</b> (سؤال الخريطة) معطّلة في هذا الموقع المنشور لأنها تحتاج Claude Code على جهاز المشغّل؛ استبدلناها بمسارات مكتوبة مسبقاً في صفحات الميزات.</div>'
+    mshell = ('<h1>خريطة المعمارية (Floorplan)</h1><p>خريطة تفاعلية مولَّدة من الكود الفعلي بإضافة Floorplan الرسمية، وواجهتها معرَّبة بالكامل. اضغط على أي جزء لترى تفاصيله، وانقر مرتين لتفتحه، واستخدم «الشاشات» لتبدأ من شاشة تعرفها و«المسارات» لتتبّع مسارًا كاملًا.</p>'
+              '<div class="notice">خاصية «اسأل» في Floorplan الأصلية معطّلة في هذا الموقع المنشور لأنها تحتاج Claude Code على جهاز المشغّل؛ وبدلًا منها صفحات الميزات تحوي مسارات مكتوبة مسبقًا. التعريب طبقة مستقلة (<code>portal/localization</code>) تترجم نصوص الواجهة دون تعديل كود Floorplan.</div>'
               + (f'<iframe class="map" src="{mapfile}" title="خريطة LawDesk التفاعلية" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe><p><a href="{mapfile}">فتح الخريطة في صفحة كاملة</a></p>' if mapfile else '<div class="notice">لم تُضمَّن الخريطة في هذا البناء.</div>'))
     (out / "map" / "index.html").write_text(page("خريطة المعمارية", mshell, cats, "", "../", [("الرئيسية", "index.html"), ("الخريطة", None)], a.sha), encoding="utf-8")
     (out / "search-index.json").write_text(json.dumps(index, ensure_ascii=False), encoding="utf-8")
@@ -225,7 +225,7 @@ def main():
             h.update(p.relative_to(out).as_posix().encode())
             h.update(p.read_bytes())
     fp = (REPO / "portal/floorplan-src/PLUGIN-VERSION.txt")
-    meta = {"source_sha": a.sha, "built_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "audience": a.audience,
+    meta = {"source_sha": a.sha, "portal_commit": a.portal_commit, "built_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "audience": a.audience,
             "features": len(feats), "planned": len(planned), "content_sha256": h.hexdigest(),
             "floorplan_plugin": fp.read_text().strip() if fp.exists() else "unknown"}
     (out / "build.json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")

@@ -76,6 +76,19 @@ for (const [label, vp] of [['desktop', { width: 1280, height: 800 }], ['iphone',
   await frame.waitForSelector('svg, canvas, .card, .node', { timeout: 20000 }).catch(() => {});
   const mapText = await frame.evaluate(() => document.body.innerText.length).catch(() => 0);
   check(`${label}: Floorplan map renders inside the shell`, mapText > 200, String(mapText));
+  // Full Arabic localization of the viewer: open every menu, walk the tour, search, select cards; nothing English may remain.
+  const act = async (fn) => { try { await fn(); } catch { /* an absent control fails the checks below */ } await page.waitForTimeout(200); };
+  for (let i = 0; i < 6; i++) await act(() => frame.evaluate(() => { const b = [...document.querySelectorAll('button')].find((x) => /^(التالي)$/.test(x.textContent.trim())); b && b.click(); }));
+  for (const id of ['#screens-btn', '#flows-btn', '#filters-btn', '#tour-btn', '#search-btn', '#theme-toggle', '#btn-panel']) {
+    await act(() => frame.evaluate((sel) => document.querySelector(sel) && document.querySelector(sel).click(), id));
+    await act(() => frame.evaluate(() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))));
+  }
+  await act(() => frame.evaluate(() => { document.querySelectorAll('.card, [data-id]').forEach((e, i) => { if (i < 8) { e.click(); e.dispatchEvent(new MouseEvent('dblclick', { bubbles: true })); } }); }));
+  const info = await frame.evaluate(() => ({ dir: document.documentElement.dir, lang: document.documentElement.lang, left: Object.keys(window.__FP_UNTRANSLATED || {}), flows: document.querySelectorAll('#flowmenu .r, #flowmenu button').length,
+    visibleLatinButtons: [...document.querySelectorAll('button, header span')].filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && /^[A-Za-z][A-Za-z ]{3,}$/.test((e.textContent || '').trim()) && !/Floorplan|PostgreSQL/.test(e.textContent); }).map((e) => e.textContent.trim()) }));
+  check(`${label}: viewer is lang=ar dir=rtl`, info.dir === 'rtl' && info.lang === 'ar', JSON.stringify(info));
+  check(`${label}: viewer shows no untranslated English`, info.left.length === 0 && info.visibleLatinButtons.length === 0, JSON.stringify([info.left, info.visibleLatinButtons]).slice(0, 400));
+  check(`${label}: viewer offers Arabic guided flows`, info.flows >= 3, String(info.flows));
   check(`${label}: no external requests`, external.length === 0, external.join(' '));
   check(`${label}: no unexpected console errors`, errors.filter((e) => !/Failed to load resource.*404/.test(e)).length === 0, errors.slice(0, 3).join(' | '));
   if (csp.length) console.log(`INFO ${label}: CSP console messages: ${csp.length} e.g. ${csp[0]}`);

@@ -27,7 +27,8 @@ if ! grep -qE 'DESCRIPTIONS +files ([0-9]+)/\1 · routes ([0-9]+)/\2' /tmp/floor
     exit 3
 fi
 mkdir -p "$(dirname "$out")"
-node floorplan/serve.mjs --export "$out.map.html" --include flows,notes
+node floorplan/serve.mjs --export "$out.map.en.html" --include flows,notes
+python3 portal/tools/localize_map.py "$out.map.en.html" "$out.map.html"
 python3 portal/tools/validate_content.py
 python3 portal/tools/build_portal.py --sha "$sha" --out "$out" --map "$out.map.html"
 python3 -I -m unittest discover -s portal/tests -p 'test_*.py'

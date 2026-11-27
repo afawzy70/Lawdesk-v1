@@ -18,7 +18,8 @@ Nothing here changes LawDesk (no business logic, schema, auth, routes, R5/R6 bra
 
 ## Floorplan plugin
 Official `haydenschmitty/floorplan` v0.11.0 (upstream `94f81b4`, MIT), installed **local scope** (`claude plugin marketplace add haydenschmitty/floorplan --scope local`; `claude plugin install floorplan@floorplan --scope local`), verified against its `CHECKSUMS.txt`. Reviewed: no hooks, MCP servers, dependencies or install scripts; scripts run locally; its only network calls are the local `open.mjs` health probe and an opt-in waitlist that exists only when its local server runs. The upstream viewer is used **unmodified** (inside a sandboxed iframe) and exported with `serve.mjs --export` (no Ask bar). The published map file is served with `connect-src 'none'`, so Ask/waitlist cannot work by construction.
-**Limits:** the viewer's own buttons are English (no Arabic support upstream) — node names, descriptions, tour and flows are Arabic and the shell has an Arabic button guide; Ask is disabled (pre-written walkthroughs replace it); tests are not drawn on the map.
+**Localization:** the upstream viewer has no Arabic support, so `portal/localization/` (`ar.json` dictionary + `adapter.js` + `adapter.css`) is injected into the exported map by `tools/localize_map.py` (the export's own hash-based CSP is extended by the hash of that one script only). It translates buttons, menus, tooltips, panels, the tour and glossary text, sets RTL on the chrome and keeps code/paths LTR. The graph canvas and all upstream behaviour are untouched. `browser_test.mjs` opens every menu and fails on any visible English string (`window.__FP_UNTRANSLATED`). New upstream strings after a plugin update show up there and are added to `ar.json`.
+**Limits:** Ask is disabled (pre-written walkthroughs replace it); tests are not drawn on the map.
 
 ## Build locally (no server, no Docker)
 ```
