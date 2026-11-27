@@ -30,9 +30,15 @@ final class OcrCorpus {
 
     /** One case of the corpus: what was drawn, and how the page was degraded. */
     record Case(String name, String group, int dpi, List<String> lines, double angleDegrees, double noiseSigma,
-            double contrast, double blur, boolean binaryNoise) {
+            double contrast, double blur, boolean binaryNoise, double points, boolean table) {
+        Case(String name, String group, int dpi, List<String> lines, double angleDegrees, double noiseSigma,
+                double contrast, double blur, boolean binaryNoise) {
+            this(name, group, dpi, lines, angleDegrees, noiseSigma, contrast, blur, binaryNoise, 12, false);
+        }
+
+        /** The ground truth: for a table page, the cells (separated by a tab in {@code lines}) joined by a space. */
         String truth() {
-            return String.join("\n", lines);
+            return String.join("\n", lines).replace('\t', ' ');
         }
     }
 
@@ -103,7 +109,7 @@ final class OcrCorpus {
     }
 
     static BufferedImage image(Case c) {
-        int size = Math.round(12f * c.dpi() / 72f); // a 12 point body line
+        int size = Math.round((float) c.points() * c.dpi() / 72f); // a body line of c.points() points
         int width = Math.round(8.27f * c.dpi() * 0.9f); // A4 width, less the margins
         int lineHeight = Math.round(size * 2.0f);
         int height = lineHeight * (c.lines().size() + 2);
@@ -118,10 +124,31 @@ final class OcrCorpus {
             float y = lineHeight * 1.2f;
             Font font = font(size);
             for (String line : c.lines()) {
+                if (c.table()) {
+                    // A right-to-left table: the first cell is the right-most one; every cell is a text run in a ruled box.
+                    String[] cells = line.split("\t");
+                    int columnWidth = (width - 80) / cells.length;
+                    int top = Math.round(y - lineHeight * 0.75f);
+                    int bottom = Math.round(y + lineHeight * 0.25f);
+                    g.drawLine(40, top, width - 40, top);
+                    for (int i = 0; i < cells.length; i++) {
+                        TextLayout cell = new TextLayout(cells[i], font, g.getFontRenderContext());
+                        int left = 40 + (cells.length - 1 - i) * columnWidth;
+                        cell.draw(g, cell.isLeftToRight() ? left + 12 : left + columnWidth - 12 - cell.getAdvance(), y);
+                        g.drawLine(left, top, left, bottom);
+                    }
+                    g.drawLine(width - 40, top, width - 40, bottom);
+                    y += lineHeight;
+                    continue;
+                }
                 TextLayout layout = new TextLayout(line, font, g.getFontRenderContext());
                 float x = layout.isLeftToRight() ? 40 : width - 40 - layout.getAdvance();
                 layout.draw(g, x, y);
                 y += lineHeight;
+            }
+            if (c.table()) {
+                int bottomRule = Math.round(y - lineHeight * 0.75f);
+                g.drawLine(40, bottomRule, width - 40, bottomRule);
             }
         } finally {
             g.dispose();
@@ -180,7 +207,7 @@ final class OcrCorpus {
         }
     }
 
-    private static Font font(float size) {
+    static Font font(float size) {
         try (InputStream ttf = OcrCorpus.class.getResourceAsStream("/fonts/DejaVuSans.ttf")) {
             return Font.createFont(Font.TRUETYPE_FONT, ttf).deriveFont(size);
         } catch (IOException | java.awt.FontFormatException e) {

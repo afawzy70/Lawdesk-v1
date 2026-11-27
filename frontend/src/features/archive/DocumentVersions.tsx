@@ -41,6 +41,9 @@ export function TextStatus({ text }: { text: TextState | null }) {
       {searchable ? t('wp5.text.searchable') : t('wp5.text.notSearchable')}
       {text.pageCount !== null && text.pageCount > 0 ? ` · ${t('wp5.text.pages', { count: new Intl.NumberFormat(locale === 'ar' ? 'ar-KW' : 'en').format(text.pageCount) })}` : ''}
       {text.truncated ? ` · ${t('wp5.text.truncated')}` : ''}
+      {text.status === 'OCR_DONE' && (text.wordsUncertain ?? 0) > 0
+        ? ` · ${t('wp5.text.uncertain', { count: new Intl.NumberFormat(locale === 'ar' ? 'ar-KW' : 'en').format(text.wordsUncertain ?? 0) })}`
+        : ''}
       {text.status === 'OCR_UNAVAILABLE' && text.detail !== null ? ` · ${t('wp5.text.engineDetail', { detail: text.detail })}` : ''}
     </p>
   );

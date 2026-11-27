@@ -46,14 +46,17 @@ public class DocumentReadPort {
         this.currentActor = currentActor;
     }
 
-    /** Documents of visible cases whose text holds every word of {@code query}; empty without DOCUMENT_VIEW or for a word too short to search. */
+    /** Documents of visible cases whose main reading holds every word of {@code query}; empty without DOCUMENT_VIEW or for a word too short to search. */
     @Transactional(readOnly = true)
     public List<TextHit> findText(String query, UUID caseId, int limit) {
         // A word too short to search is turned away here: refusing it inside the search would mark the caller's transaction.
         if (!currentActor.has(Permission.DOCUMENT_VIEW) || query == null || query.strip().length() < 3) {
             return List.of();
         }
+        // Only hits that hold on the main reading: a hit found only through another reading of the page may be a misreading, and the
+        // assistant quotes and cites text as fact. (The alternates are never in any text this port returns.)
         return texts.search(query, caseId, null, PageRequest.of(0, limit)).getContent().stream()
+                .filter(h -> "PRIMARY".equals(h.source()))
                 .map(h -> new TextHit(h.documentId(), h.caseId(), h.caseReferenceNo(), h.title(), h.fileName(), h.versionNo(),
                         h.snippet())).toList();
     }

@@ -94,6 +94,11 @@ export function ArchiveSearchPage() {
                   {hit.status === 'OCR_DONE' ? ` · ${t('wp5.search.read')}` : ''}
                 </p>
                 {hit.snippet === null ? null : <p className="archive-snippet">{hit.snippet}</p>}
+                {hit.source === 'ALTERNATE' ? (
+                  <p className="archive-uncertain" role="note">
+                    {t('wp5.search.alternate', { words: (hit.alternateMatches ?? []).map((m) => m.word).join(' ') })}
+                  </p>
+                ) : null}
                 <Link to={`${casePath(hit.caseId)}?lang=${locale}`}>{t('wp5.search.open')}</Link>
               </li>
             ))}

@@ -55,6 +55,28 @@ describe('archive search', () => {
     expect(backend.to('GET', '/api/v1/documents/search')[0]?.query).toContain('q=grant+admin');
   });
 
+  it('says when a hit rests only on an uncertain alternate reading of a scan', async () => {
+    const user = userEvent.setup();
+    serve({
+      ...base,
+      'GET /api/v1/documents/search': result([
+        hit('d1', 'Scan', null, {
+          status: 'OCR_DONE',
+          source: 'ALTERNATE',
+          alternateMatches: [{ term: 'ld 2026 045', word: 'LD-2026/045', page: 1, line: 1, pass: 'grey-sparse', confidence: 88 }],
+        }),
+        hit('d2', 'Memo', 'plain line', { source: 'PRIMARY', alternateMatches: [] }),
+      ]),
+    });
+    renderWith(<ArchiveSearchPage />);
+    const form = await screen.findByRole('search', { name: 'Search inside documents' });
+    await user.type(within(form).getByLabelText('Words to find'), 'LD-2026/045');
+    await user.click(within(form).getByRole('button', { name: 'Search' }));
+    const notes = await screen.findAllByRole('note');
+    expect(notes).toHaveLength(1);
+    expect(notes[0]).toHaveTextContent('Found in an uncertain alternate reading of the scan (LD-2026/045)');
+  });
+
   it('sends the chosen category and explains an empty result', async () => {
     const user = userEvent.setup();
     const backend = serve({ ...base, 'GET /api/v1/documents/search': result([]) });
