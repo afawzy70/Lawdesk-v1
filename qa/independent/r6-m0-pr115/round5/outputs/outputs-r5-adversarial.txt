@@ -1,0 +1,107 @@
+PASS   001 requester confirms own request after SET ROLE group        ['OK', 'LD050']
+PASS   001 SET SESSION AUTHORIZATION refused                          ['42501']
+PASS   001 SET ROLE to the other operator refused                     ['42501']
+PASS   001 confirm with a wrong hash                                  
+PASS   001 confirm request A with the hash of request B               
+PASS   001 operator reaches the private consumer                      
+PASS   001 operator reads op_request/operator_identity directly       
+PASS   001 app/legal update an op_request                             
+PASS   001 owner cannot rewrite a request (trigger)                   
+PASS   001 owner cannot insert a pre-confirmed request                
+PASS   001 four concurrent executions of one confirmed request: exactly one effect {0: '', 3: 'LD052', 1: 'LD052', 2: 'LD052'}
+PASS   001 replay after execution                                     
+PASS   001 policy P-DECLASS now on only via 2 persons                 
+PASS   001 stale confirmed grant cannot undo a revocation             
+PASS   001 grant of the custodian authority through AUTHORITY_GRANT refused 
+PASS   001 stale activation after withdrawal                          
+PASS   001 gate stays inactive                                        
+PASS   001-obs single operator can cancel a confirmed request of others (availability only) 
+PASS   001-obs confirmed BOOTSTRAP_OPEN issued before a revocation still executes afterwards (reopen without a new decision) OK
+PASS   006 update due_on as lawdesk_app refused                       LD002
+PASS   006 update due_on as lawdesk_legal refused                     LD002
+PASS   006 update source_type then due (2 stmts in 1 txn) as lawdesk_app refused LD002
+PASS   006 update source_type then due (2 stmts in 1 txn) as lawdesk_legal refused LD002
+PASS   006 update id as lawdesk_app refused                           LD002
+PASS   006 update id as lawdesk_legal refused                         LD002
+PASS   006 update case_id as lawdesk_app refused                      LD002
+PASS   006 update case_id as lawdesk_legal refused                    LD002
+PASS   006 update status/completed as lawdesk_app refused             LD002
+PASS   006 update status/completed as lawdesk_legal refused           LD002
+PASS   006 update calc_status as lawdesk_app refused                  LD002
+PASS   006 update calc_status as lawdesk_legal refused                LD002
+PASS   006 delete as lawdesk_app refused                              LD002
+PASS   006 delete as lawdesk_legal refused                            LD002
+PASS   006 upsert on conflict as lawdesk_app refused                  LD002
+PASS   006 upsert on conflict as lawdesk_legal refused                LD002
+PASS   006 merge as lawdesk_app refused                               LD002
+PASS   006 merge as lawdesk_legal refused                             LD002
+PASS   006 update from join as lawdesk_app refused                    LD002
+PASS   006 update from join as lawdesk_legal refused                  LD002
+PASS   006 judgment: pointer null as lawdesk_app refused              LD001
+PASS   006 judgment: pointer null as lawdesk_legal refused            LD001
+PASS   006 judgment: final as lawdesk_app refused                     LD001
+PASS   006 judgment: final as lawdesk_legal refused                   LD001
+PASS   006 judgment: proceeding_id as lawdesk_app refused             LD001
+PASS   006 judgment: proceeding_id as lawdesk_legal refused           LD001
+PASS   006 judgment: delete as lawdesk_app refused                    LD001
+PASS   006 judgment: delete as lawdesk_legal refused                  LD001
+PASS   006 insert second deadline from linked judgment as lawdesk_app refused LD002
+PASS   006 insert second deadline from linked judgment as lawdesk_legal refused LD002
+PASS   006 case delete (cascade/ri) as lawdesk_app refused            23503
+PASS   006 case delete (cascade/ri) as lawdesk_legal refused          23503
+PASS   006 proceeding delete as lawdesk_app refused                   23503
+PASS   006 proceeding delete as lawdesk_legal refused                 23503
+PASS   006 deadline unchanged after all attempts                      
+PASS   006 notes remain editable (legacy compatibility)               
+PASS   006 move a free deadline onto a linked judgment                
+PASS   DEV-R5-1 purge of proof document as lawdesk_app refused        
+PASS   DEV-R5-1 purge of proof document as lawdesk_legal refused      
+PASS   DEV-R5-1 proof_document_id still set                           
+PASS   DEV-R5-1 purge without the archive flag refused by archive guard 
+PASS   DEV-R5-1 variant: delete document_version rows of the proof doc (cascade into document tables only) no FK from these tables writes into deadline/judgment/legal_case (catalog, see FK list)
+PASS   DEV-R5-1-obs content of a protected deadline's proof document is still editable by the legacy credential OK
+PASS   002 lawdesk_app selects complaint                              42501
+PASS   002 lawdesk_app selects complaint_access                       42501
+PASS   002 lawdesk_app selects complaint_case_link                    42501
+PASS   002 lawdesk_app selects referral_draft                         42501
+PASS   002 lawdesk_legal selects complaint                            42501
+PASS   002 lawdesk_legal selects complaint_access                     42501
+PASS   002 lawdesk_legal selects complaint_case_link                  42501
+PASS   002 lawdesk_legal selects referral_draft                       42501
+PASS   002 op_alice selects complaint                                 42501
+PASS   002 op_alice selects complaint_access                          42501
+PASS   002 op_alice selects complaint_case_link                       42501
+PASS   002 op_alice selects referral_draft                            42501
+PASS   002 column-level privileges absent                             
+PASS   002 readers not executable by app                              
+PASS   002 private visibility predicate not executable by legal       
+PASS   002-obs app can ask whether ANY case is complaint-linked (r6_case_is_complaint_linked granted to lawdesk_dml) OK
+   oracle answer: [(True,)] [(False,)]
+   delete linked case -> 23503 update or delete on table "legal_case" violates foreign key constraint "complaint_case_link_case_id_fkey" on table "complaint_case_link"
+   declassify linked case -> LD010 case 1abe4887-9a22-408c-b064-dabf5718b50f is linked to a complaint and cannot be declassified here
+   delete owning unit -> 23503 update or delete on table "org_unit" violates foreign key constraint "legal_case_owning_unit_id_fkey" on table "legal_case"
+PASS   002-obs FK error from deleting a linked case names the complaint link table 23503 update or delete on table "legal_case" violates foreign key constraint "complaint_case_link_ca
+PASS   002-obs declassify error text reveals complaint linkage to a case manager LD010 case 1abe4887-9a22-408c-b064-dabf5718b50f is linked to a complaint and cannot be declassified 
+PASS   002 declassification refused to app/legal                      
+PASS   002 statistics views expose complaint row counts to any role   
+PASS   002 hidden equals unknown (get)                                
+PASS   002 actor without grant sees nothing in list                   
+PASS   002 disabled user sees nothing                                 
+PASS   002-residual legal credential names any granted user and reads everything 
+PASS   002-residual legal credential can list who holds grants? (no: class R table unreadable to legal) OK
+PASS   002-residual app credential reads grants (finds a2)            
+PASS   009 4 concurrent submissions (different keys): exactly one case ['CASE', 'LD021', 'LD021', 'LD021']
+PASS   009 4 concurrent submissions (SAME key): one case id, replays identical [False, True, True, True]
+PASS   009 sequential retry same key returns the same case            
+PASS   009 retry with another key after success refused               
+PASS   009 same key, other actor refused                              
+PASS   009 failing intake rolls back case, link, status and counter   True
+PASS   009 failing numeric cast rolls back                            
+PASS   009 six parallel referrals: unique consecutive numbers         ['LD-2026-00004', 'LD-2026-00005', 'LD-2026-00006', 'LD-2026-00007', 'LD-2026-00008', 'LD-2026-00009']
+PASS   009 all new cases RESTRICTED, linked once                      
+PASS   009 legal credential cannot write the link directly            
+PASS   009 no function accepts a case id                              
+PASS   009 policy OFF refuses                                         
+PASS   009-obs legacy credential squatting the next reference number makes referral fail (availability), rollback clean 23505
+
+SUMMARY: 101 pass, 0 fail
