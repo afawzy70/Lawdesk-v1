@@ -23,7 +23,10 @@ SHA_C = "c" * 40
 FAKE_DOCKER = textwrap.dedent("""\
     #!/bin/sh
     # Records each call with the release tag it saw; fails on demand.
-    echo "LAWDESK_TAG=${LAWDESK_TAG:-} $*" | tr '\n' ' ' >> "$FAKE_DOCKER_LOG"
+    # SQL piped to psql: remember which provisioning scripts it was (each starts with "-- lawdesk-sql: <name>").
+    sql=""
+    case "$*" in *" exec -T db psql "*) stdin=$(cat); sql=" SQL=[$(printf '%s\\n' "$stdin" | sed -n 's/^-- lawdesk-sql: //p' | tr '\\n' ' ')]" ;; esac
+    echo "LAWDESK_TAG=${LAWDESK_TAG:-} $*$sql" | tr '\n' ' ' >> "$FAKE_DOCKER_LOG"
     echo >> "$FAKE_DOCKER_LOG"
     case "$*" in
       "image inspect "*)
@@ -35,7 +38,10 @@ FAKE_DOCKER = textwrap.dedent("""\
         esac ;;
       *" up "*) [ "${LAWDESK_TAG:-}" = "${FAKE_FAIL_UP_TAG:-none}" ] && exit 1 ;;
       *" exec -T db pg_dump "*) [ -n "${FAKE_FAIL_DUMP:-}" ] && exit 1; echo "DUMP-OF-${LAWDESK_TAG:-}" ;;
-      *" exec -T db psql "*) cat > /dev/null; [ "${LAWDESK_TAG:-}" = "${FAKE_FAIL_ROLE_TAG:-none}" ] && exit 1 ;;
+      *" exec -T db psql "*)
+        [ "${LAWDESK_TAG:-}" = "${FAKE_FAIL_ROLE_TAG:-none}" ] && exit 1
+        case "$stdin" in *"lawdesk-sql: audit"*) [ "${LAWDESK_TAG:-}" = "${FAKE_FAIL_AUDIT_TAG:-none}" ] && exit 1 ;; esac ;;
+      *" run --rm "*" migrate"*) [ "${LAWDESK_TAG:-}" = "${FAKE_FAIL_MIGRATE_TAG:-none}" ] && exit 1 ;;
       *" exec "*) [ "${LAWDESK_TAG:-}" = "${FAKE_FAIL_SMOKE_TAG:-none}" ] && exit 1 ;;
     esac
     exit 0
@@ -135,6 +141,85 @@ class SuccessfulDeployTest(DeployScriptTestCase):
         self.assertEqual(SHA_A, self.previous())
 
 
+class SplitOwnershipDeployTest(DeployScriptTestCase):
+    """M1-pre: provision, migrate as the owner, audit, and only then start the backend."""
+
+    def steps(self, tag, calls=None):
+        steps = []
+        for call in (self.calls() if calls is None else calls):
+            if call.startswith(f"LAWDESK_TAG={tag}") and " SQL=[" in call:
+                steps.append("sql " + call.split(" SQL=[", 1)[1].split("]")[0].strip())
+            elif call.startswith(f"LAWDESK_TAG={tag}") and " run --rm" in call:
+                steps.append("migrate")
+            elif call.startswith(f"LAWDESK_TAG={tag}") and " up " in call:
+                steps.append("up db" if call.rstrip().endswith(" db") else "up all")
+        return steps
+
+    def test_the_order_is_database_provision_migrate_ownership_audit_stack(self):
+        result = self.run_script(DEPLOY, SHA_A)
+
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual(["up db", "sql database roles ownership passwords", "migrate", "sql ownership", "sql audit", "up all"],
+                         self.steps(SHA_A))
+
+    def test_a_failed_migration_never_starts_the_new_backend(self):
+        self.run_script(DEPLOY, SHA_A)
+
+        result = self.run_script(DEPLOY, SHA_B, FAKE_FAIL_MIGRATE_TAG=SHA_B)
+
+        self.assertEqual(1, result.returncode)
+        self.assertNotIn("up all", self.steps(SHA_B))
+        self.assertEqual(SHA_A, self.current())
+
+    def test_a_failed_privilege_audit_fails_the_deployment_before_smoke(self):
+        self.run_script(DEPLOY, SHA_A)
+
+        result = self.run_script(DEPLOY, SHA_B, FAKE_FAIL_AUDIT_TAG=SHA_B)
+
+        self.assertEqual(1, result.returncode)
+        self.assertNotIn("up all", self.steps(SHA_B))
+        self.assertEqual(SHA_A, self.current())
+        self.assertIn(f"rolled back to {SHA_A}", self.history())
+
+    def test_an_audit_finding_during_a_rollback_is_reported_and_does_not_block_recovery(self):
+        self.run_script(DEPLOY, SHA_A)
+        before = len(self.calls())
+
+        result = self.run_script(DEPLOY, SHA_B, FAKE_FAIL_UP_TAG=SHA_B, FAKE_FAIL_AUDIT_TAG=SHA_A)
+
+        self.assertEqual(1, result.returncode)
+        self.assertIn("up all", self.steps(SHA_A, self.calls()[before:]))
+        self.assertIn(f"rolled back to {SHA_A}", self.history())
+        self.assertIn("privilege audit reported findings", self.history())
+
+    def test_rolling_back_to_a_release_without_the_split_uses_its_own_role_script(self):
+        releases = Path(self.tmp.name) / "releases"
+        old = releases / SHA_A / "deploy"
+        (old / "postgres").mkdir(parents=True)
+        (old / "compose.yaml").write_text("name: lawdesk-staging\n", encoding="utf-8")
+        (old / "postgres" / "app-role.sql").write_text("-- lawdesk-sql: legacy-app-role\n", encoding="utf-8")
+        self.env["LAWDESK_RELEASES_DIR"] = str(releases)
+        self.run_script(DEPLOY, SHA_A)
+        before = len(self.calls())
+
+        self.run_script(DEPLOY, SHA_B, FAKE_FAIL_UP_TAG=SHA_B)
+
+        self.assertEqual(["up db", "sql legacy-app-role", "up all"], self.steps(SHA_A, self.calls()[before:]))
+
+    def test_the_owner_password_is_generated_once_and_never_printed(self):
+        secrets = Path(self.tmp.name) / "secrets"
+        secrets.mkdir(mode=0o700)
+
+        first = self.run_script(DEPLOY, SHA_A, LAWDESK_SECRETS_DIR=str(secrets))
+        password = (secrets / "db_owner_password.txt").read_text(encoding="utf-8")
+        self.run_script(DEPLOY, SHA_B, LAWDESK_SECRETS_DIR=str(secrets))
+
+        self.assertRegex(password, r"^[0-9a-f]{48,}\n$")
+        self.assertEqual(password, (secrets / "db_owner_password.txt").read_text(encoding="utf-8"))
+        self.assertEqual(0o644, (secrets / "db_owner_password.txt").stat().st_mode & 0o777)
+        self.assertNotIn(password.strip(), first.stdout + first.stderr + self.history())
+
+
 class DatabaseRoleTest(DeployScriptTestCase):
     """Contabo first install: the init script that creates lawdesk_app was not readable by the postgres user (release
     unpacked under umask 027), so the database came up healthy without the role and the backend restarted forever.
@@ -142,16 +227,6 @@ class DatabaseRoleTest(DeployScriptTestCase):
 
     def starts(self, tag):
         return [c for c in self.calls() if c.startswith(f"LAWDESK_TAG={tag}") and (" up " in c or " exec -T db psql" in c)]
-
-    def test_database_starts_first_then_the_role_is_ensured_then_the_stack(self):
-        result = self.run_script(DEPLOY, SHA_A)
-
-        self.assertEqual(0, result.returncode, result.stderr)
-        steps = self.starts(SHA_A)
-        self.assertEqual(3, len(steps), steps)
-        self.assertIn(" up -d --wait --wait-timeout 240 db", steps[0])
-        self.assertIn(" exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d postgres", steps[1])
-        self.assertRegex(steps[2], r" up -d --wait --wait-timeout 240\s*$")
 
     def test_failed_role_setup_fails_the_release_and_rolls_back(self):
         self.run_script(DEPLOY, SHA_A)

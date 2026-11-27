@@ -14,6 +14,8 @@ import yaml
 DEPLOY_DIR = Path(__file__).resolve().parents[1]
 REPO_ROOT = DEPLOY_DIR.parent
 COMPOSE = DEPLOY_DIR / "compose.yaml"
+# Runs to completion before the backend starts (deploy.sh), so it has no healthcheck and is never restarted.
+ONE_SHOT = {"migrate"}
 
 
 def load():
@@ -30,7 +32,7 @@ class IsolationTest(unittest.TestCase):
         self.assertEqual("lawdesk-staging", self.stack["name"])
 
     def test_expected_services(self):
-        self.assertEqual({"db", "backend", "web"}, set(self.services))
+        self.assertEqual({"db", "migrate", "backend", "web"}, set(self.services))
 
     def test_no_service_publishes_host_ports(self):
         for name, service in self.services.items():
@@ -79,14 +81,15 @@ class HardeningTest(unittest.TestCase):
                 self.assertEqual(["ALL"], service["cap_drop"])
 
     def test_application_containers_have_read_only_root_filesystems(self):
-        for name in ["backend", "web"]:
+        for name in ["migrate", "backend", "web"]:
             with self.subTest(service=name):
                 self.assertTrue(self.services[name]["read_only"])
 
     def test_every_service_has_a_healthcheck_memory_limit_and_bounded_logs(self):
         for name, service in self.services.items():
             with self.subTest(service=name):
-                self.assertIn("test", service["healthcheck"])
+                if name not in ONE_SHOT:
+                    self.assertIn("test", service["healthcheck"])
                 self.assertIn("mem_limit", service)
                 self.assertEqual("json-file", service["logging"]["driver"])
                 self.assertIn("max-size", service["logging"]["options"])
@@ -94,7 +97,7 @@ class HardeningTest(unittest.TestCase):
     def test_restart_policy(self):
         for name, service in self.services.items():
             with self.subTest(service=name):
-                self.assertEqual("unless-stopped", service["restart"])
+                self.assertEqual("no" if name in ONE_SHOT else "unless-stopped", service["restart"])
 
     def test_database_image_is_pinned_by_version_and_digest(self):
         self.assertRegex(self.services["db"]["image"], r"^postgres:18\.6-alpine[0-9.]*@sha256:[0-9a-f]{64}$")
@@ -163,6 +166,67 @@ class SecretsTest(unittest.TestCase):
         # user, so the role was never created. deploy.sh ensures the role through `docker compose exec` instead.
         volumes = self.stack["services"]["db"]["volumes"]
         self.assertFalse(any("docker-entrypoint-initdb.d" in v for v in volumes), volumes)
+
+
+def secret_sources(service):
+    return {s if isinstance(s, str) else s["source"] for s in service.get("secrets", [])}
+
+
+class SeparatedCredentialsTest(unittest.TestCase):
+    """M1-pre (T-DB-13): schema ownership and the runtime are different credentials, and the backend never holds the owner's."""
+
+    def setUp(self):
+        self.stack = load()
+        self.services = self.stack["services"]
+
+    def test_the_backend_holds_no_owner_admin_or_operator_secret(self):
+        self.assertEqual({"db_app_password", "admin_bootstrap_password"}, secret_sources(self.services["backend"]))
+        self.assertEqual(set(), secret_sources(self.services["web"]))
+        self.assertFalse(any("operator" in name for name in self.stack["secrets"]), "operator credentials never enter compose")
+
+    def test_only_the_migrate_job_connects_as_the_owner(self):
+        migrate = self.services["migrate"]
+        self.assertEqual("lawdesk_owner", migrate["environment"]["SPRING_DATASOURCE_USERNAME"])
+        self.assertEqual({"db_owner_password"}, secret_sources(migrate))
+        self.assertEqual([{"source": "db_owner_password", "target": "spring.datasource.password"}], migrate["secrets"])
+        self.assertEqual(["migrate"], migrate["command"])
+        self.assertEqual(["migrate"], migrate["profiles"], "never started by `up`: deploy.sh runs it explicitly")
+        self.assertEqual(self.services["backend"]["image"], migrate["image"], "migrations of the release being started")
+        self.assertEqual(["internal"], migrate["networks"])
+        for name, service in self.services.items():
+            if name != "migrate":
+                with self.subTest(service=name):
+                    self.assertNotEqual("lawdesk_owner", (service.get("environment") or {}).get("SPRING_DATASOURCE_USERNAME"))
+
+    def test_the_backend_never_runs_migrations(self):
+        self.assertEqual("false", self.services["backend"]["environment"]["SPRING_FLYWAY_ENABLED"])
+
+    def test_the_database_receives_the_owner_password_only_to_set_it(self):
+        self.assertIn("db_owner_password", secret_sources(self.services["db"]))
+        self.assertEqual("${LAWDESK_SECRETS_DIR:-./secrets}/db_owner_password.txt", self.stack["secrets"]["db_owner_password"]["file"])
+
+
+class ProvisioningScriptsTest(unittest.TestCase):
+    def read(self, name):
+        return (DEPLOY_DIR / "postgres" / name).read_text(encoding="utf-8")
+
+    def test_no_script_carries_a_password_or_drops_anything(self):
+        for name in ["database.sql", "roles.sql", "ownership.sql", "passwords.sql", "audit.sql"]:
+            with self.subTest(script=name):
+                sql = "\n".join(line for line in self.read(name).splitlines() if not line.lstrip().startswith("--"))
+                self.assertNotRegex(sql, r"(?i)password\s+'")
+                self.assertNotRegex(sql, r"(?i)\bdrop\s+(table|schema|database|owned|column)\b")
+
+    def test_passwords_are_read_inside_the_database_container(self):
+        sql = self.read("passwords.sql")
+        self.assertIn("/run/secrets/db_app_password", sql)
+        self.assertIn("/run/secrets/db_owner_password", sql)
+
+    def test_the_runtime_roles_get_no_power_attributes(self):
+        roles = self.read("roles.sql")
+        for role in ["lawdesk_owner", "lawdesk_dml", "lawdesk_app", "lawdesk_legal", "lawdesk_operator"]:
+            with self.subTest(role=role):
+                self.assertRegex(roles, rf"ALTER ROLE {role} [^;]*NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS")
 
 
 @unittest.skipUnless(shutil.which("docker"), "docker CLI not available")
