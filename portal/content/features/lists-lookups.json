@@ -1,0 +1,748 @@
+{
+  "id": "lists-lookups",
+  "category": "cases",
+  "name_ar": "القوائم المعيارية (القوائم المرجعية)",
+  "summary_ar": "قوائم مرجعية مضبوطة تُستعمل في أماكن الاختيار بدل الكتابة الحرة، وهي نوعان في النظام: قوائم تدير شاشتها «القوائم المعيارية» (أنواع الأحكام وصفات الأحكام، ولها كذلك قائمة تصنيفات المستندات في الخادم)، وقوائم الأنواع (أنواع التسويات وأنواع التكليفات وأنواع النماذج القانونية) التي تُقرأ في الشاشات وتُدار عبر واجهة البرمجة. لا تُحذف قيمة أبدًا؛ تُعطَّل فقط وتبقى للسجلات القديمة.",
+  "purpose_ar": "توحيد المصطلحات، ومنع اختلاف كتابة النوع الواحد، والتمييز بين ما ورد في وثيقة المتطلبات وما اقترحه المنفذون وينتظر الاعتماد، مع حفظ سجل لكل تغيير.",
+  "who_ar": [
+    "من يملك «عرض القضايا» لقراءة القوائم",
+    "من يملك «إدارة القوائم المعيارية» لإضافة قيم أنواع الأحكام وصفاتها وتصنيفات المستندات واعتمادها وتعطيلها",
+    "من يملك «إدارة التسويات» أو «إدارة التكليفات» أو «إدارة النماذج القانونية» لإدارة القائمة الخاصة بمجاله"
+  ],
+  "who_perms": [
+    "CASE_VIEW",
+    "LOOKUP_MANAGE",
+    "SETTLEMENT_MANAGE",
+    "DIRECTIVE_MANAGE",
+    "TEMPLATE_MANAGE"
+  ],
+  "access_ar": "الإدارة > القوائم المعيارية",
+  "route": "/admin/lookups",
+  "prerequisites_ar": [
+    "تسجيل الدخول وامتلاك LOOKUP_MANAGE لرؤية تبويب «القوائم المعيارية» في الإدارة.",
+    "أما قوائم الأنواع (التسويات والتكليفات والنماذج) فلا توجد في الواجهة شاشة لإضافة قيمها؛ تُقرأ في شاشاتها وتُدار بواجهة البرمجة فقط."
+  ],
+  "fields": {
+    "required": [
+      {
+        "name_ar": "الرمز (قوائم الأحكام والتصنيفات)",
+        "code": "code",
+        "rule_ar": "حروف لاتينية كبيرة وأرقام وشرطة سفلية تبدأ بحرف، حتى 60 حرفًا، ولا يتكرر في القائمة نفسها.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/pleadings/LookupRequests.java",
+            "lines": "17-17",
+            "note": "النمط"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/pleadings/LookupService.java",
+            "lines": "62-62",
+            "note": "التكرار"
+          }
+        ]
+      },
+      {
+        "name_ar": "الاسم بالعربية",
+        "code": "labelAr",
+        "rule_ar": "غير فارغ حتى 200 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/pleadings/LookupRequests.java",
+            "lines": "18-18",
+            "note": "labelAr"
+          }
+        ]
+      },
+      {
+        "name_ar": "الرمز (قوائم الأنواع)",
+        "code": "code (lists)",
+        "rule_ar": "حروف كبيرة وأرقام وشرطة سفلية حتى 40 حرفًا.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/lists/ManagedListRequests.java",
+            "lines": "31-31",
+            "note": "النمط"
+          }
+        ]
+      }
+    ],
+    "optional": [
+      {
+        "name_ar": "الاسم بالإنجليزية",
+        "code": "labelEn",
+        "rule_ar": "حتى 200 حرف؛ الفراغ يُحفظ كأنه غير مذكور.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/pleadings/LookupRequests.java",
+            "lines": "18-18",
+            "note": "labelEn"
+          }
+        ]
+      },
+      {
+        "name_ar": "فعّالة (عند التعديل)",
+        "code": "active",
+        "rule_ar": "مطلوب عند التعديل: false يعطّل القيمة فلا تظهر في الاختيارات الجديدة وتبقى للسجلات القديمة.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/pleadings/LookupRequests.java",
+            "lines": "26-26",
+            "note": "active"
+          }
+        ]
+      },
+      {
+        "name_ar": "رقم النسخة (عند التعديل)",
+        "code": "version",
+        "rule_ar": "مطلوب عند التعديل لمنع الكتابة فوق تغيير غيرك.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/pleadings/LookupRequests.java",
+            "lines": "27-27",
+            "note": "version"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/pleadings/LookupService.java",
+            "lines": "76-76",
+            "note": "الشرط"
+          }
+        ]
+      },
+      {
+        "name_ar": "ترتيب العرض (قوائم الأنواع)",
+        "code": "sortOrder",
+        "rule_ar": "اختياري؛ إن غاب أُعطيت القيمة الجديدة آخر ترتيب.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/lists/ManagedListRequests.java",
+            "lines": "34-34",
+            "note": "sortOrder"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/lists/ManagedListService.java",
+            "lines": "69-69",
+            "note": "الافتراضي"
+          }
+        ]
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "actor_ar": "مدير القوائم المعيارية",
+      "action_ar": "يفتح الإدارة ثم تبويب «القوائم المعيارية» ويختار القائمة (أنواع الأحكام أو صفات الأحكام).",
+      "response_ar": "تُعرض القيم كلها بما فيها المعطّلة في جدول: الرمز والاسم والمصدر (من وثيقة المتطلبات أو مقترحة) والحالة (مفعّلة أو معطّلة) والإجراءات. القيم المقترحة غير المعتمدة تحمل علامة «بانتظار الاعتماد».",
+      "rules_ar": [
+        "القراءة تحتاج CASE_VIEW؛ والتبويب يظهر لمن يملك LOOKUP_MANAGE.",
+        "قائمة غير معروفة تعطي 404."
+      ],
+      "data_ar": "GET /api/v1/lookups/{list}?includeInactive=true: لكل قيمة المعرّف والرمز والاسمان والمصدر وحاجتها للاعتماد ووقت الاعتماد والفعّالية والنسخة.",
+      "next_ar": "يضيف قيمة أو يعتمد أو يعطّل.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/pleadings/LookupController.java",
+          "lines": "30-30",
+          "note": "القراءة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/pleadings/LookupService.java",
+          "lines": "44-44",
+          "note": "الخدمة"
+        },
+        {
+          "path": "frontend/src/features/pleadings/LookupsPage.tsx",
+          "lines": "23-23",
+          "note": "الشاشة"
+        },
+        {
+          "path": "frontend/src/features/admin/AdminTabs.tsx",
+          "lines": "13-13",
+          "note": "التبويب"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "قائمة غير معروفة",
+          "detail_ar": "404 لأن القوائم المقبولة ثلاث فقط في الخادم: JUDGMENT_TYPE وJUDGMENT_NATURE وDOCUMENT_CATEGORY.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/pleadings/LookupService.java",
+              "lines": "28-28",
+              "note": "القوائم"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/pleadings/LookupService.java",
+              "lines": "128-128",
+              "note": "404"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "actor_ar": "مدير القوائم المعيارية",
+      "action_ar": "يضيف قيمة: يكتب الرمز والاسم بالعربية (والإنجليزية اختياريًا) ويضغط «إضافة قيمة».",
+      "response_ar": "تُضاف القيمة بمصدر «مقترحة» وتظهر رسالة «أُضيفت القيمة مقترحة.»؛ ويُسجَّل في سجل القيمة أنها «أُنشئت» وفي التدقيق LOOKUP_CREATE.",
+      "rules_ar": [
+        "القيمة الجديدة تبقى «بانتظار الاعتماد» حتى تُعتمد.",
+        "الرمز لا يتكرر في القائمة نفسها."
+      ],
+      "data_ar": "code وlabelAr وlabelEn.",
+      "next_ar": "تُعتمد القيمة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/pleadings/LookupController.java",
+          "lines": "36-36",
+          "note": "الإضافة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/pleadings/LookupService.java",
+          "lines": "51-51",
+          "note": "الخدمة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/pleadings/LookupService.java",
+          "lines": "58-58",
+          "note": "المصدر مقترح"
+        },
+        {
+          "path": "frontend/src/features/pleadings/LookupsPage.tsx",
+          "lines": "54-54",
+          "note": "الرسالة"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "قيمة غير صالحة",
+          "detail_ar": "400 (رمز بحروف صغيرة أو اسم فارغ) وتظهر «بعض الحقول ناقصة أو غير صحيحة» وتُعلَّم الحقول.",
+          "evidence": [
+            {
+              "path": "frontend/src/features/pleadings/useLoad.ts",
+              "lines": "38-38",
+              "note": "الرسالة"
+            }
+          ]
+        },
+        {
+          "kind": "error",
+          "title_ar": "رمز موجود",
+          "detail_ar": "409 (the list … has the value … already).",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/pleadings/LookupService.java",
+              "lines": "62-62",
+              "note": "409"
+            }
+          ]
+        },
+        {
+          "kind": "denied",
+          "title_ar": "بلا صلاحية",
+          "detail_ar": "403 لمن لا يملك LOOKUP_MANAGE.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/pleadings/LookupController.java",
+              "lines": "37-37",
+              "note": "الصلاحية"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "actor_ar": "مدير القوائم المعيارية",
+      "action_ar": "يضغط «اعتماد» أمام قيمة مقترحة.",
+      "response_ar": "تُعتمد القيمة (يُسجَّل المعتمِد ووقت الاعتماد) وتظهر «اعتُمدت القيمة.» وتزول علامة الانتظار.",
+      "rules_ar": [
+        "اعتماد قيمة معتمدة سابقًا لا يغيّر شيئًا.",
+        "يُسجَّل الاعتماد في سجل القيمة وفي التدقيق LOOKUP_APPROVE."
+      ],
+      "data_ar": "معرّف القيمة.",
+      "next_ar": "تصبح القيمة معتمدة وتبقى مفعّلة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/pleadings/LookupController.java",
+          "lines": "49-49",
+          "note": "الاعتماد"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/pleadings/LookupService.java",
+          "lines": "90-90",
+          "note": "الخدمة"
+        },
+        {
+          "path": "frontend/src/features/pleadings/LookupsPage.tsx",
+          "lines": "100-100",
+          "note": "الرسالة"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "قيمة غير موجودة",
+          "detail_ar": "404 «value».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/pleadings/LookupService.java",
+              "lines": "134-134",
+              "note": "404"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "actor_ar": "مدير القوائم المعيارية",
+      "action_ar": "يضغط «تعطيل» (أو «تفعيل») أمام قيمة، أو «سجل» ليرى تاريخ تغييراتها.",
+      "response_ar": "يُرسل PUT /api/v1/lookups/values/{id} بالنسخة الحالية ويعكس الحالة؛ وتظهر «عُدّلت القيمة.». يعرض «السجل» قائمة بالمراجعات: أُنشئت، عُدّلت، اعتُمدت، فُعّلت، عُطّلت.",
+      "rules_ar": [
+        "لا تُحذف قيمة: التعطيل يخرجها من الاختيارات الجديدة وتبقى للسجلات التي استعملتها.",
+        "يحفظ كل تغيير الحالة السابقة في سجل القيمة."
+      ],
+      "data_ar": "labelAr وlabelEn وactive وversion؛ وفي السجل: rev وchange وchangedBy وchangedAt.",
+      "next_ar": "تُحدَّث القائمة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/pleadings/LookupController.java",
+          "lines": "43-43",
+          "note": "التعديل"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/pleadings/LookupService.java",
+          "lines": "71-71",
+          "note": "الخدمة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/pleadings/LookupController.java",
+          "lines": "55-55",
+          "note": "السجل"
+        },
+        {
+          "path": "frontend/src/features/pleadings/LookupsPage.tsx",
+          "lines": "110-110",
+          "note": "التعطيل"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "error",
+          "title_ar": "عدّل شخص آخر القيمة",
+          "detail_ar": "409 وتظهر «عدّل شخص آخر هذا السجل في الأثناء. أعد التحميل وحاول مرة أخرى».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/pleadings/LookupService.java",
+              "lines": "80-80",
+              "note": "409"
+            },
+            {
+              "path": "frontend/src/features/pleadings/useLoad.ts",
+              "lines": "44-44",
+              "note": "الرسالة"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "actor_ar": "مدير التسويات أو التكليفات أو النماذج (عبر واجهة البرمجة)",
+      "action_ar": "يقرأ قوائم الأنواع GET /api/v1/lists/{SETTLEMENT_KIND|DIRECTIVE_KIND|TEMPLATE_KIND} ويضيف قيمة POST أو يعدّلها PUT بحسب صلاحية مجاله.",
+      "response_ar": "تُعرض القيم مرتبة بالترتيب ثم الرمز. أما الشاشات (التسويات والتكليفات والنماذج) فتقرأ القائمة فقط لملء خانة «النوع»؛ ولا توجد في الواجهة شاشة لإضافة قيمة.",
+      "rules_ar": [
+        "كل قائمة يديرها صاحب صلاحية مجالها: SETTLEMENT_KIND للتسويات، DIRECTIVE_KIND للتكليفات، TEMPLATE_KIND للنماذج.",
+        "القيم التي ذكرتها وثيقة المتطلبات تُزرع مع النظام (مصدرها «وثيقة»)، وما يضاف لاحقًا مصدره «مقترح».",
+        "السجل يحتفظ بالرمز الذي سُجّل به حتى لو عُطّلت القيمة؛ فالتعطيل يمنع استعمالها في سجل جديد فقط."
+      ],
+      "data_ar": "code وlabelAr وlabelEn وsortOrder للإضافة؛ labelAr وlabelEn وactive وsortOrder وversion للتعديل.",
+      "next_ar": "تظهر القيمة في اختيارات الشاشة المعنية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/lists/ManagedListController.java",
+          "lines": "36-36",
+          "note": "القراءة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/lists/ManagedListController.java",
+          "lines": "42-42",
+          "note": "الإضافة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/lists/ManagedListService.java",
+          "lines": "45-45",
+          "note": "الصلاحية"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/lists/ManagedLists.java",
+          "lines": "30-30",
+          "note": "الربط بالصلاحية"
+        },
+        {
+          "path": "frontend/src/features/wp9/api.ts",
+          "lines": "35-35",
+          "note": "القراءة في الواجهة"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "قائمة ليست من اختصاص المستخدم",
+          "detail_ar": "403 إن لم يملك صلاحية القائمة؛ وقائمة غير معروفة تعطي 400 (الحقل list بالرمز Pattern).",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/lists/ManagedListService.java",
+              "lines": "48-48",
+              "note": "403"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/lists/ManagedListService.java",
+              "lines": "46-46",
+              "note": "400"
+            }
+          ]
+        },
+        {
+          "kind": "error",
+          "title_ar": "رمز أو اسم مكرر أو نسخة قديمة",
+          "detail_ar": "409 «this code or label is already in the list» أو «the value was changed by someone else».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/lists/ManagedListService.java",
+              "lines": "78-78",
+              "note": "409"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/lists/ManagedListService.java",
+              "lines": "99-99",
+              "note": "النسخة"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "text_ar": "القيم لا تُحذف: تُعطَّل فقط، وكل قيمة في قوائم الأحكام لها سجل مراجعات.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/pleadings/LookupService.java",
+          "lines": "21-21",
+          "note": "التعليق"
+        },
+        {
+          "path": "backend/src/main/resources/db/migration/V620__LD-051_lookups_and_permissions.sql",
+          "lines": "6-6",
+          "note": "الجدول"
+        }
+      ]
+    },
+    {
+      "text_ar": "في قوائم الأنواع لا يُقبل نوع معطّل في سجل جديد؛ والسجل القديم يحتفظ برمزه.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/lists/ManagedLists.java",
+          "lines": "14-14",
+          "note": "التعليق"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/lists/ManagedLists.java",
+          "lines": "48-48",
+          "note": "الفحص"
+        }
+      ]
+    },
+    {
+      "text_ar": "قيم قوائم الأنواع المزروعة: التسوية والتنازل والصلح؛ ومتابعة قضية وإعداد مذكرة وحضور جلسة ومراجعة حكم ومخاطبة إدارة واتخاذ إجراءات التنفيذ؛ وأنواع النماذج (مذكرة دفاع، صحيفة دعوى، صحيفة استئناف، صحيفة تمييز، طلب إيداع مستندات، طلب تأجيل، مذكرة تعقيب، كتاب طلب إفادة، كتاب متابعة تنفيذ حكم، ملخص قضية، تقرير الموقف القانوني).",
+      "evidence": [
+        {
+          "path": "backend/src/main/resources/db/migration/V740__LD-057_managed_lists.sql",
+          "lines": "27-54",
+          "note": "البذور"
+        }
+      ]
+    },
+    {
+      "text_ar": "أنواع الأحكام وصفاتها المزروعة مقترحة من المنفذين لأن نص المتطلبات لا يسمّيها، فتحتاج اعتمادًا.",
+      "evidence": [
+        {
+          "path": "backend/src/main/resources/db/migration/V620__LD-051_lookups_and_permissions.sql",
+          "lines": "42-42",
+          "note": "التعليق"
+        }
+      ]
+    },
+    {
+      "text_ar": "ما لا أستطيع إثباته: لا توجد قائمة معيارية لأنواع القضايا أو الدرجات في الشيفرة؛ أنواع القضايا ثابتة في الشيفرة (CaseType) لا تُعدَّل من شاشة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseType.java",
+          "lines": "4-4",
+          "note": "النوع ثابت"
+        }
+      ]
+    }
+  ],
+  "after_submit_ar": "تظهر القيمة الجديدة أو المعدلة في الجدول، وتظهر في الاختيارات التي تستعمل القائمة. تُسجَّل الإضافة والتعديل والاعتماد في سجل التدقيق.",
+  "notifications_ar": [
+    "لا توجد إشعارات في هذه الميزة."
+  ],
+  "approvals_ar": [
+    "قيمة قوائم الأحكام التي يقترحها المنفذون أو المستخدمون تُعدّ «بانتظار الاعتماد» حتى يعتمدها من يملك LOOKUP_MANAGE (زر «اعتماد»). أما قوائم الأنواع فلا توجد فيها خطوة اعتماد."
+  ],
+  "errors": [
+    {
+      "code": "HTTP 400",
+      "meaning_ar": "حقل غير صالح، أو قائمة أنواع غير معروفة (الحقل list بالرمز Pattern).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/lists/ManagedListService.java",
+          "lines": "46-46",
+          "note": "400"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+          "lines": "35-35",
+          "note": "400"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 403",
+      "meaning_ar": "لا يملك المستخدم الصلاحية المطلوبة للقائمة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/lists/ManagedListService.java",
+          "lines": "48-48",
+          "note": "403"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/pleadings/LookupController.java",
+          "lines": "37-37",
+          "note": "LOOKUP_MANAGE"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 404",
+      "meaning_ar": "قائمة الأحكام غير معروفة أو القيمة غير موجودة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/pleadings/LookupService.java",
+          "lines": "128-128",
+          "note": "قائمة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/lists/ManagedListService.java",
+          "lines": "88-88",
+          "note": "قيمة"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 409",
+      "meaning_ar": "رمز مكرر أو نسخة قديمة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/pleadings/LookupService.java",
+          "lines": "80-80",
+          "note": "نسخة"
+        }
+      ]
+    }
+  ],
+  "result_ar": "قوائم اختيار موحّدة بقيم مفعّلة ومعتمدة، ومعها سجل تغييرات لقوائم الأحكام.",
+  "related": [
+    "claims-judgments",
+    "settlements",
+    "directives",
+    "templates",
+    "documents-ocr",
+    "roles-permissions",
+    "audit",
+    "courts"
+  ],
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/v1/lookups/{list}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/pleadings/LookupController.java",
+        "lines": "30-30",
+        "note": ""
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/lookups/{list}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/pleadings/LookupController.java",
+        "lines": "36-36",
+        "note": ""
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/lookups/values/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/pleadings/LookupController.java",
+        "lines": "43-43",
+        "note": ""
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/lookups/values/{id}/approve",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/pleadings/LookupController.java",
+        "lines": "49-49",
+        "note": ""
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/lookups/values/{id}/history",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/pleadings/LookupController.java",
+        "lines": "55-55",
+        "note": ""
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/lists/{list}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/lists/ManagedListController.java",
+        "lines": "27-36",
+        "note": ""
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/lists/{list}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/lists/ManagedListController.java",
+        "lines": "27-42",
+        "note": ""
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/lists/{list}/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/lists/ManagedListController.java",
+        "lines": "27-48",
+        "note": ""
+      }
+    }
+  ],
+  "tech": {
+    "chain": [
+      {
+        "layer": "screen",
+        "label": "LookupsPage (/admin/lookups)",
+        "ref": {
+          "path": "frontend/src/features/pleadings/LookupsPage.tsx",
+          "lines": "23-23",
+          "note": ""
+        },
+        "data_ar": "القائمة المختارة وقيم النموذج."
+      },
+      {
+        "layer": "api_call",
+        "label": "listLookup / createLookup / updateLookup / approveLookup",
+        "ref": {
+          "path": "frontend/src/features/pleadings/api.ts",
+          "lines": "369-369",
+          "note": ""
+        },
+        "data_ar": "طلبات JSON إلى /api/v1/lookups."
+      },
+      {
+        "layer": "controller",
+        "label": "LookupController",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/pleadings/LookupController.java",
+          "lines": "22-22",
+          "note": ""
+        },
+        "data_ar": "LookupRequests.Create/Update بعد التحقق."
+      },
+      {
+        "layer": "authorization",
+        "label": "@PreAuthorize CASE_VIEW / LOOKUP_MANAGE",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/pleadings/LookupController.java",
+          "lines": "37-37",
+          "note": ""
+        },
+        "data_ar": "الصلاحية قبل الخدمة."
+      },
+      {
+        "layer": "service",
+        "label": "LookupService",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/pleadings/LookupService.java",
+          "lines": "26-26",
+          "note": ""
+        },
+        "data_ar": "التحقق من القائمة وكتابة القيمة والسجل والتدقيق."
+      },
+      {
+        "layer": "tables",
+        "label": "lookup_value, lookup_value_history, managed_list_value",
+        "ref": {
+          "path": "backend/src/main/resources/db/migration/V620__LD-051_lookups_and_permissions.sql",
+          "lines": "7-7",
+          "note": ""
+        },
+        "data_ar": "القيم ومراجعاتها."
+      },
+      {
+        "layer": "event",
+        "label": "audit LOOKUP_CREATE / LOOKUP_APPROVE / LIST_VALUE_CREATE",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/pleadings/LookupService.java",
+          "lines": "65-65",
+          "note": ""
+        },
+        "data_ar": "حدث تدقيق باسم الفاعل والقائمة والرمز."
+      },
+      {
+        "layer": "result",
+        "label": "LookupRequests.View",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/pleadings/LookupRequests.java",
+          "lines": "36-36",
+          "note": ""
+        },
+        "data_ar": "القيمة بحالتها الجديدة تظهر في الجدول."
+      }
+    ]
+  },
+  "status": "IMPLEMENTED_ON_DEVELOP",
+  "status_note_ar": "الشيفرة موجودة على develop. شاشة الإدارة تغطي قوائم الأحكام فقط، وقوائم الأنواع بلا شاشة إضافة.",
+  "status_evidence": [
+    {
+      "path": "backend/src/main/java/com/lawdesk/pleadings/LookupService.java",
+      "lines": "26-26",
+      "note": ""
+    },
+    {
+      "path": "backend/src/main/java/com/lawdesk/lists/ManagedListService.java",
+      "lines": "24-24",
+      "note": ""
+    },
+    {
+      "path": "frontend/src/features/pleadings/LookupsPage.tsx",
+      "lines": "23-23",
+      "note": ""
+    }
+  ],
+  "verification_ar": "قرأتُ متحكمي القوائم وخدمتيهما وطلباتهما وهجرتي V620 وV740 وشاشة القوائم المعيارية. اختبارات وجدتها: backend/src/test/java/com/lawdesk/pleadings/LookupApiTest.java وbackend/src/test/java/com/lawdesk/lists/ManagedListApiTest.java. لم أجد اختبارًا للواجهة خاصًا بصفحة القوائم المعيارية بالاسم (يوجد frontend/src/features/pleadings/Screens.test.tsx وJudgmentRecording.test.tsx يذكران القوائم). لم أشغّل شيئًا ولم يجرِ هذا المستند تحققًا على UAT. لم أتحقق من قائمة DOCUMENT_CATEGORY في شاشة؛ هي مقبولة في الخادم وشاشة القوائم تعرض نوعين فقط."
+}

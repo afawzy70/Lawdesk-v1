@@ -1,0 +1,34 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/directives/DirectiveController.java": {
+      "name": "طلبات التوجيهات",
+      "description": "يستقبل طلبات سجل القرارات والتكليفات الإدارية: عرض توجيه وتعديله وتغيير حالة تنفيذه."
+    },
+    "backend/src/main/java/com/lawdesk/directives/DirectiveReportQueries.java": {
+      "name": "بيانات التوجيهات للتقارير",
+      "description": "يتيح للتقارير قراءة أعداد التوجيهات الموجهة إلى عضو في فترة: الكل والمنجز والمفتوح بعد موعده، دون تغيير شيء."
+    },
+    "backend/src/main/java/com/lawdesk/directives/DirectiveRequests.java": {
+      "name": "بيانات التوجيهات",
+      "description": "يحدد شكل بيانات التوجيه وحالات التنفيذ (جديد وقيد التنفيذ ومنجز وملغى) وعوامل البحث في السجل."
+    },
+    "backend/src/main/java/com/lawdesk/directives/DirectiveService.java": {
+      "name": "منطق التوجيهات",
+      "description": "ينفّذ العمل الفعلي لسجل القرارات والتكليفات الإدارية الخاصة بالقضايا: البحث والتعديل وتغيير حالة التنفيذ."
+    }
+  },
+  "routes": {
+    "GET /api/v1/directives/{id}": {
+      "name": "عرض توجيه",
+      "description": "يعرض توجيهًا واحدًا من سجل التوجيهات، لمن يملك صلاحية الاطلاع على القضايا."
+    },
+    "PUT /api/v1/directives/{id}": {
+      "name": "تعديل توجيه",
+      "description": "يعدّل بيانات توجيه، لمن يملك صلاحية إدارة التوجيهات."
+    },
+    "POST /api/v1/directives/{id}/status": {
+      "name": "تغيير حالة التوجيه",
+      "description": "يغيّر حالة تنفيذ التوجيه؛ الفحص عند الطلب هو صلاحية الاطلاع على القضايا فقط."
+    }
+  }
+}

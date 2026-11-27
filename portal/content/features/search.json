@@ -1,0 +1,663 @@
+{
+ "id": "search",
+ "category": "documents",
+ "name_ar": "البحث الموحّد والبحث في نصوص المستندات",
+ "summary_ar": "شاشتان للبحث: «البحث» يبحث بكلمات واحدة في القضايا والأطراف والطلبات والدفوع والجلسات والأحكام والمستندات والملاحظات والمهام ومكتبة الأحكام والتسويات والتكليفات ويجمع النتائج حسب النوع؛ و«البحث في الأرشيف» يبحث داخل نصوص مستندات القضايا نفسها. في الشاشتين لا يظهر للمستخدم إلا ما يحق له الاطلاع عليه.",
+ "purpose_ar": "الوصول السريع إلى السجل أو المستند المطلوب دون معرفة مكانه، مع تسامح في الكتابة العربية (الهمزات والتاء المربوطة والتشكيل وأل التعريف) ودون كشف أي سجل خارج صلاحيات المستخدم.",
+ "who_ar": [
+  "كل من يملك عرض القضايا (CASE_VIEW) للبحث الموحّد",
+  "من يملك البحث في كل أنواع السجلات (SEARCH_ALL) لغير القضايا والأطراف",
+  "من يملك عرض المستندات (DOCUMENT_VIEW) للبحث في الأرشيف"
+ ],
+ "who_perms": [
+  "CASE_VIEW",
+  "SEARCH_ALL",
+  "DOCUMENT_VIEW"
+ ],
+ "access_ar": "مربع البحث في أعلى الصفحة (لمن يملك عرض القضايا) أو الصفحة «البحث»؛ والقائمة > البحث في الأرشيف",
+ "route": "/search و /archive",
+ "prerequisites_ar": [
+  "تسجيل الدخول وصلاحية عرض القضايا للبحث الموحّد، وصلاحية عرض المستندات للأرشيف",
+  "للبحث في محتوى الصور والمسح الضوئي: أن يكون نصها قد قُرئ بالتعرف الضوئي (انظر documents-ocr)"
+ ],
+ "fields": {
+  "required": [
+   {
+    "name_ar": "كلمات البحث",
+    "code": "q",
+    "rule_ar": "البحث الموحّد: لا يجوز أن يكون فارغًا (الخطأ NotBlank) ولا أطول من 200 حرف؛ يجب أن تظهر كل الكلمات (بداية كلمة). البحث في الأرشيف: حرفان على الأقل وإلا الخطأ Size، وتُؤخذ أول 8 كلمات.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/search/SearchService.java",
+      "lines": "49-53",
+      "note": "NotBlank"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/search/SearchRequests.java",
+      "lines": "26-27",
+      "note": "Size 200"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/documents/DocumentTextService.java",
+      "lines": "224-229",
+      "note": "Size"
+     }
+    ]
+   }
+  ],
+  "optional": [
+   {
+    "name_ar": "أنواع السجلات",
+    "code": "types",
+    "rule_ar": "قائمة رموز بأحرف كبيرة؛ رمز غير معروف يعطي الخطأ Pattern؛ ترك القائمة فارغة يعني كل الأنواع المسموح بها.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/search/SearchRequests.java",
+      "lines": "28",
+      "note": "Pattern"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/search/SearchService.java",
+      "lines": "54-58",
+      "note": "unknown type"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/search/SearchSpecs.java",
+      "lines": "19-20",
+      "note": "ORDER"
+     }
+    ]
+   },
+   {
+    "name_ar": "نوع النزاع",
+    "code": "caseType",
+    "rule_ar": "أحرف كبيرة وشرطة سفلية حتى 32.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/search/SearchRequests.java",
+      "lines": "29",
+      "note": "Pattern"
+     }
+    ]
+   },
+   {
+    "name_ar": "القضية",
+    "code": "caseId",
+    "rule_ar": "يحصر النتائج في قضية؛ لا يُطبَّق على أنواع لا ترتبط بقضية (مثل مكتبة الأحكام).",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/search/SearchService.java",
+      "lines": "62-70",
+      "note": "applicable"
+     }
+    ]
+   },
+   {
+    "name_ar": "من تاريخ / إلى تاريخ",
+    "code": "from / to",
+    "rule_ar": "بصيغة تاريخ ISO؛ تُطبَّق على تاريخ السجل.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/search/SearchRequests.java",
+      "lines": "30-32",
+      "note": "dates"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/search/SearchService.java",
+      "lines": "111-118",
+      "note": "date filters"
+     }
+    ]
+   },
+   {
+    "name_ar": "رقم الصفحة وحجمها",
+    "code": "page / size",
+    "rule_ar": "الصفحة 0 فأكثر والحجم 1 فأكثر؛ الافتراضي 5 والأقصى 100 لكل مجموعة.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/search/SearchRequests.java",
+      "lines": "16-17",
+      "note": "defaults"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/search/SearchRequests.java",
+      "lines": "33-47",
+      "note": "page size"
+     }
+    ]
+   },
+   {
+    "name_ar": "الفئة (في الأرشيف)",
+    "code": "categoryId",
+    "rule_ar": "يحصر مستندات الأرشيف في فئة.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+      "lines": "200-206",
+      "note": "search params"
+     }
+    ]
+   }
+  ]
+ },
+ "steps": [
+  {
+   "n": 1,
+   "actor_ar": "المستخدم",
+   "action_ar": "يكتب كلمات في مربع البحث العلوي أو في صفحة «البحث» ويضغط «بحث».",
+   "response_ar": "يُنقل إلى /search?q=... ويُرسل الطلب. تظهر رسالة «جارٍ التحميل…» ثم النتائج.",
+   "rules_ar": [],
+   "data_ar": "الكلمات (حتى 200 حرف في الصفحة).",
+   "next_ar": "اختيار أنواع السجلات والمرشحات.",
+   "evidence": [
+    {
+     "path": "frontend/src/layout/AppLayout.tsx",
+     "lines": "70-88",
+     "note": "header search form"
+    },
+    {
+     "path": "frontend/src/features/wp9/SearchPage.tsx",
+     "lines": "37-79",
+     "note": "SearchPage"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "كلمات فارغة",
+     "detail_ar": "لا يُرسل طلب؛ تبقى الصفحة في حالة الانتظار.",
+     "evidence": [
+      {
+       "path": "frontend/src/features/wp9/SearchPage.tsx",
+       "lines": "49-55",
+       "note": "idle when q empty"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "actor_ar": "المستخدم",
+   "action_ar": "يحدد (اختياريًا) أنواع السجلات ونوع النزاع ومن/إلى تاريخ.",
+   "response_ar": "كل تغيير في المرشحات يعيد البحث. عدم اختيار نوع يعني الكل.",
+   "rules_ar": [
+    "أنواع المرشح: القضايا، الأطراف، الجلسات، الأحكام، المستندات، الملاحظات، المهام، أحكام المكتبة، التسويات، التكليفات."
+   ],
+   "data_ar": "",
+   "next_ar": "قراءة النتائج.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/wp9/SearchPage.tsx",
+     "lines": "104-178",
+     "note": "filters form"
+    },
+    {
+     "path": "frontend/src/i18n/messages/wp9.ar.ts",
+     "lines": "175-200",
+     "note": "Arabic labels"
+    }
+   ],
+   "alt": []
+  },
+  {
+   "n": 3,
+   "actor_ar": "الخادم",
+   "action_ar": "GET /api/v1/search بمعاملات الاستعلام.",
+   "response_ar": "يتحقق من الكلمات والأنواع ويحدد الأنواع المسموح بها لهذا المستخدم، ثم يطبّع الكلمات عربيًا ويطلب كل الكلمات (بداية كلمة).",
+   "rules_ar": [
+    "القضايا والأطراف: لمن يملك CASE_VIEW. بقية الأنواع: تحتاج SEARCH_ALL مع صلاحية عرض ذلك النوع (CLAIM_VIEW مثلًا للطلبات، DOCUMENT_VIEW للمستندات، LIBRARY_VIEW للمكتبة)."
+   ],
+   "data_ar": "مجموعات حسب النوع مع الإجمالي والأنواع التي بُحث فيها فعلًا.",
+   "next_ar": "حصر كل نوع بقواعد الاطلاع.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/search/SearchController.java",
+     "lines": "18-31",
+     "note": "endpoint"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/search/SearchService.java",
+     "lines": "49-92",
+     "note": "search"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "لا صلاحية عرض القضايا (403)",
+     "detail_ar": "تعرض الواجهة صفحة «لا تملك صلاحية».",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/search/SearchController.java",
+       "lines": "27-29",
+       "note": "PreAuthorize CASE_VIEW"
+      },
+      {
+       "path": "frontend/src/features/wp9/SearchPage.tsx",
+       "lines": "59-69",
+       "note": "403 -> AccessDenied"
+      }
+     ]
+    },
+    {
+     "kind": "validation",
+     "title_ar": "كلمات فارغة أو نوع غير معروف (400)",
+     "detail_ar": "NotBlank على q أو Pattern على types.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/search/SearchService.java",
+       "lines": "51-58",
+       "note": "field errors"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "actor_ar": "الخادم",
+   "action_ar": "يقيّد كل نوع بقاعدة اطلاع القضية قبل المطابقة.",
+   "response_ar": "الإجمالي واللقطة المعروضة يُحسبان من سجلات يحق للمستخدم رؤيتها فقط؛ سجل في قضية سرية لا يراها لا يظهر ولا يُحتسب.",
+   "rules_ar": [
+    "الروابط بين القضايا لا تضيف نصًا من قضية خفية.",
+    "مكتبة الأحكام تُبحث في الأحكام الفعّالة فقط."
+   ],
+   "data_ar": "سجلات ظاهرة فقط.",
+   "next_ar": "ترتيب النتائج.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/search/SearchService.java",
+     "lines": "26-35",
+     "note": "design comment"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/search/SearchSpecs.java",
+     "lines": "10-16",
+     "note": "access rule"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/search/SearchService.java",
+     "lines": "76-77",
+     "note": "viewable params"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/search/SearchSpecs.java",
+     "lines": "111-115",
+     "note": "linked cases only if visible"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/search/SearchSpecs.java",
+     "lines": "198-199",
+     "note": "library ACTIVE"
+    }
+   ],
+   "alt": []
+  },
+  {
+   "n": 5,
+   "actor_ar": "الخادم",
+   "action_ar": "يرتّب النتائج داخل كل نوع بحسب موضع الكلمات.",
+   "response_ar": "العنوان والأرقام والمراجع أعلى وزنًا من الوقائع والملاحظات؛ تُعاد قصاصة نصية من النص الأصلي وقائمة بالأجزاء التي وُجدت فيها الكلمات.",
+   "rules_ar": [
+    "للمستندات تُبحث العناوين وأسماء الملفات ونص الملف الحالي المقروء (EXTRACTED أو OCR_DONE)."
+   ],
+   "data_ar": "رقم، عنوان، تفصيل، تاريخ، قصاصة، matchedIn، رتبة.",
+   "next_ar": "عرض النتائج.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/search/SearchService.java",
+     "lines": "94-165",
+     "note": "rank + snippet"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/search/SearchSpecs.java",
+     "lines": "97-116",
+     "note": "case parts weights"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/search/SearchSpecs.java",
+     "lines": "177-183",
+     "note": "document parts"
+    }
+   ],
+   "alt": []
+  },
+  {
+   "n": 6,
+   "actor_ar": "المستخدم",
+   "action_ar": "يقرأ المجموعات ويضغط عنوان نتيجة، أو «عرض المزيد من ...».",
+   "response_ar": "تُعرض كل مجموعة بعدد نتائجها؛ الضغط يفتح ملف القضية (أو الحكم في المكتبة)، و«عرض المزيد» يطلب الصفحة التالية لذلك النوع فقط.",
+   "rules_ar": [],
+   "data_ar": "«N نتيجة يحق لك الاطلاع عليها» و«نطاق البحث: ...».",
+   "next_ar": "انتهاء.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/wp9/SearchPage.tsx",
+     "lines": "186-228",
+     "note": "groups"
+    },
+    {
+     "path": "frontend/src/features/wp9/SearchPage.tsx",
+     "lines": "28-31",
+     "note": "destination"
+    },
+    {
+     "path": "frontend/src/features/wp9/SearchPage.tsx",
+     "lines": "233-261",
+     "note": "Hit"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "لا نتائج",
+     "detail_ar": "تظهر «لا توجد نتائج».",
+     "evidence": [
+      {
+       "path": "frontend/src/features/wp9/SearchPage.tsx",
+       "lines": "192-194",
+       "note": "none"
+      }
+     ]
+    },
+    {
+     "kind": "error",
+     "title_ar": "تعذر البحث",
+     "detail_ar": "تظهر «تعذّر البحث. حاول مرة أخرى.»",
+     "evidence": [
+      {
+       "path": "frontend/src/features/wp9/SearchPage.tsx",
+       "lines": "181-185",
+       "note": "failed"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 7,
+   "actor_ar": "المستخدم صاحب صلاحية عرض المستندات",
+   "action_ar": "من «البحث في الأرشيف» يكتب كلمات (حرفان على الأقل) ويختار فئة اختيارية.",
+   "response_ar": "GET /api/v1/documents/search يعيد المستندات المطابقة مع القضية ورقم الإصدار وقصاصة وحالة القراءة؛ وتظهر ملاحظة إن لم يوجد محرك تعرف ضوئي على الخادم.",
+   "rules_ar": [
+    "كل الكلمات يجب أن تظهر في نص الإصدار الحالي؛ المستندات المسحوبة لا تظهر؛ لا تظهر مستندات قضايا غير مرئية ولا قصاصاتها."
+   ],
+   "data_ar": "صفحات من 20 نتيجة.",
+   "next_ar": "فتح القضية.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/archive/ArchiveSearchPage.tsx",
+     "lines": "18-116",
+     "note": "ArchiveSearchPage"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+     "lines": "200-206",
+     "note": "endpoint"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentTextService.java",
+     "lines": "224-265",
+     "note": "search"
+    },
+    {
+     "path": "frontend/src/i18n/messages/wp5.ar.ts",
+     "lines": "133-147",
+     "note": "Arabic"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "كلمة قصيرة",
+     "detail_ar": "الواجهة تعرض «اكتب حرفين على الأقل»، والخادم يردّ 400 بالرمز Size.",
+     "evidence": [
+      {
+       "path": "frontend/src/features/archive/ArchiveSearchPage.tsx",
+       "lines": "59-69",
+       "note": "too short"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/DocumentTextService.java",
+       "lines": "226-229",
+       "note": "Size"
+      }
+     ]
+    },
+    {
+     "kind": "denied",
+     "title_ar": "لا صلاحية (403)",
+     "detail_ar": "تُعرض صفحة منع الوصول.",
+     "evidence": [
+      {
+       "path": "frontend/src/features/archive/ArchiveSearchPage.tsx",
+       "lines": "47",
+       "note": "403"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+       "lines": "200-201",
+       "note": "DOCUMENT_VIEW"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "rules": [
+  {
+   "text_ar": "البحث طريقة للقراءة: يتبع قواعد الاطلاع نفسها، فلا يظهر إجمالي ولا قصاصة من سجل غير مرئي.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/search/SearchService.java",
+     "lines": "26-35",
+     "note": "comment"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/search/SearchController.java",
+     "lines": "13-16",
+     "note": "comment"
+    }
+   ]
+  },
+  {
+   "text_ar": "التطبيع العربي: التشكيل وأشكال الألف والياء والتاء المربوطة وأل التعريف لا تؤثر.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentTextService.java",
+     "lines": "219-223",
+     "note": "normalisation"
+    },
+    {
+     "path": "frontend/src/i18n/messages/wp9.ar.ts",
+     "lines": "179",
+     "note": "hint"
+    }
+   ]
+  },
+  {
+   "text_ar": "الأنواع الأخرى غير القضايا والأطراف تُبحث لمن يملك SEARCH_ALL مع عرض النوع.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/search/SearchService.java",
+     "lines": "59-70",
+     "note": "allowed"
+    }
+   ]
+  },
+  {
+   "text_ar": "المساعد القانوني يعيد استعمال محرك البحث نفسه عبر SearchPort فيرث قواعده.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/search/SearchPort.java",
+     "lines": "10-15",
+     "note": "SearchPort"
+    }
+   ]
+  }
+ ],
+ "after_submit_ar": "قراءة فقط: لا يُنشأ ولا يُعدَّل أي سجل بالبحث.",
+ "notifications_ar": [
+  "لا توجد إشعارات في البحث (لم يُعثر على كود إشعارات في حزمة search)."
+ ],
+ "approvals_ar": [],
+ "errors": [
+  {
+   "code": "HTTP 400 (errors[].field=q, code=NotBlank|Size)",
+   "meaning_ar": "كلمات البحث فارغة أو قصيرة أو طويلة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/search/SearchService.java",
+     "lines": "49-53",
+     "note": "NotBlank"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentTextService.java",
+     "lines": "226-229",
+     "note": "Size"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 400 (errors[].field=types, code=Pattern)",
+   "meaning_ar": "نوع سجل غير معروف.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/search/SearchService.java",
+     "lines": "54-58",
+     "note": "types"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 403",
+   "meaning_ar": "لا صلاحية CASE_VIEW أو DOCUMENT_VIEW.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/search/SearchController.java",
+     "lines": "27-29",
+     "note": "PreAuthorize"
+    }
+   ]
+  }
+ ],
+ "result_ar": "قائمة نتائج مجمّعة حسب النوع بقصاصات من النص الأصلي، لا تتضمن إلا ما يحق للمستخدم رؤيته.",
+ "related": [
+  "documents-ocr",
+  "assistant",
+  "cases-list-search",
+  "library",
+  "case-access-confidentiality",
+  "roles-permissions"
+ ],
+ "endpoints": [
+  {
+   "method": "GET",
+   "path": "/api/v1/search",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/search/SearchController.java",
+    "lines": "18-29",
+    "note": "/api/v1/search"
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/documents/search",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+    "lines": "200-201",
+    "note": "documents/search"
+   }
+  }
+ ],
+ "tech": {
+  "chain": [
+   {
+    "layer": "screen",
+    "label": "SearchPage",
+    "ref": {
+     "path": "frontend/src/features/wp9/SearchPage.tsx",
+     "lines": "37-79",
+     "note": "screen"
+    },
+    "data_ar": "كلمات البحث والمرشحات"
+   },
+   {
+    "layer": "api_call",
+    "label": "runSearch",
+    "ref": {
+     "path": "frontend/src/features/wp9/api.ts",
+     "lines": "484-495",
+     "note": "runSearch"
+    },
+    "data_ar": "استعلام GET بمعاملات q وtypes وcaseType وfrom وto وpage وsize"
+   },
+   {
+    "layer": "controller",
+    "label": "SearchController.search",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/search/SearchController.java",
+     "lines": "27-31",
+     "note": "controller"
+    },
+    "data_ar": "كائن Query بعد التحقق"
+   },
+   {
+    "layer": "authorization",
+    "label": "@PreAuthorize CASE_VIEW + SEARCH_ALL",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/search/SearchService.java",
+     "lines": "59-70",
+     "note": "authz"
+    },
+    "data_ar": "الأنواع المسموح بها"
+   },
+   {
+    "layer": "service",
+    "label": "SearchService.search",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/search/SearchService.java",
+     "lines": "49-92",
+     "note": "service"
+    },
+    "data_ar": "نص tsquery مطبّع"
+   },
+   {
+    "layer": "repository",
+    "label": "SearchSpecs",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/search/SearchSpecs.java",
+     "lines": "78-100",
+     "note": "specs"
+    },
+    "data_ar": "شروط الاطلاع لكل نوع"
+   },
+   {
+    "layer": "result",
+    "label": "SearchRequests.Result",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/search/SearchRequests.java",
+     "lines": "58-63",
+     "note": "result"
+    },
+    "data_ar": "مجموعات وعناصر وإجمالي"
+   }
+  ]
+ },
+ "status": "IMPLEMENTED_ON_DEVELOP",
+ "status_note_ar": "الكود موجود على develop.",
+ "status_evidence": [
+  {
+   "path": "backend/src/main/java/com/lawdesk/search/SearchService.java",
+   "lines": "49-92",
+   "note": "search"
+  },
+  {
+   "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+   "lines": "200-206",
+   "note": "documents search"
+  }
+ ],
+ "verification_ar": "قُرئ الكود (SearchController وSearchService وSearchSpecs وSearchRequests وDocumentTextService.search وصفحتا React ورسائلهما العربية). اختبارات موجودة: backend/src/test/java/com/lawdesk/search/ (UnifiedSearchApiTest، OcrTextSearchTest، StoredSearchDocumentsTest) وbackend/src/test/java/com/lawdesk/documents/ArchiveTextSearchApiTest.java واختبارات الواجهة frontend/src/features/wp9/SearchPage.test.tsx وfrontend/src/features/archive/ArchiveSearchPage.test.tsx. لم تُشغَّل الاختبارات هنا ولم يُجرَ تحقق UAT. لم أراجع تفاصيل كل نوع في SearchSpecs (الطلبات والدفوع والأحكام...) إلا ما ذُكر، ولم أقِس الأداء. شكل الخطأ 400 لتجاوز حد q (200 حرف) لم يُراجَع بالتفصيل."
+}

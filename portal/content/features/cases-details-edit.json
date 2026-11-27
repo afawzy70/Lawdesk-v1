@@ -1,0 +1,899 @@
+{
+  "id": "cases-details-edit",
+  "category": "cases",
+  "name_ar": "صفحة القضية وتعديل بياناتها وتغيير حالتها",
+  "summary_ar": "من صفحة القضية يطّلع المستخدم على بياناتها وسجلها الزمني، ويعدّل بياناتها الأساسية (العنوان والنوع والموضوع وتاريخ القيد والرقم الآلي والأثر المالي وسجل القضية)، ويغيّر حالتها (مفتوحة، متداولة، موقوفة، منتهية، مؤرشفة)، ويغيّر العضو المختص والبديل إن كان مشرفًا على القضايا.",
+  "purpose_ar": "تصحيح بيانات القضية وتحديثها مع حماية القضية من التعديل المتزامن بين موظفين، ومنع تعديل القضايا المنتهية والمؤرشفة، وإبقاء كل تغيير مهم مسجَّلًا في السجل الزمني وفي سجل التدقيق.",
+  "who_ar": [
+    "من يملك «عرض القضايا» (للاطلاع)",
+    "من يملك «تعديل القضايا» ويكون عضوًا في القضية أو لديه نطاق تعديل (للتعديل)",
+    "من يملك «تغيير حالة القضية» (لتغيير الحالة)",
+    "مشرف القضايا: «توزيع القضايا وتعيين الأعضاء» (لتغيير التعيين)"
+  ],
+  "who_perms": [
+    "CASE_VIEW",
+    "CASE_EDIT",
+    "CASE_EDIT_IN_SCOPE",
+    "CASE_STATUS_CHANGE",
+    "ASSIGN_CASE"
+  ],
+  "access_ar": "القائمة > القضايا > فتح قضية > «تعديل القضية»",
+  "route": "/cases/:id/edit",
+  "prerequisites_ar": [
+    "وجود القضية وأن يكون للمستخدم حق الاطلاع عليها (وإلا تظهر كأنها غير موجودة).",
+    "للتعديل: أن يكون المستخدم العضو المختص أو البديل أو من أُعطي حق المساهمة أو من يملك تعديل القضايا ضمن نطاقه، وأن تكون القضية غير منتهية وغير مؤرشفة.",
+    "فتح صفحة التعديل يحمّل نسخة القضية (version) التي يبني عليها الحفظ."
+  ],
+  "fields": {
+    "required": [
+      {
+        "name_ar": "عنوان القضية",
+        "code": "title",
+        "rule_ar": "غير فارغ حتى 200 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/UpdateCaseRequest.java",
+            "lines": "22-22",
+            "note": "title"
+          }
+        ]
+      },
+      {
+        "name_ar": "نوع القضية",
+        "code": "caseType",
+        "rule_ar": "إحدى أنواع القضايا الثمانية (مدني، جنائي، تجاري، عمالي، أحوال شخصية، إداري، دستوري، أخرى).",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/UpdateCaseRequest.java",
+            "lines": "23-23",
+            "note": "caseType"
+          }
+        ]
+      },
+      {
+        "name_ar": "تاريخ القيد",
+        "code": "openedOn",
+        "rule_ar": "مطلوب ولا يكون في المستقبل.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/UpdateCaseRequest.java",
+            "lines": "25-25",
+            "note": "openedOn"
+          }
+        ]
+      },
+      {
+        "name_ar": "رقم النسخة",
+        "code": "version",
+        "rule_ar": "رقم النسخة التي قرأها المستخدم؛ إن تغيّرت القضية بعدها رُفض الحفظ.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/UpdateCaseRequest.java",
+            "lines": "26-26",
+            "note": "version"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+            "lines": "99-99",
+            "note": "فحص النسخة"
+          }
+        ]
+      }
+    ],
+    "optional": [
+      {
+        "name_ar": "الموضوع",
+        "code": "subject",
+        "rule_ar": "حتى 4000 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/UpdateCaseRequest.java",
+            "lines": "24-24",
+            "note": "subject"
+          }
+        ]
+      },
+      {
+        "name_ar": "الرقم الآلي للقضية",
+        "code": "automatedNo",
+        "rule_ar": "حتى 100 حرف؛ إذا غاب بقيت القيمة المخزّنة كما هي. تغييره يُسجَّل في التدقيق.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/UpdateCaseRequest.java",
+            "lines": "27-27",
+            "note": "automatedNo"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+            "lines": "133-133",
+            "note": "تدقيق"
+          }
+        ]
+      },
+      {
+        "name_ar": "الأثر المالي",
+        "code": "financialImpact",
+        "rule_ar": "YES أو NO؛ إذا غاب بقي كما هو. ومع YES يلزم مبلغ، ومع NO يُمسح المبلغ المخزّن ولا يُقبل مبلغ.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/UpdateCaseRequest.java",
+            "lines": "28-28",
+            "note": "financialImpact"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+            "lines": "159-173",
+            "note": "القواعد"
+          }
+        ]
+      },
+      {
+        "name_ar": "مبلغ الأثر المالي",
+        "code": "financialAmount",
+        "rule_ar": "أكبر من صفر بحد أقصى 12 خانة صحيحة وثلاث منازل عشرية.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/UpdateCaseRequest.java",
+            "lines": "29-29",
+            "note": "financialAmount"
+          }
+        ]
+      },
+      {
+        "name_ar": "سجل القضية (الدائرة، تاريخ الورود، الجهة المحيلة، جهة الإحالة، الوقائع، المبلغ المطالب به، الأهمية، الملاحظات الداخلية)",
+        "code": "details",
+        "rule_ar": "إذا أُرسل استبدل كل القيم المخزّنة (والقيمة الفارغة تمسح)، وإذا غاب بقيت القيم كما هي. الجهة المحيلة تكون وحدة فعّالة من هيكل الهيئة.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/UpdateCaseRequest.java",
+            "lines": "31-31",
+            "note": "details"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+            "lines": "152-152",
+            "note": "الوحدة المحيلة"
+          }
+        ]
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "actor_ar": "موظف الإدارة القانونية",
+      "action_ar": "يفتح قضية من قائمة القضايا فتظهر صفحتها: بياناتها الأساسية، الملخص التنفيذي، سجل القضية، ثم أقسام الحالة والتعيين والأطراف والسجل الزمني وغيرها.",
+      "response_ar": "يستدعي المتصفح GET /api/v1/cases/{id}؛ إن كانت القضية موجودة ومسموحة له عُرضت، وإلا أجاب الخادم 404 كأنها غير موجودة حتى لا يُعرف وجودها.",
+      "rules_ar": [
+        "الاطلاع على القضية يقرره سياسة واحدة: العضو المختص والبديل ومنشئ القضية ومن لديه مهمة عليها أو منحة صريحة، ومن يغطيه نطاقه (للقضايا غير «المقيّدة»).",
+        "امتلاك صلاحية النظام وحدها (حتى لمدير النظام) لا يُظهر قضية."
+      ],
+      "data_ar": "معرّف القضية في المسار؛ والرد: بيانات القضية ورقم نسختها.",
+      "next_ar": "يضغط «تعديل القضية» إن كان مسموحًا.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseController.java",
+          "lines": "51-54",
+          "note": "GET"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+          "lines": "276-276",
+          "note": "الاطلاع"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+          "lines": "19-30",
+          "note": "السياسة"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "قضية لا يحق للمستخدم الاطلاع عليها",
+          "detail_ar": "يرد 404 (لا 403) وتظهر شاشة غير موجودة؛ ومن لا يملك CASE_VIEW يرد له 403 وتظهر صفحة «لا صلاحية».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+              "lines": "63-63",
+              "note": "404"
+            },
+            {
+              "path": "frontend/src/features/cases/CaseDetailsPage.tsx",
+              "lines": "37-37",
+              "note": "403"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "actor_ar": "موظف الإدارة القانونية المخوّل",
+      "action_ar": "يضغط «تعديل القضية» فتفتح صفحة «تعديل القضية LD-…» بنموذج معبّأ بالقيم الحالية.",
+      "response_ar": "لا يظهر رابط التعديل إذا كانت القضية منتهية أو مؤرشفة، وتظهر عبارة «هذه القضية مؤرشفة ولم يعد ممكنًا تغييرها» للمؤرشفة. وللنموذج الرقم الداخلي غير قابل للتغيير ولا يظهر حقلًا.",
+      "rules_ar": [
+        "الرقم الداخلي للقضية وحالتها لا يتغيران من هذا النموذج."
+      ],
+      "data_ar": "نسخة القضية الحالية تُحفظ في الصفحة لتُرسل مع الحفظ.",
+      "next_ar": "يعدّل الحقول ويضغط «حفظ التغييرات».",
+      "evidence": [
+        {
+          "path": "frontend/src/features/cases/CaseDetailsPage.tsx",
+          "lines": "172-172",
+          "note": "إخفاء رابط التعديل"
+        },
+        {
+          "path": "frontend/src/features/cases/CaseEditPage.tsx",
+          "lines": "148-148",
+          "note": "بلا الرقم الداخلي"
+        },
+        {
+          "path": "frontend/src/features/cases/CaseEditPage.tsx",
+          "lines": "52-52",
+          "note": "الشاشة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/UpdateCaseRequest.java",
+          "lines": "17-17",
+          "note": "ما لا يُعدَّل"
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "actor_ar": "موظف الإدارة القانونية المخوّل",
+      "action_ar": "يُغيّر الحقول (والأثر المالي والرقم الآلي وسجل القضية) ثم يضغط «حفظ التغييرات».",
+      "response_ar": "تفحص الشاشة صيغة المبالغ ثم تُرسل PUT /api/v1/cases/{id}. عند النجاح تظهر «تم حفظ التغييرات» وتبقى الشاشة بالنسخة الجديدة.",
+      "rules_ar": [
+        "لا يُحدَّث إلا ما تغيّر فعلًا؛ وطلب لا يغيّر شيئًا لا يرفع رقم النسخة ولا يسجّل حدثًا.",
+        "كل تعديل يضيف حدث «تعديل القضية» إلى السجل الزمني بأسماء الحقول المتغيرة (لا بقيمها).",
+        "تغيير الرقم الآلي أو الأثر المالي أو المبلغ المطالب به يُسجَّل أيضًا في سجل التدقيق."
+      ],
+      "data_ar": "الحقول المعدّلة مع version.",
+      "next_ar": "يمكن متابعة العمل على الصفحة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseController.java",
+          "lines": "69-72",
+          "note": "PUT"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+          "lines": "92-144",
+          "note": "التعديل"
+        },
+        {
+          "path": "frontend/src/features/cases/CaseForm.tsx",
+          "lines": "52-52",
+          "note": "فحص المبالغ"
+        },
+        {
+          "path": "frontend/src/features/cases/CaseEditPage.tsx",
+          "lines": "124-124",
+          "note": "حفظ"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "قيمة غير صالحة",
+          "detail_ar": "400 مع errors (الحقل والرمز) وتظهر «يُرجى تصحيح الحقول المحددة». ومن ذلك: أثر مالي YES بلا مبلغ، أو NO مع مبلغ، أو مبلغ بلا اختيار أثر.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+              "lines": "162-162",
+              "note": "مبلغ بلا أثر"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+              "lines": "168-168",
+              "note": "YES بلا مبلغ"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+              "lines": "171-171",
+              "note": "NO مع مبلغ"
+            },
+            {
+              "path": "frontend/src/features/cases/CaseEditPage.tsx",
+              "lines": "23-23",
+              "note": "الرسالة"
+            }
+          ]
+        },
+        {
+          "kind": "denied",
+          "title_ar": "قضية ظاهرة له لكن لا يحق له تغييرها",
+          "detail_ar": "403 إن لم يكن عضوًا في القضية ولا صاحب منحة مساهمة ولا لديه تعديل ضمن النطاق؛ وكذلك إن لم يملك CASE_EDIT.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+              "lines": "81-81",
+              "note": "403"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/CaseController.java",
+              "lines": "70-70",
+              "note": "الصلاحية"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "القضية منتهية أو مؤرشفة",
+          "detail_ar": "422 بقيمة CASE_READ_ONLY وتظهر «لا يمكن تعديل القضايا المنتهية أو المؤرشفة».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+              "lines": "97-97",
+              "note": "الرفض"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/CaseStatus.java",
+              "lines": "33-33",
+              "note": "الحالات"
+            },
+            {
+              "path": "frontend/src/features/cases/CaseEditPage.tsx",
+              "lines": "19-19",
+              "note": "الرسالة"
+            }
+          ]
+        },
+        {
+          "kind": "error",
+          "title_ar": "عدّل شخص آخر القضية",
+          "detail_ar": "409 وتظهر رسالة «عدّل شخص آخر هذه القضية…» مع زر «إعادة تحميل القضية»؛ بعد إعادة التحميل يعيد المستخدم تطبيق تغييراته.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+              "lines": "100-100",
+              "note": "409"
+            },
+            {
+              "path": "frontend/src/features/cases/CaseEditPage.tsx",
+              "lines": "17-17",
+              "note": "رسالة التعارض"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "actor_ar": "العضو المختص أو من يملك «تغيير حالة القضية»",
+      "action_ar": "في قسم «تغيير الحالة» يختار الحالة الجديدة ويكتب السبب إن لزم ثم يضغط «تغيير الحالة».",
+      "response_ar": "يُرسل POST /api/v1/cases/{id}/status. تتغير الحالة ويُسجَّل في السجل الزمني الانتقال والسبب، وتظهر «تم تغيير الحالة».",
+      "rules_ar": [
+        "الانتقالات المسموحة: من «مفتوحة» إلى متداولة أو منتهية؛ ومن «متداولة» إلى موقوفة أو منتهية؛ ومن «موقوفة» إلى متداولة أو منتهية؛ ومن «منتهية» إلى متداولة أو مؤرشفة؛ والمؤرشفة نهائية.",
+        "إعادة فتح قضية منتهية (إلى «متداولة») تتطلب سببًا.",
+        "تغيير الحالة يلزمه صلاحية CASE_STATUS_CHANGE وأن يكون المستخدم ممن يحق لهم تغيير القضية."
+      ],
+      "data_ar": "status وreason وversion وacknowledgeOpenItems.",
+      "next_ar": "عند الإغلاق قد يُعرض تنبيه بالبنود المفتوحة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseController.java",
+          "lines": "57-60",
+          "note": "POST"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseStatus.java",
+          "lines": "18-18",
+          "note": "الانتقالات"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+          "lines": "226-258",
+          "note": "الخدمة"
+        },
+        {
+          "path": "frontend/src/features/cases/CaseStatusForm.tsx",
+          "lines": "54-54",
+          "note": "النموذج"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "exceptional",
+          "title_ar": "انتقال غير مسموح أو سبب ناقص",
+          "detail_ar": "422 بقيمة STATUS_TRANSITION_NOT_ALLOWED («تغيير الحالة هذا غير مسموح») أو REASON_REQUIRED («يلزم ذكر سبب لإعادة فتح قضية منتهية»).",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+              "lines": "235-235",
+              "note": "الانتقال"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+              "lines": "238-238",
+              "note": "السبب"
+            },
+            {
+              "path": "frontend/src/features/cases/CaseStatusForm.tsx",
+              "lines": "15-15",
+              "note": "الرسالة"
+            }
+          ]
+        },
+        {
+          "kind": "denied",
+          "title_ar": "لا صلاحية",
+          "detail_ar": "403 إن لم يملك CASE_STATUS_CHANGE أو لم يحق له تغيير القضية؛ و404 إن لم يستطع رؤيتها.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+              "lines": "89-89",
+              "note": "التوزيع"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "actor_ar": "العضو المختص أو من يملك «تغيير حالة القضية»",
+      "action_ar": "عند اختيار «منتهية» وكانت في القضية بنود مفتوحة (تسوية لم تُنفَّذ، ميعاد قانوني مفتوح، جلسة مجدولة، مهمة مفتوحة، طلب إفادة بانتظار الرد، ملف تنفيذ جارٍ) يرفض الخادم أول مرة، فتعرض الشاشة قائمة البنود بأعدادها وزر «أغلق القضية رغم ذلك».",
+      "response_ar": "إذا أكّد المستخدم أُعيد الإرسال مع acknowledgeOpenItems فتُغلق القضية ويُكتب في السجل الزمني أن البنود المفتوحة قد أُقرّ بها.",
+      "rules_ar": [
+        "الفحص تحذير لا حاجز: الإغلاق قرار يدوي ولا يحذف شيئًا.",
+        "يعرض الفحص أعدادًا فقط لا محتوى السجلات."
+      ],
+      "data_ar": "الرد على GET /api/v1/cases/{id}/closing-check: findings (code وcount) وhasWarnings.",
+      "next_ar": "تصبح القضية «منتهية» وتُغلق شاشة التعديل لها.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseController.java",
+          "lines": "45-45",
+          "note": "الفحص"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+          "lines": "246-246",
+          "note": "الرفض"
+        },
+        {
+          "path": "frontend/src/features/cases/CaseStatusForm.tsx",
+          "lines": "39-39",
+          "note": "المعالجة في الشاشة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseClosingCheck.java",
+          "lines": "14-14",
+          "note": "الفكرة"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "exceptional",
+          "title_ar": "الإغلاق دون إقرار",
+          "detail_ar": "422 بقيمة CLOSING_OPEN_ITEMS_NOT_ACKNOWLEDGED.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+              "lines": "36-36",
+              "note": "الرمز"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 6,
+      "actor_ar": "مشرف القضايا",
+      "action_ar": "في قسم «التعيين» يغيّر العضو المختص والعضو البديل ويضغط «حفظ التعيين».",
+      "response_ar": "يُرسل PUT /api/v1/cases/{id}/assignment وتظهر «تم حفظ التعيين». يظهر القسم لمن يملك ASSIGN_CASE فقط.",
+      "rules_ar": [
+        "العضوان نشطان في الإدارة القانونية ومختلفان.",
+        "تعيين بنفس العضوين لا يغيّر شيئًا.",
+        "يُسجَّل في السجل الزمني وفي التدقيق (حدث CASE_ASSIGNMENT_CHANGE لكل دور)."
+      ],
+      "data_ar": "primaryMemberId وalternateMemberId وversion.",
+      "next_ar": "يمتلك العضوان الجديدان حق العمل على القضية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/IntakeController.java",
+          "lines": "64-64",
+          "note": "التعيين"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+          "lines": "178-178",
+          "note": "الخدمة"
+        },
+        {
+          "path": "frontend/src/features/cases/intake/CaseAssignmentSection.tsx",
+          "lines": "26-26",
+          "note": "إخفاء القسم"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "error",
+          "title_ar": "نسخة قديمة أو لا صلاحية",
+          "detail_ar": "409 وتظهر «تغيّرت القضية. أعد تحميلها»، أو 403 «لا تملك صلاحية تغيير التعيين».",
+          "evidence": [
+            {
+              "path": "frontend/src/features/cases/intake/CaseAssignmentSection.tsx",
+              "lines": "41-41",
+              "note": "الرسائل"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "عضو غير مؤهل أو العضوان متطابقان",
+          "detail_ar": "422 MEMBER_NOT_ELIGIBLE، أو 400 SameAsPrimary.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+              "lines": "186-186",
+              "note": "SameAsPrimary"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+              "lines": "220-220",
+              "note": "الأهلية"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "text_ar": "القضية المنتهية أو المؤرشفة لا تُعدَّل بياناتها؛ والمؤرشفة وحدها تحتفظ بأطرافها فلا يُضاف إليها طرف.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseStatus.java",
+          "lines": "32-32",
+          "note": "القاعدة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+          "lines": "187-187",
+          "note": "الأطراف"
+        }
+      ]
+    },
+    {
+      "text_ar": "القضية التي لا يحق للمستخدم رؤيتها تُعامل كغير موجودة (404)، والتي يراها ولا يغيّرها تُرفض (403).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+          "lines": "35-35",
+          "note": "السياسة"
+        }
+      ]
+    },
+    {
+      "text_ar": "المنع من الكتابة المتزامنة يتم بالنسخة: من يقرأ النسخة 3 ثم يحفظ بعد أن صارت 4 يتلقى 409.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+          "lines": "130-130",
+          "note": "409"
+        }
+      ]
+    },
+    {
+      "text_ar": "السجل الزمني يعرض صفحات (20 حدثًا افتراضيًا، 100 حدًا أعلى) عبر GET /api/v1/cases/{id}/timeline.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseController.java",
+          "lines": "63-63",
+          "note": "الخط الزمني"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseSearch.java",
+          "lines": "26-26",
+          "note": "الحدود"
+        }
+      ]
+    }
+  ],
+  "after_submit_ar": "بعد حفظ التعديل تبقى الصفحة على القضية بنسختها الجديدة. يظهر في السجل الزمني حدث «تعديل القضية» (أو «تغيير الحالة» أو «تعيين العضو المختص») باسم الفاعل.",
+  "notifications_ar": [
+    "لا يرسل تعديل القضية أو تغيير حالتها أو تعيينها إشعارًا؛ لم أجد في هذه الشيفرة استدعاءً لخدمة الإشعارات. الأثر يظهر في السجل الزمني وفي سجل التدقيق."
+  ],
+  "approvals_ar": [
+    "لا توجد موافقة لازمة لتعديل القضية أو لتغيير حالتها؛ يكفي أن يملك المستخدم الصلاحية والحق على القضية. وتنبيه البنود المفتوحة عند الإغلاق إقرار من المستخدم نفسه لا اعتماد من غيره."
+  ],
+  "errors": [
+    {
+      "code": "HTTP 400",
+      "meaning_ar": "قيمة غير صالحة؛ ProblemDetail فيه errors (field وcode).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+          "lines": "35-35",
+          "note": "400"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 403",
+      "meaning_ar": "ظاهرة للمستخدم لكن لا يحق له التغيير، أو تنقصه الصلاحية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+          "lines": "81-81",
+          "note": "403"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 404",
+      "meaning_ar": "القضية غير موجودة أو لا يحق للمستخدم رؤيتها، أو معرّف غير صالح.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+          "lines": "63-63",
+          "note": "404"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/Text.java",
+          "lines": "67-67",
+          "note": "معرّف غير صالح"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 409",
+      "meaning_ar": "تغيّرت القضية منذ قراءة المستخدم لها (نسخة قديمة).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+          "lines": "100-100",
+          "note": "409"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 CASE_READ_ONLY",
+      "meaning_ar": "القضية منتهية أو مؤرشفة فلا تُعدَّل.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+          "lines": "32-32",
+          "note": "الرمز"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 STATUS_TRANSITION_NOT_ALLOWED",
+      "meaning_ar": "انتقال حالة غير مسموح.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+          "lines": "34-34",
+          "note": "الرمز"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 REASON_REQUIRED",
+      "meaning_ar": "إعادة فتح قضية منتهية دون سبب.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+          "lines": "35-35",
+          "note": "الرمز"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 CLOSING_OPEN_ITEMS_NOT_ACKNOWLEDGED",
+      "meaning_ar": "إغلاق قضية فيها بنود مفتوحة دون إقرار.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+          "lines": "36-36",
+          "note": "الرمز"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 MEMBER_NOT_ELIGIBLE",
+      "meaning_ar": "عضو غير نشط أو ليس من الإدارة القانونية عند التعيين.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+          "lines": "37-37",
+          "note": "الرمز"
+        }
+      ]
+    }
+  ],
+  "result_ar": "قضية ببيانات محدّثة ونسخة أحدث وحالة جديدة عند التغيير، وسجل زمني يوثّق من فعل ماذا ومتى.",
+  "related": [
+    "cases-register",
+    "cases-list-search",
+    "parties",
+    "case-access-confidentiality",
+    "proceedings-stages",
+    "hearings",
+    "case-file",
+    "case-brief",
+    "notes",
+    "case-links",
+    "audit",
+    "roles-permissions"
+  ],
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/v1/cases/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/cases/CaseController.java",
+        "lines": "22-51",
+        "note": ""
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/cases/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/cases/CaseController.java",
+        "lines": "22-69",
+        "note": ""
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/cases/{id}/status",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/cases/CaseController.java",
+        "lines": "22-57",
+        "note": ""
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cases/{id}/closing-check",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/cases/CaseController.java",
+        "lines": "22-45",
+        "note": ""
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cases/{id}/timeline",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/cases/CaseController.java",
+        "lines": "22-63",
+        "note": ""
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/cases/{id}/assignment",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/cases/IntakeController.java",
+        "lines": "64-64",
+        "note": ""
+      }
+    }
+  ],
+  "tech": {
+    "chain": [
+      {
+        "layer": "screen",
+        "label": "CaseEditPage (/cases/:id/edit)",
+        "ref": {
+          "path": "frontend/src/features/cases/CaseEditPage.tsx",
+          "lines": "52-52",
+          "note": ""
+        },
+        "data_ar": "القضية المحمّلة بنسختها تملأ النموذج."
+      },
+      {
+        "layer": "component",
+        "label": "CaseForm",
+        "ref": {
+          "path": "frontend/src/features/cases/CaseForm.tsx",
+          "lines": "47-47",
+          "note": ""
+        },
+        "data_ar": "قيم النموذج بعد فحص المبالغ تُسلَّم إلى updateCase."
+      },
+      {
+        "layer": "api_call",
+        "label": "updateCase (PUT)",
+        "ref": {
+          "path": "frontend/src/features/cases/api.ts",
+          "lines": "346-346",
+          "note": ""
+        },
+        "data_ar": "جسم الطلب: الحقول المعدّلة مع version."
+      },
+      {
+        "layer": "controller",
+        "label": "CaseController.update",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseController.java",
+          "lines": "69-72",
+          "note": ""
+        },
+        "data_ar": "UpdateCaseRequest بعد التحقق إلى CaseService.update."
+      },
+      {
+        "layer": "authorization",
+        "label": "CASE_EDIT + CaseAccessPolicy.requireChange",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+          "lines": "81-81",
+          "note": ""
+        },
+        "data_ar": "التحقق من الصلاحية ثم من حق التغيير على هذه القضية بالذات."
+      },
+      {
+        "layer": "service",
+        "label": "CaseService.update",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+          "lines": "92-92",
+          "note": ""
+        },
+        "data_ar": "تقارن الخدمة القيم وتحسب الحقول المتغيرة وتفحص الحالة والنسخة."
+      },
+      {
+        "layer": "repository",
+        "label": "CaseRepository.update",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseRepository.java",
+          "lines": "89-89",
+          "note": ""
+        },
+        "data_ar": "تحديث بشرط النسخة: لا يُحدَّث الصف إن تغيرت النسخة."
+      },
+      {
+        "layer": "tables",
+        "label": "legal_case",
+        "ref": {
+          "path": "backend/src/main/resources/db/migration/V200__LD-012_legal_case.sql",
+          "lines": "4-4",
+          "note": ""
+        },
+        "data_ar": "الصف المحدَّث ورقم النسخة الجديد."
+      },
+      {
+        "layer": "event",
+        "label": "CASE_UPDATED في case_event وأحداث التدقيق",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+          "lines": "131-131",
+          "note": ""
+        },
+        "data_ar": "ملخص بأسماء الحقول المتغيرة."
+      },
+      {
+        "layer": "result",
+        "label": "LegalCase (200)",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseController.java",
+          "lines": "71-71",
+          "note": ""
+        },
+        "data_ar": "القضية المحدّثة تُعرض في الشاشة مع «تم حفظ التغييرات»."
+      }
+    ]
+  },
+  "status": "IMPLEMENTED_ON_DEVELOP",
+  "status_note_ar": "الشيفرة موجودة على develop وتغطيها اختبارات الخادم والواجهة المذكورة.",
+  "status_evidence": [
+    {
+      "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+      "lines": "29-29",
+      "note": ""
+    },
+    {
+      "path": "frontend/src/features/cases/CaseEditPage.tsx",
+      "lines": "52-52",
+      "note": ""
+    }
+  ],
+  "verification_ar": "قرأتُ CaseController وCaseService وUpdateCaseRequest وCaseStatus وCaseAccessPolicy وCaseClosingCheck وشاشات التعديل والحالة والتعيين. اختبارات وجدتها: backend/src/test/java/com/lawdesk/cases/CaseEditApiTest.java وCaseLifecycleApiTest.java وCaseDetailsApiTest.java وCaseVisibilityApiTest.java وCaseMembershipAccessTest.java وGovernmentIntakeApiTest.java، وفي الواجهة CaseEditPage.test.tsx وCaseStatusClosing.test.tsx وCaseDetailsPage.test.tsx وCaseRecord.test.tsx. لم أشغّلها ولم يجرِ هذا المستند أي تحقق على UAT. أقسام صفحة القضية الأخرى (الدعاوى والجلسات والمستندات إلخ) موثّقة في ميزاتها الخاصة ولم أتحقق منها هنا."
+}

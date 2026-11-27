@@ -1,0 +1,676 @@
+{
+  "id": "case-links",
+  "category": "cases",
+  "name_ar": "ربط القضايا ببعضها (القضايا المرتبطة)",
+  "summary_ar": "يمكن ربط قضية بقضية أخرى بارتباط موضوعي، أو بطلب ضم، أو بقرار ضم، أو بإحالة، مع ذكر السبب ومن طلب الارتباط وتاريخه وقرار المحكمة إن صدر. يظهر الارتباط الواحد في ملف القضيتين معًا، ولا يؤثر إغلاق إحداهما في الأخرى.",
+  "purpose_ar": "إبقاء العلاقة بين القضايا المتصلة ظاهرة للعضو الذي يتابع أيًّا منهما، وتتبع طلبات الضم وقرارات المحكمة فيها، دون أن يكشف الارتباط قضية لا يحق للمستخدم رؤيتها.",
+  "who_ar": [
+    "من يملك «عرض القضايا» لرؤية الارتباطات",
+    "من يملك «ربط القضايا» ويحق له تغيير القضية لإضافة ارتباط أو تغيير حالته"
+  ],
+  "who_perms": [
+    "CASE_VIEW",
+    "CASE_LINK_MANAGE"
+  ],
+  "access_ar": "القائمة > القضايا > فتح قضية > قسم «القضايا المرتبطة»",
+  "route": "/cases/:id",
+  "prerequisites_ar": [
+    "أن تكون القضية ظاهرة للمستخدم.",
+    "للإضافة: صلاحية CASE_LINK_MANAGE وأن يحق للمستخدم تغيير القضية وأن تكون غير مؤرشفة (وإلا لا تظهر نماذج الإضافة).",
+    "وجود القضية الأخرى وأن تكون ظاهرة للمستخدم."
+  ],
+  "fields": {
+    "required": [
+      {
+        "name_ar": "القضية الأخرى",
+        "code": "otherCaseId",
+        "rule_ar": "تُختار بالبحث بالرقم أو العنوان؛ لا يجوز أن تكون القضية نفسها؛ ولا بد أن تكون مما يراه المستخدم وإلا عدّت غير موجودة.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkRequests.java",
+            "lines": "33-33",
+            "note": "otherCaseId"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+            "lines": "91-91",
+            "note": "نفس القضية"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+            "lines": "93-93",
+            "note": "غير ظاهرة"
+          }
+        ]
+      },
+      {
+        "name_ar": "نوع الارتباط",
+        "code": "kind",
+        "rule_ar": "ارتباط موضوعي (SUBJECT_LINK) أو طلب ضم (JOINDER_REQUEST) أو قرار ضم (JOINDER_DECISION) أو إحالة (REFERRAL).",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkRequests.java",
+            "lines": "27-27",
+            "note": "الأنواع"
+          }
+        ]
+      },
+      {
+        "name_ar": "السبب",
+        "code": "reason",
+        "rule_ar": "غير فارغ حتى 2000 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkRequests.java",
+            "lines": "35-35",
+            "note": "reason"
+          }
+        ]
+      }
+    ],
+    "optional": [
+      {
+        "name_ar": "مقدم طلب الارتباط",
+        "code": "requestedBy",
+        "rule_ar": "حتى 200 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkRequests.java",
+            "lines": "36-36",
+            "note": "requestedBy"
+          }
+        ]
+      },
+      {
+        "name_ar": "تاريخ الطلب",
+        "code": "requestedOn",
+        "rule_ar": "تاريخ اختياري.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkRequests.java",
+            "lines": "37-37",
+            "note": "requestedOn"
+          }
+        ]
+      },
+      {
+        "name_ar": "صدر قرار قضائي",
+        "code": "courtDecision",
+        "rule_ar": "إذا لم يُحدَّد فلا يُقبل تاريخ القرار ولا منطوقه ولا مستنده (400).",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkRequests.java",
+            "lines": "38-38",
+            "note": "courtDecision"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+            "lines": "174-174",
+            "note": "الفحص"
+          }
+        ]
+      },
+      {
+        "name_ar": "تاريخ القرار ومنطوقه",
+        "code": "decisionDate / operative",
+        "rule_ar": "لا يُقبلان إلا مع «صدر قرار قضائي»؛ المنطوق حتى 2000 حرف. (الشاشة تعرضهما عند اختيار «صدر قرار قضائي».)",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkRequests.java",
+            "lines": "39-39",
+            "note": "decisionDate"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkRequests.java",
+            "lines": "40-40",
+            "note": "operative"
+          }
+        ]
+      },
+      {
+        "name_ar": "مستند نسخة القرار",
+        "code": "decisionDocumentId",
+        "rule_ar": "يجب أن يكون مستندًا في ملف إحدى القضيتين وإلا رُفض (422). (واجهة البرمجة فقط، لا يعرضه النموذج.)",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkRequests.java",
+            "lines": "41-41",
+            "note": "decisionDocumentId"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+            "lines": "180-180",
+            "note": "الفحص"
+          }
+        ]
+      },
+      {
+        "name_ar": "حالة الارتباط",
+        "code": "status",
+        "rule_ar": "مطلوب (REQUESTED مطلوب، ACTIVE قائم، REJECTED مرفوض، ENDED منتهٍ) عند التعديل؛ وعند الإضافة إن غاب كانت REQUESTED لطلب الضم وACTIVE لغيره. هذه الحالات افتراض ينتظر موافقة صاحب العمل بحسب تعليق الشيفرة.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkRequests.java",
+            "lines": "29-29",
+            "note": "افتراض"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+            "lines": "99-99",
+            "note": "الافتراضي"
+          }
+        ]
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "actor_ar": "عضو الإدارة القانونية",
+      "action_ar": "يفتح قضية فيرى قسم «القضايا المرتبطة» بعبارة «يظهر الارتباط في ملف القضيتين. إغلاق إحداهما لا يغلق الأخرى.».",
+      "response_ar": "تُستدعى GET /api/v1/cases/{caseId}/links. يُعرض لكل ارتباط: نوعه وحالته واتجاهه («سُجِّل من هذه القضية» أو «سُجِّل من القضية الأخرى») ورقم القضية الأخرى وعنوانها وحالتها ومن طلبه وهل صدر فيه قرار قضائي.",
+      "rules_ar": [
+        "القضية الأخرى لا تُعرض إلا لمن يحق له رؤيتها؛ والباقي يُعدّ فقط: «س ارتباط أخرى بقضايا لا يحق لك الاطلاع عليها»."
+      ],
+      "data_ar": "CaseLinkRequests.Links: items وhiddenCount.",
+      "next_ar": "يضيف ارتباطًا أو يغيّر حالة ارتباط.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkController.java",
+          "lines": "30-30",
+          "note": "القراءة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+          "lines": "63-63",
+          "note": "الخدمة"
+        },
+        {
+          "path": "frontend/src/features/followup/CaseLinksSection.tsx",
+          "lines": "42-42",
+          "note": "الشاشة"
+        },
+        {
+          "path": "frontend/src/i18n/messages/wp3.ar.ts",
+          "lines": "84-84",
+          "note": "الرسالة"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "قضية غير ظاهرة",
+          "detail_ar": "404 لمن لا يحق له رؤيتها، و403 لمن لا يملك CASE_VIEW.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+              "lines": "64-64",
+              "note": "الفحص"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "actor_ar": "من يملك «ربط القضايا»",
+      "action_ar": "في نموذج «إضافة ارتباط» يبحث عن القضية الأخرى ويختار نوع الارتباط ويكتب السبب (ومقدم الطلب وتاريخه اختياريًا) ويحدد «صدر قرار قضائي» مع تاريخ القرار ومنطوقه إن صدر، ثم يضغط «إضافة ارتباط».",
+      "response_ar": "يُرسل POST /api/v1/cases/{caseId}/links ويُنشأ الارتباط (201) فتظهر «سُجِّل الارتباط.» ويظهر في ملف القضيتين.",
+      "rules_ar": [
+        "الارتباط لا يتكرر بين القضيتين بالنوع نفسه (409).",
+        "طلب الضم لا يعني قرار ضم: حالته «مطلوب» حتى تُغيَّر.",
+        "يُسجَّل في السجل الزمني للقضية حدث الارتباط (CASE_LINK_CREATED) باسم الفاعل."
+      ],
+      "data_ar": "otherCaseId وkind وreason وrequestedBy وrequestedOn وcourtDecision وdecisionDate وoperative.",
+      "next_ar": "تظهر القضية المرتبطة في القسم.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkController.java",
+          "lines": "36-36",
+          "note": "الإضافة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+          "lines": "83-83",
+          "note": "الخدمة"
+        },
+        {
+          "path": "frontend/src/features/followup/api.ts",
+          "lines": "57-57",
+          "note": "الطلب"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+          "lines": "118-118",
+          "note": "الحدث"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "اختيار ناقص",
+          "detail_ar": "إن لم يُختر القضية الأخرى أو السبب تظهر «اختر القضية الأخرى واذكر السبب.»؛ وبيانات قرار دون «صدر قرار قضائي» تعطي 400 (AssertTrue على courtDecision).",
+          "evidence": [
+            {
+              "path": "frontend/src/features/followup/CaseLinksSection.tsx",
+              "lines": "81-81",
+              "note": "الشاشة"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+              "lines": "176-176",
+              "note": "الخادم"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "ربط بالنفس أو قضية مؤرشفة أو مستند ليس في القضيتين",
+          "detail_ar": "422: CASE_LINK_SAME_CASE «لا يمكن ربط القضية بنفسها»، أو CASE_ARCHIVED «القضية المؤرشفة للقراءة فقط»، أو LINK_DOCUMENT_NOT_IN_CASE «نسخة القرار ليست في ملف أي من القضيتين».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+              "lines": "88-88",
+              "note": "مؤرشفة"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+              "lines": "183-183",
+              "note": "مستند"
+            },
+            {
+              "path": "frontend/src/i18n/messages/wp3.ar.ts",
+              "lines": "23-23",
+              "note": "الرسالة"
+            }
+          ]
+        },
+        {
+          "kind": "denied",
+          "title_ar": "لا صلاحية أو قضية غير ظاهرة",
+          "detail_ar": "403 إن لم يملك CASE_LINK_MANAGE أو لم يحق له تغيير القضية؛ و404 إن كانت إحدى القضيتين غير ظاهرة (حتى لا يُستعمل الارتباط للتحسس).",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkController.java",
+              "lines": "37-37",
+              "note": "الصلاحية"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+              "lines": "86-86",
+              "note": "التغيير"
+            }
+          ]
+        },
+        {
+          "kind": "error",
+          "title_ar": "ارتباط مكرر",
+          "detail_ar": "409 «these cases are already linked in this way».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+              "lines": "116-116",
+              "note": "409"
+            },
+            {
+              "path": "backend/src/main/resources/db/migration/V663__LD-053_case_link.sql",
+              "lines": "35-35",
+              "note": "الفهرس"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "actor_ar": "من يملك «ربط القضايا»",
+      "action_ar": "يغيّر «حالة الارتباط» من القائمة المنسدلة بجانب الارتباط (مطلوب، قائم، مرفوض، منتهٍ).",
+      "response_ar": "يُرسل PUT /api/v1/case-links/{id} بالنسخة الحالية، وتظهر «حُدِّث الارتباط.». يُسجَّل حدث CASE_LINK_UPDATED في سجل القضية التي يعمل عليها المستخدم.",
+      "rules_ar": [
+        "يكفي أن يستطيع المستخدم تغيير إحدى القضيتين لإدارة الارتباط.",
+        "يجب أن تكون نسخة الارتباط هي الحالية.",
+        "إغلاق إحدى القضيتين أو أرشفتها لا يُنهي الارتباط ولا يغلق الأخرى."
+      ],
+      "data_ar": "reason وrequestedBy وrequestedOn وstatus وcourtDecision وdecisionDate وoperative وversion.",
+      "next_ar": "تظهر الحالة الجديدة في ملف القضيتين.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkController.java",
+          "lines": "43-43",
+          "note": "التعديل"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+          "lines": "124-124",
+          "note": "الخدمة"
+        },
+        {
+          "path": "frontend/src/features/followup/api.ts",
+          "lines": "73-73",
+          "note": "الطلب"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+          "lines": "162-162",
+          "note": "الحدث"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "error",
+          "title_ar": "عدّل شخص آخر الارتباط",
+          "detail_ar": "409 وتظهر «غيّر شخص آخر هذا السجل. أعد التحميل وحاول مرة أخرى».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+              "lines": "143-143",
+              "note": "409"
+            },
+            {
+              "path": "frontend/src/i18n/messages/wp3.ar.ts",
+              "lines": "15-15",
+              "note": "الرسالة"
+            }
+          ]
+        },
+        {
+          "kind": "denied",
+          "title_ar": "لا يستطيع تغيير أي من القضيتين",
+          "detail_ar": "403 «not a member of either case»؛ ومن لا يرى أيًّا منهما يتلقى 404.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+              "lines": "140-140",
+              "note": "403"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+              "lines": "126-126",
+              "note": "404"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "text_ar": "صف واحد في قاعدة البيانات يربط قضيتين ويظهر في ملف كل منهما؛ ولا يُحذف الارتباط (لا توجد نقطة حذف) بل تُغيَّر حالته إلى «منتهٍ» أو «مرفوض».",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+          "lines": "28-28",
+          "note": "التعليق"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkController.java",
+          "lines": "43-43",
+          "note": "لا حذف"
+        }
+      ]
+    },
+    {
+      "text_ar": "قيد قاعدة البيانات: لا ارتباط بين القضية ونفسها، ولا ارتباط مكرر بالنوع نفسه بين القضيتين (بغض النظر عن الاتجاه).",
+      "evidence": [
+        {
+          "path": "backend/src/main/resources/db/migration/V663__LD-053_case_link.sql",
+          "lines": "27-27",
+          "note": "قيد"
+        },
+        {
+          "path": "backend/src/main/resources/db/migration/V663__LD-053_case_link.sql",
+          "lines": "35-35",
+          "note": "فهرس"
+        }
+      ]
+    },
+    {
+      "text_ar": "تفاصيل القرار (تاريخه ومنطوقه ومستنده) لا تُقبل إلا مع علامة صدور قرار قضائي.",
+      "evidence": [
+        {
+          "path": "backend/src/main/resources/db/migration/V663__LD-053_case_link.sql",
+          "lines": "28-28",
+          "note": "قيد قاعدة البيانات"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+          "lines": "174-174",
+          "note": "الفحص"
+        }
+      ]
+    },
+    {
+      "text_ar": "الخط الزمني الموحد يعرض الارتباط حدثًا من نوع «ارتباط قضايا»، ولا يُظهر سببه إلا لمن يرى القضية الأخرى.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java",
+          "lines": "246-246",
+          "note": "السبب"
+        }
+      ]
+    }
+  ],
+  "after_submit_ar": "يظهر الارتباط في قسم «القضايا المرتبطة» في ملفي القضيتين، وفي الملخص التنفيذي للقضيتين عددًا، وفي الخط الزمني الموحد.",
+  "notifications_ar": [
+    "لا يرسل الارتباط إشعارًا؛ لم أجد في شيفرة الارتباطات استدعاءً لخدمة الإشعارات. الأثر يظهر في السجل الزمني للقضية."
+  ],
+  "approvals_ar": [
+    "لا توجد خطوة موافقة في النظام على الارتباط؛ والتمييز بين «طلب ضم» و«قرار ضم» تسجيل لما حدث أمام المحكمة وليس موافقة داخل النظام. أما حالات الارتباط فهي افتراض ينتظر موافقة صاحب العمل بحسب تعليق الشيفرة."
+  ],
+  "errors": [
+    {
+      "code": "HTTP 400",
+      "meaning_ar": "حقل ناقص أو غير صالح، أو بيانات قرار دون علامة صدور القرار (courtDecision: AssertTrue).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+          "lines": "176-176",
+          "note": "AssertTrue"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 403",
+      "meaning_ar": "لا يملك CASE_LINK_MANAGE، أو لا يحق له تغيير أي من القضيتين.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+          "lines": "140-140",
+          "note": "403"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 404",
+      "meaning_ar": "القضية أو الارتباط غير موجود أو غير ظاهر للمستخدم.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+          "lines": "85-85",
+          "note": "404"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 409",
+      "meaning_ar": "ارتباط مكرر أو نسخة قديمة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+          "lines": "116-116",
+          "note": "مكرر"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 CASE_LINK_SAME_CASE",
+      "meaning_ar": "ربط قضية بنفسها.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+          "lines": "34-34",
+          "note": "الرمز"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 CASE_ARCHIVED",
+      "meaning_ar": "القضية المؤرشفة للقراءة فقط.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+          "lines": "36-36",
+          "note": "الرمز"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 LINK_DOCUMENT_NOT_IN_CASE",
+      "meaning_ar": "نسخة القرار ليست في ملف أي من القضيتين.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+          "lines": "35-35",
+          "note": "الرمز"
+        }
+      ]
+    }
+  ],
+  "result_ar": "ارتباط يظهر في ملف القضيتين بنوعه وسببه وحالته وقرار المحكمة إن وُجد، وتبقى كل قضية مستقلة في حالتها.",
+  "related": [
+    "cases-details-edit",
+    "case-file",
+    "case-access-confidentiality",
+    "documents-ocr",
+    "roles-permissions",
+    "cases-list-search"
+  ],
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/v1/cases/{caseId}/links",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkController.java",
+        "lines": "30-30",
+        "note": ""
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/cases/{caseId}/links",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkController.java",
+        "lines": "36-36",
+        "note": ""
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/case-links/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkController.java",
+        "lines": "43-43",
+        "note": ""
+      }
+    }
+  ],
+  "tech": {
+    "chain": [
+      {
+        "layer": "screen",
+        "label": "CaseLinksSection (داخل صفحة القضية)",
+        "ref": {
+          "path": "frontend/src/features/followup/CaseLinksSection.tsx",
+          "lines": "42-42",
+          "note": ""
+        },
+        "data_ar": "القضية المختارة والنوع والسبب وتفاصيل القرار."
+      },
+      {
+        "layer": "api_call",
+        "label": "addLink / updateLink / listLinks",
+        "ref": {
+          "path": "frontend/src/features/followup/api.ts",
+          "lines": "57-57",
+          "note": ""
+        },
+        "data_ar": "جسم JSON إلى /api/v1/cases/{id}/links أو /api/v1/case-links/{id}."
+      },
+      {
+        "layer": "controller",
+        "label": "CaseLinkController",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkController.java",
+          "lines": "22-22",
+          "note": ""
+        },
+        "data_ar": "CaseLinkRequests.Create/Update بعد التحقق."
+      },
+      {
+        "layer": "authorization",
+        "label": "@PreAuthorize CASE_LINK_MANAGE + CaseAccessPolicy.requireChange",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkController.java",
+          "lines": "37-37",
+          "note": ""
+        },
+        "data_ar": "الصلاحية ثم حق تغيير القضية."
+      },
+      {
+        "layer": "service",
+        "label": "CaseLinkService.create / update",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+          "lines": "83-83",
+          "note": ""
+        },
+        "data_ar": "فحص القضية الأخرى والقرار والمستند ثم الكتابة."
+      },
+      {
+        "layer": "tables",
+        "label": "case_link",
+        "ref": {
+          "path": "backend/src/main/resources/db/migration/V663__LD-053_case_link.sql",
+          "lines": "4-4",
+          "note": ""
+        },
+        "data_ar": "صف الارتباط بقيوده."
+      },
+      {
+        "layer": "event",
+        "label": "CASE_LINK_CREATED / CASE_LINK_UPDATED",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+          "lines": "118-118",
+          "note": ""
+        },
+        "data_ar": "حدث في السجل الزمني للقضية."
+      },
+      {
+        "layer": "result",
+        "label": "CaseLinkRequests.Link (201 / 200)",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkRequests.java",
+          "lines": "70-70",
+          "note": ""
+        },
+        "data_ar": "الارتباط كما يُرى من القضية الحالية."
+      }
+    ]
+  },
+  "status": "IMPLEMENTED_ON_DEVELOP",
+  "status_note_ar": "الشيفرة موجودة على develop ويغطيها اختبارات الخادم والواجهة؛ وحالات الارتباط افتراض بانتظار موافقة صاحب العمل.",
+  "status_evidence": [
+    {
+      "path": "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java",
+      "lines": "32-32",
+      "note": ""
+    },
+    {
+      "path": "frontend/src/features/followup/CaseLinksSection.tsx",
+      "lines": "42-42",
+      "note": ""
+    }
+  ],
+  "verification_ar": "قرأتُ المتحكم والخدمة وطلبات الارتباط وهجرة V663 وقسم الواجهة. اختبارات وجدتها: backend/src/test/java/com/lawdesk/followup/CaseLinkApiTest.java وفي الواجهة frontend/src/features/followup/CaseLinksSection.test.tsx. لم أشغّلها ولم يجرِ هذا المستند تحققًا على UAT. لم أوثّق شيئًا عن ربط المستندات بالقضية خارج نسخة قرار الارتباط."
+}

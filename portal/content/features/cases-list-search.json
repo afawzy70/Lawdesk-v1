@@ -1,0 +1,544 @@
+{
+  "id": "cases-list-search",
+  "category": "cases",
+  "name_ar": "قائمة القضايا والبحث والتصفية",
+  "summary_ar": "قائمة القضايا التي يحق للمستخدم الاطلاع عليها، مع بحث نصي وتصفية بالحالة والنوع وترقيم صفحات. تبقى عوامل البحث في عنوان الصفحة فيمكن إعادة تحميلها أو مشاركة رابطها لتظهر النتائج نفسها.",
+  "purpose_ar": "الوصول السريع إلى القضية المطلوبة بأي من أرقامها أو عنوانها أو أحد أطرافها أو عضوها المختص، دون أن يرى المستخدم قضية لا يحق له رؤيتها.",
+  "who_ar": [
+    "من يملك صلاحية «عرض القضايا»"
+  ],
+  "who_perms": [
+    "CASE_VIEW"
+  ],
+  "access_ar": "القائمة > القضايا",
+  "route": "/cases",
+  "prerequisites_ar": [
+    "تسجيل الدخول وامتلاك صلاحية CASE_VIEW.",
+    "القضايا التي تظهر هي المسموح للمستخدم برؤيتها وفق سياسة الاطلاع (العضو المختص والبديل والمنشئ وصاحب النطاق أو المنحة)."
+  ],
+  "fields": {
+    "required": [],
+    "optional": [
+      {
+        "name_ar": "نص البحث",
+        "code": "q",
+        "rule_ar": "حتى 100 حرف. يبحث في الرقم الداخلي والعنوان والموضوع والرقم الآلي، وفي اسم أي طرف في القضية ورقم القضية لدى المحكمة واسم العضو المختص أو البديل وجهة الإدارة المعنية واسم المتصل بها. البحث لا يميّز بين الحروف الكبيرة والصغيرة.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/CaseSearch.java",
+            "lines": "17-17",
+            "note": "q"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/CaseRepository.java",
+            "lines": "198-199",
+            "note": "ما يشمله البحث"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/CaseRepository.java",
+            "lines": "226-227",
+            "note": "شرط البحث"
+          }
+        ]
+      },
+      {
+        "name_ar": "الحالة",
+        "code": "status",
+        "rule_ar": "واحدة أو أكثر من: مفتوحة، متداولة، موقوفة، منتهية، مؤرشفة. (شاشة القائمة تُرسل حالة واحدة، وواجهة البرمجة تقبل قائمة.)",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/CaseSearch.java",
+            "lines": "18-18",
+            "note": "status"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/CaseRepository.java",
+            "lines": "231-231",
+            "note": "الشرط"
+          },
+          {
+            "path": "frontend/src/features/cases/CaseListPage.tsx",
+            "lines": "39-39",
+            "note": "الشاشة"
+          }
+        ]
+      },
+      {
+        "name_ar": "نوع القضية",
+        "code": "caseType",
+        "rule_ar": "واحد أو أكثر من الأنواع الثمانية.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/CaseSearch.java",
+            "lines": "19-19",
+            "note": "caseType"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/CaseRepository.java",
+            "lines": "235-235",
+            "note": "الشرط"
+          }
+        ]
+      },
+      {
+        "name_ar": "تاريخ القيد من / إلى",
+        "code": "openedFrom / openedTo",
+        "rule_ar": "تاريخان بصيغة السنة-الشهر-اليوم؛ ولا يجوز أن يكون «من» بعد «إلى». (غير معروضين في شاشة القائمة الحالية.)",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/CaseSearch.java",
+            "lines": "20-20",
+            "note": "openedFrom"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/CaseRepository.java",
+            "lines": "239-239",
+            "note": "الشرط"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+            "lines": "82-82",
+            "note": "المدى"
+          }
+        ]
+      },
+      {
+        "name_ar": "رقم الصفحة وحجمها",
+        "code": "page / size",
+        "rule_ar": "الصفحة من 0، والحجم من 1 إلى 100 (افتراضيًا 20)؛ أي قيمة خارج المدى تُرفض بـ 400 ولا تُصحَّح بصمت.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/CaseSearch.java",
+            "lines": "22-22",
+            "note": "page"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/platform/PagingValidationInterceptor.java",
+            "lines": "31-31",
+            "note": "الحد"
+          }
+        ]
+      },
+      {
+        "name_ar": "الترتيب",
+        "code": "sort",
+        "rule_ar": "أحد الحقول referenceNo وtitle وopenedOn وstatus وcreatedAt وupdatedAt مع اتجاه asc أو desc؛ الافتراضي الأحدث إنشاءً أولًا. (غير معروض في الشاشة الحالية.)",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/CaseSearch.java",
+            "lines": "24-24",
+            "note": "sort"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/CaseRepository.java",
+            "lines": "275-275",
+            "note": "الترتيب"
+          }
+        ]
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "actor_ar": "موظف الإدارة القانونية",
+      "action_ar": "يفتح «القضايا» من القائمة الرئيسية.",
+      "response_ar": "يرسل المتصفح GET /api/v1/cases بعوامل الصفحة (صفحة 0 وحجم 20 افتراضيًا) وتظهر عبارة «جارٍ تحميل القضايا…» ثم جدول القضايا.",
+      "rules_ar": [
+        "لا تظهر إلا القضايا المسموح بها للمستخدم؛ ولا تظهر قضية ‎«مقيّدة» إلا لأصحابها."
+      ],
+      "data_ar": "الرد: صفحة (items وpage وsize وtotalItems وtotalPages)؛ كل عنصر: المعرّف والرقم الداخلي والعنوان والنوع والحالة وتاريخ القيد وآخر تحديث.",
+      "next_ar": "يبحث أو يصفّي أو يفتح قضية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseController.java",
+          "lines": "39-42",
+          "note": "الواجهة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+          "lines": "80-80",
+          "note": "الخدمة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+          "lines": "133-133",
+          "note": "شرط الاطلاع"
+        },
+        {
+          "path": "frontend/src/features/cases/CaseListPage.tsx",
+          "lines": "63-63",
+          "note": "الطلب"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "لا صلاحية عرض القضايا",
+          "detail_ar": "403 وتحل صفحة «لا صلاحية» محل الشاشة كلها.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/CaseController.java",
+              "lines": "40-40",
+              "note": "الصلاحية"
+            },
+            {
+              "path": "frontend/src/features/cases/CaseListPage.tsx",
+              "lines": "119-119",
+              "note": "الصفحة"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "actor_ar": "موظف الإدارة القانونية",
+      "action_ar": "يكتب في خانة «البحث برقم القضية أو عنوانها» ويختار الحالة والنوع ويضغط «بحث».",
+      "response_ar": "تُحدَّث عوامل البحث في عنوان الصفحة (q وstatus وcaseType) وتُعاد القائمة من الصفحة الأولى. يمكن حفظ الرابط أو إرساله فيظهر البحث نفسه.",
+      "rules_ar": [
+        "الحقول المتروكة فارغة لا تُرسل.",
+        "البحث والتصفية يجتمعان بـ «و»."
+      ],
+      "data_ar": "q وstatus وcaseType.",
+      "next_ar": "تُعرض النتائج.",
+      "evidence": [
+        {
+          "path": "frontend/src/features/cases/CaseListPage.tsx",
+          "lines": "97-97",
+          "note": "إرسال البحث"
+        },
+        {
+          "path": "frontend/src/features/cases/CaseListPage.tsx",
+          "lines": "36-36",
+          "note": "عوامل في العنوان"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseRepository.java",
+          "lines": "197-197",
+          "note": "البحث"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "exceptional",
+          "title_ar": "لا نتائج",
+          "detail_ar": "تظهر «لا توجد قضايا مطابقة لعوامل التصفية».",
+          "evidence": [
+            {
+              "path": "frontend/src/features/cases/CaseListPage.tsx",
+              "lines": "180-180",
+              "note": "الرسالة"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "نص أطول من 100 حرف أو قيمة خارج المدى",
+          "detail_ar": "400 مع errors. وعبر واجهة البرمجة: تاريخ «من» بعد «إلى» يعطي 422 DATE_RANGE_INVALID.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/CaseSearch.java",
+              "lines": "17-17",
+              "note": "الحد"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+              "lines": "82-82",
+              "note": "المدى"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "actor_ar": "موظف الإدارة القانونية",
+      "action_ar": "يتنقل بين الصفحات بأزرار «الصفحة السابقة» و«الصفحة التالية».",
+      "response_ar": "يعرض أسفل الجدول «النتائج: العدد» و«صفحة س من ص»؛ وتُحفظ العوامل مع رقم الصفحة في العنوان.",
+      "rules_ar": [
+        "الحجم الأقصى 100 والافتراضي 20؛ والتجاوز يُرفض 400.",
+        "الإجمالي وعدد الصفحات يأتيان من الخادم."
+      ],
+      "data_ar": "page وsize في الطلب؛ totalItems وtotalPages في الرد.",
+      "next_ar": "يفتح قضية من الجدول.",
+      "evidence": [
+        {
+          "path": "frontend/src/features/cases/CaseListPage.tsx",
+          "lines": "114-114",
+          "note": "التنقل"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/platform/PagingValidationInterceptor.java",
+          "lines": "39-39",
+          "note": "التحقق"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseRepository.java",
+          "lines": "271-271",
+          "note": "الإجمالي"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "صفحة أو حجم غير صالحين",
+          "detail_ar": "قيمة غير صحيحة أو حجم أكبر من 100 تعطي 400 على كل القوائم (وليس بالتصحيح الصامت).",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/platform/PagingValidationInterceptor.java",
+              "lines": "18-23",
+              "note": "القرار"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "actor_ar": "موظف الإدارة القانونية",
+      "action_ar": "يضغط على الرقم الداخلي لقضية في الجدول لفتح صفحتها، أو «قضية جديدة» لتسجيل قضية.",
+      "response_ar": "تنتقل الشاشة إلى /cases/{id} أو /cases/new.",
+      "rules_ar": [
+        "الاطلاع على القضية يُعاد فحصه عند فتحها؛ قضية لم تعد مسموحة له تُعطي 404."
+      ],
+      "data_ar": "معرّف القضية.",
+      "next_ar": "انظر ميزتي «صفحة القضية» و«تسجيل قضية جديدة».",
+      "evidence": [
+        {
+          "path": "frontend/src/features/cases/CaseListPage.tsx",
+          "lines": "204-204",
+          "note": "رابط القضية"
+        },
+        {
+          "path": "frontend/src/features/cases/CaseListPage.tsx",
+          "lines": "126-126",
+          "note": "رابط جديد"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "error",
+          "title_ar": "تعذّر تحميل القضايا",
+          "detail_ar": "تظهر «تعذّر تحميل القضايا. حاول مرة أخرى لاحقًا».",
+          "evidence": [
+            {
+              "path": "frontend/src/features/cases/CaseListPage.tsx",
+              "lines": "70-70",
+              "note": "الرسالة"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "text_ar": "لا تعرض القائمة إلا القضايا المسموحة للمستخدم؛ ومنح صلاحية النظام لا يضيف قضية. القاعدة نفسها تُستعمل في القوائم والتقارير والتصدير حتى لا تختلف الشاشة عن التنزيل.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+          "lines": "19-32",
+          "note": "السياسة"
+        }
+      ]
+    },
+    {
+      "text_ar": "القضية ‎«المقيّدة» لا تظهر في بحث من يغطيه نطاق عام أو نطاق نوع إلا إن كان عضوًا فيها أو منشئها أو لديه منحة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+          "lines": "175-180",
+          "note": "الشرط"
+        }
+      ]
+    },
+    {
+      "text_ar": "الترتيب الافتراضي: الأحدث إنشاءً أولًا، ثم المعرّف لتثبيت الترتيب.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseRepository.java",
+          "lines": "277-277",
+          "note": "الافتراضي"
+        }
+      ]
+    },
+    {
+      "text_ar": "حقول الترتيب مقيّدة بقائمة بيضاء ولا يصل اسم عمود من المستخدم إلى الاستعلام.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseRepository.java",
+          "lines": "274-274",
+          "note": "التعليق"
+        }
+      ]
+    }
+  ],
+  "after_submit_ar": "لا يحدث حفظ؛ البحث قراءة فقط. تبقى عوامل البحث في العنوان.",
+  "notifications_ar": [
+    "لا توجد إشعارات في هذه الميزة: القائمة والبحث قراءة فقط."
+  ],
+  "approvals_ar": [
+    "لا توجد موافقات في هذه الميزة."
+  ],
+  "errors": [
+    {
+      "code": "HTTP 400 (errors[].field/code)",
+      "meaning_ar": "قيمة غير صالحة: نص طويل (Size)، أو صفحة/حجم خارج المدى، أو ترتيب لا يطابق النمط (Pattern)، أو تاريخ غير مفهوم (typeMismatch).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+          "lines": "35-35",
+          "note": "400"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseSearch.java",
+          "lines": "24-24",
+          "note": "نمط الترتيب"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 403",
+      "meaning_ar": "لا يملك المستخدم CASE_VIEW.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseController.java",
+          "lines": "40-40",
+          "note": "الصلاحية"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 DATE_RANGE_INVALID",
+      "meaning_ar": "تاريخ البداية بعد تاريخ النهاية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+          "lines": "33-33",
+          "note": "الرمز"
+        }
+      ]
+    }
+  ],
+  "result_ar": "جدول بالقضايا المطابقة (الرقم الداخلي، العنوان، النوع، الحالة، تاريخ القيد، آخر تحديث) مع عدد النتائج وأرقام الصفحات.",
+  "related": [
+    "cases-register",
+    "cases-details-edit",
+    "case-access-confidentiality",
+    "search",
+    "parties",
+    "courts",
+    "reports-dashboard"
+  ],
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/v1/cases",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/cases/CaseController.java",
+        "lines": "22-39",
+        "note": "البحث"
+      }
+    }
+  ],
+  "tech": {
+    "chain": [
+      {
+        "layer": "screen",
+        "label": "CaseListPage (/cases)",
+        "ref": {
+          "path": "frontend/src/features/cases/CaseListPage.tsx",
+          "lines": "50-50",
+          "note": ""
+        },
+        "data_ar": "عوامل البحث من عنوان الصفحة تتحول إلى كائن بحث."
+      },
+      {
+        "layer": "api_call",
+        "label": "searchCases",
+        "ref": {
+          "path": "frontend/src/features/cases/api.ts",
+          "lines": "206-206",
+          "note": ""
+        },
+        "data_ar": "استعلام GET بالعوامل q وstatus وcaseType وpage."
+      },
+      {
+        "layer": "controller",
+        "label": "CaseController.search",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseController.java",
+          "lines": "41-41",
+          "note": ""
+        },
+        "data_ar": "عوامل مربوطة بكائن CaseSearch مع التحقق."
+      },
+      {
+        "layer": "authorization",
+        "label": "CASE_VIEW + CaseAccessPolicy.viewable",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+          "lines": "133-133",
+          "note": ""
+        },
+        "data_ar": "شرط SQL يحصر الصفوف في المسموح للمستخدم."
+      },
+      {
+        "layer": "service",
+        "label": "CaseService.search",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+          "lines": "80-80",
+          "note": ""
+        },
+        "data_ar": "فحص المدى الزمني ثم تمرير الشرط إلى المستودع."
+      },
+      {
+        "layer": "repository",
+        "label": "CaseRepository.search",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseRepository.java",
+          "lines": "197-197",
+          "note": ""
+        },
+        "data_ar": "بناء شروط البحث والتصفية والترتيب والصفحة."
+      },
+      {
+        "layer": "tables",
+        "label": "legal_case (وcase_party وparty وproceeding وapp_user وcase_org_involvement للبحث)",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseRepository.java",
+          "lines": "255-255",
+          "note": ""
+        },
+        "data_ar": "الصفوف الظاهرة وعددها الإجمالي."
+      },
+      {
+        "layer": "result",
+        "label": "PageResponse<CaseListItem>",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseRepository.java",
+          "lines": "271-271",
+          "note": ""
+        },
+        "data_ar": "الصفحة المعروضة في الجدول."
+      }
+    ]
+  },
+  "status": "IMPLEMENTED_ON_DEVELOP",
+  "status_note_ar": "الشيفرة موجودة على develop ويغطيها اختبار CaseSearchApiTest في الخادم وCaseListPage.test.tsx في الواجهة.",
+  "status_evidence": [
+    {
+      "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+      "lines": "80-80",
+      "note": ""
+    },
+    {
+      "path": "frontend/src/features/cases/CaseListPage.tsx",
+      "lines": "50-50",
+      "note": ""
+    }
+  ],
+  "verification_ar": "قرأتُ المتحكم والخدمة والمستودع وCaseSearch ومعترض الترقيم وشاشة القائمة. اختبارات وجدتها: backend/src/test/java/com/lawdesk/cases/CaseSearchApiTest.java وCaseVisibilityApiTest.java وCaseVisibilityPredicateEquivalenceTest.java، وفي الواجهة frontend/src/features/cases/CaseListPage.test.tsx. لم أشغّلها ولم يجرِ هذا المستند تحققًا على UAT. شاشة القائمة لا تعرض تصفية التاريخ ولا الترتيب ولا حجم الصفحة؛ هي موجودة في واجهة البرمجة فقط وذُكر ذلك في الحقول. البحث العام عبر كل الأقسام (المستندات والأحكام) ميزة «البحث» وليست هنا."
+}

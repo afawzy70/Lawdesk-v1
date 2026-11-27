@@ -1,0 +1,728 @@
+{
+ "id": "org-hierarchy",
+ "category": "access",
+ "name_ar": "الهيكل التنظيمي",
+ "summary_ar": "شجرتان من الوحدات: «الإدارة القانونية» (وحدات الإدارة نفسها التي يعمل فيها المستخدمون) و«قطاعات الهيئة وإداراتها» (الجهات التي تتعلق بها القضايا). تتدرج الوحدة من قطاع إلى إدارة إلى قسم. لا تُحذف الوحدة بل تُعطَّل، ويمكن وضع كل مستخدم في وحدة من الشجرة القانونية.",
+ "purpose_ar": "يخدم الهيكل غرضين: تحديد نطاق اطلاع رؤساء الأقسام والمدير على القضايا بحسب الوحدة، وتسجيل الجهة المعنية بكل قضية. التعطيل بدل الحذف يُبقي إشارة القضايا القديمة إلى الوحدة سليمة بعد تغيير الهيكل.",
+ "who_ar": [
+  "من يملك «إدارة الهيكل التنظيمي» (ORG_MANAGE) للإنشاء والتعديل ووضع المستخدمين",
+  "من يملك ORG_MANAGE أو «عرض القضايا» (CASE_VIEW) أو «إنشاء القضايا» (CASE_CREATE) لقراءة الوحدات"
+ ],
+ "who_perms": [
+  "ORG_MANAGE",
+  "CASE_VIEW",
+  "CASE_CREATE"
+ ],
+ "access_ar": "الإدارة > الهيكل التنظيمي؛ وتحديد وحدة المستخدم من صفحة المستخدم (قسم «الوحدة في الإدارة القانونية»).",
+ "route": "/admin/org",
+ "prerequisites_ar": [
+  "جلسة دخول صالحة وصلاحية ORG_MANAGE لظهور تبويبة «الهيكل التنظيمي».",
+  "لا يُنشأ هيكل افتراضي: الشجرة تبدأ فارغة ولا تختلق النظام أي وحدات."
+ ],
+ "fields": {
+  "required": [
+   {
+    "name_ar": "الشجرة",
+    "code": "tree",
+    "rule_ar": "LEGAL (الإدارة القانونية) أو AUTHORITY (قطاعات الهيئة وإداراتها).",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/org/OrgRequests.java",
+      "lines": "17-18"
+     },
+     {
+      "path": "backend/src/main/resources/db/migration/V600__LD-050_access_foundation.sql",
+      "lines": "9"
+     }
+    ]
+   },
+   {
+    "name_ar": "المستوى",
+    "code": "level",
+    "rule_ar": "SECTOR (قطاع) أو DEPARTMENT (إدارة) أو SECTION (قسم).",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/org/OrgRequests.java",
+      "lines": "17-19"
+     },
+     {
+      "path": "backend/src/main/resources/db/migration/V600__LD-050_access_foundation.sql",
+      "lines": "11"
+     }
+    ]
+   },
+   {
+    "name_ar": "الاسم بالعربية",
+    "code": "nameAr",
+    "rule_ar": "مطلوب؛ حتى 200 حرف؛ لا يتكرر بين الوحدات المفعَّلة تحت الوحدة الأعلى نفسها (دون تمييز حالة الأحرف).",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/org/OrgRequests.java",
+      "lines": "19-20"
+     },
+     {
+      "path": "backend/src/main/resources/db/migration/V600__LD-050_access_foundation.sql",
+      "lines": "26-27"
+     },
+     {
+      "path": "frontend/src/features/access/OrgUnitsPage.tsx",
+      "lines": "180-192"
+     }
+    ]
+   }
+  ],
+  "optional": [
+   {
+    "name_ar": "الوحدة الأعلى",
+    "code": "parentId",
+    "rule_ar": "اختيارية (بلا = المستوى الأعلى)؛ يجب أن تكون في الشجرة نفسها وبمستوى أعلى من الوحدة؛ ولا تكون الوحدة نفسها أو أحد أبنائها.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+      "lines": "136-151"
+     },
+     {
+      "path": "frontend/src/features/access/OrgUnitsPage.tsx",
+      "lines": "161-179"
+     }
+    ]
+   },
+   {
+    "name_ar": "الاسم بالإنجليزية",
+    "code": "nameEn",
+    "rule_ar": "اختياري؛ حتى 200 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/org/OrgRequests.java",
+      "lines": "19-20"
+     },
+     {
+      "path": "frontend/src/features/access/OrgUnitsPage.tsx",
+      "lines": "193-204"
+     }
+    ]
+   },
+   {
+    "name_ar": "تاريخ السريان من / إلى",
+    "code": "validFrom / validTo",
+    "rule_ar": "اختياريان في API؛ يجب ألا يسبق «إلى» تاريخ «من» وإلا ترد 400 على الحقل validTo بالرمز Range. شاشة الهيكل لا تعرض حقلي التاريخ.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/org/OrgRequests.java",
+      "lines": "19-21"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+      "lines": "169-173"
+     }
+    ]
+   },
+   {
+    "name_ar": "مفعَّلة",
+    "code": "active",
+    "rule_ar": "تُرسل عند التعديل؛ الشاشة تبدّلها بزر «تعطيل/تفعيل» فقط.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/org/OrgRequests.java",
+      "lines": "23-25"
+     },
+     {
+      "path": "frontend/src/features/access/OrgUnitsPage.tsx",
+      "lines": "85-95"
+     },
+     {
+      "path": "frontend/src/features/access/OrgUnitsPage.tsx",
+      "lines": "136-138"
+     }
+    ]
+   }
+  ]
+ },
+ "steps": [
+  {
+   "n": 1,
+   "actor_ar": "مدير الهيكل",
+   "action_ar": "يفتح «الإدارة > الهيكل التنظيمي» ويختار الشجرة.",
+   "response_ar": "تعرض الصفحة وحدات الشجرة المختارة (بما فيها المعطَّلة) متدرجة بحسب الأب، مع مستوى كل وحدة وعلامة «معطلة»؛ وإن لم توجد وحدات: «لا توجد وحدات بعد.»",
+   "rules_ar": [
+    "الترتيب: الشجرة ثم الاسم العربي.",
+    "قيمة tree غير LEGAL/AUTHORITY في API تُرفض بـ400."
+   ],
+   "data_ar": "قائمة OrgUnit: id, tree, parentId, level, nameAr, nameEn, active, validFrom, validTo, version.",
+   "next_ar": "إضافة وحدة أو تعطيلها.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/access/OrgUnitsPage.tsx",
+     "lines": "26-60"
+    },
+    {
+     "path": "frontend/src/features/access/OrgUnitsPage.tsx",
+     "lines": "97-142"
+    },
+    {
+     "path": "frontend/src/features/access/orgTree.ts",
+     "lines": "4-20"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitController.java",
+     "lines": "35-43"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+     "lines": "47-52"
+    },
+    {
+     "path": "frontend/src/i18n/messages/access.ar.ts",
+     "lines": "9-31"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "بلا صلاحية (403)",
+     "detail_ar": "تعرض الواجهة «غير مسموح بالوصول».",
+     "evidence": [
+      {
+       "path": "frontend/src/features/access/OrgUnitsPage.tsx",
+       "lines": "51-54"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/org/OrgUnitController.java",
+       "lines": "27"
+      }
+     ]
+    },
+    {
+     "kind": "validation",
+     "title_ar": "شجرة غير معروفة عبر API (400)",
+     "detail_ar": "field=tree وcode=Pattern.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/org/OrgUnitController.java",
+       "lines": "39-41"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "actor_ar": "مدير الهيكل",
+   "action_ar": "يختار المستوى والوحدة الأعلى ويكتب الاسم العربي (والإنجليزي اختياريًا) ثم «إضافة وحدة».",
+   "response_ar": "يرسل POST /api/v1/org-units؛ تُنشأ الوحدة مفعَّلة، ويُسجَّل ORG_UNIT_CREATE، وتظهر «تمت إضافة الوحدة.» وتُفرَّغ حقول الاسم.",
+   "rules_ar": [
+    "الوحدة الأعلى تُعرض من الوحدات المفعَّلة فقط في القائمة المنسدلة.",
+    "الوحدة الأعلى في الشجرة نفسها، ومستواها أعلى من مستوى الوحدة الجديدة (قطاع > إدارة > قسم)."
+   ],
+   "data_ar": "tree, parentId, level, nameAr, nameEn.",
+   "next_ar": "تظهر الوحدة في الشجرة وتصلح لاختيارها في النطاقات.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/access/OrgUnitsPage.tsx",
+     "lines": "64-83"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitController.java",
+     "lines": "45-50"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+     "lines": "59-81"
+    },
+    {
+     "path": "frontend/src/features/access/api.ts",
+     "lines": "32-33"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "قيمة أو موضع غير صالح (400/422)",
+     "detail_ar": "تعرض الواجهة: «راجع اسم الوحدة ومستواها والوحدة الأعلى.» الرموز: ORG_PARENT_TREE_MISMATCH (أب من الشجرة الأخرى)، ORG_LEVEL_NOT_BELOW_PARENT (مستوى غير أدنى من الأب)، أب غير موجود (400 على parentId بالرمز Exists).",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+       "lines": "29-33",
+       "note": "rule codes"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+       "lines": "136-151"
+      },
+      {
+       "path": "frontend/src/features/access/OrgUnitsPage.tsx",
+       "lines": "19-23"
+      },
+      {
+       "path": "frontend/src/i18n/messages/access.ar.ts",
+       "lines": "28"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "اسم مكرر (409)",
+     "detail_ar": "وحدة مفعَّلة بالاسم نفسه تحت الأب نفسه: «توجد وحدة بالاسم نفسه تحت الوحدة الأعلى ذاتها، أو تغيّرت الوحدة أثناء العمل.»",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+       "lines": "75-77"
+      },
+      {
+       "path": "backend/src/main/resources/db/migration/V600__LD-050_access_foundation.sql",
+       "lines": "26-27"
+      },
+      {
+       "path": "frontend/src/i18n/messages/access.ar.ts",
+       "lines": "29"
+      }
+     ]
+    },
+    {
+     "kind": "denied",
+     "title_ar": "بلا ORG_MANAGE (403)",
+     "detail_ar": "القراءة مسموحة لحاملي CASE_VIEW أو CASE_CREATE؛ الكتابة تتطلب ORG_MANAGE.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/org/OrgUnitController.java",
+       "lines": "45-47"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "actor_ar": "مدير الهيكل",
+   "action_ar": "يضغط «تعطيل» أو «تفعيل» أمام وحدة.",
+   "response_ar": "يرسل PUT /api/v1/org-units/{id} بكل حقول الوحدة الحالية مع النسخة وقيمة active المعكوسة؛ يُسجَّل ORG_UNIT_UPDATE بسبب edit أو deactivate أو reactivate، وتظهر «تم حفظ الوحدة.»",
+   "rules_ar": [
+    "لا حذف للوحدات؛ التعطيل لا يغيّر ما سجّلته القضايا عن الوحدة (تحتفظ القضايا بلقطة من الأسماء).",
+    "API يتيح أيضًا تغيير الاسم والأب والتواريخ؛ الواجهة لا تعرض هذه الإمكانية."
+   ],
+   "data_ar": "parentId, nameAr, nameEn, active, validFrom, validTo, version.",
+   "next_ar": "تتغير حالة الوحدة.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/access/OrgUnitsPage.tsx",
+     "lines": "85-95"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitController.java",
+     "lines": "58-62"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+     "lines": "83-112"
+    },
+    {
+     "path": "frontend/src/features/access/api.ts",
+     "lines": "35-51"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "النسخة قديمة (409)",
+     "detail_ar": "غيّر مستخدم آخر الوحدة: «تغيّرت الوحدة أثناء العمل».",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+       "lines": "87-89"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+       "lines": "104-105"
+      },
+      {
+       "path": "frontend/src/features/access/OrgUnitsPage.tsx",
+       "lines": "19-23"
+      }
+     ]
+    },
+    {
+     "kind": "validation",
+     "title_ar": "دورة في الشجرة (422 ORG_CYCLE)",
+     "detail_ar": "نقل وحدة تحت نفسها أو تحت أحد أبنائها يُرفض (متاح عبر API).",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+       "lines": "148-150"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+       "lines": "153-159"
+      }
+     ]
+    },
+    {
+     "kind": "denied",
+     "title_ar": "وحدة غير موجودة (404)",
+     "detail_ar": "NotFound.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+       "lines": "54-57"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "actor_ar": "مدير الهيكل",
+   "action_ar": "من صفحة مستخدم، يختار وحدته في «الوحدة في الإدارة القانونية» ثم «حفظ الوحدة»، أو يختار «بلا (المستوى الأعلى)» لإخراجه من أي وحدة.",
+   "response_ar": "يرسل PUT /api/v1/users/{userId}/org-unit؛ يُحدَّث org_unit_id للمستخدم ويُسجَّل USER_ORG_UNIT_CHANGE. تظهر «تم حفظ الوحدة.»",
+   "rules_ar": [
+    "وحدة من الشجرة القانونية فقط (ORG_NOT_LEGAL_UNIT)، ومفعَّلة (ORG_UNIT_INACTIVE).",
+    "الوحدة تحدد معنى نطاق «وحدة المستخدم نفسه» (OWN_UNIT) لدوره، وهو الأساس الذي يُحسب به ما يراه رؤساء الأقسام."
+   ],
+   "data_ar": "orgUnitId أو null.",
+   "next_ar": "يتغير نطاق اطلاع المستخدم عند طلبه التالي إن كان له نطاق OWN_UNIT.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/access/UserUnitSection.tsx",
+     "lines": "8-70"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitController.java",
+     "lines": "64-69"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+     "lines": "114-134"
+    },
+    {
+     "path": "frontend/src/features/access/api.ts",
+     "lines": "53-57"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "وحدة من الشجرة الأخرى أو معطَّلة (422)",
+     "detail_ar": "ORG_NOT_LEGAL_UNIT أو ORG_UNIT_INACTIVE؛ تعرض الواجهة «تعذر تحميل الهيكل أو حفظه.»",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+       "lines": "118-125"
+      },
+      {
+       "path": "frontend/src/features/access/UserUnitSection.tsx",
+       "lines": "38-46"
+      },
+      {
+       "path": "frontend/src/i18n/messages/access.ar.ts",
+       "lines": "30"
+      }
+     ]
+    },
+    {
+     "kind": "denied",
+     "title_ar": "مستخدم غير موجود (404)",
+     "detail_ar": "NotFound على user.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+       "lines": "127-131"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "rules": [
+  {
+   "text_ar": "الوحدات لا تُحذف بل تُعطَّل، كي تبقى إشارة القضايا إليها صالحة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+     "lines": "21-25"
+    }
+   ]
+  },
+  {
+   "text_ar": "إعادة تسمية وحدة لا تعيد كتابة ما سجّلته القضايا؛ فلكل قضية لقطتها من الأسماء.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+     "lines": "21-25"
+    }
+   ]
+  },
+  {
+   "text_ar": "الأب في الشجرة نفسها وبمستوى أعلى (قطاع=0، إدارة=1، قسم=2)، ولا دورات.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+     "lines": "136-151"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+     "lines": "161-167"
+    }
+   ]
+  },
+  {
+   "text_ar": "الاسم العربي لا يتكرر بين الوحدات المفعَّلة تحت الأب نفسه.",
+   "evidence": [
+    {
+     "path": "backend/src/main/resources/db/migration/V600__LD-050_access_foundation.sql",
+     "lines": "26-27"
+    }
+   ]
+  },
+  {
+   "text_ar": "المستخدمون يُوضعون في وحدات الإدارة القانونية فقط.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+     "lines": "118-122"
+    }
+   ]
+  },
+  {
+   "text_ar": "وحدة بلا «وحدة مالكة» لقضية تُعدّ تابعة لمستوى الإدارة: يشملها نطاق وحدة عليا (بلا أب).",
+   "evidence": [
+    {
+     "path": "backend/src/main/resources/db/migration/V600__LD-050_access_foundation.sql",
+     "lines": "137-142"
+    }
+   ]
+  },
+  {
+   "text_ar": "كل تغيير مسجَّل في التدقيق: ORG_UNIT_CREATE, ORG_UNIT_UPDATE, USER_ORG_UNIT_CHANGE.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+     "lines": "78-79"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+     "lines": "109-110"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+     "lines": "132-133"
+    }
+   ]
+  }
+ ],
+ "after_submit_ar": "تظهر الوحدة في الشجرة وتصبح متاحة لاختيارها في «نطاقات الاطلاع». لا إشعارات ولا موافقات في هذا المسار.",
+ "notifications_ar": [],
+ "approvals_ar": [],
+ "errors": [
+  {
+   "code": "HTTP 400 (field/code)",
+   "meaning_ar": "tree غير صالحة (Pattern)، أو مستوى/اسم غير صالح، أو parentId غير موجود (Exists)، أو validTo قبل validFrom (Range).",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitController.java",
+     "lines": "39-41"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgRequests.java",
+     "lines": "17-21"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+     "lines": "141"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+     "lines": "169-173"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 403",
+   "meaning_ar": "يلزم ORG_MANAGE للكتابة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitController.java",
+     "lines": "45-47"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 404",
+   "meaning_ar": "وحدة أو مستخدم غير موجود.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+     "lines": "54-57"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+     "lines": "130"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 409",
+   "meaning_ar": "اسم مكرر تحت الأب نفسه، أو نسخة قديمة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+     "lines": "75-77"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+     "lines": "87-89"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 422 rule=ORG_PARENT_TREE_MISMATCH / ORG_LEVEL_NOT_BELOW_PARENT / ORG_CYCLE / ORG_NOT_LEGAL_UNIT / ORG_UNIT_INACTIVE",
+   "meaning_ar": "قواعد موضع الوحدة وإسناد المستخدمين.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+     "lines": "29-33"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+     "lines": "90-96"
+    }
+   ]
+  }
+ ],
+ "result_ar": "شجرة وحدات محدَّثة مع رسالة تأكيد، ومستخدم موضوع في وحدته.",
+ "related": [
+  "case-access-confidentiality",
+  "users-admin",
+  "roles-permissions",
+  "cases-register"
+ ],
+ "endpoints": [
+  {
+   "method": "GET",
+   "path": "/api/v1/org-units",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/org/OrgUnitController.java",
+    "lines": "35-43"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/org-units",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/org/OrgUnitController.java",
+    "lines": "45-50"
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/org-units/{id}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/org/OrgUnitController.java",
+    "lines": "52-56"
+   }
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/org-units/{id}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/org/OrgUnitController.java",
+    "lines": "58-62"
+   }
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/users/{userId}/org-unit",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/org/OrgUnitController.java",
+    "lines": "64-69"
+   }
+  }
+ ],
+ "tech": {
+  "chain": [
+   {
+    "layer": "screen",
+    "label": "OrgUnitsPage / UserUnitSection",
+    "ref": {
+     "path": "frontend/src/features/access/OrgUnitsPage.tsx",
+     "lines": "26-213"
+    },
+    "data_ar": "الشجرة المختارة وبيانات الوحدة الجديدة."
+   },
+   {
+    "layer": "api_call",
+    "label": "listOrgUnits / createOrgUnit / updateOrgUnit / placeUser",
+    "ref": {
+     "path": "frontend/src/features/access/api.ts",
+     "lines": "29-57"
+    },
+    "data_ar": "طلبات REST."
+   },
+   {
+    "layer": "controller",
+    "label": "OrgUnitController",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitController.java",
+     "lines": "22-70"
+    },
+    "data_ar": "يمرر الطلب للخدمة."
+   },
+   {
+    "layer": "authorization",
+    "label": "@PreAuthorize ORG_MANAGE",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitController.java",
+     "lines": "45-47"
+    },
+    "data_ar": "القراءة لـ ORG_MANAGE أو CASE_VIEW أو CASE_CREATE."
+   },
+   {
+    "layer": "service",
+    "label": "OrgUnitService",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+     "lines": "26-134"
+    },
+    "data_ar": "قواعد الموضع والنسخة والتدقيق."
+   },
+   {
+    "layer": "tables",
+    "label": "org_unit, app_user.org_unit_id",
+    "ref": {
+     "path": "backend/src/main/resources/db/migration/V600__LD-050_access_foundation.sql",
+     "lines": "7-30"
+    },
+    "data_ar": "الوحدات ووحدة كل مستخدم."
+   },
+   {
+    "layer": "event",
+    "label": "ORG_UNIT_CREATE / UPDATE / USER_ORG_UNIT_CHANGE",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+     "lines": "78-79"
+    },
+    "data_ar": "أحداث تدقيق."
+   },
+   {
+    "layer": "result",
+    "label": "OrgUnit",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnit.java",
+     "lines": "8-9"
+    },
+    "data_ar": "الوحدة المحدَّثة."
+   }
+  ]
+ },
+ "status": "IMPLEMENTED_ON_DEVELOP",
+ "status_note_ar": "الشيفرة مدمجة في develop.",
+ "status_evidence": [
+  {
+   "path": "backend/src/main/java/com/lawdesk/org/OrgUnitController.java",
+   "lines": "22-25"
+  },
+  {
+   "path": "backend/src/main/java/com/lawdesk/org/OrgUnitService.java",
+   "lines": "26-27"
+  }
+ ],
+ "verification_ar": "اختبارات: backend/src/test/java/com/lawdesk/org/OrgUnitApiTest.java؛ وفي الواجهة frontend/src/features/access/Access.test.tsx. لم يُجرِ هذا المستند أي تحقق على بيئة القبول (UAT)؛ المحتوى مبني على قراءة الشيفرة المدمجة في develop والاختبارات الموجودة فقط. استعمال الشجرة الثانية (AUTHORITY) داخل القضايا (الجهات المعنية) موثق في صفحات القضايا ولم أتتبعه هنا."
+}

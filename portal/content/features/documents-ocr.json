@@ -1,0 +1,1110 @@
+{
+ "id": "documents-ocr",
+ "category": "documents",
+ "name_ar": "المستندات: الرفع والإصدارات وقراءة النص (OCR)",
+ "summary_ar": "يحفظ الأرشيف الإلكتروني للقضية ملفات PDF وWord والصور مع إصداراتها السابقة وتصنيفها. بعد الرفع يحاول النظام استخراج نص الملف، وإن كان صورة أو مسحًا ضوئيًا يقرؤه محرك تعرّف ضوئي محلي على الخادم، ويُظهر حالة القراءة بصدق.",
+ "purpose_ar": "حفظ مستندات القضية في مكان واحد مضبوط بالصلاحيات، والاحتفاظ بكل إصدار، وجعل نص المستندات قابلًا للبحث دون إرسال أي ملف خارج الخادم.",
+ "who_ar": [
+  "من يملك صلاحية عرض المستندات (DOCUMENT_VIEW)",
+  "من يملك صلاحية إدارة المستندات (DOCUMENT_MANAGE)",
+  "مدير الأرشيف (DOCUMENT_ARCHIVE_ADMIN) للحذف النهائي والحدود"
+ ],
+ "who_perms": [
+  "DOCUMENT_VIEW",
+  "DOCUMENT_MANAGE",
+  "DOCUMENT_ARCHIVE_ADMIN"
+ ],
+ "access_ar": "صفحة القضية > قسم المستندات؛ وقائمة المستندات العامة (المستندات)",
+ "route": "/cases/:id (قسم المستندات) و /documents",
+ "prerequisites_ar": [
+  "قضية مرئية للمستخدم ويحق له تعديلها وغير مؤرشفة",
+  "ملف بصيغة مقبولة وبحجم لا يتجاوز حد الأرشيف (الافتراضي 10 ميغابايت)",
+  "لقراءة الصور والمسح الضوئي: وجود محرك التعرف الضوئي على الخادم (وإلا تُحفظ الملفات دون بحث في نصها)"
+ ],
+ "fields": {
+  "required": [
+   {
+    "name_ar": "الملف",
+    "code": "file",
+    "rule_ar": "جزء multipart باسم file؛ غير فارغ؛ لا يتجاوز الحد الأعلى للحجم؛ يُعرف نوعه من محتواه لا من اسمه، ويجب أن يطابق نوع المحتوى المعلن، وأن تكون الصيغة مفعّلة في إعدادات الأرشيف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+      "lines": "429-453",
+      "note": "checked(file)"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/documents/FileFormats.java",
+      "lines": "31-52",
+      "note": "detect by signature"
+     }
+    ]
+   }
+  ],
+  "optional": [
+   {
+    "name_ar": "العنوان",
+    "code": "title",
+    "rule_ar": "اختياري؛ إن تُرك فارغًا استُعمل اسم الملف؛ الحد 200 حرفًا وإلا الخطأ Size.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+      "lines": "73-95",
+      "note": "attach title"
+     }
+    ]
+   },
+   {
+    "name_ar": "ملاحظة الإصدار",
+    "code": "note",
+    "rule_ar": "اختيارية عند إضافة إصدار؛ حتى 500 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+      "lines": "98-105",
+      "note": "addVersion note"
+     }
+    ]
+   },
+   {
+    "name_ar": "سبب السحب أو الحذف النهائي",
+    "code": "reason",
+    "rule_ar": "مطلوب عند السحب من ملف القضية وعند الحذف النهائي؛ حتى 500 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+      "lines": "414-423",
+      "note": "requiredReason"
+     }
+    ]
+   },
+   {
+    "name_ar": "رقم نسخة السجل",
+    "code": "version",
+    "rule_ar": "مطلوب عند التصنيف والسحب والاسترجاع لمنع تعارض التعديل؛ غيابه يعطي الرمز NotNull.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+      "lines": "214-222",
+      "note": "classify version"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+      "lines": "260-266",
+      "note": "withdraw version"
+     }
+    ]
+   }
+  ]
+ },
+ "steps": [
+  {
+   "n": 1,
+   "actor_ar": "المستخدم صاحب صلاحية عرض المستندات",
+   "action_ar": "يفتح صفحة القضية ويرى قسم المستندات، أو يفتح قائمة المستندات العامة.",
+   "response_ar": "تُعرض مستندات القضية الأحدث أولًا مع عددها مقابل الحد، وتُعرض في القائمة العامة مستندات القضايا المرئية فقط.",
+   "rules_ar": [
+    "المستند مرئي بقدر ما القضية مرئية؛ مستند قضية لا يراها المستخدم يُعامل كأنه غير موجود."
+   ],
+   "data_ar": "قائمة المستندات مع عنوان القضية ورقمها المرجعي.",
+   "next_ar": "اختيار ملف لإرفاقه.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/operations/CaseOperations.tsx",
+     "lines": "34-35",
+     "note": "CaseDocuments in case page"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentController.java",
+     "lines": "83-99",
+     "note": "list endpoints"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "لا صلاحية عرض (403)",
+     "detail_ar": "من لا يملك DOCUMENT_VIEW يُرفض طلبه قبل أي قراءة.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/DocumentController.java",
+       "lines": "83-85",
+       "note": "PreAuthorize DOCUMENT_VIEW"
+      }
+     ]
+    },
+    {
+     "kind": "denied",
+     "title_ar": "مستند قضية غير مرئية (404)",
+     "detail_ar": "طلب مستند لقضية لا يحق للمستخدم رؤيتها يُجاب بأنه غير موجود.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+       "lines": "173-181",
+       "note": "get: NotFound if not canView"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "actor_ar": "المستخدم صاحب صلاحية إدارة المستندات",
+   "action_ar": "يختار الملف ويكتب عنوانًا اختياريًا ثم يضغط «إرفاق».",
+   "response_ar": "يفحص المتصفح النوع والحجم أولًا ثم يرسل الطلب. وإن ردّ خادم الويب بـ 413 فُسّر كخطأ حجم الملف.",
+   "rules_ar": [
+    "الرسالة: «يمكن إرفاق ملفات PDF وWord والصور فقط» أو «حجم الملف أكبر مما يسمح به الأرشيف»."
+   ],
+   "data_ar": "الملف والعنوان.",
+   "next_ar": "إرسال الملف إلى الخادم.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/operations/documents/CaseDocuments.tsx",
+     "lines": "73-106",
+     "note": "AttachForm submit"
+    },
+    {
+     "path": "frontend/src/features/operations/documents/documentsApi.ts",
+     "lines": "83-90",
+     "note": "fileProblem"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "نوع أو حجم غير مقبول في المتصفح",
+     "detail_ar": "تظهر رسالة دون إرسال الطلب.",
+     "evidence": [
+      {
+       "path": "frontend/src/features/operations/documents/CaseDocuments.tsx",
+       "lines": "34-38",
+       "note": "CLIENT_PROBLEMS"
+      },
+      {
+       "path": "frontend/src/i18n/messages/operations.ar.ts",
+       "lines": "161-162",
+       "note": "Arabic messages"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "actor_ar": "الخادم",
+   "action_ar": "POST /api/v1/cases/{caseId}/documents بصيغة multipart.",
+   "response_ar": "تُفحص الصلاحية قبل قراءة الملف، ثم حالة القضية (قابلة للتعديل وغير مؤرشفة) والعدد دون الحد (الافتراضي 100 مستند للقضية).",
+   "rules_ar": [
+    "رفع ملف لقضية مؤرشفة مرفوض: القضية المؤرشفة للقراءة فقط.",
+    "تُقفل القضية أثناء العدّ لمنع تجاوز الحد بطلبين متزامنين."
+   ],
+   "data_ar": "ملف، عنوان، رقم القضية.",
+   "next_ar": "حفظ الملف وبصمته.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentController.java",
+     "lines": "68-80",
+     "note": "POST attach"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+     "lines": "73-95",
+     "note": "attach"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+     "lines": "388-395",
+     "note": "writableCase"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "لا صلاحية إدارة (403) أو قضية غير مرئية (404)",
+     "detail_ar": "DOCUMENT_MANAGE مطلوبة ثم حق التعديل على القضية؛ قضية غير مرئية 404، ومرئية غير قابلة للتعديل 403.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/DocumentController.java",
+       "lines": "68-70",
+       "note": "PreAuthorize DOCUMENT_MANAGE"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+       "lines": "34-39",
+       "note": "403/404 policy"
+      }
+     ]
+    },
+    {
+     "kind": "validation",
+     "title_ar": "ملف ناقص أو صيغة غير مدعومة أو كبير (400)",
+     "detail_ar": "الرموز: NotNull (لا ملف)، NotEmpty (فارغ)، MaxSize (أكبر من الحد)، UnsupportedFormat (الصيغة غير معروفة أو معطّلة أو لا تطابق النوع المعلن)، وSize لعنوان أطول من 200.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+       "lines": "429-453",
+       "note": "checked"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+       "lines": "78-81",
+       "note": "title Size"
+      }
+     ]
+    },
+    {
+     "kind": "validation",
+     "title_ar": "طلب ليس multipart أو جسم تالف",
+     "detail_ar": "غير multipart يُجاب 415، وجسم تالف 400، وتجاوز حد الرفع 400 مع الحقل file والرمز MaxSize.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/DocumentRequestErrors.java",
+       "lines": "26-41",
+       "note": "handlers"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "بلغت القضية حدّ المستندات (422)",
+     "detail_ar": "القاعدة DOCUMENT_LIMIT_REACHED.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+       "lines": "84-88",
+       "note": "limit"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/Rules.java",
+       "lines": "8-16",
+       "note": "rule codes"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "قضية مؤرشفة (422)",
+     "detail_ar": "القاعدة CASE_ARCHIVED.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+       "lines": "388-395",
+       "note": "archived read-only"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "actor_ar": "الخادم",
+   "action_ar": "يحفظ المستند مع بصمة SHA-256 ويسجّل حدثًا في سجل القضية.",
+   "response_ar": "يُعاد 201 مع رابط المستند الجديد؛ يظهر المستند في القائمة بإصداره الأول.",
+   "rules_ar": [
+    "اسم الملف يُنظّف من المسارات والرموز التحكمية ولا يزيد عن 255 حرفًا."
+   ],
+   "data_ar": "اسم الملف، النوع، الحجم، البصمة، من رفعه ومتى.",
+   "next_ar": "قراءة نص الملف.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+     "lines": "89-95",
+     "note": "insert + recordEvent"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentController.java",
+     "lines": "77-80",
+     "note": "201 Location"
+    },
+    {
+     "path": "backend/src/main/resources/db/migration/V403__LD-026_case_document.sql",
+     "lines": "4-26",
+     "note": "case_document tables"
+    }
+   ],
+   "alt": []
+  },
+  {
+   "n": 5,
+   "actor_ar": "الخادم",
+   "action_ar": "يقرأ ما يحمله الملف من نص مباشرة.",
+   "response_ar": "PDF: يُؤخذ النص المضمّن إن بلغ 20 حرفًا/رقمًا على الأقل وإلا يُعدّ مسحًا. Word الحديث (docx): تُقرأ فقرات المتن. الصور: تحتاج تعرفًا ضوئيًا. Word القديم (doc): لا يُقرأ نصه (UNSUPPORTED). ملف مشفّر أو تالف: FAILED.",
+   "rules_ar": [
+    "النص يُطبَّع إلى NFKC وتُزال الرموز التحكمية؛ لا يُنفَّذ شيء مما في الملف.",
+    "أقصى عدد أحرف محفوظة افتراضيًا 2,000,000؛ يُقطع النص ويُعلَّم أنه مقطوع."
+   ],
+   "data_ar": "الحالة: EXTRACTED أو PENDING أو OCR_UNAVAILABLE أو NO_TEXT أو UNSUPPORTED أو FAILED.",
+   "next_ar": "حالة النص تُحفظ مع الإصدار.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/TextExtractor.java",
+     "lines": "48-90",
+     "note": "extract pdf/docx"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentTextService.java",
+     "lines": "76-97",
+     "note": "index"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "لا محرك تعرف ضوئي على الخادم",
+     "detail_ar": "تُسجَّل الحالة OCR_UNAVAILABLE مع السبب، ولا يُبحث في نص الملف، ويُحفظ الملف سليمًا.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/DocumentTextService.java",
+       "lines": "82-91",
+       "note": "OCR_UNAVAILABLE"
+      },
+      {
+       "path": "frontend/src/i18n/messages/wp5.ar.ts",
+       "lines": "117-131",
+       "note": "Arabic statuses"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 6,
+   "actor_ar": "عامل التعرف الضوئي (مجدول)",
+   "action_ar": "كل دقيقة يأخذ حتى 5 إصدارات بحالة PENDING.",
+   "response_ar": "يحوّل صفحات PDF إلى صور بدقة 300 نقطة (حتى 50 صفحة افتراضيًا) ويقرؤها بمحرك tesseract المحلي بالعربية والإنجليزية؛ عند النجاح تصبح الحالة OCR_DONE ويصبح النص قابلًا للبحث.",
+   "rules_ar": [
+    "الخادم لا يرسل شيئًا خارجه: المحرك يعمل محليًا.",
+    "عند الفشل تُعاد المحاولة؛ بعد 3 محاولات تصبح الحالة FAILED.",
+    "إن زاد عدد الصفحات عن الحد قُرئت الأولى فقط ويُذكر ذلك.",
+    "إن لم يُوجد نص في الصورة: NO_TEXT."
+   ],
+   "data_ar": "صور الصفحات ونص مستخرج.",
+   "next_ar": "النص جاهز للبحث.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/OcrSchedule.java",
+     "lines": "14-38",
+     "note": "scheduler"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentTextService.java",
+     "lines": "119-174",
+     "note": "processPending/recognise"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/TesseractOcrEngine.java",
+     "lines": "36-44",
+     "note": "tesseract config ara+eng"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "error",
+     "title_ar": "فشل القراءة",
+     "detail_ar": "تُعاد المحاولة ثم FAILED بعد ثلاث محاولات.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/DocumentTextService.java",
+       "lines": "168-173",
+       "note": "attempts"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 7,
+   "actor_ar": "المستخدم",
+   "action_ar": "يفتح تفاصيل المستند ويرى حالة قراءة كل إصدار، ويضغط «اقرأ الملف من جديد» إن لم يُقرأ.",
+   "response_ar": "تُظهر الشاشة وصفًا مثل «نص مقروء من الملف» أو «لم يُقرأ: لا يوجد محرك تعرف ضوئي»، وهل هو قابل للبحث وعدد الصفحات وهل حُفظ جزء فقط من النص.",
+   "rules_ar": [
+    "إعادة القراءة تحتاج DOCUMENT_MANAGE وحق تعديل القضية وتُعيد قراءة الإصدار الحالي."
+   ],
+   "data_ar": "حالة النص بلا نصه (النص يُطلب بـ withText=true).",
+   "next_ar": "إضافة إصدار جديد أو تصنيف المستند.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/archive/DocumentVersions.tsx",
+     "lines": "32-47",
+     "note": "TextStatus"
+    },
+    {
+     "path": "frontend/src/features/archive/DocumentVersions.tsx",
+     "lines": "126-135",
+     "note": "reprocess button"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+     "lines": "187-198",
+     "note": "reprocess"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "لا صلاحية (403)",
+     "detail_ar": "إعادة القراءة تتطلب DOCUMENT_MANAGE.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+       "lines": "187-189",
+       "note": "PreAuthorize"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "لا إصدار محفوظ (422)",
+     "detail_ar": "القاعدة DOCUMENT_HAS_NO_VERSION.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+       "lines": "192-195",
+       "note": "DOCUMENT_HAS_NO_VERSION"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 8,
+   "actor_ar": "المستخدم صاحب صلاحية إدارة المستندات",
+   "action_ar": "يضيف إصدارًا جديدًا مع ملاحظة «ما الذي تغيّر».",
+   "response_ar": "يُحفظ الإصدار التالي ويصبح الحالي مع بقاء الإصدارات السابقة قابلة للتنزيل، ويُقرأ نصه.",
+   "rules_ar": [
+    "الحد الافتراضي 20 إصدارًا للمستند (DOCUMENT_VERSION_LIMIT_REACHED).",
+    "لا يُغيَّر مستند هو نسخة مذكرة أو كتاب معتمد أو مرسل أو محفوظ (LEGAL_DOCUMENT_LOCKED).",
+    "لا يُضاف إصدار لمستند مسحوب (DOCUMENT_WITHDRAWN)."
+   ],
+   "data_ar": "ملف جديد وملاحظة اختيارية (500 حرف).",
+   "next_ar": "تنزيل أو تصنيف.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+     "lines": "91-104",
+     "note": "POST versions"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+     "lines": "98-126",
+     "note": "addVersion"
+    },
+    {
+     "path": "frontend/src/features/archive/DocumentVersions.tsx",
+     "lines": "140-180",
+     "note": "form"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "بلوغ الحد أو مستند مقفل أو مسحوب (422)",
+     "detail_ar": "تظهر رسالة القاعدة بالعربية.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+       "lines": "108-116",
+       "note": "limits and locks"
+      },
+      {
+       "path": "frontend/src/i18n/messages/wp5.ar.ts",
+       "lines": "35-42",
+       "note": "rule messages"
+      }
+     ]
+    },
+    {
+     "kind": "validation",
+     "title_ar": "ملاحظة أطول من 500 (400)",
+     "detail_ar": "الرمز Size على الحقل note.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+       "lines": "102-105",
+       "note": "note Size"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 9,
+   "actor_ar": "المستخدم صاحب صلاحية عرض المستندات",
+   "action_ar": "ينزّل الملف الحالي أو إصدارًا محددًا.",
+   "response_ar": "يُنزَّل دائمًا كمرفق ولا يعرضه المتصفح ولا يُخزَّن مؤقتًا، ويُسجَّل التنزيل في سجل التدقيق.",
+   "rules_ar": [
+    "المستند المسحوب لا يصل إلى ملفه إلا من يملك إدارة المستندات أو إدارة الأرشيف."
+   ],
+   "data_ar": "بايتات الملف واسمه ونوعه.",
+   "next_ar": "انتهاء.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentController.java",
+     "lines": "108-120",
+     "note": "content"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+     "lines": "196-207",
+     "note": "download audited"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "مستند مسحوب لمن لا يدير الأرشيف (404)",
+     "detail_ar": "يُجاب كأنه غير موجود.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+       "lines": "198-202",
+       "note": "withdrawn hidden"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 10,
+   "actor_ar": "صاحب صلاحية إدارة المستندات / مدير الأرشيف",
+   "action_ar": "يصنّف المستند، أو يسحبه من ملف القضية بسبب، أو يسترجعه، أو يحذفه نهائيًا بعد سحبه.",
+   "response_ar": "التصنيف: عنوان وفئة وتاريخ ومرحلة قضائية ووصف (حتى 2000 حرف). السحب لا يحذف شيئًا ويمكن التراجع عنه. الحذف النهائي لمدير الأرشيف فقط وللمستند المسحوب فقط وبسبب، ولا يجوز إن بقيت سجلات تشير إليه؛ يُسجَّل في سجل حذف ويُدقَّق.",
+   "rules_ar": [
+    "الفئة من قائمة DOCUMENT_CATEGORY، والمرحلة يجب أن تكون في القضية نفسها.",
+    "التعديل المتزامن يُجاب 409.",
+    "الحذف النهائي يتطلب DOCUMENT_ARCHIVE_ADMIN."
+   ],
+   "data_ar": "سبب، رقم نسخة السجل.",
+   "next_ar": "انتهاء الدورة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+     "lines": "124-166",
+     "note": "classify/withdraw/restore/purge endpoints"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+     "lines": "214-336",
+     "note": "service"
+    },
+    {
+     "path": "frontend/src/i18n/messages/wp5.ar.ts",
+     "lines": "75-89",
+     "note": "Arabic UI"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "فئة أو مرحلة غير صالحة (400)",
+     "detail_ar": "الرمز Exists للفئة وNotInCase للمرحلة.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+       "lines": "232-242",
+       "note": "classify checks"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "حذف مستند ما زال مُشارًا إليه (422)",
+     "detail_ar": "DOCUMENT_REFERENCED: دليل أو طلب أو مذكرة أو نسخة حكم أو رد أو ربط قضايا أو مستند قانوني أو إجراء تنفيذ.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+       "lines": "338-351",
+       "note": "referenced"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "حذف مستند غير مسحوب (422)",
+     "detail_ar": "DOCUMENT_NOT_WITHDRAWN.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+       "lines": "315-319",
+       "note": "not withdrawn"
+      }
+     ]
+    },
+    {
+     "kind": "error",
+     "title_ar": "تعديل متزامن (409)",
+     "detail_ar": "غيّر شخص آخر المستند: أعد التحميل.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+       "lines": "243-245",
+       "note": "Conflict"
+      }
+     ]
+    },
+    {
+     "kind": "denied",
+     "title_ar": "غير مدير أرشيف (403)",
+     "detail_ar": "الحذف النهائي وسجل الحذف والإعدادات تتطلب DOCUMENT_ARCHIVE_ADMIN.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+       "lines": "154-166",
+       "note": "ARCHIVE_ADMIN"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "rules": [
+  {
+   "text_ar": "الصيغ المعروفة: PDF وPNG وJPEG وTIFF وWord القديم (DOC) وWord الحديث (DOCX)؛ يمكن لمدير الأرشيف تعطيل صيغة لكن لا يضيف صيغة جديدة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/resources/db/migration/V700__LD-055_permissions_and_archive_settings.sql",
+     "lines": "43-58",
+     "note": "archive_format"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/ArchiveSettings.java",
+     "lines": "53-74",
+     "note": "update"
+    }
+   ]
+  },
+  {
+   "text_ar": "حدود الأرشيف الافتراضية: 10 ميغابايت للملف، 100 مستند للقضية، 20 إصدارًا للمستند، 50 صفحة للتعرف، مليونا حرف للنص؛ وكل قيمة ضمن حدود مخزنة معها (الخطأ Range خارجها).",
+   "evidence": [
+    {
+     "path": "backend/src/main/resources/db/migration/V700__LD-055_permissions_and_archive_settings.sql",
+     "lines": "20-40",
+     "note": "archive_setting"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/ArchiveSettings.java",
+     "lines": "76-84",
+     "note": "Range"
+    }
+   ]
+  },
+  {
+   "text_ar": "لا يُحذف مستند في الاستعمال العادي: DELETE /documents/{id} يتحول إلى سحب بسبب غير مذكور.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentController.java",
+     "lines": "126-132",
+     "note": "remove = withdraw"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+     "lines": "253-257",
+     "note": "remove"
+    }
+   ]
+  },
+  {
+   "text_ar": "حدود الرفع في طبقة الويب 10 ميغابايت للملف و11 للطلب.",
+   "evidence": [
+    {
+     "path": "backend/src/main/resources/application.yaml",
+     "lines": "29-32",
+     "note": "multipart"
+    }
+   ]
+  },
+  {
+   "text_ar": "نص الملف بيانات فقط: يُخزَّن ويُبحث فيه ويُعرض نصًا ولا يُفسَّر.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentTextService.java",
+     "lines": "25-29",
+     "note": "doc comment"
+    }
+   ]
+  }
+ ],
+ "after_submit_ar": "يظهر المستند في قائمة القضية بإصداره الحالي وحالة قراءة نصه، ويُضاف حدث إلى سجل القضية، وإن قُرئ نصه صار ضمن البحث في المستندات.",
+ "notifications_ar": [
+  "لا توجد إشعارات للمستخدمين في وحدة المستندات؛ الأثر حدث في سجل القضية وسجل التدقيق (لم يُعثر على كود إشعارات في الحزمة)."
+ ],
+ "approvals_ar": [
+  "لا توجد موافقات على رفع المستندات أو إصداراتها. (الاعتماد خاص بالمذكرات والمراسلات: انظر legal-docs.)"
+ ],
+ "errors": [
+  {
+   "code": "HTTP 400 (errors[].field=file, code=UnsupportedFormat|MaxSize|NotEmpty|NotNull)",
+   "meaning_ar": "مشكلة في الملف المرفوع.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+     "lines": "429-453",
+     "note": "checked"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentRequestErrors.java",
+     "lines": "26-31",
+     "note": "MaxSize"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 415",
+   "meaning_ar": "الطلب ليس multipart/form-data.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentRequestErrors.java",
+     "lines": "38-41",
+     "note": "415"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 403",
+   "meaning_ar": "لا صلاحية، أو القضية مرئية لكن غير قابلة للتعديل.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+     "lines": "34-39",
+     "note": "policy"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 404",
+   "meaning_ar": "المستند أو القضية غير موجودة أو غير مرئية للمستخدم.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+     "lines": "173-181",
+     "note": "get"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 409",
+   "meaning_ar": "تعديل متزامن لمستند.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+     "lines": "243-245",
+     "note": "Conflict"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 422 rule=DOCUMENT_LIMIT_REACHED | DOCUMENT_VERSION_LIMIT_REACHED | CASE_ARCHIVED | DOCUMENT_WITHDRAWN | DOCUMENT_NOT_WITHDRAWN | DOCUMENT_REFERENCED | LEGAL_DOCUMENT_LOCKED",
+   "meaning_ar": "قاعدة عمل رفضت العملية؛ الرمز في الحقل rule من ProblemDetail.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/Rules.java",
+     "lines": "8-16",
+     "note": "codes"
+    }
+   ]
+  }
+ ],
+ "result_ar": "مستند محفوظ بإصدارات متعددة وتصنيف، وحالة قراءة نص واضحة، وقابل للتنزيل وللبحث إن قُرئ نصه.",
+ "related": [
+  "search",
+  "assistant",
+  "legal-docs",
+  "integrations",
+  "case-access-confidentiality",
+  "cases-details-edit",
+  "audit",
+  "lists-lookups"
+ ],
+ "endpoints": [
+  {
+   "method": "POST",
+   "path": "/api/v1/cases/{caseId}/documents",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/DocumentController.java",
+    "lines": "68-69",
+    "note": "/cases/{caseId}/documents"
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/cases/{caseId}/documents",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/DocumentController.java",
+    "lines": "83-84",
+    "note": "/cases/{caseId}/documents"
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/documents",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/DocumentController.java",
+    "lines": "93-94",
+    "note": "/documents"
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/documents/{id}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/DocumentController.java",
+    "lines": "101-102",
+    "note": "/documents/{id}"
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/documents/{id}/content",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/DocumentController.java",
+    "lines": "108-109",
+    "note": "content"
+   }
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/documents/{id}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/DocumentController.java",
+    "lines": "127-128",
+    "note": "/documents/{id}"
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/documents/{id}/versions",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+    "lines": "82-83",
+    "note": "versions"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/documents/{id}/versions",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+    "lines": "91-92",
+    "note": "versions"
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/documents/{id}/versions/{versionNo}/content",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+    "lines": "106-107",
+    "note": "versions"
+   }
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/documents/{id}/classification",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+    "lines": "124-125",
+    "note": "classification"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/documents/{id}/withdraw",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+    "lines": "132-133",
+    "note": "withdraw"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/documents/{id}/restore",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+    "lines": "139-140",
+    "note": "restore"
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/cases/{caseId}/documents/withdrawn",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+    "lines": "146-147",
+    "note": "documents/withdrawn"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/documents/{id}/permanent-deletion",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+    "lines": "155-156",
+    "note": "permanent-deletion"
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/documents/deletion-log",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+    "lines": "162-163",
+    "note": "deletion-log"
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/documents/{id}/text",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+    "lines": "175-176",
+    "note": "text"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/documents/{id}/text/reprocess",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+    "lines": "187-188",
+    "note": "reprocess"
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/archive/settings",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+    "lines": "210-211",
+    "note": "settings"
+   }
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/archive/settings",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+    "lines": "216-217",
+    "note": "settings"
+   }
+  }
+ ],
+ "tech": {
+  "chain": [
+   {
+    "layer": "screen",
+    "label": "CaseDocuments",
+    "ref": {
+     "path": "frontend/src/features/operations/documents/CaseDocuments.tsx",
+     "lines": "176-195",
+     "note": "screen"
+    },
+    "data_ar": "الملف والعنوان من نموذج الإرفاق"
+   },
+   {
+    "layer": "component",
+    "label": "AttachForm",
+    "ref": {
+     "path": "frontend/src/features/operations/documents/CaseDocuments.tsx",
+     "lines": "73-106",
+     "note": "form"
+    },
+    "data_ar": "ملف بعد فحص النوع والحجم في المتصفح"
+   },
+   {
+    "layer": "api_call",
+    "label": "withdrawDocumentWithReason / attachDocument",
+    "ref": {
+     "path": "frontend/src/features/operations/documents/documentsApi.ts",
+     "lines": "83-98",
+     "note": "api"
+    },
+    "data_ar": "طلب إلى الخادم"
+   },
+   {
+    "layer": "controller",
+    "label": "DocumentController.attach",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentController.java",
+     "lines": "68-80",
+     "note": "controller"
+    },
+    "data_ar": "الملف والعنوان ومعرّف القضية"
+   },
+   {
+    "layer": "authorization",
+    "label": "@PreAuthorize DOCUMENT_MANAGE + writableCase",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+     "lines": "388-395",
+     "note": "authz"
+    },
+    "data_ar": "قرار السماح أو 403/404"
+   },
+   {
+    "layer": "service",
+    "label": "DocumentService.attach",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+     "lines": "73-95",
+     "note": "service"
+    },
+    "data_ar": "ملف تحقق منه وعنوان"
+   },
+   {
+    "layer": "service",
+    "label": "DocumentTextService.index",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentTextService.java",
+     "lines": "76-97",
+     "note": "text"
+    },
+    "data_ar": "بايتات الملف ونوعه لاستخراج النص"
+   },
+   {
+    "layer": "tables",
+    "label": "document_text",
+    "ref": {
+     "path": "backend/src/main/resources/db/migration/V702__LD-055_document_links_and_text.sql",
+     "lines": "61-79",
+     "note": "document_text"
+    },
+    "data_ar": "صف المستند والإصدار وحالة النص"
+   },
+   {
+    "layer": "event",
+    "label": "OcrSchedule.tick",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/documents/OcrSchedule.java",
+     "lines": "28-38",
+     "note": "scheduler"
+    },
+    "data_ar": "إصدارات PENDING تُقرأ كل دقيقة"
+   },
+   {
+    "layer": "result",
+    "label": "DocumentController.Response",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentController.java",
+     "lines": "44-56",
+     "note": "response"
+    },
+    "data_ar": "بيانات المستند دون بايتات الملف"
+   }
+  ]
+ },
+ "status": "IMPLEMENTED_ON_DEVELOP",
+ "status_note_ar": "الكود موجود على develop.",
+ "status_evidence": [
+  {
+   "path": "backend/src/main/java/com/lawdesk/documents/DocumentService.java",
+   "lines": "73-95",
+   "note": "attach"
+  },
+  {
+   "path": "backend/src/main/java/com/lawdesk/documents/ArchiveController.java",
+   "lines": "175-198",
+   "note": "text endpoints"
+  }
+ ],
+ "verification_ar": "قُرئ الكود الفعلي (المتحكمات والخدمات ومحرك الاستخراج والترحيلات V403/V700/V702 وشاشات React ورسائلها العربية). اختبارات موجودة: backend/src/test/java/com/lawdesk/documents/ (DocumentApiTest، ArchiveVersionsApiTest، ArchiveDeletionApiTest، ArchiveFormatsAndSettingsApiTest، ArchiveTextSearchApiTest، ArchiveVisibilityApiTest، FileFormatsTest، TextExtractorTest، OcrQualityTest، TesseractOcrEngineTest، DocumentRequestErrorsTest، DocumentUploadOverHttpTest) واختبارات الواجهة في frontend/src/features/archive. لم تُشغَّل الاختبارات في إعداد هذه الوثيقة ولم يُجرَ تحقق UAT. لم يُتحقق من جودة القراءة الفعلية للعربية ولا من توفر tesseract على أي خادم."
+}

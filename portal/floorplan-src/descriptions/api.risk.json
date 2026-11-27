@@ -1,0 +1,46 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/risk/RiskController.java": {
+      "name": "طلبات المخاطر",
+      "description": "يستقبل طلبات تقييم المخاطر القانونية للقضايا: عرض التقييمات وإضافة تقييم جديد وعرض القضايا عالية الخطورة ومعالجة المخاطر."
+    },
+    "backend/src/main/java/com/lawdesk/risk/RiskReportQueries.java": {
+      "name": "بيانات المخاطر للتقارير",
+      "description": "يتيح للتقارير قراءة عدد القضايا في كل مستوى خطورة حسب آخر تقييم، وقيمة الخسارة المحتملة، دون أن يغيّر شيئًا."
+    },
+    "backend/src/main/java/com/lawdesk/risk/RiskRequests.java": {
+      "name": "بيانات تقييم المخاطر",
+      "description": "يحدد شكل بيانات التقييم: مستويات الخطورة وعناصره العشرة ودرجة تأثير كل عنصر (وغير المقيَّم قيمة قائمة بذاتها) وإجراءات المعالجة."
+    },
+    "backend/src/main/java/com/lawdesk/risk/RiskService.java": {
+      "name": "منطق تقييم المخاطر",
+      "description": "ينفّذ تقييم المخاطر القانونية للقضية: يحفظ كل تقييم كنسخة جديدة، ويحدد القضايا عالية الخطورة، ويتابع إجراءات المعالجة."
+    }
+  },
+  "routes": {
+    "GET /api/v1/cases/{caseId}/risk-assessments": {
+      "name": "تقييمات مخاطر القضية",
+      "description": "يعرض تقييمات المخاطر المسجلة لقضية معينة، لمن يملك صلاحية الاطلاع على المخاطر."
+    },
+    "POST /api/v1/cases/{caseId}/risk-assessments": {
+      "name": "تقييم مخاطر جديد",
+      "description": "يسجل تقييم مخاطر جديدًا للقضية، لمن يملك صلاحية إدارة المخاطر."
+    },
+    "GET /api/v1/risk-assessments/high": {
+      "name": "القضايا عالية الخطورة",
+      "description": "يعرض تقريرًا بالتقييمات عالية الخطورة صفحة بصفحة، لمن يملك صلاحية الاطلاع على المخاطر."
+    },
+    "GET /api/v1/risk-assessments/{id}": {
+      "name": "عرض تقييم مخاطر",
+      "description": "يعرض تقييم مخاطر واحدًا بتفاصيله."
+    },
+    "POST /api/v1/risk-assessments/{id}/remediations": {
+      "name": "إضافة إجراء معالجة",
+      "description": "يضيف إجراء معالجة إلى تقييم مخاطر، لمن يملك صلاحية إدارة المخاطر."
+    },
+    "PUT /api/v1/risk-remediations/{id}": {
+      "name": "تعديل إجراء معالجة",
+      "description": "يعدّل إجراء معالجة مسجلًا على تقييم مخاطر، لمن يملك صلاحية إدارة المخاطر."
+    }
+  }
+}

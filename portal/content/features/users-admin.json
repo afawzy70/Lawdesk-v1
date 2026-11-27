@@ -1,0 +1,885 @@
+{
+ "id": "users-admin",
+ "category": "access",
+ "name_ar": "إدارة المستخدمين",
+ "summary_ar": "يتيح لمسؤول المستخدمين البحث في الحسابات، وإنشاء حساب جديد بكلمة مرور مؤقتة وأدوار، وتعديل الاسم والبريد واللغة، وتعطيل الحساب أو تفعيله، وتغيير أدواره، وإعادة تعيين كلمة مروره، وتحديد وحدته في الإدارة القانونية.",
+ "purpose_ar": "التحكم في من يدخل النظام وبأي دور، مع ضمانات تمنع التصعيد غير المقصود: لا يغيّر المستخدم أدواره أو حالته بنفسه، ولا يُمنح دورًا يدير المستخدمين أو الأدوار إلا من يملك إدارة الأدوار، ويبقى دائمًا مسؤول نظام مفعَّل واحد على الأقل.",
+ "who_ar": [
+  "من يملك «عرض المستخدمين» (USER_VIEW) للاطلاع",
+  "من يملك «إدارة المستخدمين» (USER_MANAGE) للإنشاء والتعديل",
+  "من يملك «إدارة الهيكل التنظيمي» (ORG_MANAGE) لتحديد وحدة المستخدم"
+ ],
+ "who_perms": [
+  "USER_VIEW",
+  "USER_MANAGE",
+  "ORG_MANAGE",
+  "ROLE_MANAGE"
+ ],
+ "access_ar": "الإدارة > المستخدمون؛ ثم «مستخدم جديد» أو الضغط على اسم مستخدم في القائمة.",
+ "route": "/admin ، /admin/users/new ، /admin/users/:id",
+ "prerequisites_ar": [
+  "جلسة دخول صالحة وصلاحية USER_VIEW (للقائمة) أو USER_MANAGE (للتعديل).",
+  "وجود الأدوار المراد إسنادها (انظر «الأدوار وكتالوج الصلاحيات»)."
+ ],
+ "fields": {
+  "required": [
+   {
+    "name_ar": "اسم المستخدم",
+    "code": "username",
+    "rule_ar": "مطلوب؛ من 3 إلى 64 حرفًا من الأحرف اللاتينية والأرقام والنقطة والشرطة السفلية والشرطة؛ يُحفظ بأحرف صغيرة ولا يتكرر.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/users/UserRequests.java",
+      "lines": "17-19"
+     },
+     {
+      "path": "backend/src/main/resources/db/migration/V100__LD-007_app_user.sql",
+      "lines": "21-27",
+      "note": "database check and unique index"
+     }
+    ]
+   },
+   {
+    "name_ar": "البريد الإلكتروني",
+    "code": "email",
+    "rule_ar": "مطلوب؛ صيغة بريد صحيحة؛ حتى 254 حرفًا؛ لا يتكرر بين المستخدمين.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/users/UserRequests.java",
+      "lines": "19-20"
+     },
+     {
+      "path": "backend/src/main/resources/db/migration/V100__LD-007_app_user.sql",
+      "lines": "22-28"
+     }
+    ]
+   },
+   {
+    "name_ar": "الاسم المعروض",
+    "code": "displayName",
+    "rule_ar": "مطلوب؛ حتى 128 حرفًا.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/users/UserRequests.java",
+      "lines": "20-21"
+     }
+    ]
+   },
+   {
+    "name_ar": "اللغة",
+    "code": "locale",
+    "rule_ar": "مطلوبة؛ إما ar أو en.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/users/UserRequests.java",
+      "lines": "21-22"
+     },
+     {
+      "path": "frontend/src/features/admin/NewUserPage.tsx",
+      "lines": "65-69",
+      "note": "language select"
+     }
+    ]
+   },
+   {
+    "name_ar": "الأدوار",
+    "code": "roles",
+    "rule_ar": "قائمة رموز أدوار موجودة (قد تكون فارغة)؛ رمز غير معروف يُرفض بالرمز UnknownRole.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/users/UserRequests.java",
+      "lines": "22-23"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+      "lines": "209-218",
+      "note": "roleIds"
+     }
+    ]
+   },
+   {
+    "name_ar": "كلمة المرور المؤقتة",
+    "code": "temporaryPassword",
+    "rule_ar": "من 12 إلى 128 حرفًا، وتخضع لسياسة كلمة المرور (لا تزيد عن 72 بايت ولا تساوي اسم المستخدم أو البريد). يُجبَر المستخدم على تغييرها عند أول دخول.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/users/UserRequests.java",
+      "lines": "23-24"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+      "lines": "83-85",
+      "note": "policy"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/users/PasswordPolicy.java",
+      "lines": "1-26"
+     }
+    ]
+   }
+  ],
+  "optional": [
+   {
+    "name_ar": "رقم النسخة (للتعديل)",
+    "code": "version",
+    "rule_ar": "مطلوب عند تعديل البيانات؛ إذا لم يطابق النسخة الحالية يُرفض بـ409 لأن غيرك عدّل السجل قبلك.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/users/UserRequests.java",
+      "lines": "26-31"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+      "lines": "106-124"
+     }
+    ]
+   },
+   {
+    "name_ar": "الوحدة في الإدارة القانونية",
+    "code": "orgUnitId",
+    "rule_ar": "اختيارية؛ تُحدَّد من قسم منفصل بصلاحية ORG_MANAGE. انظر «الهيكل التنظيمي».",
+    "evidence": [
+     {
+      "path": "frontend/src/features/access/UserUnitSection.tsx",
+      "lines": "8-70"
+     }
+    ]
+   }
+  ]
+ },
+ "steps": [
+  {
+   "n": 1,
+   "actor_ar": "مسؤول المستخدمين",
+   "action_ar": "يفتح «الإدارة > المستخدمون».",
+   "response_ar": "تعرض الصفحة جدولًا مرتبًا بحسب اسم المستخدم (20 في الصفحة) بأعمدة: اسم المستخدم، الاسم المعروض، البريد، الأدوار، الحالة (نشط / معطّل / مقفل)، مع بحث نصي وتنقل بين الصفحات. رابط «مستخدم جديد» يظهر لمن يملك USER_MANAGE فقط.",
+   "rules_ar": [
+    "البحث يشمل اسم المستخدم والبريد والاسم المعروض دون تمييز حالة الأحرف."
+   ],
+   "data_ar": "q وpage وsize؛ والرد صفحة من UserView بلا كلمة مرور.",
+   "next_ar": "اختيار مستخدم للتفاصيل أو إنشاء مستخدم.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/admin/UsersPage.tsx",
+     "lines": "14-125",
+     "note": "users page"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserController.java",
+     "lines": "41-45",
+     "note": "GET /api/v1/users with USER_VIEW"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "62-74",
+     "note": "search by username, email or display name"
+    },
+    {
+     "path": "frontend/src/features/admin/api.ts",
+     "lines": "48-54"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "بلا صلاحية (403)",
+     "detail_ar": "من لا يملك USER_VIEW يرى «غير مسموح بالوصول».",
+     "evidence": [
+      {
+       "path": "frontend/src/features/admin/UsersPage.tsx",
+       "lines": "35-43"
+      },
+      {
+       "path": "frontend/src/features/auth/AccessDeniedPage.tsx",
+       "lines": "4-12"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "actor_ar": "مسؤول المستخدمين",
+   "action_ar": "يضغط «مستخدم جديد» ويملأ اسم المستخدم والبريد والاسم المعروض واللغة ويختار الأدوار ويكتب كلمة مرور مؤقتة ثم «إنشاء المستخدم».",
+   "response_ar": "ترسل الواجهة POST /api/v1/users. عند النجاح يُنشأ الحساب مفعَّلًا وعليه علامة وجوب تغيير كلمة المرور، وتُسند الأدوار، ويُسجَّل USER_CREATE، وتنتقل الواجهة إلى صفحة المستخدم الجديد.",
+   "rules_ar": [
+    "منح دور يدير المستخدمين أو الأدوار (أو دور ADMIN) يتطلب أن يملك المنفِّذ ROLE_MANAGE.",
+    "الأدوار المتاحة في النموذج تأتي من قائمة الأدوار."
+   ],
+   "data_ar": "جسم الطلب: username, email, displayName, locale, roles, temporaryPassword.",
+   "next_ar": "تُسلَّم كلمة المرور المؤقتة للمستخدم خارج النظام (لا يرسل النظام بريدًا).",
+   "evidence": [
+    {
+     "path": "frontend/src/features/admin/NewUserPage.tsx",
+     "lines": "34-46",
+     "note": "submit"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserController.java",
+     "lines": "53-58",
+     "note": "POST"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "80-104",
+     "note": "create"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "قيمة غير صالحة (400)",
+     "detail_ar": "اسم مستخدم أو بريد أو لغة غير صحيحة أو كلمة مرور قصيرة: ترد 400 بقائمة errors تحمل field وcode، وتعرض الواجهة «<اسم الحقل>: راجع هذه القيمة.». مخالفة السياسة تعرض نص القاعدة كاملًا؛ ورمز دور غير موجود يعطي field=roles وcode=UnknownRole.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/users/UserRequests.java",
+       "lines": "17-24"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+       "lines": "34-49",
+       "note": "error shape"
+      },
+      {
+       "path": "frontend/src/features/admin/messages.ts",
+       "lines": "11-19",
+       "note": "message mapping"
+      },
+      {
+       "path": "frontend/src/i18n/messages/admin.ar.ts",
+       "lines": "40-41"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "اسم مستخدم أو بريد مستخدم من قبل (409)",
+     "detail_ar": "تعرض الواجهة: «اسم المستخدم أو البريد الإلكتروني مستخدم بالفعل.»",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+       "lines": "96-98"
+      },
+      {
+       "path": "frontend/src/i18n/messages/admin.ar.ts",
+       "lines": "42"
+      }
+     ]
+    },
+    {
+     "kind": "denied",
+     "title_ar": "منح دور إداري بلا ROLE_MANAGE (403)",
+     "detail_ar": "يُرفض الطلب وتعرض الواجهة «ليست لديك صلاحية لهذا التغيير.»",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+       "lines": "183-197",
+       "note": "requireMayGrant"
+      },
+      {
+       "path": "frontend/src/i18n/messages/admin.ar.ts",
+       "lines": "45"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "actor_ar": "مسؤول المستخدمين",
+   "action_ar": "يفتح مستخدمًا من القائمة ويعدّل البريد أو الاسم المعروض أو اللغة ثم «حفظ البيانات».",
+   "response_ar": "يرسل PUT /api/v1/users/{id} مع رقم النسخة؛ تُحدَّث البيانات ويُسجَّل USER_UPDATE وتظهر «تم حفظ البيانات.»",
+   "rules_ar": [
+    "اسم المستخدم لا يتغير بعد الإنشاء.",
+    "لا يمنع النظام المستخدم من تعديل بياناته هو إن كان يملك USER_MANAGE (لا قيد على ذلك في الشيفرة)."
+   ],
+   "data_ar": "email, displayName, locale, version.",
+   "next_ar": "يُحدَّث رقم النسخة.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/admin/UserDetailsPage.tsx",
+     "lines": "54-57"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserController.java",
+     "lines": "60-64"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "106-124"
+    },
+    {
+     "path": "frontend/src/features/admin/api.ts",
+     "lines": "60-61"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "النسخة قديمة أو بريد مكرر (409)",
+     "detail_ar": "إذا عدّل غيرك السجل أو كان البريد لمستخدم آخر ترد 409 وتعرض الواجهة رسالة التعارض.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+       "lines": "115-121"
+      },
+      {
+       "path": "frontend/src/features/admin/messages.ts",
+       "lines": "20"
+      }
+     ]
+    },
+    {
+     "kind": "denied",
+     "title_ar": "مستخدم غير موجود (404)",
+     "detail_ar": "لا يوجد مستخدم بهذا المعرّف (يظهر خطأ عام في الواجهة).",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+       "lines": "76-78"
+      },
+      {
+       "path": "frontend/src/features/admin/UserDetailsPage.tsx",
+       "lines": "31-37"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "actor_ar": "مسؤول المستخدمين",
+   "action_ar": "يضغط «تعطيل الحساب» أو «تفعيل الحساب».",
+   "response_ar": "يرسل PUT /api/v1/users/{id}/enabled. التعطيل يرفع إصدار الاعتماد فتُلغى كل جلسات المستخدم فورًا، ولا تعيدها إعادة التفعيل. يُسجَّل USER_DISABLE أو USER_ENABLE.",
+   "rules_ar": [
+    "لا يغيّر المستخدم حالة حسابه بنفسه.",
+    "لا يُعطَّل آخر مسؤول نظام مفعَّل."
+   ],
+   "data_ar": "enabled=true|false.",
+   "next_ar": "يخرج المستخدم المعطّل عند طلبه التالي.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/admin/UserDetailsPage.tsx",
+     "lines": "115-117"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserController.java",
+     "lines": "66-70"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "126-140"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "تغيير حالة نفسك (422 SELF_CHANGE)",
+     "detail_ar": "تعرض الواجهة: «لا يمكنك تغيير أدوارك أو حالة حسابك بنفسك.»",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+       "lines": "177-181"
+      },
+      {
+       "path": "frontend/src/i18n/messages/admin.ar.ts",
+       "lines": "44"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "آخر مسؤول (422 LAST_ADMIN)",
+     "detail_ar": "تعرض الواجهة: «يجب أن يبقى آخر مسؤول نشط مسؤولًا.» ويُقفل صف دور ADMIN أثناء الفحص لمنع طلبين متزامنين من تجاوزه.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+       "lines": "199-207"
+      },
+      {
+       "path": "frontend/src/i18n/messages/admin.ar.ts",
+       "lines": "43"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "actor_ar": "مسؤول المستخدمين",
+   "action_ar": "يغيّر خانات الأدوار ثم «حفظ الأدوار».",
+   "response_ar": "يرسل PUT /api/v1/users/{id}/roles بالقائمة الكاملة؛ تُستبدل أدوار المستخدم ويُسجَّل USER_ROLES_CHANGE، وتسري الصلاحيات الجديدة عند طلبه التالي دون إعادة دخول.",
+   "rules_ar": [
+    "لا يغيّر المستخدم أدواره بنفسه.",
+    "الأدوار المضافة (لا الباقية) هي التي تُفحص بقاعدة «منح الأدوار الإدارية».",
+    "لا يُسحب دور ADMIN من آخر مسؤول مفعَّل."
+   ],
+   "data_ar": "roles: قائمة رموز.",
+   "next_ar": "تتغير صلاحيات المستخدم.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/admin/UserDetailsPage.tsx",
+     "lines": "119-136"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserController.java",
+     "lines": "72-77"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "142-161"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/ReloadingSecurityContextRepository.java",
+     "lines": "19-25"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "منح دور إداري بلا ROLE_MANAGE (403)",
+     "detail_ar": "يرفض الخادم ويعرض: «ليست لديك صلاحية لهذا التغيير.»",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+       "lines": "147-149"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+       "lines": "183-197"
+      }
+     ]
+    },
+    {
+     "kind": "validation",
+     "title_ar": "دور غير معروف (400)",
+     "detail_ar": "field=roles وcode=UnknownRole.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+       "lines": "214-216"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 6,
+   "actor_ar": "مسؤول المستخدمين",
+   "action_ar": "يكتب كلمة مرور مؤقتة جديدة ويضغط «إعادة تعيين كلمة المرور».",
+   "response_ar": "يرسل POST /api/v1/users/{id}/password-reset؛ تُحفظ التجزئة، وتُوضع علامة وجوب التغيير، ويُصفَّر عدّاد الفشل ويُرفع القفل، ويرتفع إصدار الاعتماد فتُلغى جلسات المستخدم، ويُسجَّل PASSWORD_RESET. تظهر: «تمت إعادة تعيين كلمة المرور. يجب على المستخدم تغييرها عند تسجيل الدخول التالي.»",
+   "rules_ar": [
+    "تخضع كلمة المرور المؤقتة لسياسة كلمة المرور."
+   ],
+   "data_ar": "temporaryPassword.",
+   "next_ar": "يدخل المستخدم بالمؤقتة ثم يغيّرها.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/admin/UserDetailsPage.tsx",
+     "lines": "59-66"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserController.java",
+     "lines": "79-84"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "163-175"
+    },
+    {
+     "path": "frontend/src/i18n/messages/admin.ar.ts",
+     "lines": "27"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "مخالفة السياسة (400)",
+     "detail_ar": "code=PasswordPolicy على الحقل temporaryPassword.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+       "lines": "166-168"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 7,
+   "actor_ar": "مسؤول المستخدمين (مع ORG_MANAGE)",
+   "action_ar": "يختار وحدة المستخدم في قسم «الوحدة في الإدارة القانونية» ويحفظ.",
+   "response_ar": "يرسل PUT /api/v1/users/{userId}/org-unit. يظهر القسم فقط لمن يملك ORG_MANAGE.",
+   "rules_ar": [
+    "التفاصيل والأخطاء في «الهيكل التنظيمي»."
+   ],
+   "data_ar": "orgUnitId أو null للإزالة.",
+   "next_ar": "يؤثر في نطاق «وحدة المستخدم نفسه».",
+   "evidence": [
+    {
+     "path": "frontend/src/features/access/UserUnitSection.tsx",
+     "lines": "8-70"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/org/OrgUnitController.java",
+     "lines": "64-69"
+    },
+    {
+     "path": "frontend/src/features/admin/UserDetailsPage.tsx",
+     "lines": "151"
+    }
+   ]
+  }
+ ],
+ "rules": [
+  {
+   "text_ar": "لا يغيّر المستخدم أدواره أو حالة حسابه بنفسه (SELF_CHANGE).",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "32-37"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "177-181"
+    }
+   ]
+  },
+  {
+   "text_ar": "منح أي دور يحتوي USER_MANAGE أو ROLE_MANAGE، أو دور ADMIN، يتطلب ROLE_MANAGE.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "183-197"
+    }
+   ]
+  },
+  {
+   "text_ar": "لا يمكن تعطيل أو تجريد آخر مسؤول مفعَّل من دور ADMIN (LAST_ADMIN).",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "199-207"
+    }
+   ]
+  },
+  {
+   "text_ar": "تعطيل الحساب وإعادة تعيين كلمة المرور يُلغيان كل الجلسات القائمة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "133-137"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "169-173"
+    }
+   ]
+  },
+  {
+   "text_ar": "اسم المستخدم والبريد فريدان دون تمييز حالة الأحرف.",
+   "evidence": [
+    {
+     "path": "backend/src/main/resources/db/migration/V100__LD-007_app_user.sql",
+     "lines": "27-28"
+    }
+   ]
+  },
+  {
+   "text_ar": "لا حذف للمستخدمين في الواجهة ولا في API؛ التعطيل هو الإيقاف.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserController.java",
+     "lines": "30-84",
+     "note": "no DELETE mapping in the controller"
+    }
+   ]
+  },
+  {
+   "text_ar": "كل تغيير مسجَّل في التدقيق: USER_CREATE, USER_UPDATE, USER_ENABLE, USER_DISABLE, USER_ROLES_CHANGE, PASSWORD_RESET.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "102",
+     "note": "create"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "224-226",
+     "note": "record"
+    }
+   ]
+  },
+  {
+   "text_ar": "«دليل المستخدمين» /api/v1/users/directory يعطي الاسم والمعرّف والحالة فقط (بلا بريد أو أدوار) لمن يملك TASK_VIEW أو TASK_MANAGE أو REPORT_VIEW أو CASE_GRANT_MANAGE، لاستعمالها في إسناد المهام والمنح.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserDirectoryController.java",
+     "lines": "13-25"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserDirectory.java",
+     "lines": "10-20"
+    }
+   ]
+  }
+ ],
+ "after_submit_ar": "يظهر الحساب في القائمة بحالته. المستخدم الجديد يجب أن يغيّر كلمة مروره عند أول دخول. لم أجد في الشيفرة إرسال رسالة بريد أو إشعار للمستخدم بإنشاء حسابه أو إعادة تعيين كلمة مروره.",
+ "notifications_ar": [],
+ "approvals_ar": [],
+ "errors": [
+  {
+   "code": "HTTP 400 (errors[].field/code)",
+   "meaning_ar": "قيمة غير صالحة: NotBlank/Pattern/Email/Size، أو PasswordPolicy، أو UnknownRole. الشكل: ProblemDetail بالخاصية errors.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+     "lines": "34-49"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "84-85"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 403",
+   "meaning_ar": "لا صلاحية، أو منح دور إداري بلا ROLE_MANAGE.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "194"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 404",
+   "meaning_ar": "المستخدم غير موجود.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "76-78"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 409",
+   "meaning_ar": "اسم مستخدم أو بريد مكرر، أو نسخة قديمة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "96-98"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "115-121"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 422 rule=SELF_CHANGE",
+   "meaning_ar": "محاولة تغيير أدوارك أو حالتك بنفسك.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "177-181"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+     "lines": "90-96"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 422 rule=LAST_ADMIN",
+   "meaning_ar": "سيبقى النظام بلا مسؤول مفعَّل.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "199-207"
+    }
+   ]
+  }
+ ],
+ "result_ar": "قائمة مستخدمين محدَّثة، وحساب جديد أو معدَّل مع رسالة تأكيد بالعربية، وأثر فوري على صلاحيات المستخدم وجلساته.",
+ "related": [
+  "roles-permissions",
+  "org-hierarchy",
+  "auth-login",
+  "profile-me",
+  "case-access-confidentiality",
+  "audit"
+ ],
+ "endpoints": [
+  {
+   "method": "GET",
+   "path": "/api/v1/users",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/users/UserController.java",
+    "lines": "41-45"
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/users/{id}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/users/UserController.java",
+    "lines": "47-51"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/users",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/users/UserController.java",
+    "lines": "53-58"
+   }
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/users/{id}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/users/UserController.java",
+    "lines": "60-64"
+   }
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/users/{id}/enabled",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/users/UserController.java",
+    "lines": "66-70"
+   }
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/users/{id}/roles",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/users/UserController.java",
+    "lines": "72-77"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/users/{id}/password-reset",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/users/UserController.java",
+    "lines": "79-84"
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/users/directory",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/users/UserDirectoryController.java",
+    "lines": "21-25"
+   }
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/users/{userId}/org-unit",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/org/OrgUnitController.java",
+    "lines": "64-69"
+   }
+  }
+ ],
+ "tech": {
+  "chain": [
+   {
+    "layer": "screen",
+    "label": "UsersPage / NewUserPage / UserDetailsPage",
+    "ref": {
+     "path": "frontend/src/features/admin/UserDetailsPage.tsx",
+     "lines": "12-154"
+    },
+    "data_ar": "بيانات النموذج وقائمة الأدوار."
+   },
+   {
+    "layer": "api_call",
+    "label": "createUser / updateUser / setEnabled / setRoles / resetPassword",
+    "ref": {
+     "path": "frontend/src/features/admin/api.ts",
+     "lines": "56-70"
+    },
+    "data_ar": "طلبات REST إلى /api/v1/users."
+   },
+   {
+    "layer": "controller",
+    "label": "UserController",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/users/UserController.java",
+     "lines": "28-89"
+    },
+    "data_ar": "يمرر الطلب مع هوية المنفِّذ وصلاحياته."
+   },
+   {
+    "layer": "authorization",
+    "label": "@PreAuthorize USER_VIEW / USER_MANAGE",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/users/UserController.java",
+     "lines": "41-43"
+    },
+    "data_ar": "الصلاحية تُفحص قبل قراءة الجسم."
+   },
+   {
+    "layer": "service",
+    "label": "UserAdministration",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "38-60"
+    },
+    "data_ar": "قواعد منع التصعيد وآخر مسؤول."
+   },
+   {
+    "layer": "repository",
+    "label": "JdbcTemplate (SQL مباشر)",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "90-100"
+    },
+    "data_ar": "إدخال وتحديث app_user وuser_role."
+   },
+   {
+    "layer": "tables",
+    "label": "app_user, user_role, app_role",
+    "ref": {
+     "path": "backend/src/main/resources/db/migration/V100__LD-007_app_user.sql",
+     "lines": "4-52"
+    },
+    "data_ar": "الحسابات والأدوار."
+   },
+   {
+    "layer": "event",
+    "label": "AuditLog.recordWithChange",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+     "lines": "224-226"
+    },
+    "data_ar": "حدث تدقيق لكل تغيير."
+   },
+   {
+    "layer": "result",
+    "label": "UserView",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/users/UserView.java",
+     "lines": "8-11"
+    },
+    "data_ar": "يُعاد المستخدم المحدَّث بلا كلمة مرور."
+   }
+  ]
+ },
+ "status": "IMPLEMENTED_ON_DEVELOP",
+ "status_note_ar": "الشيفرة مدمجة في develop.",
+ "status_evidence": [
+  {
+   "path": "backend/src/main/java/com/lawdesk/users/UserController.java",
+   "lines": "28-31"
+  },
+  {
+   "path": "backend/src/main/java/com/lawdesk/users/UserAdministration.java",
+   "lines": "32-39"
+  }
+ ],
+ "verification_ar": "اختبارات: backend/src/test/java/com/lawdesk/users/UserAdministrationTest.java وUserDirectoryTest.java وSessionRevocationTest.java؛ وفي الواجهة frontend/src/features/admin/UsersAdmin.test.tsx. لم يُجرِ هذا المستند أي تحقق على بيئة القبول (UAT)؛ المحتوى مبني على قراءة الشيفرة المدمجة في develop والاختبارات الموجودة فقط. لا توجد في الشيفرة شاشة لحذف مستخدم ولا لفك قفل الحساب مباشرة (إعادة تعيين كلمة المرور ترفع القفل)."
+}

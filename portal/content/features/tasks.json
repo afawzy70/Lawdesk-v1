@@ -1,0 +1,1092 @@
+{
+  "id": "tasks",
+  "category": "work",
+  "name_ar": "المهام والإسناد والتذكيرات",
+  "summary_ar": "شاشة لإنشاء المهام وإسنادها إلى موظف مفعّل ومتابعة حالتها وتواريخ استحقاقها. تظهر في أعلى الشاشة تذكيرات المستخدم: عدد مهامه المتأخرة وعدد ما يستحق خلال ثلاثة أيام. يمكن ربط المهمة بقضية أو تركها بلا قضية.",
+  "purpose_ar": "توزيع العمل داخل الشؤون القانونية على أشخاص محددين بموعد واضح، وإبقاء سجل لكل تغيير (من أنشأ ومن غيّر الحالة ومن أعاد الإسناد ولماذا تأخرت المهمة) حتى لا يضيع شيء بين الموظفين.",
+  "who_ar": [
+    "من يحمل صلاحية «عرض المهام» لرؤية المهام والتذكيرات والسجل",
+    "من يحمل صلاحية «إدارة المهام» لإنشاء المهام وتعديلها وتغيير حالتها وإعادة إسنادها وتسجيل سبب التأخير",
+    "في مهام القضايا: يلزم أيضًا حق تعديل القضية نفسها (عضو القضية) عند الإنشاء والتعديل وإعادة الإسناد"
+  ],
+  "who_perms": [
+    "TASK_VIEW",
+    "TASK_MANAGE"
+  ],
+  "access_ar": "القائمة الرئيسية > المهام (وتظهر مهام القضية الواحدة أيضًا داخل صفحة القضية)",
+  "route": "/tasks",
+  "prerequisites_ar": [
+    "أن يكون لدى المستخدم صلاحية «عرض المهام» على الأقل؛ وبدونها تظهر صفحة «غير مسموح».",
+    "لإسناد مهمة: أن يكون المسؤول المختار مستخدمًا مفعّلًا في قائمة المستخدمين.",
+    "لمهمة مرتبطة بقضية: ألا تكون القضية مؤرشفة، وأن يملك المستخدم حق تغيير القضية."
+  ],
+  "fields": {
+    "required": [
+      {
+        "name_ar": "العنوان",
+        "code": "title",
+        "rule_ar": "مطلوب، لا يزيد عن 200 حرف، ويُقص الفراغ من طرفيه قبل الفحص.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/tasks/TaskRequests.java",
+            "lines": "18-21",
+            "note": "title NotBlank Size 200"
+          },
+          {
+            "path": "frontend/src/features/operations/tasks/TaskForm.tsx",
+            "lines": "85",
+            "note": "حقل العنوان في النموذج"
+          }
+        ]
+      },
+      {
+        "name_ar": "المسؤول عن المهمة",
+        "code": "assigneeId",
+        "rule_ar": "مطلوب. يجب أن يكون مستخدمًا مفعّلًا وإلا تُرفض العملية بالقاعدة ASSIGNEE_NOT_ASSIGNABLE.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/tasks/TaskRequests.java",
+            "lines": "22",
+            "note": "assigneeId NotNull"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+            "lines": "356-358",
+            "note": "enabled users only"
+          }
+        ]
+      },
+      {
+        "name_ar": "رقم النسخة (عند التعديل أو تغيير الحالة)",
+        "code": "version",
+        "rule_ar": "مطلوب في كل تعديل. إن كان قد تغير السجل عند شخص آخر يرد النظام بتعارض 409 ويطلب إعادة التحميل.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/tasks/TaskRequests.java",
+            "lines": "43",
+            "note": "Update.version"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+            "lines": "337-343",
+            "note": "409 on stale version"
+          }
+        ]
+      }
+    ],
+    "optional": [
+      {
+        "name_ar": "الوصف",
+        "code": "description",
+        "rule_ar": "اختياري، حتى 4000 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/tasks/TaskRequests.java",
+            "lines": "20",
+            "note": "description"
+          }
+        ]
+      },
+      {
+        "name_ar": "القضية",
+        "code": "caseId",
+        "rule_ar": "اختيارية وتُحدد عند الإنشاء فقط ولا تتغير بعدها؛ إن وُجدت يجب أن يكون للمستخدم حق تغيير القضية وألا تكون مؤرشفة.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/tasks/TaskRequests.java",
+            "lines": "18",
+            "note": "caseId optional, fixed once created"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+            "lines": "79-82",
+            "note": "change right on case"
+          }
+        ]
+      },
+      {
+        "name_ar": "تاريخ البدء",
+        "code": "startsOn",
+        "rule_ar": "اختياري. إن وُجد مع الاستحقاق فيجب ألا يكون بعد تاريخ الاستحقاق (رمز الخطأ StartsBeforeDue).",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+            "lines": "367-369",
+            "note": "startsOn <= dueDate"
+          }
+        ]
+      },
+      {
+        "name_ar": "تاريخ الاستحقاق",
+        "code": "dueDate",
+        "rule_ar": "اختياري. لا يجوز أن يكون في الماضي (بتوقيت الكويت) عند الإنشاء، وعند التعديل يُفحص فقط إذا تغيّر.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+            "lines": "361-363",
+            "note": "no past due date"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+            "lines": "159-161",
+            "note": "checked only when changed"
+          }
+        ]
+      },
+      {
+        "name_ar": "الأولوية",
+        "code": "priority",
+        "rule_ar": "منخفضة أو عادية أو مرتفعة أو عاجلة؛ وإن لم تُحدد فهي «عادية».",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/tasks/TaskPriority.java",
+            "lines": "5-8",
+            "note": "priority values"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+            "lines": "91",
+            "note": "default NORMAL"
+          }
+        ]
+      },
+      {
+        "name_ar": "التعليمات",
+        "code": "instructions",
+        "rule_ar": "اختيارية، حتى 4000 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/tasks/TaskRequests.java",
+            "lines": "26",
+            "note": "instructions"
+          }
+        ]
+      },
+      {
+        "name_ar": "سبب التأخير (إجراء مستقل)",
+        "code": "reason",
+        "rule_ar": "مطلوب في إجراء تسجيل سبب التأخير، حتى 2000 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/tasks/TaskRequests.java",
+            "lines": "53-54",
+            "note": "delay reason 2000"
+          }
+        ]
+      },
+      {
+        "name_ar": "سبب إعادة الإسناد (اختياري)",
+        "code": "reason",
+        "rule_ar": "اختياري حتى 500 حرف ويُحفظ في سجل المهمة.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/tasks/TaskRequests.java",
+            "lines": "61",
+            "note": "reassign reason 500"
+          }
+        ]
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "actor_ar": "الموظف (حامل «عرض المهام»)",
+      "action_ar": "يفتح شاشة «المهام». تفتح الشاشة على «مهامي»، ويمكنه التبديل إلى «كل المهام» وتصفية القائمة بالحالة وبالاستحقاق (متأخرة / مستحقة قريبًا).",
+      "response_ar": "يعرض النظام في الأعلى عدد المهام المتأخرة وعدد المستحق منها خلال ثلاثة أيام، وتحتها قائمة المهام صفحةً صفحة (20 مهمة في الصفحة). الضغط على أحد التذكيرين يصفّي القائمة على «مهامي» بذلك الاستحقاق.",
+      "rules_ar": [
+        "«مستحقة قريبًا» تعني اليوم أو خلال الأيام الثلاثة التالية، و«اليوم» بتوقيت الكويت.",
+        "التذكيرات تخص مهام المستخدم نفسه فقط (المهام المفتوحة التي هو مسؤولها).",
+        "القائمة لا تعرض إلا مهام القضايا التي يحق للمستخدم رؤيتها إضافة إلى مهامه ومهام أنشأها."
+      ],
+      "data_ar": "المرشحات: assignee (me أو معرّف مستخدم) وcaseId وstatus وdue؛ والرد صفحة من المهام مع أعلام overdue وdueSoon.",
+      "next_ar": "الخطوة 2 لإنشاء مهمة، أو الخطوة 4 لتغيير حالة مهمة قائمة.",
+      "evidence": [
+        {
+          "path": "frontend/src/features/operations/tasks/TasksPage.tsx",
+          "lines": "36",
+          "note": "الشاشة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskController.java",
+          "lines": "56-60",
+          "note": "GET reminders"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+          "lines": "141-149",
+          "note": "counts of overdue/due soon for me"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/Rules.java",
+          "lines": "20",
+          "note": "3 days"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+          "lines": "317-323",
+          "note": "who sees a task"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "لا توجد صلاحية «عرض المهام»",
+          "detail_ar": "يرد الخادم 403 وتعرض الشاشة صفحة «غير مسموح».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/tasks/TaskController.java",
+              "lines": "48",
+              "note": "TASK_VIEW required"
+            },
+            {
+              "path": "frontend/src/features/operations/tasks/TasksPage.tsx",
+              "lines": "78",
+              "note": "access denied page"
+            }
+          ]
+        },
+        {
+          "kind": "denied",
+          "title_ar": "مهمة لا يحق للمستخدم رؤيتها",
+          "detail_ar": "فتح مهمة بمعرّفها (GET /api/v1/tasks/{id}) أو سجلها وهو ليس مسؤولها ولا منشئها ولا يرى قضيتها يعطي 404 كأنها غير موجودة.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+              "lines": "104-110",
+              "note": "404 when not readable"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "قيمة مرشح غير صحيحة",
+          "detail_ar": "حالة غير معروفة أو due غير overdue/soon أو assignee غير me ولا معرّف صالح يعطي 400 مع اسم الحقل ورمز Pattern. (الكلمتان القديمتان OPEN وDONE تُقبلان وتُحوَّلان إلى جديدة ومكتملة).",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/tasks/TaskController.java",
+              "lines": "100-118",
+              "note": "Pattern errors"
+            }
+          ]
+        },
+        {
+          "kind": "error",
+          "title_ar": "تعذّر تحميل التذكيرات",
+          "detail_ar": "إن فشل طلب التذكيرات تظهر رسالة «التذكيرات غير متاحة الآن» وتبقى القائمة تعمل.",
+          "evidence": [
+            {
+              "path": "frontend/src/features/operations/tasks/TasksPage.tsx",
+              "lines": "110",
+              "note": "remindersFailed message"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "actor_ar": "الموظف (حامل «إدارة المهام»)",
+      "action_ar": "يضغط «مهمة جديدة» ويملأ العنوان ويختار المسؤول من قائمة المستخدمين، ويضيف إن شاء الوصف وتاريخ البدء والاستحقاق والأولوية والتعليمات، ثم «إنشاء المهمة». ومن صفحة القضية يمكن إنشاء مهمة مربوطة بتلك القضية.",
+      "response_ar": "يحفظ النظام المهمة بحالة «جديدة» (NEW) ويعيد 201 مع المهمة ورقم نسختها، وتظهر رسالة «حُفظت المهمة.» وتُعاد القائمة.",
+      "rules_ar": [
+        "تُقص المسافات الزائدة من النصوص قبل التحقق.",
+        "الأولوية الافتراضية «عادية».",
+        "لا يقبل النظام تاريخ استحقاق في الماضي.",
+        "مهمة القضية تحتاج حق تغيير القضية ولا تُنشأ على قضية مؤرشفة."
+      ],
+      "data_ar": "POST /api/v1/tasks بجسم: title, description, caseId, assigneeId, startsOn, dueDate, priority, instructions. يُسجل في جدول task وفي سجل task_history سطر «أنشأ».",
+      "next_ar": "تظهر المهمة في قائمة المسؤول، وتصله إشعار (الخطوة 3).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskController.java",
+          "lines": "38-42",
+          "note": "POST /api/v1/tasks TASK_MANAGE"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+          "lines": "77-100",
+          "note": "create flow"
+        },
+        {
+          "path": "frontend/src/features/operations/tasks/TaskForm.tsx",
+          "lines": "85",
+          "note": "form"
+        },
+        {
+          "path": "frontend/src/features/operations/tasks/tasksApi.ts",
+          "lines": "155-157",
+          "note": "api call"
+        },
+        {
+          "path": "backend/src/main/resources/db/migration/V402__LD-027_task.sql",
+          "lines": "3-15",
+          "note": "task table"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "العنوان فارغ أو أطول من 200 حرف، أو المسؤول غير محدد",
+          "detail_ar": "يرد الخادم 400 مع قائمة errors تسمي الحقل والقيد (مثل NotBlank وSize وNotNull).",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/tasks/TaskRequests.java",
+              "lines": "18-26",
+              "note": "bean validation"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+              "lines": "35-41",
+              "note": "400 with errors[]"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "تاريخ الاستحقاق في الماضي أو البدء بعد الاستحقاق",
+          "detail_ar": "يرد 400 برمز FutureOrPresent على dueDate أو StartsBeforeDue على startsOn، وتعرض الشاشة «لا يجوز أن يكون هذا التاريخ في الماضي» أو «يجب ألا يكون تاريخ البدء بعد موعد الإنجاز».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+              "lines": "85-86",
+              "note": "create validations"
+            },
+            {
+              "path": "frontend/src/i18n/messages/wp6.ar.ts",
+              "lines": "49",
+              "note": "Arabic text"
+            },
+            {
+              "path": "frontend/src/i18n/messages/operations.ar.ts",
+              "lines": "104",
+              "note": "Arabic text"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "المسؤول غير مفعّل أو غير موجود",
+          "detail_ar": "يرد 422 والقاعدة ASSIGNEE_NOT_ASSIGNABLE وتعرض الشاشة «اختر مستخدمًا نشطًا لإسناد المهمة إليه».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+              "lines": "356-358",
+              "note": "422 rule"
+            },
+            {
+              "path": "frontend/src/i18n/messages/operations.ar.ts",
+              "lines": "105",
+              "note": "Arabic text"
+            }
+          ]
+        },
+        {
+          "kind": "denied",
+          "title_ar": "قضية لا يراها المستخدم أو يراها ولا يستطيع تغييرها",
+          "detail_ar": "القضية غير المرئية تعطي 404، والقضية المرئية دون حق التغيير تعطي 403؛ فصلاحية «إدارة المهام» وحدها لا تمنح حق توزيع العمل على قضية.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+              "lines": "348-355",
+              "note": "404 case"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+              "lines": "81-83",
+              "note": "requireChange 403"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "قضية مؤرشفة",
+          "detail_ar": "يرد 422 والقاعدة CASE_ARCHIVED («القضية مؤرشفة ولا يمكن تغييرها»).",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+              "lines": "348-351",
+              "note": "archived rule"
+            }
+          ]
+        },
+        {
+          "kind": "denied",
+          "title_ar": "لا توجد صلاحية «إدارة المهام»",
+          "detail_ar": "يرد 403.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/tasks/TaskController.java",
+              "lines": "39",
+              "note": "TASK_MANAGE"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "actor_ar": "النظام",
+      "action_ar": "بعد حفظ المهمة ينبّه النظام المسؤول الجديد داخل النظام، ويضيف سطرًا إلى الخط الزمني للقضية إن كانت المهمة مرتبطة بقضية.",
+      "response_ar": "يظهر للمسؤول إشعار «أُسندت إليك المهمة «…»» في مركز الإشعارات. لا يُرسل شيء خارج النظام.",
+      "rules_ar": [
+        "لا يصل الإشعار إذا أسند الموظف المهمة إلى نفسه.",
+        "لا يُخزَّن الإشعار إن كان المسؤول قد أوقف هذا النوع في تفضيلاته.",
+        "حدث الخط الزمني للقضية: TASK_CREATED عند الإنشاء وTASK_ASSIGNED عند الإسناد من جديد."
+      ],
+      "data_ar": "نوع الإشعار TASK_ASSIGNED وبياناته taskTitle، ومرجع السجل TASK:<id>.",
+      "next_ar": "يستلم المسؤول المهمة ويحرّك حالتها (الخطوة 4).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+          "lines": "217-224",
+          "note": "notify assignee unless self"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+          "lines": "97-99",
+          "note": "case timeline event"
+        },
+        {
+          "path": "frontend/src/i18n/messages/wp6.ar.ts",
+          "lines": "138",
+          "note": "Arabic notice text"
+        }
+      ],
+      "alt": []
+    },
+    {
+      "n": 4,
+      "actor_ar": "المسؤول عن المهمة أو من يحق له تعديلها",
+      "action_ar": "يضغط على زر الإجراء المناسب في سطر المهمة (بدء، بانتظار مستندات، بانتظار جهة أخرى، إنجاز، إلغاء المهمة، إعادة فتح…). لا تُعرض إلا الحالات المسموح بالانتقال إليها.",
+      "response_ar": "ينتقل النظام بالمهمة إلى الحالة المطلوبة ويحدّث تاريخ الإنجاز، ويسجل السطر في سجل المهمة وفي سجل التدقيق (الانتقال فقط، مثل NEW->COMPLETED، دون العنوان أو أسماء). وتظهر «حُفظت المهمة.».",
+      "rules_ar": [
+        "من «جديدة» يمكن الانتقال إلى قيد التنفيذ أو بانتظار مستندات أو بانتظار جهة أخرى أو مكتملة أو ملغاة، ويجوز الإنجاز مباشرة من «جديدة».",
+        "المكتملة والملغاة لا تُعاد إلا إلى «جديدة».",
+        "«متأخرة» يضعها النظام بنفسه ولا يختارها المستخدم؛ ومنها يُنقل إلى قيد التنفيذ أو الانتظار أو المكتملة أو الملغاة.",
+        "من يغيّر الحالة هو المسؤول عن المهمة أو من يحق له تعديلها (منشئها، أو من يغيّر القضية، وللمهمة بلا قضية: مسؤولها).",
+        "عند إنجاز مهمة قضية أو إلغائها أو إعادة فتحها يُضاف سطر للخط الزمني للقضية."
+      ],
+      "data_ar": "POST /api/v1/tasks/{id}/status بجسم status وversion.",
+      "next_ar": "تُحدّث القائمة والتذكيرات.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskController.java",
+          "lines": "74-79",
+          "note": "POST status TASK_MANAGE"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+          "lines": "280-313",
+          "note": "change status flow"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskStatus.java",
+          "lines": "31-40",
+          "note": "transition table"
+        },
+        {
+          "path": "frontend/src/features/operations/tasks/tasksApi.ts",
+          "lines": "163-165",
+          "note": "api call"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "انتقال غير مسموح",
+          "detail_ar": "يرد 422 والقاعدة TASK_STATUS_TRANSITION وتعرض الشاشة «هذا التغيير في الحالة غير مسموح».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+              "lines": "289-292",
+              "note": "422 transition"
+            },
+            {
+              "path": "frontend/src/i18n/messages/operations.ar.ts",
+              "lines": "106",
+              "note": "Arabic"
+            }
+          ]
+        },
+        {
+          "kind": "denied",
+          "title_ar": "ليس المسؤول ولا محرر المهمة",
+          "detail_ar": "يرد 403 «غير مسموح لك بإجراء هذا التغيير»، حتى لو كان يرى المهمة.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+              "lines": "283-287",
+              "note": "403"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "تغيّرت المهمة عند شخص آخر",
+          "detail_ar": "يرد 409 وتعرض الشاشة «غيّر شخص آخر هذا السجل في الأثناء. أعد التحميل ثم حاول مرة أخرى».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+              "lines": "337-343",
+              "note": "409"
+            },
+            {
+              "path": "frontend/src/i18n/messages/operations.ar.ts",
+              "lines": "33",
+              "note": "Arabic"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "actor_ar": "منشئ المهمة أو من يحق له تعديلها",
+      "action_ar": "يفتح «تعديل» على المهمة ويغيّر العنوان أو الوصف أو المسؤول أو التواريخ أو الأولوية أو التعليمات ثم يحفظ.",
+      "response_ar": "يحفظ النظام الحقول المتغيرة ويسجل لكل حقل تغيّر سطرًا في سجل المهمة؛ وإذا تغير المسؤول يسجل «إعادة إسناد» وينبّه المسؤول الجديد.",
+      "rules_ar": [
+        "التعديل لمنشئ المهمة، أو لمن يحق له تغيير قضيتها، أو لمسؤولها إن لم تكن مرتبطة بقضية؛ أما مسؤول مهمة قضية فيغيّر حالتها فقط.",
+        "إذا كانت المهمة «متأخرة» وانتقل موعدها إلى اليوم أو بعده عادت تلقائيًا إلى حالتها السابقة وسُجل ذلك في السجل."
+      ],
+      "data_ar": "PUT /api/v1/tasks/{id} بجسم يشمل version.",
+      "next_ar": "يمكن فتح «التفاصيل» لرؤية السجل (الخطوة 6).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskController.java",
+          "lines": "68-72",
+          "note": "PUT TASK_MANAGE"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+          "lines": "151-195",
+          "note": "update flow"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+          "lines": "329-335",
+          "note": "who edits"
+        },
+        {
+          "path": "frontend/src/features/operations/tasks/tasksApi.ts",
+          "lines": "159-161",
+          "note": "api call"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "ليس من المخوّلين بالتعديل",
+          "detail_ar": "يرد 403 ما لم تكن المهمة غير مرئية له فيرد 404.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+              "lines": "155",
+              "note": "403"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "نسخة قديمة",
+          "detail_ar": "يرد 409 إن تغيّرت المهمة بعد قراءتها.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+              "lines": "343",
+              "note": "409"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 6,
+      "actor_ar": "المسؤول أو محرر المهمة",
+      "action_ar": "من «التفاصيل» يقرأ التعليمات وسبب التأخير وسجل المهمة، ويسجل «سبب التأخير»، أو يعيد إسناد المهمة إلى موظف آخر مع سبب اختياري.",
+      "response_ar": "يظهر في السجل سطر لكل تغيير بصياغة عربية: من أنشأ ومن نقل الحالة ومن أعاد الإسناد ومن سجل سبب التأخير. بعد إعادة الإسناد ينبّه النظام المسؤول الجديد.",
+      "rules_ar": [
+        "إعادة الإسناد إلى المسؤول نفسه ترفضها القاعدة ASSIGNEE_UNCHANGED.",
+        "سبب التأخير يسجله مسؤول المهمة أو محررها، ويُحفظ أيضًا في السجل.",
+        "أسماء من قاموا بالتغيير تُجلب من دليل المستخدمين ويظهر «النظام» للتغيير الآلي."
+      ],
+      "data_ar": "GET /api/v1/tasks/{id}/history، وPOST /reassign بجسم assigneeId وreason وversion، وPOST /delay-reason بجسم reason وversion.",
+      "next_ar": "تنتهي العملية؛ ويبقى السجل متاحًا لكل من يرى المهمة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskController.java",
+          "lines": "81-85",
+          "note": "history"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskController.java",
+          "lines": "87-91",
+          "note": "reassign"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskController.java",
+          "lines": "93-97",
+          "note": "delay reason"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+          "lines": "226-247",
+          "note": "reassign flow"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+          "lines": "252-265",
+          "note": "delay reason flow"
+        },
+        {
+          "path": "frontend/src/features/operations/tasks/TaskDetails.tsx",
+          "lines": "8",
+          "note": "screen loads history"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "إعادة إسناد إلى المسؤول الحالي",
+          "detail_ar": "يرد 422 والقاعدة ASSIGNEE_UNCHANGED («المهمة مسندة بالفعل إلى هذا المستخدم»).",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+              "lines": "234",
+              "note": "422"
+            },
+            {
+              "path": "frontend/src/i18n/messages/wp6.ar.ts",
+              "lines": "12",
+              "note": "Arabic"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "سبب التأخير فارغ",
+          "detail_ar": "يرد 400 (NotBlank) ولا يتيح الزر الحفظ والحقل فارغ.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/tasks/TaskRequests.java",
+              "lines": "53-54",
+              "note": "NotBlank"
+            },
+            {
+              "path": "frontend/src/features/operations/tasks/TaskDetails.tsx",
+              "lines": "122",
+              "note": "button disabled"
+            }
+          ]
+        },
+        {
+          "kind": "denied",
+          "title_ar": "غير المسؤول وغير المحرر",
+          "detail_ar": "يرد 403 عند تسجيل سبب تأخير أو إعادة إسناد.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+              "lines": "256",
+              "note": "403"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+              "lines": "230",
+              "note": "403"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 7,
+      "actor_ar": "النظام (التشغيل الدوري كل ساعة)",
+      "action_ar": "كل ساعة يمرّ النظام على المهام المفتوحة التي تجاوزت موعدها فيجعلها «متأخرة» وينبّه مسؤولها ومن كلّفه، وينبّه المسؤول إلى ما يستحق خلال ثلاثة أيام.",
+      "response_ar": "تتحول الحالة إلى «متأخرة» ويُسجل في السجل «النظام»، وتصل إشعارات «المهمة … متأخرة» و«المهمة … موعدها …» مرة واحدة لكل مهمة وتاريخ وشخص.",
+      "rules_ar": [
+        "لا يُغلق النظام شيئًا ولا يرسل شيئًا خارجه.",
+        "يمكن تكرار التشغيل بأمان."
+      ],
+      "data_ar": "يحدّث جدول task ويضيف إلى task_history وnotification.",
+      "next_ar": "راجع صفحة «المتابعة الدورية والتذكيرات».",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskFollowUp.java",
+          "lines": "45-66",
+          "note": "late + notifications"
+        }
+      ],
+      "alt": []
+    }
+  ],
+  "rules": [
+    {
+      "text_ar": "المهام المفتوحة هي: جديدة وقيد التنفيذ وبانتظار مستندات وبانتظار جهة أخرى ومتأخرة؛ وهي وحدها التي توصف بأنها متأخرة أو مستحقة قريبًا.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskStatus.java",
+          "lines": "25",
+          "note": "open states"
+        }
+      ]
+    },
+    {
+      "text_ar": "يرى المهمةَ مسؤولُها ومنشئها ومن يرى قضيتها (ومن له نطاق شامل للمهام التي بلا قضية).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+          "lines": "317-323",
+          "note": "read rule"
+        }
+      ]
+    },
+    {
+      "text_ar": "كل تغيير حالة يُسجل في سجل التدقيق بفعل TASK_STATUS_CHANGED في المعاملة نفسها، فلا يوجد أحدهما دون الآخر.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+          "lines": "311-312",
+          "note": "audit in same transaction"
+        }
+      ]
+    },
+    {
+      "text_ar": "لا يقبل النظام تاريخ استحقاق سابقًا لليوم بتوقيت الكويت.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/Rules.java",
+          "lines": "23",
+          "note": "Kuwait zone"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+          "lines": "361-363",
+          "note": "rule"
+        }
+      ]
+    },
+    {
+      "text_ar": "الحالات القديمة OPEN وDONE ما زالت مقبولة كمدخلات وتُحوّل إلى جديدة ومكتملة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskStatus.java",
+          "lines": "48-57",
+          "note": "legacy words"
+        }
+      ]
+    }
+  ],
+  "after_submit_ar": "تُحفظ المهمة أو التغيير ويظهر للمستخدم رسالة «حُفظت المهمة.» وتُعاد القائمة والتذكيرات. في مهام القضايا يُضاف سطر إلى الخط الزمني للقضية.",
+  "notifications_ar": [
+    "إشعار «أُسندت إليك المهمة» للمسؤول عند الإنشاء أو إعادة الإسناد (لا يصل إن أسندها لنفسه).",
+    "إشعار «المهمة متأخرة» للمسؤول ومنشئ المهمة، وإشعار «المهمة موعدها …» للمسؤول، من التشغيل الدوري كل ساعة.",
+    "كلها داخل النظام فقط؛ لا بريد ولا رسائل نصية. ويستطيع المستخدم إيقاف أي نوع لنفسه."
+  ],
+  "approvals_ar": [],
+  "errors": [
+    {
+      "code": "HTTP 400",
+      "meaning_ar": "حقل غير صالح؛ يحمل الرد قائمة errors باسم الحقل ورمز القيد (NotBlank, Size, NotNull, FutureOrPresent, StartsBeforeDue, Pattern).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+          "lines": "35-41",
+          "note": "400"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+          "lines": "45-49",
+          "note": "400 field error"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 403",
+      "meaning_ar": "لا صلاحية TASK_VIEW/TASK_MANAGE، أو ليس المسؤول ولا محرر المهمة، أو لا يحق له تغيير القضية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+          "lines": "285",
+          "note": "403"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 404",
+      "meaning_ar": "المهمة أو القضية غير موجودة أو لا يحق للمستخدم رؤيتها.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+          "lines": "105",
+          "note": "404"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 409",
+      "meaning_ar": "تغيّرت المهمة عند شخص آخر (رقم النسخة قديم).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+          "lines": "343",
+          "note": "409"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 CASE_ARCHIVED",
+      "meaning_ar": "القضية مؤرشفة وللقراءة فقط. يحمل الرد الخاصية rule.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/Rules.java",
+          "lines": "14",
+          "note": "rule code"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+          "lines": "91-97",
+          "note": "422 + rule"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 ASSIGNEE_NOT_ASSIGNABLE",
+      "meaning_ar": "المسؤول ليس مستخدمًا مفعّلًا.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/Rules.java",
+          "lines": "15",
+          "note": "rule code"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 TASK_STATUS_TRANSITION",
+      "meaning_ar": "الانتقال بين الحالتين غير مسموح.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/Rules.java",
+          "lines": "16",
+          "note": "rule code"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 ASSIGNEE_UNCHANGED",
+      "meaning_ar": "المهمة مسندة بالفعل إلى هذا المستخدم.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/Rules.java",
+          "lines": "17",
+          "note": "rule code"
+        }
+      ]
+    }
+  ],
+  "result_ar": "مهمة محفوظة بمسؤول وموعد وأولوية وحالة، تظهر في قائمة المسؤول وفي التذكيرات عند اقتراب موعدها أو تأخرها، ويحفظ لها النظام سجلًا بكل تغيير.",
+  "related": [
+    "follow-up",
+    "notifications",
+    "calendar",
+    "directives",
+    "case-access-confidentiality",
+    "audit"
+  ],
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/api/v1/tasks",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/tasks/TaskController.java",
+        "lines": "29-40",
+        "note": "create"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/tasks",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/tasks/TaskController.java",
+        "lines": "29-49",
+        "note": "list"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/tasks/reminders",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/tasks/TaskController.java",
+        "lines": "29-58",
+        "note": "reminders"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/tasks/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/tasks/TaskController.java",
+        "lines": "29-64",
+        "note": "get"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/tasks/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/tasks/TaskController.java",
+        "lines": "29-70",
+        "note": "update"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tasks/{id}/status",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/tasks/TaskController.java",
+        "lines": "29-76",
+        "note": "status"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/tasks/{id}/history",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/tasks/TaskController.java",
+        "lines": "29-83",
+        "note": "history"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tasks/{id}/reassign",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/tasks/TaskController.java",
+        "lines": "29-89",
+        "note": "reassign"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tasks/{id}/delay-reason",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/tasks/TaskController.java",
+        "lines": "29-95",
+        "note": "delay"
+      }
+    }
+  ],
+  "tech": {
+    "chain": [
+      {
+        "layer": "screen",
+        "label": "TasksPage (/tasks)",
+        "ref": {
+          "path": "frontend/src/features/operations/tasks/TasksPage.tsx",
+          "lines": "36",
+          "note": "screen"
+        },
+        "data_ar": "المرشحات ونموذج المهمة وأزرار الحالة تنتقل إلى دوال tasksApi."
+      },
+      {
+        "layer": "component",
+        "label": "TaskForm",
+        "ref": {
+          "path": "frontend/src/features/operations/tasks/TaskForm.tsx",
+          "lines": "29",
+          "note": "form"
+        },
+        "data_ar": "قيم النموذج (العنوان والمسؤول والتواريخ والأولوية) تتحول إلى جسم الطلب."
+      },
+      {
+        "layer": "api_call",
+        "label": "createTask / changeTaskStatus",
+        "ref": {
+          "path": "frontend/src/features/operations/tasks/tasksApi.ts",
+          "lines": "155-157",
+          "note": "api"
+        },
+        "data_ar": "طلب POST /api/v1/tasks أو /{id}/status بجسم JSON."
+      },
+      {
+        "layer": "controller",
+        "label": "TaskController",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskController.java",
+          "lines": "29-40",
+          "note": "controller"
+        },
+        "data_ar": "الجسم بعد التحقق (@Valid) يُسلَّم إلى الخدمة."
+      },
+      {
+        "layer": "authorization",
+        "label": "@PreAuthorize TASK_MANAGE / TASK_VIEW",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskController.java",
+          "lines": "39",
+          "note": "permission"
+        },
+        "data_ar": "تُفحص الصلاحية قبل تنفيذ الطريقة، ثم تفحص الخدمة حق القضية."
+      },
+      {
+        "layer": "service",
+        "label": "TaskService",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+          "lines": "77-78",
+          "note": "service"
+        },
+        "data_ar": "قواعد التواريخ والمسؤول والقضية، ثم الحفظ والسجل والإشعار."
+      },
+      {
+        "layer": "repository",
+        "label": "TaskRepository / TaskHistory",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskRepository.java",
+          "lines": "18",
+          "note": "repository"
+        },
+        "data_ar": "المهمة وسطر السجل يُكتبان في المعاملة نفسها."
+      },
+      {
+        "layer": "tables",
+        "label": "task, task_history",
+        "ref": {
+          "path": "backend/src/main/resources/db/migration/V720__LD-056_task_extension.sql",
+          "lines": "70",
+          "note": "history table"
+        },
+        "data_ar": "صف المهمة وصفوف سجل التغييرات."
+      },
+      {
+        "layer": "event",
+        "label": "NotificationPublisher.publish TASK_ASSIGNED",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+          "lines": "221-222",
+          "note": "event"
+        },
+        "data_ar": "إشعار للمسؤول الجديد وحدث في الخط الزمني للقضية."
+      },
+      {
+        "layer": "result",
+        "label": "TaskRequests.Response",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskRequests.java",
+          "lines": "80-85",
+          "note": "response"
+        },
+        "data_ar": "المهمة كما حُفظت مع أعلام overdue وdueSoon ورقم النسخة."
+      }
+    ]
+  },
+  "status": "IMPLEMENTED_ON_DEVELOP",
+  "status_note_ar": "الشيفرة موجودة على فرع develop ولها اختبارات آلية؛ لم يُتحقق منها في بيئة القبول (UAT) ضمن هذه الوثيقة.",
+  "status_evidence": [
+    {
+      "path": "backend/src/main/java/com/lawdesk/tasks/TaskController.java",
+      "lines": "29-30",
+      "note": "controller on develop"
+    }
+  ],
+  "verification_ar": "اختبارات وُجدت: backend/src/test/java/com/lawdesk/tasks/TaskApiTest.java وTaskStatusAuditTest.java وTaskAuditAtomicityTest.java وTaskReminderApiTest.java وTaskReportQueriesTest.java، وbackend/src/test/java/com/lawdesk/wp6/TaskExtensionApiTest.java وTaskStatusMigrationApiTest.java، واختبارات الواجهة في frontend/src/features/operations/tasks (TasksPage.test.tsx وTaskDetails.test.tsx وCaseTasks.test.tsx). لم تُشغَّل هذه الاختبارات ولم يُجرَ تحقق في UAT ضمن هذه الوثيقة. لم أوثق تقارير أداء المهام (TaskReportQueries) لأنها تخص لوحة التقارير."
+}

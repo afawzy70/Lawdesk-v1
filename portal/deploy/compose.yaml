@@ -1,0 +1,38 @@
+name: lawdesk-floorplan
+
+services:
+  web:
+    image: lawdesk-floorplan-web:${FLOORPLAN_RELEASE:?set FLOORPLAN_RELEASE to the release id}
+    container_name: floorplan-web
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 64m
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    # No published ports. Only the shared proxy reaches this container, through floorplan-edge.
+    networks:
+      edge:
+        aliases: [floorplan-web]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+networks:
+  edge:
+    external: true
+    name: floorplan-edge

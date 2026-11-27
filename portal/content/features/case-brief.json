@@ -1,0 +1,576 @@
+{
+  "id": "case-brief",
+  "category": "cases",
+  "name_ar": "ملخص القضية المستخرج من السجلات",
+  "summary_ar": "لوحة في صفحة القضية تضغط فيها «عرض ملخص القضية» فتحصل على ملخص للقضية مبني على ما هو مسجّل في النظام فقط: آخر إجراء، الجلسة القادمة، المطلوب بعد آخر جلسة، التسلسل الزمني، الطلبات والدفوع وموقف المحكمة منها، المواعيد المفتوحة، مواعيد الطعن، الملفات الناقصة، الوقائع والأدلة، وأحكام المكتبة المرتبطة والمشابهة.",
+  "purpose_ar": "تمكين العضو من تكوين صورة سريعة للقضية دون تصفح كل أقسامها، مع ضمان أن كل بند يذكر مصدره في السجلات وأن ما لم يُسجَّل يظهر «غير مسجل» بدل التخمين.",
+  "who_ar": [
+    "من يملك «عرض القضايا» وله حق الاطلاع على القضية",
+    "وكل جزء من الملخص يحتاج صلاحية قراءة سجلاته (الدعاوى والجلسات والأحكام والطلبات والدفوع والمواعيد والأدلة والمستندات)"
+  ],
+  "who_perms": [
+    "CASE_VIEW",
+    "PROCEEDING_VIEW",
+    "HEARING_VIEW",
+    "JUDGMENT_VIEW",
+    "CLAIM_VIEW",
+    "DEFENSE_VIEW",
+    "DEADLINE_VIEW",
+    "EVIDENCE_VIEW",
+    "DOCUMENT_VIEW"
+  ],
+  "access_ar": "القائمة > القضايا > فتح قضية > لوحة «ملخص القضية من السجلات» > «عرض ملخص القضية»",
+  "route": "/cases/:id",
+  "prerequisites_ar": [
+    "أن تكون القضية ظاهرة للمستخدم (وإلا 404).",
+    "كلما نقصت صلاحية قراءة سجلات جزء ما ظهر الجزء «غير معروض: لا تملك صلاحية قراءة هذه السجلات» لا فارغًا."
+  ],
+  "fields": {
+    "required": [],
+    "optional": [
+      {
+        "name_ar": "عدد الأحكام المشابهة المطلوب",
+        "code": "similarLimit",
+        "rule_ar": "رقم من 1 إلى 25، والافتراضي 5؛ غير ذلك يُرفض بـ 400 (Min أو Max). الشاشة لا تعرضه وتستعمل الافتراضي.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefController.java",
+            "lines": "30-30",
+            "note": "الافتراضي"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+            "lines": "70-70",
+            "note": "Min"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+            "lines": "73-73",
+            "note": "Max"
+          }
+        ]
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "actor_ar": "عضو الإدارة القانونية",
+      "action_ar": "يفتح صفحة القضية فيجد لوحة «ملخص القضية من السجلات» وفوقها تنبيه بأن الملخص «مستخرج من سجلات القضية بقواعد ثابتة وليس من إنتاج نموذج ذكاء اصطناعي».",
+      "response_ar": "لا تُحمَّل بيانات الملخص تلقائيًا؛ يظهر زر «عرض ملخص القضية». واللوحة لا تظهر أصلًا لمن لا يملك CASE_VIEW.",
+      "rules_ar": [
+        "الملخص للقراءة فقط ولا يغيّر شيئًا في القضية.",
+        "لا يستعمل نموذج ذكاء اصطناعي ولا يتصل بأي مزوّد: حقل modelGenerated دائمًا false."
+      ],
+      "data_ar": "لا بيانات تُرسل بعد.",
+      "next_ar": "يضغط الزر.",
+      "evidence": [
+        {
+          "path": "frontend/src/features/casebrief/CaseBriefPanel.tsx",
+          "lines": "21-21",
+          "note": "اللوحة"
+        },
+        {
+          "path": "frontend/src/features/casebrief/CaseBriefPanel.tsx",
+          "lines": "23-23",
+          "note": "الظهور"
+        },
+        {
+          "path": "frontend/src/i18n/messages/casebrief.ar.ts",
+          "lines": "8-8",
+          "note": "التنبيه"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "33-33",
+          "note": "التعليق"
+        }
+      ],
+      "alt": []
+    },
+    {
+      "n": 2,
+      "actor_ar": "عضو الإدارة القانونية",
+      "action_ar": "يضغط «عرض ملخص القضية».",
+      "response_ar": "تظهر «جارٍ تحميل الملخص…» ثم تاريخ «السجلات حتى تاريخ …» وأقسام الملخص. ويتحول الزر إلى «تحديث الملخص».",
+      "rules_ar": [
+        "يُفحص حق الاطلاع على القضية أولًا قبل فحص الطلب: قضية خارج النطاق تعطي 404 كأنها غير موجودة، والقضية «المقيّدة» تُفتح فقط بعضوية أو منحة."
+      ],
+      "data_ar": "GET /api/v1/cases/{caseId}/brief؛ الرد: القضية وأقسام الملخص الثمانية عشر وتاريخ اليوم.",
+      "next_ar": "يقرأ الأقسام.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefController.java",
+          "lines": "19-19",
+          "note": "المسار"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "67-67",
+          "note": "الخدمة"
+        },
+        {
+          "path": "frontend/src/features/casebrief/api.ts",
+          "lines": "69-69",
+          "note": "الطلب"
+        },
+        {
+          "path": "frontend/src/features/casebrief/CaseBriefPanel.tsx",
+          "lines": "38-38",
+          "note": "التحميل"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "قضية غير ظاهرة",
+          "detail_ar": "404 قبل أي تحقق آخر (حتى لو كان similarLimit خاطئًا). ومن لا يملك CASE_VIEW يعطى 403.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+              "lines": "68-68",
+              "note": "الترتيب"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefController.java",
+              "lines": "29-29",
+              "note": "الصلاحية"
+            }
+          ]
+        },
+        {
+          "kind": "error",
+          "title_ar": "تعذّر التحميل",
+          "detail_ar": "تظهر «تعذر تحميل ملخص القضية.».",
+          "evidence": [
+            {
+              "path": "frontend/src/features/casebrief/CaseBriefPanel.tsx",
+              "lines": "40-40",
+              "note": "الفشل"
+            },
+            {
+              "path": "frontend/src/i18n/messages/casebrief.ar.ts",
+              "lines": "12-12",
+              "note": "الرسالة"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "similarLimit خارج المدى",
+          "detail_ar": "400 مع errors على الحقل similarLimit (Min أو Max).",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+              "lines": "73-73",
+              "note": "Max"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "actor_ar": "عضو الإدارة القانونية",
+      "action_ar": "يقرأ أقسام «آخر إجراء في القضية» و«الجلسة القادمة» و«الإجراءات المطلوبة التالية» و«المطلوب بعد آخر جلسة».",
+      "response_ar": "آخر إجراء هو سجلات أحدث تاريخ لا يتجاوز اليوم من إجراءات قضائية وجلسات منعقدة أو مؤجلة وأحكام وغيرها. الجلسة القادمة أول جلسة «محددة» بتاريخ اليوم أو بعده. والمطلوب بعد آخر جلسة هو الإجراء المسجّل في تلك الجلسة والمواعيد الناشئة عنها.",
+      "rules_ar": [
+        "الجلسة التي ما زالت «محددة» لا تُعدّ إجراءً.",
+        "لا يحسب الملخص ميعادًا قانونيًا؛ يعرض التواريخ المخزنة فقط.",
+        "إن لم يُسجَّل «الإجراء المطلوب» في الجلسة قال الملخص «غير مسجل»."
+      ],
+      "data_ar": "كل بند: النوع والعنوان والحالة والتاريخ والنص ومصدره (النوع والمعرّف والتاريخ والمستند) وحقول إضافية.",
+      "next_ar": "يقرأ بقية الأقسام.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "257-257",
+          "note": "آخر إجراء"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "275-275",
+          "note": "الجلسة القادمة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "294-294",
+          "note": "بعد آخر جلسة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "319-319",
+          "note": "المطلوب"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "exceptional",
+          "title_ar": "لا يوجد سجل",
+          "detail_ar": "يظهر «غير مسجل في سجلات القضية.».",
+          "evidence": [
+            {
+              "path": "frontend/src/features/casebrief/CaseBriefPanel.tsx",
+              "lines": "109-109",
+              "note": "العرض"
+            },
+            {
+              "path": "frontend/src/i18n/messages/casebrief.ar.ts",
+              "lines": "14-14",
+              "note": "الرسالة"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "actor_ar": "عضو الإدارة القانونية",
+      "action_ar": "يقرأ أقسام الطلبات والدفوع (الكل، والمرفوض من الطلبات، والدفوع التي لم تفصل فيها المحكمة)، والمواعيد المفتوحة، ومواعيد الطعن.",
+      "response_ar": "لكل طلب أو دفع موقف المحكمة كما سُجّل في الأحكام. المواعيد المفتوحة هي التي حالتها «مفتوح». ومواعيد الطعن تُربط بكل حكم؛ وحكم بلا ميعاد طعن مسجّل يظهر «غير مسجل».",
+      "rules_ar": [
+        "لا يستنتج الملخص قضاءً لم يُسجَّل.",
+        "موقف الطلب أو الدفع يحتاج صلاحية قراءة الأحكام؛ وبدونها يُعلَّم الموقف في الرد بالحالة NOT_PERMITTED (لا يُخمَّن)."
+      ],
+      "data_ar": "الطلبات والدفوع والمواعيد والأحكام المسجلة.",
+      "next_ar": "يقرأ الملفات والوقائع.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "346-346",
+          "note": "الطلبات"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "368-368",
+          "note": "الدفوع"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "415-415",
+          "note": "المواعيد"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "435-435",
+          "note": "الطعن"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "401-401",
+          "note": "الموقف"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "جزء بلا صلاحية",
+          "detail_ar": "يظهر الجزء «غير معروض: لا تملك صلاحية قراءة هذه السجلات» وتُذكر الأنواع المستبعدة في «مستبعد لعدم صلاحية قراءة».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+              "lines": "28-28",
+              "note": "الحالة"
+            },
+            {
+              "path": "frontend/src/features/casebrief/CaseBriefPanel.tsx",
+              "lines": "115-115",
+              "note": "العرض"
+            },
+            {
+              "path": "frontend/src/i18n/messages/casebrief.ar.ts",
+              "lines": "15-15",
+              "note": "الرسالة"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "actor_ar": "عضو الإدارة القانونية",
+      "action_ar": "يقرأ «سجلات تشير إلى ملفات غير موجودة» و«وقائع القضية» و«الأدلة» و«موقفنا (الدفوع كما هي مسجلة)» و«النصوص القانونية المذكورة في الدفوع».",
+      "response_ar": "الملفات الناقصة هي حقائق تظهر من السجلات نفسها: حكم بلا نسخة مرفقة، أو نسخة مسحوبة، أو دليل بلا ملف. الوقائع هي الوقائع المدونة في القضية مع الوقائع المسجلة بالتسلسل.",
+      "rules_ar": [
+        "لا توجد قائمة بمستندات «لازمة»؛ لا يُبلَّغ عن ناقص غير ذلك.",
+        "اسم المستند لا يُعرض إلا لمن يملك صلاحية عرض المستندات."
+      ],
+      "data_ar": "أحكام وأدلة ومستندات ووقائع القضية.",
+      "next_ar": "يقرأ أحكام المكتبة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "463-463",
+          "note": "الملفات"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "461-461",
+          "note": "التعليق"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "503-503",
+          "note": "الوقائع"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "522-522",
+          "note": "الأدلة"
+        }
+      ],
+      "alt": []
+    },
+    {
+      "n": 6,
+      "actor_ar": "عضو الإدارة القانونية",
+      "action_ar": "يقرأ «أحكام المكتبة المرتبطة بالقضية» و«أحكام مشابهة في المكتبة (مقارنة ثابتة)».",
+      "response_ar": "تُعرض الأحكام المرتبطة بالقضية في مكتبة الأحكام، وأحكام مشابهة بحسب قواعد مقارنة ثابتة مع ذكر أسباب التشابه، حتى العدد المطلوب (5 افتراضيًا).",
+      "rules_ar": [
+        "المشابهة مقارنة بقواعد ثابتة لا استنتاج نموذج.",
+        "إن لم تكن المكتبة متاحة ظهر الجزء «غير معروض»."
+      ],
+      "data_ar": "الأحكام المرتبطة والمشابهة من مكتبة الأحكام.",
+      "next_ar": "يضغط «تحديث الملخص» لإعادة التحميل عند الحاجة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "544-544",
+          "note": "المرتبطة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "553-553",
+          "note": "المشابهة"
+        }
+      ],
+      "alt": []
+    }
+  ],
+  "rules": [
+    {
+      "text_ar": "الملخص لا يستعمل نموذجًا ولا مزوّدًا ولا شبكة ويقرأ سجلات النظام بقواعد ثابتة، ولا يحسب ميعادًا قانونيًا ولا يستنتج حكمًا ولا يخترع مستندًا مطلوبًا؛ وحيث لا يقول السجل شيئًا يجيب NOT_RECORDED.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "33-37",
+          "note": "التعليق"
+        }
+      ]
+    },
+    {
+      "text_ar": "كل جزء يحتاج الصلاحية نفسها التي تحتاجها الشاشة المالكة لسجلاته؛ وبدونها يكون الجزء NOT_PERMITTED لا فارغًا.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "40-40",
+          "note": "التعليق"
+        }
+      ]
+    },
+    {
+      "text_ar": "كل بند يحمل مصدره: نوع السجل ومعرّفه وتاريخه والمستند إن وُجد؛ والصفحة دائمًا «غير مسجلة» لأن السجلات لا تخزّن رقم صفحة.",
+      "evidence": [
+        {
+          "path": "frontend/src/features/casebrief/api.ts",
+          "lines": "10-10",
+          "note": "الصفحة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefViews.java",
+          "lines": "30-30",
+          "note": "المصدر"
+        }
+      ]
+    },
+    {
+      "text_ar": "يُرتَّب التسلسل الزمني بالتاريخ ثم بترتيب ثابت للأنواع: دعوى، طلب، دفع، جلسة، موعد منجز، قرار خاص، حكم.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "49-50",
+          "note": "الترتيب"
+        }
+      ]
+    },
+    {
+      "text_ar": "يُنبَّه في كل ملخص: «Derived from the case records by fixed rules - not model-generated … not legal advice»، وتعرضه الشاشة بالعربية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "45-46",
+          "note": "التنبيه"
+        }
+      ]
+    }
+  ],
+  "after_submit_ar": "لا يُحفظ شيء ولا يُرسل شيء؛ الملخص يُحسب عند كل طلب ولا يُخزَّن. يضغط المستخدم «تحديث الملخص» ليعيد الحساب من السجلات الحالية.",
+  "notifications_ar": [
+    "لا توجد إشعارات في هذه الميزة: الملخص قراءة فقط."
+  ],
+  "approvals_ar": [
+    "لا توجد موافقات في هذه الميزة."
+  ],
+  "errors": [
+    {
+      "code": "HTTP 403",
+      "meaning_ar": "لا يملك المستخدم CASE_VIEW.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefController.java",
+          "lines": "29-29",
+          "note": "الصلاحية"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 404",
+      "meaning_ar": "القضية غير موجودة أو خارج نطاق المستخدم (لا يُكشف وجودها).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "68-68",
+          "note": "404"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 400 (similarLimit: Min/Max)",
+      "meaning_ar": "عدد الأحكام المشابهة أقل من 1 أو أكثر من 25.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "70-70",
+          "note": "Min"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "48-48",
+          "note": "الحد"
+        }
+      ]
+    }
+  ],
+  "result_ar": "ملخص مقروء للقضية بأقسام، كل بند فيه مصدره، وكل ما لم يُسجَّل يظهر «غير مسجل في سجلات القضية»، وكل ما لا يحق للمستخدم قراءته يظهر «غير معروض».",
+  "related": [
+    "cases-details-edit",
+    "case-file",
+    "hearings",
+    "claims-judgments",
+    "deadlines",
+    "library",
+    "documents-ocr",
+    "case-access-confidentiality",
+    "assistant"
+  ],
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/v1/cases/{caseId}/brief",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefController.java",
+        "lines": "19-28",
+        "note": ""
+      }
+    }
+  ],
+  "tech": {
+    "chain": [
+      {
+        "layer": "screen",
+        "label": "CaseBriefPanel (داخل صفحة القضية)",
+        "ref": {
+          "path": "frontend/src/features/casebrief/CaseBriefPanel.tsx",
+          "lines": "21-21",
+          "note": ""
+        },
+        "data_ar": "معرّف القضية يُرسل عند ضغط الزر."
+      },
+      {
+        "layer": "api_call",
+        "label": "getCaseBrief",
+        "ref": {
+          "path": "frontend/src/features/casebrief/api.ts",
+          "lines": "69-69",
+          "note": ""
+        },
+        "data_ar": "طلب GET بلا جسم."
+      },
+      {
+        "layer": "controller",
+        "label": "CaseBriefController.brief",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefController.java",
+          "lines": "30-30",
+          "note": ""
+        },
+        "data_ar": "caseId وsimilarLimit إلى الخدمة."
+      },
+      {
+        "layer": "authorization",
+        "label": "CASE_VIEW + CaseAccessPolicy.requireView + صلاحيات الأجزاء",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "68-68",
+          "note": ""
+        },
+        "data_ar": "حق الاطلاع على القضية ثم صلاحية كل جزء."
+      },
+      {
+        "layer": "service",
+        "label": "CaseBriefService.brief",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "67-67",
+          "note": ""
+        },
+        "data_ar": "تُجمَّع الأقسام من استعلامات للقراءة فقط."
+      },
+      {
+        "layer": "repository",
+        "label": "استعلامات JdbcClient داخل الخدمة",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "180-180",
+          "note": ""
+        },
+        "data_ar": "صفوف الدعاوى والجلسات والأحكام والطلبات والدفوع والمواعيد والأدلة."
+      },
+      {
+        "layer": "tables",
+        "label": "legal_case, proceeding, court, hearing, judgment, deadline, evidence_item, case_fact, case_document",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+          "lines": "143-143",
+          "note": ""
+        },
+        "data_ar": "الجداول المقروءة."
+      },
+      {
+        "layer": "result",
+        "label": "CaseBriefViews.Brief",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefViews.java",
+          "lines": "45-45",
+          "note": ""
+        },
+        "data_ar": "الملخص بأقسامه يُعرض في اللوحة."
+      }
+    ]
+  },
+  "status": "IMPLEMENTED_ON_DEVELOP",
+  "status_note_ar": "الشيفرة موجودة على develop ويغطيها اختبار CaseBriefApiTest واختبار لوحة الواجهة.",
+  "status_evidence": [
+    {
+      "path": "backend/src/main/java/com/lawdesk/casebrief/CaseBriefService.java",
+      "lines": "43-43",
+      "note": ""
+    },
+    {
+      "path": "frontend/src/features/casebrief/CaseBriefPanel.tsx",
+      "lines": "21-21",
+      "note": ""
+    }
+  ],
+  "verification_ar": "قرأتُ المتحكم والخدمة ولوحة الواجهة وملف الرسائل العربية وأقسام الملخص الرئيسية (آخر إجراء، الجلسة القادمة، المطلوب، الملفات الناقصة، الوقائع، الأدلة، المكتبة). اختبارات وجدتها: backend/src/test/java/com/lawdesk/pleadings/CaseBriefApiTest.java وfrontend/src/features/casebrief/CaseBriefPanel.test.tsx. لم أراجع سطرًا سطرًا استعلامات الطلبات والدفوع ومنطق ربط الأحكام بها (يشرحها ملف CaseBriefService)، ولم أشغّل الاختبارات، ولم يجرِ هذا المستند أي تحقق على UAT."
+}

@@ -1,0 +1,66 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/templates/DraftService.java": {
+      "name": "إعداد مسودة من نموذج",
+      "description": "ينشئ مسودة مستند من نموذج جاهز وبيانات قضية، ويملأ الخانات من ملف القضية."
+    },
+    "backend/src/main/java/com/lawdesk/templates/TemplateController.java": {
+      "name": "طلبات النماذج",
+      "description": "يستقبل طلبات مكتبة النماذج القانونية الجاهزة وإصداراتها ومراجعتها واعتمادها والمسودات المأخوذة منها."
+    },
+    "backend/src/main/java/com/lawdesk/templates/TemplateFields.java": {
+      "name": "خانات النماذج",
+      "description": "يعدّد حقول ملف القضية التي يجوز للنموذج استعمالها كخانات تُملأ، ويحسب قيمها لقضية معينة."
+    },
+    "backend/src/main/java/com/lawdesk/templates/TemplateRequests.java": {
+      "name": "بيانات النماذج",
+      "description": "يحمل ما يُرسل وما يُعرض عن النماذج وإصداراتها والمسودات؛ ولا يظهر نص الإصدار لمن لا يدير النماذج."
+    },
+    "backend/src/main/java/com/lawdesk/templates/TemplateService.java": {
+      "name": "منطق مكتبة النماذج",
+      "description": "يدير مكتبة النماذج القانونية الجاهزة: إنشاءها وتعديلها وإصداراتها ومراجعتها واعتمادها."
+    }
+  },
+  "routes": {
+    "GET /api/v1/templates": {
+      "name": "قائمة النماذج",
+      "description": "يعرض النماذج، ويمكن تصفيتها بالنوع وإظهار غير النشط منها؛ لمن يملك صلاحية الاطلاع."
+    },
+    "GET /api/v1/templates/fields": {
+      "name": "خانات النماذج المتاحة",
+      "description": "يعرض الحقول التي يمكن استعمالها كخانات داخل النماذج."
+    },
+    "POST /api/v1/templates": {
+      "name": "إنشاء نموذج",
+      "description": "يضيف نموذجًا جديدًا إلى المكتبة لمن يملك صلاحية إدارة النماذج."
+    },
+    "GET /api/v1/templates/{id}": {
+      "name": "عرض نموذج",
+      "description": "يعرض نموذجًا واحدًا بإصداراته."
+    },
+    "PUT /api/v1/templates/{id}": {
+      "name": "تعديل نموذج",
+      "description": "يعدّل بيانات نموذج قائم لمن يملك صلاحية إدارة النماذج."
+    },
+    "POST /api/v1/templates/{id}/versions": {
+      "name": "إصدار جديد للنموذج",
+      "description": "يضيف إصدارًا جديدًا إلى النموذج لمن يملك صلاحية إدارة النماذج."
+    },
+    "PUT /api/v1/template-versions/{id}": {
+      "name": "تعديل إصدار نموذج",
+      "description": "يعدّل نص إصدار قائم من النموذج."
+    },
+    "POST /api/v1/template-versions/{id}/review": {
+      "name": "مراجعة إصدار نموذج",
+      "description": "ينقل إصدار النموذج إلى خطوة المراجعة."
+    },
+    "POST /api/v1/template-versions/{id}/approve": {
+      "name": "اعتماد إصدار نموذج",
+      "description": "يعتمد إصدار النموذج بعد مراجعته."
+    },
+    "POST /api/v1/cases/{caseId}/template-drafts": {
+      "name": "مسودة من نموذج",
+      "description": "يُعدّ مسودة مستند للقضية من نموذج، لمن يملك صلاحية الاطلاع على القضية."
+    }
+  }
+}

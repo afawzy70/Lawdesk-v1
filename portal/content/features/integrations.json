@@ -1,0 +1,320 @@
+{
+ "id": "integrations",
+ "category": "documents",
+ "name_ar": "التكامل مع الأنظمة الأخرى (معطّل وغير معتمد)",
+ "summary_ar": "قائمة للقراءة فقط بالأنظمة التي ذكرتها المتطلبات: نظام المراسلات، الموارد البشرية، الأرشفة، البريد الإلكتروني، الأنظمة الحكومية ذات الصلة. كلها معطّلة وغير معتمدة: لا عنوان ولا بيانات دخول ولا اتصال.",
+ "purpose_ar": "إعلام المسؤولين بوجود عقود واجهات مستقبلية وبأن أيًا منها لم يُفعَّل، ومنع التفعيل بالخطأ إذ لا إعداد ولا جدول ولا نقطة نهاية تفعّله.",
+ "who_ar": [
+  "من يملك عرض المستخدمين (USER_VIEW)"
+ ],
+ "who_perms": [
+  "USER_VIEW"
+ ],
+ "access_ar": "القائمة > المساعد القانوني؛ يظهر قسم «التكامل مع الأنظمة الأخرى» أسفل الحالة لمن يملك USER_VIEW",
+ "route": "/assistant",
+ "prerequisites_ar": [
+  "تسجيل الدخول وصلاحية USER_VIEW"
+ ],
+ "fields": {
+  "required": [],
+  "optional": []
+ },
+ "steps": [
+  {
+   "n": 1,
+   "actor_ar": "المستخدم صاحب USER_VIEW",
+   "action_ar": "يفتح صفحة «المساعد القانوني» من القائمة.",
+   "response_ar": "تُحمَّل حالة المساعد، ثم تُطلب قائمة التكاملات إن كان لدى المستخدم USER_VIEW.",
+   "rules_ar": [],
+   "data_ar": "",
+   "next_ar": "قراءة القائمة.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/assistant/AssistantStatusPage.tsx",
+     "lines": "13-42",
+     "note": "load"
+    },
+    {
+     "path": "frontend/src/layout/navigation.ts",
+     "lines": "35",
+     "note": "nav entry"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "بلا USER_VIEW",
+     "detail_ar": "لا يطلب المتصفح القائمة ولا يظهر القسم؛ ولو طُلبت مباشرة رُفضت بـ 403.",
+     "evidence": [
+      {
+       "path": "frontend/src/features/assistant/AssistantStatusPage.tsx",
+       "lines": "17",
+       "note": "mayListIntegrations"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/integrations/IntegrationController.java",
+       "lines": "23-25",
+       "note": "PreAuthorize USER_VIEW"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "actor_ar": "الخادم",
+   "action_ar": "يستقبل الطلب GET /api/v1/integrations.",
+   "response_ar": "يعيد وصف كل محوّل: الرمز والاسم العربي والإنجليزي والاتجاه والعمليات والحالة DISABLED والسبب NOT_APPROVED وhasCredentials=false وhasEndpoint=false.",
+   "rules_ar": [
+    "القائمة ثابتة في الكود: لا إعداد ولا جدول ولا نقطة نهاية لتفعيل تكامل."
+   ],
+   "data_ar": "خمسة وصفات للتكاملات.",
+   "next_ar": "عرض القائمة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/integrations/IntegrationController.java",
+     "lines": "12-28",
+     "note": "controller"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/integrations/DisabledIntegrationAdapter.java",
+     "lines": "12-26",
+     "note": "descriptor"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/integrations/IntegrationRegistry.java",
+     "lines": "14-24",
+     "note": "registry"
+    }
+   ],
+   "alt": []
+  },
+  {
+   "n": 3,
+   "actor_ar": "المستخدم",
+   "action_ar": "يقرأ القائمة.",
+   "response_ar": "يرى لكل نظام: الاسم، «معطل — غير معتمد»، الاتجاه (وارد/صادر/وارد وصادر)، وأسماء العمليات في العقد (مثل registerIncomingLetter وgetEmployee وtransferDocument وlistReceivedMessages وlookupCaseStatus).",
+   "rules_ar": [
+    "النص الظاهر: «توجد عقود واجهات لهذه الأنظمة. لا نظام منها معتمد أو متصل: لا عنوان ولا بيانات دخول مهيأة.»"
+   ],
+   "data_ar": "",
+   "next_ar": "لا إجراء متاح.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/assistant/AssistantStatusPage.tsx",
+     "lines": "55-74",
+     "note": "list"
+    },
+    {
+     "path": "frontend/src/i18n/messages/assistant.ar.ts",
+     "lines": "28-34",
+     "note": "Arabic labels"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/integrations/IntegrationRegistry.java",
+     "lines": "14-24",
+     "note": "operations"
+    }
+   ],
+   "alt": []
+  },
+  {
+   "n": 4,
+   "actor_ar": "أي جزء من التطبيق (افتراضًا)",
+   "action_ar": "لو استُدعيت عملية في أي محوّل.",
+   "response_ar": "ترفض بالقاعدة INTEGRATION_DISABLED (422) قبل لمس أي شيء. لم يُعثر على أي كود يستدعيها خارج حزمة integrations.",
+   "rules_ar": [],
+   "data_ar": "",
+   "next_ar": "لا شيء يُرسل.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/integrations/DisabledIntegrationAdapter.java",
+     "lines": "28-31",
+     "note": "call refuses"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/integrations/IntegrationAdapter.java",
+     "lines": "6-24",
+     "note": "port"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "error",
+     "title_ar": "استدعاء عملية في محوّل معطّل",
+     "detail_ar": "BusinessRuleException بالرمز INTEGRATION_DISABLED.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/integrations/DisabledIntegrationAdapter.java",
+       "lines": "14-31",
+       "note": "INTEGRATION_DISABLED"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "rules": [
+  {
+   "text_ar": "كل المحوّلات معطّلة؛ تفعيل أي منها قرار مستقل من المالك نظامًا بنظام بعد الاتفاق على شروط تبادل البيانات وإدارة بيانات الدخول.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/integrations/IntegrationAdapter.java",
+     "lines": "6-12",
+     "note": "comment"
+    }
+   ]
+  },
+  {
+   "text_ar": "لا يحمل المحوّل المعطّل عنوانًا ولا بيانات دخول.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/integrations/DisabledIntegrationAdapter.java",
+     "lines": "8-10",
+     "note": "comment"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/integrations/DisabledIntegrationAdapter.java",
+     "lines": "19-21",
+     "note": "constructor"
+    }
+   ]
+  },
+  {
+   "text_ar": "في المذكرات المرسلة يبقى sent_via_integration=false لأن لا تكامل للإرسال.",
+   "evidence": [
+    {
+     "path": "backend/src/main/resources/db/migration/V703__LD-055_legal_documents.sql",
+     "lines": "29",
+     "note": "check"
+    }
+   ]
+  }
+ ],
+ "after_submit_ar": "لا شيء يتغير: الشاشة قراءة فقط.",
+ "notifications_ar": [],
+ "approvals_ar": [
+  "لا موافقات داخل النظام؛ التفعيل المستقبلي يحتاج قرار المالك خارج التطبيق وهو غير موجود الآن."
+ ],
+ "errors": [
+  {
+   "code": "HTTP 403",
+   "meaning_ar": "لا صلاحية USER_VIEW.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/integrations/IntegrationController.java",
+     "lines": "23-25",
+     "note": "PreAuthorize"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 422 rule=INTEGRATION_DISABLED",
+   "meaning_ar": "(داخلي) استدعاء عملية في محوّل معطّل؛ لا نقطة نهاية تصل إليه حاليًا.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/integrations/DisabledIntegrationAdapter.java",
+     "lines": "14-31",
+     "note": "disabled"
+    }
+   ]
+  }
+ ],
+ "result_ar": "قائمة خمسة أنظمة مستقبلية كلها «معطل — غير معتمد».",
+ "related": [
+  "assistant",
+  "legal-docs",
+  "users-admin",
+  "roles-permissions"
+ ],
+ "endpoints": [
+  {
+   "method": "GET",
+   "path": "/api/v1/integrations",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/integrations/IntegrationController.java",
+    "lines": "14-25",
+    "note": "/api/v1/integrations"
+   }
+  }
+ ],
+ "tech": {
+  "chain": [
+   {
+    "layer": "screen",
+    "label": "AssistantStatusPage",
+    "ref": {
+     "path": "frontend/src/features/assistant/AssistantStatusPage.tsx",
+     "lines": "13-77",
+     "note": "page"
+    },
+    "data_ar": "طلب القائمة لمن يملك USER_VIEW"
+   },
+   {
+    "layer": "api_call",
+    "label": "listIntegrations",
+    "ref": {
+     "path": "frontend/src/features/assistant/api.ts",
+     "lines": "121-123",
+     "note": "api"
+    },
+    "data_ar": "GET إلى /api/v1/integrations"
+   },
+   {
+    "layer": "controller",
+    "label": "IntegrationController.list",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/integrations/IntegrationController.java",
+     "lines": "23-27",
+     "note": "controller"
+    },
+    "data_ar": "طلب القراءة"
+   },
+   {
+    "layer": "authorization",
+    "label": "@PreAuthorize USER_VIEW",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/integrations/IntegrationController.java",
+     "lines": "24",
+     "note": "auth"
+    },
+    "data_ar": "قرار السماح"
+   },
+   {
+    "layer": "service",
+    "label": "IntegrationRegistry.descriptors",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/integrations/IntegrationRegistry.java",
+     "lines": "30-32",
+     "note": "registry"
+    },
+    "data_ar": "وصفات المحوّلات"
+   },
+   {
+    "layer": "result",
+    "label": "IntegrationAdapter.Descriptor",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/integrations/IntegrationAdapter.java",
+     "lines": "16-18",
+     "note": "descriptor"
+    },
+    "data_ar": "الحالة DISABLED والسبب NOT_APPROVED"
+   }
+  ]
+ },
+ "status": "IMPLEMENTED_ON_DEVELOP",
+ "status_note_ar": "الكود موجود على develop؛ وهو قائمة وصفية لمحوّلات معطّلة لا تكاملًا عاملًا.",
+ "status_evidence": [
+  {
+   "path": "backend/src/main/java/com/lawdesk/integrations/IntegrationRegistry.java",
+   "lines": "14-24",
+   "note": "registry"
+  },
+  {
+   "path": "backend/src/main/java/com/lawdesk/integrations/DisabledIntegrationAdapter.java",
+   "lines": "12-31",
+   "note": "disabled adapter"
+  }
+ ],
+ "verification_ar": "قُرئ الكود (الحزمة كلها وشاشة الحالة ورسائلها العربية). لم أجد اختبارًا للحزمة تحت backend/src/test/java/com/lawdesk/integrations (المجلد غير موجود)، وقد يوجد اختبار في مكان آخر لم أبحث عنه؛ اختبار الواجهة frontend/src/features/assistant/AssistantStatusPage.test.tsx موجود. لم يُجرَ تحقق UAT. عقود الواجهات المستقبلية موصوفة في docs/design/LD-DOC-10-integration-contracts.md ولم تُراجَع هنا."
+}

@@ -1,0 +1,82 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/experts/ExpertController.java": {
+      "name": "طلبات سجل الخبراء",
+      "description": "يعرض خبيراً من سجل الخبراء ويتيح تعديل بياناته."
+    },
+    "backend/src/main/java/com/lawdesk/experts/ExpertRegistry.java": {
+      "name": "سجل الخبراء",
+      "description": "يدير سجل الخبراء كبيانات مرجعية مثل سجل المحاكم."
+    },
+    "backend/src/main/java/com/lawdesk/experts/ExpertReportQueries.java": {
+      "name": "بيانات تقارير الخبراء",
+      "description": "يمنح التقارير الانتدابات حسب الخبير والحالة والتقارير المتأخرة، للقراءة فقط."
+    },
+    "backend/src/main/java/com/lawdesk/experts/ExpertRequests.java": {
+      "name": "نماذج طلبات الخبراء",
+      "description": "يحدد الحقول المرسلة والردود لسجل الخبراء والانتدابات: بيانات الخبير والانتداب وجلساته وتسليم التقرير والإلغاء."
+    },
+    "backend/src/main/java/com/lawdesk/experts/ReferralController.java": {
+      "name": "طلبات انتداب الخبراء",
+      "description": "يجمع طلبات انتداب خبير في دعوى وعرض الانتدابات وتعديلها وإضافة جلسات وتسليم التقرير وإلغاء الانتداب."
+    },
+    "backend/src/main/java/com/lawdesk/experts/ReferralDependentDates.java": {
+      "name": "منع تصحيح تاريخ القيد بعد الانتداب",
+      "description": "يمنع تصحيح تاريخ قيد دعوى إلى ما بعد تاريخ أي انتداب خبير فيها؛ لا يستدعيه ملف آخر حسب الفحص."
+    },
+    "backend/src/main/java/com/lawdesk/experts/ReferralService.java": {
+      "name": "خدمة انتداب الخبراء",
+      "description": "ينفذ ندب خبير في دعوى بقرار المحكمة، وجلسات الخبير، ثم تسليم تقريره أو إلغاء الانتداب."
+    },
+    "backend/src/main/java/com/lawdesk/experts/ReferralStatus.java": {
+      "name": "حالات الانتداب",
+      "description": "يحدد حالات الانتداب: مفتوح حتى يُسلَّم التقرير أو يُلغى، ثم تقرير مسلَّم، أو ملغى."
+    },
+    "backend/src/main/java/com/lawdesk/experts/ReferralStore.java": {
+      "name": "حفظ الانتدابات والجلسات",
+      "description": "يحفظ في قاعدة البيانات جداول الانتدابات وجلساتها."
+    },
+    "backend/src/main/java/com/lawdesk/experts/Rules.java": {
+      "name": "رموز قواعد الخبراء",
+      "description": "يحدد رموزاً ثابتة لقواعد الخبراء تُرجع مع رفض الطلب عند مخالفتها، ويقرأ التواريخ والنصوص الخاصة بالقسم."
+    }
+  },
+  "routes": {
+    "GET /api/v1/experts/{id}": {
+      "name": "عرض خبير",
+      "description": "يعرض بيانات خبير من السجل، لمن لديه صلاحية عرض الخبراء."
+    },
+    "PUT /api/v1/experts/{id}": {
+      "name": "تعديل بيانات خبير",
+      "description": "يعدّل بيانات خبير في السجل، لمن لديه صلاحية إدارة الخبراء."
+    },
+    "POST /api/v1/proceedings/{proceedingId}/expert-referrals": {
+      "name": "انتداب خبير في دعوى",
+      "description": "ينشئ انتداب خبير في دعوى ويعيد الانتداب الجديد، لمن لديه صلاحية إدارة الخبراء."
+    },
+    "GET /api/v1/cases/{caseId}/expert-referrals": {
+      "name": "انتدابات قضية",
+      "description": "يعرض كل انتدابات الخبراء المتعلقة بقضية."
+    },
+    "GET /api/v1/expert-referrals/{id}": {
+      "name": "عرض انتداب",
+      "description": "يعرض انتداباً واحداً."
+    },
+    "PUT /api/v1/expert-referrals/{id}": {
+      "name": "تعديل انتداب",
+      "description": "يعدّل بيانات الانتداب، لمن لديه صلاحية إدارة الخبراء."
+    },
+    "POST /api/v1/expert-referrals/{id}/sessions": {
+      "name": "إضافة جلسة خبير",
+      "description": "يضيف جلسة خبرة إلى الانتداب، لمن لديه صلاحية إدارة الخبراء."
+    },
+    "POST /api/v1/expert-referrals/{id}/report": {
+      "name": "تسليم تقرير الخبير",
+      "description": "يسجل تسليم تقرير الخبير على الانتداب، لمن لديه صلاحية إدارة الخبراء."
+    },
+    "POST /api/v1/expert-referrals/{id}/cancel": {
+      "name": "إلغاء انتداب",
+      "description": "يلغي الانتداب مع بيان السبب، لمن لديه صلاحية إدارة الخبراء."
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/casefile/CaseFileController.java": {
+      "name": "طلبات ملف القضية",
+      "description": "يعرض الملخص التنفيذي للقضية وجدولها الزمني الموحد لمن يملك صلاحية الاطلاع."
+    },
+    "backend/src/main/java/com/lawdesk/casefile/CaseFileReadPort.java": {
+      "name": "قراءة ملف القضية للأجزاء الأخرى",
+      "description": "مدخل للقراءة فقط تصل منه الأجزاء الأخرى، ومنها المساعد القانوني، إلى الملخص التنفيذي والجدول الزمني الموحد."
+    },
+    "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java": {
+      "name": "تجميع ملف القضية",
+      "description": "يجمع الملخص التنفيذي والجدول الزمني الموحد من سجلات كل الأجزاء التي يحق للمستخدم فتحها."
+    },
+    "backend/src/main/java/com/lawdesk/casefile/CaseFileViews.java": {
+      "name": "شكل ملف القضية",
+      "description": "يحدد بنية الملخص التنفيذي (الأطراف والجلسات والأحكام والمخاطر والمهام وغيرها) وبنية الجدول الزمني الموحد."
+    }
+  },
+  "routes": {
+    "GET /api/v1/cases/{caseId}/summary": {
+      "name": "ملخص القضية التنفيذي",
+      "description": "يعرض ملخصًا تنفيذيًا للقضية لمن يملك صلاحية الاطلاع."
+    },
+    "GET /api/v1/cases/{caseId}/unified-timeline": {
+      "name": "الجدول الزمني الموحد",
+      "description": "يعرض أحداث القضية من كل الأجزاء على صفحات، ويمكن تصفيتها بالنوع وترتيبها تصاعديًا أو تنازليًا."
+    }
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "files": {
+    "backend/src/main/resources/db/migration/V682__LD-054_default_permissions.sql": {
+      "name": "صلاحيات المواعيد للأدوار",
+      "description": "يمنح الأدوار العاملة على القضايا صلاحيات الاطلاع على المواعيد القانونية وإدارتها واعتمادها، ويكتفي بالاطلاع للبعض."
+    },
+    "backend/src/main/resources/db/migration/V700__LD-055_permissions_and_archive_settings.sql": {
+      "name": "صلاحيات الأرشيف وحدوده",
+      "description": "يمنح صلاحيات تنفيذ الأحكام ودورة اعتماد المذكرات والأرشيف الإلكتروني، وينشئ جدولي حدود الأرشيف والصيغ المقبولة."
+    },
+    "backend/src/main/resources/db/migration/V701__LD-055_document_versions.sql": {
+      "name": "إصدارات المستندات وتصنيفها",
+      "description": "ينشئ جداول إصدارات المستند ومحتوى كل إصدار وسجل الحذف النهائي، ويسمح بصيغ غير PDF، ولا يُحذف شيء من الأرشيف إلا بإجراء الحذف المعتمد."
+    },
+    "backend/src/main/resources/db/migration/V702__LD-055_document_links_and_text.sql": {
+      "name": "ربط المستندات ونصوصها",
+      "description": "ينشئ جدول ربط المستند بالطلب أو الدفع أو الجلسة أو الحكم أو المهمة، وجدول النص المستخرج من كل إصدار للبحث في الأرشيف."
+    },
+    "backend/src/main/resources/db/migration/V703__LD-055_legal_documents.sql": {
+      "name": "جداول المذكرات والمراسلات",
+      "description": "ينشئ سجل مذكرات القضية ومراسلاتها ودورة اعتمادها وسجل أحداثها؛ حالة الإرسال تسجيل من المستخدم ولا يوجد إرسال آلي."
+    },
+    "backend/src/main/resources/db/migration/V704__LD-055_enforcement.sql": {
+      "name": "جداول ملف التنفيذ",
+      "description": "ينشئ جدولي ملف تنفيذ الحكم وإجراءات التنفيذ، ويضيف من يجب أن ينفّذ والمبلغ المطلوب والعقبات والحالة."
+    },
+    "backend/src/main/resources/db/migration/V705__LD-055_document_categories.sql": {
+      "name": "تصنيفات المستندات",
+      "description": "يضيف قائمة تصنيفات المستندات: ثمانية من وثيقة المتطلبات وتصنيف \"غير ذلك\" مقترح ينتظر الموافقة."
+    },
+    "backend/src/main/resources/db/migration/V720__LD-056_task_extension.sql": {
+      "name": "توسيع حالات المهام",
+      "description": "يوسّع حالات المهمة من أربع إلى سبع ويضيف تاريخ بدء، ويحتفظ بجدول يقابل الحالات القديمة بالجديدة."
+    },
+    "backend/src/main/resources/db/migration/V721__LD-056_calendar_and_notifications.sql": {
+      "name": "التقويم وتفضيلات الإشعارات",
+      "description": "ينشئ جدول المواعيد اليدوية في التقويم وجدول تفضيلات الإشعارات لكل مستخدم، ويضيف صلاحيات."
+    },
+    "backend/src/main/resources/db/migration/V740__LD-057_managed_lists.sql": {
+      "name": "القوائم المُدارة للتسويات",
+      "description": "ينشئ جدول قيم القوائم المُدارة لأنواع التسويات والتوجيهات والنماذج، ويضيف قيمها الأولية ويمنع تكرار الاسم."
+    },
+    "backend/src/main/resources/db/migration/V741__LD-057_settlement.sql": {
+      "name": "جداول التسويات",
+      "description": "ينشئ جداول التسوية ومستنداتها المؤيدة وسجلها الكامل الذي يُضاف إليه فقط؛ ومبلغ التسوية مستقل عن مبالغ القضية."
+    },
+    "backend/src/main/resources/db/migration/V742__LD-057_directive.sql": {
+      "name": "جدول التوجيهات",
+      "description": "ينشئ سجل القرارات والتكليفات الإدارية الخاصة بالقضايا، مع المُكلَّف وتاريخ الاستحقاق وحالة التنفيذ."
+    },
+    "backend/src/main/resources/db/migration/V743__LD-057_form_template.sql": {
+      "name": "جداول النماذج القانونية",
+      "description": "ينشئ مكتبة النماذج القانونية الجاهزة وإصداراتها، وكل إصدار نص عربي بمواضع تُملأ من ملف القضية."
+    },
+    "backend/src/main/resources/db/migration/V744__LD-057_permissions.sql": {
+      "name": "صلاحيات التسويات والتوجيهات",
+      "description": "يمنح الأدوار صلاحيات إدارة التسويات واعتمادها والتوجيهات والنماذج والبحث الشامل؛ ويعتمد التسوية من يشرف على القضايا بينما يقترحها المختص."
+    },
+    "backend/src/main/resources/db/migration/V745__LD-057_search_snippet.sql": {
+      "name": "مقتطف نتيجة البحث",
+      "description": "ينشئ دالة تقتطع من النص الأصلي مقتطف نتيجة البحث حول أول كلمة مطابقة لكلمات الاستعلام."
+    },
+    "backend/src/main/resources/db/migration/V760__LD-058_visibility_cost.sql": {
+      "name": "تسريع فحص الاطلاع",
+      "description": "يخفّض التكلفة المعلنة لدالتي صلاحية الاطلاع على القضية ويضيف فهرسًا لمهام المستخدم حسب القضية، فتتسارع الاستعلامات دون تغيير نتائجها."
+    },
+    "backend/src/main/resources/db/migration/V780__LD-059_assistant_tables.sql": {
+      "name": "جداول المساعد القانوني",
+      "description": "ينشئ جداول إعداد مزود الذكاء الاصطناعي وجلسات المساعد ومخرجاته وسجل أسئلته."
+    },
+    "backend/src/main/resources/db/migration/V781__LD-059_default_permissions.sql": {
+      "name": "صلاحية استخدام المساعد",
+      "description": "يمنح الأدوار العاملة على القضايا والمدير صلاحية استخدام المساعد، ولا تزيد القضايا التي يراها المستخدم."
+    },
+    "backend/src/main/resources/db/migration/V800__LD-052_restore_safe_trigram_function.sql": {
+      "name": "إصلاح استعادة النسخ الاحتياطية",
+      "description": "يثبّت مسار البحث لدالة تقسيم النص في مكتبة الأحكام كي تنجح استعادة النسخة الاحتياطية، دون تغيير سلوك الدالة ونتائجها."
+    },
+    "backend/src/main/resources/db/migration/V801__LD-058_stored_search_documents.sql": {
+      "name": "مستندات بحث مخزّنة",
+      "description": "ينشئ جداول بحث مخزّنة ومفهرسة للقضايا والروابط ودوال تجهيز النص، لتسريع البحث الموحّد دون تغيير قاعدة الاطلاع."
+    },
+    "backend/src/main/resources/db/migration/V802__LD-058_stored_search_vectors.sql": {
+      "name": "متجهات بحث مخزّنة",
+      "description": "يضيف عمود بحث مخزّنًا لجداول مثل الطلبات والدفوع والجلسات، يُملأ عند كتابة السجل، مع فهارس لتسريع البحث."
+    },
+    "backend/src/main/resources/db/migration/V803__LD-058_case_position.sql": {
+      "name": "جدول موقف القضية",
+      "description": "ينشئ جدولًا يحفظ موقف كل قضية الحالي (أعلى مرحلة وأحدث تاريخ قيد) ويُحدَّث تلقائيًا عند تغيّر مراحل التقاضي."
+    },
+    "backend/src/main/resources/db/migration/V840__LD-051_defense_precedent.sql": {
+      "name": "سوابق تدعم الدفوع",
+      "description": "ينشئ جدول يربط الدفع بأحكام وسوابق من المكتبة، وبمبدأ منها اختياريًا، ويمنع تكرار الربط."
+    },
+    "backend/src/main/resources/db/migration/V841__LD-051_gap_followup_info_request.sql": {
+      "name": "متابعة الدليل الناقص بطلب معلومات",
+      "description": "يتيح متابعة الدليل الناقص بطلب معلومات إلى إدارة، إضافة إلى المهمة، ويضيف فحصًا بأن تكون القضية نفسها."
+    },
+    "backend/src/main/resources/db/migration/V842__LD-052_library_judgment_file.sql": {
+      "name": "نسخة حكم المكتبة",
+      "description": "ينشئ جدول النسخة الإلكترونية لحكم المكتبة المحفوظة في الأرشيف، ولكل حكم نسخة حالية واحدة."
+    },
+    "backend/src/main/resources/db/migration/V843__LD-054_judgment_appeal_deadline.sql": {
+      "name": "موعد الطعن في الحكم",
+      "description": "يضيف للحكم عمودًا يربطه بموعد الطعن من سجل المواعيد، مع فحص أن يكون ذلك الموعد جاريًا من الحكم نفسه."
+    },
+    "backend/src/main/resources/db/migration/V844__LD-058_document_text_in_search_vector.sql": {
+      "name": "نص المستند في البحث",
+      "description": "يجعل نص المستند المستخرج جزءًا من متجه البحث المخزّن، بعد أن كان يقتصر على العنوان واسم الملف."
+    },
+    "backend/src/main/resources/db/migration/V845__LD-058_search_refresh_only_when_text_changes.sql": {
+      "name": "تقليل تحديث البحث",
+      "description": "يجعل تحديث مستند البحث المخزّن يحدث فقط عند تغيّر ما يتكوّن منه، فلا يُعاد بناؤه مع كل تعديل غير مؤثر."
+    }
+  }
+}

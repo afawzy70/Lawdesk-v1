@@ -1,0 +1,146 @@
+{
+  "id": "claims-judgments",
+  "category": "litigation",
+  "name_ar": "الطلبات والأحكام ونتائجها",
+  "summary_ar": "تسجيل طلبات الدعوى مع حفظ سجل تعديلاتها، وتسجيل حكم كل دعوى (تاريخه ونتيجته وملخصه وتفاصيله من منطوق وأسباب ومصروفات)، وتسجيل نتيجة المحكمة في كل طلب، وربط الحكم بموعد الطعن المسجل في سجل المواعيد.",
+  "purpose_ar": "حفظ ما طُلب وما حُكم به في كل درجة تقاضٍ دون أن تمحو نتيجة درجة نتيجة درجة سابقة، وتمكين الفريق من متابعة ميعاد الطعن على الحكم.",
+  "who_ar": ["من يملك عرض الطلبات", "من يملك إدارة الطلبات", "من يملك عرض الأحكام", "من يملك إدارة الأحكام"],
+  "who_perms": ["CLAIM_VIEW", "CLAIM_MANAGE", "JUDGMENT_VIEW", "JUDGMENT_MANAGE"],
+  "access_ar": "القائمة > القضايا > فتح القضية > قسم طلبات الدعوى، وقسم درجات التقاضي (تسجيل الحكم واستكماله)",
+  "route": "/cases/:id",
+  "prerequisites_ar": [
+    "وجود القضية وحق تغييرها لدى المستخدم (للكتابة) أو مشاهدتها (للقراءة).",
+    "لتسجيل حكم: وجود دعوى مسجلة (انظر ميزة الإجراءات القضائية).",
+    "لتسجيل نتيجة طلب: وجود حكم مسجل وطلبات مسجلة في نفس القضية."
+  ],
+  "fields": {
+    "required": [
+      {"name_ar": "نص الطلب", "code": "text", "rule_ar": "مطلوب وغير فارغ، حتى 20000 حرف، وتُقص المسافات.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/pleadings/ClaimRequests.java", "lines": "17-18", "note": "Create"}]},
+      {"name_ar": "نوع الطلب", "code": "kind", "rule_ar": "مطلوب: أصلي، احتياطي، عارض، تابع، مستعجل، غير ذلك.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/pleadings/ClaimKind.java", "lines": "1-6", "note": "enum"}, {"path": "frontend/src/i18n/messages/pleadings.ar.ts", "lines": "49-54", "note": "Arabic kinds"}]},
+      {"name_ar": "تاريخ الحكم", "code": "judgmentDate", "rule_ar": "مطلوب ولا يكون في المستقبل ولا يسبق تاريخ قيد الدعوى، ولا يتأخر عن قيد طعن مرفوع عليه.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentRequests.java", "lines": "56-62", "note": "Create"}, {"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentService.java", "lines": "118-124", "note": "decide"}]},
+      {"name_ar": "نتيجة الحكم", "code": "outcome", "rule_ar": "مطلوبة: لصالح الموكل، ضد الموكل، لصالح الموكل جزئيًا، رفض الدعوى، أخرى.", "evidence": [{"path": "frontend/src/i18n/messages/proceedings.ar.ts", "lines": "22-26", "note": "Arabic outcomes"}]},
+      {"name_ar": "نتيجة الطلب في الحكم", "code": "results[].result", "rule_ar": "مطلوبة لكل طلب مُدخل (اثنتا عشرة نتيجة منها قبول الطلب ورفضه وعدم الاختصاص)؛ يجب أن يكون الطلب من نفس القضية ولا يتكرر في الطلب الواحد.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/pleadings/ClaimResult.java", "lines": "1-7", "note": "enum"}, {"path": "backend/src/main/java/com/lawdesk/pleadings/ResultService.java", "lines": "43-56", "note": "checks"}]}
+    ],
+    "optional": [
+      {"name_ar": "مقدم الطلب / تاريخ التقديم / المرحلة / المستند الذي تضمنه / ملاحظات", "code": "submittedByPartyId, submittedOn, stageId, sourceDocumentId, notes", "rule_ar": "اختيارية؛ المرحلة والمستند ومقدم الطلب يجب أن تنتمي لنفس القضية (NotInCase)، والملاحظات حتى 2000 حرف.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/pleadings/ClaimService.java", "lines": "132-136", "note": "check"}]},
+      {"name_ar": "حالة الطلب (عند التعديل) وسبب التعديل", "code": "status, reason", "rule_ar": "الحالة مطلوبة عند التعديل: قائم، معدل، متنازل عنه، متروك، غير ذلك. عند تغيير نص الطلب القائم تصبح حالته «معدل» تلقائيًا. السبب حتى 500 حرف.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/pleadings/ClaimService.java", "lines": "99-102", "note": "auto AMENDED"}]},
+      {"name_ar": "ملخص الحكم وهل هو نهائي", "code": "summary, final", "rule_ar": "الملخص حتى 4000 حرف. غياب final يعني غير نهائي.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentRequests.java", "lines": "55-62", "note": "final default"}]},
+      {"name_ar": "تفاصيل الحكم", "code": "details", "rule_ar": "كلها اختيارية: الدائرة (100 حرف)، نوع الحكم وصفته (من القوائم المُدارة)، المنطوق والأسباب (حتى 100000)، المصروفات وأتعاب المحاماة (قيمة غير سالبة بثلاث خانات عشرية)، قابل للطعن، تاريخ الإعلان، حالة الحكم (صادر، معلن، مطعون فيه، غير ذلك)، صورة الحكم (مستند من نفس القضية). إرسال details يستبدل كل الحقول الممتدة.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentRequests.java", "lines": "28-53", "note": "Details"}, {"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentDetails.java", "lines": "34-51", "note": "check"}]}
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "actor_ar": "الموظف المخوّل بإدارة الطلبات",
+      "action_ar": "من قسم «طلبات الدعوى» يضغط «إضافة طلب» ويدخل نص الطلب ونوعه وبقية البيانات.",
+      "response_ar": "يُعطى الطلب رقمًا تسلسليًا مستقلًا داخل القضية ويُحفظ مع نسخة أولى في سجل التعديلات، ويُسجَّل حدث CLAIM_ADDED في خط القضية وسجل التدقيق. تظهر «أُضيف الطلب».",
+      "rules_ar": ["الصلاحية CLAIM_MANAGE وحق تغيير القضية.", "المرحلة والمستند ومقدم الطلب من نفس القضية."],
+      "data_ar": "صف في جدول claim ونسخته الأولى في claim_revision.",
+      "next_ar": "تعديل الطلب عند اللزوم أو تسجيل الحكم.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/pleadings/ClaimController.java", "lines": "36-42", "note": "POST claims"}, {"path": "backend/src/main/java/com/lawdesk/pleadings/ClaimService.java", "lines": "70-88", "note": "create"}, {"path": "frontend/src/i18n/messages/pleadings.ar.ts", "lines": "24-45", "note": "Arabic claim UI"}],
+      "alt": [
+        {"kind": "validation", "title_ar": "نص ناقص أو مرجع من قضية أخرى (400)", "detail_ar": "نص فارغ أو طويل جدًا، أو نوع ناقص، أو مرجع لمستند/مرحلة/طرف ليس من القضية يعيد 400 مع الحقل والرمز (NotBlank وNotNull وSize وNotInCase).", "evidence": [{"path": "backend/src/main/java/com/lawdesk/pleadings/CaseRows.java", "lines": "87-99", "note": "NotInCase"}]},
+        {"kind": "denied", "title_ar": "لا صلاحية أو قضية غير مرئية", "detail_ar": "من لا يملك CLAIM_MANAGE يتلقى 403؛ ومن لا يرى القضية يتلقى 404، ومن يراها ولا يغيّرها 403.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/pleadings/CaseRows.java", "lines": "54-59", "note": "change: 404 or 403"}]}
+      ]
+    },
+    {
+      "n": 2,
+      "actor_ar": "الموظف المخوّل بإدارة الطلبات",
+      "action_ar": "يعدّل طلبًا قائمًا مع ذكر سبب التعديل ويرسل رقم الإصدار الذي رآه، ويستطيع فتح «السجل» لرؤية النسخ السابقة.",
+      "response_ar": "تُحفظ نسخة جديدة في السجل ويُسجَّل CLAIM_AMENDED. إن لم يتغير شيء يُعاد الطلب كما هو دون نسخة جديدة. تظهر «عُدّل الطلب وحُفظت النسخة السابقة».",
+      "rules_ar": ["تعارض الإصدار يعطي 409.", "تعديل نص طلب قائم بدون تغيير حالته يجعله «معدلًا»."],
+      "data_ar": "حقول الطلب وrevision وversion.",
+      "next_ar": "تسجيل نتيجة الحكم في هذا الطلب.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/pleadings/ClaimController.java", "lines": "50-60", "note": "PUT and revisions"}, {"path": "backend/src/main/java/com/lawdesk/pleadings/ClaimService.java", "lines": "90-130", "note": "update"}, {"path": "backend/src/main/java/com/lawdesk/pleadings/ClaimService.java", "lines": "54-68", "note": "revisions"}],
+      "alt": [
+        {"kind": "error", "title_ar": "الطلب تغيّر بيد غيرك (409)", "detail_ar": "يُرفض التعديل ولا يتغير شيء.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/pleadings/ClaimService.java", "lines": "95-97", "note": "ConflictException"}]}
+      ]
+    },
+    {
+      "n": 3,
+      "actor_ar": "الموظف المخوّل بإدارة الأحكام",
+      "action_ar": "من بطاقة الدعوى في درجات التقاضي يضغط «تسجيل الحكم» ويدخل تاريخ الحكم والنتيجة والملخص وهل هو نهائي.",
+      "response_ar": "يُحفظ الحكم للدعوى ويُسجَّل حدث JUDGMENT_RECORDED في خط القضية. يظهر الحكم بتاريخه ونتيجته وشارة «نهائي» أو «غير نهائي».",
+      "rules_ar": ["حكم واحد فقط لكل دعوى (409 إن وُجد).", "تاريخ الحكم لا يسبق تاريخ قيد الدعوى (JUDGMENT_BEFORE_FILING).", "الصلاحية JUDGMENT_MANAGE."],
+      "data_ar": "judgmentDate وoutcome وsummary وfinal وdetails اختياري.",
+      "next_ar": "استكمال الحكم وتسجيل نتائج الطلبات.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentController.java", "lines": "39-46", "note": "POST judgment"}, {"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentService.java", "lines": "54-68", "note": "create"}, {"path": "frontend/src/features/proceedings/CaseProceedings.tsx", "lines": "162-198", "note": "judgment card"}],
+      "alt": [
+        {"kind": "error", "title_ar": "حكم سابق للدعوى (409)", "detail_ar": "تظهر «صدر حكم بالفعل في هذه الدعوى».", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentService.java", "lines": "58-60", "note": "conflict"}, {"path": "frontend/src/i18n/messages/proceedings.ar.ts", "lines": "100-100", "note": "alreadyJudged"}]},
+        {"kind": "validation", "title_ar": "تاريخ في المستقبل أو حقل ناقص (400)", "detail_ar": "رسالة «لا يجوز أن يكون التاريخ في المستقبل» تحت الحقل.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentRequests.java", "lines": "56-62", "note": "PastOrPresent"}]},
+        {"kind": "denied", "title_ar": "لا صلاحية (403) أو دعوى غير مرئية (404)", "detail_ar": "الدعوى تُقفل وتُفحص صلاحية تغيير قضيتها قبل التسجيل.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/JudicialRecords.java", "lines": "61-69", "note": "lockedProceeding + requireChange"}]}
+      ]
+    },
+    {
+      "n": 4,
+      "actor_ar": "الموظف المخوّل بإدارة الأحكام",
+      "action_ar": "يعدّل الحكم (تاريخه ونتيجته وتفاصيله) أو يضغط «استكمال الحكم ونتائجه» فيدخل المنطوق والأسباب والمصروفات وصورة الحكم ونتيجة كل طلب.",
+      "response_ar": "تُحفظ التعديلات. نتائج الطلبات تُسجَّل دفعة واحدة وتُحدَّث إن وُجدت لنفس الطلب والحكم، ويُسجَّل CLAIM_RESULTS_RECORDED.",
+      "rules_ar": ["لا يتأخر تاريخ الحكم عن تاريخ قيد استئناف أو نقض مرفوع عليه (JUDGMENT_AFTER_CHALLENGE_FILING).", "كل حكم نتائجه مستقلة؛ لا تحل نتيجة درجة محل سابقتها.", "نوع الحكم وصفته يجب أن يكونا من القوائم المُدارة المناسبة وفعّالين."],
+      "data_ar": "حقول الحكم الممتدة، وقائمة claimId/result/operative/reasons/awardedAmount/notes.",
+      "next_ar": "ربط ميعاد الطعن.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentService.java", "lines": "70-89", "note": "update"}, {"path": "backend/src/main/java/com/lawdesk/pleadings/ResultController.java", "lines": "33-38", "note": "PUT claim-results"}, {"path": "backend/src/main/java/com/lawdesk/pleadings/ResultService.java", "lines": "43-75", "note": "recordClaimResults"}, {"path": "frontend/src/i18n/messages/pleadings.ar.ts", "lines": "46-47", "note": "Arabic hints"}],
+      "alt": [
+        {"kind": "error", "title_ar": "قاعدة تاريخية (422) أو تعارض إصدار (409)", "detail_ar": "الرسالة «لا يجوز أن يكون تاريخ الحكم بعد تاريخ قيد الطعن المرفوع عليه».", "evidence": [{"path": "frontend/src/i18n/messages/proceedings.ar.ts", "lines": "92-93", "note": "Arabic"}]},
+        {"kind": "validation", "title_ar": "طلب مكرر أو من قضية أخرى (400)", "detail_ar": "الحقل results[i].claimId برمز Unique أو NotInCase.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/pleadings/ResultService.java", "lines": "47-56", "note": "FieldErrorException"}]}
+      ]
+    },
+    {
+      "n": 5,
+      "actor_ar": "الموظف المخوّل بإدارة الأحكام",
+      "action_ar": "يسمّي ميعاد الطعن على الحكم باختيار موعد من سجل المواعيد ناتج عن هذا الحكم نفسه، أو يمسح الاختيار.",
+      "response_ar": "يُخزَّن ربط الحكم بالموعد ويُسجَّل حدث JUDGMENT_APPEAL_DEADLINE_SET، ويُعرض في رد الحكم الموعد وحالته. النظام لا يحدد مدة الطعن بنفسه.",
+      "rules_ar": ["الموعد يجب أن يكون مصدره هذا الحكم (وإلا 400 على deadlineId برمز NotFromJudgment).", "إرسال deadlineId فارغًا يمسح الربط."],
+      "data_ar": "deadlineId.",
+      "next_ar": "متابعة الموعد في ميزة المواعيد.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentController.java", "lines": "60-64", "note": "PUT appeal-deadline"}, {"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentService.java", "lines": "91-104", "note": "setAppealDeadline"}, {"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentDetails.java", "lines": "89-95", "note": "checkAppealDeadline"}],
+      "alt": [
+        {"kind": "validation", "title_ar": "موعد من حكم آخر (400)", "detail_ar": "رمز NotFromJudgment على الحقل deadlineId.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentDetails.java", "lines": "89-95", "note": "FieldErrorException"}]}
+      ]
+    }
+  ],
+  "rules": [
+    {"text_ar": "لكل طلب رقم تسلسلي مستقل داخل القضية وسجل نسخ لا يُحذف.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/pleadings/CaseRows.java", "lines": "80-84", "note": "nextSeq"}, {"path": "backend/src/main/java/com/lawdesk/pleadings/ClaimService.java", "lines": "138-146", "note": "snapshot"}]},
+    {"text_ar": "حكم واحد لكل دعوى، وقراءة قائمة الأحكام تتطلب JUDGMENT_VIEW بينما تبقى الدرجات ظاهرة دونها.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentService.java", "lines": "54-60", "note": "single judgment"}, {"path": "frontend/src/features/proceedings/CaseProceedings.tsx", "lines": "41-47", "note": "403 tolerated"}]},
+    {"text_ar": "مدة الطعن لا يفرضها النظام؛ يُسمَّى موعد من سجل المواعيد.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentRequests.java", "lines": "85-91", "note": "comment"}]}
+  ],
+  "after_submit_ar": "تظهر الطلبات برقمها وحالتها ونتائج كل حكم فيها، ويظهر الحكم داخل بطاقة الدعوى مع تفاصيله وموعد الطعن المسمّى.",
+  "notifications_ar": ["لا ترسل خدمات الطلبات والأحكام إشعارات؛ لم أجد استدعاءً لخدمة الإشعارات فيها. تُسجَّل أحداث في خط القضية وسجل التدقيق فقط."],
+  "approvals_ar": ["لا توجد موافقات على الطلبات أو الأحكام؛ تُحفظ مباشرة."],
+  "errors": [
+    {"code": "HTTP 400", "meaning_ar": "حقل ناقص أو غير صالح، أو مرجع ليس من القضية، أو موعد ليس من الحكم.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java", "lines": "34-49", "note": "errors list"}]},
+    {"code": "HTTP 403", "meaning_ar": "لا توجد صلاحية CLAIM_* أو JUDGMENT_* أو حق تغيير القضية.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/pleadings/ClaimController.java", "lines": "30-42", "note": "PreAuthorize"}]},
+    {"code": "HTTP 404", "meaning_ar": "القضية أو الطلب أو الحكم أو الدعوى غير موجود أو غير مرئي.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/pleadings/ClaimService.java", "lines": "148-151", "note": "NotFound"}]},
+    {"code": "HTTP 409", "meaning_ar": "تعارض إصدار، أو حكم سابق للدعوى.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentService.java", "lines": "126-133", "note": "store"}]},
+    {"code": "HTTP 422 + rule", "meaning_ar": "JUDGMENT_BEFORE_FILING أو JUDGMENT_AFTER_CHALLENGE_FILING.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/Rules.java", "lines": "19-21", "note": "codes"}]}
+  ],
+  "result_ar": "طلبات مرقمة بسجل تعديلات، وحكم لكل دعوى بتفاصيله، ونتيجة محددة لكل طلب في كل حكم، وموعد طعن مرتبط بالحكم.",
+  "related": ["proceedings-stages", "deadlines", "hearings", "risk"],
+  "endpoints": [
+    {"method": "GET", "path": "/api/v1/cases/{caseId}/claims", "evidence": {"path": "backend/src/main/java/com/lawdesk/pleadings/ClaimController.java", "lines": "30-34", "note": "list"}},
+    {"method": "POST", "path": "/api/v1/cases/{caseId}/claims", "evidence": {"path": "backend/src/main/java/com/lawdesk/pleadings/ClaimController.java", "lines": "36-42", "note": "create"}},
+    {"method": "PUT", "path": "/api/v1/claims/{id}", "evidence": {"path": "backend/src/main/java/com/lawdesk/pleadings/ClaimController.java", "lines": "50-54", "note": "update"}},
+    {"method": "GET", "path": "/api/v1/claims/{id}/revisions", "evidence": {"path": "backend/src/main/java/com/lawdesk/pleadings/ClaimController.java", "lines": "56-60", "note": "revisions"}},
+    {"method": "POST", "path": "/api/v1/proceedings/{proceedingId}/judgment", "evidence": {"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentController.java", "lines": "39-46", "note": "create judgment"}},
+    {"method": "GET", "path": "/api/v1/cases/{caseId}/judgments", "evidence": {"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentController.java", "lines": "33-37", "note": "list"}},
+    {"method": "PUT", "path": "/api/v1/judgments/{id}", "evidence": {"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentController.java", "lines": "54-58", "note": "update"}},
+    {"method": "PUT", "path": "/api/v1/judgments/{id}/appeal-deadline", "evidence": {"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentController.java", "lines": "60-64", "note": "appeal deadline"}},
+    {"method": "PUT", "path": "/api/v1/judgments/{id}/claim-results", "evidence": {"path": "backend/src/main/java/com/lawdesk/pleadings/ResultController.java", "lines": "33-38", "note": "claim results"}},
+    {"method": "GET", "path": "/api/v1/cases/{caseId}/claim-results", "evidence": {"path": "backend/src/main/java/com/lawdesk/pleadings/ResultController.java", "lines": "40-44", "note": "case results"}}
+  ],
+  "tech": {
+    "chain": [
+      {"layer": "screen", "label": "CaseProceedings (بطاقة الحكم)", "ref": {"path": "frontend/src/features/proceedings/CaseProceedings.tsx", "lines": "162-198", "note": "judgment card"}, "data_ar": "الدعوى المختارة وبيانات الحكم."},
+      {"layer": "controller", "label": "JudgmentController.create", "ref": {"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentController.java", "lines": "39-46", "note": "create"}, "data_ar": "الطلب بعد التحقق."},
+      {"layer": "authorization", "label": "JUDGMENT_MANAGE", "ref": {"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentController.java", "lines": "40-40", "note": "PreAuthorize"}, "data_ar": "السماح أو 403."},
+      {"layer": "service", "label": "JudgmentService.create", "ref": {"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentService.java", "lines": "54-68", "note": "create"}, "data_ar": "كيان الحكم بعد قواعد التواريخ."},
+      {"layer": "repository", "label": "JudgmentRepository", "ref": {"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentRepository.java", "lines": "1-10", "note": "repo"}, "data_ar": "حفظ الحكم."},
+      {"layer": "tables", "label": "judgment", "ref": {"path": "backend/src/main/resources/db/migration/V302__LD-022_judgment.sql", "lines": "1-10", "note": "table"}, "data_ar": "صف الحكم."},
+      {"layer": "event", "label": "JUDGMENT_RECORDED", "ref": {"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentService.java", "lines": "65-66", "note": "event"}, "data_ar": "ملخص الحدث في خط القضية."}
+    ]
+  },
+  "status": "IMPLEMENTED_ON_DEVELOP",
+  "status_note_ar": "الشيفرة موجودة على develop. لم يُجرَ تحقق UAT بواسطة هذه الوثيقة.",
+  "status_evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentService.java", "lines": "28-36", "note": "service on develop"}],
+  "verification_ar": "اختبارات وجدتها: backend/src/test/java/com/lawdesk/pleadings/ClaimApiTest.java وClaimResultApiTest.java وJudgmentDetailsApiTest.java وPleadingsPermissionsTest.java وbackend/src/test/java/com/lawdesk/proceedings/JudgmentApiTest.java وJudicialChronologyTest.java، وفي الواجهة frontend/src/features/pleadings/CaseClaims.test.tsx وJudgmentRecording.test.tsx. لم يُجرَ تحقق UAT. لم أوثّق الدفوع والأدلة والقوالب والإحصاءات ومواقف المحكمة من الدفوع (موجودة في حزمة pleadings ولم أقرأها بالتفصيل)، ولا القرارات الخاصة (وقف التنفيذ)."
+}

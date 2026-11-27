@@ -1,0 +1,42 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/enforcement/EnforcementController.java": {
+      "name": "طلبات تنفيذ الأحكام",
+      "description": "يستقبل طلبات ملف تنفيذ الحكم وإجراءاته؛ القراءة تحتاج صلاحية الاطلاع على التنفيذ والكتابة تحتاج صلاحية إدارته، إضافة إلى صلاحيات القضية."
+    },
+    "backend/src/main/java/com/lawdesk/enforcement/EnforcementRequests.java": {
+      "name": "بيانات تنفيذ الأحكام",
+      "description": "يحدد شكل بيانات ملف التنفيذ وإجراءاته وقائمة الأحكام غير المنفذة أو المتأخرة؛ ولا يُنسخ الحكم نفسه بل يُشار إليه."
+    },
+    "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java": {
+      "name": "منطق تنفيذ الأحكام",
+      "description": "يحفظ ملف تنفيذ الحكم: من يتولى التنفيذ والمبلغ المطلوب والعقبات والحالة والإجراءات المتخذة بتواريخها ونتائجها، ويعدّ قوائم الأحكام غير المنفذة."
+    }
+  },
+  "routes": {
+    "GET /api/v1/judgments/{judgmentId}/enforcement": {
+      "name": "ملف تنفيذ الحكم",
+      "description": "يعرض الحكم وملف تنفيذه (إن سُجّل) والإجراءات المتخذة."
+    },
+    "POST /api/v1/judgments/{judgmentId}/enforcement": {
+      "name": "فتح ملف تنفيذ",
+      "description": "ينشئ ملف تنفيذ لحكم ويردّ بالنتيجة، لمن يملك صلاحية إدارة التنفيذ."
+    },
+    "PUT /api/v1/enforcement/{fileId}": {
+      "name": "تعديل ملف التنفيذ",
+      "description": "يعدّل بيانات ملف تنفيذ قائم، لمن يملك صلاحية إدارة التنفيذ."
+    },
+    "POST /api/v1/enforcement/{fileId}/actions": {
+      "name": "إضافة إجراء تنفيذ",
+      "description": "يسجل إجراء تنفيذ جديدًا في ملف التنفيذ، لمن يملك صلاحية إدارة التنفيذ."
+    },
+    "PUT /api/v1/enforcement-actions/{id}": {
+      "name": "تعديل إجراء تنفيذ",
+      "description": "يعدّل إجراء تنفيذ سبق تسجيله، لمن يملك صلاحية إدارة التنفيذ."
+    },
+    "GET /api/v1/enforcement/judgments": {
+      "name": "الأحكام غير المنفذة",
+      "description": "يعرض قائمة الأحكام حسب نطاق يُحدَّد، ويمكن حصرها في قضية معينة، صفحة بصفحة."
+    }
+  }
+}

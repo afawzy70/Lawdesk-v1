@@ -1,0 +1,32 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java": {
+      "name": "صياغة رسائل الأخطاء",
+      "description": "يحوّل كل فشل في الطلبات إلى ردّ خطأ موحّد الشكل، ويردّ بتعذّر الخدمة مع طلب إعادة المحاولة إذا انقطع الاتصال بقاعدة البيانات."
+    },
+    "backend/src/main/java/com/lawdesk/api/BusinessRuleException.java": {
+      "name": "رفض بقاعدة عمل",
+      "description": "يُستخدم عندما تمنع قاعدة عمل تنفيذ الطلب (مثل استئناف دون حكم ابتدائي)، فيُرَدّ بخطأ 422 مع رمز ثابت للقاعدة."
+    },
+    "backend/src/main/java/com/lawdesk/api/ConflictException.java": {
+      "name": "تعارض مع الحالة المحفوظة",
+      "description": "يُستخدم عندما يتعارض الطلب مع ما هو محفوظ (كتكرار أو نسخة قديمة)، فيُرَدّ بخطأ 409."
+    },
+    "backend/src/main/java/com/lawdesk/api/DatabaseUnavailable.java": {
+      "name": "تعذّر الوصول لقاعدة البيانات",
+      "description": "يميّز انقطاع الاتصال بقاعدة البيانات عن الأخطاء الأخرى، ليُردّ على المستخدم بأن الخدمة غير متاحة مؤقتًا بدل خطأ عام."
+    },
+    "backend/src/main/java/com/lawdesk/api/FieldErrorException.java": {
+      "name": "خطأ في حقل واحد",
+      "description": "يُستخدم عندما يخالف حقل واحد قاعدة لا يكشفها الفحص العادي، ويُردّ عليه كأي خطأ في إدخال البيانات (400)."
+    },
+    "backend/src/main/java/com/lawdesk/api/NotFoundException.java": {
+      "name": "غير موجود",
+      "description": "يُستخدم عندما لا يوجد المورد المطلوب أو لا يحق للمستخدم أن يعرف بوجوده، فيُرَدّ بخطأ 404."
+    },
+    "backend/src/main/java/com/lawdesk/api/PageResponse.java": {
+      "name": "شكل القوائم المقسّمة",
+      "description": "يحدد الشكل الموحد لأي قائمة تُعرض صفحة بصفحة: العناصر ورقم الصفحة وحجمها وإجمالي العناصر وعدد الصفحات."
+    }
+  }
+}

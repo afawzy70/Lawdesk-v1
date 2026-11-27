@@ -1,0 +1,106 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/calendar/BuiltInSources.java": {
+      "name": "مصادر التقويم الأساسية",
+      "description": "يجمع للتقويم مواعيد الجلسات والمهام وجلسات الخبراء وتواريخ طلبات المعلومات."
+    },
+    "backend/src/main/java/com/lawdesk/calendar/CalendarController.java": {
+      "name": "طلبات التقويم القضائي",
+      "description": "يعرض تقويم المستخدم الشخصي وتقويم الإدارة العام بعرض اليوم أو الأسبوع أو الشهر أو فترة، والتعارضات، ويدير المواعيد المدخلة يدوياً."
+    },
+    "backend/src/main/java/com/lawdesk/calendar/CalendarEngine.java": {
+      "name": "محرك التقويم",
+      "description": "يسأل كل مصدر مواعيد السؤال نفسه ثم يرتب الإجابات بحسب الوقت ثم النوع، ويكشف تعارض مواعيد العضو الواحد المتداخلة."
+    },
+    "backend/src/main/java/com/lawdesk/calendar/CalendarEntry.java": {
+      "name": "بند في التقويم",
+      "description": "يصف بنداً واحداً له تاريخ في التقويم."
+    },
+    "backend/src/main/java/com/lawdesk/calendar/CalendarQuery.java": {
+      "name": "طلب بيانات التقويم",
+      "description": "يحدد ما يُطلب من مصدر المواعيد: من يوم إلى يوم بتوقيت الكويت، وقد يُقيَّد بمالك أو قضية أو أنواع."
+    },
+    "backend/src/main/java/com/lawdesk/calendar/CalendarScope.java": {
+      "name": "نطاق ما يظهر في التقويم",
+      "description": "يحدد ما يحق لكل جهة رؤيته في التقويم: القضايا التي تسمح بها سياسة الوصول والسجلات التي تتيحها الصلاحيات."
+    },
+    "backend/src/main/java/com/lawdesk/calendar/CalendarService.java": {
+      "name": "تقويم المستخدم",
+      "description": "يبني عروض اليوم والأسبوع والشهر والفترة لتقويم المستخدم الحالي بحسب ما يحق له الاطلاع عليه."
+    },
+    "backend/src/main/java/com/lawdesk/calendar/CalendarSource.java": {
+      "name": "مصدر مواعيد التقويم",
+      "description": "يحدد الشكل المشترك الذي يلتزم به كل مصدر تأتي منه بنود التقويم."
+    },
+    "backend/src/main/java/com/lawdesk/calendar/CalendarTime.java": {
+      "name": "قاعدة وقت التقويم",
+      "description": "يطبق قاعدة أن الأوقات تُحفظ بالتوقيت العالمي ويراها الناس بتوقيت الكويت."
+    },
+    "backend/src/main/java/com/lawdesk/calendar/DeadlineCalendarSource.java": {
+      "name": "مواعيد المهل القانونية",
+      "description": "يعرض في التقويم المهل القانونية في تاريخ استحقاقها، كمواعيد الطعن والتظلم والمذكرات والتنفيذ؛ لا يستدعيه ملف آخر حسب الفحص."
+    },
+    "backend/src/main/java/com/lawdesk/calendar/EnforcementCalendarSource.java": {
+      "name": "موعد ملف التنفيذ",
+      "description": "يعرض في التقويم تاريخ استحقاق ملف تنفيذ الحكم؛ لا يستدعيه ملف آخر حسب الفحص."
+    },
+    "backend/src/main/java/com/lawdesk/calendar/ManualDateKind.java": {
+      "name": "أنواع المواعيد اليدوية",
+      "description": "يحدد أنواع المواعيد التي يدخلها الشخص بيده: اجتماع، تحقيق، موعد مذكرة، موعد طعن، تنفيذ، أو غير ذلك؛ ولا يحسب النظام أي مدة قانونية منها."
+    },
+    "backend/src/main/java/com/lawdesk/calendar/ManualDateRequests.java": {
+      "name": "نماذج المواعيد اليدوية",
+      "description": "يحدد الحقول المرسلة عند إنشاء موعد يدوي أو تعديله أو تغيير حالته والرد الذي يعود؛ قضية الموعد لا تتغير بعد إنشائه."
+    },
+    "backend/src/main/java/com/lawdesk/calendar/ManualDateService.java": {
+      "name": "إدارة المواعيد اليدوية",
+      "description": "ينشئ المواعيد التي لا يحتفظ بها أي سجل آخر، كالاجتماعات، ويعدلها ويغير حالتها ويقرؤها."
+    },
+    "backend/src/main/java/com/lawdesk/calendar/ManualDateSource.java": {
+      "name": "المواعيد اليدوية في التقويم",
+      "description": "يقدم المواعيد التي أدخلها المحامي بيده كمصدر للتقويم؛ لا يستدعيه ملف آخر حسب الفحص."
+    },
+    "backend/src/main/java/com/lawdesk/calendar/ManualDateStatus.java": {
+      "name": "حالات الموعد اليدوي",
+      "description": "يحدد حالات الموعد اليدوي: نشط، أو منجز (يبقى في التقويم ولا يشغل وقتاً)، أو ملغى (يبقى ويظهر ملغياً)."
+    }
+  },
+  "routes": {
+    "GET /api/v1/calendar/events": {
+      "name": "مواعيد فترة",
+      "description": "يعرض بنود التقويم بين تاريخين، ويمكن تقييدها بمستخدم أو قضية أو أنواع."
+    },
+    "GET /api/v1/calendar/day": {
+      "name": "مواعيد يوم",
+      "description": "يعرض بنود التقويم ليوم واحد، ويمكن تقييدها بمستخدم أو قضية أو أنواع."
+    },
+    "GET /api/v1/calendar/week": {
+      "name": "مواعيد أسبوع",
+      "description": "يعرض بنود التقويم لأسبوع، ويمكن تقييدها بمستخدم أو قضية أو أنواع."
+    },
+    "GET /api/v1/calendar/month": {
+      "name": "مواعيد شهر",
+      "description": "يعرض بنود التقويم لشهر، ويمكن تقييدها بمستخدم أو قضية أو أنواع."
+    },
+    "GET /api/v1/calendar/conflicts": {
+      "name": "تعارض المواعيد",
+      "description": "يعرض المواعيد المتداخلة في الوقت للعضو خلال فترة محددة."
+    },
+    "POST /api/v1/calendar/dates": {
+      "name": "إضافة موعد يدوي",
+      "description": "ينشئ موعداً يدوياً في التقويم، لمن لديه صلاحية إدارة التقويم."
+    },
+    "GET /api/v1/calendar/dates/{id}": {
+      "name": "عرض موعد يدوي",
+      "description": "يعرض بيانات موعد يدوي واحد."
+    },
+    "PUT /api/v1/calendar/dates/{id}": {
+      "name": "تعديل موعد يدوي",
+      "description": "يعدل بيانات موعد يدوي، لمن لديه صلاحية إدارة التقويم."
+    },
+    "POST /api/v1/calendar/dates/{id}/status": {
+      "name": "تغيير حالة موعد يدوي",
+      "description": "ينقل الموعد اليدوي إلى حالة منجز أو ملغى، لمن لديه صلاحية إدارة التقويم."
+    }
+  }
+}

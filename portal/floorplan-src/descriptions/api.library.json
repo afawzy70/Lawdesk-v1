@@ -1,0 +1,146 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/library/CasePrecedentController.java": {
+      "name": "أحكام المكتبة داخل القضية",
+      "description": "يعرض الأحكام المرتبطة بقضية والأحكام المقترحة لها، ويتيح ربط حكم بالقضية أو فك الربط، لمن يملك صلاحية عرض المكتبة."
+    },
+    "backend/src/main/java/com/lawdesk/library/CasePrecedentService.java": {
+      "name": "ربط الأحكام بالقضايا",
+      "description": "يحفظ ربط أحكام المكتبة بالقضايا (حكم واحد قد يرتبط بعدة قضايا)، مع سبب الفائدة ودرجة التشابه في الوقائع والمسائل."
+    },
+    "backend/src/main/java/com/lawdesk/library/ClassificationService.java": {
+      "name": "قوائم التصنيف",
+      "description": "يدير قوائم تصنيف المكتبة: القيم المذكورة في وثيقة المتطلبات، والقيم التي يضيفها الأعضاء وتبقى مقترحة، مع تسجيل التغييرات في سجل التدقيق."
+    },
+    "backend/src/main/java/com/lawdesk/library/LibraryController.java": {
+      "name": "طلبات المكتبة القانونية",
+      "description": "يجمع طلبات مكتبة الأحكام والمبادئ: البحث وتسجيل الأحكام وتعديلها وسحبها، ومبادئها وعلاقاتها وتصنيفاتها وتقرير ملخص المكتبة."
+    },
+    "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java": {
+      "name": "إدارة الأحكام",
+      "description": "يسجل أحكام المكتبة ويقرؤها ويستبدلها ويسحبها ويعيدها، ويبحث فيها بالعربية بحسب المحكمة والسنة ونوع القضية وغيرها."
+    },
+    "backend/src/main/java/com/lawdesk/library/LibraryPrincipleService.java": {
+      "name": "إدارة المبادئ القانونية",
+      "description": "يحفظ المبادئ المستخرجة من كل حكم، ويتيح إضافتها وتعديلها ومراجعتها."
+    },
+    "backend/src/main/java/com/lawdesk/library/LibraryReadPort.java": {
+      "name": "بوابة قراءة المكتبة",
+      "description": "تتيح لأجزاء أخرى من النظام، مثل المساعد القانوني ومذكرة القضية، قراءة أحكام المكتبة والأحكام المرتبطة بقضية دون أن تغيّر فيها شيئاً."
+    },
+    "backend/src/main/java/com/lawdesk/library/LibraryRelationService.java": {
+      "name": "مصير الحكم لاحقاً",
+      "description": "يسجل ما جرى لحكم بعد صدوره: طعن عليه أو أُيّد أو عُدّل أو أُلغي أو اتُّبع في حكم لاحق أو خُولف، مع مصدر كل واقعة."
+    },
+    "backend/src/main/java/com/lawdesk/library/LibraryReportQueries.java": {
+      "name": "بيانات تقارير المكتبة",
+      "description": "يمنح قسم التقارير أعداد أحكام ومبادئ المكتبة مجمعة حسب المحكمة والسنة والاتجاه والنهائية والتصنيف والموضوع القانوني، للقراءة فقط."
+    },
+    "backend/src/main/java/com/lawdesk/library/LibraryReportService.java": {
+      "name": "تقارير المكتبة",
+      "description": "يحسب عدد الأحكام السارية حسب المحكمة والسنة والاتجاه والنهائية والتصنيف، وأكثر المسائل القانونية ذكراً في المبادئ."
+    },
+    "backend/src/main/java/com/lawdesk/library/LibraryRequests.java": {
+      "name": "نماذج بيانات طلبات المكتبة",
+      "description": "يحدد الحقول التي يرسلها المستخدم عند تسجيل حكم أو سحبه أو إضافة مبدأ أو علاقة أو تصنيف أو ربط حكم بقضية."
+    },
+    "backend/src/main/java/com/lawdesk/library/LibraryText.java": {
+      "name": "أدوات نصوص المكتبة",
+      "description": "أدوات صغيرة للتعامل مع النصوص في المكتبة، مثل التحقق من أن القيمة من القيم المسموحة، وتستعين بها أقسام أخرى كالتوجيهات والبحث."
+    },
+    "backend/src/main/java/com/lawdesk/library/LibraryViews.java": {
+      "name": "شكل ردود المكتبة",
+      "description": "يحدد شكل البيانات التي تعود للشاشات من المكتبة: الحكم والمبدأ والعلاقة والتصنيف والسابقة، وما سُجل عن مدى سريان الحكم دون أن يقرره."
+    },
+    "backend/src/main/java/com/lawdesk/library/SimilarJudgmentService.java": {
+      "name": "الأحكام المشابهة لقضية",
+      "description": "يقترح من المكتبة أحكاماً تشبه قضية معينة، ويذكر أسباب الاقتراح."
+    }
+  },
+  "routes": {
+    "GET /api/v1/cases/{caseId}/precedents": {
+      "name": "أحكام مرتبطة بقضية",
+      "description": "يعرض الأحكام التي ربطها الأعضاء بالقضية، لمن لديه صلاحية عرض المكتبة."
+    },
+    "POST /api/v1/cases/{caseId}/precedents": {
+      "name": "ربط حكم بقضية",
+      "description": "يربط حكماً من المكتبة بالقضية ويعيد الربط الجديد."
+    },
+    "DELETE /api/v1/cases/{caseId}/precedents/{linkId}": {
+      "name": "فك ربط حكم بقضية",
+      "description": "يزيل ربط حكم بالقضية دون حذف الحكم من المكتبة."
+    },
+    "GET /api/v1/cases/{caseId}/similar-judgments": {
+      "name": "أحكام مشابهة للقضية",
+      "description": "يقترح أحكاماً مشابهة للقضية، بحد أقصى يتراوح بين 1 و25 (والافتراضي 10)، ويمكن تضييقه بدفاع معين."
+    },
+    "GET /api/v1/library/judgments": {
+      "name": "البحث في الأحكام",
+      "description": "يبحث في أحكام المكتبة بنص حر أو بالمحكمة أو السنة أو نوع القضية أو درجة المحكمة أو الاتجاه أو النهائية أو التصنيف، ويستبعد الأحكام المسحوبة ما لم يُطلب إظهارها."
+    },
+    "POST /api/v1/library/judgments": {
+      "name": "تسجيل حكم جديد",
+      "description": "يسجل حكماً جديداً في المكتبة، لمن لديه صلاحية إدارة المكتبة."
+    },
+    "GET /api/v1/library/judgments/{id}": {
+      "name": "عرض حكم",
+      "description": "يعرض بيانات حكم واحد من المكتبة."
+    },
+    "PUT /api/v1/library/judgments/{id}": {
+      "name": "تعديل حكم",
+      "description": "يستبدل بيانات الحكم بالسجل الكامل المرسل مع رقم النسخة التي قُرئت، لمن لديه صلاحية إدارة المكتبة."
+    },
+    "POST /api/v1/library/judgments/{id}/withdraw": {
+      "name": "سحب حكم",
+      "description": "يسحب الحكم من المكتبة مع ذكر السبب، لمن لديه صلاحية إدارة المكتبة."
+    },
+    "POST /api/v1/library/judgments/{id}/reinstate": {
+      "name": "إعادة حكم مسحوب",
+      "description": "يعيد حكماً مسحوباً إلى المكتبة، لمن لديه صلاحية إدارة المكتبة."
+    },
+    "GET /api/v1/library/judgments/{id}/principles": {
+      "name": "مبادئ حكم",
+      "description": "يعرض المبادئ القانونية المستخرجة من حكم معين."
+    },
+    "POST /api/v1/library/judgments/{id}/principles": {
+      "name": "إضافة مبدأ لحكم",
+      "description": "يضيف مبدأً قانونياً إلى حكم، لمن لديه صلاحية إدارة المكتبة."
+    },
+    "PUT /api/v1/library/principles/{id}": {
+      "name": "تعديل مبدأ",
+      "description": "يعدّل نص مبدأ قانوني مسجل، لمن لديه صلاحية إدارة المكتبة."
+    },
+    "POST /api/v1/library/principles/{id}/review": {
+      "name": "مراجعة مبدأ",
+      "description": "يسجل أن المبدأ قد روجع، لمن لديه صلاحية إدارة المكتبة."
+    },
+    "GET /api/v1/library/judgments/{id}/validity": {
+      "name": "مدى سريان الحكم",
+      "description": "يعرض ما سجلته المكتبة عن وضع الحكم (طعن أو إلغاء أو اتباع)؛ هو سجل للوقائع ولا يقرر سريان الحكم."
+    },
+    "POST /api/v1/library/judgments/{id}/relations": {
+      "name": "تسجيل واقعة على حكم",
+      "description": "يضيف واقعة تخص الحكم كالطعن أو التأييد أو الإلغاء، لمن لديه صلاحية إدارة المكتبة."
+    },
+    "DELETE /api/v1/library/relations/{id}": {
+      "name": "حذف واقعة مسجلة",
+      "description": "يحذف واقعة مسجلة سابقاً على حكم، لمن لديه صلاحية إدارة المكتبة."
+    },
+    "GET /api/v1/library/classifications": {
+      "name": "قوائم التصنيف",
+      "description": "يعرض قيم التصنيف، ويمكن تحديد بُعد معين أو إظهار القيم غير الفعالة."
+    },
+    "POST /api/v1/library/classifications": {
+      "name": "إضافة قيمة تصنيف",
+      "description": "يضيف قيمة جديدة إلى قوائم التصنيف، لمن لديه صلاحية إدارة المكتبة."
+    },
+    "PUT /api/v1/library/classifications/{id}": {
+      "name": "تعديل قيمة تصنيف",
+      "description": "يعدّل قيمة تصنيف قائمة؛ لم تُعرض شيفرته في الفحص، فالوصف مبني على اسمه وموقعه."
+    },
+    "GET /api/v1/library/reports/summary": {
+      "name": "ملخص تقارير المكتبة",
+      "description": "يعرض ملخص المكتبة: الأحكام السارية حسب المحكمة والسنة والاتجاه والنهائية والتصنيف؛ لم تُعرض شيفرته في الفحص."
+    }
+  }
+}

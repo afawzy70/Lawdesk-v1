@@ -1,0 +1,146 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/deadlines/DeadlineCalculation.java": {
+      "name": "تفصيل حساب الموعد",
+      "description": "يحفظ حساب الموعد المقترح كما عُرض على المراجع: القاعدة ومصدرها وتاريخ البدء وأول يوم محسوب وأيام العطل التي تُجوِّزت وتاريخ الانتهاء."
+    },
+    "backend/src/main/java/com/lawdesk/deadlines/DeadlineCalculator.java": {
+      "name": "حاسبة الموعد",
+      "description": "تحسب موعداً مقترحاً من قاعدة معتمدة، مع تجاوز أيام العطل الأسبوعية والعطل الرسمية المعتمدة."
+    },
+    "backend/src/main/java/com/lawdesk/deadlines/DeadlineController.java": {
+      "name": "طلبات المواعيد القانونية",
+      "description": "يتيح عرض مواعيد القضايا وسجلها وإنشاءها وتعديلها واقتراح موعد بحسب قاعدة واعتماده وتغيير حالته وتشغيل التذكيرات."
+    },
+    "backend/src/main/java/com/lawdesk/deadlines/DeadlineReminderRun.java": {
+      "name": "تشغيل تذكيرات المواعيد",
+      "description": "يرسل تذكيرات المواعيد القانونية داخل التطبيق قبل الاستحقاق."
+    },
+    "backend/src/main/java/com/lawdesk/deadlines/DeadlineReminderSchedule.java": {
+      "name": "جدولة تذكير المواعيد",
+      "description": "يشغّل تذكيرات المواعيد كل ساعة. لم يرصد الفحص ملفاً يستدعيه."
+    },
+    "backend/src/main/java/com/lawdesk/deadlines/DeadlineRequests.java": {
+      "name": "نماذج طلبات المواعيد",
+      "description": "يحدد بيانات المواعيد والقواعد والعطل الرسمية في الطلبات والردود. المقترح لا يصير رسمياً إلا باعتماد."
+    },
+    "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java": {
+      "name": "منطق سجل المواعيد",
+      "description": "ينفذ إنشاء المواعيد واقتراحها واعتمادها وتغيير حالتها وتسجيل ذلك في التدقيق."
+    },
+    "backend/src/main/java/com/lawdesk/deadlines/DeadlineSettingsController.java": {
+      "name": "طلبات إعدادات المواعيد",
+      "description": "يتيح إدارة قواعد المدد والعطل الرسمية ومدد التذكير: عرضها وإنشاءها وتعديلها واعتمادها وإنهاء العمل بها."
+    },
+    "backend/src/main/java/com/lawdesk/deadlines/DeadlineSettingsService.java": {
+      "name": "منطق إعدادات المواعيد",
+      "description": "ينفذ إدارة القواعد والعطل الرسمية ومدد التذكير، مع التحقق وتسجيل التدقيق."
+    },
+    "backend/src/main/java/com/lawdesk/deadlines/DeadlineSettingsStore.java": {
+      "name": "تخزين إعدادات المواعيد",
+      "description": "يحفظ القواعد والعطل الرسمية ومدد التذكير في قاعدة البيانات ويقرأها."
+    },
+    "backend/src/main/java/com/lawdesk/deadlines/DeadlineStore.java": {
+      "name": "تخزين سجل المواعيد",
+      "description": "يحفظ سجل المواعيد في قاعدة البيانات ويبحث فيه بعوامل تصفية اختيارية."
+    },
+    "backend/src/main/java/com/lawdesk/deadlines/Rules.java": {
+      "name": "رموز قواعد المواعيد",
+      "description": "يثبّت رموز قواعد المواعيد التي يعاد بها رد الرفض عند مخالفتها."
+    }
+  },
+  "routes": {
+    "GET /api/v1/cases/{caseId}/deadlines": {
+      "name": "مواعيد القضية",
+      "description": "يعرض مواعيد القضية، ويمكن تصفيتها بالحالة ونوع المصدر."
+    },
+    "POST /api/v1/cases/{caseId}/deadlines": {
+      "name": "إضافة موعد يدوي",
+      "description": "يضيف موعداً كتبه المستخدم، ويبقى يدوياً إلى أن يعتمده مختص."
+    },
+    "POST /api/v1/cases/{caseId}/deadlines/propose": {
+      "name": "اقتراح موعد بقاعدة",
+      "description": "يحسب تاريخ الاستحقاق من قاعدة معتمدة ويسجله موعداً مقترحاً لا رسمياً."
+    },
+    "GET /api/v1/deadlines": {
+      "name": "سجل المواعيد",
+      "description": "يعرض سجل المواعيد وقد تُصفّى بالحالة والمسؤول والفترة والتأخر والقضية."
+    },
+    "GET /api/v1/deadlines/{id}": {
+      "name": "بيانات موعد",
+      "description": "يعرض موعداً واحداً بكامل بياناته."
+    },
+    "PUT /api/v1/deadlines/{id}": {
+      "name": "تعديل موعد",
+      "description": "يعدّل بيانات الموعد كاملة، شرط أن تكون على النسخة التي قرأها المستخدم."
+    },
+    "POST /api/v1/deadlines/{id}/approve": {
+      "name": "اعتماد موعد",
+      "description": "يعتمد الموعد المقترح ليصير رسمياً. يتطلب صلاحية الاعتماد."
+    },
+    "POST /api/v1/deadlines/{id}/status": {
+      "name": "تغيير حالة موعد",
+      "description": "يسجّل إنجاز الموعد أو فواته أو إعادة فتحه، ولا يتم ذلك إلا بيد مستخدم."
+    },
+    "GET /api/v1/judgments/{judgmentId}/deadlines": {
+      "name": "مواعيد الحكم",
+      "description": "يعرض المواعيد المرتبطة بحكم معين."
+    },
+    "POST /api/v1/deadlines/reminders/run": {
+      "name": "تشغيل التذكيرات يدوياً",
+      "description": "يشغّل تذكيرات المواعيد فوراً داخل التطبيق ويعيد نتيجة التشغيل. يتطلب صلاحية الاعتماد."
+    },
+    "GET /api/v1/deadline-rules": {
+      "name": "قواعد المدد",
+      "description": "يعرض قواعد حساب المدد القانونية، وتُصفّى بالحالة."
+    },
+    "POST /api/v1/deadline-rules": {
+      "name": "إضافة قاعدة مدة",
+      "description": "ينشئ قاعدة جديدة لحساب مدة قانونية."
+    },
+    "GET /api/v1/deadline-rules/{id}": {
+      "name": "بيانات قاعدة مدة",
+      "description": "يعرض قاعدة مدة واحدة."
+    },
+    "PUT /api/v1/deadline-rules/{id}": {
+      "name": "تعديل قاعدة مدة",
+      "description": "يعدّل قاعدة حساب المدة."
+    },
+    "POST /api/v1/deadline-rules/{id}/approve": {
+      "name": "اعتماد قاعدة مدة",
+      "description": "يعتمد القاعدة لتُستعمل في حساب المواعيد. يتطلب صلاحية الاعتماد."
+    },
+    "POST /api/v1/deadline-rules/{id}/retire": {
+      "name": "إنهاء العمل بقاعدة",
+      "description": "ينهي العمل بالقاعدة فلا تُستعمل في حساب المواعيد الجديدة."
+    },
+    "GET /api/v1/official-holidays": {
+      "name": "العطل الرسمية",
+      "description": "يعرض العطل الرسمية، ويمكن تصفيتها بالحالة والسنة."
+    },
+    "POST /api/v1/official-holidays": {
+      "name": "إضافة عطلة رسمية",
+      "description": "يضيف عطلة رسمية جديدة."
+    },
+    "PUT /api/v1/official-holidays/{id}": {
+      "name": "تعديل عطلة رسمية",
+      "description": "يعدّل بيانات عطلة رسمية."
+    },
+    "POST /api/v1/official-holidays/{id}/approve": {
+      "name": "اعتماد عطلة رسمية",
+      "description": "يعتمد العطلة لتُراعى في حساب المواعيد."
+    },
+    "POST /api/v1/official-holidays/{id}/retire": {
+      "name": "إنهاء العمل بعطلة",
+      "description": "ينهي العمل بالعطلة فلا تُراعى في الحساب."
+    },
+    "GET /api/v1/deadline-settings/reminders": {
+      "name": "مدد تذكير المواعيد",
+      "description": "يعرض المدد التي تسبق الاستحقاق ويُرسل فيها التذكير."
+    },
+    "PUT /api/v1/deadline-settings/reminders": {
+      "name": "تعديل مدد التذكير",
+      "description": "يغيّر المدد التي تسبق الاستحقاق ويُرسل فيها التذكير."
+    }
+  }
+}

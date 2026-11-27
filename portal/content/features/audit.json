@@ -1,0 +1,580 @@
+{
+ "id": "audit",
+ "category": "admin",
+ "name_ar": "سجل التدقيق",
+ "summary_ar": "شاشة للقراءة فقط تعرض سجل الأحداث الأمنية والإدارية في النظام، الأحدث أولًا: من فعل ماذا، ومتى، وعلى أي هدف، وهل نجح أو فشل أو رُفض، مع إمكانية التصفية بالمستخدم والإجراء والنتيجة وترقيم الصفحات.",
+ "purpose_ar": "تمكين المخوَّلين من مراجعة ما جرى في النظام (تسجيل الدخول، تغيير الكلمات والأدوار والصلاحيات، رفض الوصول، وتغييرات الأعمال المهمة كالتنفيذ والتسويات) مع ضمان أن السجل لا يُعدَّل ولا يُحذف، وأن تفاصيل القضايا خارج نطاق القارئ تبقى مخفية.",
+ "who_ar": [
+  "مدير النظام",
+  "مدير الشؤون القانونية"
+ ],
+ "who_perms": [
+  "AUDIT_VIEW"
+ ],
+ "access_ar": "القائمة > الإدارة > تبويب «سجل التدقيق».",
+ "route": "/admin/audit",
+ "prerequisites_ar": [
+  "أن يملك المستخدم صلاحية AUDIT_VIEW. في الأدوار الأصلية يملكها مدير النظام (ADMIN) والمدير القانوني (LEGAL_MANAGER) بحسب هجرة قاعدة البيانات V100؛ وقد تتغير حسب ما يضبطه المدير في شاشة الأدوار."
+ ],
+ "fields": {
+  "required": [],
+  "optional": [
+   {
+    "name_ar": "المستخدم (اسم الدخول)",
+    "code": "actor",
+    "rule_ar": "يُطابق اسم الدخول دون اعتبار حالة الأحرف، مطابقة كاملة.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/audit/AuditController.java",
+      "lines": "61-64",
+      "note": "actor filter"
+     },
+     {
+      "path": "frontend/src/features/admin/AuditPage.tsx",
+      "lines": "72-81",
+      "note": "input"
+     }
+    ]
+   },
+   {
+    "name_ar": "الإجراء",
+    "code": "action",
+    "rule_ar": "يُحوَّل إلى أحرف كبيرة ويُطابق تمامًا؛ الشاشة تعرض قائمة جاهزة بخمسة عشر إجراءً (تسجيل الدخول والخروج وتغيير كلمة المرور وإنشاء المستخدمين والأدوار وغيرها).",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/audit/AuditController.java",
+      "lines": "57-60",
+      "note": "action filter"
+     },
+     {
+      "path": "frontend/src/features/admin/AuditPage.tsx",
+      "lines": "11-28",
+      "note": "ACTIONS"
+     }
+    ]
+   },
+   {
+    "name_ar": "النتيجة",
+    "code": "outcome",
+    "rule_ar": "إحدى القيم: نجح، فشل، مرفوض (SUCCESS وFAILURE وDENIED). قيمة غير معروفة تُرفض بخطأ 400.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/audit/AuditController.java",
+      "lines": "65-68",
+      "note": "outcome filter"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/audit/AuditLog.java",
+      "lines": "23-25",
+      "note": "Outcome"
+     },
+     {
+      "path": "backend/src/test/java/com/lawdesk/audit/AuditViewTest.java",
+      "lines": "77-83",
+      "note": "invalid filters"
+     }
+    ]
+   },
+   {
+    "name_ar": "من تاريخ/وقت (from)",
+    "code": "from",
+    "rule_ar": "واجهة البرمجة فقط (لا يوجد حقل في الشاشة): بصيغة ISO، شاملة.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/audit/AuditController.java",
+      "lines": "52-53",
+      "note": "from/to"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/audit/AuditController.java",
+      "lines": "69-72",
+      "note": "from"
+     }
+    ]
+   },
+   {
+    "name_ar": "إلى تاريخ/وقت (to)",
+    "code": "to",
+    "rule_ar": "واجهة البرمجة فقط: بصيغة ISO، حصرية (لا يدخل الوقت نفسه).",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/audit/AuditController.java",
+      "lines": "73-76",
+      "note": "to"
+     }
+    ]
+   }
+  ]
+ },
+ "steps": [
+  {
+   "n": 1,
+   "actor_ar": "مستخدم يملك AUDIT_VIEW",
+   "action_ar": "يفتح تبويب «سجل التدقيق» من صفحة الإدارة.",
+   "response_ar": "يطلب النظام الصفحة الأولى من السجل ويعرض جدولًا بالأعمدة: الوقت، المستخدم، الإجراء، الهدف، النتيجة، السبب، معرّف الطلب؛ الأحدث أولًا.",
+   "rules_ar": [
+    "التبويب لا يظهر إلا لمن يملك AUDIT_VIEW، والخادم يتحقق من كل طلب.",
+    "الترتيب بالأحدث ثم الأعلى رقمًا."
+   ],
+   "data_ar": "الأحداث بحقولها المخزَّنة.",
+   "next_ar": "تصفية السجل أو تصفح الصفحات.",
+   "evidence": [
+    {
+     "path": "frontend/src/App.tsx",
+     "lines": "64-64",
+     "note": "route"
+    },
+    {
+     "path": "frontend/src/features/admin/AdminTabs.tsx",
+     "lines": "16-16",
+     "note": "tab needs AUDIT_VIEW"
+    },
+    {
+     "path": "frontend/src/features/admin/AuditPage.tsx",
+     "lines": "42-58",
+     "note": "load"
+    },
+    {
+     "path": "frontend/src/features/admin/AuditPage.tsx",
+     "lines": "116-148",
+     "note": "table"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/audit/AuditController.java",
+     "lines": "48-49",
+     "note": "GET"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "بلا صلاحية (403)",
+     "detail_ar": "من لا يملك AUDIT_VIEW يحصل على 403 وتعرض الشاشة صفحة «لا صلاحية»؛ ومن لم يسجل دخوله يحصل على 401.",
+     "evidence": [
+      {
+       "path": "frontend/src/features/admin/AuditPage.tsx",
+       "lines": "52-60",
+       "note": "403 handling"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/audit/AuditViewTest.java",
+       "lines": "85-89",
+       "note": "needs AUDIT_VIEW"
+      }
+     ]
+    },
+    {
+     "kind": "error",
+     "title_ar": "خطأ غير متوقع",
+     "detail_ar": "تظهر رسالة خطأ عامة في الشاشة دون تفاصيل.",
+     "evidence": [
+      {
+       "path": "frontend/src/features/admin/AuditPage.tsx",
+       "lines": "114-114",
+       "note": "unexpected"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "actor_ar": "المدقق",
+   "action_ar": "يدخل اسم المستخدم ويختار الإجراء و/أو النتيجة ثم «تصفية».",
+   "response_ar": "يعيد النظام الأحداث المطابقة لكل الشروط معًا، ويعود إلى الصفحة الأولى. وإن لم يطابق شيء تظهر «لا توجد أحداث مطابقة».",
+   "rules_ar": [
+    "الشروط تجتمع بـ «و».",
+    "الحجم الافتراضي للصفحة 20 والأقصى 100."
+   ],
+   "data_ar": "اسم المستخدم، الإجراء، النتيجة، (وللواجهة البرمجية: from وto).",
+   "next_ar": "تفاصيل الصفوف.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/admin/AuditPage.tsx",
+     "lines": "62-66",
+     "note": "apply"
+    },
+    {
+     "path": "frontend/src/features/admin/api.ts",
+     "lines": "99-109",
+     "note": "listAudit"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/audit/AuditController.java",
+     "lines": "55-87",
+     "note": "filters and query"
+    },
+    {
+     "path": "backend/src/test/java/com/lawdesk/audit/AuditViewTest.java",
+     "lines": "59-75",
+     "note": "filters combine"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "قيمة تصفية غير صالحة (400)",
+     "detail_ar": "نتيجة مجهولة أو تاريخ بصيغة خاطئة تعطي خطأ 400.",
+     "evidence": [
+      {
+       "path": "backend/src/test/java/com/lawdesk/audit/AuditViewTest.java",
+       "lines": "77-83",
+       "note": "bad filters"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+       "lines": "57-60",
+       "note": "type mismatch 400"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "actor_ar": "المدقق",
+   "action_ar": "يقرأ الصفوف.",
+   "response_ar": "كل صف يعرض الوقت بتنسيق المحلي، واسم المستخدم، واسم الإجراء بالعربية (مثل «تسجيل الدخول» و«رفض الوصول»)، والهدف، والنتيجة (نجح/فشل/مرفوض)، والسبب (مثل «كلمة مرور خاطئة»)، ومعرّف الطلب.",
+   "rules_ar": [
+    "لا يخزَّن في السجل أي كلمة مرور أو بصمتها أو معرّف جلسة أو رمز؛ يمرَّر معرّفات وأكواد أسباب ثابتة فقط.",
+    "أحداث تتجاوز طولها المسموح تُقتطع (اسم المستخدم 64 حرفًا والهدف 256)."
+   ],
+   "data_ar": "الأعمدة المخزنة في الجدول audit_event.",
+   "next_ar": "التنقل بين الصفحات.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/admin/AuditPage.tsx",
+     "lines": "132-144",
+     "note": "row"
+    },
+    {
+     "path": "frontend/src/i18n/messages/admin.ar.ts",
+     "lines": "66-99",
+     "note": "labels"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/audit/AuditLog.java",
+     "lines": "42-49",
+     "note": "stored columns"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "حدث قضية خارج نطاق القارئ (مخفي)",
+     "detail_ar": "إن كان هدف الحدث قضية لا يحق للقارئ الاطلاع عليها يبقى الحدث مدرجًا (من وماذا ومتى) لكن يُسحب رقم القضية والسبب ويظهر «مخفي: خارج نطاق قضاياك».",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/audit/AuditController.java",
+       "lines": "97-118",
+       "note": "scoped"
+      },
+      {
+       "path": "frontend/src/features/admin/AuditPage.tsx",
+       "lines": "141-141",
+       "note": "masked"
+      },
+      {
+       "path": "frontend/src/i18n/messages/gaps.ar.ts",
+       "lines": "7-7",
+       "note": "masked msg"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "actor_ar": "النظام (تلقائيًا، لا يتدخل المستخدم)",
+   "action_ar": "يؤدي أي مستخدم عملًا مسجَّلًا (تسجيل دخول، تعديل مستخدم، تسجيل ملف تنفيذ...).",
+   "response_ar": "يكتب النظام سطرًا جديدًا في audit_event. الأحداث التي ترافق تغييرًا في الأعمال تُحفظ مع التغيير نفسه: إن فشل التغيير لا يبقى لها أثر، وإن تعذّر كتابة الحدث رُفض التغيير. أما الأحداث الأمنية كرفض تسجيل الدخول فتُكتب بمعاملة مستقلة لتبقى حتى لو فشل الطلب.",
+   "rules_ar": [
+    "السجل للإضافة فقط: لا يوجد في التطبيق مسار تعديل أو حذف، وتمنعه قاعدة البيانات بمحفّز حتى على مالك الجدول."
+   ],
+   "data_ar": "الإجراء والمنفِّذ والهدف والنتيجة والسبب ومعرّف الطلب.",
+   "next_ar": "يظهر السطر في الشاشة فور إعادة التحميل.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/audit/AuditLog.java",
+     "lines": "36-40",
+     "note": "record own transaction"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/audit/AuditLog.java",
+     "lines": "51-60",
+     "note": "recordWithChange"
+    },
+    {
+     "path": "frontend/src/../../backend/src/main/java/com/lawdesk/platform/SecurityConfig.java",
+     "lines": "126-133",
+     "note": "ACCESS_DENIED"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "محاولة تعديل أو حذف حدث",
+     "detail_ar": "تفشل بخطأ «audit_event is append-only» من قاعدة البيانات.",
+     "evidence": [
+      {
+       "path": "backend/src/main/resources/db/migration/V101__LD-011_audit_event.sql",
+       "lines": "19-26",
+       "note": "trigger"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/audit/AuditTrailTest.java",
+       "lines": "104-118",
+       "note": "tests"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "rules": [
+  {
+   "text_ar": "السجل للإضافة فقط ولا يمكن تعديل أي حدث أو حذفه، حتى من مالك الجدول.",
+   "evidence": [
+    {
+     "path": "backend/src/main/resources/db/migration/V101__LD-011_audit_event.sql",
+     "lines": "19-26",
+     "note": "trigger"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/audit/AuditLog.java",
+     "lines": "14-19",
+     "note": "doc"
+    }
+   ]
+  },
+  {
+   "text_ar": "لا تُخزَّن كلمات مرور ولا بصماتها ولا معرّفات جلسات ولا رموز.",
+   "evidence": [
+    {
+     "path": "backend/src/main/resources/db/migration/V101__LD-011_audit_event.sql",
+     "lines": "1-1",
+     "note": "comment"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/audit/AuditLog.java",
+     "lines": "14-19",
+     "note": "doc"
+    }
+   ]
+  },
+  {
+   "text_ar": "قراءة السجل تتطلب AUDIT_VIEW وحدها.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/audit/AuditController.java",
+     "lines": "48-49",
+     "note": "PreAuthorize"
+    },
+    {
+     "path": "backend/src/test/java/com/lawdesk/audit/AuditViewTest.java",
+     "lines": "85-89",
+     "note": "test"
+    }
+   ]
+  },
+  {
+   "text_ar": "تفاصيل حدث يخص قضية خارج نطاق القارئ تُخفى ويبقى الحدث مدرجًا.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/audit/AuditController.java",
+     "lines": "97-118",
+     "note": "scoped"
+    }
+   ]
+  },
+  {
+   "text_ar": "الأحداث المرتبطة بتغيير أعمال تُحفظ أو تُلغى مع التغيير نفسه.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/audit/AuditLog.java",
+     "lines": "14-19",
+     "note": "doc"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/audit/AuditLog.java",
+     "lines": "51-60",
+     "note": "MANDATORY"
+    }
+   ]
+  },
+  {
+   "text_ar": "الفلاتر تجتمع، وفترة الوقت نصف مفتوحة: from شاملة وto حصرية.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/audit/AuditController.java",
+     "lines": "26-29",
+     "note": "doc"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/audit/AuditController.java",
+     "lines": "69-76",
+     "note": "range"
+    }
+   ]
+  }
+ ],
+ "after_submit_ar": "الشاشة للقراءة فقط: لا تغيّر شيئًا. تعرض النتائج المصفّاة مع عدد الصفحات.",
+ "notifications_ar": [
+  "لا توجد إشعارات مرتبطة بقراءة سجل التدقيق؛ لم أجد في كوده إرسال أي إشعار."
+ ],
+ "approvals_ar": [],
+ "errors": [
+  {
+   "code": "HTTP 400",
+   "meaning_ar": "قيمة تصفية غير صالحة (نتيجة مجهولة أو تاريخ بصيغة خاطئة).",
+   "evidence": [
+    {
+     "path": "backend/src/test/java/com/lawdesk/audit/AuditViewTest.java",
+     "lines": "77-83",
+     "note": "test"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+     "lines": "56-60",
+     "note": "mismatch"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 401",
+   "meaning_ar": "لم يسجل المستخدم دخوله.",
+   "evidence": [
+    {
+     "path": "backend/src/test/java/com/lawdesk/audit/AuditViewTest.java",
+     "lines": "85-88",
+     "note": "401 test"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 403",
+   "meaning_ar": "لا يملك AUDIT_VIEW.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/audit/AuditController.java",
+     "lines": "48-49",
+     "note": "PreAuthorize"
+    },
+    {
+     "path": "backend/src/test/java/com/lawdesk/audit/AuditViewTest.java",
+     "lines": "85-89",
+     "note": "403 test"
+    }
+   ]
+  }
+ ],
+ "result_ar": "جدول مرتب بالأحدث يُظهر من فعل ماذا ومتى وبأي نتيجة، مع إخفاء تفاصيل القضايا خارج نطاق القارئ.",
+ "related": [
+  "roles-permissions",
+  "users-admin",
+  "reports-dashboard",
+  "enforcement",
+  "settlements",
+  "library"
+ ],
+ "endpoints": [
+  {
+   "method": "GET",
+   "path": "/api/v1/audit",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/audit/AuditController.java",
+    "lines": "31-31",
+    "note": "base path /api/v1/audit"
+   }
+  }
+ ],
+ "tech": {
+  "chain": [
+   {
+    "layer": "screen",
+    "label": "AuditPage",
+    "ref": {
+     "path": "frontend/src/features/admin/AuditPage.tsx",
+     "lines": "33-66",
+     "note": "page"
+    },
+    "data_ar": "الفلتر والصفحة الحاليان."
+   },
+   {
+    "layer": "api_call",
+    "label": "listAudit",
+    "ref": {
+     "path": "frontend/src/features/admin/api.ts",
+     "lines": "99-109",
+     "note": "listAudit"
+    },
+    "data_ar": "معاملات action وactor وoutcome وpage وsize."
+   },
+   {
+    "layer": "controller",
+    "label": "AuditController.list",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/audit/AuditController.java",
+     "lines": "48-54",
+     "note": "list"
+    },
+    "data_ar": "يُتحقق AUDIT_VIEW ثم تُبنى شروط الاستعلام."
+   },
+   {
+    "layer": "authorization",
+    "label": "@PreAuthorize AUDIT_VIEW + CaseAccessPolicy.canView",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/audit/AuditController.java",
+     "lines": "102-118",
+     "note": "scoped"
+    },
+    "data_ar": "لكل حدث قضية يُقرَّر إظهار تفاصيله أو إخفاؤها."
+   },
+   {
+    "layer": "repository",
+    "label": "JdbcTemplate على audit_event",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/audit/AuditController.java",
+     "lines": "77-86",
+     "note": "query"
+    },
+    "data_ar": "صفوف الأحداث مرتبة تنازليًا."
+   },
+   {
+    "layer": "tables",
+    "label": "audit_event",
+    "ref": {
+     "path": "backend/src/main/resources/db/migration/V101__LD-011_audit_event.sql",
+     "lines": "2-14",
+     "note": "table"
+    },
+    "data_ar": "أعمدة الحدث."
+   },
+   {
+    "layer": "result",
+    "label": "AuditEventView (PageResponse)",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/audit/AuditController.java",
+     "lines": "34-38",
+     "note": "view"
+    },
+    "data_ar": "عناصر الصفحة مع الإجمالي وعدد الصفحات."
+   }
+  ]
+ },
+ "status": "IMPLEMENTED_ON_DEVELOP",
+ "status_note_ar": "الشيفرة موجودة على develop مع اختبارات خلفية.",
+ "status_evidence": [
+  {
+   "path": "backend/src/main/java/com/lawdesk/audit/AuditController.java",
+   "lines": "26-32",
+   "note": "controller"
+  },
+  {
+   "path": "backend/src/main/java/com/lawdesk/audit/AuditLog.java",
+   "lines": "14-21",
+   "note": "AuditLog"
+  }
+ ],
+ "verification_ar": "قرأتُ المتحكم وAuditLog والهجرة V101 وشاشة AuditPage وملفات الرسائل. الاختبارات: backend/src/test/java/com/lawdesk/audit/AuditViewTest.java وAuditTrailTest.java وAdminAuditAtomicityTest.java وTaskAuditAtomicityTest.java. لم يجرِ هذا المستند أي تحقق على UAT ولم أشغّل الاختبارات. لم أُحصِ كل الإجراءات التي تُسجَّل في أنحاء النظام (يستدعي نحو ثمانية وثلاثين ملفًا AuditLog)، واكتفيتُ بما ذُكر؛ قائمة الإجراءات في قائمة التصفية جزئية بحسب الشاشة. لم أتحقق من أي مصدر لإتاحة تصدير السجل: لم أجد مسار تصدير."
+}

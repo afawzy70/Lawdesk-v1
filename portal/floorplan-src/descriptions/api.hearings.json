@@ -1,0 +1,90 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/hearings/Hearing.java": {
+      "name": "سجل الجلسة",
+      "description": "يمثّل جلسة واحدة من جلسات المرحلة."
+    },
+    "backend/src/main/java/com/lawdesk/hearings/HearingController.java": {
+      "name": "طلبات الجلسات والتقويم",
+      "description": "يتيح جدولة الجلسات وعرض تقويمها ومتابعة المؤجلة منها وتعديلها وإعادة إسنادها وتسجيل نتيجتها وتحديد الجلسة التالية."
+    },
+    "backend/src/main/java/com/lawdesk/hearings/HearingDependentDates.java": {
+      "name": "منع تاريخ قيد بعد الجلسات",
+      "description": "يمنع تصحيح تاريخ قيد المرحلة إلى ما بعد أي من جلساتها. لم يرصد الفحص ملفاً يستدعيه مباشرة."
+    },
+    "backend/src/main/java/com/lawdesk/hearings/HearingKind.java": {
+      "name": "نوع الجلسة",
+      "description": "يسرد أنواع الجلسات: جلسة محكمة أو خبير أو تحقيق أو إجراء آخر."
+    },
+    "backend/src/main/java/com/lawdesk/hearings/HearingPurpose.java": {
+      "name": "غرض الجلسة",
+      "description": "يسرد أغراض الجلسة: أول جلسة، ومرافعة، وإثبات وتحقيق وسماع شهود، ومناقشة تقرير الخبير، والنطق بالحكم، وغير ذلك."
+    },
+    "backend/src/main/java/com/lawdesk/hearings/HearingReportQueries.java": {
+      "name": "استعلامات الجلسات للتقارير",
+      "description": "يتيح للتقارير قراءة الجلسات حسب الفترة والحالة وأسباب التأجيل والمسؤول عنها، للقراءة فقط."
+    },
+    "backend/src/main/java/com/lawdesk/hearings/HearingRepository.java": {
+      "name": "حفظ الجلسات",
+      "description": "يقرأ الجلسات ويحفظها في قاعدة البيانات."
+    },
+    "backend/src/main/java/com/lawdesk/hearings/HearingRequests.java": {
+      "name": "نماذج طلبات الجلسات",
+      "description": "يحدد بيانات إنشاء الجلسة وتعديلها وإعادة إسنادها وتسجيل نتيجتها وجدولة الجلسة التالية وما يعاد."
+    },
+    "backend/src/main/java/com/lawdesk/hearings/HearingService.java": {
+      "name": "منطق الجلسات",
+      "description": "ينفذ جدولة الجلسة وتأجيلها وتسجيل نتيجتها وإنشاء الجلسة التالية عند التأجيل."
+    },
+    "backend/src/main/java/com/lawdesk/hearings/HearingStatus.java": {
+      "name": "حالات الجلسة",
+      "description": "يسرد حالات الجلسة: مجدولة، ثم تنتهي مرة واحدة بانعقادها أو تأجيلها أو إلغائها."
+    },
+    "backend/src/main/java/com/lawdesk/hearings/LegalDay.java": {
+      "name": "تواريخ وأوقات الجلسات",
+      "description": "يحدد كيف تقرأ وحدة الجلسات التواريخ والأوقات والنصوص."
+    },
+    "backend/src/main/java/com/lawdesk/hearings/Rules.java": {
+      "name": "رموز قواعد الجلسات",
+      "description": "يثبّت رموز قواعد الجلسات التي يعاد بها رد الرفض عند مخالفتها."
+    }
+  },
+  "routes": {
+    "POST /api/v1/proceedings/{proceedingId}/hearings": {
+      "name": "جدولة جلسة",
+      "description": "يضيف جلسة جديدة إلى المرحلة. يتطلب صلاحية إدارة الجلسات."
+    },
+    "GET /api/v1/hearings": {
+      "name": "تقويم الجلسات",
+      "description": "يعرض الجلسات في فترة محددة وحالة اختيارية، صفحة صفحة."
+    },
+    "GET /api/v1/hearings/follow-up": {
+      "name": "متابعة الجلسات المؤجلة",
+      "description": "يعرض الجلسات المؤجلة التي ينتظر تحديد موعد جلستها التالية."
+    },
+    "GET /api/v1/cases/{caseId}/hearings": {
+      "name": "جلسات القضية",
+      "description": "يعرض جلسات القضية صفحة صفحة."
+    },
+    "GET /api/v1/hearings/{id}": {
+      "name": "بيانات جلسة",
+      "description": "يعرض بيانات جلسة واحدة."
+    },
+    "PUT /api/v1/hearings/{id}": {
+      "name": "تعديل جلسة",
+      "description": "يعدّل جلسة مجدولة؛ أما الجلسة بعد انعقادها أو تأجيلها فلا تتغير."
+    },
+    "POST /api/v1/hearings/{id}/reassign": {
+      "name": "إعادة إسناد الجلسة",
+      "description": "ينقل مسؤولية جلسة مجدولة إلى عضو آخر بخطوة واحدة."
+    },
+    "POST /api/v1/hearings/{id}/next-hearing": {
+      "name": "تحديد الجلسة التالية",
+      "description": "يحدد موعد الجلسة التالية لجلسة مؤجلة كانت بلا موعد."
+    },
+    "POST /api/v1/hearings/{id}/result": {
+      "name": "تسجيل نتيجة الجلسة",
+      "description": "يسجّل نتيجة جلسة مجدولة: انعقدت أو تأجلت أو أُلغيت."
+    }
+  }
+}

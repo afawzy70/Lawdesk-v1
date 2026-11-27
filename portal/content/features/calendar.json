@@ -1,0 +1,863 @@
+{
+  "id": "calendar",
+  "category": "work",
+  "name_ar": "التقويم القضائي والمواعيد اليدوية",
+  "summary_ar": "تقويم واحد يجمع من النظام نفسه الجلسات ومهام القضايا وجلسات الخبراء ومواعيد الرد على طلبات الإفادة والمواعيد القانونية والتنفيذ، إضافة إلى المواعيد التي يدخلها الموظف يدويًا (اجتماع، تحقيق، موعد مذكرة…). يعرض شهريًا وأسبوعيًا ويوميًا وكقائمة، ويكشف المواعيد المتعارضة للعضو نفسه.",
+  "purpose_ar": "ألا يضيع على المحامي موعد جلسة أو مذكرة أو تنفيذ، وأن يرى الإدارة كلها (التقويم العام) أو مواعيده وحده (تقويمي)، وأن يكتشف مبكرًا أن عنده موعدين في الوقت نفسه فيحيل أحدهما إلى العضو البديل في القضية.",
+  "who_ar": [
+    "من يحمل صلاحية «عرض التقويم القضائي» (CALENDAR_VIEW) للاطلاع على التقويم والتعارضات",
+    "من يحمل صلاحية «إدخال مواعيد يدوية في التقويم» (CALENDAR_MANAGE) لإضافة موعد يدوي أو تعديله أو تغيير حالته",
+    "ولا يظهر في التقويم كل نوع من المواعيد إلا لمن يحمل صلاحية عرض وحدته (الجلسات، المهام، الخبراء، طلبات الإفادة، المواعيد القانونية، التنفيذ)"
+  ],
+  "who_perms": [
+    "CALENDAR_VIEW",
+    "CALENDAR_MANAGE",
+    "HEARING_VIEW",
+    "TASK_VIEW",
+    "EXPERT_VIEW",
+    "INFO_REQUEST_VIEW",
+    "DEADLINE_VIEW",
+    "ENFORCEMENT_VIEW",
+    "HEARING_MANAGE"
+  ],
+  "access_ar": "القائمة الرئيسية > التقويم (وتظهر مواعيد القضية الواحدة داخل صفحة القضية، ومن الإشعارات برابط «فتح» يفتح اليوم المعني)",
+  "route": "/calendar",
+  "prerequisites_ar": [
+    "صلاحية «عرض التقويم القضائي».",
+    "لإضافة موعد يدوي: صلاحية «إدخال مواعيد يدوية في التقويم»، وللموعد المرتبط بقضية حق تغيير القضية وألا تكون مؤرشفة.",
+    "لإحالة جلسة متعارضة إلى العضو البديل: صلاحية إدارة الجلسات (HEARING_MANAGE)."
+  ],
+  "fields": {
+    "required": [
+      {
+        "name_ar": "نوع الموعد",
+        "code": "kind",
+        "rule_ar": "اجتماع، تحقيق، موعد تقديم مذكرة، موعد طعن أو تظلم، موعد تنفيذ، أو موعد آخر.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateKind.java",
+            "lines": "9-14",
+            "note": "kinds"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateRequests.java",
+            "lines": "23",
+            "note": "required"
+          }
+        ]
+      },
+      {
+        "name_ar": "العنوان",
+        "code": "title",
+        "rule_ar": "مطلوب وحتى 200 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateRequests.java",
+            "lines": "24",
+            "note": "title"
+          },
+          {
+            "path": "frontend/src/features/calendar/ManualDateForm.tsx",
+            "lines": "68",
+            "note": "form"
+          }
+        ]
+      },
+      {
+        "name_ar": "التاريخ",
+        "code": "date",
+        "rule_ar": "مطلوب؛ تاريخ اليوم بتوقيت الكويت.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateRequests.java",
+            "lines": "27",
+            "note": "date"
+          }
+        ]
+      },
+      {
+        "name_ar": "رقم النسخة (عند التعديل أو تغيير الحالة)",
+        "code": "version",
+        "rule_ar": "مطلوب في التعديل وتغيير الحالة، والتعارض مع نسخة أحدث يعطي 409.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateRequests.java",
+            "lines": "47",
+            "note": "version"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateService.java",
+            "lines": "155-159",
+            "note": "409"
+          }
+        ]
+      }
+    ],
+    "optional": [
+      {
+        "name_ar": "وقت البدء",
+        "code": "startTime",
+        "rule_ar": "بصيغة HH:mm بتوقيت الكويت؛ إن تُرك فارغًا صار الموعد «طوال اليوم».",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateRequests.java",
+            "lines": "28",
+            "note": "startTime"
+          },
+          {
+            "path": "frontend/src/i18n/messages/wp6.ar.ts",
+            "lines": "100",
+            "note": "Arabic hint"
+          }
+        ]
+      },
+      {
+        "name_ar": "وقت الانتهاء",
+        "code": "endTime",
+        "rule_ar": "يتطلب وقت بدء ويجب أن يكون بعده.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateService.java",
+            "lines": "132-137",
+            "note": "time rules"
+          }
+        ]
+      },
+      {
+        "name_ar": "ملاحظات",
+        "code": "notes",
+        "rule_ar": "حتى 2000 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateRequests.java",
+            "lines": "25",
+            "note": "notes"
+          }
+        ]
+      },
+      {
+        "name_ar": "القضية",
+        "code": "caseId",
+        "rule_ar": "اختيارية وتثبت عند الإنشاء ولا تتغير. الموعد بلا قضية يخص صاحبه ومنشئه.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateRequests.java",
+            "lines": "26",
+            "note": "caseId"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateRequests.java",
+            "lines": "38",
+            "note": "fixed once created"
+          }
+        ]
+      },
+      {
+        "name_ar": "صاحب الموعد",
+        "code": "ownerId",
+        "rule_ar": "اختياري عبر الواجهة البرمجية؛ الافتراضي المستخدم نفسه، ويجب أن يكون مستخدمًا مفعّلًا (القاعدة OWNER_NOT_ASSIGNABLE).",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateService.java",
+            "lines": "141-143",
+            "note": "enabled owner"
+          }
+        ]
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "actor_ar": "الموظف (حامل «عرض التقويم القضائي»)",
+      "action_ar": "يفتح «التقويم». تفتح الشاشة على العرض الشهري لتقويمه (تقويمي)، ويمكنه التبديل بين شهري وأسبوعي ويومي وقائمة، والتنقل بين الفترات، والرجوع إلى اليوم، والتحويل إلى «التقويم العام» وتصفية الأنواع.",
+      "response_ar": "يعرض النظام مواعيد الفترة مرتبة بالوقت، وفي العرض الشهري عدد مواعيد كل يوم. تُظهر كل بطاقة نوع الموعد والقضية والمسؤول وما يحتاج انتباهًا (متأخر، فائت، ملغى، تعارض، قضية مغلقة).",
+      "rules_ar": [
+        "كل الأيام والأوقات بتوقيت الكويت، والأسبوع من الأحد إلى السبت.",
+        "أقصى فترة في الطلب الواحد 100 يوم بعد اليوم الأول، وأقصى عدد مواعيد 2000 وإلا ظهر تنبيه «عدد المواعيد كبير: تظهر الأولى فقط».",
+        "كل مصدر مواعيد يطبق قاعدة وصول القضية وصلاحية وحدته، فلا يرى المستخدم موعدًا لقضية لا يراها.",
+        "مواعيد قضية مغلقة أو مؤرشفة التي ما زالت قادمة تُعلَّم بـ«قضية مغلقة: تحقق قبل الإلغاء»."
+      ],
+      "data_ar": "GET /api/v1/calendar/events?from&to&userId&caseId&type وما يماثله للأيام والأسابيع والأشهر؛ والرد: الفترة والمنطقة الزمنية وقائمة المواعيد والتعارضات وعدد مواعيد كل يوم وعلم الاقتطاع.",
+      "next_ar": "الخطوة 2 لإضافة موعد يدوي، أو الخطوة 3 لمعالجة تعارض.",
+      "evidence": [
+        {
+          "path": "frontend/src/features/calendar/CalendarPage.tsx",
+          "lines": "186",
+          "note": "screen"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/CalendarController.java",
+          "lines": "41-47",
+          "note": "events"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/CalendarService.java",
+          "lines": "46-59",
+          "note": "period flow"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/CalendarService.java",
+          "lines": "25",
+          "note": "100 days"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/CalendarEngine.java",
+          "lines": "27",
+          "note": "2000 entries"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/CalendarService.java",
+          "lines": "67-71",
+          "note": "Sunday to Saturday"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "لا توجد صلاحية «عرض التقويم»",
+          "detail_ar": "يرد 403.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/calendar/CalendarController.java",
+              "lines": "42",
+              "note": "CALENDAR_VIEW"
+            }
+          ]
+        },
+        {
+          "kind": "denied",
+          "title_ar": "لا توجد صلاحية عرض وحدة معينة",
+          "detail_ar": "لا يظهر في التقويم هذا النوع من المواعيد (مثلًا لا ترى الجلسات بلا HEARING_VIEW) دون رسالة خطأ.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/calendar/BuiltInSources.java",
+              "lines": "86",
+              "note": "per-source permission"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/calendar/BuiltInSources.java",
+              "lines": "135",
+              "note": "per-source permission"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "فترة غير صحيحة",
+          "detail_ar": "إذا كانت نهاية الفترة قبل بدايتها أو زادت عن 100 يوم، أو كان الشهر بصيغة غير YYYY-MM، أو نوع الموعد أو المستخدم غير معروف: 400 مع اسم الحقل (Range أو Size أو Pattern).",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/calendar/CalendarService.java",
+              "lines": "47-52",
+              "note": "Range/Size"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/calendar/CalendarService.java",
+              "lines": "75-79",
+              "note": "month Pattern"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/calendar/CalendarService.java",
+              "lines": "101-103",
+              "note": "type Pattern"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "ازدحام المواعيد",
+          "detail_ar": "إذا زادت المواعيد عن الحد ترجع الأولى فقط ويظهر تنبيه يطلب تضييق الفترة أو التصفية.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/calendar/CalendarEngine.java",
+              "lines": "71-74",
+              "note": "truncate"
+            },
+            {
+              "path": "frontend/src/i18n/messages/wp6.ar.ts",
+              "lines": "92",
+              "note": "Arabic"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "actor_ar": "الموظف (حامل «إدخال مواعيد يدوية»)",
+      "action_ar": "يضغط «موعد جديد» فيختار النوع ويكتب العنوان ويحدد التاريخ، وإن شاء وقتي البدء والانتهاء والملاحظات، ثم «إضافة الموعد». ومن صفحة القضية يضيف موعدًا مرتبطًا بها.",
+      "response_ar": "يُحفظ الموعد ويظهر في التقويم برسالة «أُضيف الموعد.»؛ وإن كان مرتبطًا بقضية سُجل حدث CALENDAR_DATE_ADDED في خطها الزمني.",
+      "rules_ar": [
+        "الموعد اليدوي هو موعد المحامي نفسه: لا يحسب النظام منه أي مهلة قانونية.",
+        "بلا وقت بدء يكون الموعد «طوال اليوم» ولا يدخل في فحص التعارض.",
+        "الموعد بلا قضية يخص صاحبه ومنشئه، ويراه من له نطاق القسم كله."
+      ],
+      "data_ar": "POST /api/v1/calendar/dates بجسم: kind, title, notes, caseId, date, startTime, endTime, ownerId. يُحفظ في جدول calendar_date.",
+      "next_ar": "يظهر الموعد في تقويم صاحبه وفي التقويم العام.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/CalendarController.java",
+          "lines": "78-84",
+          "note": "POST dates"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateService.java",
+          "lines": "61-88",
+          "note": "create flow"
+        },
+        {
+          "path": "frontend/src/features/calendar/ManualDateForm.tsx",
+          "lines": "41",
+          "note": "form submit"
+        },
+        {
+          "path": "backend/src/main/resources/db/migration/V721__LD-056_calendar_and_notifications.sql",
+          "lines": "5-25",
+          "note": "calendar_date table"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "وقت الانتهاء بلا وقت بدء أو قبله",
+          "detail_ar": "يرد 400 برمز RequiresStartTime أو AfterStartTime وتعرض الشاشة «حدد وقت البدء قبل وقت الانتهاء» أو «يجب أن يكون وقت الانتهاء بعد وقت البدء».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateService.java",
+              "lines": "132-137",
+              "note": "time rules"
+            },
+            {
+              "path": "frontend/src/i18n/messages/wp6.ar.ts",
+              "lines": "50-51",
+              "note": "Arabic"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "العنوان فارغ أو النوع أو التاريخ ناقص",
+          "detail_ar": "يرد 400 مع اسم الحقل.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateRequests.java",
+              "lines": "22-30",
+              "note": "bean validation"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+              "lines": "35-41",
+              "note": "400 errors[]"
+            }
+          ]
+        },
+        {
+          "kind": "denied",
+          "title_ar": "قضية لا يراها المستخدم أو لا يغيّرها",
+          "detail_ar": "القضية غير المرئية 404، والمرئية بلا حق التغيير 403.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateService.java",
+              "lines": "66-68",
+              "note": "404/403"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "قضية مؤرشفة أو صاحب موعد غير مفعّل",
+          "detail_ar": "يرد 422 بالقاعدة CASE_ARCHIVED أو OWNER_NOT_ASSIGNABLE.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateService.java",
+              "lines": "69",
+              "note": "422"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateService.java",
+              "lines": "143",
+              "note": "422"
+            }
+          ]
+        },
+        {
+          "kind": "denied",
+          "title_ar": "لا توجد صلاحية «إدخال مواعيد يدوية»",
+          "detail_ar": "يرد 403، ولا يظهر زر «موعد جديد» في الشاشة.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/calendar/CalendarController.java",
+              "lines": "79",
+              "note": "CALENDAR_MANAGE"
+            },
+            {
+              "path": "frontend/src/features/calendar/CalendarPage.tsx",
+              "lines": "191",
+              "note": "button hidden"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "actor_ar": "الموظف",
+      "action_ar": "يفتح قسم «مواعيد متعارضة» ويرى أن عنده موعدين أو أكثر في الوقت نفسه، ويضغط «إسناد إلى <اسم العضو البديل>» ليحيل الجلسة إلى العضو البديل في القضية.",
+      "response_ar": "تُعرض مجموعة التعارض بتاريخها وعدد مواعيدها واسم صاحبها والعضو البديل لكل قضية (أو «لا يوجد عضو بديل في القضية»). بعد الإحالة تُعاد تحميل الصفحة.",
+      "rules_ar": [
+        "يُعد التعارض بين مواعيد عضو واحد لها وقت بدء وغير ملغاة ولا منجزة وتتداخل أوقاتها.",
+        "الموعد طوال اليوم (مثل المهام) لا يشغل ساعة فلا يدخل في التعارض.",
+        "الإحالة تنفذها وحدة الجلسات (HEARING_MANAGE) ولا يظهر الزر لمن لا يملكها."
+      ],
+      "data_ar": "GET /api/v1/calendar/conflicts؛ وإحالة الجلسة POST /api/v1/hearings/{id}/reassign بجسم memberId.",
+      "next_ar": "وكذلك ينبّه النظام صاحب التعارض إشعار «تعارض مواعيدك» (انظر صفحة الإشعارات).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/CalendarController.java",
+          "lines": "71-75",
+          "note": "conflicts"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/CalendarEngine.java",
+          "lines": "104-112",
+          "note": "conflict rule"
+        },
+        {
+          "path": "frontend/src/features/calendar/api.ts",
+          "lines": "176-177",
+          "note": "reassign call"
+        },
+        {
+          "path": "frontend/src/features/calendar/CalendarPage.tsx",
+          "lines": "192",
+          "note": "permission HEARING_MANAGE"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "لا صلاحية إدارة الجلسات",
+          "detail_ar": "لا يظهر زر الإسناد.",
+          "evidence": [
+            {
+              "path": "frontend/src/features/calendar/CalendarPage.tsx",
+              "lines": "192",
+              "note": "hidden"
+            }
+          ]
+        },
+        {
+          "kind": "error",
+          "title_ar": "رفض الإحالة",
+          "detail_ar": "إن رفض الخادم الإحالة تعرض الشاشة السبب (خطأ من وحدة الجلسات، ولم أوثق قواعدها هنا).",
+          "evidence": [
+            {
+              "path": "frontend/src/features/calendar/CalendarPage.tsx",
+              "lines": "128-131",
+              "note": "refusal shown"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "actor_ar": "الموظف المخوّل",
+      "action_ar": "يعدّل موعدًا يدويًا أو يغيّر حالته إلى «منجز» أو «ملغى» (عبر الواجهة البرمجية: التعديل PUT وتغيير الحالة POST).",
+      "response_ar": "يبقى الموعد المنجز أو الملغى في التقويم لكنه لا يشغل وقت صاحبه فلا يدخل في التعارض.",
+      "rules_ar": [
+        "التعديل وتغيير الحالة لمن يحق له تغيير القضية؛ وللموعد بلا قضية: صاحبه أو منشئه فقط.",
+        "من لا يحق له رؤية الموعد يُخبر بأنه غير موجود (404)."
+      ],
+      "data_ar": "PUT /api/v1/calendar/dates/{id}، وPOST /api/v1/calendar/dates/{id}/status بجسم status وversion.",
+      "next_ar": "تنتهي العملية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/CalendarController.java",
+          "lines": "92-96",
+          "note": "PUT"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/CalendarController.java",
+          "lines": "98-103",
+          "note": "status"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateService.java",
+          "lines": "164-173",
+          "note": "who may change"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateStatus.java",
+          "lines": "5-7",
+          "note": "statuses"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "ليس صاحب الموعد ولا منشئه (موعد بلا قضية)",
+          "detail_ar": "يرد 403، أو 404 إن لم يكن يحق له رؤيته أصلًا.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateService.java",
+              "lines": "171",
+              "note": "403"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateService.java",
+              "lines": "146-152",
+              "note": "404 if unreadable"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "تعارض نسخة",
+          "detail_ar": "يرد 409 إن تغيّر الموعد عند شخص آخر.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateService.java",
+              "lines": "159",
+              "note": "409"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "text_ar": "مصادر التقويم: الجلسات، ومهام القضايا (بتاريخ الاستحقاق)، وجلسات الخبراء، ومواعيد الرد على طلبات الإفادة، والمواعيد القانونية، والتنفيذ، والمواعيد اليدوية؛ وأنواع المواعيد: جلسة، جلسة خبراء، تحقيق، مهمة، ميعاد قانوني، اجتماع، موعد الرد على طلب إفادة، موعد تقديم مذكرة، موعد طعن أو تظلم، موعد تنفيذ، موعد آخر.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/CalendarEntry.java",
+          "lines": "33-34",
+          "note": "entry types"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/BuiltInSources.java",
+          "lines": "71",
+          "note": "sources"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/BuiltInSources.java",
+          "lines": "198",
+          "note": "sources"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/DeadlineCalendarSource.java",
+          "lines": "36",
+          "note": "deadline source"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/EnforcementCalendarSource.java",
+          "lines": "35",
+          "note": "enforcement source"
+        }
+      ]
+    },
+    {
+      "text_ar": "المستخدم يرى فقط ما تسمح به قواعد وصول القضية؛ والموعد اليدوي بلا قضية يراه صاحبه ومنشئه ومن له نطاق شامل.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/CalendarScope.java",
+          "lines": "55-64",
+          "note": "records scope"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateService.java",
+          "lines": "146-152",
+          "note": "mayRead"
+        }
+      ]
+    },
+    {
+      "text_ar": "كل الأوقات بتوقيت الكويت (Asia/Kuwait).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/CalendarTime.java",
+          "lines": "15",
+          "note": "Kuwait zone"
+        }
+      ]
+    },
+    {
+      "text_ar": "يمكن إضافة مصدر مواعيد جديد إلى التقويم دون تغيير المحرك نفسه، على أن يطبق كل مصدر نطاق المستخدم وصلاحية وحدته.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/CalendarSource.java",
+          "lines": "15",
+          "note": "source contract"
+        }
+      ]
+    }
+  ],
+  "after_submit_ar": "يُحفظ الموعد اليدوي ويظهر في التقويم وتُعاد تحميل الصفحة؛ ولموعد القضية يُضاف سطر إلى الخط الزمني للقضية.",
+  "notifications_ar": [
+    "لا تُرسل شاشة التقويم نفسها إشعارًا عند إضافة موعد.",
+    "التشغيل الدوري للمتابعة يقرأ التقويم ويرسل إشعارات داخل النظام: جلسة قادمة، جلسة خبراء قادمة، موعد طعن، وتعارض مواعيد (خلال الثلاثين يومًا القادمة)؛ وتفاصيلها في صفحة «الإشعارات»."
+  ],
+  "approvals_ar": [],
+  "errors": [
+    {
+      "code": "HTTP 400",
+      "meaning_ar": "فترة أو شهر أو نوع أو مستخدم غير صحيح، أو حقل ناقص في الموعد اليدوي، أو أوقات غير متسقة (RequiresStartTime / AfterStartTime).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+          "lines": "45-49",
+          "note": "400 field errors"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/CalendarService.java",
+          "lines": "48",
+          "note": "Range"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 403",
+      "meaning_ar": "لا صلاحية CALENDAR_VIEW أو CALENDAR_MANAGE، أو لا يحق له تغيير القضية أو الموعد.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateService.java",
+          "lines": "171",
+          "note": "403"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 404",
+      "meaning_ar": "الموعد أو القضية غير موجود أو لا يحق للمستخدم رؤيته.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateService.java",
+          "lines": "93",
+          "note": "404"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 409",
+      "meaning_ar": "تغيّر الموعد عند شخص آخر.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateService.java",
+          "lines": "159",
+          "note": "409"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 CASE_ARCHIVED / OWNER_NOT_ASSIGNABLE",
+      "meaning_ar": "القضية مؤرشفة، أو صاحب الموعد ليس مستخدمًا مفعّلًا.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/ManualDateService.java",
+          "lines": "37-38",
+          "note": "rule codes"
+        }
+      ]
+    }
+  ],
+  "result_ar": "تقويم للفترة المختارة بمواعيد الإدارة أو مواعيد الموظف نفسه، مع كشف التعارض واقتراح العضو البديل، وموعد يدوي محفوظ عند الإضافة.",
+  "related": [
+    "tasks",
+    "notifications",
+    "hearings",
+    "deadlines",
+    "experts",
+    "info-requests",
+    "enforcement",
+    "case-access-confidentiality"
+  ],
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/v1/calendar/events",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/calendar/CalendarController.java",
+        "lines": "41",
+        "note": "events"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/calendar/day",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/calendar/CalendarController.java",
+        "lines": "49",
+        "note": "day"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/calendar/week",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/calendar/CalendarController.java",
+        "lines": "56",
+        "note": "week"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/calendar/month",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/calendar/CalendarController.java",
+        "lines": "63",
+        "note": "month"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/calendar/conflicts",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/calendar/CalendarController.java",
+        "lines": "71",
+        "note": "conflicts"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/calendar/dates",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/calendar/CalendarController.java",
+        "lines": "78",
+        "note": "create"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/calendar/dates/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/calendar/CalendarController.java",
+        "lines": "86",
+        "note": "get"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/calendar/dates/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/calendar/CalendarController.java",
+        "lines": "92",
+        "note": "update"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/calendar/dates/{id}/status",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/calendar/CalendarController.java",
+        "lines": "98",
+        "note": "status"
+      }
+    }
+  ],
+  "tech": {
+    "chain": [
+      {
+        "layer": "screen",
+        "label": "CalendarPage (/calendar)",
+        "ref": {
+          "path": "frontend/src/features/calendar/CalendarPage.tsx",
+          "lines": "186",
+          "note": "screen"
+        },
+        "data_ar": "الوضع والفترة والمستخدم والأنواع المختارة تتحول إلى معاملات الطلب."
+      },
+      {
+        "layer": "component",
+        "label": "ManualDateForm",
+        "ref": {
+          "path": "frontend/src/features/calendar/ManualDateForm.tsx",
+          "lines": "22",
+          "note": "form"
+        },
+        "data_ar": "نوع الموعد والعنوان والتاريخ والأوقات والملاحظات."
+      },
+      {
+        "layer": "api_call",
+        "label": "loadCalendar / createManualDate",
+        "ref": {
+          "path": "frontend/src/features/calendar/api.ts",
+          "lines": "117-123",
+          "note": "api"
+        },
+        "data_ar": "طلب GET /api/v1/calendar/events أو POST /api/v1/calendar/dates."
+      },
+      {
+        "layer": "controller",
+        "label": "CalendarController",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/calendar/CalendarController.java",
+          "lines": "41-47",
+          "note": "controller"
+        },
+        "data_ar": "التواريخ والمرشحات تُسلَّم إلى CalendarService."
+      },
+      {
+        "layer": "authorization",
+        "label": "@PreAuthorize CALENDAR_VIEW / CALENDAR_MANAGE",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/calendar/CalendarController.java",
+          "lines": "42",
+          "note": "permission"
+        },
+        "data_ar": "تُفحص الصلاحية ثم نطاق المستخدم لكل مصدر."
+      },
+      {
+        "layer": "service",
+        "label": "CalendarService.period → CalendarEngine.collect",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/calendar/CalendarService.java",
+          "lines": "46-54",
+          "note": "service"
+        },
+        "data_ar": "الاستعلام (الفترة والمالك والقضية والأنواع) ونطاق المستخدم يمرّان على كل مصدر."
+      },
+      {
+        "layer": "repository",
+        "label": "BuiltInSources والمصادر الأخرى و ManualDateService",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/calendar/BuiltInSources.java",
+          "lines": "71",
+          "note": "sources"
+        },
+        "data_ar": "كل مصدر يقرأ جدول وحدته ويقيّد النتائج بنطاق المستخدم."
+      },
+      {
+        "layer": "tables",
+        "label": "calendar_date",
+        "ref": {
+          "path": "backend/src/main/resources/db/migration/V721__LD-056_calendar_and_notifications.sql",
+          "lines": "5-25",
+          "note": "table"
+        },
+        "data_ar": "المواعيد اليدوية فقط؛ أما بقية المواعيد فتُقرأ من جداول وحداتها."
+      },
+      {
+        "layer": "result",
+        "label": "CalendarService.View",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/calendar/CalendarService.java",
+          "lines": "31-32",
+          "note": "view"
+        },
+        "data_ar": "المواعيد والتعارضات وعدد كل يوم وعلم الاقتطاع."
+      }
+    ]
+  },
+  "status": "IMPLEMENTED_ON_DEVELOP",
+  "status_note_ar": "الشيفرة موجودة على develop ولها اختبارات؛ لم يُتحقق منها في UAT ضمن هذه الوثيقة. تعديل الموعد اليدوي وتغيير حالته متاحان في الواجهة البرمجية، ولم أجد في شاشات الواجهة استدعاءً لهما.",
+  "status_evidence": [
+    {
+      "path": "backend/src/main/java/com/lawdesk/calendar/CalendarController.java",
+      "lines": "29-30",
+      "note": "controller on develop"
+    }
+  ],
+  "verification_ar": "اختبارات وُجدت: backend/src/test/java/com/lawdesk/wp6/CalendarApiTest.java وbackend/src/test/java/com/lawdesk/calendar/CalendarEngineTest.java، واختبارات الواجهة frontend/src/features/calendar/Calendar.test.tsx وCaseDates.test.tsx وapi.test.ts. لم أشغّلها ولم يُجرَ تحقق UAT ضمن هذه الوثيقة. لم أوثق قواعد مصادر الجلسات والمواعيد القانونية والتنفيذ إلا بقدر ظهورها في التقويم؛ فهي تخص صفحاتها."
+}

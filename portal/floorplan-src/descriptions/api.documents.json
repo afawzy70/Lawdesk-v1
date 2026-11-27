@@ -1,0 +1,198 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/documents/ArchiveController.java": {
+      "name": "الأرشيف الإلكتروني للمستندات",
+      "description": "يتيح إدارة المستند بعد رفعه: إصداراته وتصنيفه ونصه المستخرج والبحث فيه، وسحبه من ملف القضية واسترجاعه وحذفه نهائياً، وإعدادات الأرشيف."
+    },
+    "backend/src/main/java/com/lawdesk/documents/ArchiveSettings.java": {
+      "name": "إعدادات الأرشيف",
+      "description": "يقرأ حدود الأرشيف والصيغ المقبولة في كل استخدام، فيسري أي تعديل يجريه المدير فوراً."
+    },
+    "backend/src/main/java/com/lawdesk/documents/CaseDocument.java": {
+      "name": "سجل المستند",
+      "description": "يصف المستند المؤرشف: بيانات إصداره الحالي وتصنيفه، وبيانات سحبه من ملف القضية إن سُحب."
+    },
+    "backend/src/main/java/com/lawdesk/documents/DocumentArchive.java": {
+      "name": "أرشفة مستند من وحدة أخرى",
+      "description": "يتيح للوحدات الأخرى حفظ مستند في ملف القضية، فيخضع للفحوص والحدود نفسها ويظهر في السجل الزمني للقضية."
+    },
+    "backend/src/main/java/com/lawdesk/documents/DocumentController.java": {
+      "name": "مستندات القضية",
+      "description": "يتيح رفع مرفقات القضية (PDF وWord وصور) وعرض قائمتها وتنزيلها وحذفها، وعرض آخر المستندات."
+    },
+    "backend/src/main/java/com/lawdesk/documents/DocumentLinkController.java": {
+      "name": "طلبات ربط المستندات",
+      "description": "يتيح ربط مستند بالدعوى أو الدفاع أو الجلسة أو الحكم أو المهمة التي يخصها، وعرض الروابط وإزالتها."
+    },
+    "backend/src/main/java/com/lawdesk/documents/DocumentLinkService.java": {
+      "name": "ربط المستند بسجل آخر",
+      "description": "يربط المستند بالدعوى أو الدفاع أو الجلسة أو الحكم أو المهمة التي يخصها ويتحقق من صحة الربط ويسجله في التدقيق."
+    },
+    "backend/src/main/java/com/lawdesk/documents/DocumentReadPort.java": {
+      "name": "قراءة نص المستندات للمساعد",
+      "description": "يتيح لوحدات أخرى قراءة نصوص المستندات المؤرشفة للقراءة فقط، وهو ما يستعين به المساعد القانوني، ضمن ما يحق للمستخدم الاطلاع عليه."
+    },
+    "backend/src/main/java/com/lawdesk/documents/DocumentRequestErrors.java": {
+      "name": "رسائل أخطاء الرفع",
+      "description": "يحوّل أخطاء رفع الملفات (ملف أكبر من الحد أو طلب تالف) إلى رد خطأ واضح بدل عطل داخلي."
+    },
+    "backend/src/main/java/com/lawdesk/documents/DocumentService.java": {
+      "name": "منطق الأرشيف الإلكتروني",
+      "description": "ينفذ أرشفة مستندات القضية بصيغ PDF وWord والصور ضمن حدود الإعدادات، مع حفظ كل إصدار سابق، وسحب المستند واسترجاعه وحذفه."
+    },
+    "backend/src/main/java/com/lawdesk/documents/DocumentStore.java": {
+      "name": "تخزين المستندات",
+      "description": "يحفظ المستند وإصداراته ومحتواه في قاعدة البيانات، ويقفل ملف القضية أثناء التعديل."
+    },
+    "backend/src/main/java/com/lawdesk/documents/DocumentTextService.java": {
+      "name": "نص المستندات والبحث",
+      "description": "يحفظ النص المستخرج من كل إصدار ويتيح البحث فيه، فتظهر النتيجة بالمستند وقضيته ومقطع قصير حول الكلمة."
+    },
+    "backend/src/main/java/com/lawdesk/documents/DocumentVersion.java": {
+      "name": "إصدار المستند",
+      "description": "يصف إصداراً واحداً محفوظاً من المستند."
+    },
+    "backend/src/main/java/com/lawdesk/documents/FileFormats.java": {
+      "name": "التعرف على نوع الملف",
+      "description": "يتعرف على نوع الملف المرفوع من محتواه لا من اسمه، ويشترط أن يتفق مع النوع المعلن."
+    },
+    "backend/src/main/java/com/lawdesk/documents/LibraryCopyController.java": {
+      "name": "طلبات نسخة حكم المكتبة",
+      "description": "يتيح عرض معلومات النسخة الإلكترونية المحفوظة لحكم في المكتبة وسجل نسخها، وحفظها وإزالتها لمن له صلاحية الإدارة."
+    },
+    "backend/src/main/java/com/lawdesk/documents/LibraryCopyService.java": {
+      "name": "نسخة حكم المكتبة",
+      "description": "يحفظ النسخة الإلكترونية لحكم المكتبة عبر الأرشيف، ويعرض ما يُعرف عنها دون محتواها."
+    },
+    "backend/src/main/java/com/lawdesk/documents/OcrEngine.java": {
+      "name": "واجهة القراءة الآلية",
+      "description": "يعرّف الاتصال بمحرك قراءة النصوص من الصور الذي يعمل على الخادم نفسه، فلا يُرسل أي شيء إلى الخارج، ويبيّن إن كان جاهزاً."
+    },
+    "backend/src/main/java/com/lawdesk/documents/OcrPreprocessor.java": {
+      "name": "تحسين الصور قبل القراءة",
+      "description": "ينظّف الصورة قبل قراءتها آلياً بتحويلها إلى الرمادي وتحسين التباين وتعديل ميلها."
+    },
+    "backend/src/main/java/com/lawdesk/documents/OcrSchedule.java": {
+      "name": "جدولة القراءة الآلية",
+      "description": "يمرر المستندات الممسوحة المنتظرة إلى محرك القراءة المحلي كل دقيقة."
+    },
+    "backend/src/main/java/com/lawdesk/documents/Rules.java": {
+      "name": "رموز قواعد المستندات",
+      "description": "يثبّت رموز قواعد المستندات التي يعاد بها رد الرفض عند مخالفتها."
+    },
+    "backend/src/main/java/com/lawdesk/documents/TesseractOcrEngine.java": {
+      "name": "محرك Tesseract للقراءة",
+      "description": "يشغّل محرك Tesseract على الخادم نفسه لقراءة النص من الصور، دون إرسال شيء عبر الشبكة."
+    },
+    "backend/src/main/java/com/lawdesk/documents/TextExtractor.java": {
+      "name": "استخراج النص من الملف",
+      "description": "يقرأ النص الموجود في الملف نفسه، من طبقة النص في ملف PDF وفقرات مستند Word، دون تشغيل أي شيء بداخله."
+    }
+  },
+  "routes": {
+    "GET /api/v1/documents/{id}/versions": {
+      "name": "إصدارات المستند",
+      "description": "يعرض قائمة إصدارات المستند مع حالة استخراج النص لكل إصدار."
+    },
+    "POST /api/v1/documents/{id}/versions": {
+      "name": "رفع إصدار جديد",
+      "description": "يضيف إصداراً جديداً للمستند من ملف مرفوع مع ملاحظة اختيارية، ويرفض الطلب إن لم يكن بصيغة رفع الملفات."
+    },
+    "GET /api/v1/documents/{id}/versions/{versionNo}/content": {
+      "name": "تنزيل إصدار محدد",
+      "description": "ينزّل ملف الإصدار المطلوب من المستند دون حفظ نسخة مؤقتة له."
+    },
+    "PUT /api/v1/documents/{id}/classification": {
+      "name": "تصنيف المستند",
+      "description": "يحدّث عنوان المستند وفئته وتاريخه ومرحلته المرتبطة ووصفه."
+    },
+    "POST /api/v1/documents/{id}/withdraw": {
+      "name": "سحب المستند",
+      "description": "يسحب المستند من ملف القضية مع تسجيل السبب."
+    },
+    "POST /api/v1/documents/{id}/restore": {
+      "name": "استرجاع مستند مسحوب",
+      "description": "يعيد المستند المسحوب إلى ملف القضية."
+    },
+    "GET /api/v1/cases/{caseId}/documents/withdrawn": {
+      "name": "المستندات المسحوبة",
+      "description": "يعرض المستندات التي سُحبت من ملف القضية."
+    },
+    "POST /api/v1/documents/{id}/permanent-deletion": {
+      "name": "حذف المستند نهائياً",
+      "description": "يحذف المستند نهائياً مع تسجيل السبب. مقصور على مسؤول الأرشيف."
+    },
+    "GET /api/v1/documents/deletion-log": {
+      "name": "سجل الحذف النهائي",
+      "description": "يعرض سجل المستندات المحذوفة نهائياً، ويمكن حصره في قضية واحدة. مقصور على مسؤول الأرشيف."
+    },
+    "GET /api/v1/documents/{id}/text": {
+      "name": "نص المستند",
+      "description": "يعيد حالة النص المستخرج من الإصدار الحالي، ونصه إذا طُلب. يرد بعدم الوجود إن لم يكن للمستند نص مسجل."
+    },
+    "POST /api/v1/documents/{id}/text/reprocess": {
+      "name": "إعادة قراءة النص",
+      "description": "يعيد استخراج النص من الإصدار الحالي للمستند، ويرفض إن كان المستند لا يقبل التغيير."
+    },
+    "GET /api/v1/documents/search": {
+      "name": "البحث في المستندات",
+      "description": "يبحث في نصوص المستندات، ويمكن حصره في قضية أو فئة، ويعيد المستند وقضيته ومقطعاً من النص حول الكلمة."
+    },
+    "GET /api/v1/archive/settings": {
+      "name": "عرض إعدادات الأرشيف",
+      "description": "يعيد حدود الأرشيف والصيغ المقبولة وحالة محرك القراءة الآلية."
+    },
+    "PUT /api/v1/archive/settings": {
+      "name": "تعديل إعدادات الأرشيف",
+      "description": "يحدّث حدود الأرشيف والصيغ المقبولة، ويسجل التعديل في سجل التدقيق. مقصور على مسؤول الأرشيف."
+    },
+    "POST /api/v1/cases/{caseId}/documents": {
+      "name": "رفع مستند للقضية",
+      "description": "يرفع مستنداً إلى ملف القضية ويحفظه في الأرشيف."
+    },
+    "GET /api/v1/cases/{caseId}/documents": {
+      "name": "مستندات القضية",
+      "description": "يعرض مستندات القضية المحفوظة."
+    },
+    "GET /api/v1/documents": {
+      "name": "آخر المستندات",
+      "description": "يعرض صفحة من أحدث المستندات المؤرشفة مع القضية التابعة لها."
+    },
+    "GET /api/v1/documents/{id}": {
+      "name": "بيانات مستند",
+      "description": "يعرض بيانات مستند واحد دون محتوى ملفه."
+    },
+    "GET /api/v1/documents/{id}/content": {
+      "name": "تنزيل المستند",
+      "description": "ينزّل ملف المستند الحالي."
+    },
+    "DELETE /api/v1/documents/{id}": {
+      "name": "حذف مستند",
+      "description": "يحذف المستند من الأرشيف."
+    },
+    "GET /api/v1/documents/{id}/links": {
+      "name": "روابط المستند",
+      "description": "يعرض السجلات المرتبطة بالمستند (دعوى أو دفاع أو جلسة أو حكم أو مهمة)."
+    },
+    "GET /api/v1/cases/{caseId}/document-links": {
+      "name": "روابط مستندات القضية",
+      "description": "يعرض روابط المستندات المرتبطة بسجلات القضية."
+    },
+    "POST /api/v1/documents/{id}/links": {
+      "name": "ربط المستند بسجل",
+      "description": "يربط المستند بدعوى أو دفاع أو جلسة أو حكم أو مهمة."
+    },
+    "DELETE /api/v1/document-links/{id}": {
+      "name": "إزالة رابط مستند",
+      "description": "يزيل الربط بين المستند والسجل المرتبط به."
+    },
+    "GET /api/v1/library/judgments/{id}/copy/info": {
+      "name": "معلومات نسخة الحكم",
+      "description": "يعرض ما يُعرف عن النسخة الإلكترونية المحفوظة لحكم في المكتبة دون محتواها."
+    },
+    "GET /api/v1/library/judgments/{id}/copy/history": {
+      "name": "سجل نسخ الحكم",
+      "description": "يعرض سجل النسخ الإلكترونية المحفوظة لحكم في المكتبة."
+    }
+  }
+}

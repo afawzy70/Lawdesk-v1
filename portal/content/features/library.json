@@ -1,0 +1,1336 @@
+{
+ "id": "library",
+ "category": "legal",
+ "name_ar": "مكتبة الأحكام والسوابق القضائية",
+ "summary_ar": "مرجع مشترك للإدارة تحفظ فيه الأحكام المهمة وسوابقها: يسجّل العضو الحكم بمحكمته ورقمه وموضوعه ومصدره وطريقة التحقق منه، ويبحث الجميع بالعربية في نصه ومبادئه، ويمكن حفظ نسخة إلكترونية منه، وسحب الحكم من الاستعمال دون حذفه، وربط حكم بقضية مع بيان سبب الاستفادة منه.",
+ "purpose_ar": "ألا تضيع الأحكام المفيدة بين الملفات: تبقى مكتبة موحدة يمكن البحث فيها وتتبع مصدرها وصحة التحقق منها، وتُقترح على القضايا الجديدة. المكتبة بيانات مرجعية عامة للإدارة ولا تحوي بيانات قضايا، عدا قائمة القضايا المرتبطة بالحكم المقيّدة بما يحق للمستخدم رؤيته.",
+ "who_ar": [
+  "مدير النظام",
+  "مدير الشؤون القانونية",
+  "رئيس القسم",
+  "الموظف القانوني (إضافة وتعديل)",
+  "مدخل البيانات وأمين الأرشيف والقراءة فقط (اطلاع وبحث)"
+ ],
+ "who_perms": [
+  "LIBRARY_VIEW",
+  "LIBRARY_MANAGE"
+ ],
+ "access_ar": "القائمة الجانبية > المكتبة (مكتبة الأحكام والسوابق القضائية). وداخل صفحة القضية قسم «الأحكام والسوابق» لربط حكم بالقضية.",
+ "route": "/library",
+ "prerequisites_ar": [
+  "صلاحية LIBRARY_VIEW للاطلاع والبحث؛ وLIBRARY_MANAGE لإضافة حكم أو تعديله أو سحبه أو حفظ نسخته. الأدوار التي تملك الاثنين أصلًا: مدير النظام والمدير القانوني ورئيس القسم والموظف القانوني؛ أما مدخل البيانات وأمين الأرشيف والقراءة فقط فللاطلاع فقط.",
+  "لربط حكم بقضية: LIBRARY_VIEW إضافة إلى حق تعديل تلك القضية (عضو فيها)، وألا تكون القضية مؤرشفة في الشاشة.",
+  "تبدأ المكتبة فارغة ولا تضم إلا ما يضيفه الأعضاء."
+ ],
+ "fields": {
+  "required": [
+   {
+    "name_ar": "المحكمة",
+    "code": "courtName",
+    "rule_ar": "إلزامي، حتى 200 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+      "lines": "33-33",
+      "note": "NotBlank Size 200"
+     },
+     {
+      "path": "frontend/src/features/library/JudgmentFormPage.tsx",
+      "lines": "195-203",
+      "note": "UI check"
+     }
+    ]
+   },
+   {
+    "name_ar": "موضوع النزاع",
+    "code": "subject",
+    "rule_ar": "إلزامي، حتى 1000 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+      "lines": "36-36",
+      "note": "subject"
+     }
+    ]
+   },
+   {
+    "name_ar": "مصدر الحكم",
+    "code": "sourceReference",
+    "rule_ar": "إلزامي، حتى 1000 حرف؛ من أين أُخذ الحكم.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+      "lines": "43-43",
+      "note": "source"
+     }
+    ]
+   },
+   {
+    "name_ar": "كيف جرى التحقق منه",
+    "code": "verificationNote",
+    "rule_ar": "إلزامي، حتى 1000 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+      "lines": "43-43",
+      "note": "verification"
+     }
+    ]
+   },
+   {
+    "name_ar": "سبب السحب (عند السحب)",
+    "code": "reason",
+    "rule_ar": "إلزامي عند سحب الحكم، حتى 500 حرف، مع رقم الإصدار.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+      "lines": "48-48",
+      "note": "Withdraw"
+     }
+    ]
+   },
+   {
+    "name_ar": "سبب الاستفادة من الحكم (عند ربطه بقضية)",
+    "code": "reason",
+    "rule_ar": "إلزامي حتى 2000 حرف، ويُقدَّم مع معرّف الحكم.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+      "lines": "73-74",
+      "note": "PrecedentLink"
+     },
+     {
+      "path": "frontend/src/features/library/CaseLibrarySection.tsx",
+      "lines": "76-82",
+      "note": "UI needs reason"
+     }
+    ]
+   }
+  ],
+  "optional": [
+   {
+    "name_ar": "درجة المحكمة",
+    "code": "courtLevel",
+    "rule_ar": "إحدى: الدرجة الأولى، الاستئناف، التمييز، الدستورية، أخرى.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+      "lines": "17-17",
+      "note": "levels"
+     },
+     {
+      "path": "frontend/src/i18n/messages/library.ar.ts",
+      "lines": "64-68",
+      "note": "labels"
+     }
+    ]
+   },
+   {
+    "name_ar": "الدائرة",
+    "code": "chamber",
+    "rule_ar": "حتى 120 حرفًا.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+      "lines": "34-34",
+      "note": "chamber"
+     }
+    ]
+   },
+   {
+    "name_ar": "رقم القضية",
+    "code": "caseNumber",
+    "rule_ar": "حتى 60 حرفًا.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+      "lines": "35-35",
+      "note": "number"
+     }
+    ]
+   },
+   {
+    "name_ar": "سنة القضية",
+    "code": "caseYear",
+    "rule_ar": "بين 1900 و2100.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+      "lines": "35-35",
+      "note": "Min Max"
+     }
+    ]
+   },
+   {
+    "name_ar": "تاريخ الحكم",
+    "code": "judgmentDate",
+    "rule_ar": "لا يجوز أن يكون في المستقبل (توقيت الكويت).",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+      "lines": "382-386",
+      "note": "checkDate"
+     },
+     {
+      "path": "frontend/src/i18n/messages/library.ar.ts",
+      "lines": "126-126",
+      "note": "msg"
+     }
+    ]
+   },
+   {
+    "name_ar": "نوع النزاع",
+    "code": "caseType",
+    "rule_ar": "مدني، جنائي، تجاري، عمالي، أسرة، إداري، دستوري، أخرى.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+      "lines": "18-18",
+      "note": "types"
+     }
+    ]
+   },
+   {
+    "name_ar": "أسماء الخصوم أو صفاتهم",
+    "code": "partiesDescription",
+    "rule_ar": "حتى 1000 حرف؛ تُخفى عن القراء إذا كان الحكم سريًا.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+      "lines": "37-37",
+      "note": "parties"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+      "lines": "93-99",
+      "note": "masked"
+     }
+    ]
+   },
+   {
+    "name_ar": "الملخص / المنطوق / الأسباب / النصوص القانونية / الطلبات / نتيجة الطلبات",
+    "code": "summary",
+    "rule_ar": "نصوص طويلة حتى 200000 حرف لكل منها.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+      "lines": "24-24",
+      "note": "LONG_TEXT"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+      "lines": "37-40",
+      "note": "fields"
+     }
+    ]
+   },
+   {
+    "name_ar": "اتجاه الحكم",
+    "code": "direction",
+    "rule_ar": "لصالح الجهة، ضد الجهة، نتيجة أخرى.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+      "lines": "19-19",
+      "note": "direction"
+     },
+     {
+      "path": "frontend/src/i18n/messages/library.ar.ts",
+      "lines": "69-71",
+      "note": "labels"
+     }
+    ]
+   },
+   {
+    "name_ar": "الكلمات المفتاحية",
+    "code": "keywords",
+    "rule_ar": "حتى 50 كلمة، كل كلمة حتى 100 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+      "lines": "41-41",
+      "note": "keywords"
+     }
+    ]
+   },
+   {
+    "name_ar": "النهائية",
+    "code": "finality",
+    "rule_ar": "نهائي، غير نهائي، غير محددة (الافتراضي غير محددة).",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+      "lines": "20-20",
+      "note": "finality"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+      "lines": "440-440",
+      "note": "default"
+     }
+    ]
+   },
+   {
+    "name_ar": "السرية",
+    "code": "confidentiality",
+    "rule_ar": "عادي (افتراضي) أو سري؛ السري تُخفى أسماء خصومه عن غير مديري المكتبة.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+      "lines": "21-21",
+      "note": "confidentiality"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+      "lines": "441-441",
+      "note": "default"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+      "lines": "94-94",
+      "note": "masked"
+     }
+    ]
+   },
+   {
+    "name_ar": "مكان حفظ النسخة الإلكترونية",
+    "code": "copyReference",
+    "rule_ar": "نص حتى 500 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+      "lines": "44-44",
+      "note": "copyReference"
+     }
+    ]
+   },
+   {
+    "name_ar": "التصنيفات",
+    "code": "classificationIds",
+    "rule_ar": "حتى 100 قيمة، وكلها يجب أن تكون فعالة وإلا ترفض القاعدة LIBRARY_CLASSIFICATION_UNKNOWN.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+      "lines": "44-44",
+      "note": "ids"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+      "lines": "388-399",
+      "note": "checked"
+     }
+    ]
+   },
+   {
+    "name_ar": "تأكيد أنه حكم آخر",
+    "code": "allowDuplicate",
+    "rule_ar": "true لحفظ حكم له المحكمة والرقم والسنة والتاريخ نفسها لحكم موجود.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+      "lines": "45-45",
+      "note": "allowDuplicate"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+      "lines": "288-291",
+      "note": "duplicate"
+     }
+    ]
+   },
+   {
+    "name_ar": "رقم الإصدار (version)",
+    "code": "version",
+    "rule_ar": "إلزامي عند التعديل.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+      "lines": "310-312",
+      "note": "version NotNull"
+     }
+    ]
+   }
+  ]
+ },
+ "steps": [
+  {
+   "n": 1,
+   "actor_ar": "عضو بصلاحية إدارة المكتبة",
+   "action_ar": "يضغط «إضافة حكم» ويعبئ النموذج (المحكمة، الموضوع، المصدر، طريقة التحقق إلزامية؛ وغيرها اختياري) ثم «حفظ».",
+   "response_ar": "يُسجَّل الحكم بحالة «قيد الاستعمال»، ويُختم باسم العضو المدخِل، وتُسجَّل التصنيفات المختارة، ويُكتب سطر تدقيق LIBRARY_JUDGMENT_CREATE، ثم تُفتح صفحة الحكم.",
+   "rules_ar": [
+    "الإلزامي: المحكمة والموضوع والمصدر وطريقة التحقق فقط.",
+    "تاريخ الحكم لا يكون في المستقبل."
+   ],
+   "data_ar": "بيانات الحكم والتصنيفات.",
+   "next_ar": "فتح صفحة الحكم.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryController.java",
+     "lines": "77-82",
+     "note": "POST judgments"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+     "lines": "283-305",
+     "note": "create"
+    },
+    {
+     "path": "frontend/src/features/library/JudgmentFormPage.tsx",
+     "lines": "193-216",
+     "note": "save"
+    },
+    {
+     "path": "frontend/src/features/library/routes.tsx",
+     "lines": "18-18",
+     "note": "route new"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "حقل إلزامي ناقص أو قيمة خارج القائمة (400)",
+     "detail_ar": "الشاشة تعرض «أدخل المحكمة والموضوع والمصدر وطريقة التحقق»؛ والخادم يرفض الحقول الفارغة وأي رمز خارج القوائم وسنة خارج 1900–2100 بخطأ 400.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+       "lines": "33-45",
+       "note": "annotations"
+      },
+      {
+       "path": "frontend/src/i18n/messages/library.ar.ts",
+       "lines": "125-125",
+       "note": "msg"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/library/LibraryJudgmentApiTest.java",
+       "lines": "45-75",
+       "note": "tests"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "تاريخ في المستقبل (422)",
+     "detail_ar": "القاعدة LIBRARY_DATE_IN_FUTURE: «لا يجوز أن يكون تاريخ الحكم في المستقبل».",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+       "lines": "382-386",
+       "note": "checkDate"
+      },
+      {
+       "path": "frontend/src/features/library/JudgmentFormPage.tsx",
+       "lines": "204-207",
+       "note": "UI"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "حكم مكرر محتمل (422)",
+     "detail_ar": "إن وُجد حكم بالمحكمة والرقم والسنة والتاريخ نفسها ترفض القاعدة LIBRARY_DUPLICATE_SUSPECTED ويعرض النموذج زر «حفظ كحكم آخر» للتأكيد.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+       "lines": "288-291",
+       "note": "duplicate"
+      },
+      {
+       "path": "frontend/src/features/library/JudgmentFormPage.tsx",
+       "lines": "297-306",
+       "note": "confirm"
+      },
+      {
+       "path": "frontend/src/i18n/messages/library.ar.ts",
+       "lines": "127-129",
+       "note": "msg"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/library/LibraryJudgmentApiTest.java",
+       "lines": "86-101",
+       "note": "dup test"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "تصنيف غير موجود أو معطل (422)",
+     "detail_ar": "القاعدة LIBRARY_CLASSIFICATION_UNKNOWN: «تصنيف مختار لم يعد متاحًا».",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+       "lines": "388-399",
+       "note": "checked"
+      },
+      {
+       "path": "frontend/src/i18n/messages/library.ar.ts",
+       "lines": "130-130",
+       "note": "msg"
+      }
+     ]
+    },
+    {
+     "kind": "denied",
+     "title_ar": "بلا LIBRARY_MANAGE (403)",
+     "detail_ar": "القارئ لا يستطيع الإضافة أو التعديل أو السحب ويحصل على 403؛ وغير المسجَّل دخوله 401.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/library/LibraryController.java",
+       "lines": "77-79",
+       "note": "PreAuthorize"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/library/LibraryJudgmentApiTest.java",
+       "lines": "176-190",
+       "note": "readers cannot change"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "actor_ar": "أي مستخدم بصلاحية الاطلاع",
+   "action_ar": "يكتب كلمات البحث ويختار الفلاتر (المحكمة، السنة، نوع النزاع، الدرجة، الاتجاه، النهائية، التصنيف، تضمين المسحوبة) ثم «بحث».",
+   "response_ar": "تعرض الصفحة الأحكام المطابقة مع عددها، وفي كل حكم أين وُجدت الكلمات (الموضوع، الكلمات المفتاحية، الملخص، النصوص القانونية، المبدأ، المنطوق، الأسباب)، وصفحات من 20 حكمًا.",
+   "rules_ar": [
+    "كل كلمة يجب أن تطابق بداية كلمة في الحكم أو مبادئه؛ الاستعلام الأدق يضيّق النتائج.",
+    "تُهمل فروق الهمزة والتاء المربوطة والتشكيل في البحث.",
+    "إن لم يُوجد تطابق للكلمات أُتيحت أحكام متقاربة الإملاء، ولا يوسّع ذلك نتيجة فيها تطابق فعلي.",
+    "الأحكام المسحوبة لا تظهر إلا بتضمينها صراحة.",
+    "بلا كلمات بحث: الأحدث تاريخًا أولًا."
+   ],
+   "data_ar": "كلمات البحث والفلاتر.",
+   "next_ar": "فتح حكم من القائمة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryController.java",
+     "lines": "57-75",
+     "note": "GET search"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+     "lines": "162-252",
+     "note": "search"
+    },
+    {
+     "path": "frontend/src/features/library/LibraryPage.tsx",
+     "lines": "40-80",
+     "note": "page"
+    },
+    {
+     "path": "frontend/src/features/library/api.ts",
+     "lines": "222-244",
+     "note": "query"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "قيمة فلتر خارج القائمة (400)",
+     "detail_ar": "نوع نزاع أو درجة أو اتجاه أو نهائية خارج القيم المعروفة تعطي خطأ 400 بالحقل والرمز Pattern.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/library/LibraryController.java",
+       "lines": "67-70",
+       "note": "requireCode"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/library/LibraryText.java",
+       "lines": "43-48",
+       "note": "requireCode"
+      }
+     ]
+    },
+    {
+     "kind": "denied",
+     "title_ar": "بلا LIBRARY_VIEW (403)",
+     "detail_ar": "لا تظهر الشاشة ولا تُجاب الطلبات.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/library/LibraryController.java",
+       "lines": "57-58",
+       "note": "PreAuthorize"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "لا نتائج",
+     "detail_ar": "تظهر «لا يوجد حكم مطابق في المكتبة. تبدأ المكتبة فارغة ولا تضم إلا ما يضيفه الأعضاء».",
+     "evidence": [
+      {
+       "path": "frontend/src/i18n/messages/library.ar.ts",
+       "lines": "41-41",
+       "note": "msg"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "actor_ar": "عضو بصلاحية الإدارة",
+   "action_ar": "يفتح الحكم ثم «تعديل» ويغيّر الحقول ويحفظ.",
+   "response_ar": "يُستبدل السجل كاملًا بشرط تطابق رقم الإصدار، وتُستبدل التصنيفات كمجموعة، ويُسجَّل LIBRARY_JUDGMENT_UPDATE.",
+   "rules_ar": [
+    "التعديل يرسل السجل كله مع رقم الإصدار الذي قرأه المستخدم."
+   ],
+   "data_ar": "السجل كاملًا + الإصدار.",
+   "next_ar": "عرض الحكم المحدَّث.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryController.java",
+     "lines": "90-94",
+     "note": "PUT"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+     "lines": "307-337",
+     "note": "update"
+    },
+    {
+     "path": "frontend/src/features/library/routes.tsx",
+     "lines": "22-22",
+     "note": "edit route"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "تعديل متزامن (409)",
+     "detail_ar": "يُرفض الحفظ ويظهر «غيّر مستخدم آخر هذا السجل في الأثناء. أعد تحميله وكرر التغيير».",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+       "lines": "330-332",
+       "note": "conflict"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+       "lines": "372-380",
+       "note": "lockedVersion"
+      },
+      {
+       "path": "frontend/src/i18n/messages/library.ar.ts",
+       "lines": "21-21",
+       "note": "msg"
+      }
+     ]
+    },
+    {
+     "kind": "error",
+     "title_ar": "الحكم غير موجود (404)",
+     "detail_ar": "",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+       "lines": "88-89",
+       "note": "not found"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "actor_ar": "عضو بصلاحية الإدارة",
+   "action_ar": "يضغط «سحب من الاستعمال» ويكتب سبب السحب ثم «سحب»؛ ويمكنه لاحقًا «إعادة إلى الاستعمال».",
+   "response_ar": "يتحول الحكم إلى «مسحوب» مع السبب ووقت السحب، ولا يُحذف؛ ولا يظهر في البحث العادي ولا يُقترح ولا يُربط بقضية جديدة. وإعادته تفرغ بيانات السحب وتعيده «قيد الاستعمال». يُسجَّل LIBRARY_JUDGMENT_WITHDRAW أو REINSTATE.",
+   "rules_ar": [
+    "السحب يتطلب سببًا (حتى 500 حرف).",
+    "الحكم المسحوب يظل محفوظًا ويظهر بتضمين المسحوبة."
+   ],
+   "data_ar": "السبب ورقم الإصدار.",
+   "next_ar": "عرض «هذا الحكم مسحوب: …».",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryController.java",
+     "lines": "96-106",
+     "note": "withdraw reinstate"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+     "lines": "339-369",
+     "note": "service"
+    },
+    {
+     "path": "frontend/src/features/library/JudgmentDetailPage.tsx",
+     "lines": "76-95",
+     "note": "UI actions"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "حكم مسحوب بالفعل أو غير مسحوب (422)",
+     "detail_ar": "القاعدتان LIBRARY_ALREADY_WITHDRAWN وLIBRARY_NOT_WITHDRAWN.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+       "lines": "343-345",
+       "note": "already"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+       "lines": "359-361",
+       "note": "not withdrawn"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/library/LibraryJudgmentApiTest.java",
+       "lines": "140-159",
+       "note": "test"
+      }
+     ]
+    },
+    {
+     "kind": "validation",
+     "title_ar": "سبب السحب فارغ (400)",
+     "detail_ar": "يُرفض الطلب.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+       "lines": "48-48",
+       "note": "NotBlank"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "actor_ar": "عضو بصلاحية الإدارة",
+   "action_ar": "في صفحة الحكم يرفع ملفًا في «النسخة المحفوظة من الحكم» (حفظ نسخة أو استبدال النسخة) أو يخرجها.",
+   "response_ar": "يُحفظ الملف في قاعدة البيانات بعد التعرف على نوعه من توقيعه الداخلي والتحقق من أنه مفعَّل في إعدادات الأرشيف وأن حجمه ضمن الحد؛ ويبقى لكل حكم نسخة حالية واحدة، والسابقة تُحفظ في تاريخ النسخ. ويُسجَّل LIBRARY_JUDGMENT_COPY_STORE.",
+   "rules_ar": [
+    "يجب أن يوافق نوع الملف المُعلَن نوعه الحقيقي، وأن يكون مفعَّلًا في إعدادات الأرشيف.",
+    "الملف يُنزَّل دائمًا كمرفق ولا يُعرض في المتصفح، ويُسجَّل كل تنزيل في التدقيق.",
+    "الحكم السري لا تُسلَّم نسخته إلا لمديري المكتبة."
+   ],
+   "data_ar": "الملف واسمه ونوعه وحجمه وبصمته.",
+   "next_ar": "ظهور اسم الملف رابطًا للتنزيل.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/LibraryCopyController.java",
+     "lines": "52-62",
+     "note": "POST copy"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/LibraryCopyService.java",
+     "lines": "78-117",
+     "note": "store"
+    },
+    {
+     "path": "frontend/src/features/gaps/LibraryCopySection.tsx",
+     "lines": "11-20",
+     "note": "upload UI"
+    },
+    {
+     "path": "backend/src/main/resources/db/migration/V842__LD-052_library_judgment_file.sql",
+     "lines": "1-5",
+     "note": "table"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "ملف ناقص أو فارغ أو كبير أو نوعه غير مقبول (400)",
+     "detail_ar": "أخطاء الحقل file بالرموز NotNull وNotEmpty وMaxSize وUnsupportedFormat.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/LibraryCopyService.java",
+       "lines": "82-103",
+       "note": "checks"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/library/LibraryCopyApiTest.java",
+       "lines": "49-58",
+       "note": "test"
+      }
+     ]
+    },
+    {
+     "kind": "denied",
+     "title_ar": "حكم سري وقارئ عادي (404)",
+     "detail_ar": "يُجاب كأن الحكم أو نسخته غير موجود.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/documents/LibraryCopyService.java",
+       "lines": "147-154",
+       "note": "requireReadable"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/library/LibraryCopyApiTest.java",
+       "lines": "60-67",
+       "note": "restricted"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 6,
+   "actor_ar": "عضو في القضية",
+   "action_ar": "في صفحة القضية، قسم «الأحكام والسوابق»: يطلع على «أحكام مشابهة» المقترحة أو يختار حكمًا، ويكتب «سبب الاستفادة منه في هذه القضية» ثم «ربط».",
+   "response_ar": "يُربط الحكم بالقضية مع السبب، ويُسجَّل حدث على خط القضية وسطر تدقيق CASE_PRECEDENT_LINK. الاقتراح لا يربط نفسه أبدًا: العضو يقرر ويذكر السبب. ويمكن «فك الربط» (علامة إزالة لا حذف) وإعادة الربط لاحقًا.",
+   "rules_ar": [
+    "الربط يتطلب LIBRARY_VIEW وحق تعديل القضية.",
+    "لا يُربط حكم مسحوب.",
+    "اقتراح الأحكام المشابهة: العدد من 1 إلى 25 (الافتراضي 10)."
+   ],
+   "data_ar": "معرّف الحكم وسبب الاستفادة وملاحظة التشابه.",
+   "next_ar": "ظهور الحكم ضمن «الأحكام المرتبطة بهذه القضية».",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/CasePrecedentController.java",
+     "lines": "47-52",
+     "note": "POST precedents"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/CasePrecedentService.java",
+     "lines": "86-110",
+     "note": "link"
+    },
+    {
+     "path": "frontend/src/features/library/CaseLibrarySection.tsx",
+     "lines": "76-99",
+     "note": "UI link"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/CasePrecedentService.java",
+     "lines": "112-123",
+     "note": "unlink"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "يرى القضية ولا يعدلها (403) أو لا يراها (404)",
+     "detail_ar": "من لا يحق له التعديل يحصل على 403 وتعرض الشاشة «يمكنك الاطلاع على هذه القضية لكن لا يحق لك تعديلها»؛ ومن لا يراها يحصل على 404.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/library/CasePrecedentService.java",
+       "lines": "79-89",
+       "note": "view change"
+      },
+      {
+       "path": "frontend/src/features/library/CaseLibrarySection.tsx",
+       "lines": "70-74",
+       "note": "explain"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/library/CasePrecedentApiTest.java",
+       "lines": "108-140",
+       "note": "tests"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "حكم مسحوب (422) أو مربوط بالفعل (409)",
+     "detail_ar": "القاعدة LIBRARY_JUDGMENT_WITHDRAWN، أو تعارض إن كان الحكم مربوطًا بالقضية.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/library/CasePrecedentService.java",
+       "lines": "92-94",
+       "note": "withdrawn"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/library/CasePrecedentService.java",
+       "lines": "103-105",
+       "note": "duplicate"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/library/CasePrecedentApiTest.java",
+       "lines": "59-75",
+       "note": "conflict test"
+      }
+     ]
+    },
+    {
+     "kind": "validation",
+     "title_ar": "سبب أو حد غير صالح (400)",
+     "detail_ar": "السبب إلزامي، وحد الاقتراحات خارج 1–25 يعطي خطأ على الحقل limit.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+       "lines": "73-74",
+       "note": "reason NotBlank"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/library/CasePrecedentController.java",
+       "lines": "65-70",
+       "note": "limit"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "rules": [
+  {
+   "text_ar": "المكتبة بيانات مرجعية عامة؛ الوحيد من بيانات القضايا فيها قائمة القضايا المرتبطة بالحكم، مقيّدة بما يحق للمستخدم رؤيته.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryController.java",
+     "lines": "32-35",
+     "note": "doc"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+     "lines": "143-154",
+     "note": "linkedCases"
+    }
+   ]
+  },
+  {
+   "text_ar": "الحكم السري تُخفى أسماء خصومه عن غير حاملي LIBRARY_MANAGE، وتُخفى نسخته المحفوظة أيضًا.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+     "lines": "93-99",
+     "note": "masked"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/LibraryCopyService.java",
+     "lines": "147-154",
+     "note": "copy"
+    }
+   ]
+  },
+  {
+   "text_ar": "السحب لا يحذف: الحكم يبقى بسببه ويمكن إعادته.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+     "lines": "339-369",
+     "note": "withdraw"
+    }
+   ]
+  },
+  {
+   "text_ar": "البحث عربي: الكلمات تطابق بدايات الكلمات، مع إهمال فروق الهمزة والتاء المربوطة والتشكيل، مع ترتيب يقدّم الموضوع والكلمات المفتاحية على الأسباب.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+     "lines": "162-167",
+     "note": "doc"
+    },
+    {
+     "path": "backend/src/test/java/com/lawdesk/library/LibrarySearchQualityTest.java",
+     "lines": "22-30",
+     "note": "hamza test"
+    }
+   ]
+  },
+  {
+   "text_ar": "تعديل الحكم وسحبه محميان برقم الإصدار.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+     "lines": "372-380",
+     "note": "lockedVersion"
+    }
+   ]
+  },
+  {
+   "text_ar": "الأدوار الأصلية: الإدارة لمدير النظام والمدير القانوني ورئيس القسم والموظف القانوني، والاطلاع لبقية الأدوار.",
+   "evidence": [
+    {
+     "path": "backend/src/main/resources/db/migration/V640__LD-052_judgments_library.sql",
+     "lines": "247-253",
+     "note": "grants"
+    }
+   ]
+  },
+  {
+   "text_ar": "كل تغيير في الحكم يسجَّل في التدقيق، وتنزيل النسخة يسجَّل أيضًا.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+     "lines": "302-303",
+     "note": "audit"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/LibraryCopyService.java",
+     "lines": "142-143",
+     "note": "download audit"
+    }
+   ]
+  }
+ ],
+ "after_submit_ar": "تُفتح صفحة الحكم لتعرض بياناته والمبادئ المستخلصة منه وما سُجّل له من أحداث لاحقة (طُعن فيه، أُيّد، عُدّل، أُلغي…) وموقف الحكم بما سجّله الأعضاء من مصادر، والقضايا التي تستعمله، والنسخة المحفوظة. (هذه الأجزاء الفرعية للمبادئ والأحداث اللاحقة وقوائم التصنيف والتقرير الإحصائي للمكتبة موجودة في الكود لكن لم أوثّق تفاصيلها هنا.)",
+ "notifications_ar": [
+  "لم أجد في كود المكتبة إرسال إشعارات؛ الأثر الوحيد سطر تدقيق وحدث في خط القضية عند ربط حكم بها أو فك ربطه."
+ ],
+ "approvals_ar": [
+  "لا توجد موافقات على تسجيل الحكم؛ مبدأ مستخلص من الحكم يبقى «مسودة» حتى يعتمده عضو كـ «تمت مراجعته» (لم أوثّق تفاصيله هنا)."
+ ],
+ "errors": [
+  {
+   "code": "HTTP 400 + errors[{field,code}]",
+   "meaning_ar": "خطأ تحقق: NotBlank/Size/Pattern/Min/Max على حقول الحكم، وPattern لفلاتر البحث، وNotNull للإصدار، وfile/NotNull|NotEmpty|MaxSize|UnsupportedFormat للنسخة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryRequests.java",
+     "lines": "33-45",
+     "note": "annotations"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+     "lines": "310-312",
+     "note": "version"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/LibraryCopyService.java",
+     "lines": "82-103",
+     "note": "file"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+     "lines": "34-49",
+     "note": "ProblemDetail"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 401",
+   "meaning_ar": "غير مسجَّل الدخول.",
+   "evidence": [
+    {
+     "path": "backend/src/test/java/com/lawdesk/library/LibraryJudgmentApiTest.java",
+     "lines": "176-190",
+     "note": "test"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 403",
+   "meaning_ar": "لا يملك LIBRARY_MANAGE (أو LIBRARY_VIEW) أو لا يحق له تعديل القضية عند الربط.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryController.java",
+     "lines": "77-79",
+     "note": "manage"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/CasePrecedentService.java",
+     "lines": "86-89",
+     "note": "requireChange"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+     "lines": "98-102",
+     "note": "security"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 404",
+   "meaning_ar": "الحكم أو النسخة أو الربط غير موجود، أو حكم سري على قارئ، أو قضية غير مرئية.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+     "lines": "88-89",
+     "note": "judgment"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/LibraryCopyService.java",
+     "lines": "147-154",
+     "note": "restricted"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/CasePrecedentService.java",
+     "lines": "118-119",
+     "note": "link"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 409",
+   "meaning_ar": "تغيّر السجل بيد مستخدم آخر، أو الحكم مربوط بالقضية بالفعل.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+     "lines": "330-332",
+     "note": "conflict"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/CasePrecedentService.java",
+     "lines": "103-105",
+     "note": "dup link"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+     "lines": "85-88",
+     "note": "409"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 422 + rule",
+   "meaning_ar": "LIBRARY_DATE_IN_FUTURE وLIBRARY_CLASSIFICATION_UNKNOWN وLIBRARY_DUPLICATE_SUSPECTED وLIBRARY_ALREADY_WITHDRAWN وLIBRARY_NOT_WITHDRAWN وLIBRARY_JUDGMENT_WITHDRAWN.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+     "lines": "47-51",
+     "note": "codes"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/library/CasePrecedentService.java",
+     "lines": "35-35",
+     "note": "withdrawn"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+     "lines": "90-96",
+     "note": "422"
+    }
+   ]
+  }
+ ],
+ "result_ar": "حكم مسجَّل بمصدره وتحققه، يمكن البحث فيه بالعربية وتتبّعه، مع نسخة محفوظة اختيارية وربط بالقضايا التي استُفيد منه فيها.",
+ "related": [
+  "search",
+  "audit",
+  "reports-dashboard"
+ ],
+ "endpoints": [
+  {
+   "method": "GET",
+   "path": "/api/v1/library/judgments",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/library/LibraryController.java",
+    "lines": "57-57",
+    "note": ""
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/library/judgments",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/library/LibraryController.java",
+    "lines": "77-77",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/library/judgments/{id}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/library/LibraryController.java",
+    "lines": "84-84",
+    "note": ""
+   }
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/library/judgments/{id}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/library/LibraryController.java",
+    "lines": "90-90",
+    "note": ""
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/library/judgments/{id}/withdraw",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/library/LibraryController.java",
+    "lines": "96-96",
+    "note": ""
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/library/judgments/{id}/reinstate",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/library/LibraryController.java",
+    "lines": "102-102",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/library/judgments/{id}/copy/info",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/LibraryCopyController.java",
+    "lines": "31-40",
+    "note": ""
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/library/judgments/{id}/copy",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/LibraryCopyController.java",
+    "lines": "31-54",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/library/judgments/{id}/copy",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/LibraryCopyController.java",
+    "lines": "31-31",
+    "note": ""
+   }
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/library/judgments/{id}/copy",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/documents/LibraryCopyController.java",
+    "lines": "31-65",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/cases/{caseId}/precedents",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/library/CasePrecedentController.java",
+    "lines": "30-41",
+    "note": ""
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/cases/{caseId}/precedents",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/library/CasePrecedentController.java",
+    "lines": "30-47",
+    "note": ""
+   }
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/cases/{caseId}/precedents/{linkId}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/library/CasePrecedentController.java",
+    "lines": "30-54",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/cases/{caseId}/similar-judgments",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/library/CasePrecedentController.java",
+    "lines": "30-61",
+    "note": ""
+   }
+  }
+ ],
+ "tech": {
+  "chain": [
+   {
+    "layer": "screen",
+    "label": "LibraryPage / JudgmentFormPage / JudgmentDetailPage / CaseLibrarySection",
+    "ref": {
+     "path": "frontend/src/features/library/LibraryPage.tsx",
+     "lines": "40-80",
+     "note": "LibraryPage"
+    },
+    "data_ar": "الفلاتر أو بيانات الحكم المدخلة."
+   },
+   {
+    "layer": "api_call",
+    "label": "searchJudgments / registerJudgment / withdrawJudgment / linkPrecedent",
+    "ref": {
+     "path": "frontend/src/features/library/api.ts",
+     "lines": "222-260",
+     "note": "api"
+    },
+    "data_ar": "معاملات البحث أو جسم JSON مع رقم الإصدار."
+   },
+   {
+    "layer": "controller",
+    "label": "LibraryController / LibraryCopyController / CasePrecedentController",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryController.java",
+     "lines": "36-38",
+     "note": "controller"
+    },
+    "data_ar": "فحص LIBRARY_VIEW أو LIBRARY_MANAGE."
+   },
+   {
+    "layer": "service",
+    "label": "LibraryJudgmentService",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+     "lines": "283-305",
+     "note": "create"
+    },
+    "data_ar": "تحقق التاريخ والتصنيفات والتكرار ثم الكتابة."
+   },
+   {
+    "layer": "authorization",
+    "label": "@PreAuthorize + CaseAccessPolicy (للربط) + إخفاء السري",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+     "lines": "93-99",
+     "note": "masked"
+    },
+    "data_ar": "يُقرر ما يُرى وما يُمنع."
+   },
+   {
+    "layer": "repository",
+    "label": "JdbcClient + دوال library_normalize وlibrary_trigrams",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+     "lines": "168-252",
+     "note": "search"
+    },
+    "data_ar": "الأحكام المطابقة مرتبة بالدرجة."
+   },
+   {
+    "layer": "tables",
+    "label": "library_judgment, library_judgment_file, case_precedent_link",
+    "ref": {
+     "path": "backend/src/main/resources/db/migration/V640__LD-052_judgments_library.sql",
+     "lines": "99-155",
+     "note": "table"
+    },
+    "data_ar": "سجلات الأحكام والنسخ والارتباطات."
+   },
+   {
+    "layer": "event",
+    "label": "AuditLog + case event",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/library/CasePrecedentService.java",
+     "lines": "106-108",
+     "note": "events"
+    },
+    "data_ar": "سطر تدقيق وحدث على القضية."
+   },
+   {
+    "layer": "result",
+    "label": "Judgment / PageResponse<ListItem>",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/library/LibraryController.java",
+     "lines": "57-75",
+     "note": "response"
+    },
+    "data_ar": "الأحكام للعرض."
+   }
+  ]
+ },
+ "status": "IMPLEMENTED_ON_DEVELOP",
+ "status_note_ar": "الشيفرة موجودة على develop ومغطاة باختبارات تكامل كثيرة.",
+ "status_evidence": [
+  {
+   "path": "backend/src/main/java/com/lawdesk/library/LibraryController.java",
+   "lines": "32-38",
+   "note": "controller"
+  },
+  {
+   "path": "backend/src/main/java/com/lawdesk/library/LibraryJudgmentService.java",
+   "lines": "40-45",
+   "note": "service"
+  }
+ ],
+ "verification_ar": "قرأتُ متحكمات المكتبة والنسخة والسوابق وخدمات الحكم والنسخة والسابقة وهجرة V640 وV842 وشاشات library وملف الرسائل. الاختبارات: backend/src/test/java/com/lawdesk/library/ (LibraryJudgmentApiTest وLibrarySearchQualityTest وLibraryCopyApiTest وCasePrecedentApiTest وSimilarJudgmentApiTest وغيرها) واختبارات الواجهة في frontend/src/features/library/. لم يجرِ هذا المستند أي تحقق على UAT ولم أشغّل الاختبارات. لم أوثّق تفاصيل: المبادئ المستخلصة (LibraryPrincipleService) والأحداث اللاحقة وموقف الحكم (LibraryRelationService) وقوائم التصنيف وتقرير المكتبة وخوارزمية الاقتراح (SimilarJudgmentService) إلا ما ذُكر. ولم أتحقق من الرمز HTTP الذي يعود عند رفع النسخة بنوع محتوى غير multipart (المتحكم يرمي استثناء نوع وسائط غير مدعوم لكني لم أجد معالجًا أو اختبارًا يثبت الرمز)."
+}

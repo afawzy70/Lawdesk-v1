@@ -1,0 +1,198 @@
+{
+  "id": "deadlines",
+  "category": "litigation",
+  "name_ar": "المواعيد القانونية: القواعد والاحتساب والاعتماد والتنبيهات والعطلات",
+  "summary_ar": "سجل المواعيد القانونية للقضايا (مثل مواعيد الطعن). يمكن تسجيل الميعاد يدويًا أو اقتراح تاريخه من قاعدة معتمدة تأخذ العطلات في الحساب، ولا يصبح التاريخ رسميًا إلا باعتماد عضو مختص. ويرسل النظام تنبيهات داخلية عند اقتراب الميعاد أو تأخره.",
+  "purpose_ar": "ألا يفوت أحد ميعادًا قانونيًا، وألا يفرض النظام مدة أو عطلة من عنده: كل مدة وطريقة عد وعطلة يدخلها المختصون مع مصدرها القانوني ويعتمدها عضو مختص قبل الاستعمال.",
+  "who_ar": ["من يملك عرض المواعيد", "من يملك إدارة المواعيد (التسجيل والتعديل وتغيير الحالة)", "من يملك اعتماد المواعيد والقواعد والعطلات وضبط التنبيهات"],
+  "who_perms": ["DEADLINE_VIEW", "DEADLINE_MANAGE", "DEADLINE_APPROVE"],
+  "access_ar": "سجل المواعيد: القائمة > المواعيد القانونية. القواعد والعطلات والتنبيهات: من سجل المواعيد إلى «قواعد المواعيد والعطلات والتنبيهات». ومواعيد القضية الواحدة في قسم المواعيد بصفحة القضية، وأمام كل حكم قسم «المواعيد المترتبة على هذا الحكم».",
+  "route": "/deadlines",
+  "prerequisites_ar": [
+    "للاقتراح من قاعدة: وجود قاعدة معتمدة وسارية في تاريخ البدء. وإلا لا يقترح النظام أي تاريخ.",
+    "العطلات المعتمدة فقط تدخل في الحساب.",
+    "القضية غير مؤرشفة ويملك المستخدم حق تغييرها لتسجيل ميعاد أو تعديله."
+  ],
+  "fields": {
+    "required": [
+      {"name_ar": "يبدأ الميعاد من (نوع المصدر)", "code": "sourceType", "rule_ar": "مطلوب: حكم، جلسة، دعوى، مهمة، أو نص حر. للأنواع غير الحر يلزم sourceId من نفس القضية ويُمنع النص الحر؛ وللنص الحر يلزم sourceText ويُمنع sourceId.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineRequests.java", "lines": "29-38", "note": "SourceType"}, {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "253-272", "note": "source rules"}]},
+      {"name_ar": "الإجراء المطلوب", "code": "action", "rule_ar": "مطلوب وغير فارغ حتى 500 حرف.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineRequests.java", "lines": "42-42", "note": "NotBlank Size 500"}]},
+      {"name_ar": "تاريخ بدء الميعاد (عند الاقتراح)", "code": "startsOn", "rule_ar": "مطلوب عند الاقتراح من قاعدة، ولا يسبق تاريخ سريان القاعدة.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineRequests.java", "lines": "54-62", "note": "Propose"}, {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "131-134", "note": "RULE_NOT_EFFECTIVE"}]}
+    ],
+    "optional": [
+      {"name_ar": "المدة (أيام)", "code": "periodDays", "rule_ar": "من 1 إلى 3650.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineRequests.java", "lines": "40-40", "note": "Min Max"}]},
+      {"name_ar": "آخر موعد لاتخاذ الإجراء", "code": "dueOn", "rule_ar": "في التسجيل اليدوي يلزم إدخال التاريخ أو المدة على الأقل (وإلا 400 على dueOn)، ولا يسبق تاريخ البدء.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "111-114", "note": "NotNull and order"}, {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "302-306", "note": "requireOrder"}]},
+      {"name_ar": "القاعدة", "code": "ruleId", "rule_ar": "يجب أن تكون معتمدة؛ وإن لم توجد قاعدة معتمدة إطلاقًا يرد 422 بالرمز NO_APPROVED_RULE.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "274-284", "note": "approvedRule"}]},
+      {"name_ar": "العضو المسؤول", "code": "ownerId", "rule_ar": "مستخدم موجود وإلا 400.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "308-312", "note": "requireUser"}]},
+      {"name_ar": "ملاحظات / سبب التغيير", "code": "notes, changeReason", "rule_ar": "الملاحظات حتى 2000 حرف وسبب التغيير حتى 1000 حرف.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineRequests.java", "lines": "72-80", "note": "Update"}]},
+      {"name_ar": "تاريخ الإتمام والمستند المثبت", "code": "completedOn, proofDocumentId", "rule_ar": "عند تسجيل الإتمام فقط؛ التاريخ الافتراضي اليوم ولا يكون في المستقبل، والمستند من ملف نفس القضية.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "226-237", "note": "completion"}]}
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "actor_ar": "الموظف المخوّل بإدارة المواعيد",
+      "action_ar": "من قسم المواعيد في القضية يضغط «تسجيل ميعاد» ويختار «أُدخل التاريخ بنفسي»، ثم يحدد المصدر والإجراء المطلوب والتاريخ أو المدة.",
+      "response_ar": "يُحفظ الميعاد بحالة اعتماد «يدوي بانتظار الاعتماد» ويُسجَّل حدث DEADLINE_CREATED في خط القضية. تظهر الرسالة «سُجل الميعاد وهو بانتظار الاعتماد».",
+      "rules_ar": ["الصلاحية DEADLINE_MANAGE.", "الميعاد اليدوي ليس رسميًا حتى يعتمده عضو مختص.", "القضية المؤرشفة للقراءة فقط."],
+      "data_ar": "المصدر، الإجراء، تاريخ البدء، المدة، تاريخ الاستحقاق، العضو المسؤول، الملاحظات.",
+      "next_ar": "الاعتماد.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineController.java", "lines": "47-52", "note": "POST /cases/{caseId}/deadlines"}, {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "106-122", "note": "create"}, {"path": "frontend/src/i18n/messages/deadlines.ar.ts", "lines": "8-33", "note": "Arabic UI"}],
+      "alt": [
+        {"kind": "validation", "title_ar": "حقل ناقص أو متناقض (400)", "detail_ar": "إجراء فارغ، أو لا تاريخ ولا مدة، أو تاريخ استحقاق قبل البدء (Range)، أو مصدر ليس مطابقًا لنوعه.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "253-272", "note": "FieldErrorException"}]},
+        {"kind": "error", "title_ar": "المصدر ليس من هذه القضية (422)", "detail_ar": "الرمز DEADLINE_SOURCE_NOT_IN_CASE: «المصدر ليس من هذه القضية».", "evidence": [{"path": "frontend/src/i18n/messages/deadlines.ar.ts", "lines": "170-170", "note": "Arabic"}]},
+        {"kind": "denied", "title_ar": "لا صلاحية أو قضية غير مرئية", "detail_ar": "403 بلا DEADLINE_MANAGE؛ 404 إن لم تُرَ القضية؛ ومؤرشفة 422 CASE_ARCHIVED.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "314-322", "note": "writableCase"}]}
+      ]
+    },
+    {
+      "n": 2,
+      "actor_ar": "الموظف المخوّل بإدارة المواعيد",
+      "action_ar": "أو يختار «اقتراحه من قاعدة معتمدة» ويحدد القاعدة وتاريخ البدء والإجراء.",
+      "response_ar": "يحسب النظام تاريخ الاستحقاق من القاعدة والعطلات المعتمدة ويحفظ الميعاد بحالة «مقترح بانتظار الاعتماد» مع تفصيل الحساب (القاعدة والمصدر القانوني والأيام المتجاوزة)، ويُسجَّل DEADLINE_PROPOSED.",
+      "rules_ar": ["أول يوم محسوب هو تاريخ البدء إن كانت القاعدة تحسبه، وإلا اليوم التالي.", "طريقة التقويم: المدة أيام متتالية، وإن كان الانتقال مفعلًا ووقع آخر يوم في يوم معطل (يوم أسبوع معطل أو عطلة معتمدة) انتقل إلى أول يوم مفتوح.", "طريقة أيام العمل: لا تُحسب الأيام المعطلة ولا العطلات المعتمدة.", "إن كانت كل أيام الأسبوع معطلة فلا يمكن العد (RULE_NOT_COUNTABLE)."],
+      "data_ar": "القاعدة (المدة وطريقة العد وأيام الأسبوع المعطلة والمصدر القانوني وتاريخ السريان)، تاريخ البدء، قائمة العطلات المعتمدة.",
+      "next_ar": "الاعتماد أو التعديل اليدوي.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineController.java", "lines": "54-60", "note": "POST propose"}, {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "124-145", "note": "propose"}, {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineCalculator.java", "lines": "35-73", "note": "calculate"}, {"path": "backend/src/test/java/com/lawdesk/deadlines/DeadlineCalculatorTest.java", "lines": "1-30", "note": "calculator tests"}],
+      "alt": [
+        {"kind": "error", "title_ar": "لا قاعدة معتمدة (422)", "detail_ar": "الرمز NO_APPROVED_RULE: «لا توجد قاعدة مواعيد معتمدة، فلا يستطيع النظام اقتراح تاريخ. أدخل الميعاد بنفسك».", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "274-284", "note": "NO_APPROVED_RULE"}, {"path": "frontend/src/i18n/messages/deadlines.ar.ts", "lines": "161-161", "note": "Arabic"}]},
+        {"kind": "error", "title_ar": "القاعدة غير سارية (422)", "detail_ar": "الرمز RULE_NOT_EFFECTIVE إن سبق تاريخ البدء تاريخ سريان القاعدة.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "131-134", "note": "RULE_NOT_EFFECTIVE"}]}
+      ]
+    },
+    {
+      "n": 3,
+      "actor_ar": "عضو مختص يملك اعتماد المواعيد",
+      "action_ar": "يعتمد الميعاد المسجل أو المقترح مرسلًا رقم الإصدار الذي رآه.",
+      "response_ar": "يصبح الميعاد رسميًا، ويُحفظ اسم المعتمِد ووقت الاعتماد، ويُسجَّل في سجل التدقيق DEADLINE_APPROVE وفي خط القضية DEADLINE_APPROVED.",
+      "rules_ar": ["الصلاحية DEADLINE_APPROVE.", "لا يُعتمد ميعاد بلا تاريخ استحقاق.", "لا يُعتمد ميعاد معتمد من قبل."],
+      "data_ar": "version.",
+      "next_ar": "متابعة الميعاد حتى إتمامه، ويبدأ التنبيه الداخلي.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineController.java", "lines": "86-91", "note": "POST approve"}, {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "186-206", "note": "approve"}],
+      "alt": [
+        {"kind": "error", "title_ar": "ميعاد بلا تاريخ أو معتمد سابقًا (422)", "detail_ar": "الرمزان DEADLINE_NO_DUE_DATE وDEADLINE_ALREADY_APPROVED.", "evidence": [{"path": "frontend/src/i18n/messages/deadlines.ar.ts", "lines": "172-173", "note": "Arabic"}]},
+        {"kind": "denied", "title_ar": "لا صلاحية اعتماد (403)", "detail_ar": "من يملك الإدارة فقط لا يستطيع الاعتماد.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineController.java", "lines": "87-88", "note": "DEADLINE_APPROVE"}]},
+        {"kind": "error", "title_ar": "تعارض إصدار (409)", "detail_ar": "الميعاد تغيّر بيد غيرك.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "296-300", "note": "requireVersion"}]}
+      ]
+    },
+    {
+      "n": 4,
+      "actor_ar": "الموظف المخوّل بإدارة المواعيد",
+      "action_ar": "يعدّل الميعاد القائم (التواريخ أو الإجراء أو العضو المسؤول أو الملاحظات).",
+      "response_ar": "تُحفظ التعديلات ويُسجَّل DEADLINE_UPDATED. إذا غُيّرت تواريخ ميعاد مقترح أو معتمد يلزم ذكر سبب التغيير ويعود الميعاد «يدويًا بانتظار الاعتماد» ويحتاج اعتمادًا جديدًا.",
+      "rules_ar": ["لا يُعدَّل إلا الميعاد القائم (DEADLINE_NOT_OPEN).", "سبب التغيير مطلوب عند تغيير تواريخ ميعاد مقترح أو معتمد (DEADLINE_CHANGE_REASON_REQUIRED)."],
+      "data_ar": "حقول الميعاد مع version وchangeReason.",
+      "next_ar": "الاعتماد من جديد أو تسجيل الإتمام.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineController.java", "lines": "80-84", "note": "PUT"}, {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "147-184", "note": "update"}],
+      "alt": []
+    },
+    {
+      "n": 5,
+      "actor_ar": "الموظف المخوّل بإدارة المواعيد",
+      "action_ar": "يسجّل إتمام الميعاد (مع تاريخ ومستند مثبت اختياري) أو يسجله فائتًا أو يعيد فتحه.",
+      "response_ar": "تتغير حالة الميعاد (تم، فائت، قائم) ويُسجَّل حدث بذلك. لا يغلق النظام أي ميعاد من تلقاء نفسه.",
+      "rules_ar": ["الانتقال من القائم إلى تم أو فائت، ومن غير القائم إلى القائم فقط.", "الميعاد المقترح غير المعتمد لا يُسجَّل تمامه قبل اعتماده أو تعديله يدويًا (DEADLINE_PROPOSAL_PENDING).", "تاريخ الإتمام لا يكون في المستقبل، والمستند من ملف القضية."],
+      "data_ar": "status وcompletedOn وproofDocumentId وversion.",
+      "next_ar": "يظهر الميعاد في السجل بحالته الجديدة.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineController.java", "lines": "93-97", "note": "POST status"}, {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "208-245", "note": "changeStatus"}],
+      "alt": [
+        {"kind": "error", "title_ar": "انتقال غير مسموح أو تاريخ إتمام مستقبلي أو مستند من قضية أخرى (422)", "detail_ar": "الرموز DEADLINE_TRANSITION_NOT_ALLOWED وDEADLINE_COMPLETION_IN_FUTURE وDEADLINE_PROOF_NOT_IN_CASE.", "evidence": [{"path": "frontend/src/i18n/messages/deadlines.ar.ts", "lines": "168-177", "note": "Arabic"}]}
+      ]
+    },
+    {
+      "n": 6,
+      "actor_ar": "المختص الذي يدير القواعد والعطلات",
+      "action_ar": "من صفحة إعدادات المواعيد يدخل قاعدة جديدة (الرمز والاسم والمدة وطريقة العد: تقويمية أو أيام عمل، وهل يُحسب يوم البدء، والانتقال لأول يوم مفتوح، وأيام الأسبوع المعطلة، والمصدر القانوني وتاريخ السريان) أو عطلة رسمية (التاريخ والاسم والمصدر القانوني).",
+      "response_ar": "تُحفظ القاعدة أو العطلة مسودة لا تُستعمل قبل الاعتماد. يعتمدها عضو يملك DEADLINE_APPROVE فتصبح معتمدة، وللمعتمدة السحب. القاعدة المعتمدة لا تُعدَّل: يُدخل بدلها قاعدة بتاريخ سريان لاحق وتُسحب القديمة.",
+      "rules_ar": ["لا تُعدَّل أو تُعتمد إلا المسودة (RULE_NOT_DRAFT وHOLIDAY_NOT_DRAFT).", "لا يُسحب إلا المعتمد (RULE_NOT_APPROVED وHOLIDAY_NOT_APPROVED).", "رمز القاعدة وتاريخ سريانها لا يتكرران.", "عطلة واحدة لكل تاريخ (HOLIDAY_DATE_TAKEN).", "أيام الأسبوع المعطلة من 1 إلى 7، وقاعدة أيام العمل لا تعطّل الأيام السبعة.", "كل عملية تُسجَّل في سجل التدقيق."],
+      "data_ar": "حقول القاعدة والعطلة مع version.",
+      "next_ar": "تُستعمل القواعد والعطلات المعتمدة فقط في اقتراح التواريخ.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineSettingsController.java", "lines": "60-70", "note": "rules approve and retire"}, {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineSettingsService.java", "lines": "53-128", "note": "rules"}, {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineSettingsService.java", "lines": "142-201", "note": "holidays"}, {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineRequests.java", "lines": "112-153", "note": "rule and holiday input"}, {"path": "frontend/src/i18n/messages/deadlines.ar.ts", "lines": "129-160", "note": "Arabic settings"}],
+      "alt": [
+        {"kind": "validation", "title_ar": "قاعدة غير صالحة (400)", "detail_ar": "الرمز بحروف لاتينية وأرقام فقط، المدة 1 إلى 3650، المصدر القانوني مطلوب؛ وإلا 400 مع errors.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineRequests.java", "lines": "114-124", "note": "RuleInput"}]},
+        {"kind": "error", "title_ar": "قاعدة بنفس الرمز والتاريخ (409)", "detail_ar": "تُرفض القاعدة المكررة.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineSettingsService.java", "lines": "57-59", "note": "ConflictException"}]},
+        {"kind": "denied", "title_ar": "لا صلاحية (403)", "detail_ar": "الإدخال يتطلب DEADLINE_MANAGE والاعتماد والسحب يتطلبان DEADLINE_APPROVE.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineSettingsController.java", "lines": "42-44", "note": "PreAuthorize"}]}
+      ]
+    },
+    {
+      "n": 7,
+      "actor_ar": "عضو يملك اعتماد المواعيد",
+      "action_ar": "يضبط أيام التنبيه قبل الاستحقاق (أعداد صحيحة من 0 إلى 365، حتى عشرة، مثل 7 و3 و1).",
+      "response_ar": "تُحفظ أيام التنبيه ويُسجَّل ذلك في التدقيق. ما لم تُضبط لا يُنشأ أي تنبيه قبل الاستحقاق، إذ لا يفترض النظام قيمة افتراضية.",
+      "rules_ar": ["التنبيه يخص الميعاد القائم المعتمد فقط.", "المستلمون: العضو المسؤول ومختص القضية.", "تنبيه التأخر لا ينتظر إعداد أيام ويُنشأ للميعاد القائم المعتمد الذي فات تاريخه.", "التنبيه داخل النظام فقط ولا يغلق أو يكمل أي ميعاد.", "يعمل التشغيل كل ساعة وعند طلبه يدويًا، ولا يتكرر الإشعار لنفس الميعاد والمستلم."],
+      "data_ar": "leadDays.",
+      "next_ar": "تظهر الإشعارات للمستلمين.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineSettingsService.java", "lines": "212-228", "note": "saveReminders"}, {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineReminderRun.java", "lines": "54-83", "note": "run"}, {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineReminderSchedule.java", "lines": "27-35", "note": "hourly"}, {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineController.java", "lines": "105-110", "note": "manual run"}],
+      "alt": [
+        {"kind": "validation", "title_ar": "أيام غير صالحة (400)", "detail_ar": "قيمة خارج 0 إلى 365 (Range) أو أكثر من عشر قيم (Size).", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineSettingsService.java", "lines": "215-223", "note": "Range Size"}, {"path": "frontend/src/i18n/messages/deadlines.ar.ts", "lines": "158-158", "note": "Arabic"}]}
+      ]
+    },
+    {
+      "n": 8,
+      "actor_ar": "أي مستخدم يملك عرض المواعيد",
+      "action_ar": "يفتح سجل المواعيد ويصفّيه بالحالة والاعتماد والعضو والفترة والتأخر، أو يفتح مواعيد حكم معين.",
+      "response_ar": "تظهر مواعيد القضايا المرئية للمستخدم فقط؛ الميعاد المتأخر هو القائم الذي فات تاريخ استحقاقه، مع الأيام المتبقية. المواعيد المترتبة على الحكم (استئناف أو تمييز أو تظلم) تظهر تحت الحكم.",
+      "rules_ar": ["النطاق محدود بالقضايا التي يراها المستخدم.", "يُحسب اليوم بتوقيت الكويت."],
+      "data_ar": "مرشحات status وcalcStatus وownerId وfrom وto وoverdue وcaseId وsourceType.",
+      "next_ar": "فتح الميعاد لاتخاذ إجراء.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineController.java", "lines": "62-72", "note": "GET /deadlines"}, {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineController.java", "lines": "99-103", "note": "judgment deadlines"}, {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "68-102", "note": "reads"}, {"path": "frontend/src/features/deadlines/routes.tsx", "lines": "6-15", "note": "routes"}],
+      "alt": [
+        {"kind": "denied", "title_ar": "قضية غير مرئية", "detail_ar": "الاطلاع على ميعاد في قضية لا يراها المستخدم يعطي 404 (أو لا يظهر في السجل).", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "286-290", "note": "visibleHead"}]}
+      ]
+    }
+  ],
+  "rules": [
+    {"text_ar": "لا يحدد النظام أي مدة قانونية أو عطلة من عنده؛ تُدخل ثم تُعتمد.", "evidence": [{"path": "frontend/src/i18n/messages/deadlines.ar.ts", "lines": "130-130", "note": "disclaimer"}]},
+    {"text_ar": "التاريخ المدخل أو المقترح ليس رسميًا قبل الاعتماد، والتنبيهات لا تُنشأ إلا للمواعيد المعتمدة.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineReminderRun.java", "lines": "85-91", "note": "approved only"}]},
+    {"text_ar": "الإتمام والفوات وإعادة الفتح يقوم بها المستخدم فقط؛ لا إغلاق تلقائي.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineRequests.java", "lines": "92-98", "note": "StatusChange comment"}]},
+    {"text_ar": "تقتصر العطلات المعتمدة على الاحتساب؛ يوم الأسبوع المعطل يغلب العطلة الواقعة عليه.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineCalculator.java", "lines": "81-87", "note": "closedKind"}]},
+    {"text_ar": "مدة الطعن على الحكم لا يقررها النظام: يُسمّى ميعاد من السجل مصدره الحكم (ميزة الطلبات والأحكام).", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/JudgmentDetails.java", "lines": "89-95", "note": "checkAppealDeadline"}]}
+  ],
+  "after_submit_ar": "يظهر الميعاد في سجل القضية وفي سجل المواعيد بحالته واعتماده، ويُضاف حدث إلى خط القضية، وتُسجَّل عمليات الاعتماد وإعدادات القواعد في سجل التدقيق.",
+  "notifications_ar": [
+    "تنبيه اقتراب الاستحقاق (DEADLINE_APPROACHING): للميعاد القائم المعتمد الذي صار ضمن أيام التنبيه المضبوطة، مرة لكل يوم تنبيه بلغه. لا يُنشأ قبل ضبط أيام التنبيه.",
+    "تنبيه التأخر (DEADLINE_OVERDUE): للميعاد القائم المعتمد الذي فات تاريخه، دون انتظار ضبط الأيام.",
+    "المستلمون: العضو المسؤول ومختص القضية الأساسي. التنبيه داخل النظام فقط."
+  ],
+  "approvals_ar": [
+    "اعتماد الميعاد (يدوي أو مقترح) بواسطة من يملك DEADLINE_APPROVE، ويُحفظ اسم المعتمِد ووقته.",
+    "اعتماد القاعدة والعطلة وسحبهما بواسطة من يملك DEADLINE_APPROVE؛ وضبط أيام التنبيه يتطلب الصلاحية نفسها."
+  ],
+  "errors": [
+    {"code": "HTTP 400", "meaning_ar": "حقل ناقص أو خارج النطاق أو مصدر غير مطابق لنوعه.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java", "lines": "34-49", "note": "errors"}]},
+    {"code": "HTTP 403", "meaning_ar": "لا توجد صلاحية DEADLINE_VIEW أو DEADLINE_MANAGE أو DEADLINE_APPROVE.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineController.java", "lines": "37-38", "note": "PreAuthorize"}]},
+    {"code": "HTTP 404", "meaning_ar": "الميعاد أو القاعدة أو العطلة أو الحكم أو القضية غير موجود أو غير مرئي.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "286-290", "note": "NotFound"}]},
+    {"code": "HTTP 409", "meaning_ar": "تغيّر الميعاد أو القاعدة أو العطلة بيد غيرك، أو قاعدة مكررة.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "296-300", "note": "ConflictException"}]},
+    {"code": "HTTP 422 + rule", "meaning_ar": "إحدى القواعد: NO_APPROVED_RULE, RULE_NOT_EFFECTIVE, RULE_NOT_COUNTABLE, DEADLINE_NOT_OPEN, DEADLINE_CHANGE_REASON_REQUIRED, DEADLINE_NO_DUE_DATE, DEADLINE_ALREADY_APPROVED, DEADLINE_PROPOSAL_PENDING, DEADLINE_TRANSITION_NOT_ALLOWED وغيرها.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/Rules.java", "lines": "6-24", "note": "codes"}]}
+  ],
+  "result_ar": "سجل مواعيد قانونية بحالة كل ميعاد واعتماده وأيامه المتبقية، وتنبيهات داخلية عند الاقتراب والتأخر، وقواعد وعطلات معتمدة يستند إليها الاحتساب.",
+  "related": ["claims-judgments", "hearings", "proceedings-stages", "notifications", "tasks", "calendar", "audit"],
+  "endpoints": [
+    {"method": "GET", "path": "/api/v1/deadlines", "evidence": {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineController.java", "lines": "62-72", "note": "register"}},
+    {"method": "POST", "path": "/api/v1/cases/{caseId}/deadlines", "evidence": {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineController.java", "lines": "47-52", "note": "create"}},
+    {"method": "POST", "path": "/api/v1/cases/{caseId}/deadlines/propose", "evidence": {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineController.java", "lines": "54-60", "note": "propose"}},
+    {"method": "GET", "path": "/api/v1/cases/{caseId}/deadlines", "evidence": {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineController.java", "lines": "37-45", "note": "for case"}},
+    {"method": "PUT", "path": "/api/v1/deadlines/{id}", "evidence": {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineController.java", "lines": "80-84", "note": "update"}},
+    {"method": "POST", "path": "/api/v1/deadlines/{id}/approve", "evidence": {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineController.java", "lines": "86-91", "note": "approve"}},
+    {"method": "POST", "path": "/api/v1/deadlines/{id}/status", "evidence": {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineController.java", "lines": "93-97", "note": "status"}},
+    {"method": "GET", "path": "/api/v1/judgments/{judgmentId}/deadlines", "evidence": {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineController.java", "lines": "99-103", "note": "judgment deadlines"}},
+    {"method": "POST", "path": "/api/v1/deadlines/reminders/run", "evidence": {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineController.java", "lines": "105-110", "note": "run reminders"}},
+    {"method": "POST", "path": "/api/v1/deadline-rules", "evidence": {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineSettingsController.java", "lines": "42-45", "note": "create rule"}},
+    {"method": "POST", "path": "/api/v1/official-holidays", "evidence": {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineSettingsController.java", "lines": "79-83", "note": "create holiday"}},
+    {"method": "PUT", "path": "/api/v1/deadline-settings/reminders", "evidence": {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineSettingsController.java", "lines": "113-117", "note": "reminders"}}
+  ],
+  "tech": {
+    "chain": [
+      {"layer": "screen", "label": "DeadlinesPage / CaseDeadlinesSection", "ref": {"path": "frontend/src/features/deadlines/routes.tsx", "lines": "12-13", "note": "routes"}, "data_ar": "المرشحات ونماذج التسجيل."},
+      {"layer": "controller", "label": "DeadlineController.propose", "ref": {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineController.java", "lines": "54-60", "note": "propose"}, "data_ar": "طلب الاقتراح بعد التحقق."},
+      {"layer": "authorization", "label": "DEADLINE_MANAGE + writableCase", "ref": {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "314-322", "note": "writableCase"}, "data_ar": "الصلاحية وحق تغيير القضية."},
+      {"layer": "service", "label": "DeadlineService.propose", "ref": {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "124-145", "note": "propose"}, "data_ar": "القاعدة المعتمدة وتاريخ البدء والعطلات."},
+      {"layer": "service", "label": "DeadlineCalculator.calculate", "ref": {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineCalculator.java", "lines": "35-73", "note": "calculate"}, "data_ar": "تاريخ الاستحقاق وتفصيل الأيام المتجاوزة."},
+      {"layer": "repository", "label": "DeadlineStore", "ref": {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineStore.java", "lines": "1-60", "note": "store"}, "data_ar": "حفظ الميعاد بحالة PROPOSED."},
+      {"layer": "tables", "label": "deadline", "ref": {"path": "backend/src/main/resources/db/migration/V681__LD-054_deadline.sql", "lines": "5-56", "note": "table"}, "data_ar": "صف الميعاد."},
+      {"layer": "event", "label": "DEADLINE_PROPOSED", "ref": {"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "142-143", "note": "event"}, "data_ar": "حدث في خط القضية."}
+    ]
+  },
+  "status": "IMPLEMENTED_ON_DEVELOP",
+  "status_note_ar": "الشيفرة موجودة على develop. لم يُجرَ تحقق UAT بواسطة هذه الوثيقة.",
+  "status_evidence": [{"path": "backend/src/main/java/com/lawdesk/deadlines/DeadlineService.java", "lines": "35-55", "note": "service on develop"}],
+  "verification_ar": "اختبارات وجدتها: backend/src/test/java/com/lawdesk/deadlines/DeadlineApiTest.java وDeadlineCalculatorTest.java وDeadlineReminderApiTest.java وDeadlineTimelineApiTest.java وKuwaitBoundaryDeadlinesTest.java، وفي الواجهة frontend/src/features/deadlines/*.test.tsx. لم يُجرَ تحقق UAT. لم أقرأ DeadlineStore (الاستعلامات) بالتفصيل، ولا صفحة التقويم (ميزة calendar). مدد ومصادر القواعد والعطلات لا يحددها النظام ولم أذكر أي قيمة منها."
+}

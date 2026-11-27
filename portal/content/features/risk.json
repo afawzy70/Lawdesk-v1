@@ -1,0 +1,143 @@
+{
+  "id": "risk",
+  "category": "litigation",
+  "name_ar": "تقييم المخاطر القانونية للقضية",
+  "summary_ar": "تسجيل تقييم لمستوى الخطر القانوني في القضية (منخفضة، متوسطة، مرتفعة، مرتفعة جدًا) مع أسبابه وتقدير عشرة عناصر محددة، وخطة معالجة إلزامية عند الخطر المرتفع. كل تقييم إصدار جديد لا يُعدَّل لاحقًا، وتُحفظ إصدارات القضية كلها.",
+  "purpose_ar": "مساعدة الشؤون القانونية على اتخاذ القرار ومتابعة القضايا عالية المخاطر. التقييم أداة مساعدة وليس توقعًا قضائيًا مؤكدًا ولا يغني عن الرأي القانوني.",
+  "who_ar": ["من يملك صلاحية الاطلاع على تقييم المخاطر", "من يملك صلاحية تقييم المخاطر وتحديثه"],
+  "who_perms": ["RISK_VIEW", "RISK_MANAGE"],
+  "access_ar": "القائمة > القضايا > فتح القضية > قسم تقييم المخاطر القانونية (ضمن قسم متابعة القضية)",
+  "route": "/cases/:id",
+  "prerequisites_ar": [
+    "مشاهدة القضية وفق سياسة الوصول إلى القضايا، وحق تغييرها لتسجيل تقييم أو خطوة معالجة.",
+    "القضية غير مؤرشفة للكتابة (المؤرشفة للقراءة فقط).",
+    "ظهور القسم في الواجهة يتطلب RISK_VIEW، وأزرار التسجيل تتطلب RISK_MANAGE وقضية غير مؤرشفة."
+  ],
+  "fields": {
+    "required": [
+      {"name_ar": "المستوى العام", "code": "level", "rule_ar": "مطلوب: منخفضة، متوسطة، مرتفعة، مرتفعة جدًا.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskRequests.java", "lines": "36-41", "note": "Level"}, {"path": "frontend/src/i18n/messages/wp3.ar.ts", "lines": "157-160", "note": "Arabic levels"}]},
+      {"name_ar": "أسباب التصنيف", "code": "levelReasons", "rule_ar": "مطلوبة وغير فارغة حتى 4000 حرف.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskRequests.java", "lines": "105-105", "note": "NotBlank Size"}]},
+      {"name_ar": "سبب إصدار التقييم", "code": "trigger", "rule_ar": "مطلوب: ورود مستند جديد، صدور حكم، صدور قرار، تغير موقف القضية، مراجعة دورية، يدويًا.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskRequests.java", "lines": "43-43", "note": "Trigger"}, {"path": "frontend/src/i18n/messages/wp3.ar.ts", "lines": "166-171", "note": "Arabic triggers"}]},
+      {"name_ar": "خطة المعالجة (عند الخطر المرتفع أو المرتفع جدًا)", "code": "remediation[]", "rule_ar": "خطوة واحدة على الأقل، لكل خطوة سبب الخطر والإجراء المقترح (غير فارغين حتى 1000 حرف).", "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskRequests.java", "lines": "64-71", "note": "RemediationInput"}, {"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "112-114", "note": "REMEDIATION_REQUIRED"}]}
+    ],
+    "optional": [
+      {"name_ar": "الخسارة المحتملة (د.ك)", "code": "potentialLoss", "rule_ar": "قيمة غير سالبة بثلاث منازل عشرية كحد أقصى، تُترك فارغة إن لم تُعرف.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskRequests.java", "lines": "106-106", "note": "PositiveOrZero Digits"}]},
+      {"name_ar": "ملاحظة على السبب / مرجع السبب", "code": "triggerNote, triggerRefId", "rule_ar": "الملاحظة حتى 500 حرف.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskRequests.java", "lines": "108-109", "note": "fields"}]},
+      {"name_ar": "عناصر التقييم العشرة", "code": "elements[]", "rule_ar": "لكل عنصر تقدير (لم يُقيَّم، منخفض، متوسط، مرتفع، مرتفع جدًا) وسبب اختياري حتى 2000 حرف. العناصر غير المذكورة تُسجَّل «لم يُقيَّم» ولا يُخمَّن شيء. لا يتكرر عنصر.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskRequests.java", "lines": "45-62", "note": "Rating, ElementCode, ElementInput"}, {"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "106-111", "note": "Unique"}, {"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "136-142", "note": "NOT_ASSESSED default"}]},
+      {"name_ar": "بقية حقول خطوة المعالجة", "code": "documents, defenses, unitToAddress, ownerId, targetDate", "rule_ar": "اختيارية: المستندات والدفوع حتى 1000 حرف، الإدارة المطلوب مخاطبتها حتى 300، والمسؤول مستخدم مفعّل.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskRequests.java", "lines": "64-71", "note": "RemediationInput"}, {"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "236-241", "note": "requireUser"}]}
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "actor_ar": "من يملك الاطلاع على المخاطر",
+      "action_ar": "يفتح قسم «تقييم المخاطر القانونية» في القضية.",
+      "response_ar": "يظهر التنبيه الثابت بأن التقييم أداة مساعدة وليس توقعًا مؤكدًا، والإصدار الحالي (الأحدث) وقائمة إصدارات التقييم السابقة، مع العناصر العشرة وخطة المعالجة. إن لم يوجد تقييم تظهر «لم يُسجَّل تقييم بعد».",
+      "rules_ar": ["الصلاحية RISK_VIEW ومشاهدة القضية.", "الإصدارات مرتبة من الأحدث."],
+      "data_ar": "قائمة الإصدارات بعناصرها وخطط المعالجة.",
+      "next_ar": "تسجيل إصدار جديد (لمن يملك RISK_MANAGE).",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskController.java", "lines": "33-39", "note": "GET risk-assessments"}, {"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "58-62", "note": "forCase"}, {"path": "frontend/src/features/followup/CaseFollowUp.tsx", "lines": "34-34", "note": "RiskSection gated by RISK_VIEW"}, {"path": "frontend/src/i18n/messages/wp3.ar.ts", "lines": "150-153", "note": "Arabic title and notice"}],
+      "alt": [
+        {"kind": "denied", "title_ar": "لا صلاحية أو قضية غير مرئية", "detail_ar": "من لا يملك RISK_VIEW يتلقى 403، ومن لا يرى القضية يتلقى 404 (requireView).", "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskController.java", "lines": "34-36", "note": "PreAuthorize"}]},
+        {"kind": "error", "title_ar": "تعذر التحميل", "detail_ar": "تظهر الرسالة «تعذّر تحميل التقييمات».", "evidence": [{"path": "frontend/src/i18n/messages/wp3.ar.ts", "lines": "153-153", "note": "failed"}]}
+      ]
+    },
+    {
+      "n": 2,
+      "actor_ar": "الموظف المخوّل بتقييم المخاطر",
+      "action_ar": "يضغط «تسجيل إصدار جديد»، فيختار المستوى العام ويكتب أسباب التصنيف وسبب الإصدار والخسارة المحتملة، ويقدّر العناصر العشرة (قوة الموقف القانوني، قوة المستندات والأدلة، سلامة الإجراءات الإدارية، العيوب الإجرائية المحتملة، السوابق القضائية المشابهة، استقرار الاتجاه القضائي، القيمة المالية المحتملة للخسارة، الآثار الإدارية، امتداد الأثر إلى قضايا أخرى، توفر المعلومات).",
+      "response_ar": "عند الحفظ يُنشأ إصدار جديد برقم تسلسلي لا يُعدَّل بعدها (الإصدار السابق يبقى محفوظًا)، ويُسجَّل حدث RISK_ASSESSED في خط القضية، وتظهر «سُجِّل إصدار جديد من التقييم».",
+      "rules_ar": ["الصلاحية RISK_MANAGE وحق تغيير القضية.", "العناصر غير المقدّرة تُحفظ «لم يُقيَّم».", "ترقيم الإصدارات متسلسل لكل قضية ويُقفل صف القضية أثناء الترقيم؛ وتسجيلان متزامنان يعطي أحدهما 409."],
+      "data_ar": "level وlevelReasons وpotentialLoss وtrigger وelements وremediation.",
+      "next_ar": "إن كان المستوى مرتفعًا: خطة المعالجة والتنبيه.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskController.java", "lines": "41-45", "note": "POST risk-assessments"}, {"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "102-151", "note": "assess"}, {"path": "frontend/src/i18n/messages/wp3.ar.ts", "lines": "172-181", "note": "Arabic elements"}],
+      "alt": [
+        {"kind": "validation", "title_ar": "أسباب ناقصة أو عنصر مكرر (400)", "detail_ar": "تظهر رسالة «اذكر أسباب المستوى (وللمخاطر المرتفعة سبب الخطر والإجراء)». عنصر مكرر يعطي 400 على الحقل elements برمز Unique.", "evidence": [{"path": "frontend/src/i18n/messages/wp3.ar.ts", "lines": "154-154", "note": "invalid"}, {"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "107-111", "note": "Unique"}]},
+        {"kind": "error", "title_ar": "خطر مرتفع بلا خطة معالجة (422)", "detail_ar": "الرمز REMEDIATION_REQUIRED: يلزم خطوة معالجة واحدة على الأقل للمستوى المرتفع أو المرتفع جدًا.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "112-114", "note": "BusinessRuleException"}]},
+        {"kind": "denied", "title_ar": "قضية مؤرشفة أو لا صلاحية", "detail_ar": "403 بلا RISK_MANAGE أو بلا حق تغيير القضية؛ 404 إن لم تُرَ القضية؛ والمؤرشفة 422 بالرمز CASE_ARCHIVED.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "228-234", "note": "writableCase"}]},
+        {"kind": "exceptional", "title_ar": "تسجيل متزامن", "detail_ar": "إذا سُجّل تقييم آخر في اللحظة نفسها يرد 409 «another assessment was recorded at the same time» ولا يُحفظ شيء.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "133-135", "note": "ConflictException"}]}
+      ]
+    },
+    {
+      "n": 3,
+      "actor_ar": "النظام",
+      "action_ar": "إذا كان المستوى مرتفعًا أو مرتفعًا جدًا يرسل تنبيهًا داخليًا.",
+      "response_ar": "يصل تنبيه RISK_HIGH («أصبح مستوى المخاطر في القضية ... مرتفعًا») إلى المختص الأساسي بالقضية وبديله ومن سجّل التقييم، مرة واحدة لكل إصدار ومستلم.",
+      "rules_ar": ["التنبيه داخل النظام فقط.", "يُحذف من المستلمين من لم يُعيَّن."],
+      "data_ar": "رقم القضية والمستوى.",
+      "next_ar": "متابعة خطوات المعالجة.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "147-149", "note": "alert call"}, {"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "204-221", "note": "alert recipients"}, {"path": "frontend/src/i18n/messages/wp3.ar.ts", "lines": "272-272", "note": "Arabic notification"}],
+      "alt": []
+    },
+    {
+      "n": 4,
+      "actor_ar": "الموظف المخوّل بتقييم المخاطر",
+      "action_ar": "يضيف خطوة معالجة إلى إصدار قائم، أو يحدّث خطوة (السبب، الإجراء، المسؤول، الموعد المستهدف، والحالة: مفتوحة، قيد التنفيذ، منفذة، ملغاة) مرسلًا رقم الإصدار version.",
+      "response_ar": "تُحفظ الخطوة ويُسجَّل حدث RISK_REMEDIATION_ADDED أو RISK_REMEDIATION_UPDATED، وتظهر «حُدِّثت خطوة المعالجة».",
+      "rules_ar": ["خطوات المعالجة تُعدَّل (خلافًا للتقييم نفسه الذي لا يُعدَّل).", "تعارض الإصدار يعطي 409."],
+      "data_ar": "حقول الخطوة وstatus وversion.",
+      "next_ar": "تظهر الخطوة في خطة الإصدار.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskController.java", "lines": "60-71", "note": "remediation endpoints"}, {"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "153-188", "note": "add and update remediation"}, {"path": "frontend/src/i18n/messages/wp3.ar.ts", "lines": "182-185", "note": "Arabic statuses"}],
+      "alt": [
+        {"kind": "error", "title_ar": "تغيّرت الخطوة بيد غيرك (409)", "detail_ar": "يُرفض التحديث.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "183-185", "note": "ConflictException"}]},
+        {"kind": "validation", "title_ar": "مسؤول غير صالح (400)", "detail_ar": "الحقل ownerId برمز Invalid إن لم يكن مستخدمًا مفعّلًا.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "236-241", "note": "requireUser"}]}
+      ]
+    },
+    {
+      "n": 5,
+      "actor_ar": "من يملك الاطلاع على المخاطر",
+      "action_ar": "يفتح تقرير القضايا المرتفعة المخاطر.",
+      "response_ar": "يعرض التقرير أحدث إصدار لكل قضية مرئية للمستخدم مستواه مرتفع أو مرتفع جدًا، مرتبًا بالخسارة المحتملة تنازليًا، مع عدد خطوات المعالجة المفتوحة والإجمالية والتنبيه الثابت.",
+      "rules_ar": ["يُحتسب الإصدار الأحدث فقط لكل قضية.", "النطاق محدود بالقضايا المسموح للمستخدم رؤيتها."],
+      "data_ar": "قائمة مرقمة الصفحات بالقضية والمستوى والأسباب والخسارة وعدد الخطوات.",
+      "next_ar": "فتح القضية لمتابعة المعالجة.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskController.java", "lines": "47-52", "note": "GET /risk-assessments/high"}, {"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "71-98", "note": "high"}],
+      "alt": []
+    }
+  ],
+  "rules": [
+    {"text_ar": "إصدار التقييم يُكتب مرة واحدة ولا يُعدَّل؛ كل تقييم جديد إصدار جديد، وخطوات المعالجة وحدها تتحدّث.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "30-34", "note": "class comment"}]},
+    {"text_ar": "المستوى المرتفع أو المرتفع جدًا يستلزم خطة معالجة ويُطلق تنبيهًا.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "112-114", "note": "required plan"}, {"path": "backend/src/main/java/com/lawdesk/risk/RiskRequests.java", "lines": "36-41", "note": "high()"}]},
+    {"text_ar": "التقييم أداة مساعدة لا توقع قضائي مؤكد؛ ويُعرض هذا التنبيه الثابت.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskRequests.java", "lines": "21-23", "note": "NOTICE"}]},
+    {"text_ar": "لا يخمّن النظام أي عنصر لم يقدّره المستخدم: يُسجَّل «لم يُقيَّم».", "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "136-142", "note": "NOT_ASSESSED"}]}
+  ],
+  "after_submit_ar": "يظهر الإصدار الجديد كإصدار حالي مع إصداراته السابقة، ويُضاف حدث إلى خط القضية، وتُرسل التنبيهات عند الخطر المرتفع.",
+  "notifications_ar": [
+    "عند تسجيل تقييم مرتفع أو مرتفع جدًا: تنبيه RISK_HIGH داخل النظام للمختص الأساسي بالقضية وبديله ومن سجّل التقييم.",
+    "لا تنبيهات عند المستويات المنخفضة والمتوسطة، ولا عند تحديث خطوات المعالجة؛ لم أجد ذلك في الشيفرة."
+  ],
+  "approvals_ar": ["لا توجد موافقات على التقييم؛ يُحفظ مباشرة بعد التحقق من القواعد."],
+  "errors": [
+    {"code": "HTTP 400", "meaning_ar": "حقل ناقص أو غير صالح أو عنصر مكرر أو مسؤول غير صالح.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java", "lines": "34-49", "note": "errors"}]},
+    {"code": "HTTP 403", "meaning_ar": "لا توجد صلاحية RISK_VIEW أو RISK_MANAGE.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskController.java", "lines": "41-43", "note": "PreAuthorize"}]},
+    {"code": "HTTP 404", "meaning_ar": "القضية أو التقييم أو خطوة المعالجة غير موجود أو غير مرئي.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "223-226", "note": "NotFound"}]},
+    {"code": "HTTP 409", "meaning_ar": "تسجيل متزامن أو تغيّرت خطوة المعالجة بيد غيرك.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "133-135", "note": "ConflictException"}]},
+    {"code": "HTTP 422 + rule", "meaning_ar": "REMEDIATION_REQUIRED أو CASE_ARCHIVED.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "38-39", "note": "codes"}]}
+  ],
+  "result_ar": "إصدارات تقييم محفوظة بتاريخها ومن أصدرها، مع العناصر العشرة وخطة المعالجة وتقرير بالقضايا المرتفعة المخاطر.",
+  "related": ["claims-judgments", "deadlines", "notifications", "follow-up"],
+  "endpoints": [
+    {"method": "GET", "path": "/api/v1/cases/{caseId}/risk-assessments", "evidence": {"path": "backend/src/main/java/com/lawdesk/risk/RiskController.java", "lines": "33-39", "note": "list"}},
+    {"method": "POST", "path": "/api/v1/cases/{caseId}/risk-assessments", "evidence": {"path": "backend/src/main/java/com/lawdesk/risk/RiskController.java", "lines": "41-45", "note": "assess"}},
+    {"method": "GET", "path": "/api/v1/risk-assessments/high", "evidence": {"path": "backend/src/main/java/com/lawdesk/risk/RiskController.java", "lines": "47-52", "note": "high report"}},
+    {"method": "GET", "path": "/api/v1/risk-assessments/{id}", "evidence": {"path": "backend/src/main/java/com/lawdesk/risk/RiskController.java", "lines": "54-58", "note": "get"}},
+    {"method": "POST", "path": "/api/v1/risk-assessments/{id}/remediations", "evidence": {"path": "backend/src/main/java/com/lawdesk/risk/RiskController.java", "lines": "60-65", "note": "add step"}},
+    {"method": "PUT", "path": "/api/v1/risk-remediations/{id}", "evidence": {"path": "backend/src/main/java/com/lawdesk/risk/RiskController.java", "lines": "67-71", "note": "update step"}}
+  ],
+  "tech": {
+    "chain": [
+      {"layer": "screen", "label": "CaseFollowUp", "ref": {"path": "frontend/src/features/followup/CaseFollowUp.tsx", "lines": "34-34", "note": "RiskSection"}, "data_ar": "رقم القضية وصلاحيات المستخدم."},
+      {"layer": "component", "label": "RiskSection", "ref": {"path": "frontend/src/features/followup/RiskSection.tsx", "lines": "1-277", "note": "component"}, "data_ar": "نموذج الإصدار الجديد."},
+      {"layer": "api_call", "label": "POST risk-assessments", "ref": {"path": "frontend/src/features/followup/api.ts", "lines": "355-358", "note": "api call"}, "data_ar": "level وlevelReasons وtrigger وelements وremediation."},
+      {"layer": "controller", "label": "RiskController.assess", "ref": {"path": "backend/src/main/java/com/lawdesk/risk/RiskController.java", "lines": "41-45", "note": "assess"}, "data_ar": "الطلب بعد التحقق."},
+      {"layer": "authorization", "label": "RISK_MANAGE + writableCase", "ref": {"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "228-234", "note": "writableCase"}, "data_ar": "السماح أو الرفض."},
+      {"layer": "service", "label": "RiskService.assess", "ref": {"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "102-151", "note": "assess"}, "data_ar": "إصدار جديد وعناصره وخطواته."},
+      {"layer": "tables", "label": "risk_assessment / risk_assessment_element / risk_remediation", "ref": {"path": "backend/src/main/resources/db/migration/V662__LD-053_risk_assessment.sql", "lines": "5-52", "note": "tables"}, "data_ar": "صفوف الإصدار والعناصر والخطط."},
+      {"layer": "event", "label": "RISK_ASSESSED + RISK_HIGH", "ref": {"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "146-149", "note": "event and alert"}, "data_ar": "حدث في خط القضية وتنبيه للمستلمين."}
+    ]
+  },
+  "status": "IMPLEMENTED_ON_DEVELOP",
+  "status_note_ar": "الشيفرة موجودة على develop. لم يُجرَ تحقق UAT بواسطة هذه الوثيقة.",
+  "status_evidence": [{"path": "backend/src/main/java/com/lawdesk/risk/RiskService.java", "lines": "35-54", "note": "service on develop"}],
+  "verification_ar": "اختبارات وجدتها: backend/src/test/java/com/lawdesk/followup/RiskAssessmentApiTest.java وbackend/src/test/java/com/lawdesk/security/CaseBoundEndpointsAccessTest.java، وفي الواجهة frontend/src/features/followup/RiskSection.test.tsx. لم يُجرَ تحقق UAT. لم أتحقق من شاشة تقرير القضايا المرتفعة المخاطر في الواجهة (وجدت المسار الخلفي فقط)، ولا من مؤشر لوحة القيادة المرتبط بها."
+}

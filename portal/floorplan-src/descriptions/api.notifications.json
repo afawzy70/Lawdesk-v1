@@ -1,0 +1,50 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/notifications/NotificationController.java": {
+      "name": "طلبات الإشعارات",
+      "description": "يستقبل طلبات الإشعارات الخاصة بالمستخدم الحالي: أنواعها وتفضيلاته وعدد غير المقروء ووضع علامة مقروء أو غير مقروء."
+    },
+    "backend/src/main/java/com/lawdesk/notifications/NotificationPublisher.java": {
+      "name": "إصدار الإشعارات",
+      "description": "هو المنفذ الذي تستخدمه أقسام النظام الأخرى (كالمواعيد والجلسات والمتابعة) لإنشاء إشعار داخل التطبيق لمستخدم."
+    },
+    "backend/src/main/java/com/lawdesk/notifications/NotificationService.java": {
+      "name": "منطق الإشعارات",
+      "description": "يقرأ إشعارات المستخدم ويحفظ تفضيلاته لكل نوع ويحسب غير المقروء ويغيّر حالة القراءة."
+    },
+    "backend/src/main/java/com/lawdesk/notifications/NotificationTypes.java": {
+      "name": "أنواع الإشعارات",
+      "description": "يعرّف قائمة أنواع الإشعارات داخل التطبيق، ومنها الأنواع الأساسية الأحد عشر الواردة في وثيقة المتطلبات."
+    }
+  },
+  "routes": {
+    "GET /api/v1/notifications/types": {
+      "name": "أنواع الإشعارات",
+      "description": "يعرض قائمة أنواع الإشعارات المتاحة لأي مستخدم يملك صلاحية الاطلاع على القضايا."
+    },
+    "GET /api/v1/notifications/preferences": {
+      "name": "تفضيلات الإشعارات",
+      "description": "يعرض لكل نوع إشعار هل يستلمه المستخدم الحالي أم لا."
+    },
+    "PUT /api/v1/notifications/preferences/{type}": {
+      "name": "تغيير تفضيل إشعار",
+      "description": "يفعّل استلام نوع معين من الإشعارات أو يوقفه للمستخدم الحالي."
+    },
+    "POST /api/v1/notifications/{id}/unread": {
+      "name": "إعادة الإشعار غير مقروء",
+      "description": "يعيد إشعارًا إلى حالة غير مقروء ولا يرد بأي محتوى."
+    },
+    "GET /api/v1/notifications/unread-count": {
+      "name": "عدد غير المقروء",
+      "description": "يرد بعدد الإشعارات التي لم يقرأها المستخدم الحالي بعد."
+    },
+    "POST /api/v1/notifications/{id}/read": {
+      "name": "تعليم إشعار مقروء",
+      "description": "يضع علامة مقروء على إشعار واحد ولا يرد بأي محتوى."
+    },
+    "POST /api/v1/notifications/read-all": {
+      "name": "تعليم الكل مقروء",
+      "description": "يضع علامة مقروء على كل إشعارات المستخدم الحالي دفعة واحدة."
+    }
+  }
+}

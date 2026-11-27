@@ -1,0 +1,858 @@
+{
+  "id": "parties",
+  "category": "cases",
+  "name_ar": "الأطراف وصفاتهم القانونية في القضية",
+  "summary_ar": "يُسجَّل في النظام الأشخاص والجهات المتقاضية (شخص طبيعي أو اعتباري) مرة واحدة، ثم تُربط بالقضايا بصفة (موكِّل أو خصم أو آخر) أو بجانب (مدعٍ أو مدعى عليه) في القضايا المسجّلة بالتسجيل الحكومي. ويمكن تسجيل المحامي أو الوكيل لكل طرف في القضية، وعرض كل قضايا طرف معيّن.",
+  "purpose_ar": "إبقاء بيانات كل خصم في مكان واحد وربطه بكل قضاياه، وحماية الأرقام المدنية وبيانات التواصل بحسب صلاحية الاطلاع على الهويات.",
+  "who_ar": [
+    "من يملك «عرض القضايا» للاطلاع على الأطراف",
+    "من يملك «إدارة أطراف القضية» لإضافة الطرف وربطه وإزالته وتسجيل المحامين والوكلاء",
+    "من يملك «الاطلاع على الرقم المدني ورقم المنشأة كاملًا» لرؤية الأرقام غير المقنّعة"
+  ],
+  "who_perms": [
+    "CASE_VIEW",
+    "PARTY_MANAGE",
+    "PARTY_ID_VIEW"
+  ],
+  "access_ar": "القائمة > القضايا > فتح قضية > قسم «أطراف القضية»",
+  "route": "/cases/:id",
+  "prerequisites_ar": [
+    "أن تكون القضية موجودة ومسموحًا للمستخدم برؤيتها وغير مؤرشفة لإضافة الأطراف أو إزالتهم.",
+    "للتغيير: أن يكون المستخدم ممن يحق لهم تغيير القضية (العضو المختص أو البديل أو صاحب منحة مساهمة أو تعديل ضمن النطاق).",
+    "لا توجد شاشة مستقلة لقائمة الأطراف؛ تُدار الأطراف من صفحة القضية."
+  ],
+  "fields": {
+    "required": [
+      {
+        "name_ar": "نوع الطرف",
+        "code": "kind",
+        "rule_ar": "شخص طبيعي (PERSON) أو شخص اعتباري (ORGANIZATION).",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/PartyRequest.java",
+            "lines": "14-14",
+            "note": "kind"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/PartyKind.java",
+            "lines": "9-9",
+            "note": "القيم"
+          }
+        ]
+      },
+      {
+        "name_ar": "اسم الطرف",
+        "code": "name",
+        "rule_ar": "غير فارغ حتى 200 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/PartyRequest.java",
+            "lines": "15-15",
+            "note": "name"
+          }
+        ]
+      },
+      {
+        "name_ar": "الصفة أو الجانب عند الربط بالقضية",
+        "code": "role / side",
+        "rule_ar": "الصفة: موكِّل أو خصم أو آخر. وفي القضية المسجّلة بالتسجيل الحكومي يلزم الجانب (مدعٍ أو مدعى عليه) وتُشتق الصفة منه تلقائيًا: «آخر» إن كان على جانب الهيئة و«خصم» إن كان على الجانب المقابل.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/LinkPartyRequest.java",
+            "lines": "12-14",
+            "note": "الطلب"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+            "lines": "153-153",
+            "note": "الاشتقاق"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+            "lines": "151-151",
+            "note": "الجانب مطلوب"
+          }
+        ]
+      }
+    ],
+    "optional": [
+      {
+        "name_ar": "الرقم المدني (شخص طبيعي)",
+        "code": "nationalId",
+        "rule_ar": "حتى 50 حرفًا ويُحفظ كما كُتب؛ لا يتكرر بين الأطراف؛ ولا يُقبل مع طرف اعتباري.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/PartyRequest.java",
+            "lines": "16-16",
+            "note": "nationalId"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+            "lines": "196-196",
+            "note": "التحقق"
+          }
+        ]
+      },
+      {
+        "name_ar": "رقم المنشأة (شخص اعتباري)",
+        "code": "registrationNo",
+        "rule_ar": "حتى 50 حرفًا؛ ولا يُقبل مع شخص طبيعي.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/PartyRequest.java",
+            "lines": "17-17",
+            "note": "registrationNo"
+          }
+        ]
+      },
+      {
+        "name_ar": "الهاتف",
+        "code": "phone",
+        "rule_ar": "حتى 30 حرفًا من الأرقام والمسافات والرموز + ( ) -.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/PartyRequest.java",
+            "lines": "18-18",
+            "note": "phone"
+          }
+        ]
+      },
+      {
+        "name_ar": "البريد الإلكتروني",
+        "code": "email",
+        "rule_ar": "بريد صالح حتى 254 حرفًا.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/PartyRequest.java",
+            "lines": "19-19",
+            "note": "email"
+          }
+        ]
+      },
+      {
+        "name_ar": "العنوان",
+        "code": "address",
+        "rule_ar": "حتى 500 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/PartyRequest.java",
+            "lines": "20-20",
+            "note": "address"
+          }
+        ]
+      },
+      {
+        "name_ar": "طرف سري",
+        "code": "confidential",
+        "rule_ar": "إذا كان الطرف سريًا أُخفيت بيانات تواصله (الهاتف والبريد والعنوان) عمّن لا يملك صلاحية الاطلاع على الهويات.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/PartyRequest.java",
+            "lines": "22-22",
+            "note": "confidential"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+            "lines": "111-111",
+            "note": "الإخفاء"
+          }
+        ]
+      },
+      {
+        "name_ar": "ملاحظات",
+        "code": "notes",
+        "rule_ar": "حتى 2000 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/PartyRequest.java",
+            "lines": "23-23",
+            "note": "notes"
+          }
+        ]
+      },
+      {
+        "name_ar": "المحامي أو الوكيل: النوع والاسم والهاتف والبريد والملاحظات",
+        "code": "kind / name / phone / email / notes",
+        "rule_ar": "النوع محامٍ (LAWYER) أو وكيل (AGENT)؛ الاسم مطلوب حتى 200؛ الهاتف أرقامًا فقط وحتى 30؛ البريد حتى 254؛ الملاحظات حتى 1000.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/CounselService.java",
+            "lines": "24-26",
+            "note": "الطلب"
+          }
+        ]
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "actor_ar": "موظف الإدارة القانونية",
+      "action_ar": "يفتح صفحة قضية فيرى جدول «أطراف القضية» بأسماء الأطراف ونوعهم وصفتهم (أو جانبهم)، ويرى موقف الهيئة إن كانت القضية مسجّلة بالتسجيل الحكومي.",
+      "response_ar": "يستدعي المتصفح GET /api/v1/cases/{id}/parties. تظهر الهيئة بعلامة «الهيئة» بين الأطراف.",
+      "rules_ar": [
+        "لا يُعرض شيء لمن لا يحق له رؤية القضية: يُجاب بأن القضية غير موجودة (404)."
+      ],
+      "data_ar": "قائمة CaseParty: المعرّف والنوع والاسم والصفة وتاريخ الإضافة والجانب وهل هو الهيئة.",
+      "next_ar": "يضيف طرفًا جديدًا أو مسجّلًا.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyController.java",
+          "lines": "71-71",
+          "note": ""
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+          "lines": "132-132",
+          "note": "الخدمة"
+        },
+        {
+          "path": "frontend/src/features/cases/CasePartiesSection.tsx",
+          "lines": "251-251",
+          "note": "الشاشة"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "قضية غير مسموحة",
+          "detail_ar": "404 إن لم يحق للمستخدم رؤيتها، و403 إن لم يملك CASE_VIEW.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+              "lines": "133-133",
+              "note": "الفحص"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "actor_ar": "موظف يملك «إدارة أطراف القضية»",
+      "action_ar": "يضيف طرفًا جديدًا: يختار نوعه (شخص طبيعي أو اعتباري) ويكتب الاسم والرقم المدني أو رقم المنشأة، ويختار الصفة أو الجانب، ثم يضغط «إضافة الطرف».",
+      "response_ar": "تُرسل الشاشة طلبين: إنشاء الطرف POST /api/v1/parties ثم ربطه بالقضية POST /api/v1/cases/{id}/parties. يظهر الطرف في الجدول.",
+      "rules_ar": [
+        "لا يُقبل رقم مدني مع طرف اعتباري ولا رقم منشأة مع طرف طبيعي (PARTY_KIND_MISMATCH).",
+        "الرقم المدني لا يتكرر بين الأطراف.",
+        "على القضية المسجّلة بالتسجيل الحكومي يُقترح افتراضيًا الجانب المقابل لموقف الهيئة."
+      ],
+      "data_ar": "kind وname وnationalId أو registrationNo؛ ثم partyId وrole وside.",
+      "next_ar": "يُسجَّل حدث «إضافة طرف» في السجل الزمني.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyController.java",
+          "lines": "38-38",
+          "note": ""
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+          "lines": "42-42",
+          "note": "الإنشاء"
+        },
+        {
+          "path": "frontend/src/features/cases/api.ts",
+          "lines": "313-313",
+          "note": "الطلب"
+        },
+        {
+          "path": "frontend/src/features/cases/CasePartiesSection.tsx",
+          "lines": "115-115",
+          "note": "الربط"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "بلا صلاحية إدارة الأطراف",
+          "detail_ar": "403 لمن لا يملك PARTY_MANAGE؛ والقسم يُخفي نماذج الإضافة عن القضية المؤرشفة.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/PartyController.java",
+              "lines": "39-39",
+              "note": "الصلاحية"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "بيانات الطرف غير صالحة",
+          "detail_ar": "400 (اسم فارغ، هاتف بحروف، بريد غير صالح...) أو 422 PARTY_KIND_MISMATCH، وتظهر «يُرجى تصحيح بيانات الطرف».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+              "lines": "200-200",
+              "note": "الرفض"
+            },
+            {
+              "path": "frontend/src/features/cases/CasePartiesSection.tsx",
+              "lines": "24-24",
+              "note": "الرسالة"
+            }
+          ]
+        },
+        {
+          "kind": "error",
+          "title_ar": "رقم مدني مستخدم",
+          "detail_ar": "409 وتظهر «هذا الطرف مضاف إلى القضية بالفعل، أو أن رقمه الآلي مسجل لطرف آخر».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+              "lines": "48-48",
+              "note": "409"
+            },
+            {
+              "path": "frontend/src/features/cases/CasePartiesSection.tsx",
+              "lines": "23-23",
+              "note": "الرسالة"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "actor_ar": "موظف يملك «إدارة أطراف القضية»",
+      "action_ar": "أو يبحث عن طرف مسجّل بالاسم أو الرقم في «البحث عن طرف» ويضغط «إضافة» بجانب النتيجة بعد اختيار الصفة أو الجانب.",
+      "response_ar": "البحث GET /api/v1/parties?q=… يعرض الأطراف المسموح للمستخدم برؤيتها، ثم يُنفَّذ الربط.",
+      "rules_ar": [
+        "الطرف المسجّل يظهر في البحث إن كان على قضية يراها المستخدم أو ليس على أي قضية أو أنشأه هو أو كان الهيئة.",
+        "الطرف الذي لا يظهر إلا في قضايا لا يراها المستخدم لا يُعرض ولا يُقرأ ولا يُربط (404).",
+        "الهيئة نفسها لا تُضاف طرفًا (PARTY_IS_AUTHORITY).",
+        "الطرف المضاف لا يُضاف ثانية (409)."
+      ],
+      "data_ar": "partyId وrole وside.",
+      "next_ar": "يُكتب «إضافة طرف» في السجل الزمني.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyController.java",
+          "lines": "46-46",
+          "note": ""
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyController.java",
+          "lines": "77-77",
+          "note": ""
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+          "lines": "72-72",
+          "note": "الظهور"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+          "lines": "138-166",
+          "note": "الربط"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "exceptional",
+          "title_ar": "إضافة الهيئة أو قضية مؤرشفة",
+          "detail_ar": "422 PARTY_IS_AUTHORITY، أو 422 CASE_READ_ONLY للقضية المؤرشفة.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+              "lines": "144-144",
+              "note": "الهيئة"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+              "lines": "188-188",
+              "note": "المؤرشفة"
+            }
+          ]
+        },
+        {
+          "kind": "error",
+          "title_ar": "الطرف مضاف مسبقًا",
+          "detail_ar": "409 «party is already on the case».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+              "lines": "156-156",
+              "note": "409"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "actor_ar": "موظف يملك «إدارة أطراف القضية»",
+      "action_ar": "يزيل طرفًا من القضية بزر «إزالة»، أو يسجّل محاميًا أو وكيلًا لطرف (النوع والاسم والهاتف) أو يزيله.",
+      "response_ar": "تُحذف صلة الطرف بالقضية (لا الطرف نفسه، وزر الإزالة لا يظهر للهيئة) ويُسجَّل «إزالة طرف» في السجل الزمني. وتسجيل المحامي يسجّل «تسجيل محامٍ أو وكيل»؛ وإزالته علامة إزالة تُبقي السجل.",
+      "rules_ar": [
+        "الهيئة لا تُزال من قضيتها.",
+        "طرف سبق أن سُجّل له محامٍ أو وكيل على القضية (حتى لو أُزيل لاحقًا) لا يمكن إزالته من القضية (409).",
+        "إزالة المحامي تُدوَّن في التدقيق."
+      ],
+      "data_ar": "معرّف القضية والطرف (أو المحامي).",
+      "next_ar": "يمكن عرض قضايا الطرف من «عرض قضاياه».",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyController.java",
+          "lines": "84-84",
+          "note": ""
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+          "lines": "170-170",
+          "note": "الإزالة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CounselService.java",
+          "lines": "65-65",
+          "note": "إضافة محامٍ"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CounselService.java",
+          "lines": "96-96",
+          "note": "التدقيق"
+        },
+        {
+          "path": "frontend/src/features/cases/CaseCounselSection.tsx",
+          "lines": "10-10",
+          "note": "الشاشة"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "exceptional",
+          "title_ar": "إزالة الهيئة أو طرف له محامٍ",
+          "detail_ar": "422 PARTY_IS_AUTHORITY للهيئة، و409 «the party has a lawyer or agent recorded on the case» للطرف الذي سبق أن سُجّل له محامٍ.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+              "lines": "176-176",
+              "note": "الهيئة"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+              "lines": "180-180",
+              "note": "المحامي"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "actor_ar": "موظف الإدارة القانونية",
+      "action_ar": "يضغط «عرض قضاياه» أمام طرف ليرى القضايا الأخرى التي يظهر فيها الطرف.",
+      "response_ar": "GET /api/v1/parties/{id}/cases يعرض القضايا المسموح للمستخدم برؤيتها فقط، وإن لم يكن هناك شيء تظهر «لا توجد قضية أخرى يحق لك الاطلاع عليها».",
+      "rules_ar": [
+        "القضايا غير المسموحة لا تُعد ولا تُوصف في هذه القائمة."
+      ],
+      "data_ar": "قائمة PartyCase للقضايا المسموحة.",
+      "next_ar": "يفتح قضية من القائمة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyController.java",
+          "lines": "58-58",
+          "note": ""
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+          "lines": "91-91",
+          "note": "الخدمة"
+        },
+        {
+          "path": "frontend/src/features/cases/PartyCases.tsx",
+          "lines": "28-28",
+          "note": "الشاشة"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "طرف غير ظاهر",
+          "detail_ar": "404 إن كان الطرف لا يظهر إلا في قضايا لا يراها المستخدم.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+              "lines": "93-93",
+              "note": "404"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "text_ar": "من لا يملك «الاطلاع على الرقم المدني ورقم المنشأة كاملًا» يرى الرقم مقنّعًا: كله نجوم عدا آخر ثلاثة أحرف، وإن كان الرقم ثلاثة أحرف أو أقل لا يظهر منه شيء. والطرف السري تُخفى بيانات تواصله كلها عنه.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+          "lines": "117-117",
+          "note": "التقنيع"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+          "lines": "106-106",
+          "note": "الإخفاء"
+        }
+      ]
+    },
+    {
+      "text_ar": "من يعدّل طرفًا دون صلاحية الاطلاع على الهويات لا يستطيع الكتابة فوق الرقم المقنّع؛ يبقى الرقم المخزّن كما هو.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+          "lines": "57-57",
+          "note": "الحفظ"
+        }
+      ]
+    },
+    {
+      "text_ar": "الصفة (موكِّل، خصم، آخر) أو الجانب (مدعٍ، مدعى عليه) مرتبطان بالقضية لا بالطرف؛ فالطرف نفسه قد يكون خصمًا في قضية وجهة أخرى في غيرها.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyRole.java",
+          "lines": "5-5",
+          "note": "الصفات"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/Side.java",
+          "lines": "5-5",
+          "note": "الجانبان"
+        }
+      ]
+    },
+    {
+      "text_ar": "تعديل بيانات طرف مسجّل (PUT /api/v1/parties/{id}) متاح في واجهة البرمجة بالنسخة (version) ويتطلب إدارة الأطراف، ولا توجد له شاشة في الواجهة الحالية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyController.java",
+          "lines": "64-64",
+          "note": ""
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyRequest.java",
+          "lines": "21-21",
+          "note": "النسخة"
+        }
+      ]
+    },
+    {
+      "text_ar": "أُضيفت قيود قاعدة البيانات: لا يُقبل رقم مدني مكرر، ولا يُسجَّل محامٍ لطرف غير مرتبط بالقضية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/resources/db/migration/V602__LD-050_party_identity_and_duplicates.sql",
+          "lines": "25-25",
+          "note": "قيد المحامي"
+        }
+      ]
+    }
+  ],
+  "after_submit_ar": "يظهر الطرف في جدول «أطراف القضية» ويُسجَّل حدث في السجل الزمني (إضافة طرف أو إزالة طرف أو تسجيل محامٍ).",
+  "notifications_ar": [
+    "لا توجد إشعارات عند إضافة طرف أو إزالته أو تسجيل محامٍ؛ لم أجد في شيفرة الأطراف استدعاءً لخدمة الإشعارات."
+  ],
+  "approvals_ar": [
+    "لا توجد موافقات في هذه الميزة."
+  ],
+  "errors": [
+    {
+      "code": "HTTP 400",
+      "meaning_ar": "بيانات غير صالحة؛ ProblemDetail بقائمة errors.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+          "lines": "35-35",
+          "note": "400"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 403",
+      "meaning_ar": "لا يملك المستخدم PARTY_MANAGE، أو القضية ظاهرة له لكن لا يحق له تغييرها.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+          "lines": "140-140",
+          "note": "التغيير"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 404",
+      "meaning_ar": "القضية أو الطرف غير موجود أو غير ظاهر للمستخدم.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+          "lines": "93-93",
+          "note": "طرف"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 409",
+      "meaning_ar": "رقم مدني مستخدم، أو طرف مضاف مسبقًا، أو إزالة طرف سبق أن سُجّل له محامٍ، أو نسخة الطرف تغيرت.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+          "lines": "48-48",
+          "note": "رقم"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+          "lines": "180-180",
+          "note": "محامٍ"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 PARTY_KIND_MISMATCH",
+      "meaning_ar": "رقم مدني لطرف اعتباري أو رقم منشأة لطرف طبيعي.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+          "lines": "23-23",
+          "note": "الرمز"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 PARTY_IS_AUTHORITY",
+      "meaning_ar": "إضافة الهيئة أو إزالتها من قضيتها.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+          "lines": "24-24",
+          "note": "الرمز"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 CASE_READ_ONLY",
+      "meaning_ar": "القضية مؤرشفة فلا تتغير أطرافها.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+          "lines": "191-191",
+          "note": "الرمز"
+        }
+      ]
+    }
+  ],
+  "result_ar": "جدول أطراف القضية محدَّثًا بالصفة أو الجانب، وأطراف مسجّلون يمكن إعادة استعمالهم في قضايا أخرى، ومحامون ووكلاء مسجلون لكل طرف.",
+  "related": [
+    "cases-register",
+    "cases-details-edit",
+    "case-access-confidentiality",
+    "settlements",
+    "roles-permissions"
+  ],
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/api/v1/parties",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/cases/PartyController.java",
+        "lines": "38-38",
+        "note": ""
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/parties",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/cases/PartyController.java",
+        "lines": "46-46",
+        "note": ""
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/parties/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/cases/PartyController.java",
+        "lines": "52-52",
+        "note": ""
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/parties/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/cases/PartyController.java",
+        "lines": "64-64",
+        "note": ""
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/parties/{id}/cases",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/cases/PartyController.java",
+        "lines": "58-58",
+        "note": ""
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cases/{id}/parties",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/cases/PartyController.java",
+        "lines": "71-71",
+        "note": ""
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/cases/{id}/parties",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/cases/PartyController.java",
+        "lines": "77-77",
+        "note": ""
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/cases/{id}/parties/{partyId}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/cases/PartyController.java",
+        "lines": "84-84",
+        "note": ""
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cases/{id}/parties/counsel",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/cases/PartyController.java",
+        "lines": "91-91",
+        "note": ""
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/cases/{id}/parties/{partyId}/counsel",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/cases/PartyController.java",
+        "lines": "97-97",
+        "note": ""
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/cases/{id}/parties/counsel/{counselId}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/cases/PartyController.java",
+        "lines": "105-105",
+        "note": ""
+      }
+    }
+  ],
+  "tech": {
+    "chain": [
+      {
+        "layer": "screen",
+        "label": "CasePartiesSection (داخل صفحة القضية)",
+        "ref": {
+          "path": "frontend/src/features/cases/CasePartiesSection.tsx",
+          "lines": "251-251",
+          "note": ""
+        },
+        "data_ar": "اختيارات المستخدم (النوع والاسم والرقم والصفة/الجانب)."
+      },
+      {
+        "layer": "api_call",
+        "label": "createParty / addCaseParty / searchParties",
+        "ref": {
+          "path": "frontend/src/features/cases/api.ts",
+          "lines": "327-327",
+          "note": ""
+        },
+        "data_ar": "طلبات JSON إلى /api/v1/parties و/api/v1/cases/{id}/parties."
+      },
+      {
+        "layer": "controller",
+        "label": "PartyController",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyController.java",
+          "lines": "28-28",
+          "note": ""
+        },
+        "data_ar": "الطلب بعد التحقق من قيود PartyRequest وLinkPartyRequest."
+      },
+      {
+        "layer": "authorization",
+        "label": "@PreAuthorize PARTY_MANAGE / CASE_VIEW + CaseAccessPolicy",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyController.java",
+          "lines": "39-39",
+          "note": ""
+        },
+        "data_ar": "الصلاحية ثم حق التغيير على القضية."
+      },
+      {
+        "layer": "service",
+        "label": "PartyService.link / create / unlink",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+          "lines": "138-138",
+          "note": ""
+        },
+        "data_ar": "قواعد الجانب والصفة والهيئة والتكرار."
+      },
+      {
+        "layer": "repository",
+        "label": "PartyRepository",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyRepository.java",
+          "lines": "17-17",
+          "note": ""
+        },
+        "data_ar": "إدراج الطرف والصلة وقراءتهما."
+      },
+      {
+        "layer": "tables",
+        "label": "party, case_party, case_party_counsel",
+        "ref": {
+          "path": "backend/src/main/resources/db/migration/V201__LD-016_party.sql",
+          "lines": "3-3",
+          "note": ""
+        },
+        "data_ar": "صفوف الأطراف وصلاتهم بالقضايا."
+      },
+      {
+        "layer": "event",
+        "label": "PARTY_ADDED / PARTY_REMOVED / COUNSEL_ADDED",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+          "lines": "164-164",
+          "note": ""
+        },
+        "data_ar": "سطر في السجل الزمني للقضية باسم الفاعل."
+      },
+      {
+        "layer": "result",
+        "label": "CaseParty (201) أو 204",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyController.java",
+          "lines": "80-80",
+          "note": ""
+        },
+        "data_ar": "الطرف المرتبط يظهر في الجدول."
+      }
+    ]
+  },
+  "status": "IMPLEMENTED_ON_DEVELOP",
+  "status_note_ar": "الشيفرة موجودة على develop ويغطيها اختبارات الخادم والواجهة المذكورة.",
+  "status_evidence": [
+    {
+      "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+      "lines": "21-21",
+      "note": ""
+    },
+    {
+      "path": "frontend/src/features/cases/CasePartiesSection.tsx",
+      "lines": "251-251",
+      "note": ""
+    }
+  ],
+  "verification_ar": "قرأتُ المتحكم والخدمة وطلب الطرف وخدمة المحامين وشاشة الأطراف وملف V602. اختبارات وجدتها: backend/src/test/java/com/lawdesk/cases/PartyApiTest.java وCasePartyApiTest.java وPartyIdentityAndDuplicateApiTest.java وGovernmentIntakeApiTest.java، وفي الواجهة frontend/src/features/cases/PartiesAndDuplicates.test.tsx. لم أشغّلها ولم يجرِ هذا المستند تحققًا على UAT. لم أتحقق من واجهة المستخدم لتعديل بيانات طرف قائم (لا شاشة لها فيما قرأت)، ولا من الجهات الإدارية المعنية (قسم مستقل في صفحة القضية)."
+}

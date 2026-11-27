@@ -1,0 +1,1050 @@
+{
+  "id": "info-requests",
+  "category": "work",
+  "name_ar": "طلبات الإفادة من الإدارات المعنية وردودها ومتابعتها",
+  "summary_ar": "تسجّل الشؤون القانونية في القضية طلبات الإفادة والمستندات الموجهة إلى إدارات الجهة، وتتابع إرسالها وردودها (جزئية أو غير مكتملة أو مكتملة) وتذكّر الإدارة المتأخرة أو تعيد مخاطبتها أو تصعّد الأمر إلى مسؤول. يعطي النظام لكل طلب رقمًا من نوع IR-2026-00001.",
+  "purpose_ar": "ألا يضيع على القضية رد إدارة متأخر أو ناقص، وأن يبقى سجل واضح بمن طُلب منه ماذا ومتى ورد، وأن يظهر التأخر للمعنيين تلقائيًا.",
+  "who_ar": [
+    "من يحمل صلاحية «الاطلاع على طلبات الإفادة» (INFO_REQUEST_VIEW)",
+    "من يحمل صلاحية «إدارة طلبات الإفادة» (INFO_REQUEST_MANAGE) مع حق تغيير القضية لإنشاء الطلب وتعديله وتسجيل الردود والمتابعات",
+    "من يحمل صلاحية «تصعيد طلبات الإفادة» (INFO_REQUEST_ESCALATE) لتسجيل متابعة من نوع «تصعيد»"
+  ],
+  "who_perms": [
+    "INFO_REQUEST_VIEW",
+    "INFO_REQUEST_MANAGE",
+    "INFO_REQUEST_ESCALATE"
+  ],
+  "access_ar": "صفحة القضية > قسم «طلبات الإفادة من الإدارات المعنية» (يظهر لمن يحمل INFO_REQUEST_VIEW)",
+  "prerequisites_ar": [
+    "أن تكون القضية غير مؤرشفة وأن يحق للمستخدم تغييرها.",
+    "لاختيار الجهة المطلوب منها الرد: أن تكون الإدارات مسجّلة في هيكل الجهة (اختيار الجهة اختياري).",
+    "لتسجيل رد أو متابعة: أن يكون الطلب قد أُرسل ولم يُغلق."
+  ],
+  "fields": {
+    "required": [
+      {
+        "name_ar": "موضوع الطلب",
+        "code": "subject",
+        "rule_ar": "مطلوب وحتى 300 حرف؛ وتعرض الشاشة «اذكر موضوع الطلب.» إن تُرك فارغًا.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestRequests.java",
+            "lines": "28",
+            "note": "subject"
+          },
+          {
+            "path": "frontend/src/features/followup/InfoRequestsSection.tsx",
+            "lines": "81",
+            "note": "client check"
+          }
+        ]
+      },
+      {
+        "name_ar": "تاريخ ورود الرد (عند تسجيل رد)",
+        "code": "receivedOn",
+        "rule_ar": "مطلوب، ولا يكون في المستقبل (يرد 400 برمز Range).",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestRequests.java",
+            "lines": "94",
+            "note": "receivedOn"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+            "lines": "181",
+            "note": "not future"
+          }
+        ]
+      },
+      {
+        "name_ar": "اكتمال الرد (عند تسجيل رد)",
+        "code": "completeness",
+        "rule_ar": "مطلوب: جزئي أو غير مكتمل أو مكتمل.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestRequests.java",
+            "lines": "106",
+            "note": "values"
+          }
+        ]
+      },
+      {
+        "name_ar": "نوع المتابعة (عند تسجيل متابعة)",
+        "code": "kind",
+        "rule_ar": "مطلوب: تذكير أو إعادة مخاطبة أو تصعيد.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestRequests.java",
+            "lines": "108",
+            "note": "values"
+          }
+        ]
+      },
+      {
+        "name_ar": "الحالة الجديدة (عند تغيير الحالة)",
+        "code": "status",
+        "rule_ar": "مطلوبة ومن الحالات التي يضبطها المستخدم فقط: مسودة، قيد الاعتماد، مرسل، بانتظار الرد، مغلق؛ وغيرها يتغير من الردود ومن التشغيل الدوري.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestStatus.java",
+            "lines": "23",
+            "note": "settable"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+            "lines": "147-149",
+            "note": "400 Pattern"
+          }
+        ]
+      },
+      {
+        "name_ar": "رقم النسخة (عند التعديل أو تغيير الحالة)",
+        "code": "version",
+        "rule_ar": "مطلوب والنسخة القديمة تعطي 409.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestRequests.java",
+            "lines": "66",
+            "note": "version"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+            "lines": "122",
+            "note": "409"
+          }
+        ]
+      }
+    ],
+    "optional": [
+      {
+        "name_ar": "الجهة المطلوب منها الرد",
+        "code": "unitId",
+        "rule_ar": "اختيارية؛ يجب أن تكون وحدة موجودة في هيكل الجهة (وإلا 400 برمز Invalid). يحتفظ الطلب باسم الجهة كما كان وقت تسجيله.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+            "lines": "261-267",
+            "note": "unit check"
+          }
+        ]
+      },
+      {
+        "name_ar": "تفاصيل الإفادة المطلوبة",
+        "code": "details",
+        "rule_ar": "اختيارية حتى 4000 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestRequests.java",
+            "lines": "30",
+            "note": "details"
+          }
+        ]
+      },
+      {
+        "name_ar": "المستندات المطلوبة",
+        "code": "requiredDocuments",
+        "rule_ar": "اختيارية حتى 2000 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestRequests.java",
+            "lines": "31",
+            "note": "requiredDocuments"
+          }
+        ]
+      },
+      {
+        "name_ar": "الموعد المحدد للرد",
+        "code": "dueOn",
+        "rule_ar": "اختياري؛ بعد فواته يُعد الطلب متأخرًا.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestRequests.java",
+            "lines": "33",
+            "note": "dueOn"
+          }
+        ]
+      },
+      {
+        "name_ar": "الموظف أو المسؤول المخاطب",
+        "code": "addressee",
+        "rule_ar": "اختياري حتى 200 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestRequests.java",
+            "lines": "35",
+            "note": "addressee"
+          }
+        ]
+      },
+      {
+        "name_ar": "المسؤول عن الطلب",
+        "code": "responsibleMemberId",
+        "rule_ar": "اختياري؛ يجب أن يكون مستخدمًا موجودًا (400 Invalid). لا تعرضه شاشة الإنشاء.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+            "lines": "268-272",
+            "note": "user check"
+          },
+          {
+            "path": "frontend/src/features/followup/InfoRequestsSection.tsx",
+            "lines": "11",
+            "note": "form has no responsible member"
+          }
+        ]
+      },
+      {
+        "name_ar": "رقم الكتاب وتاريخه وتاريخ الإرسال",
+        "code": "letterNo / letterDate / sentOn",
+        "rule_ar": "تُحفظ عند تسجيل الإرسال (يُعتمد اليوم إن لم يُذكر تاريخ الإرسال).",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+            "lines": "162",
+            "note": "sentOn default today"
+          }
+        ]
+      },
+      {
+        "name_ar": "سبب الإغلاق",
+        "code": "closeReason",
+        "rule_ar": "حتى 2000 حرف، ومطلوب عند إغلاق طلب لم يكتمل ردّه (400 NotNull).",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+            "lines": "158-161",
+            "note": "close reason"
+          },
+          {
+            "path": "frontend/src/i18n/messages/wp3.ar.ts",
+            "lines": "146",
+            "note": "Arabic hint"
+          }
+        ]
+      },
+      {
+        "name_ar": "سبب التأخير",
+        "code": "delayReason",
+        "rule_ar": "اختياري حتى 2000 حرف؛ يُسجَّل من الشاشة مع موعد رد جديد.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestRequests.java",
+            "lines": "63",
+            "note": "delayReason"
+          },
+          {
+            "path": "frontend/src/features/followup/api.ts",
+            "lines": "213-217",
+            "note": "api call"
+          }
+        ]
+      },
+      {
+        "name_ar": "مستند الرد (PDF) وملخص الرد",
+        "code": "file / summary",
+        "rule_ar": "الملف يُحفظ تلقائيًا في ملف القضية عبر وحدة المستندات بفحوصها نفسها؛ والملخص حتى 4000 حرف. تقبل الشاشة PDF فقط.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestController.java",
+            "lines": "98-101",
+            "note": "archived via document module"
+          },
+          {
+            "path": "frontend/src/features/followup/InfoRequestCard.tsx",
+            "lines": "192",
+            "note": "UI accept"
+          }
+        ]
+      },
+      {
+        "name_ar": "ملاحظة المتابعة والمصعَّد إليه",
+        "code": "note / escalatedTo",
+        "rule_ar": "الملاحظة حتى 2000 حرف؛ والمصعَّد إليه مطلوب للتصعيد وممنوع لغيره.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+            "lines": "205-206",
+            "note": "escalatedTo rule"
+          }
+        ]
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "actor_ar": "المحامي (INFO_REQUEST_MANAGE وحق تغيير القضية)",
+      "action_ar": "من صفحة القضية يضغط «طلب جديد» ويكتب موضوع الطلب ويختار الجهة المطلوب منها الرد ويضيف تفاصيل الإفادة والمستندات المطلوبة والموعد المحدد والمخاطَب، ثم يحفظ.",
+      "response_ar": "يُسجَّل الطلب «مسودة» برقم من النظام (IR-السنة-خمسة أرقام) وتظهر «سُجِّل الطلب مسودة.»، ويُضاف سطر INFO_REQUEST_CREATED إلى الخط الزمني للقضية.",
+      "rules_ar": [
+        "يبدأ كل طلب مسودة دائمًا.",
+        "الأرقام فريدة ويحتفظ الطلب باسم الجهة وقت التسجيل ولو أُعيدت تسميتها لاحقًا.",
+        "القضية المؤرشفة لا تقبل طلبات جديدة."
+      ],
+      "data_ar": "POST /api/v1/cases/{caseId}/info-requests بجسم: subject, unitId, details, requiredDocuments, draftedOn, dueOn, responsibleMemberId, addressee, notes. يُحفظ في جدول info_request.",
+      "next_ar": "الخطوة 2 لإرسال الطلب.",
+      "evidence": [
+        {
+          "path": "frontend/src/features/followup/InfoRequestsSection.tsx",
+          "lines": "78-93",
+          "note": "form submit"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestController.java",
+          "lines": "48-55",
+          "note": "POST create"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+          "lines": "104-113",
+          "note": "create flow"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestStore.java",
+          "lines": "125",
+          "note": "request number"
+        },
+        {
+          "path": "backend/src/main/resources/db/migration/V661__LD-053_info_request.sql",
+          "lines": "6-16",
+          "note": "table"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "موضوع فارغ",
+          "detail_ar": "تمنع الشاشة الإرسال وتعرض «اذكر موضوع الطلب.»، ويرد الخادم 400 (NotBlank) إن وصله.",
+          "evidence": [
+            {
+              "path": "frontend/src/features/followup/InfoRequestsSection.tsx",
+              "lines": "82",
+              "note": "client message"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestRequests.java",
+              "lines": "28",
+              "note": "server rule"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "جهة أو مسؤول غير موجود",
+          "detail_ar": "يرد 400 باسم الحقل unitId أو responsibleMemberId ورمز Invalid.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+              "lines": "265",
+              "note": "unit"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+              "lines": "270",
+              "note": "user"
+            }
+          ]
+        },
+        {
+          "kind": "denied",
+          "title_ar": "قضية لا يراها أو لا يغيّرها، أو لا صلاحية INFO_REQUEST_MANAGE",
+          "detail_ar": "قضية غير مرئية: 404؛ مرئية بلا حق التغيير: 403؛ بلا الصلاحية: 403.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestController.java",
+              "lines": "49",
+              "note": "403"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+              "lines": "252-259",
+              "note": "404/403/422"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "قضية مؤرشفة",
+          "detail_ar": "يرد 422 بالقاعدة CASE_ARCHIVED.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/inforequests/Rules.java",
+              "lines": "6",
+              "note": "code"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "actor_ar": "المحامي",
+      "action_ar": "يحرّك الطلب بين الحالات بأزرار تظهر بحسب حالته: «رفع للاعتماد»، «تسجيل الإرسال» (مع رقم الكتاب)، «بانتظار الرد»، «إعادة إلى مسودة»، أو «إغلاق الطلب».",
+      "response_ar": "تتغير الحالة وتظهر «تغيّرت حالة الطلب.»، ويُضاف سطر إلى الخط الزمني للقضية باسم الحالة. عند «تسجيل الإرسال» يُحفظ تاريخ الإرسال (اليوم افتراضيًا) ورقم الكتاب.",
+      "rules_ar": [
+        "الانتقالات المسموحة: من مسودة إلى قيد الاعتماد أو مرسل أو مغلق؛ ومن قيد الاعتماد إلى مسودة أو مرسل أو مغلق؛ ومن مرسل إلى بانتظار الرد أو مغلق؛ ومن بانتظار الرد أو متأخر أو مكتمل إلى مغلق؛ ومن ورد جزئي أو غير مكتمل إلى بانتظار الرد أو مغلق؛ ومن مغلق إلى بانتظار الرد.",
+        "«قيد الاعتماد» حالة فقط: لا يوجد في الشيفرة معتمِد ولا صلاحية ولا إجراء اعتماد، ويستطيع من يحمل INFO_REQUEST_MANAGE نقل الطلب منها إلى «مرسل».",
+        "إغلاق طلب لم يكتمل ردّه يحتاج سببًا؛ ولا يغلق النظام الطلب المتأخر أبدًا."
+      ],
+      "data_ar": "POST /api/v1/info-requests/{id}/status بجسم: status, sentOn, letterNo, letterDate, closeReason, version.",
+      "next_ar": "الخطوة 3 لتسجيل الرد.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestController.java",
+          "lines": "84-88",
+          "note": "status"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+          "lines": "142-171",
+          "note": "status flow"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+          "lines": "41-51",
+          "note": "transition table"
+        },
+        {
+          "path": "frontend/src/features/followup/InfoRequestCard.tsx",
+          "lines": "33-42",
+          "note": "buttons by status"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "انتقال غير مسموح",
+          "detail_ar": "يرد 422 بالقاعدة INFO_REQUEST_TRANSITION_NOT_ALLOWED.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+              "lines": "154",
+              "note": "422"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "حالة لا يضبطها المستخدم أو إغلاق بلا سبب",
+          "detail_ar": "اختيار حالة مثل «متأخر» أو «ورد جزئي» يدويًا: 400 (status/Pattern)؛ وإغلاق طلب غير مكتمل الرد بلا سبب: 400 (closeReason/NotNull).",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+              "lines": "148",
+              "note": "400"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+              "lines": "159",
+              "note": "400"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "تغيّر الطلب عند شخص آخر",
+          "detail_ar": "يرد 409 وتعرض الشاشة «غيّر شخص آخر هذا السجل. أعد التحميل وحاول مرة أخرى.».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+              "lines": "122",
+              "note": "409"
+            },
+            {
+              "path": "frontend/src/i18n/messages/wp3.ar.ts",
+              "lines": "15",
+              "note": "Arabic"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "actor_ar": "المحامي",
+      "action_ar": "عند ورود رد يضغط «تسجيل رد» ويحدد تاريخ الورود (اليوم افتراضيًا) واكتمال الرد وملخصه، ويرفق اختياريًا مستند الرد (PDF)، ثم «حفظ الرد».",
+      "response_ar": "يُحفظ الرد (ويبقى كل رد في السجل)، ويُحفظ المستند في ملف القضية ويُربط بالرد، وتتحدث حالة الطلب من الردود: «ورد مكتمل» إن وُجد رد مكتمل، وإلا بحسب أحدث رد (جزئي أو غير مكتمل). تظهر «سُجِّل الرد.» ويُضاف سطر INFO_REPLY_RECEIVED إلى الخط الزمني.",
+      "rules_ar": [
+        "لا يُسجَّل رد على مسودة أو طلب قيد الاعتماد (القاعدة INFO_REQUEST_NOT_SENT) ولا على طلب مغلق (INFO_REQUEST_CLOSED).",
+        "تاريخ الورود لا يكون في المستقبل.",
+        "مستند الرد يمكن أن يكون ملفًا يُرفع، أو مستندًا موجودًا في ملف القضية نفسها (REPLY_DOCUMENT_NOT_IN_CASE إن كان من قضية أخرى).",
+        "الرد غير المكتمل يولّد لاحقًا إشعار «مستندات ناقصة» عند التشغيل الدوري."
+      ],
+      "data_ar": "POST /api/v1/info-requests/{id}/replies: JSON (receivedOn, completeness, summary, documentId…) أو نموذج متعدد الأجزاء مع الملف.",
+      "next_ar": "الخطوة 4 لمتابعة الإدارة المتأخرة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestController.java",
+          "lines": "90-96",
+          "note": "JSON reply"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestController.java",
+          "lines": "103-117",
+          "note": "multipart reply"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+          "lines": "175-193",
+          "note": "reply flow"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestStore.java",
+          "lines": "195-204",
+          "note": "status follows replies"
+        },
+        {
+          "path": "frontend/src/features/followup/InfoRequestCard.tsx",
+          "lines": "192",
+          "note": "UI file input"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "الطلب لم يُرسل أو أُغلق",
+          "detail_ar": "يرد 422 بالقاعدة INFO_REQUEST_NOT_SENT أو INFO_REQUEST_CLOSED.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+              "lines": "274-281",
+              "note": "422"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "تاريخ ورود مستقبلي أو حقل ناقص",
+          "detail_ar": "يرد 400 (receivedOn/Range، أو NotNull لحقل receivedOn أو completeness في الإرسال المتعدد الأجزاء).",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+              "lines": "181",
+              "note": "400"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestController.java",
+              "lines": "113",
+              "note": "400"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "مستند من قضية أخرى",
+          "detail_ar": "يرد 422 بالقاعدة REPLY_DOCUMENT_NOT_IN_CASE.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+              "lines": "187",
+              "note": "422"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "actor_ar": "المحامي (والمصعِّد: حامل INFO_REQUEST_ESCALATE)",
+      "action_ar": "إن تأخر الرد يسجّل «متابعة»: تذكير أو إعادة مخاطبة أو تصعيد (مع اختيار من يُصعَّد إليه من أعضاء القضية)، وله أن يسجل «سبب التأخير» مع موعد جديد للرد، أو أن يغلق الطلب بسبب.",
+      "response_ar": "تُحفظ المتابعة بتاريخها (اليوم افتراضيًا) ويُضاف سطر إلى الخط الزمني. وفي التصعيد يصل المصعَّد إليه إشعار «صُعِّد إليك الطلب …» داخل النظام. وإذا حُدّد موعد جديد لطلب متأخر لم يفت بعد عاد الطلب إلى حالته السابقة.",
+      "rules_ar": [
+        "التصعيد يحتاج صلاحية INFO_REQUEST_ESCALATE؛ ولا يظهر خيار «تصعيد» في الشاشة لمن لا يملكها.",
+        "المصعَّد إليه مطلوب في التصعيد وممنوع في غيره، ويجب أن يكون مستخدمًا موجودًا.",
+        "لا تُسجَّل متابعة على مسودة أو طلب مغلق."
+      ],
+      "data_ar": "POST /api/v1/info-requests/{id}/follow-ups بجسم: kind, onDate, note, escalatedTo؛ ولسبب التأخير PUT /api/v1/info-requests/{id}.",
+      "next_ar": "الخطوة 5 (التشغيل الدوري).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestController.java",
+          "lines": "120-125",
+          "note": "follow-ups"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+          "lines": "197-221",
+          "note": "follow-up flow"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+          "lines": "129-133",
+          "note": "overdue restored on new due date"
+        },
+        {
+          "path": "frontend/src/features/followup/InfoRequestCard.tsx",
+          "lines": "89",
+          "note": "escalation hidden without permission"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "تصعيد بلا صلاحية",
+          "detail_ar": "يرد 403 («missing INFO_REQUEST_ESCALATE»).",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+              "lines": "203",
+              "note": "403"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "المصعَّد إليه مفقود في التصعيد أو موجود في غيره",
+          "detail_ar": "يرد 400 على escalatedTo برمز NotNull أو Null.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+              "lines": "206",
+              "note": "400"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "طلب لم يُرسل أو مغلق",
+          "detail_ar": "يرد 422 بالقاعدة INFO_REQUEST_NOT_SENT أو INFO_REQUEST_CLOSED.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+              "lines": "211",
+              "note": "422"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "actor_ar": "النظام (التشغيل الدوري كل ساعة)",
+      "action_ar": "يعلّم الطلبات «مرسل» أو «بانتظار الرد» التي فات موعدها «متأخرة»، وينبّه المسؤول عن الطلب والعضو الأصلي في القضية.",
+      "response_ar": "تتحول الحالة إلى «متأخر» مع حفظ الحالة السابقة، ويصل إشعار «تأخر الرد على الطلب …». ولا يُغلق الطلب أبدًا.",
+      "rules_ar": [
+        "إشعار واحد لكل طلب وشخص مهما تكرر التشغيل."
+      ],
+      "data_ar": "تحديث info_request وإضافة إشعار INFO_REQUEST_OVERDUE.",
+      "next_ar": "راجع صفحة «المتابعة الدورية والتذكيرات».",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/followup/FollowUpRun.java",
+          "lines": "53-77",
+          "note": "overdue marking"
+        }
+      ],
+      "alt": []
+    },
+    {
+      "n": 6,
+      "actor_ar": "من يحمل INFO_REQUEST_VIEW",
+      "action_ar": "يطلب قائمة الطلبات على مستوى كل القضايا (بحالة أو جهة أو «متأخرة فقط») أو تقرير استجابة الإدارات: لكل جهة عدد الطلبات والردود والمتأخر والردود غير المكتملة والقضايا المتأثرة ومتوسط أيام الرد.",
+      "response_ar": "قائمة وتقرير يقتصران على طلبات القضايا التي يراها المستخدم. (وثّقت الواجهة البرمجية؛ ولم أوثق شاشة التقرير هنا.)",
+      "rules_ar": [
+        "لا تُحسب طلبات قضية لا يراها المستخدم."
+      ],
+      "data_ar": "GET /api/v1/info-requests?status&overdue&unitId وGET /api/v1/info-requests/report.",
+      "next_ar": "تنتهي العملية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestController.java",
+          "lines": "57-64",
+          "note": "list"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestController.java",
+          "lines": "66-70",
+          "note": "report"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+          "lines": "97-100",
+          "note": "report flow"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestRequests.java",
+          "lines": "147-149",
+          "note": "report row"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "قضية لا يراها",
+          "detail_ar": "قائمة طلبات قضية بعينها وطلب بمعرّفه: 404 إن لم يكن يراها.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+              "lines": "226-231",
+              "note": "404"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "text_ar": "كل كتابة تمر بسياسة وصول القضية (404 لقضية لا يراها، 403 لقضية يراها ولا يغيّرها) وتضيف سطرًا في الخط الزمني للقضية ضمن المعاملة نفسها؛ وكل قائمة تقتصر على القضايا المرئية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+          "lines": "30-33",
+          "note": "design note"
+        }
+      ]
+    },
+    {
+      "text_ar": "حالات الطلب: مسودة، قيد الاعتماد، مرسل، بانتظار الرد، ورد جزئي، ورد غير مكتمل، ورد مكتمل، متأخر، مغلق. ولا يضبط المستخدم «ورد …» و«متأخر» مباشرة: الأولى تتبع الردود والأخيرة يضعها التشغيل الدوري.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestStatus.java",
+          "lines": "6-17",
+          "note": "statuses"
+        },
+        {
+          "path": "frontend/src/i18n/messages/wp3.ar.ts",
+          "lines": "101-109",
+          "note": "Arabic names"
+        }
+      ]
+    },
+    {
+      "text_ar": "رد واحد مكتمل يجعل الطلب «مكتملًا»، وإلا تتبع حالة الطلب أحدث رد.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestStore.java",
+          "lines": "202",
+          "note": "rule"
+        }
+      ]
+    },
+    {
+      "text_ar": "التاريخ المعتمد «اليوم» بتوقيت الكويت.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+          "lines": "38",
+          "note": "Kuwait"
+        }
+      ]
+    }
+  ],
+  "after_submit_ar": "يظهر الطلب أو التغيير في قسم الطلبات بصفحة القضية برسالة تأكيد عربية، ويُضاف سطر إلى الخط الزمني للقضية.",
+  "notifications_ar": [
+    "إشعار «صُعِّد إليك الطلب …» للمصعَّد إليه عند تسجيل تصعيد.",
+    "إشعار «تأخر الرد على الطلب …» للمسؤول عن الطلب وللعضو الأصلي في القضية من التشغيل الدوري.",
+    "إشعار «رد الطلب ناقص: توجد مستندات ناقصة» عندما تكون حالة الطلب «ورد غير مكتمل» (من التشغيل الدوري).",
+    "كلها داخل النظام فقط."
+  ],
+  "approvals_ar": [
+    "توجد حالة اسمها «قيد الاعتماد» ولكن لم أجد في الشيفرة إجراء اعتماد أو معتمِدًا أو صلاحية خاصة بها؛ وهي مجرد حالة ينقل بها صاحب صلاحية الإدارة الطلب قبل الإرسال."
+  ],
+  "errors": [
+    {
+      "code": "HTTP 400",
+      "meaning_ar": "حقل ناقص أو غير صالح (subject، receivedOn/Range، escalatedTo، closeReason، status/Pattern، unitId/Invalid).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+          "lines": "45-49",
+          "note": "400"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 403",
+      "meaning_ar": "لا صلاحية، أو لا يحق له تغيير القضية، أو تصعيد بلا INFO_REQUEST_ESCALATE.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+          "lines": "203",
+          "note": "403"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 404",
+      "meaning_ar": "الطلب أو القضية غير موجود أو لا يحق للمستخدم رؤيته.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+          "lines": "227",
+          "note": "404"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 409",
+      "meaning_ar": "غيّر شخص آخر الطلب (النسخة قديمة).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+          "lines": "122",
+          "note": "409"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 INFO_REQUEST_TRANSITION_NOT_ALLOWED",
+      "meaning_ar": "الانتقال بين الحالتين غير مسموح.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/Rules.java",
+          "lines": "7",
+          "note": "code"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 INFO_REQUEST_NOT_SENT",
+      "meaning_ar": "الطلب لم يُرسل بعد (مسودة أو قيد الاعتماد).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/Rules.java",
+          "lines": "8",
+          "note": "code"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 INFO_REQUEST_CLOSED",
+      "meaning_ar": "الطلب مغلق.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/Rules.java",
+          "lines": "9",
+          "note": "code"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 REPLY_DOCUMENT_NOT_IN_CASE",
+      "meaning_ar": "المستند ليس من ملف هذه القضية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/Rules.java",
+          "lines": "10",
+          "note": "code"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 CASE_ARCHIVED",
+      "meaning_ar": "القضية مؤرشفة وللقراءة فقط.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/Rules.java",
+          "lines": "6",
+          "note": "code"
+        }
+      ]
+    }
+  ],
+  "result_ar": "طلب إفادة مسجّل برقم من النظام وحالة واضحة وردود ومتابعات محفوظة، ظاهر في صفحة القضية، وتنبيهات داخل النظام عند التأخر أو التصعيد.",
+  "related": [
+    "follow-up",
+    "notifications",
+    "calendar",
+    "documents-ocr",
+    "case-file",
+    "case-access-confidentiality"
+  ],
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/v1/cases/{caseId}/info-requests",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestController.java",
+        "lines": "41",
+        "note": "list for case"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/cases/{caseId}/info-requests",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestController.java",
+        "lines": "48",
+        "note": "create"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/info-requests",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestController.java",
+        "lines": "57",
+        "note": "global list"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/info-requests/report",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestController.java",
+        "lines": "66",
+        "note": "report"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/info-requests/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestController.java",
+        "lines": "72",
+        "note": "get"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/info-requests/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestController.java",
+        "lines": "78",
+        "note": "update"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/info-requests/{id}/status",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestController.java",
+        "lines": "84",
+        "note": "status"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/info-requests/{id}/replies",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestController.java",
+        "lines": "90",
+        "note": "reply"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/info-requests/{id}/follow-ups",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestController.java",
+        "lines": "120",
+        "note": "follow-up"
+      }
+    }
+  ],
+  "tech": {
+    "chain": [
+      {
+        "layer": "screen",
+        "label": "InfoRequestsSection داخل صفحة القضية",
+        "ref": {
+          "path": "frontend/src/features/followup/InfoRequestsSection.tsx",
+          "lines": "21",
+          "note": "screen"
+        },
+        "data_ar": "قيم نموذج الطلب وقائمة الجهات وأعضاء القضية."
+      },
+      {
+        "layer": "component",
+        "label": "InfoRequestCard",
+        "ref": {
+          "path": "frontend/src/features/followup/InfoRequestCard.tsx",
+          "lines": "88",
+          "note": "card"
+        },
+        "data_ar": "أزرار الحالة ولوحات الرد والمتابعة والإغلاق وسبب التأخير."
+      },
+      {
+        "layer": "api_call",
+        "label": "createRequest / changeStatus / addReply / addFollowUp",
+        "ref": {
+          "path": "frontend/src/features/followup/api.ts",
+          "lines": "242-258",
+          "note": "api"
+        },
+        "data_ar": "طلبات إلى /api/v1/cases/{caseId}/info-requests و/api/v1/info-requests/{id}/…."
+      },
+      {
+        "layer": "controller",
+        "label": "InfoRequestController",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestController.java",
+          "lines": "32-33",
+          "note": "controller"
+        },
+        "data_ar": "الجسم بعد @Valid (أو أجزاء الملف) يُسلَّم إلى InfoRequestService."
+      },
+      {
+        "layer": "authorization",
+        "label": "@PreAuthorize INFO_REQUEST_VIEW/MANAGE/ESCALATE + CaseAccessPolicy",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestController.java",
+          "lines": "49",
+          "note": "permission"
+        },
+        "data_ar": "صلاحية الوظيفة ثم حق القضية والتصعيد."
+      },
+      {
+        "layer": "service",
+        "label": "InfoRequestService",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+          "lines": "142-146",
+          "note": "service"
+        },
+        "data_ar": "جدول الانتقالات وقواعد الرد والمتابعة."
+      },
+      {
+        "layer": "repository",
+        "label": "InfoRequestStore",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestStore.java",
+          "lines": "125",
+          "note": "store"
+        },
+        "data_ar": "إدخال الطلب والردود والمتابعات وتحديث الحالة."
+      },
+      {
+        "layer": "tables",
+        "label": "info_request, info_reply, info_follow_up",
+        "ref": {
+          "path": "backend/src/main/resources/db/migration/V661__LD-053_info_request.sql",
+          "lines": "53-59",
+          "note": "tables"
+        },
+        "data_ar": "الطلب وردوده ومتابعاته."
+      },
+      {
+        "layer": "event",
+        "label": "cases.recordEvent + notifications.publish",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+          "lines": "217-220",
+          "note": "escalation notice"
+        },
+        "data_ar": "سطر الخط الزمني وإشعار التصعيد."
+      },
+      {
+        "layer": "result",
+        "label": "InfoRequestRequests.Response",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestRequests.java",
+          "lines": "130-136",
+          "note": "response"
+        },
+        "data_ar": "الطلب مع الردود والمتابعات وعلم overdue."
+      }
+    ]
+  },
+  "status": "IMPLEMENTED_ON_DEVELOP",
+  "status_note_ar": "الشيفرة على develop ولها اختبارات؛ لم يُتحقق منها في UAT ضمن هذه الوثيقة.",
+  "status_evidence": [
+    {
+      "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestController.java",
+      "lines": "32-33",
+      "note": "controller on develop"
+    }
+  ],
+  "verification_ar": "اختبارات وُجدت: backend/src/test/java/com/lawdesk/followup/InfoRequestApiTest.java (يغطي التسجيل والانتقالات والردود والمستند والتشغيل الدوري والتصعيد والصلاحيات والتقرير)، وواجهة: frontend/src/features/followup/InfoRequestsSection.test.tsx. لم أشغّلها ولم يُجرَ تحقق UAT ضمن هذه الوثيقة. لم أوثق شاشة تقرير استجابة الإدارات (مسارها في وحدة أخرى)، ولا قواعد فحص ملف الرد داخل وحدة المستندات."
+}

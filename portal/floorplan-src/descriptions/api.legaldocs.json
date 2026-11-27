@@ -1,0 +1,70 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java": {
+      "name": "طلبات سجل المذكرات والمراسلات",
+      "description": "يجمع طلبات سجل المذكرات والمراسلات: عرضها وإنشائها وتعديلها وإرفاق ملف وتقديمها للاعتماد وإعادتها واعتمادها وتسجيل إرسالها وأرشفتها."
+    },
+    "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentRequests.java": {
+      "name": "نماذج طلبات المذكرات",
+      "description": "يحدد الحقول المرسلة والردود: بيانات المذكرة أو الخطاب مع رقم النسخة عند التعديل، وملاحظة الانتقال بين الحالات، وتسجيل الإرسال الذي هو إقرار من المستخدم وليس تسليماً من النظام."
+    },
+    "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java": {
+      "name": "خدمة المذكرات والمراسلات",
+      "description": "ينفذ دورة اعتماد مذكرات القضية ومراسلاتها: مسودة، قيد المراجعة، معتمدة، مرسلة، مؤرشفة."
+    }
+  },
+  "routes": {
+    "GET /api/v1/cases/{caseId}/legal-documents": {
+      "name": "مذكرات القضية ومراسلاتها",
+      "description": "يعرض مذكرات القضية ومراسلاتها، لمن لديه صلاحية عرض المستندات."
+    },
+    "GET /api/v1/legal-documents": {
+      "name": "سجل المذكرات والمراسلات",
+      "description": "يعرض سجل المذكرات والمراسلات صفحة صفحة، ويمكن تصفيته بالحالة أو القضية أو التصنيف."
+    },
+    "POST /api/v1/cases/{caseId}/legal-documents": {
+      "name": "إنشاء مذكرة أو خطاب",
+      "description": "ينشئ مذكرة أو خطاباً جديداً في القضية، لمن لديه صلاحية إدارة المستندات."
+    },
+    "GET /api/v1/legal-documents/{id}": {
+      "name": "عرض مذكرة أو خطاب",
+      "description": "يعرض مذكرة أو خطاباً واحداً."
+    },
+    "GET /api/v1/legal-documents/{id}/events": {
+      "name": "أحداث مذكرة",
+      "description": "يعرض الأحداث المسجلة على المذكرة أو الخطاب."
+    },
+    "PUT /api/v1/legal-documents/{id}": {
+      "name": "تعديل مذكرة أو خطاب",
+      "description": "يعدّل بيانات المذكرة أو الخطاب، لمن لديه صلاحية إدارة المستندات."
+    },
+    "POST /api/v1/legal-documents/{id}/file": {
+      "name": "إرفاق ملف بمذكرة",
+      "description": "يرفق ملفاً بالمذكرة أو الخطاب مع ملاحظة اختيارية، لمن لديه صلاحية إدارة المستندات."
+    },
+    "POST /api/v1/legal-documents/{id}/submit": {
+      "name": "تقديم مذكرة للمراجعة",
+      "description": "يقدم المذكرة للمراجعة مع ملاحظة، لمن لديه صلاحية إدارة المستندات."
+    },
+    "POST /api/v1/legal-documents/{id}/return": {
+      "name": "إعادة مذكرة إلى المسودة",
+      "description": "يعيد المذكرة إلى حالة المسودة مع بيان السبب، لمن لديه صلاحية المراجعة أو الصياغة."
+    },
+    "POST /api/v1/legal-documents/{id}/approve": {
+      "name": "اعتماد مذكرة",
+      "description": "يعتمد المذكرة مع ملاحظة الاعتماد، لمن لديه صلاحية اعتماد المذكرات."
+    },
+    "POST /api/v1/legal-documents/{id}/reopen": {
+      "name": "إعادة فتح مذكرة",
+      "description": "يعيد فتح مذكرة معتمدة مع بيان السبب، لمن لديه صلاحية اعتماد المذكرات."
+    },
+    "POST /api/v1/legal-documents/{id}/record-sent": {
+      "name": "تسجيل إرسال مذكرة",
+      "description": "يسجل أن المذكرة أُرسلت، وهو إقرار من المستخدم وليس إرسالاً من النظام، لمن لديه صلاحية إدارة المستندات."
+    },
+    "POST /api/v1/legal-documents/{id}/archive": {
+      "name": "أرشفة مذكرة",
+      "description": "ينقل المذكرة أو الخطاب إلى الأرشيف مع ملاحظة، لمن لديه صلاحية إدارة المستندات."
+    }
+  }
+}

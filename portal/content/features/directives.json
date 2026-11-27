@@ -1,0 +1,904 @@
+{
+  "id": "directives",
+  "category": "work",
+  "name_ar": "سجل القرارات والتكليفات الإدارية",
+  "summary_ar": "سجل لكل القرارات والتكليفات الإدارية المتعلقة بالقضايا: ما المطلوب، ومن أصدره، وتاريخه ورقم كتابه، ومن كُلّف به (موظف في النظام أو جهة من خارجه)، والموعد المحدد، وحالة التنفيذ. يعطي النظام كل تكليف رقمًا من نوع DIR-2026-00001.",
+  "purpose_ar": "ألا تضيع تعليمات الإدارة على القضايا: أن يُسجَّل المطلوب ومصدره ومسؤوله وموعده في مكان واحد يمكن البحث فيه، وأن يعرف المكلَّف ما عليه وتظهر المتأخرات.",
+  "who_ar": [
+    "من يحمل صلاحية عرض القضايا (CASE_VIEW) للاطلاع على السجل (ولا يرى إلا تكليفات القضايا التي يحق له رؤيتها)",
+    "من يحمل صلاحية «إصدار التكليفات وإدارتها» (DIRECTIVE_MANAGE) مع حق تغيير القضية لتسجيل التكليف وتعديله",
+    "المكلَّف نفسه (إن كان مستخدمًا في النظام) يغيّر حالة تنفيذ تكليفه دون حاجة لحق تغيير القضية"
+  ],
+  "who_perms": [
+    "CASE_VIEW",
+    "DIRECTIVE_MANAGE"
+  ],
+  "access_ar": "القائمة الرئيسية > القرارات والتكليفات",
+  "route": "/directives",
+  "prerequisites_ar": [
+    "أن تكون القضية غير مؤرشفة.",
+    "أن يكون المكلَّف مستخدمًا مفعّلًا إن اختير من مستخدمي النظام.",
+    "أن يكون نوع التكليف (إن اختير) موجودًا في القائمة المُدارة DIRECTIVE_KIND ونشطًا."
+  ],
+  "fields": {
+    "required": [
+      {
+        "name_ar": "القضية",
+        "code": "caseId",
+        "rule_ar": "مطلوبة؛ وللمستخدم حق تغييرها، ولا تكون مؤرشفة.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/directives/DirectiveRequests.java",
+            "lines": "30",
+            "note": "caseId"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+            "lines": "174-175",
+            "note": "change right + writable"
+          }
+        ]
+      },
+      {
+        "name_ar": "المطلوب (العنوان)",
+        "code": "title",
+        "rule_ar": "مطلوب وحتى 300 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/directives/DirectiveRequests.java",
+            "lines": "33",
+            "note": "title"
+          }
+        ]
+      },
+      {
+        "name_ar": "تاريخ التكليف",
+        "code": "directiveDate",
+        "rule_ar": "مطلوب.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/directives/DirectiveRequests.java",
+            "lines": "35",
+            "note": "date"
+          }
+        ]
+      },
+      {
+        "name_ar": "مصدر التكليف",
+        "code": "source",
+        "rule_ar": "مطلوب وحتى 300 حرف: من أصدره (شخص أو جهة أو قرار).",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/directives/DirectiveRequests.java",
+            "lines": "36",
+            "note": "source"
+          },
+          {
+            "path": "backend/src/main/resources/db/migration/V742__LD-057_directive.sql",
+            "lines": "15",
+            "note": "meaning"
+          }
+        ]
+      },
+      {
+        "name_ar": "المكلَّف (مستخدم أو نص)",
+        "code": "addresseeUserId / addresseeText",
+        "rule_ar": "يجب تحديد أحدهما على الأقل: مستخدم من النظام (مفعّل) و/أو نص (حتى 300 حرف) لمكلَّف من خارج النظام.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+            "lines": "276-278",
+            "note": "addressee required"
+          },
+          {
+            "path": "backend/src/main/resources/db/migration/V742__LD-057_directive.sql",
+            "lines": "37",
+            "note": "DB check"
+          }
+        ]
+      },
+      {
+        "name_ar": "رقم النسخة (عند التعديل أو تغيير الحالة)",
+        "code": "version",
+        "rule_ar": "مطلوب؛ والنسخة القديمة تعطي 409.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/directives/DirectiveRequests.java",
+            "lines": "63",
+            "note": "version"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+            "lines": "220",
+            "note": "409"
+          }
+        ]
+      }
+    ],
+    "optional": [
+      {
+        "name_ar": "النوع",
+        "code": "kind",
+        "rule_ar": "اختياري حتى 40 حرفًا؛ إن ذُكر يجب أن يكون بندًا نشطًا في القائمة DIRECTIVE_KIND (القاعدة DIRECTIVE_KIND_UNKNOWN).",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+            "lines": "283",
+            "note": "kind in managed list"
+          }
+        ]
+      },
+      {
+        "name_ar": "التفاصيل",
+        "code": "details",
+        "rule_ar": "اختيارية حتى 20000 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/directives/DirectiveRequests.java",
+            "lines": "34",
+            "note": "details"
+          }
+        ]
+      },
+      {
+        "name_ar": "رقم القرار أو الكتاب المصدر",
+        "code": "sourceReferenceNo",
+        "rule_ar": "اختياري حتى 100 حرف. (رقم النظام DIR-… يولده النظام ولا يُكتب.)",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/directives/DirectiveRequests.java",
+            "lines": "37",
+            "note": "sourceReferenceNo"
+          }
+        ]
+      },
+      {
+        "name_ar": "الموعد المحدد",
+        "code": "dueDate",
+        "rule_ar": "اختياري، ولا يسبق تاريخ التكليف (رمز الخطأ FutureOrPresent على dueDate).",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+            "lines": "279-281",
+            "note": "due >= date"
+          }
+        ]
+      },
+      {
+        "name_ar": "المهمة المرتبطة (واجهة برمجية فقط)",
+        "code": "taskId",
+        "rule_ar": "اختيارية، ويجب أن تكون مهمة في القضية نفسها (القاعدة DIRECTIVE_TASK_NOT_IN_CASE). لا يرسلها نموذج الشاشة.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+            "lines": "292-298",
+            "note": "task same case"
+          },
+          {
+            "path": "frontend/src/features/wp9/api.ts",
+            "lines": "272-286",
+            "note": "UI body has no taskId"
+          }
+        ]
+      },
+      {
+        "name_ar": "ملاحظة تغيير الحالة",
+        "code": "note",
+        "rule_ar": "اختيارية حتى 1000 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/directives/DirectiveRequests.java",
+            "lines": "75",
+            "note": "note 1000"
+          }
+        ]
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "actor_ar": "من يحمل صلاحية عرض القضايا",
+      "action_ar": "يفتح «القرارات والتكليفات» فيرى السجل، ويبحث بكلمات، ويصفّي بحالة التنفيذ والنوع و«المتأخرة فقط» و«الموجهة إليّ».",
+      "response_ar": "يعرض السجل التكليفات: المفتوحة أولًا ثم بحسب الموعد الأقرب ثم تاريخ التكليف الأحدث، وعلى كل تكليف: رقمه وحالته والقضية والمصدر والمكلَّف والموعد وعلامة «متأخر». ويظهر عدد التكليفات والتنقل بين الصفحات.",
+      "rules_ar": [
+        "لا يظهر إلا تكليفات القضايا التي يحق للمستخدم رؤيتها، ولا يدخل غيرها في العدد الإجمالي.",
+        "التكليف «متأخر» إن كان مفتوحًا (جديد أو قيد التنفيذ) وموعده قبل اليوم بتوقيت الكويت.",
+        "الصفحة الواحدة 20 تكليفًا افتراضيًا وبحد أقصى 100."
+      ],
+      "data_ar": "GET /api/v1/directives?q&status&kind&caseId&addressee(me أو معرّف)&overdue&page&size.",
+      "next_ar": "الخطوة 2 لتسجيل تكليف جديد، أو الخطوة 3 لتغيير حالة تكليف.",
+      "evidence": [
+        {
+          "path": "frontend/src/features/wp9/DirectivesPage.tsx",
+          "lines": "33",
+          "note": "screen"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveController.java",
+          "lines": "33-37",
+          "note": "search"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+          "lines": "86-125",
+          "note": "search flow"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+          "lines": "52",
+          "note": "open states"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveRequests.java",
+          "lines": "93",
+          "note": "page size"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "لا يحمل صلاحية عرض القضايا",
+          "detail_ar": "يرد 403 وتعرض الشاشة «لا سجل» لمن لا يحق له فتحه.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/directives/DirectiveController.java",
+              "lines": "34",
+              "note": "403"
+            },
+            {
+              "path": "frontend/src/features/wp9/DirectivesPage.tsx",
+              "lines": "57",
+              "note": "forbidden state"
+            }
+          ]
+        },
+        {
+          "kind": "denied",
+          "title_ar": "تكليف لقضية لا يراها",
+          "detail_ar": "فتح تكليف بمعرّفه لقضية لا يحق له رؤيتها يعطي 404.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+              "lines": "142-146",
+              "note": "requireView"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "قيمة بحث غير صالحة",
+          "detail_ar": "نص البحث أطول من 200 حرف أو addressee ليس me ولا معرّفًا: 400.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/directives/DirectiveRequests.java",
+              "lines": "84",
+              "note": "q"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+              "lines": "137",
+              "note": "addressee Pattern"
+            }
+          ]
+        },
+        {
+          "kind": "error",
+          "title_ar": "فشل التحميل",
+          "detail_ar": "تظهر رسالة «تعذّر تحميل السجل.»",
+          "evidence": [
+            {
+              "path": "frontend/src/i18n/messages/wp9.ar.ts",
+              "lines": "98",
+              "note": "Arabic"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "actor_ar": "من يحمل صلاحية «إصدار التكليفات» (وحق تغيير القضية)",
+      "action_ar": "يضغط «تسجيل تكليف»، فيبحث عن القضية ويختارها، ويكتب المطلوب والتفاصيل وتاريخ التكليف ومصدره ورقم الكتاب، ويختار المكلَّف من المستخدمين أو يكتب اسمه من خارج النظام، ويحدد الموعد، ثم يحفظ.",
+      "response_ar": "يولّد النظام رقمًا للتكليف (DIR-السنة-خمسة أرقام) ويحفظه بحالة «جديد» ويعيد 201، وتظهر رسالة «سُجل التكليف.». ويُضاف سطر DIRECTIVE_ISSUED في الخط الزمني للقضية ويُسجَّل حدث تدقيق DIRECTIVE_CREATE.",
+      "rules_ar": [
+        "الشاشة تتحقق قبل الإرسال من اختيار القضية والمطلوب والمصدر والمكلَّف وألا يسبق الموعدُ تاريخَ التكليف، وإلا تعرض «اختر القضية، وأدخل المطلوب ومصدره والمكلَّف؛ ولا يسبق الموعد تاريخ التكليف.».",
+        "تُقص المسافات الزائدة من النصوص.",
+        "رقم التكليف من تسلسل في قاعدة البيانات ولا يتكرر."
+      ],
+      "data_ar": "POST /api/v1/directives بجسم: caseId, kind, title, details, directiveDate, source, sourceReferenceNo, addresseeUserId, addresseeText, dueDate. يُحفظ في جدول directive.",
+      "next_ar": "يظهر التكليف في السجل وفي البحث الموحد.",
+      "evidence": [
+        {
+          "path": "frontend/src/features/wp9/DirectiveForm.tsx",
+          "lines": "48-63",
+          "note": "client validation"
+        },
+        {
+          "path": "frontend/src/features/wp9/api.ts",
+          "lines": "272-288",
+          "note": "api call"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveController.java",
+          "lines": "41-43",
+          "note": "POST create"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+          "lines": "172-195",
+          "note": "create flow"
+        },
+        {
+          "path": "backend/src/main/resources/db/migration/V742__LD-057_directive.sql",
+          "lines": "4-14",
+          "note": "table"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "لم يُحدَّد مكلَّف",
+          "detail_ar": "يرد 400 على الحقل addressee برمز NotNull.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+              "lines": "277",
+              "note": "400"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "الموعد قبل تاريخ التكليف",
+          "detail_ar": "يرد 400 على dueDate برمز FutureOrPresent.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+              "lines": "280",
+              "note": "400"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "نوع غير موجود، أو مكلَّف غير مفعّل، أو مهمة من قضية أخرى",
+          "detail_ar": "يرد 422 بالقاعدة DIRECTIVE_KIND_UNKNOWN («نوع التكليف هذا غير موجود في القائمة.») أو DIRECTIVE_ADDRESSEE_UNKNOWN («المكلَّف ليس مستخدمًا مفعّلًا.») أو DIRECTIVE_TASK_NOT_IN_CASE («المهمة لا تخص هذه القضية.»).",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+              "lines": "45-48",
+              "note": "rule codes"
+            },
+            {
+              "path": "frontend/src/i18n/messages/wp9.ar.ts",
+              "lines": "32-34",
+              "note": "Arabic"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "حقل ناقص أو أطول من المسموح",
+          "detail_ar": "يرد 400 مع errors باسم الحقل والقيد.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/directives/DirectiveRequests.java",
+              "lines": "29-37",
+              "note": "bean validation"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+              "lines": "35-41",
+              "note": "400"
+            }
+          ]
+        },
+        {
+          "kind": "denied",
+          "title_ar": "قضية لا يراها أو لا يغيّرها، أو لا صلاحية DIRECTIVE_MANAGE",
+          "detail_ar": "قضية غير مرئية: 404، ومرئية بلا حق التغيير: 403، وبلا DIRECTIVE_MANAGE: 403.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/directives/DirectiveController.java",
+              "lines": "40",
+              "note": "403"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+              "lines": "174",
+              "note": "change right"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "قضية مؤرشفة",
+          "detail_ar": "يرد 422 بالقاعدة CASE_ARCHIVED.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+              "lines": "267-272",
+              "note": "archived"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "actor_ar": "المكلَّف نفسه، أو محرر مخوّل (DIRECTIVE_MANAGE مع حق تغيير القضية)",
+      "action_ar": "يفتح نموذج «تغيير حالة …» على التكليف ويختار الحالة الجديدة (جديد، قيد التنفيذ، منفذ، ملغى) ويكتب ملاحظة اختيارية، ثم «تطبيق».",
+      "response_ar": "تتغير حالة التكليف وتظهر «تغيّرت حالة التكليف.». عند اختيار «منفذ» يُسجَّل وقت الإنجاز. ويُضاف سطر DIRECTIVE_STATUS_CHANGED إلى الخط الزمني للقضية (وللمكلَّف الذي لا يحق له تغيير القضية يُسجَّل السطر استنادًا إلى التكليف نفسه)، ويُسجَّل حدث تدقيق DIRECTIVE_STATUS بالانتقال فقط.",
+      "rules_ar": [
+        "يُسمح بالانتقال بين أي حالتين مختلفتين؛ ولا قيد على التسلسل إلا ألا تكون الحالة الجديدة هي الحالية.",
+        "من يرى القضية ولا يكون المكلَّف ولا محررًا مخوّلًا لا يستطيع تغيير الحالة.",
+        "لا يظهر نموذج تغيير الحالة في الشاشة إلا لحامل DIRECTIVE_MANAGE أو للمكلَّف نفسه.",
+        "لا يوجد في هذه الشيفرة إخطار ولا اعتماد على تغيير الحالة."
+      ],
+      "data_ar": "POST /api/v1/directives/{id}/status بجسم: status وnote وversion.",
+      "next_ar": "تنتهي العملية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveController.java",
+          "lines": "58-62",
+          "note": "status"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+          "lines": "229-262",
+          "note": "status flow"
+        },
+        {
+          "path": "frontend/src/features/wp9/DirectivesPage.tsx",
+          "lines": "212",
+          "note": "who sees the form"
+        },
+        {
+          "path": "frontend/src/features/wp9/api.ts",
+          "lines": "290-295",
+          "note": "api call"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "ليس المكلَّف ولا محررًا",
+          "detail_ar": "يرد 403.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+              "lines": "236",
+              "note": "403"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "الحالة نفسها",
+          "detail_ar": "يرد 422 بالقاعدة DIRECTIVE_STATUS_UNCHANGED («التكليف في هذه الحالة بالفعل.»).",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+              "lines": "241",
+              "note": "422"
+            },
+            {
+              "path": "frontend/src/i18n/messages/wp9.ar.ts",
+              "lines": "35",
+              "note": "Arabic"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "تعديل من شخص آخر في الأثناء",
+          "detail_ar": "يرد 409 وتعرض الشاشة «عدّل شخص آخر هذا السجل. أعد التحميل وحاول مرة أخرى.».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+              "lines": "251",
+              "note": "409"
+            },
+            {
+              "path": "frontend/src/i18n/messages/wp9.ar.ts",
+              "lines": "24",
+              "note": "Arabic"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "قضية مؤرشفة",
+          "detail_ar": "يرد 422 بالقاعدة CASE_ARCHIVED.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+              "lines": "267-272",
+              "note": "archived"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "actor_ar": "محرر التكليف (واجهة برمجية)",
+      "action_ar": "يعدّل بيانات تكليف قائم عبر الواجهة البرمجية PUT /api/v1/directives/{id} (لم أجد في شاشة السجل نموذج تعديل).",
+      "response_ar": "تُحفظ البيانات وتزداد النسخة ويُضاف سطر DIRECTIVE_UPDATED في الخط الزمني وحدث تدقيق DIRECTIVE_UPDATE.",
+      "rules_ar": [
+        "رقم التكليف والقضية لا يتغيران.",
+        "يُفحص النوع فقط إن تغيّر، والمهمة فقط إن تغيّرت."
+      ],
+      "data_ar": "PUT بجسم يشمل الحقول المذكورة وversion.",
+      "next_ar": "تنتهي العملية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveController.java",
+          "lines": "51-55",
+          "note": "PUT"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+          "lines": "199-225",
+          "note": "update flow"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "exceptional",
+          "title_ar": "نسخة قديمة",
+          "detail_ar": "يرد 409.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+              "lines": "219-221",
+              "note": "409"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "text_ar": "كل تكليف مرتبط بقضية، فكل المسارات تتبع قواعد الوصول إلى القضية: لا يرى المستخدم إلا تكليفات قضاياه، ويُبلَّغ بأن تكليف قضية لا يراها غير موجود.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+          "lines": "37-41",
+          "note": "design note"
+        }
+      ]
+    },
+    {
+      "text_ar": "إصدار التكليف وتعديله يحتاجان DIRECTIVE_MANAGE وحق تغيير القضية؛ أما المكلَّف فيغيّر حالة تنفيذ تكليفه فقط.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+          "lines": "234-237",
+          "note": "who may move status"
+        }
+      ]
+    },
+    {
+      "text_ar": "الموعد لا يسبق تاريخ التكليف (في الخدمة وفي قاعدة البيانات).",
+      "evidence": [
+        {
+          "path": "backend/src/main/resources/db/migration/V742__LD-057_directive.sql",
+          "lines": "42",
+          "note": "DB constraint"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+          "lines": "279-281",
+          "note": "service rule"
+        }
+      ]
+    },
+    {
+      "text_ar": "يُسجَّل وقت الإنجاز عند الحالة «منفذ» فقط، ويُمسح عند الخروج منها.",
+      "evidence": [
+        {
+          "path": "backend/src/main/resources/db/migration/V742__LD-057_directive.sql",
+          "lines": "43",
+          "note": "DB constraint"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+          "lines": "245",
+          "note": "set completed_at"
+        }
+      ]
+    },
+    {
+      "text_ar": "كل إنشاء وتعديل وتغيير حالة يُسجَّل في سجل التدقيق وفي الخط الزمني للقضية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+          "lines": "193",
+          "note": "audit"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+          "lines": "260",
+          "note": "audit"
+        }
+      ]
+    }
+  ],
+  "after_submit_ar": "يظهر التكليف في السجل برقمه، وتتحدث عمليات البحث الموحد، ويُضاف سطر في الخط الزمني للقضية.",
+  "notifications_ar": [],
+  "approvals_ar": [],
+  "errors": [
+    {
+      "code": "HTTP 400",
+      "meaning_ar": "حقل ناقص أو غير صالح (addressee NotNull، dueDate FutureOrPresent، حدود الأطوال).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+          "lines": "45-49",
+          "note": "400"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 403",
+      "meaning_ar": "لا صلاحية، أو لا يحق له تغيير القضية، أو ليس المكلَّف ولا محررًا.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+          "lines": "236",
+          "note": ""
+        }
+      ]
+    },
+    {
+      "code": "HTTP 404",
+      "meaning_ar": "التكليف أو القضية غير موجود أو لا يحق للمستخدم رؤيته.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+          "lines": "150",
+          "note": "404"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 409",
+      "meaning_ar": "غيّر شخص آخر التكليف (رقم النسخة قديم).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+          "lines": "220",
+          "note": "409"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 DIRECTIVE_KIND_UNKNOWN",
+      "meaning_ar": "النوع ليس بندًا نشطًا في القائمة المُدارة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+          "lines": "45",
+          "note": "code"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 DIRECTIVE_ADDRESSEE_UNKNOWN",
+      "meaning_ar": "المكلَّف ليس مستخدمًا مفعّلًا.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+          "lines": "46",
+          "note": "code"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 DIRECTIVE_TASK_NOT_IN_CASE",
+      "meaning_ar": "المهمة ليست من هذه القضية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+          "lines": "47",
+          "note": "code"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 DIRECTIVE_STATUS_UNCHANGED",
+      "meaning_ar": "التكليف في هذه الحالة بالفعل.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+          "lines": "48",
+          "note": "code"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 CASE_ARCHIVED",
+      "meaning_ar": "القضية مؤرشفة وللقراءة فقط.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+          "lines": "49",
+          "note": "code"
+        }
+      ]
+    }
+  ],
+  "result_ar": "تكليف مسجّل برقم من النظام ومصدره ومكلَّفه وموعده وحالة تنفيذه، ظاهر في السجل بعلامة «متأخر» عند فوات موعده، ومحفوظ أثره في الخط الزمني للقضية وسجل التدقيق.",
+  "related": [
+    "tasks",
+    "case-access-confidentiality",
+    "audit",
+    "search",
+    "lists-lookups",
+    "cases-details-edit"
+  ],
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/v1/directives",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/directives/DirectiveController.java",
+        "lines": "24-35",
+        "note": "search"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/directives",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/directives/DirectiveController.java",
+        "lines": "24-41",
+        "note": "create"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/directives/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/directives/DirectiveController.java",
+        "lines": "24-47",
+        "note": "get"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/directives/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/directives/DirectiveController.java",
+        "lines": "24-53",
+        "note": "update"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/directives/{id}/status",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/directives/DirectiveController.java",
+        "lines": "24-60",
+        "note": "status"
+      }
+    }
+  ],
+  "tech": {
+    "chain": [
+      {
+        "layer": "screen",
+        "label": "DirectivesPage (/directives)",
+        "ref": {
+          "path": "frontend/src/features/wp9/DirectivesPage.tsx",
+          "lines": "33",
+          "note": "screen"
+        },
+        "data_ar": "المرشحات وبيانات النموذج وطلب تغيير الحالة."
+      },
+      {
+        "layer": "component",
+        "label": "DirectiveForm",
+        "ref": {
+          "path": "frontend/src/features/wp9/DirectiveForm.tsx",
+          "lines": "28",
+          "note": "form"
+        },
+        "data_ar": "قيم النموذج بعد فحص الحقول المطلوبة في المتصفح."
+      },
+      {
+        "layer": "api_call",
+        "label": "createDirective / changeDirectiveStatus",
+        "ref": {
+          "path": "frontend/src/features/wp9/api.ts",
+          "lines": "272-275",
+          "note": "api"
+        },
+        "data_ar": "POST إلى /api/v1/directives أو /{id}/status."
+      },
+      {
+        "layer": "controller",
+        "label": "DirectiveController",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveController.java",
+          "lines": "24-41",
+          "note": "controller"
+        },
+        "data_ar": "الجسم بعد @Valid يُسلَّم إلى DirectiveService."
+      },
+      {
+        "layer": "authorization",
+        "label": "@PreAuthorize DIRECTIVE_MANAGE / CASE_VIEW + CaseAccessPolicy",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveController.java",
+          "lines": "40",
+          "note": "permission"
+        },
+        "data_ar": "صلاحية الوظيفة ثم حق القضية (requireChange / requireView / visibleCaseIds)."
+      },
+      {
+        "layer": "service",
+        "label": "DirectiveService",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+          "lines": "172-176",
+          "note": "service"
+        },
+        "data_ar": "فحص الحقول وقاعدة القائمة المُدارة ثم الحفظ."
+      },
+      {
+        "layer": "repository",
+        "label": "JdbcClient (SQL مباشر)",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+          "lines": "179-185",
+          "note": "insert"
+        },
+        "data_ar": "إدخال صف التكليف برقمه المولَّد."
+      },
+      {
+        "layer": "tables",
+        "label": "directive",
+        "ref": {
+          "path": "backend/src/main/resources/db/migration/V742__LD-057_directive.sql",
+          "lines": "4-14",
+          "note": "table"
+        },
+        "data_ar": "الصف مع قيود السلامة وفهرس البحث."
+      },
+      {
+        "layer": "event",
+        "label": "cases.recordEvent + audit.recordWithChange",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveService.java",
+          "lines": "192-195",
+          "note": "events"
+        },
+        "data_ar": "سطر الخط الزمني وحدث التدقيق في المعاملة نفسها."
+      },
+      {
+        "layer": "result",
+        "label": "DirectiveRequests.Directive",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/directives/DirectiveRequests.java",
+          "lines": "110-114",
+          "note": "response"
+        },
+        "data_ar": "التكليف ورقمه وحالته وعلم overdue."
+      }
+    ]
+  },
+  "status": "IMPLEMENTED_ON_DEVELOP",
+  "status_note_ar": "الشيفرة على develop ولها اختبارات؛ لم يُتحقق منها في UAT ضمن هذه الوثيقة.",
+  "status_evidence": [
+    {
+      "path": "backend/src/main/java/com/lawdesk/directives/DirectiveController.java",
+      "lines": "24-25",
+      "note": "controller on develop"
+    }
+  ],
+  "verification_ar": "اختبارات وُجدت: backend/src/test/java/com/lawdesk/directives/DirectiveApiTest.java، وواجهة: frontend/src/features/wp9/DirectivesPage.test.tsx وapi.test.ts؛ وbackend/src/test/java/com/lawdesk/wp9/Wp9DefaultRolesTest.java للأدوار الافتراضية. لم أشغّلها ولم يُجرَ تحقق UAT ضمن هذه الوثيقة. شاشة السجل لا تحتوي نموذج تعديل ولا ربطًا بمهمة (تتوفر عبر الواجهة البرمجية فقط). تقرير التكليفات (DirectiveReportQueries) لم أوثقه هنا."
+}

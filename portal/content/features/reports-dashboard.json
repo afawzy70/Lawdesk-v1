@@ -1,0 +1,995 @@
+{
+ "id": "reports-dashboard",
+ "category": "insight",
+ "name_ar": "لوحة المؤشرات والتقارير والتصدير",
+ "summary_ar": "الصفحة الرئيسية تعرض أرقامًا محسوبة من سجلات النظام (القضايا والدعاوى والأحكام والجلسات والمهام) ومؤشرات رئيسية يمكن فتح كل رقم منها لرؤية السجلات التي يقوم عليها. وإلى جانبها تقارير: سجل القضايا والأحكام والجلسات وعبء العمل والخبراء وسبع عشرة عائلة تقارير، ويمكن تنزيلها بصيغ CSV وExcel وPDF بحد أقصى عشرة آلاف صف.",
+ "purpose_ar": "تمكين الإدارة من رؤية الصورة العامة ومتابعة الأرقام دون عدّ يدوي، مع ضمان أن الرقم المعروض هو عدد السجلات التي تظهر عند فتحه نفسه وأن التنزيل يطابق الشاشة، وأن ما لا يمكن حسابه يُعلَن «غير متاح» بدل أن يظهر صفرًا مصطنعًا.",
+ "who_ar": [
+  "مدير النظام",
+  "مدير الشؤون القانونية",
+  "رئيس القسم",
+  "القراءة فقط (للاطلاع دون تنزيل)"
+ ],
+ "who_perms": [
+  "REPORT_VIEW",
+  "REPORT_EXPORT"
+ ],
+ "access_ar": "الصفحة الرئيسية (لوحة المؤشرات)، وفي القائمة الجانبية «التقارير» لبقية التقارير.",
+ "route": "/",
+ "prerequisites_ar": [
+  "REPORT_VIEW لعرض الأرقام والتقارير؛ REPORT_EXPORT للتنزيل. بحسب هجرات قاعدة البيانات يملك REPORT_VIEW وREPORT_EXPORT مدير النظام والمدير القانوني ورئيس القسم، ويملك دور القراءة فقط REPORT_VIEW دون التصدير. لم أتحقق من بقية الأدوار.",
+  "المستخدم بلا REPORT_VIEW يرى الصفحة الرئيسية بلا أرقام مع عبارة «تظهر الإحصاءات للمستخدمين الذين لديهم صلاحية التقارير».",
+  "المؤشرات تُحسب لقضايا المستخدم المرئية له فقط."
+ ],
+ "fields": {
+  "required": [
+   {
+    "name_ar": "صيغة التصدير",
+    "code": "format",
+    "rule_ar": "إلزامية في التنزيل: csv أو xlsx أو pdf. غير ذلك خطأ 400.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/reports/ExportQuery.java",
+      "lines": "10-11",
+      "note": "ExportQuery"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/reports/ReportExports.java",
+      "lines": "159-168",
+      "note": "file"
+     }
+    ]
+   }
+  ],
+  "optional": [
+   {
+    "name_ar": "من تاريخ / إلى تاريخ",
+    "code": "from / to",
+    "rule_ar": "تاريخان شاملان بصيغة سنة-شهر-يوم. إن غاب أحدهما أُخذ من الشهر الحالي. من بعد إلى يعطي القاعدة DATE_RANGE_INVALID. تحدد فترة الأحكام في اللوحة والمؤشرات.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/reports/PeriodQuery.java",
+      "lines": "10-33",
+      "note": "PeriodQuery"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/reports/IndicatorQuery.java",
+      "lines": "12-29",
+      "note": "IndicatorQuery"
+     }
+    ]
+   },
+   {
+    "name_ar": "لغة التسميات في التصدير",
+    "code": "lang",
+    "rule_ar": "en أو ar؛ الافتراضي الإنجليزية، وتنزيلات الواجهة ترسل لغة الواجهة.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/reports/ExportQuery.java",
+      "lines": "11-11",
+      "note": "lang"
+     },
+     {
+      "path": "frontend/src/features/reports/ReportParts.tsx",
+      "lines": "104-110",
+      "note": "href"
+     }
+    ]
+   },
+   {
+    "name_ar": "مستوى المجموعة / المجموعة / الصفحة / الحجم",
+    "code": "level, group, page, size",
+    "rule_ar": "لتضييق مؤشر موزَّع (حسب الوحدة أو العضو) وللترقيم؛ الصفحة لا تقل عن 0 والحجم لا يقل عن 1، والمجموعة حتى 300 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/reports/IndicatorQuery.java",
+      "lines": "12-29",
+      "note": "fields"
+     }
+    ]
+   }
+  ]
+ },
+ "steps": [
+  {
+   "n": 1,
+   "actor_ar": "مستخدم يملك REPORT_VIEW",
+   "action_ar": "يفتح الصفحة الرئيسية للنظام.",
+   "response_ar": "تُطلب الأرقام فتظهر شريط ملخص (القضايا المفتوحة، الجلسات هذا الأسبوع، المهام المتأخرة، تقارير الخبراء المتأخرة)، ثم المؤشرات الرئيسية، ثم لوحات: القضايا (مفتوحة، مغلقة، الكل، فُتحت هذا الشهر) وحسب الحالة والنوع، والدعاوى حسب درجة التقاضي، والأحكام في الفترة (المسجلة والنهائية).",
+   "rules_ar": [
+    "كل الأرقام تُقرأ في معاملة واحدة بعزل REPEATABLE_READ حتى تتفق مع بعضها.",
+    "«هذا الأسبوع» هو اليوم والأيام الستة بعده (افتراض مذكور في الكود).",
+    "الأرقام تُحسب من السجلات عند فتح الصفحة."
+   ],
+   "data_ar": "أعداد القضايا والدعاوى والأحكام والجلسات والمهام.",
+   "next_ar": "فتح مؤشر لرؤية سجلاته أو الانتقال إلى تقرير.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/DashboardController.java",
+     "lines": "62-66",
+     "note": "GET dashboard"
+    },
+    {
+     "path": "frontend/src/pages/DashboardPage.tsx",
+     "lines": "56-80",
+     "note": "load"
+    },
+    {
+     "path": "frontend/src/pages/DashboardPage.tsx",
+     "lines": "100-130",
+     "note": "render"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/DashboardReport.java",
+     "lines": "14-36",
+     "note": "shape"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "بلا REPORT_VIEW (403)",
+     "detail_ar": "الخادم يرد 403 ويسجّل حدث ACCESS_DENIED في سجل التدقيق؛ والشاشة لا تطلب الأرقام أصلًا وتعرض العبارة المناسبة.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/reports/DashboardController.java",
+       "lines": "62-63",
+       "note": "PreAuthorize"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/reports/DashboardReportApiTest.java",
+       "lines": "285-298",
+       "note": "denied + audited"
+      },
+      {
+       "path": "frontend/src/pages/DashboardPage.tsx",
+       "lines": "60-60",
+       "note": "canView"
+      },
+      {
+       "path": "frontend/src/pages/DashboardPage.tsx",
+       "lines": "87-88",
+       "note": "no permission"
+      }
+     ]
+    },
+    {
+     "kind": "validation",
+     "title_ar": "تاريخ بصيغة خاطئة (400) أو فترة مقلوبة (422)",
+     "detail_ar": "تاريخ غير مفهوم يعطي خطأ حقل 400؛ ومن بعد إلى يعطي القاعدة DATE_RANGE_INVALID.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/reports/PeriodQuery.java",
+       "lines": "24-33",
+       "note": "resolve"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/reports/DashboardReportApiTest.java",
+       "lines": "263-277",
+       "note": "tests"
+      },
+      {
+       "path": "frontend/src/features/reports/common.ts",
+       "lines": "9-15",
+       "note": "failureMessage"
+      }
+     ]
+    },
+    {
+     "kind": "error",
+     "title_ar": "تعذر تحميل الأرقام",
+     "detail_ar": "تظهر «تعذّر تحميل الأرقام» وزر «إعادة المحاولة».",
+     "evidence": [
+      {
+       "path": "frontend/src/pages/DashboardPage.tsx",
+       "lines": "89-100",
+       "note": "failed state"
+      },
+      {
+       "path": "frontend/src/i18n/messages/reports.ar.ts",
+       "lines": "10-11",
+       "note": "msg"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "actor_ar": "مستخدم يملك REPORT_VIEW",
+   "action_ar": "يطالع «المؤشرات الرئيسية» (ستة عشر رمزًا تغطي أربعة عشر مؤشرًا: إجمالي القضايا، الجديدة، المتداولة، المنتهية، المحجوزة للحكم، الأحكام الصادرة، الأحكام الجاري تنفيذها، الجلسات القادمة، جلسات الخبراء، مواعيد الطعون، المهام المتأخرة، القضايا حسب الوحدة، حسب العضو، المرتفعة المخاطر، طلبات الإدارات المتأخرة، القضايا المرتبطة).",
+   "response_ar": "يعرض كل مؤشر رقمه أو العبارة «غير متاح بعد» (إن كانت الوحدة المالكة للبيانات غير مثبتة) أو «تعذّر احتسابه الآن» (إن فشل حسابه وحده). فشل مؤشر واحد لا يُسقط اللوحة. المؤشران الموزَّعان يعرضان مجموعاتهما.",
+   "rules_ar": [
+    "لا يُعرض صفر بدل ما لا يمكن حسابه: الوحدة غير المثبتة «غير متاح بعد».",
+    "يقتصر العد على القضايا التي يحق للمستخدم رؤيتها؛ من لا يرى أي قضية يرى أصفارًا ولا مجموعات.",
+    "التوزيع حسب الوحدة أو العضو حتى 100 مجموعة."
+   ],
+   "data_ar": "رمز المؤشر والرقم والمجموعات.",
+   "next_ar": "فتح قائمة المؤشر.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/IndicatorController.java",
+     "lines": "39-43",
+     "note": "GET indicators"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/IndicatorCode.java",
+     "lines": "9-25",
+     "note": "codes"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/IndicatorService.java",
+     "lines": "140-160",
+     "note": "figure"
+    },
+    {
+     "path": "frontend/src/features/reports/IndicatorGrid.tsx",
+     "lines": "1-70",
+     "note": "grid"
+    },
+    {
+     "path": "frontend/src/i18n/messages/wp8.ar.ts",
+     "lines": "7-30",
+     "note": "labels"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "وحدة غير مثبتة أو استعلام فاشل",
+     "detail_ar": "يُعلن المؤشر «غير متاح» (MODULE_NOT_AVAILABLE) أو «تعذّر احتسابه» (INDICATOR_FAILED) ويُسجَّل الفشل في سجل الخادم.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/reports/IndicatorService.java",
+       "lines": "64-67",
+       "note": "codes"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/reports/IndicatorService.java",
+       "lines": "150-159",
+       "note": "figure fallback"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/reports/IndicatorApiTest.java",
+       "lines": "371-387",
+       "note": "unavailable test"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "actor_ar": "مستخدم يملك REPORT_VIEW",
+   "action_ar": "ينقر رقم مؤشر ليفتح «قائمة» السجلات (قضايا أو أحكام أو جلسات أو مهام أو مواعيد أو طلبات إدارات).",
+   "response_ar": "تعرض القائمة السجلات بصفحات مع عدد إجمالي. القائمة تأخذ المعاملات نفسها التي يأخذها الرقم (الفترة والمجموعة) فلا يختلفان.",
+   "rules_ar": [
+    "الرقم المعروض يساوي إجمالي قائمته لمدير القضايا والموظف ومن لا يرى شيئًا (يتحقق منه اختبار).",
+    "رمز مؤشر مجهول أو مجموعة مشوهة يعطي 400."
+   ],
+   "data_ar": "رمز المؤشر والفترة والمجموعة والصفحة.",
+   "next_ar": "تنزيل القائمة أو العودة للوحة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/IndicatorController.java",
+     "lines": "45-49",
+     "note": "GET indicators/{code}"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/IndicatorService.java",
+     "lines": "240-268",
+     "note": "page"
+    },
+    {
+     "path": "frontend/src/features/reports/routes.tsx",
+     "lines": "26-26",
+     "note": "route"
+    },
+    {
+     "path": "backend/src/test/java/com/lawdesk/reports/IndicatorApiTest.java",
+     "lines": "175-186",
+     "note": "figure equals list"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "رمز أو مجموعة غير صالحة (400)",
+     "detail_ar": "رمز مؤشر خارج الستة عشر أو مجموعة عضو مشوهة تُرفض بخطأ 400.",
+     "evidence": [
+      {
+       "path": "backend/src/test/java/com/lawdesk/reports/IndicatorApiTest.java",
+       "lines": "354-361",
+       "note": "400 test"
+      }
+     ]
+    },
+    {
+     "kind": "denied",
+     "title_ar": "بلا REPORT_VIEW (403)",
+     "detail_ar": "",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/reports/IndicatorController.java",
+       "lines": "45-46",
+       "note": "PreAuthorize"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/reports/IndicatorApiTest.java",
+       "lines": "363-369",
+       "note": "permission test"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "actor_ar": "مستخدم يملك REPORT_VIEW",
+   "action_ar": "من «التقارير» يفتح تقريرًا: سجل القضايا (/reports) أو الأحكام (/reports/judgments) أو الجلسات (/reports/hearings) أو عبء العمل (/reports/workload) أو الخبراء (/reports/experts) أو «عائلات التقارير» (/reports/families) السبع عشرة، ويحدد الفلاتر.",
+   "response_ar": "يعرض كل تقرير جدولًا مصفّى بصفحات؛ وفهرس العائلات يضم: القضايا حسب النوع والمحكمة والمرحلة، حسب الوحدة التنظيمية، حسب العضو، المفتوحة والمغلقة، نتائج الأحكام، نتائج الطلبات، مواقف الدفوع، القضايا المرتبطة، التأجيلات، جلسات الخبراء، المواعيد والطعون، التنفيذ، النواقص، طلبات المعلومات، تقييم المخاطر، الأداء، المكتبة والسوابق.",
+   "rules_ar": [
+    "قائمة العائلات ثابتة ومعرَّفة في الكود بسبع عشرة عائلة.",
+    "وحدة بياناتها غير مثبتة تظهر «غير متاح» بدل أصفار."
+   ],
+   "data_ar": "فلاتر كل تقرير.",
+   "next_ar": "التنزيل.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/reports/routes.tsx",
+     "lines": "16-29",
+     "note": "routes"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/CaseInventoryController.java",
+     "lines": "15-26",
+     "note": "cases report"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/JudgmentReportController.java",
+     "lines": "13-26",
+     "note": "judgments report"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/OperationsReportController.java",
+     "lines": "18-45",
+     "note": "hearings workload experts"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/FamilyController.java",
+     "lines": "19-43",
+     "note": "families"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/ReportFamilies.java",
+     "lines": "69-86",
+     "note": "catalog"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "بلا REPORT_VIEW (403)",
+     "detail_ar": "",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/reports/FamilyController.java",
+       "lines": "32-34",
+       "note": "PreAuthorize"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/reports/OperationsReportController.java",
+       "lines": "31-33",
+       "note": "PreAuthorize"
+      }
+     ]
+    },
+    {
+     "kind": "error",
+     "title_ar": "عائلة مجهولة (404)",
+     "detail_ar": "رمز عائلة غير موجود يُجاب بـ 404.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/reports/ReportFamilies.java",
+       "lines": "132-137",
+       "note": "info"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "actor_ar": "مستخدم يملك REPORT_EXPORT",
+   "action_ar": "ينقر «تنزيل CSV» أو «تنزيل Excel» أو «تنزيل PDF» أسفل التقرير أو قائمة المؤشر.",
+   "response_ar": "يُنزَّل ملف بكل الصفوف المطابقة للفلاتر وبترتيب التقرير دون ترقيم، باسم مثل case-inventory-<التاريخ>، وتسمياته بلغة الواجهة. ويسجَّل في التدقيق حدث REPORT_EXPORT بالتقرير والصيغة فقط، دون البيانات أو قيم الفلاتر.",
+   "rules_ar": [
+    "الحد الأقصى عشرة آلاف صف (افتراض في الكود)؛ أكثر منها يُرفض قبل إنتاج أي ملف.",
+    "التنزيل مرفق دائمًا مع X-Content-Type-Options: nosniff.",
+    "رابط التنزيل لا يظهر لمن لا يملك REPORT_EXPORT، والخادم يتحقق مجددًا."
+   ],
+   "data_ar": "الفلاتر وصيغة الملف واللغة.",
+   "next_ar": "ملف في مجلد التنزيلات.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/reports/ReportParts.tsx",
+     "lines": "93-123",
+     "note": "ExportLinks"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/ReportExportController.java",
+     "lines": "41-72",
+     "note": "export endpoints"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/ReportExports.java",
+     "lines": "159-168",
+     "note": "file formats"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/ReportExportController.java",
+     "lines": "74-85",
+     "note": "audit and attachment"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "أكثر من عشرة آلاف صف (422)",
+     "detail_ar": "يرد الخادم بـ 422 وبرمز القاعدة EXPORT_TOO_LARGE (يتضمن نص السجل عدد الصفوف والحد 10000 لكن الاستجابة لا تحمل إلا رمز القاعدة)، ويُرفض قبل أي بحث أو توليد؛ والعرض على الشاشة يعمل. لم أجد رسالة عربية خاصة بها في الواجهة لأن التنزيل رابط مباشر.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/reports/ReportExports.java",
+       "lines": "148-153",
+       "note": "requireWithinLimit"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/reports/ReportExports.java",
+       "lines": "29-29",
+       "note": "MAX_ROWS"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/reports/ExportLimitApiTest.java",
+       "lines": "307-320",
+       "note": "test"
+      }
+     ]
+    },
+    {
+     "kind": "validation",
+     "title_ar": "صيغة غير صالحة (400)",
+     "detail_ar": "format غير csv/xlsx/pdf أو lang غير en/ar.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/reports/ExportQuery.java",
+       "lines": "10-11",
+       "note": "patterns"
+      }
+     ]
+    },
+    {
+     "kind": "denied",
+     "title_ar": "بلا REPORT_EXPORT (403)",
+     "detail_ar": "من يملك REPORT_VIEW فقط لا يستطيع التنزيل.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/reports/ReportExportController.java",
+       "lines": "40-42",
+       "note": "PreAuthorize"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/reports/IndicatorApiTest.java",
+       "lines": "363-369",
+       "note": "test"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "وحدة غير مثبتة أو مؤشر فاشل (422)",
+     "detail_ar": "القاعدتان MODULE_NOT_AVAILABLE وINDICATOR_FAILED عند تصدير مؤشر أو عائلة.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/reports/FamilyController.java",
+       "lines": "44-54",
+       "note": "family export"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/reports/IndicatorService.java",
+       "lines": "270-290",
+       "note": "indicator export"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "rules": [
+  {
+   "text_ar": "الرقم على اللوحة وقائمة المؤشر وتنزيله تُقرأ كلها من تعريف واحد لكل مؤشر فلا تختلف.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/IndicatorCode.java",
+     "lines": "3-8",
+     "note": "doc"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/IndicatorController.java",
+     "lines": "18-21",
+     "note": "doc"
+    },
+    {
+     "path": "backend/src/test/java/com/lawdesk/reports/IndicatorApiTest.java",
+     "lines": "167-186",
+     "note": "tests"
+    }
+   ]
+  },
+  {
+   "text_ar": "المؤشرات تُحسب للقضايا التي يحق للمستخدم رؤيتها فقط.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/IndicatorController.java",
+     "lines": "18-21",
+     "note": "doc"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/IndicatorService.java",
+     "lines": "479-490",
+     "note": "visible"
+    },
+    {
+     "path": "backend/src/test/java/com/lawdesk/reports/IndicatorApiTest.java",
+     "lines": "320-333",
+     "note": "outsider"
+    }
+   ]
+  },
+  {
+   "text_ar": "ما لا يمكن حسابه يظهر «غير متاح بعد» أو «تعذّر احتسابه» ولا يُستبدل بصفر أو بيانات تجريبية.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/IndicatorService.java",
+     "lines": "64-67",
+     "note": "codes"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/DashboardReport.java",
+     "lines": "38-41",
+     "note": "doc"
+    },
+    {
+     "path": "backend/src/test/java/com/lawdesk/reports/IndicatorApiTest.java",
+     "lines": "371-387",
+     "note": "test"
+    }
+   ]
+  },
+  {
+   "text_ar": "حد التصدير عشرة آلاف صف، ويُرفض الأكبر قبل أي توليد، ويشمل الحالات والأحكام والجلسات وعبء العمل والخبراء والعائلات والمؤشرات.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/ReportExports.java",
+     "lines": "20-29",
+     "note": "doc"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/ReportExports.java",
+     "lines": "148-153",
+     "note": "limit"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/FamilyController.java",
+     "lines": "53-53",
+     "note": "family"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/IndicatorService.java",
+     "lines": "280-280",
+     "note": "indicator"
+    }
+   ]
+  },
+  {
+   "text_ar": "أرقام اللوحة تُقرأ في لقطة واحدة متسقة (REPEATABLE_READ).",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/DashboardController.java",
+     "lines": "64-65",
+     "note": "snapshot"
+    }
+   ]
+  },
+  {
+   "text_ar": "فترة الأحكام الافتراضية هي الشهر الحالي، وطرفاها شاملان.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/PeriodQuery.java",
+     "lines": "22-33",
+     "note": "resolve"
+    }
+   ]
+  },
+  {
+   "text_ar": "كل تنزيل يُسجَّل في التدقيق بالتقرير والصيغة فقط.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/ReportExportController.java",
+     "lines": "22-26",
+     "note": "doc"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/ReportExportController.java",
+     "lines": "75-78",
+     "note": "audit"
+    }
+   ]
+  },
+  {
+   "text_ar": "الأحكام الجاري تنفيذها وغيرها من مؤشرات الوحدات الأخرى تُقرأ من واجهات تلك الوحدات.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/DashboardController.java",
+     "lines": "29-32",
+     "note": "doc"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/DashboardController.java",
+     "lines": "71-76",
+     "note": "indicators first"
+    }
+   ]
+  }
+ ],
+ "after_submit_ar": "لا يغيّر عرض اللوحة والتقارير أي بيانات. والتنزيل يُنتج ملفًا ويُسجَّل في التدقيق. (لم أوثّق تفصيلات كل واحد من التقارير السبعة عشر ولا أعمدة كل منها.)",
+ "notifications_ar": [
+  "لا توجد إشعارات مرتبطة باللوحة أو التقارير أو التنزيل؛ لم أجد في كودها إرسال أي إشعار."
+ ],
+ "approvals_ar": [],
+ "errors": [
+  {
+   "code": "HTTP 400 + errors[{field,code}]",
+   "meaning_ar": "تاريخ بصيغة خاطئة، أو format/lang خارج القيم المسموحة، أو رمز مؤشر أو مجموعة غير صالحة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/PeriodQuery.java",
+     "lines": "10-14",
+     "note": "typeMismatch"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/ExportQuery.java",
+     "lines": "10-11",
+     "note": "patterns"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+     "lines": "34-60",
+     "note": "handlers"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 403",
+   "meaning_ar": "لا يملك REPORT_VIEW أو REPORT_EXPORT؛ ويسجَّل ACCESS_DENIED.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/DashboardController.java",
+     "lines": "62-63",
+     "note": "PreAuthorize"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/ReportExportController.java",
+     "lines": "40-42",
+     "note": "export"
+    },
+    {
+     "path": "backend/src/test/java/com/lawdesk/reports/DashboardReportApiTest.java",
+     "lines": "285-298",
+     "note": "audited"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 404",
+   "meaning_ar": "عائلة تقارير غير موجودة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/ReportFamilies.java",
+     "lines": "132-137",
+     "note": "info"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 422 + rule",
+   "meaning_ar": "DATE_RANGE_INVALID أو EXPORT_TOO_LARGE أو MODULE_NOT_AVAILABLE أو INDICATOR_FAILED.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/PeriodQuery.java",
+     "lines": "29-31",
+     "note": "DATE_RANGE_INVALID"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/ReportExports.java",
+     "lines": "148-153",
+     "note": "EXPORT_TOO_LARGE"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/reports/IndicatorService.java",
+     "lines": "66-67",
+     "note": "codes"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+     "lines": "90-96",
+     "note": "422"
+    }
+   ]
+  }
+ ],
+ "result_ar": "لوحة أرقام وتقارير مصفّاة متسقة مع قوائمها، وملفات CSV/Excel/PDF بنفس الصفوف حتى عشرة آلاف صف.",
+ "related": [
+  "enforcement",
+  "library",
+  "audit",
+  "hearings",
+  "tasks",
+  "risk",
+  "deadlines",
+  "roles-permissions"
+ ],
+ "endpoints": [
+  {
+   "method": "GET",
+   "path": "/api/v1/reports/dashboard",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/reports/DashboardController.java",
+    "lines": "34-34",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/reports/indicators",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/reports/IndicatorController.java",
+    "lines": "23-43",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/reports/indicators/{code}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/reports/IndicatorController.java",
+    "lines": "23-45",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/reports/indicators/{code}/export",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/reports/IndicatorController.java",
+    "lines": "23-51",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/reports/families",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/reports/FamilyController.java",
+    "lines": "19-43",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/reports/families/{code}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/reports/FamilyController.java",
+    "lines": "19-38",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/reports/families/{code}/export",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/reports/FamilyController.java",
+    "lines": "19-44",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/reports/cases",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/reports/CaseInventoryController.java",
+    "lines": "15-15",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/reports/judgments",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/reports/JudgmentReportController.java",
+    "lines": "15-15",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/reports/hearings",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/reports/OperationsReportController.java",
+    "lines": "31-31",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/reports/workload",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/reports/OperationsReportController.java",
+    "lines": "37-37",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/reports/experts",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/reports/OperationsReportController.java",
+    "lines": "43-43",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/reports/cases/export",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/reports/ReportExportController.java",
+    "lines": "41-41",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/reports/judgments/export",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/reports/ReportExportController.java",
+    "lines": "48-48",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/reports/hearings/export",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/reports/ReportExportController.java",
+    "lines": "55-55",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/reports/workload/export",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/reports/ReportExportController.java",
+    "lines": "62-62",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/reports/experts/export",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/reports/ReportExportController.java",
+    "lines": "68-68",
+    "note": ""
+   }
+  }
+ ],
+ "tech": {
+  "chain": [
+   {
+    "layer": "screen",
+    "label": "DashboardPage (/)",
+    "ref": {
+     "path": "frontend/src/pages/DashboardPage.tsx",
+     "lines": "56-80",
+     "note": "page"
+    },
+    "data_ar": "طلب اللوحة بلا معاملات (الشهر الحالي) أو بفترة."
+   },
+   {
+    "layer": "component",
+    "label": "IndicatorGrid / ExportLinks",
+    "ref": {
+     "path": "frontend/src/features/reports/IndicatorGrid.tsx",
+     "lines": "1-70",
+     "note": "grid"
+    },
+    "data_ar": "أرقام المؤشرات وروابط التنزيل."
+   },
+   {
+    "layer": "api_call",
+    "label": "getDashboard",
+    "ref": {
+     "path": "frontend/src/features/reports/dashboardApi.ts",
+     "lines": "54-54",
+     "note": "getDashboard"
+    },
+    "data_ar": "استدعاء GET /api/v1/reports/dashboard."
+   },
+   {
+    "layer": "controller",
+    "label": "DashboardController / IndicatorController / ReportExportController",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/reports/DashboardController.java",
+     "lines": "33-66",
+     "note": "dashboard"
+    },
+    "data_ar": "فحص REPORT_VIEW أو REPORT_EXPORT."
+   },
+   {
+    "layer": "service",
+    "label": "IndicatorService + منافذ التقارير في الوحدات",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/reports/IndicatorService.java",
+     "lines": "140-160",
+     "note": "figure"
+    },
+    "data_ar": "أعداد من القضايا والدعاوى والأحكام والجلسات والمهام."
+   },
+   {
+    "layer": "authorization",
+    "label": "@PreAuthorize + CaseAccessPolicy.visibleCaseIds",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/reports/IndicatorService.java",
+     "lines": "479-490",
+     "note": "visible"
+    },
+    "data_ar": "حصر العد في القضايا المرئية."
+   },
+   {
+    "layer": "event",
+    "label": "AuditLog (REPORT_EXPORT / ACCESS_DENIED)",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/reports/ReportExportController.java",
+     "lines": "75-78",
+     "note": "audit"
+    },
+    "data_ar": "سطر تدقيق للتنزيل ولرفض الوصول."
+   },
+   {
+    "layer": "result",
+    "label": "DashboardReport / ملف CSV أو XLSX أو PDF",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/reports/ReportExports.java",
+     "lines": "159-168",
+     "note": "file"
+    },
+    "data_ar": "الأرقام للشاشة أو المرفق للتنزيل."
+   }
+  ]
+ },
+ "status": "IMPLEMENTED_ON_DEVELOP",
+ "status_note_ar": "الشيفرة موجودة على develop ومغطاة باختبارات تكامل. حد العشرة آلاف صف وتعريف الأسبوع (الأيام الستة التالية) مذكوران في الكود كافتراض.",
+ "status_evidence": [
+  {
+   "path": "backend/src/main/java/com/lawdesk/reports/DashboardController.java",
+   "lines": "29-35",
+   "note": "controller"
+  },
+  {
+   "path": "backend/src/main/java/com/lawdesk/reports/ReportExports.java",
+   "lines": "20-29",
+   "note": "exports"
+  }
+ ],
+ "verification_ar": "قرأتُ متحكمات اللوحة والمؤشرات والعائلات والتصدير وخدمة المؤشرات وReportExports وشاشة DashboardPage وروابط التنزيل وملفات الرسائل. الاختبارات: backend/src/test/java/com/lawdesk/reports/DashboardReportApiTest.java وIndicatorApiTest.java وExportLimitApiTest.java وFamilyApiTest.java وExportFormatsApiTest.java وغيرها، واختبارات الواجهة في frontend/src/features/reports/. لم يجرِ هذا المستند أي تحقق على UAT ولم أشغّل الاختبارات. لم أفحص ReportFamilies بالتفصيل (أعمدة كل عائلة ومصادرها) ولا الأعمدة الفعلية لتقارير الجلسات وعبء العمل والخبراء، ولا أدوار LEGAL_STAFF وغيرها بخصوص REPORT_VIEW."
+}
