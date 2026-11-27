@@ -1,0 +1,125 @@
+{
+  "tested_sha": "b849b1cabcbebd4df058e4ab989d1e8c1a562899",
+  "utc": "2026-10-25T09:31:25.952294+00:00",
+  "candidate": "/tmp/lawdesk-acceptance-20261025-phase6-current",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 4,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "5f4f4c86-9848-4ca1-8fc3-97396d7d2c33",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-25T09:30:59.305719Z",
+          "updatedAt": "2026-10-25T09:30:59.305719Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "BASELINE-HTTP-cases",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "BASELINE-HTTP-cases"
+      },
+      "steps": [
+        "Single client;2warmups and30GETs >=100ms apart; capture latency/status only"
+      ],
+      "expected_results": "30 HTTP200; no latency acceptance threshold claimed",
+      "actual": {
+        "samples": 30,
+        "non200": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "BASELINE-HTTP-hearings",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "BASELINE-HTTP-hearings"
+      },
+      "steps": [
+        "Single client;2warmups and30GETs >=100ms apart; capture latency/status only"
+      ],
+      "expected_results": "30 HTTP200; no latency acceptance threshold claimed",
+      "actual": {
+        "samples": 30,
+        "non200": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "BASELINE-HTTP-dashboard",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "BASELINE-HTTP-dashboard"
+      },
+      "steps": [
+        "Single client;2warmups and30GETs >=100ms apart; capture latency/status only"
+      ],
+      "expected_results": "30 HTTP200; no latency acceptance threshold claimed",
+      "actual": {
+        "samples": 30,
+        "non200": 0
+      },
+      "status": "PASS"
+    }
+  ]
+}

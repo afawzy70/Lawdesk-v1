@@ -1,0 +1,151 @@
+{
+  "tested_sha": "0338cac0fca07eb0ce06eb8f2b45a54dd0386f7e",
+  "utc": "2026-10-25T12:27:48.350377+00:00",
+  "candidate": "/tmp/lawdesk-final-20261025-candidate",
+  "scope": "Independent API+PostgreSQL; real jar; no developer tests counted",
+  "counts": {
+    "PASS": 5,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "FIXTURE-COURT",
+      "story_ids": [
+        "LD-018"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "FIXTURE-COURT"
+      },
+      "steps": [
+        "POST /api/v1/courts",
+        "assert response"
+      ],
+      "expected_results": {
+        "status": 201,
+        "rule": null
+      },
+      "actual": {
+        "status": 201,
+        "body": {
+          "id": "ce9b95e8-cbaf-4936-a77c-83c27ba81637",
+          "code": "QA-PH56",
+          "nameAr": "محكمة اختبار",
+          "nameEn": "QA Court",
+          "level": "FIRST_INSTANCE",
+          "governorate": null,
+          "active": true,
+          "version": 0,
+          "createdAt": "2026-10-25T12:27:37.444858Z",
+          "updatedAt": "2026-10-25T12:27:37.444858Z"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "UPGRADE-V407-PRECONDITION",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "UPGRADE-V407-PRECONDITION"
+      },
+      "steps": [
+        "Reconstruct V407 definitions/history in disposable DB; preserve populated rows"
+      ],
+      "expected_results": "V407 and unchanged valid existing records",
+      "actual": {
+        "version": "407",
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "UPGRADE-REAL-FLYWAY",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "UPGRADE-REAL-FLYWAY"
+      },
+      "steps": [
+        "Run real packaged Flyway with canonical migration SQL over V407 state"
+      ],
+      "expected_results": "1 migration(s) applied; all rows/history unchanged",
+      "actual": {
+        "exit_code": 0,
+        "expected_migrations": 1,
+        "actual_matches": true,
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "UPGRADE-GUARD-HEARING",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "UPGRADE-GUARD-HEARING"
+      },
+      "steps": [
+        "After migration, attempt incompatible new write"
+      ],
+      "expected_results": "Reject; pre-existing records preserved",
+      "actual": {
+        "rejected": true,
+        "unchanged": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "UPGRADE-GUARD-REFERRAL",
+      "story_ids": [
+        "LD-024"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact canonical git archive at tested_sha; migrated disposable PostgreSQL18.6; real jar on loopback",
+        "Synthetic bootstrap administrator and isolated test roles; no UAT credentials"
+      ],
+      "test_data": {
+        "namespace": "QA synthetic",
+        "fixture": "UPGRADE-GUARD-REFERRAL"
+      },
+      "steps": [
+        "After migration, attempt incompatible new write"
+      ],
+      "expected_results": "Reject; pre-existing records preserved",
+      "actual": {
+        "rejected": true,
+        "unchanged": true
+      },
+      "status": "PASS"
+    }
+  ]
+}

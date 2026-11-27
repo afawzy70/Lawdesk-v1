@@ -1,0 +1,43 @@
+{
+  "id": "QAD-023",
+  "title": "Merged case list is not mounted in AppRoutes",
+  "priority": "P1",
+  "severity": "S2",
+  "stories": [
+    "LD-015"
+  ],
+  "affected": [
+    "71007a02f8b79d0dccc0592af7d3e49b5bf4530d"
+  ],
+  "steps": [
+    "Render real AppRoutes with authenticated CASE_VIEW profile in MemoryRouter at /cases?lang=en",
+    "Provide a valid paged /api/v1/cases response",
+    "Observe UI and fetch spy"
+  ],
+  "expected": "Implemented case list/search rendered; GET /api/v1/cases performed",
+  "actual": "ComingSoonPage rendered from PLANNED_AREAS; no case-list request; navigation status remains planned",
+  "uat_policy": "Feature acceptance fails; not evidence of whole UAT being unsafe",
+  "status": "FIX_VERIFIED_IN_UAT",
+  "environment": "Ubuntu24.04 Java21 PostgreSQL18.6; QA-owned loopback services; React Vitest/jsdom for QAD023",
+  "preconditions": [
+    "Use synthetic data and exact indicated SHA",
+    "Use QA independent scripts, not developer MockMvc tests"
+  ],
+  "evidence": "qa/evidence/phase234-20261024/",
+  "first_confirmed_utc": "2026-10-24T05:17:19.377613+00:00",
+  "implementation_acknowledgement": "PHASE-3-ACCEPTANCE.md QA-0120 note explicitly says route remains planned pending integration-owner shared shell update; QA confirms incompleteness, not a claim that completed integration regressed.",
+  "history": [
+    {
+      "status": "CONFIRMED_ACCEPTANCE_GAP"
+    }
+  ],
+  "latest_retest_utc": "2026-10-24T12:29:58.146609+00:00",
+  "latest_retest": {
+    "status": "PASS",
+    "expected_deployed_sha": "8b0928ba10eb9b02ac3822ac33eca5b8778195b6",
+    "backend_runtime_sha_attested": false,
+    "evidence": "qa/evidence/signedin-uat-8b0928b-20261024/journeys/results.json",
+    "test_id": "SIGNED-CASE-SEARCH-UI",
+    "note": "Real authenticated UAT; workflow-reported deployment identity, application source identical to81d9d03. Original failed evidence and affected SHAs retained."
+  }
+}

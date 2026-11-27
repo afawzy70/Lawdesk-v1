@@ -1,0 +1,144 @@
+{
+  "tested_sha": "e73e38e5c9aa1e70a6c1ac8984de460da9711621",
+  "scope": "Independent browser transport; synthetic loopback server, NOT full PDF product/UAT",
+  "counts": {
+    "PASS": 6,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "MULTIPART-BYTES",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate HTTP client transpiled without behavior changes",
+        "Chromium and disposable loopback echo endpoint"
+      ],
+      "test_data": {
+        "fixture": "QA synthetic file bytes and synthetic anti-CSRF value"
+      },
+      "steps": [
+        "Load candidate client in browser",
+        "Execute MULTIPART-BYTES",
+        "Inspect real HTTP request or client response"
+      ],
+      "expected_results": "Browser-generated multipart boundary; file bytes and title intact",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "MULTIPART-CSRF",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate HTTP client transpiled without behavior changes",
+        "Chromium and disposable loopback echo endpoint"
+      ],
+      "test_data": {
+        "fixture": "QA synthetic file bytes and synthetic anti-CSRF value"
+      },
+      "steps": [
+        "Load candidate client in browser",
+        "Execute MULTIPART-CSRF",
+        "Inspect real HTTP request or client response"
+      ],
+      "expected_results": "Unsafe multipart request retains CSRF and same-origin cookie",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "JSON-REGRESSION",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate HTTP client transpiled without behavior changes",
+        "Chromium and disposable loopback echo endpoint"
+      ],
+      "test_data": {
+        "fixture": "QA synthetic file bytes and synthetic anti-CSRF value"
+      },
+      "steps": [
+        "Load candidate client in browser",
+        "Execute JSON-REGRESSION",
+        "Inspect real HTTP request or client response"
+      ],
+      "expected_results": "Ordinary bodies still use JSON",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "GET-REGRESSION",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate HTTP client transpiled without behavior changes",
+        "Chromium and disposable loopback echo endpoint"
+      ],
+      "test_data": {
+        "fixture": "QA synthetic file bytes and synthetic anti-CSRF value"
+      },
+      "steps": [
+        "Load candidate client in browser",
+        "Execute GET-REGRESSION",
+        "Inspect real HTTP request or client response"
+      ],
+      "expected_results": "GET carries no content type or CSRF header",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "UNAUTHORIZED-EVENT",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate HTTP client transpiled without behavior changes",
+        "Chromium and disposable loopback echo endpoint"
+      ],
+      "test_data": {
+        "fixture": "QA synthetic file bytes and synthetic anti-CSRF value"
+      },
+      "steps": [
+        "Load candidate client in browser",
+        "Execute UNAUTHORIZED-EVENT",
+        "Inspect real HTTP request or client response"
+      ],
+      "expected_results": "Protected401 invokes session-expiry event once",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    },
+    {
+      "id": "NONJSON-ERROR-REDACTION",
+      "story_ids": [
+        "LD-026"
+      ],
+      "priority": "P1",
+      "preconditions": [
+        "Exact candidate HTTP client transpiled without behavior changes",
+        "Chromium and disposable loopback echo endpoint"
+      ],
+      "test_data": {
+        "fixture": "QA synthetic file bytes and synthetic anti-CSRF value"
+      },
+      "steps": [
+        "Load candidate client in browser",
+        "Execute NONJSON-ERROR-REDACTION",
+        "Inspect real HTTP request or client response"
+      ],
+      "expected_results": "Server HTML not propagated into client problem/message",
+      "status": "PASS",
+      "actual": "All assertions satisfied"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "tested_sha": "7ee71046c73cfee6b799f4893976877a1a440b76",
+  "scope": "Independent visual review of captured live local browser evidence, not developer tests",
+  "counts": {
+    "PASS": 0,
+    "FAIL": 1,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "results": [
+    {
+      "id": "DASHBOARD-DATA-ORIGIN-LABEL",
+      "story_ids": [
+        "LD-030"
+      ],
+      "priority": "P3",
+      "preconditions": [
+        "Independent local live browser/API/PostgreSQL fixtures; six stored QA cases"
+      ],
+      "test_data": {
+        "cases": 6,
+        "open": 4,
+        "closed": 2
+      },
+      "steps": [
+        "Open judgments report using two local QA judgments",
+        "Inspect shared banner in English and Arabic",
+        "Compare banner claim to real database-derived dashboard feature inherited by this branch"
+      ],
+      "expected_results": "UAT warning remains but does not label real database-derived statistics as sample figures",
+      "actual": "Shared banner still claims dashboard shows sample figures; exact branch inherits real dashboard implementation",
+      "status": "FAIL",
+      "evidence": [
+        "browser/judgments-en-320.png",
+        "browser/judgments-ar-320.png"
+      ]
+    }
+  ]
+}

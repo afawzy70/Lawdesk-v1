@@ -1,0 +1,70 @@
+{
+  "tested_sha": "6e27f5c427380fddb1914872f53ea437eb642fc9",
+  "scope": "Exploratory loopback baseline only; one client; no UAT/shared-host stress; no production SLO",
+  "dataset": {
+    "cases": 20,
+    "proceedings": 20,
+    "hearings": 20
+  },
+  "measurements": [
+    {
+      "endpoint": "cases",
+      "samples": 30,
+      "p50_ms": 43.201,
+      "p95_ms": 128.937,
+      "p99_ms": 130.411,
+      "throughput_rps": 6.122,
+      "error_rate": 0.0,
+      "observed_db_connections": [
+        11,
+        11,
+        11
+      ],
+      "wall_seconds": 4.9
+    },
+    {
+      "endpoint": "hearings",
+      "samples": 30,
+      "p50_ms": 112.385,
+      "p95_ms": 205.599,
+      "p99_ms": 219.416,
+      "throughput_rps": 4.343,
+      "error_rate": 0.0,
+      "observed_db_connections": [
+        11,
+        11,
+        11
+      ],
+      "wall_seconds": 6.908
+    },
+    {
+      "endpoint": "dashboard",
+      "samples": 30,
+      "p50_ms": 48.055,
+      "p95_ms": 220.068,
+      "p99_ms": 407.869,
+      "throughput_rps": 5.024,
+      "error_rate": 0.0,
+      "observed_db_connections": [
+        11,
+        11,
+        11
+      ],
+      "wall_seconds": 5.971
+    }
+  ],
+  "jvm": {
+    "cpu_seconds": 11.68,
+    "one_core_utilization_percent": 60.994,
+    "sampled_rss_max_bytes": 520998912,
+    "sample_interval_seconds": 0.2
+  },
+  "limitations": [
+    "30 samples yield unstable tail percentiles",
+    "Local jar/JVM, not deployment container",
+    "Throughput includes deliberate pacing; not saturation throughput",
+    "RSS sampled, not guaranteed peak; connection counts include QA observer",
+    "Small dataset cannot predict production query plans",
+    "DB process CPU and independent cgroup accounting not captured"
+  ]
+}
