@@ -1,0 +1,634 @@
+{
+  "id": "notifications",
+  "category": "work",
+  "name_ar": "الإشعارات داخل النظام وتفضيلاتها",
+  "summary_ar": "مركز إشعارات خاص بكل مستخدم يظهر برمز الجرس في أعلى الشاشة مع عدد غير المقروء. فيه تنبيهات بالقضايا الجديدة والجلسات والمواعيد والمهام المتأخرة والأحكام والمستندات الناقصة وغيرها، ويستطيع المستخدم أن يوقف أي نوع لنفسه.",
+  "purpose_ar": "تنبيه الموظف إلى ما يحتاج انتباهه دون أن يفتش في الشاشات، مع بقاء كل شيء داخل النظام: لا بريد إلكتروني ولا رسائل نصية.",
+  "who_ar": [
+    "كل مستخدم يحمل صلاحية عرض القضايا (CASE_VIEW): يرى إشعاراته وحده ويضبط تفضيلاته وحده"
+  ],
+  "who_perms": [
+    "CASE_VIEW"
+  ],
+  "access_ar": "رمز الجرس في الشريط العلوي، ثم صفحة «الإشعارات»",
+  "route": "/notifications",
+  "prerequisites_ar": [
+    "أن يكون المستخدم مسجّل الدخول وحاملًا صلاحية CASE_VIEW (كل واجهات الإشعارات تطلبها).",
+    "لا يُنشئ المستخدم الإشعارات بنفسه: تنشئها العمليات الأخرى في النظام (إسناد مهمة، التشغيل الدوري للمتابعة…)."
+  ],
+  "fields": {
+    "required": [
+      {
+        "name_ar": "تفعيل نوع الإشعار (عند ضبط التفضيلات)",
+        "code": "enabled",
+        "rule_ar": "قيمة منطقية مطلوبة (تشغيل أو إيقاف) وإلا يرد 400.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/notifications/NotificationController.java",
+            "lines": "43",
+            "note": "enabled NotNull"
+          }
+        ]
+      }
+    ],
+    "optional": [
+      {
+        "name_ar": "مرشح النوع",
+        "code": "type",
+        "rule_ar": "يمكن تكراره؛ وأي نوع غير معروف يعطي 400 برمز Pattern.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/notifications/NotificationService.java",
+            "lines": "56-58",
+            "note": "type filter"
+          }
+        ]
+      },
+      {
+        "name_ar": "مرشح الحالة (مقروء / غير مقروء)",
+        "code": "read / unreadOnly",
+        "rule_ar": "read=true للمقروءة وread=false أو unreadOnly=true لغير المقروءة؛ وبدونهما تظهر كلها.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/notifications/NotificationService.java",
+            "lines": "49-53",
+            "note": "read filter"
+          }
+        ]
+      },
+      {
+        "name_ar": "القضية",
+        "code": "caseId",
+        "rule_ar": "تصفية بإشعارات قضية معينة.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/notifications/NotificationService.java",
+            "lines": "63-66",
+            "note": "case filter"
+          }
+        ]
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "actor_ar": "النظام والمستخدم",
+      "action_ar": "يظهر في الشريط العلوي رمز الجرس برقم الإشعارات غير المقروءة (99+ إن زادت عن 99). يُعاد حساب الرقم كلما انتقل المستخدم إلى صفحة أخرى.",
+      "response_ar": "الضغط على الجرس يفتح صفحة «الإشعارات».",
+      "rules_ar": [
+        "الرقم يخص المستخدم وحده ولا يحسب إشعارات قضية لم يعد يراها."
+      ],
+      "data_ar": "GET /api/v1/notifications/unread-count ويعيد {unread}.",
+      "next_ar": "الخطوة 2.",
+      "evidence": [
+        {
+          "path": "frontend/src/features/followup/NotificationsBell.tsx",
+          "lines": "9",
+          "note": "bell"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationController.java",
+          "lines": "90-94",
+          "note": "unread-count"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationService.java",
+          "lines": "132-137",
+          "note": "count"
+        },
+        {
+          "path": "frontend/src/features/followup/NotificationsBell.tsx",
+          "lines": "31",
+          "note": "99+"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "error",
+          "title_ar": "تعذّر جلب العدد",
+          "detail_ar": "إن فشل الطلب يختفي الرقم من الجرس ويبقى الجرس ظاهرًا.",
+          "evidence": [
+            {
+              "path": "frontend/src/features/followup/NotificationsBell.tsx",
+              "lines": "22",
+              "note": "no number on failure"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "actor_ar": "المستخدم",
+      "action_ar": "يفتح «الإشعارات» ويرى الأحدث أولًا، ويصفّي بالنوع (الأنواع الخمسة عشر) وبالحالة (غير مقروءة / مقروءة)، وإن كثرت الإشعارات يضغط «عرض المزيد».",
+      "response_ar": "يعرض كل إشعار بنص عربي جاهز (مثل «المهمة «…» متأخرة (موعدها …)»)، ونوعه وتاريخه ورقم القضية برابط، وعلامة «غير مقروء». رابط «فتح» يأخذ إلى سجل الإشعار: تعارض المواعيد يفتح اليوم في التقويم، والمهمة بلا قضية تفتح قائمة المهام، وغير ذلك يفتح القضية.",
+      "rules_ar": [
+        "لا تُعرض إلا إشعارات المستخدم نفسه، وما يخص قضية لا يراها لا يُعرض ولا يمكن قراءته.",
+        "20 إشعارًا في الصفحة الواحدة.",
+        "الشاشة تذكّر بأن الإشعارات داخل النظام فقط ولا يُرسل شيء بالبريد أو الرسائل النصية."
+      ],
+      "data_ar": "GET /api/v1/notifications?type&read&caseId&page&size؛ كل عنصر: id, type, caseId, caseReferenceNo, recordRef, recordType, recordId, params, createdAt, readAt.",
+      "next_ar": "الخطوة 3 لتعليم المقروء، أو الخطوة 4 لضبط التفضيلات.",
+      "evidence": [
+        {
+          "path": "frontend/src/features/followup/NotificationsPage.tsx",
+          "lines": "69",
+          "note": "screen"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationController.java",
+          "lines": "55-59",
+          "note": "list"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationService.java",
+          "lines": "45-76",
+          "note": "list flow"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationService.java",
+          "lines": "37-42",
+          "note": "visibility"
+        },
+        {
+          "path": "frontend/src/features/followup/NotificationsPage.tsx",
+          "lines": "57-62",
+          "note": "links"
+        },
+        {
+          "path": "frontend/src/i18n/messages/wp3.ar.ts",
+          "lines": "263",
+          "note": "in-app only text"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "نوع غير معروف في المرشح",
+          "detail_ar": "يرد 400 باسم الحقل type ورمز Pattern.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/notifications/NotificationService.java",
+              "lines": "57",
+              "note": "400"
+            }
+          ]
+        },
+        {
+          "kind": "denied",
+          "title_ar": "لا صلاحية CASE_VIEW",
+          "detail_ar": "يرد 403.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/notifications/NotificationController.java",
+              "lines": "56",
+              "note": "CASE_VIEW"
+            }
+          ]
+        },
+        {
+          "kind": "error",
+          "title_ar": "فشل التحميل",
+          "detail_ar": "تظهر رسالة خطأ عربية مناسبة لنوع الفشل (انتهاء الجلسة، عدم الصلاحية…).",
+          "evidence": [
+            {
+              "path": "frontend/src/features/followup/NotificationsPage.tsx",
+              "lines": "92",
+              "note": "failure messages"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "actor_ar": "المستخدم",
+      "action_ar": "يضغط «تعليم مقروءًا» على إشعار، أو «تعليم كغير مقروء» لإعادته، أو «تعليم الكل مقروءًا».",
+      "response_ar": "تتغير علامة الإشعار ويتحدث رقم الجرس. حالة القراءة محفوظة لهذا المستخدم وحده.",
+      "rules_ar": [
+        "«تعليم الكل» يشمل الإشعارات المرئية للمستخدم فقط.",
+        "تعليم المقروء لإشعار مقروء لا يغيّر وقت قراءته الأول."
+      ],
+      "data_ar": "POST /api/v1/notifications/{id}/read وPOST /{id}/unread وPOST /read-all (ترد 204 بلا جسم).",
+      "next_ar": "تنتهي العملية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationController.java",
+          "lines": "96-100",
+          "note": "read"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationController.java",
+          "lines": "83-87",
+          "note": "unread"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationController.java",
+          "lines": "103-107",
+          "note": "read-all"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationService.java",
+          "lines": "139-147",
+          "note": "mark read"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationService.java",
+          "lines": "150-156",
+          "note": "mark all"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "إشعار غير موجود أو ليس للمستخدم أو لقضية لا يراها",
+          "detail_ar": "يرد 404 كأنه غير موجود.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/notifications/NotificationService.java",
+              "lines": "139-144",
+              "note": "404"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "actor_ar": "المستخدم",
+      "action_ar": "يضغط «اختيار الإشعارات التي أتلقاها» فتظهر قائمة بكل الأنواع مع مربع اختيار لكل نوع؛ يلغي علامة نوع ليتوقف عن تلقيه.",
+      "response_ar": "يحفظ النظام الاختيار لهذا المستخدم فقط. ما أُوقف لا تُنشأ له إشعارات جديدة بعد ذلك، وما سبق تخزينه يبقى في القائمة.",
+      "rules_ar": [
+        "الأصل أن كل الأنواع مفعّلة؛ ولا يُحفظ صف إلا بعد أول تغيير.",
+        "الأنواع خمسة عشر: الأحد عشر المنصوص عليها في المتطلبات (القضايا الجديدة، الجلسات القادمة، جلسات الخبراء، مواعيد الطعون، المهام المتأخرة، جلسات لم تسجل نتائجها، طلبات الإدارات المتأخر ردها، الأحكام الجديدة، المستندات الناقصة، تعارض المواعيد، القضايا المرتفعة المخاطر) وأربعة إشعارات نظام (مهام أُسندت إليّ، مهام يقترب موعدها، طلبات مُصعَّدة إليّ، جلسات أُجّلت بلا موعد)."
+      ],
+      "data_ar": "GET /api/v1/notifications/preferences وPUT /api/v1/notifications/preferences/{type} بجسم {enabled}؛ ويحفظ في جدول notification_preference.",
+      "next_ar": "تنتهي العملية.",
+      "evidence": [
+        {
+          "path": "frontend/src/features/followup/NotificationsPage.tsx",
+          "lines": "134-142",
+          "note": "toggle"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationController.java",
+          "lines": "77-81",
+          "note": "PUT"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationService.java",
+          "lines": "106-118",
+          "note": "upsert"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationTypes.java",
+          "lines": "36-43",
+          "note": "15 types"
+        },
+        {
+          "path": "backend/src/main/resources/db/migration/V721__LD-056_calendar_and_notifications.sql",
+          "lines": "31-37",
+          "note": "table"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "نوع غير معروف",
+          "detail_ar": "يرد 404 («notification type»).",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/notifications/NotificationService.java",
+              "lines": "108",
+              "note": "404"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "غياب قيمة enabled",
+          "detail_ar": "يرد 400.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/notifications/NotificationController.java",
+              "lines": "43",
+              "note": "NotNull"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "actor_ar": "النظام (عمليات أخرى تنشئ الإشعارات)",
+      "action_ar": "عندما يحدث ما يستوجب التنبيه (إسناد مهمة، إسناد قضية جديدة، موعد قادم، تأخر ردّ…) تستدعي الوحدة المعنية «ناشر الإشعارات» ليخزّن إشعارًا للأشخاص المعنيين.",
+      "response_ar": "يخزَّن إشعار واحد لكل نوع وسجل وشخص (ومعه تاريخ المناسبة إن كان جزءًا من هويته)، فلا يتكرر مهما أُعيد التشغيل؛ ولا يُخزَّن لمن أوقف هذا النوع. وإن تغيّر تاريخ المناسبة (جلسة أُجّلت، مهمة موعدها جديد) ينشأ إشعار جديد.",
+      "rules_ar": [
+        "لا يخرج أي إشعار خارج النظام.",
+        "من يطلق كل نوع: إسناد المهمة ينشئ TASK_ASSIGNED؛ وتصعيد طلب إفادة ينشئ INFO_REQUEST_ESCALATED؛ وتأجيل جلسة بلا موعد تالٍ ينشئ HEARING_NO_NEXT_DATE؛ وتقييم مخاطر مرتفع ينشئ RISK_HIGH؛ وبقية الأنواع تنشئها المتابعة الدورية (انظر صفحة المتابعة الدورية)."
+      ],
+      "data_ar": "type, caseId, recordRef (TYPE:id)، وparams نصية، ومفتاح dedupe_key فريد.",
+      "next_ar": "تظهر في صفحة الإشعارات عند أول تحميل لاحق.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationPublisher.java",
+          "lines": "49-63",
+          "note": "idempotent publish"
+        },
+        {
+          "path": "backend/src/main/resources/db/migration/V664__LD-053_notification.sql",
+          "lines": "4-18",
+          "note": "table"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskService.java",
+          "lines": "221-222",
+          "note": "TASK_ASSIGNED"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java",
+          "lines": "217",
+          "note": "escalation"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/risk/RiskService.java",
+          "lines": "218",
+          "note": "risk high"
+        }
+      ],
+      "alt": []
+    }
+  ],
+  "rules": [
+    {
+      "text_ar": "الإشعارات داخل النظام فقط (قرار المالك D11): لا بريد ولا رسائل نصية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationTypes.java",
+          "lines": "10",
+          "note": "in-app only"
+        },
+        {
+          "path": "frontend/src/i18n/messages/wp3.ar.ts",
+          "lines": "263",
+          "note": "Arabic notice"
+        }
+      ]
+    },
+    {
+      "text_ar": "لا يرى المستخدم إلا إشعاراته، ولا إشعارًا يخص قضية لم يعد يراها.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationService.java",
+          "lines": "37-42",
+          "note": "visibility"
+        }
+      ]
+    },
+    {
+      "text_ar": "لا يتكرر الإشعار: المفتاح الفريد يتكون من النوع والسجل (والتاريخ إن وُجد) والمستخدم.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationPublisher.java",
+          "lines": "54",
+          "note": "dedupe key"
+        },
+        {
+          "path": "backend/src/main/resources/db/migration/V664__LD-053_notification.sql",
+          "lines": "14",
+          "note": "unique constraint"
+        }
+      ]
+    },
+    {
+      "text_ar": "النوع الموقوف في تفضيلات المستخدم لا يُخزَّن له.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationPublisher.java",
+          "lines": "59-60",
+          "note": "preference check"
+        }
+      ]
+    }
+  ],
+  "after_submit_ar": "تنعكس عمليات القراءة والتفضيل فورًا على القائمة وعلى رقم الجرس.",
+  "notifications_ar": [
+    "هذه الصفحة هي مركز الإشعارات نفسه. أنواعها: القضايا الجديدة (CASE_NEW)، الجلسات القادمة (HEARING_UPCOMING)، جلسات الخبراء (EXPERT_SESSION_UPCOMING)، مواعيد الطعون (APPEAL_DEADLINE)، المهام المتأخرة (TASK_OVERDUE)، جلسات لم تسجل نتائجها (HEARING_NO_RESULT)، طلبات الإدارات المتأخر ردها (INFO_REQUEST_OVERDUE)، الأحكام الجديدة (JUDGMENT_NEW)، المستندات الناقصة (DOCUMENT_MISSING)، تعارض المواعيد (DATE_CONFLICT)، القضايا المرتفعة المخاطر (RISK_HIGH)، مهام أُسندت إليّ (TASK_ASSIGNED)، مهام يقترب موعدها (TASK_DUE_SOON)، طلبات مُصعَّدة إليّ (INFO_REQUEST_ESCALATED)، جلسات أُجّلت بلا موعد (HEARING_NO_NEXT_DATE).",
+    "التنبيه يصل إلى الأشخاص المعنيين فقط (المسؤول، أو عضو القضية الأصلي والبديل، أو صاحب الموعد) ولا يصل إلى من أنشأ السجل في حالتي «قضية جديدة» و«حكم جديد»."
+  ],
+  "approvals_ar": [],
+  "errors": [
+    {
+      "code": "HTTP 400",
+      "meaning_ar": "نوع غير معروف في المرشح (field=type, code=Pattern) أو غياب enabled.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+          "lines": "45-49",
+          "note": "400"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 403",
+      "meaning_ar": "لا صلاحية CASE_VIEW.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationController.java",
+          "lines": "56",
+          "note": "403"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 404",
+      "meaning_ar": "إشعار غير موجود أو لا يخص المستخدم أو يخص قضية لا يراها، أو نوع تفضيل غير معروف.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationService.java",
+          "lines": "126",
+          "note": "404"
+        }
+      ]
+    }
+  ],
+  "result_ar": "قائمة إشعارات شخصية مقروءة أو غير مقروءة مع رقم الجرس، وتفضيلات محفوظة تحدد ما يصل إلى المستخدم من الأنواع.",
+  "related": [
+    "follow-up",
+    "tasks",
+    "calendar",
+    "info-requests",
+    "risk",
+    "hearings",
+    "case-access-confidentiality"
+  ],
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/notifications/NotificationController.java",
+        "lines": "27-57",
+        "note": "list"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications/types",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/notifications/NotificationController.java",
+        "lines": "64",
+        "note": "types"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications/preferences",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/notifications/NotificationController.java",
+        "lines": "70",
+        "note": "preferences"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/notifications/preferences/{type}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/notifications/NotificationController.java",
+        "lines": "77",
+        "note": "set preference"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications/unread-count",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/notifications/NotificationController.java",
+        "lines": "90",
+        "note": "unread"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/notifications/{id}/read",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/notifications/NotificationController.java",
+        "lines": "27-98",
+        "note": "read"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/notifications/{id}/unread",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/notifications/NotificationController.java",
+        "lines": "27-85",
+        "note": "unread"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/notifications/read-all",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/notifications/NotificationController.java",
+        "lines": "27-105",
+        "note": "read-all"
+      }
+    }
+  ],
+  "tech": {
+    "chain": [
+      {
+        "layer": "screen",
+        "label": "NotificationsPage (/notifications) و NotificationsBell",
+        "ref": {
+          "path": "frontend/src/features/followup/NotificationsPage.tsx",
+          "lines": "69",
+          "note": "screen"
+        },
+        "data_ar": "المرشحات وأفعال القراءة والتفضيل تتحول إلى طلبات api.ts."
+      },
+      {
+        "layer": "api_call",
+        "label": "listNotifications / markRead / setPreference",
+        "ref": {
+          "path": "frontend/src/features/followup/api.ts",
+          "lines": "539-549",
+          "note": "api"
+        },
+        "data_ar": "طلبات GET/POST/PUT إلى /api/v1/notifications."
+      },
+      {
+        "layer": "controller",
+        "label": "NotificationController",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationController.java",
+          "lines": "27-28",
+          "note": "controller"
+        },
+        "data_ar": "المعاملات تُسلَّم إلى NotificationService."
+      },
+      {
+        "layer": "authorization",
+        "label": "@PreAuthorize CASE_VIEW",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationController.java",
+          "lines": "56",
+          "note": "permission"
+        },
+        "data_ar": "صلاحية عرض القضايا شرط لكل العمليات."
+      },
+      {
+        "layer": "service",
+        "label": "NotificationService",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationService.java",
+          "lines": "37-42",
+          "note": "service"
+        },
+        "data_ar": "شرط «إشعاراتي والقضايا التي أراها» يُضاف إلى كل استعلام."
+      },
+      {
+        "layer": "tables",
+        "label": "notification, notification_preference",
+        "ref": {
+          "path": "backend/src/main/resources/db/migration/V664__LD-053_notification.sql",
+          "lines": "4-18",
+          "note": "table"
+        },
+        "data_ar": "الإشعارات وتفضيلات كل مستخدم."
+      },
+      {
+        "layer": "event",
+        "label": "NotificationPublisher.publish",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationPublisher.java",
+          "lines": "49-63",
+          "note": "publish"
+        },
+        "data_ar": "الوحدات الأخرى تنشئ الإشعارات هنا دون تكرار."
+      },
+      {
+        "layer": "result",
+        "label": "قائمة وعدّاد غير المقروء",
+        "ref": {
+          "path": "frontend/src/features/followup/NotificationsBell.tsx",
+          "lines": "9",
+          "note": "bell"
+        },
+        "data_ar": "الرقم على الجرس وقائمة الإشعارات."
+      }
+    ]
+  },
+  "status": "IMPLEMENTED_ON_DEVELOP",
+  "status_note_ar": "الشيفرة على develop ولها اختبارات؛ لم يُتحقق منها في UAT ضمن هذه الوثيقة.",
+  "status_evidence": [
+    {
+      "path": "backend/src/main/java/com/lawdesk/notifications/NotificationController.java",
+      "lines": "27-28",
+      "note": "controller on develop"
+    }
+  ],
+  "verification_ar": "اختبارات وُجدت: backend/src/test/java/com/lawdesk/wp6/NotificationCentreApiTest.java وbackend/src/test/java/com/lawdesk/followup/NotificationApiTest.java وbackend/src/test/java/com/lawdesk/followup/DateRemindersTest.java، وواجهة: frontend/src/features/followup/Notifications.test.tsx وNotificationCentre.test.tsx. لم أشغّلها ولم يُجرَ تحقق UAT ضمن هذه الوثيقة. إشعارات المواعيد القانونية (DEADLINE_APPROACHING وDEADLINE_OVERDUE) تخص وحدة المواعيد القانونية ولم أوثقها هنا."
+}

@@ -1,0 +1,615 @@
+{
+ "id": "roles-permissions",
+ "category": "access",
+ "name_ar": "الأدوار وكتالوج الصلاحيات",
+ "summary_ar": "الدور مجموعة صلاحيات تُسند إلى المستخدمين. يعرض النظام قائمة الأدوار وصلاحيات كل دور، ويتيح لمن يملك «إدارة الأدوار» إنشاء دور مخصص وتعديل اسم أي دور وصلاحياته. تسري التعديلات على حاملي الدور عند طلبهم التالي.",
+ "purpose_ar": "فصل «ماذا يستطيع المستخدم أن يفعل» عن «على أي قضايا» (يحدده نطاق الاطلاع): الدور يمنح القدرات، والنطاق والمنح يحددان القضايا.",
+ "who_ar": [
+  "من يملك «عرض الأدوار» (ROLE_VIEW) أو «إدارة المستخدمين» (USER_MANAGE) أو «إدارة الاطلاع على القضايا والنطاقات» (CASE_GRANT_MANAGE) للقراءة",
+  "من يملك «إدارة الأدوار» (ROLE_MANAGE) للإنشاء والتعديل"
+ ],
+ "who_perms": [
+  "ROLE_VIEW",
+  "ROLE_MANAGE",
+  "USER_MANAGE",
+  "CASE_GRANT_MANAGE"
+ ],
+ "access_ar": "الإدارة > الأدوار؛ ثم «دور جديد» أو الضغط على اسم دور.",
+ "route": "/admin/roles ، /admin/roles/new ، /admin/roles/:id",
+ "prerequisites_ar": [
+  "جلسة دخول صالحة وصلاحية ROLE_VIEW على الأقل (تظهر تبويبة الأدوار لمن يملكها)."
+ ],
+ "fields": {
+  "required": [
+   {
+    "name_ar": "رمز الدور (عند الإنشاء فقط)",
+    "code": "code",
+    "rule_ar": "حروف لاتينية كبيرة وأرقام وشرطة سفلية، يبدأ بحرف، من 2 إلى 64 حرفًا؛ فريد؛ لا يتغير بعد الإنشاء.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/users/RoleRequests.java",
+      "lines": "16-19"
+     },
+     {
+      "path": "backend/src/main/resources/db/migration/V100__LD-007_app_user.sql",
+      "lines": "30-39"
+     }
+    ]
+   },
+   {
+    "name_ar": "اسم الدور",
+    "code": "name",
+    "rule_ar": "مطلوب؛ حتى 128 حرفًا.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/users/RoleRequests.java",
+      "lines": "16-25"
+     }
+    ]
+   },
+   {
+    "name_ar": "الصلاحيات",
+    "code": "permissions",
+    "rule_ar": "قائمة رموز من كتالوج الصلاحيات المعروف فقط؛ رمز غير معروف يُرفض بالرمز UnknownPermission؛ قد تكون القائمة فارغة.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/users/RoleRequests.java",
+      "lines": "18-19"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/users/RoleAdministration.java",
+      "lines": "97-103"
+     }
+    ]
+   }
+  ],
+  "optional": [
+   {
+    "name_ar": "رقم النسخة (عند التعديل)",
+    "code": "version",
+    "rule_ar": "إذا لم يطابق الحالي: 409.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/users/RoleRequests.java",
+      "lines": "22-26"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/users/RoleAdministration.java",
+      "lines": "82-87"
+     }
+    ]
+   }
+  ]
+ },
+ "steps": [
+  {
+   "n": 1,
+   "actor_ar": "قارئ الأدوار",
+   "action_ar": "يفتح «الإدارة > الأدوار».",
+   "response_ar": "يرى جدولًا بالاسم (بالعربية للأدوار المدمجة الثلاثة)، ونوع الدور «مدمج» أو «مخصص»، وصلاحياته بأسمائها العربية.",
+   "rules_ar": [
+    "الأدوار الأخرى المزروعة (SECTION_HEAD, DATA_ENTRY, ARCHIVIST, READ_ONLY) تظهر باسمها الإنجليزي المخزَّن لأن الواجهة لا تحمل ترجمة لها (ROLE_LABELS تحوي ثلاثة أدوار فقط)."
+   ],
+   "data_ar": "قائمة RoleView: id, code, name, system, permissions, version.",
+   "next_ar": "اختيار دور.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/admin/RolesPage.tsx",
+     "lines": "14-72"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleController.java",
+     "lines": "30-45"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleAdministration.java",
+     "lines": "52-54"
+    },
+    {
+     "path": "frontend/src/i18n/messages/admin.ar.ts",
+     "lines": "37-39",
+     "note": "role names"
+    },
+    {
+     "path": "frontend/src/i18n/messages/admin.ar.ts",
+     "lines": "56-57",
+     "note": "built-in/custom"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "بلا صلاحية (403)",
+     "detail_ar": "تعرض الواجهة «غير مسموح بالوصول».",
+     "evidence": [
+      {
+       "path": "frontend/src/features/admin/RolesPage.tsx",
+       "lines": "28-37"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/users/RoleController.java",
+       "lines": "30-31"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "actor_ar": "قارئ الأدوار",
+   "action_ar": "يفتح دورًا.",
+   "response_ar": "يرى اسمه ونوعه ورمزه وكل الصلاحيات في كتالوج بخانات اختيار معلَّم منها ما يملكه الدور؛ وتكون الخانات معطّلة لمن لا يملك ROLE_MANAGE.",
+   "rules_ar": [
+    "كتالوج الصلاحيات في الواجهة يطابق التعداد Permission في الخادم (اختبار عقد يضمن ذلك بحسب تعليق الشيفرة)."
+   ],
+   "data_ar": "تسميات الصلاحيات العربية من رسائل admin.permission.*.",
+   "next_ar": "تعديل أو رجوع.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/admin/RoleDetailsPage.tsx",
+     "lines": "126-171"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleController.java",
+     "lines": "47-51"
+    },
+    {
+     "path": "frontend/src/api/permissions.ts",
+     "lines": "5-71",
+     "note": "permission catalogue on the frontend"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "دور غير موجود (404)",
+     "detail_ar": "تعرض الواجهة: «هذا الدور غير موجود.»",
+     "evidence": [
+      {
+       "path": "frontend/src/features/admin/RoleDetailsPage.tsx",
+       "lines": "63-69"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/users/RoleAdministration.java",
+       "lines": "56-58"
+      },
+      {
+       "path": "frontend/src/i18n/messages/admin.ar.ts",
+       "lines": "59"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "actor_ar": "مدير الأدوار",
+   "action_ar": "يضغط «دور جديد» فيكتب الرمز والاسم ويختار الصلاحيات ثم «إنشاء الدور».",
+   "response_ar": "يرسل POST /api/v1/roles؛ يُنشأ الدور (غير «نظامي») وتُسند صلاحياته، ويُسجَّل ROLE_CREATE، وتنتقل الواجهة إلى صفحته.",
+   "rules_ar": [
+    "الرمز لا يتكرر."
+   ],
+   "data_ar": "code, name, permissions.",
+   "next_ar": "يمكن إسناد الدور للمستخدمين.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/admin/RoleDetailsPage.tsx",
+     "lines": "93-102"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleController.java",
+     "lines": "53-58"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleAdministration.java",
+     "lines": "60-73"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "رمز مكرر (409)",
+     "detail_ar": "تعرض الواجهة: «رمز الدور مستخدم بالفعل، أو تغيّر الدور في أثناء ذلك. أعد التحميل وحاول مرة أخرى.»",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/users/RoleAdministration.java",
+       "lines": "67-69"
+      },
+      {
+       "path": "frontend/src/features/admin/RoleDetailsPage.tsx",
+       "lines": "23"
+      },
+      {
+       "path": "frontend/src/i18n/messages/admin.ar.ts",
+       "lines": "64"
+      }
+     ]
+    },
+    {
+     "kind": "validation",
+     "title_ar": "رمز أو اسم أو صلاحية غير صالحة (400)",
+     "detail_ar": "رمز بصيغة خاطئة أو اسم فارغ أو UnknownPermission.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/users/RoleRequests.java",
+       "lines": "16-19"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/users/RoleAdministration.java",
+       "lines": "97-103"
+      },
+      {
+       "path": "frontend/src/features/admin/RoleDetailsPage.tsx",
+       "lines": "15-28"
+      }
+     ]
+    },
+    {
+     "kind": "denied",
+     "title_ar": "بلا ROLE_MANAGE (403)",
+     "detail_ar": "تعرض الواجهة «ليست لديك صلاحية لهذا التغيير.»",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/users/RoleController.java",
+       "lines": "53-55"
+      },
+      {
+       "path": "frontend/src/i18n/messages/admin.ar.ts",
+       "lines": "45"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "actor_ar": "مدير الأدوار",
+   "action_ar": "يعدّل اسم دور موجود أو يعلّم/يلغي صلاحيات ثم «حفظ الدور».",
+   "response_ar": "يرسل PUT /api/v1/roles/{id} مع النسخة. يُحدَّث الاسم ويُسجَّل ROLE_UPDATE؛ وإن تغيّرت الصلاحيات تُستبدل ويُسجَّل ROLE_PERMISSIONS_CHANGE. يسري الأثر على حاملي الدور في طلبهم التالي.",
+   "rules_ar": [
+    "دور ADMIN يحتفظ بكل الصلاحيات دائمًا؛ أي محاولة لإنقاصها تُرفض.",
+    "لا يوجد حذف للأدوار."
+   ],
+   "data_ar": "name, permissions, version.",
+   "next_ar": "تظهر «تم حفظ الدور.»",
+   "evidence": [
+    {
+     "path": "frontend/src/features/admin/RoleDetailsPage.tsx",
+     "lines": "103-105"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleController.java",
+     "lines": "60-64"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleAdministration.java",
+     "lines": "75-95"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/ReloadingSecurityContextRepository.java",
+     "lines": "19-25"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "إنقاص صلاحيات ADMIN (422 ADMIN_ROLE_FIXED)",
+     "detail_ar": "تعرض الواجهة: «يحتفظ دور مسؤول النظام دائمًا بكل الصلاحيات.»",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/users/RoleAdministration.java",
+       "lines": "79-81"
+      },
+      {
+       "path": "frontend/src/features/admin/RoleDetailsPage.tsx",
+       "lines": "24-26"
+      },
+      {
+       "path": "frontend/src/i18n/messages/admin.ar.ts",
+       "lines": "65"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "النسخة قديمة (409)",
+     "detail_ar": "غيّر مستخدم آخر الدور؛ يُعاد التحميل.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/users/RoleAdministration.java",
+       "lines": "85-87"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "rules": [
+  {
+   "text_ar": "الصلاحيات المخزنة هي رموز من التعداد Permission فقط؛ رمز لا يعرفه النظام لا يُمنح حتى لو وُجد في قاعدة البيانات.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/Permission.java",
+     "lines": "8-71"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/LawdeskUser.java",
+     "lines": "36-52"
+    }
+   ]
+  },
+  {
+   "text_ar": "دور ADMIN يحمل كل صلاحيات النظام تلقائيًا بما فيها ما يضاف لاحقًا، لكنه لا يمنح عرض محتوى القضايا بذاته (انظر «من يطلع على أي قضايا»).",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/LawdeskUser.java",
+     "lines": "36-41"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+     "lines": "22-26"
+    }
+   ]
+  },
+  {
+   "text_ar": "الأدوار لا تُحذف؛ تُنشأ وتُعدَّل فقط.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleAdministration.java",
+     "lines": "26-30"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleController.java",
+     "lines": "41-64",
+     "note": "no DELETE"
+    }
+   ]
+  },
+  {
+   "text_ar": "الأدوار المزروعة أصلًا: ADMIN وLEGAL_MANAGER وLEGAL_STAFF، ثم SECTION_HEAD وDATA_ENTRY وARCHIVIST وREAD_ONLY بصلاحيات افتراضية يمكن تعديلها.",
+   "evidence": [
+    {
+     "path": "backend/src/main/resources/db/migration/V100__LD-007_app_user.sql",
+     "lines": "54-57"
+    },
+    {
+     "path": "backend/src/main/resources/db/migration/V600__LD-050_access_foundation.sql",
+     "lines": "82-114"
+    }
+   ]
+  },
+  {
+   "text_ar": "الصلاحية تقول ما يفعله المستخدم عامة؛ أما على أي قضية فيحدده نطاق الاطلاع والعضوية والمنح.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+     "lines": "18-20"
+    }
+   ]
+  },
+  {
+   "text_ar": "كل تغيير مسجَّل: ROLE_CREATE وROLE_UPDATE وROLE_PERMISSIONS_CHANGE.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleAdministration.java",
+     "lines": "71"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleAdministration.java",
+     "lines": "88"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleAdministration.java",
+     "lines": "92"
+    }
+   ]
+  }
+ ],
+ "after_submit_ar": "يظهر الدور وصلاحياته في القائمة، وتسري التغييرات على حاملي الدور عند طلبهم التالي دون إعادة دخول. لا إشعارات ولا موافقات.",
+ "notifications_ar": [],
+ "approvals_ar": [],
+ "errors": [
+  {
+   "code": "HTTP 400 UnknownPermission",
+   "meaning_ar": "رمز صلاحية غير موجود في الكتالوج.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleAdministration.java",
+     "lines": "97-103"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 400 (Pattern/NotBlank/Size)",
+   "meaning_ar": "رمز دور أو اسم غير صالح.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleRequests.java",
+     "lines": "16-25"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+     "lines": "34-42"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 403",
+   "meaning_ar": "لا يملك ROLE_MANAGE للتعديل، أو لا يملك أيًّا من صلاحيات القراءة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleController.java",
+     "lines": "30-31"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleController.java",
+     "lines": "53-55"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 404",
+   "meaning_ar": "الدور غير موجود.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleAdministration.java",
+     "lines": "56-58"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 409",
+   "meaning_ar": "رمز مكرر أو نسخة قديمة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleAdministration.java",
+     "lines": "67-69"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleAdministration.java",
+     "lines": "85-87"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 422 rule=ADMIN_ROLE_FIXED",
+   "meaning_ar": "لا يجوز إنقاص صلاحيات دور ADMIN.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleAdministration.java",
+     "lines": "79-81"
+    }
+   ]
+  }
+ ],
+ "result_ar": "دور جديد أو معدَّل مع رسالة «تم حفظ الدور.»، وتغيّر فوري في ما يظهر للمستخدمين الحاملين له.",
+ "related": [
+  "users-admin",
+  "case-access-confidentiality",
+  "profile-me",
+  "audit"
+ ],
+ "endpoints": [
+  {
+   "method": "GET",
+   "path": "/api/v1/roles",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/users/RoleController.java",
+    "lines": "41-45"
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/roles/{id}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/users/RoleController.java",
+    "lines": "47-51"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/roles",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/users/RoleController.java",
+    "lines": "53-58"
+   }
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/roles/{id}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/users/RoleController.java",
+    "lines": "60-64"
+   }
+  }
+ ],
+ "tech": {
+  "chain": [
+   {
+    "layer": "screen",
+    "label": "RolesPage / RoleDetailsPage",
+    "ref": {
+     "path": "frontend/src/features/admin/RoleDetailsPage.tsx",
+     "lines": "33-174"
+    },
+    "data_ar": "الاسم والصلاحيات المختارة."
+   },
+   {
+    "layer": "api_call",
+    "label": "createRole / updateRole / listRoles",
+    "ref": {
+     "path": "frontend/src/features/admin/api.ts",
+     "lines": "72-78"
+    },
+    "data_ar": "طلبات REST إلى /api/v1/roles."
+   },
+   {
+    "layer": "controller",
+    "label": "RoleController",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleController.java",
+     "lines": "26-65"
+    },
+    "data_ar": "يمرر الطلب لخدمة الأدوار."
+   },
+   {
+    "layer": "authorization",
+    "label": "@PreAuthorize ROLE_MANAGE",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleController.java",
+     "lines": "53-55"
+    },
+    "data_ar": "للقراءة: ROLE_VIEW أو USER_MANAGE أو CASE_GRANT_MANAGE."
+   },
+   {
+    "layer": "service",
+    "label": "RoleAdministration",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleAdministration.java",
+     "lines": "31-95"
+    },
+    "data_ar": "يتحقق من الكتالوج وقاعدة ADMIN والنسخة."
+   },
+   {
+    "layer": "tables",
+    "label": "app_role, role_permission",
+    "ref": {
+     "path": "backend/src/main/resources/db/migration/V100__LD-007_app_user.sql",
+     "lines": "30-45"
+    },
+    "data_ar": "الأدوار وصلاحياتها."
+   },
+   {
+    "layer": "event",
+    "label": "ROLE_CREATE / ROLE_UPDATE / ROLE_PERMISSIONS_CHANGE",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleAdministration.java",
+     "lines": "115-117"
+    },
+    "data_ar": "أحداث تدقيق."
+   },
+   {
+    "layer": "result",
+    "label": "RoleView",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/users/RoleView.java",
+     "lines": "7-8"
+    },
+    "data_ar": "الدور المحدَّث."
+   }
+  ]
+ },
+ "status": "IMPLEMENTED_ON_DEVELOP",
+ "status_note_ar": "الشيفرة مدمجة في develop.",
+ "status_evidence": [
+  {
+   "path": "backend/src/main/java/com/lawdesk/users/RoleController.java",
+   "lines": "26-28"
+  },
+  {
+   "path": "backend/src/main/java/com/lawdesk/users/RoleAdministration.java",
+   "lines": "31-32"
+  }
+ ],
+ "verification_ar": "اختبارات: backend/src/test/java/com/lawdesk/users/RoleAdministrationTest.java وRoleListTest.java وRolePermissionsTakeEffectTest.java وDefaultRolePermissionsTest.java؛ وفي الواجهة frontend/src/features/admin/RolesAudit.test.tsx. لم يُجرِ هذا المستند أي تحقق على بيئة القبول (UAT)؛ المحتوى مبني على قراءة الشيفرة المدمجة في develop والاختبارات الموجودة فقط. لم أعدّد هنا كل صلاحية وما تفتحه من شاشات (هي موثقة في صفحات الميزات المعنية)؛ تسميات الصلاحيات العربية في frontend/src/i18n/messages/admin.ar.ts."
+}

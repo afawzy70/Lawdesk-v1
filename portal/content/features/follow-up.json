@@ -1,0 +1,452 @@
+{
+  "id": "follow-up",
+  "category": "work",
+  "name_ar": "المتابعة الدورية والتذكيرات الآلية",
+  "summary_ar": "عملية آلية تعمل كل ساعة داخل النظام بلا شاشة: تعلّم طلبات الإفادة المتأخرة وتعلّم المهام المتأخرة، وتنشئ الإشعارات الخاصة بالمواعيد القادمة وتعارض المواعيد والجلسات بلا نتيجة والقضايا والأحكام الجديدة والمستندات الناقصة. لا تغلق شيئًا ولا ترسل شيئًا خارج النظام.",
+  "purpose_ar": "أن يتذكر النظام عن الموظف: فلا يعتمد تنبيه المتأخر على أن يفتح أحد الشاشة، وتصل التنبيهات في وقتها إلى الأشخاص المعنيين في مركز الإشعارات.",
+  "who_ar": [
+    "النظام نفسه (تشغيل مجدول كل ساعة)",
+    "من يحمل صلاحية «تصعيد طلبات الإفادة» (INFO_REQUEST_ESCALATE) إن أراد تشغيلها فورًا عبر الواجهة البرمجية"
+  ],
+  "who_perms": [
+    "INFO_REQUEST_ESCALATE"
+  ],
+  "access_ar": "لا توجد شاشة لها. تعمل تلقائيًا كل ساعة (أول تشغيل بعد خمس دقائق من بدء الخادم)، ونتائجها تظهر في «الإشعارات» وفي حالات المهام وطلبات الإفادة.",
+  "prerequisites_ar": [
+    "الجدولة مفعّلة افتراضيًا ويمكن إيقافها بإعداد الخادم lawdesk.followup.schedule-enabled=false (تستعمله الاختبارات).",
+    "للتشغيل الفوري: صلاحية INFO_REQUEST_ESCALATE."
+  ],
+  "fields": {
+    "required": [],
+    "optional": [
+      {
+        "name_ar": "مدة التنبيه المسبق بالأيام (إعداد خادم)",
+        "code": "lawdesk.notifications.upcoming-days",
+        "rule_ar": "القيمة الافتراضية 3 أيام: تُعلَن المواعيد القادمة خلالها. افتراض قابل للتعديل لا يظهر في أي شاشة.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/followup/DateReminders.java",
+            "lines": "50",
+            "note": "default 3"
+          }
+        ]
+      },
+      {
+        "name_ar": "مدة اعتبار القضية أو الحكم «جديدًا» بالأيام (إعداد خادم)",
+        "code": "lawdesk.notifications.recent-days",
+        "rule_ar": "القيمة الافتراضية 7 أيام.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/followup/DateReminders.java",
+            "lines": "51",
+            "note": "default 7"
+          }
+        ]
+      },
+      {
+        "name_ar": "تفعيل الجدولة (إعداد خادم)",
+        "code": "lawdesk.followup.schedule-enabled",
+        "rule_ar": "مفعّلة إن لم يُذكر الإعداد؛ وبقيمة false لا تعمل الجدولة.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/followup/FollowUpSchedule.java",
+            "lines": "13",
+            "note": "schedule switch"
+          }
+        ]
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "actor_ar": "النظام (أو حامل صلاحية التصعيد)",
+      "action_ar": "يبدأ التشغيل بعد خمس دقائق من إقلاع الخادم ثم يتكرر بعد انتهاء كل تشغيل بساعة. ويمكن لحامل INFO_REQUEST_ESCALATE طلب تشغيل فوري.",
+      "response_ar": "يُنفَّذ التشغيل كله في معاملة واحدة ويعيد عدد طلبات الإفادة التي عُلّمت متأخرة، وعدد الإشعارات الجديدة، وعدد المهام التي عُلّمت متأخرة. ويكتب الخادم سطرًا في سجله بهذه الأعداد.",
+      "rules_ar": [
+        "إن فشل التشغيل يُسجَّل الخطأ في سجل الخادم ويبقى الجدول قائمًا للتشغيل التالي.",
+        "التشغيل آمن للتكرار: لا تتكرر العلامات ولا الإشعارات.",
+        "اليوم المعتمد هو يوم الكويت."
+      ],
+      "data_ar": "الرد على POST /api/v1/follow-up/run: {overdueRequests, notifications, lateTasks}.",
+      "next_ar": "الخطوات 2 إلى 5.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/followup/FollowUpSchedule.java",
+          "lines": "24-31",
+          "note": "hourly schedule"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/followup/FollowUpController.java",
+          "lines": "21-25",
+          "note": "manual run"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/followup/FollowUpRun.java",
+          "lines": "27",
+          "note": "result record"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/followup/FollowUpRun.java",
+          "lines": "48-49",
+          "note": "one transaction"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "تشغيل فوري بلا صلاحية",
+          "detail_ar": "يرد 403.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/followup/FollowUpController.java",
+              "lines": "22",
+              "note": "403"
+            }
+          ]
+        },
+        {
+          "kind": "error",
+          "title_ar": "فشل التشغيل",
+          "detail_ar": "يُسجَّل الخطأ ولا يتوقف الجدول؛ وفي التشغيل الفوري يرد الخادم 500 بالشكل العام للأخطاء.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/followup/FollowUpSchedule.java",
+              "lines": "30-32",
+              "note": "logged"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+              "lines": "105-115",
+              "note": "500"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "actor_ar": "النظام",
+      "action_ar": "يبحث عن طلبات الإفادة التي مضى موعد ردها (due_on قبل اليوم) وهي في حالات: مرسل، بانتظار الرد، ورد جزئي، ورد غير مكتمل، متأخر.",
+      "response_ar": "الطلب «مرسل» أو «بانتظار الرد» يتحول إلى «متأخر» (وتُحفظ حالته السابقة)، ثم يُنشأ إشعار «تأخر الرد على الطلب» للمسؤول عن الطلب وللعضو الأصلي في القضية.",
+      "rules_ar": [
+        "لا يغلق النظام الطلب المتأخر أبدًا.",
+        "الحالات «ورد جزئي» و«ورد غير مكتمل» لا تتغير حالتها لكن يُنبَّه لها.",
+        "إن أُعيد تأجيل موعد الرد ورجع الطلب إلى حالته السابقة من شاشة الطلب (راجع صفحة طلبات الإفادة)."
+      ],
+      "data_ar": "يحدّث جدول info_request ويضيف إلى notification (INFO_REQUEST_OVERDUE).",
+      "next_ar": "الخطوة 3.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/followup/FollowUpRun.java",
+          "lines": "53-77",
+          "note": "overdue requests"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/followup/FollowUpRun.java",
+          "lines": "66-72",
+          "note": "mark OVERDUE"
+        }
+      ],
+      "alt": []
+    },
+    {
+      "n": 3,
+      "actor_ar": "النظام",
+      "action_ar": "يبحث عن الجلسات المعلَّمة بأنها تحتاج متابعة (follow_up_flag) أي جلسة أُجّلت بلا موعد تالٍ.",
+      "response_ar": "يُنشأ إشعار «تأجلت جلسة … دون موعد تالٍ» للمسؤول عن الجلسة والعضو الأصلي في القضية.",
+      "rules_ar": [
+        "إن لم يُسمَّ أحد على الجلسة أو القضية فلا يُنشأ هذا الإشعار من التشغيل الدوري (لأن البديل الاحتياطي خاص بمن سجّل الجلسة)."
+      ],
+      "data_ar": "جدول hearing للقراءة، وnotification للكتابة (HEARING_NO_NEXT_DATE).",
+      "next_ar": "الخطوة 4.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/followup/FollowUpRun.java",
+          "lines": "81-85",
+          "note": "flagged hearings"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationPublisher.java",
+          "lines": "72-102",
+          "note": "recipients"
+        }
+      ],
+      "alt": []
+    },
+    {
+      "n": 4,
+      "actor_ar": "النظام",
+      "action_ar": "يعلّم المهام المفتوحة التي مضى موعدها «متأخرة»، وينبّه إلى المهام التي يحين موعدها خلال ثلاثة أيام.",
+      "response_ar": "تتحول المهام (جديدة، قيد التنفيذ، بانتظار مستندات، بانتظار جهة أخرى) إلى «متأخرة» مع حفظ حالتها السابقة وسطر «النظام» في سجل المهمة. يصل إشعار «المهمة متأخرة» للمسؤول ولمن أنشأ المهمة، وإشعار «المهمة موعدها …» للمسؤول وحده.",
+      "rules_ar": [
+        "إشعار واحد لكل مهمة وتاريخ استحقاق وشخص؛ فإن تغيّر الاستحقاق نشأ إشعار جديد.",
+        "تعديل المهمة المتأخرة إلى موعد اليوم أو بعده يعيدها إلى حالتها السابقة (من شاشة المهام)."
+      ],
+      "data_ar": "تحديث جدول task وإضافة سطر في task_history وإشعارات TASK_OVERDUE وTASK_DUE_SOON.",
+      "next_ar": "الخطوة 5.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskFollowUp.java",
+          "lines": "45-66",
+          "note": "task run"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/tasks/Rules.java",
+          "lines": "20",
+          "note": "3 days"
+        }
+      ],
+      "alt": []
+    },
+    {
+      "n": 5,
+      "actor_ar": "النظام",
+      "action_ar": "يقرأ التقويم بصفة النظام ويفحص القضايا والأحكام والطلبات والأدلة لينشئ باقي الإشعارات: مواعيد قادمة خلال 3 أيام (جلسة أو تحقيق، جلسة خبراء، موعد طعن)، وتعارض مواعيد عضو خلال 30 يومًا، وجلسة مضى يومها بلا نتيجة، وقضية جديدة (آخر 7 أيام)، وحكم جديد (آخر 7 أيام)، ورد ناقص على طلب إفادة، ودليل مطلوب غير متوفر.",
+      "response_ar": "تُنشأ الإشعارات للأشخاص الذين يسميهم كل موعد أو سجل، مرة واحدة لكل سجل وتاريخ وشخص، دون من أوقف هذا النوع في تفضيلاته.",
+      "rules_ar": [
+        "لا يُعلَن موعد منتهٍ أو ملغى أو معلَّق النتيجة (ملغى، منجز، عُقدت، أُجّلت، قُدّم التقرير، مكتمل).",
+        "من سجّل القضية أو الحكم لا يُنبَّه بهما.",
+        "تعارض المواعيد يخص الموعد الذي له وقت بدء فقط.",
+        "الدليل المطلوب غير المتوفر يُنبَّه له في القضايا المفتوحة أو النشطة أو الموقوفة فقط.",
+        "الفترات 3 و7 و30 يومًا افتراضات قابلة للتعديل وليست من نص المتطلبات."
+      ],
+      "data_ar": "قراءة التقويم وجداول hearing وlegal_case وjudgment وinfo_request وevidence_item، وكتابة notification.",
+      "next_ar": "يظهر كل ذلك في صفحة «الإشعارات».",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/followup/DateReminders.java",
+          "lines": "60-64",
+          "note": "all date reminders"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/followup/DateReminders.java",
+          "lines": "68-99",
+          "note": "upcoming"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/followup/DateReminders.java",
+          "lines": "103-120",
+          "note": "conflicts"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/followup/DateReminders.java",
+          "lines": "133-156",
+          "note": "hearing without result"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/followup/DateReminders.java",
+          "lines": "160-180",
+          "note": "new cases"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/followup/DateReminders.java",
+          "lines": "184-207",
+          "note": "new judgments"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/followup/DateReminders.java",
+          "lines": "217-239",
+          "note": "evidence gaps"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/followup/DateReminders.java",
+          "lines": "242-266",
+          "note": "missing documents"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/followup/DateReminders.java",
+          "lines": "41",
+          "note": "done statuses"
+        }
+      ],
+      "alt": []
+    }
+  ],
+  "rules": [
+    {
+      "text_ar": "لا يغلق التشغيل الدوري شيئًا ولا يرسل شيئًا خارج النظام؛ الإشعارات داخلية فقط.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/followup/FollowUpRun.java",
+          "lines": "20",
+          "note": "contract"
+        }
+      ]
+    },
+    {
+      "text_ar": "التشغيل آمن للتكرار: يوجد إشعار واحد لكل نوع وسجل ومستخدم.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/notifications/NotificationPublisher.java",
+          "lines": "61",
+          "note": "idempotent"
+        }
+      ]
+    },
+    {
+      "text_ar": "تعتمد كل التواريخ يوم الكويت.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/followup/FollowUpRun.java",
+          "lines": "30",
+          "note": "Kuwait day"
+        }
+      ]
+    },
+    {
+      "text_ar": "الأيام 3 و7 و30 افتراضات في الشيفرة (غير منصوص عليها في المتطلبات) وبعضها قابل للتعديل بإعدادات الخادم.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/followup/DateReminders.java",
+          "lines": "31-33",
+          "note": "assumptions"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/followup/DateReminders.java",
+          "lines": "38",
+          "note": "30"
+        }
+      ]
+    }
+  ],
+  "after_submit_ar": "لا يقدّم أحد بيانات؛ ينتهي كل تشغيل بتغيير حالة ما تأخر وبإضافة الإشعارات الجديدة إلى مراكز إشعارات أصحابها.",
+  "notifications_ar": [
+    "ينشئ التشغيل إشعارات: تأخر الرد على طلب إفادة، جلسة أُجّلت بلا موعد، مهمة متأخرة، مهمة يقترب موعدها، جلسة أو جلسة خبراء أو موعد طعن قادم، تعارض مواعيد، جلسة بلا نتيجة، قضية جديدة، حكم جديد، مستند أو دليل ناقص.",
+    "كلها داخل النظام فقط ويستطيع كل مستخدم إيقاف أي نوع لنفسه."
+  ],
+  "approvals_ar": [],
+  "errors": [
+    {
+      "code": "HTTP 403",
+      "meaning_ar": "التشغيل الفوري لمن لا يحمل INFO_REQUEST_ESCALATE.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/followup/FollowUpController.java",
+          "lines": "22",
+          "note": "403"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 500",
+      "meaning_ar": "خطأ غير متوقع أثناء التشغيل الفوري؛ ولا يُكشف داخل الرد إلا الشكل العام للخطأ. ويتراجع التشغيل كله لأنه معاملة واحدة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+          "lines": "105-115",
+          "note": "500"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/followup/FollowUpRun.java",
+          "lines": "48-49",
+          "note": "single transaction"
+        }
+      ]
+    }
+  ],
+  "result_ar": "مهام وطلبات إفادة معلَّمة متأخرة، وإشعارات جديدة في مراكز إشعارات المعنيين، وسطر في سجل الخادم بأعداد ما تم.",
+  "related": [
+    "notifications",
+    "tasks",
+    "info-requests",
+    "calendar",
+    "hearings",
+    "risk"
+  ],
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/api/v1/follow-up/run",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/followup/FollowUpController.java",
+        "lines": "21",
+        "note": "manual run"
+      }
+    }
+  ],
+  "tech": {
+    "chain": [
+      {
+        "layer": "event",
+        "label": "FollowUpSchedule.tick (كل ساعة)",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/followup/FollowUpSchedule.java",
+          "lines": "24-26",
+          "note": "schedule"
+        },
+        "data_ar": "يستدعي run() كل ساعة بلا معاملات."
+      },
+      {
+        "layer": "controller",
+        "label": "FollowUpController (تشغيل يدوي)",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/followup/FollowUpController.java",
+          "lines": "21-25",
+          "note": "manual"
+        },
+        "data_ar": "طلب POST بلا جسم."
+      },
+      {
+        "layer": "authorization",
+        "label": "@PreAuthorize INFO_REQUEST_ESCALATE",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/followup/FollowUpController.java",
+          "lines": "22",
+          "note": "permission"
+        },
+        "data_ar": "يُفحص حق التشغيل اليدوي فقط."
+      },
+      {
+        "layer": "service",
+        "label": "FollowUpRun.run",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/followup/FollowUpRun.java",
+          "lines": "49-52",
+          "note": "service"
+        },
+        "data_ar": "يمرّ على طلبات الإفادة ثم الجلسات ثم TaskFollowUp ثم DateReminders."
+      },
+      {
+        "layer": "repository",
+        "label": "JdbcClient (SQL مباشر) و TaskFollowUp و DateReminders",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/tasks/TaskFollowUp.java",
+          "lines": "45-48",
+          "note": "tasks"
+        },
+        "data_ar": "قراءة السجلات المتأخرة وتحديث الحالات."
+      },
+      {
+        "layer": "tables",
+        "label": "info_request, task, task_history, notification",
+        "ref": {
+          "path": "backend/src/main/resources/db/migration/V664__LD-053_notification.sql",
+          "lines": "4-18",
+          "note": "notification table"
+        },
+        "data_ar": "الحالات الجديدة والإشعارات المخزنة."
+      },
+      {
+        "layer": "result",
+        "label": "FollowUpRun.Result",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/followup/FollowUpRun.java",
+          "lines": "27",
+          "note": "result"
+        },
+        "data_ar": "أعداد: طلبات متأخرة، إشعارات، مهام متأخرة."
+      }
+    ]
+  },
+  "status": "IMPLEMENTED_ON_DEVELOP",
+  "status_note_ar": "الشيفرة على develop؛ لم يُتحقق من التشغيل الفعلي المجدول في بيئة قبول (UAT) ضمن هذه الوثيقة.",
+  "status_evidence": [
+    {
+      "path": "backend/src/main/java/com/lawdesk/followup/FollowUpSchedule.java",
+      "lines": "14",
+      "note": "schedule on develop"
+    }
+  ],
+  "verification_ar": "اختبارات وُجدت: backend/src/test/java/com/lawdesk/followup/DateRemindersTest.java وbackend/src/test/java/com/lawdesk/wp6/FollowUpDatesTest.java وbackend/src/test/java/com/lawdesk/followup/InfoRequestApiTest.java (اختبار التشغيل الدوري) وbackend/src/test/java/com/lawdesk/tasks/TaskReminderApiTest.java. لم أشغّلها. لا توجد شاشة تعرض نتيجة التشغيل؛ والإعدادات (الأيام 3 و7 و30) افتراضات ولم أتحقق من القيم المضبوطة في بيئة التشغيل الفعلية."
+}

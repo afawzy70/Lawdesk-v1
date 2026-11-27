@@ -1,0 +1,46 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/access/AccessAdministration.java": {
+      "name": "إدارة من يرى ماذا",
+      "description": "ينفّذ إدارة الاطلاع: منح صلاحية على قضية بعينها وسحبها، وتحديد نطاق الاطلاع للأدوار والمستخدمين، وضبط سرية القضية."
+    },
+    "backend/src/main/java/com/lawdesk/access/AccessController.java": {
+      "name": "طلبات صلاحيات الاطلاع",
+      "description": "يستقبل طلبات منح الاطلاع على القضية وسحبه وتعديل سريتها وإدارة نطاقات الاطلاع، ولمن يملك صلاحية إدارة المنح فقط."
+    },
+    "backend/src/main/java/com/lawdesk/access/AccessRequests.java": {
+      "name": "بيانات صلاحيات الاطلاع",
+      "description": "يحدد شكل بيانات المنح والنطاقات وضبط السرية التي تتبادلها هذه الطلبات."
+    }
+  },
+  "routes": {
+    "GET /api/v1/cases/{caseId}/grants": {
+      "name": "منح الاطلاع على القضية",
+      "description": "يعرض من مُنح اطلاعًا خاصًا على القضية، لمن يملك صلاحية إدارة المنح."
+    },
+    "POST /api/v1/cases/{caseId}/grants": {
+      "name": "منح اطلاع على قضية",
+      "description": "يمنح مستخدمًا اطلاعًا خاصًا على قضية معينة ويردّ بإنشاء المنحة."
+    },
+    "DELETE /api/v1/cases/{caseId}/grants/{grantId}": {
+      "name": "سحب منحة اطلاع",
+      "description": "يسحب منحة اطلاع سبق منحها على القضية."
+    },
+    "PUT /api/v1/cases/{caseId}/confidentiality": {
+      "name": "ضبط سرية القضية",
+      "description": "يغيّر مستوى سرية القضية، لمن يملك صلاحية إدارة المنح."
+    },
+    "GET /api/v1/access-scopes": {
+      "name": "نطاقات الاطلاع",
+      "description": "يعرض نطاقات الاطلاع المحددة للأدوار والمستخدمين، ويمكن تصفيتها بنوع الجهة ومرجعها."
+    },
+    "POST /api/v1/access-scopes": {
+      "name": "إضافة نطاق اطلاع",
+      "description": "يضيف نطاق اطلاع جديدًا لدور أو مستخدم ويردّ بإنشائه."
+    },
+    "DELETE /api/v1/access-scopes/{id}": {
+      "name": "حذف نطاق اطلاع",
+      "description": "يزيل نطاق اطلاع محددًا مسبقًا."
+    }
+  }
+}

@@ -1,0 +1,923 @@
+{
+ "id": "case-access-confidentiality",
+ "category": "access",
+ "name_ar": "من يطلع على أي قضايا: النطاقات والمنح والسرية",
+ "summary_ar": "الصلاحية تحدد ما يفعله المستخدم، أما القضايا التي يراها فتحددها قاعدة واحدة: عضوية القضية، أو منحة صريحة، أو نطاق دوره (كل القضايا غير الحساسة، أو وحدة، أو نوع قضية). القضية «الحساسة» (RESTRICTED) لا تُرى بالنطاق وحده. القضية التي لا يحق للمستخدم رؤيتها تُعامَل كأنها غير موجودة (404)، والتي يراها ولا يستطيع تعديلها تُرفض بـ403.",
+ "purpose_ar": "حماية سرية القضايا وعدم الإفصاح عن وجودها لمن لا يحق له، مع جعل الشاشة والقائمة والعدّ والتقرير والتصدير تتفق جميعًا لأنها تستعمل القاعدة نفسها المكتوبة مرة واحدة في قاعدة البيانات.",
+ "who_ar": [
+  "من يملك «إدارة الاطلاع على القضايا والنطاقات» (CASE_GRANT_MANAGE) لإدارة المنح والنطاقات والسرية",
+  "من يملك «تعديل أي قضية ضمن النطاق» (CASE_EDIT_IN_SCOPE) للتعديل بحكم النطاق",
+  "كل مستخدم يخضع للقاعدة عند أي قراءة"
+ ],
+ "who_perms": [
+  "CASE_GRANT_MANAGE",
+  "CASE_EDIT_IN_SCOPE",
+  "ASSIGN_CASE",
+  "ORG_MANAGE"
+ ],
+ "access_ar": "صفحة القضية > قسم «الاطلاع على هذه القضية» (السرية والمنح الصريحة)؛ الإدارة > نطاقات الاطلاع (نطاقات الأدوار).",
+ "route": "/admin/access ، وقسم «الاطلاع على هذه القضية» داخل صفحة تفاصيل القضية",
+ "prerequisites_ar": [
+  "صلاحية CASE_GRANT_MANAGE لإدارة المنح والنطاقات والسرية؛ وفي القضية الواحدة يلزم أيضًا أن يكون المنفِّذ قادرًا على تعديلها (عضو فيها أو بنطاق تعديل أو بمنحة تعديل).",
+  "نطاقات الوحدات تحتاج هيكلًا تنظيميًا (انظر «الهيكل التنظيمي»)."
+ ],
+ "fields": {
+  "required": [
+   {
+    "name_ar": "المستخدم (في المنحة)",
+    "code": "userId",
+    "rule_ar": "مطلوب؛ مستخدم موجود ومفعَّل وليس المنفِّذ نفسه. القائمة تأتي من دليل المستخدمين المفعَّلين.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/access/AccessRequests.java",
+      "lines": "17-19"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+      "lines": "70-80"
+     },
+     {
+      "path": "frontend/src/features/access/CaseAccessSection.tsx",
+      "lines": "41-45"
+     }
+    ]
+   },
+   {
+    "name_ar": "مستوى المنحة",
+    "code": "level",
+    "rule_ar": "VIEW (اطلاع) أو CONTRIBUTE (اطلاع وتعديل).",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/access/AccessRequests.java",
+      "lines": "17-18"
+     },
+     {
+      "path": "frontend/src/i18n/messages/access.ar.ts",
+      "lines": "60-61"
+     }
+    ]
+   },
+   {
+    "name_ar": "السبب",
+    "code": "reason",
+    "rule_ar": "مطلوب؛ حتى 500 حرف؛ لا يقبل الفارغ. الواجهة تتحقق منه محليًا: «أدخل السبب.»",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/access/AccessRequests.java",
+      "lines": "17-19"
+     },
+     {
+      "path": "frontend/src/features/access/CaseAccessSection.tsx",
+      "lines": "82-85"
+     },
+     {
+      "path": "frontend/src/i18n/messages/access.ar.ts",
+      "lines": "71"
+     }
+    ]
+   },
+   {
+    "name_ar": "مستوى السرية",
+    "code": "level (confidentiality)",
+    "rule_ar": "NORMAL (عادية) أو RESTRICTED (حساسة: للأعضاء ومن مُنح الاطلاع صراحة فقط)، مع سبب مطلوب ورقم نسخة القضية.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/access/AccessRequests.java",
+      "lines": "34-36"
+     },
+     {
+      "path": "frontend/src/features/access/CaseAccessSection.tsx",
+      "lines": "61-77"
+     }
+    ]
+   },
+   {
+    "name_ar": "نوع الدور/المستخدم صاحب النطاق",
+    "code": "subjectType / subjectRef",
+    "rule_ar": "ROLE (رمز دور موجود، وليس ADMIN) أو USER (معرّف مستخدم موجود وليس المنفِّذ). شاشة النطاقات تتعامل مع الأدوار فقط.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/access/AccessRequests.java",
+      "lines": "25-28"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+      "lines": "154-166"
+     },
+     {
+      "path": "frontend/src/features/access/AccessScopesPage.tsx",
+      "lines": "71-76"
+     }
+    ]
+   },
+   {
+    "name_ar": "نوع النطاق",
+    "code": "scopeType",
+    "rule_ar": "ALL (كل القضايا غير الحساسة) أو ORG_UNIT (وحدة والوحدات التابعة) أو OWN_UNIT (وحدة المستخدم نفسه وما تحتها) أو CASE_TYPE (نوع قضية).",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/access/AccessRequests.java",
+      "lines": "25-28"
+     },
+     {
+      "path": "frontend/src/i18n/messages/access.ar.ts",
+      "lines": "37-40"
+     }
+    ]
+   }
+  ],
+  "optional": [
+   {
+    "name_ar": "مرجع النطاق",
+    "code": "scopeRef",
+    "rule_ar": "مطلوب مع ORG_UNIT (معرّف وحدة من الشجرة القانونية) ومع CASE_TYPE (رمز نوع قضية معروف)، ويُمنع مع ALL وOWN_UNIT.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+      "lines": "150-153"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+      "lines": "167-176"
+     }
+    ]
+   },
+   {
+    "name_ar": "تاريخ انتهاء المنحة",
+    "code": "expiresAt",
+    "rule_ar": "اختياري في API ويجب أن يكون في المستقبل؛ شاشة المنح لا ترسله.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/access/AccessRequests.java",
+      "lines": "17-19"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+      "lines": "73-75"
+     },
+     {
+      "path": "frontend/src/features/access/api.ts",
+      "lines": "75-78"
+     }
+    ]
+   }
+  ]
+ },
+ "steps": [
+  {
+   "n": 1,
+   "actor_ar": "أي مستخدم",
+   "action_ar": "يفتح قضية أو قائمة القضايا أو أي سجل تابع لقضية (جلسة، مهمة، مستند...).",
+   "response_ar": "يطبّق الخادم القاعدة نفسها: يرى المستخدم القضية إذا كان عضوًا أساسيًا أو بديلًا فيها، أو منشئها، أو مكلَّفًا بمهمة غير منتهية عليها، أو لديه منحة سارية؛ أو، إن لم تكن القضية حساسة، إذا كان نطاقه يغطيها. وجود صلاحية نظامية (حتى دور ADMIN) لا يضيف قضية وحده.",
+   "rules_ar": [
+    "النطاقات: ALL كل غير الحساس؛ ORG_UNIT الوحدة وفروعها؛ OWN_UNIT وحدة المستخدم وما تحتها؛ CASE_TYPE نوع القضية.",
+    "قضية بلا وحدة مالكة يشملها نطاق وحدة عليا (بلا أب).",
+    "المنحة تنتهي بالسحب أو بانتهاء تاريخها.",
+    "القاعدة تُقرأ من قاعدة البيانات عند كل طلب."
+   ],
+   "data_ar": "معرّف المستخدم ورموز نطاقه (ALL / UNIT:<id> / TYPE:<type>) المحمَّلة من دوره وسجله.",
+   "next_ar": "القضية الظاهرة تُعرض؛ غيرها لا تظهر.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+     "lines": "18-37",
+     "note": "policy contract"
+    },
+    {
+     "path": "backend/src/main/resources/db/migration/V600__LD-050_access_foundation.sql",
+     "lines": "116-120",
+     "note": "rule description"
+    },
+    {
+     "path": "backend/src/main/resources/db/migration/V720__LD-056_task_extension.sql",
+     "lines": "86-109",
+     "note": "case_visible current definition"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+     "lines": "132-136",
+     "note": "viewable"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "قضية لا يحق للمستخدم رؤيتها (404)",
+     "detail_ar": "تُعامَل كأنها غير موجودة؛ لا يُفصح عن وجودها ولا في القوائم والتقارير.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+       "lines": "61-67",
+       "note": "requireView => NotFound"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+       "lines": "147-157",
+       "note": "visibleCaseIds for child tables"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "actor_ar": "مستخدم يريد تعديل قضية",
+   "action_ar": "يحاول تعديل قضية يراها.",
+   "response_ar": "يسمح الخادم بالتعديل فقط للعضو الأساسي أو البديل، أو منشئ القضية ما دام لا عضو أساسي لها، أو صاحب منحة CONTRIBUTE سارية، أو حامل CASE_EDIT_IN_SCOPE إذا كانت القضية غير حساسة وفي نطاقه. الاطلاع أو المهمة أو الإنشاء وحدها لا تتيح التعديل.",
+   "rules_ar": [
+    "من لا يرى القضية: 404؛ من يراها ولا يعدّلها: 403.",
+    "توزيع القضية (تعيين الأعضاء) وتغيير حالتها يتطلبان صلاحيتهما (ASSIGN_CASE / CASE_STATUS_CHANGE) والقدرة على تعديل القضية معًا."
+   ],
+   "data_ar": "عضوية القضية والمنح ونطاق المستخدم.",
+   "next_ar": "يُسمح بالتعديل أو يُرفض.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+     "lines": "27-28",
+     "note": "change rule"
+    },
+    {
+     "path": "backend/src/main/resources/db/migration/V600__LD-050_access_foundation.sql",
+     "lines": "177-197",
+     "note": "case_changeable"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+     "lines": "69-85",
+     "note": "mayChange / requireChange"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "يرى ولا يعدّل (403)",
+     "detail_ar": "AccessDeniedException ثم ردّ 403.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+       "lines": "76-85"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+       "lines": "87-95"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "actor_ar": "مسؤول الاطلاع (CASE_GRANT_MANAGE)",
+   "action_ar": "في صفحة القضية، يختار مستخدمًا ومستوى (اطلاع / اطلاع وتعديل) ويكتب السبب ثم «منح الاطلاع».",
+   "response_ar": "يرسل POST /api/v1/cases/{caseId}/grants؛ تُسجَّل المنحة، ويُدوَّن CASE_GRANT_CREATE في التدقيق، وحدث CASE_ACCESS_GRANTED في سجل القضية، وتظهر «تم منح الاطلاع.» وتُحدَّث قائمة المنح.",
+   "rules_ar": [
+    "يلزم أن يملك المنفِّذ CASE_GRANT_MANAGE وأن يستطيع تعديل القضية.",
+    "لا يمنح المستخدم نفسه.",
+    "المستخدم الممنوح مفعَّل.",
+    "الواجهة تعرض فقط المنح الحالية والمسحوبة لهذه القضية مع الاسم والمستوى والسبب والتاريخ."
+   ],
+   "data_ar": "userId, level, reason, (expiresAt).",
+   "next_ar": "يرى المستخدم الممنوح القضية (حتى لو كانت حساسة).",
+   "evidence": [
+    {
+     "path": "frontend/src/features/access/CaseAccessSection.tsx",
+     "lines": "79-99"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessController.java",
+     "lines": "40-46"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+     "lines": "65-92"
+    },
+    {
+     "path": "frontend/src/features/access/api.ts",
+     "lines": "73-78"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "بلا صلاحية أو لا يرى القضية (403/404)",
+     "detail_ar": "من لا يملك CASE_GRANT_MANAGE ولا يرى القضية: 404؛ يراها: 403؛ يملكها ولا يستطيع تعديلها: 404/403 بحسب الرؤية.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+       "lines": "87-95"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+       "lines": "66-69"
+      }
+     ]
+    },
+    {
+     "kind": "validation",
+     "title_ar": "قيمة غير صالحة (400)",
+     "detail_ar": "سبب فارغ أو أطول من 500 أو مستوى غير VIEW/CONTRIBUTE، أو مستخدم غير موجود (field=userId، code=Exists).",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/access/AccessRequests.java",
+       "lines": "17-19"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+       "lines": "76-77"
+      }
+     ]
+    },
+    {
+     "kind": "validation",
+     "title_ar": "قاعدة عمل (422)",
+     "detail_ar": "ACCESS_SELF_GRANT (منح نفسه)، ACCESS_EXPIRY_PAST (تاريخ انتهاء ماضٍ)، ACCESS_GRANT_USER_DISABLED (مستخدم معطّل). تعرض الواجهة: «المنح مرفوض (لا يمنح المستخدم نفسه الاطلاع).»",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+       "lines": "34-39"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+       "lines": "70-80"
+      },
+      {
+       "path": "frontend/src/features/access/CaseAccessSection.tsx",
+       "lines": "58-59"
+      },
+      {
+       "path": "frontend/src/i18n/messages/access.ar.ts",
+       "lines": "67"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "actor_ar": "مسؤول الاطلاع",
+   "action_ar": "يضغط «سحب» أمام منحة.",
+   "response_ar": "يرسل DELETE /api/v1/cases/{caseId}/grants/{grantId}؛ يُسجَّل وقت السحب ومن سحب (لا تُحذف الصفوف)، ويُدوَّن CASE_GRANT_REVOKE وCASE_ACCESS_REVOKED. تظهر «تم سحب الاطلاع.» ويصير بجانب المنحة «مسحوب».",
+   "rules_ar": [
+    "المنحة المسحوبة سابقًا: 422 ACCESS_NO_ACTIVE_GRANT؛ منحة غير موجودة لهذه القضية: 404."
+   ],
+   "data_ar": "caseId, grantId.",
+   "next_ar": "يفقد المستخدم الاطلاع الذي جاء من المنحة.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/access/CaseAccessSection.tsx",
+     "lines": "101-111"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessController.java",
+     "lines": "48-53"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+     "lines": "94-112"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "منحة مسحوبة أو غير موجودة",
+     "detail_ar": "ACCESS_NO_ACTIVE_GRANT (422) أو 404.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+       "lines": "102-108"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "actor_ar": "مسؤول الاطلاع",
+   "action_ar": "يغيّر «السرية» إلى «حساسة» أو «عادية» ويكتب السبب ثم «حفظ السرية».",
+   "response_ar": "يرسل PUT /api/v1/cases/{caseId}/confidentiality مع السبب ورقم نسخة القضية؛ تُحدَّث السرية، ويُدوَّن CASE_CONFIDENTIALITY_CHANGED في سجل القضية وCASE_CONFIDENTIALITY_CHANGE في التدقيق، وتُحدَّث الصفحة. إن كانت السرية الحالية هي المطلوبة نفسها لا يتغير شيء (204).",
+   "rules_ar": [
+    "القضية الحساسة لا يراها بالنطاق وحده إلا الأعضاء والمنشئ ومن مُنح الاطلاع ومن كُلّف بمهمة عليها.",
+    "قد يفقد مسؤول الاطلاع نفسه رؤية القضية بعد تقييدها إن كان يراها بالنطاق فقط؛ لذلك يُكتب سجل القضية قبل التغيير بصلاحياته وقتها."
+   ],
+   "data_ar": "level, reason, version.",
+   "next_ar": "يتغير من يستطيع رؤية القضية.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/access/CaseAccessSection.tsx",
+     "lines": "61-77"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessController.java",
+     "lines": "55-61"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+     "lines": "225-254"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "تغيّرت القضية (409)",
+     "detail_ar": "رقم النسخة قديم أو تعديل متزامن؛ تعرض الواجهة «تعذر تحميل إعدادات الاطلاع أو حفظها.»",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+       "lines": "232-236"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+       "lines": "249-251"
+      },
+      {
+       "path": "frontend/src/i18n/messages/access.ar.ts",
+       "lines": "68"
+      }
+     ]
+    },
+    {
+     "kind": "validation",
+     "title_ar": "سبب فارغ (محليًا)",
+     "detail_ar": "تعرض الواجهة «أدخل السبب.» دون إرسال.",
+     "evidence": [
+      {
+       "path": "frontend/src/features/access/CaseAccessSection.tsx",
+       "lines": "64-67"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 6,
+   "actor_ar": "مسؤول الاطلاع",
+   "action_ar": "يفتح «الإدارة > نطاقات الاطلاع»، يختار الدور ونوع النطاق (والوحدة أو نوع القضية عند اللزوم) ثم «إضافة نطاق».",
+   "response_ar": "يرسل POST /api/v1/access-scopes؛ يُسجَّل النطاق ACCESS_SCOPE_ADD وتظهر «تمت إضافة النطاق.» ويسري على حاملي الدور عند طلبهم التالي. للإزالة زر «إزالة» (DELETE /api/v1/access-scopes/{id}، ACCESS_SCOPE_REMOVE).",
+   "rules_ar": [
+    "الافتراضي: دور LEGAL_MANAGER له نطاق ALL، ودور SECTION_HEAD له OWN_UNIT؛ ويمكن تغييرها.",
+    "لا نطاق لدور ADMIN (ACCESS_SCOPE_FOR_ADMIN_ROLE): إدارة النظام وحدها لا تعرض محتوى القضايا.",
+    "لا يوسّع مستخدم نطاقه هو (ACCESS_SELF_GRANT).",
+    "نوع الوحدة من الشجرة القانونية فقط."
+   ],
+   "data_ar": "subjectType, subjectRef, scopeType, scopeRef.",
+   "next_ar": "يتغير ما يراه حاملو الدور.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/access/AccessScopesPage.tsx",
+     "lines": "22-133"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessController.java",
+     "lines": "63-82"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+     "lines": "137-201"
+    },
+    {
+     "path": "backend/src/main/resources/db/migration/V600__LD-050_access_foundation.sql",
+     "lines": "77-88",
+     "note": "defaults"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "نطاق مرفوض (422)",
+     "detail_ar": "ACCESS_SCOPE_FOR_ADMIN_ROLE أو ACCESS_SELF_GRANT أو ACCESS_SCOPE_TARGET_UNKNOWN؛ تعرض الواجهة: «لا يمكن إضافة هذا النطاق (دور مدير النظام لا نطاق له، ولا يوسّع أحد نطاقه بنفسه).»",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+       "lines": "154-166"
+      },
+      {
+       "path": "frontend/src/features/access/AccessScopesPage.tsx",
+       "lines": "79-81"
+      },
+      {
+       "path": "frontend/src/i18n/messages/access.ar.ts",
+       "lines": "47"
+      }
+     ]
+    },
+    {
+     "kind": "validation",
+     "title_ar": "مرجع النطاق (400)",
+     "detail_ar": "scopeRef مطلوب مع ORG_UNIT/CASE_TYPE وممنوع مع غيرهما (NotNull / Null)؛ نوع قضية غير معروف: Pattern.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+       "lines": "150-153"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+       "lines": "170-176"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "نطاق مكرر (409)",
+     "detail_ar": "يوجد النطاق نفسه للموضوع نفسه.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+       "lines": "188-190"
+      }
+     ]
+    },
+    {
+     "kind": "denied",
+     "title_ar": "بلا CASE_GRANT_MANAGE (403)",
+     "detail_ar": "تعرض الواجهة «غير مسموح بالوصول».",
+     "evidence": [
+      {
+       "path": "frontend/src/features/access/AccessScopesPage.tsx",
+       "lines": "52-56"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/access/AccessController.java",
+       "lines": "63-68"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "rules": [
+  {
+   "text_ar": "القاعدة مكتوبة مرة واحدة (دالتا قاعدة البيانات case_visible وcase_changeable) وتُستعمل للقضية الواحدة والقوائم والعدّ والتقارير والتصدير وكل الوحدات التابعة للقضية، فلا تختلف شاشة عن تنزيل.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+     "lines": "33-36"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+     "lines": "147-157"
+    }
+   ]
+  },
+  {
+   "text_ar": "الاطلاع: العضو الأساسي أو البديل، المنشئ، المكلَّف بمهمة غير منتهية على القضية، صاحب منحة سارية، أو نطاق يغطيها إن لم تكن حساسة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/resources/db/migration/V720__LD-056_task_extension.sql",
+     "lines": "86-109"
+    },
+    {
+     "path": "backend/src/main/resources/db/migration/V600__LD-050_access_foundation.sql",
+     "lines": "124-152"
+    }
+   ]
+  },
+  {
+   "text_ar": "التعديل: العضو الأساسي أو البديل، المنشئ بلا عضو أساسي، صاحب CONTRIBUTE سارية، أو حامل CASE_EDIT_IN_SCOPE في قضية غير حساسة ضمن نطاقه.",
+   "evidence": [
+    {
+     "path": "backend/src/main/resources/db/migration/V600__LD-050_access_foundation.sql",
+     "lines": "177-197"
+    }
+   ]
+  },
+  {
+   "text_ar": "القضية غير المرئية: 404 (لا إفصاح عن وجودها)؛ المرئية غير القابلة للتعديل: 403.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+     "lines": "33-36"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+     "lines": "61-67"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+     "lines": "76-85"
+    }
+   ]
+  },
+  {
+   "text_ar": "دور ADMIN لا يُمنح نطاقًا ولا يرى محتوى القضايا بحكم الإدارة؛ يحتاج منحة أو عضوية، ويمنحها شخص آخر يملك الحق والتدقيق يبيّن من فعل.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+     "lines": "25-30"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+     "lines": "160-164"
+    }
+   ]
+  },
+  {
+   "text_ar": "لا يمنح المستخدم نفسه اطلاعًا ولا يوسّع نطاقه.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+     "lines": "70-72"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+     "lines": "154-158"
+    }
+   ]
+  },
+  {
+   "text_ar": "المنح لا تُحذف: تُسحب مع تسجيل من سحبها ومتى.",
+   "evidence": [
+    {
+     "path": "backend/src/main/resources/db/migration/V600__LD-050_access_foundation.sql",
+     "lines": "59-73"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+     "lines": "94-112"
+    }
+   ]
+  },
+  {
+   "text_ar": "كل تغيير مدوَّن في التدقيق وفي سجل القضية بالسبب.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+     "lines": "88-90"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+     "lines": "109-111"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+     "lines": "242-253"
+    }
+   ]
+  },
+  {
+   "text_ar": "رموز النطاق تُحمَّل عند الدخول مع الجلسة كصلاحيات تبدأ بـ SCOPE: ، ويُحوَّل OWN_UNIT إلى وحدة المستخدم الفعلية.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/LawdeskUser.java",
+     "lines": "33-35"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAccounts.java",
+     "lines": "136-160"
+    }
+   ]
+  }
+ ],
+ "after_submit_ar": "تتحدث قائمة المنح أو النطاقات أو سرية القضية مباشرة، ويسري الأثر على المستخدمين المعنيين عند طلبهم التالي. لم أجد في الشيفرة إشعارًا يُرسل للمستخدم الممنوح أو لمن فقد الاطلاع، ولا موافقة ثانية على المنح.",
+ "notifications_ar": [],
+ "approvals_ar": [],
+ "errors": [
+  {
+   "code": "HTTP 404",
+   "meaning_ar": "القضية غير موجودة أو لا يحق للمستخدم رؤيتها (لا فرق في الرد)، أو منحة/نطاق غير موجود.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+     "lines": "61-67"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+     "lines": "107"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+     "lines": "198"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 403",
+   "meaning_ar": "يرى القضية ولا يملك الصلاحية أو لا يستطيع تعديلها.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+     "lines": "76-95"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 400 (field/code)",
+   "meaning_ar": "سبب فارغ، مستوى غير صالح، userId غير موجود (Exists)، scopeRef خطأ (NotNull/Null/Pattern).",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessRequests.java",
+     "lines": "17-36"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+     "lines": "150-153"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+     "lines": "209-215"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 409",
+   "meaning_ar": "نسخة القضية قديمة، أو نطاق مكرر.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+     "lines": "234-236"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+     "lines": "188-190"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 422 rule=ACCESS_SELF_GRANT / ACCESS_EXPIRY_PAST / ACCESS_GRANT_USER_DISABLED / ACCESS_NO_ACTIVE_GRANT / ACCESS_SCOPE_FOR_ADMIN_ROLE / ACCESS_SCOPE_TARGET_UNKNOWN",
+   "meaning_ar": "قواعد المنح والنطاقات.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+     "lines": "34-39"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+     "lines": "90-96"
+    }
+   ]
+  }
+ ],
+ "result_ar": "كل مستخدم يرى القضايا المسموحة له فقط، ومن لا يحق له يتلقى «غير موجودة»؛ ومسؤول الاطلاع يرى قائمة المنح ونطاقات الأدوار وسرية القضية ويعدّلها بسبب مسجَّل.",
+ "related": [
+  "org-hierarchy",
+  "roles-permissions",
+  "users-admin",
+  "cases-register",
+  "cases-list-search",
+  "audit"
+ ],
+ "endpoints": [
+  {
+   "method": "GET",
+   "path": "/api/v1/cases/{caseId}/grants",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/access/AccessController.java",
+    "lines": "34-38"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/cases/{caseId}/grants",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/access/AccessController.java",
+    "lines": "40-46"
+   }
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/cases/{caseId}/grants/{grantId}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/access/AccessController.java",
+    "lines": "48-53"
+   }
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/cases/{caseId}/confidentiality",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/access/AccessController.java",
+    "lines": "55-61"
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/access-scopes",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/access/AccessController.java",
+    "lines": "63-68"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/access-scopes",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/access/AccessController.java",
+    "lines": "70-75"
+   }
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/access-scopes/{id}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/access/AccessController.java",
+    "lines": "77-82"
+   }
+  }
+ ],
+ "tech": {
+  "chain": [
+   {
+    "layer": "screen",
+    "label": "CaseDetailsPage > CaseAccessSection",
+    "ref": {
+     "path": "frontend/src/features/cases/CaseDetailsPage.tsx",
+     "lines": "204-212"
+    },
+    "data_ar": "معرّف القضية وسريتها ورقم نسختها."
+   },
+   {
+    "layer": "component",
+    "label": "CaseAccessSection / AccessScopesPage",
+    "ref": {
+     "path": "frontend/src/features/access/CaseAccessSection.tsx",
+     "lines": "19-56"
+    },
+    "data_ar": "نماذج المنح والسرية والنطاقات."
+   },
+   {
+    "layer": "api_call",
+    "label": "grantAccess / revokeGrant / setConfidentiality / addScope",
+    "ref": {
+     "path": "frontend/src/features/access/api.ts",
+     "lines": "73-110"
+    },
+    "data_ar": "طلبات REST."
+   },
+   {
+    "layer": "controller",
+    "label": "AccessController",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessController.java",
+     "lines": "24-83"
+    },
+    "data_ar": "يمرر لخدمة الإدارة."
+   },
+   {
+    "layer": "authorization",
+    "label": "@PreAuthorize CASE_GRANT_MANAGE + CaseAccessPolicy.requireDistribute",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+     "lines": "87-95"
+    },
+    "data_ar": "الصلاحية العامة ثم القدرة على تعديل القضية المعنية."
+   },
+   {
+    "layer": "service",
+    "label": "AccessAdministration",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+     "lines": "31-255"
+    },
+    "data_ar": "قواعد المنح والنطاقات والسرية."
+   },
+   {
+    "layer": "repository",
+    "label": "JdbcClient (SQL)",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+     "lines": "81-87"
+    },
+    "data_ar": "إدخال/تحديث case_grant وaccess_scope وlegal_case."
+   },
+   {
+    "layer": "tables",
+    "label": "case_grant, access_scope, legal_case.confidentiality",
+    "ref": {
+     "path": "backend/src/main/resources/db/migration/V600__LD-050_access_foundation.sql",
+     "lines": "31-75"
+    },
+    "data_ar": "المنح والنطاقات وسرية القضية."
+   },
+   {
+    "layer": "event",
+    "label": "CASE_GRANT_CREATE / CASE_CONFIDENTIALITY_CHANGE / ACCESS_SCOPE_ADD",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+     "lines": "88-90"
+    },
+    "data_ar": "تدقيق وسجل القضية."
+   },
+   {
+    "layer": "result",
+    "label": "case_visible / case_changeable",
+    "ref": {
+     "path": "backend/src/main/resources/db/migration/V720__LD-056_task_extension.sql",
+     "lines": "86-109"
+    },
+    "data_ar": "القاعدة التي تقرر 404 أو 403 أو السماح."
+   }
+  ]
+ },
+ "status": "IMPLEMENTED_ON_DEVELOP",
+ "status_note_ar": "الشيفرة مدمجة في develop.",
+ "status_evidence": [
+  {
+   "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+   "lines": "18-39"
+  },
+  {
+   "path": "backend/src/main/java/com/lawdesk/access/AccessAdministration.java",
+   "lines": "25-32"
+  }
+ ],
+ "verification_ar": "اختبارات: backend/src/test/java/com/lawdesk/cases/CaseVisibilityApiTest.java وCaseMembershipAccessTest.java وCaseVisibilityPredicateEquivalenceTest.java، وbackend/src/test/java/com/lawdesk/security/CaseBoundEndpointsAccessTest.java وCaseBoundSurfacesAccessTest.java؛ وفي الواجهة frontend/src/features/access/Access.test.tsx وCaseAccessSection.test.tsx. لم يُجرِ هذا المستند أي تحقق على بيئة القبول (UAT)؛ المحتوى مبني على قراءة الشيفرة المدمجة في develop والاختبارات الموجودة فقط. لم أتحقق من أثر القاعدة داخل كل وحدة تابعة للقضية (ذكرتها عامة من تعليق CaseAccessPolicy). لا أعرض في هذه الصفحة تفاصيل اختبارات إخفاء بيانات الهوية."
+}

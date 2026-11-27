@@ -1,0 +1,54 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/platform/AuthorizeBeforeBindingInterceptor.java": {
+      "name": "التحقق من الصلاحية أولاً",
+      "description": "يتأكد من أن المستخدم لديه الصلاحية المطلوبة قبل قراءة بيانات الطلب والتحقق منها، فيحصل من لا يملك الصلاحية على رفض صريح بدل خطأ في البيانات."
+    },
+    "backend/src/main/java/com/lawdesk/platform/PagingValidationInterceptor.java": {
+      "name": "التحقق من ترقيم الصفحات",
+      "description": "يطبق قرار المالك لترقيم القوائم: إذا غابت الصفحة أو الحجم تُستخدم القيم الافتراضية، وأي قيمة غير صحيحة أو خارج المدى يُرفض الطلب بها برسالة خطأ."
+    },
+    "backend/src/main/java/com/lawdesk/platform/ProductClockConfig.java": {
+      "name": "ساعة النظام بتوقيت الكويت",
+      "description": "يضبط ساعة النظام على توقيت الكويت، وهو افتراض من المالك. لا يوجد ملف آخر يستدعيه صراحة حسب الفحص."
+    },
+    "backend/src/main/java/com/lawdesk/platform/release/AppRelease.java": {
+      "name": "سجل بدء التشغيل",
+      "description": "يصف كيف يُحفظ في قاعدة البيانات سجل كل مرة يبدأ فيها التطبيق، مع النسخة التي كانت تعمل."
+    },
+    "backend/src/main/java/com/lawdesk/platform/release/AppReleaseRepository.java": {
+      "name": "حفظ سجلات الإصدارات",
+      "description": "يتولى حفظ سجلات بدء التشغيل في قاعدة البيانات وقراءتها، دون أي منطق إضافي."
+    },
+    "backend/src/main/java/com/lawdesk/platform/release/ReleaseController.java": {
+      "name": "معرفة نسخة الخادم الحالية",
+      "description": "يتيح لأي مستخدم مسجل الدخول معرفة رقم النسخة التي تعمل على الخادم، ويستخدمه فريق فحص الجودة للتأكد من النسخة المنشورة."
+    },
+    "backend/src/main/java/com/lawdesk/platform/release/ReleaseRecorder.java": {
+      "name": "تسجيل النسخة عند التشغيل",
+      "description": "يسجل في قاعدة البيانات النسخة الجاري تشغيلها بمجرد أن يصبح التطبيق جاهزاً لاستقبال الطلبات."
+    },
+    "backend/src/main/java/com/lawdesk/platform/release/RunningRelease.java": {
+      "name": "النسخة الجاري تشغيلها",
+      "description": "يحدد النسخة التي يعمل بها الخادم الآن: رقم الإصدار المنشور إن وُجد، وإلا رقم نسخة البناء عند التشغيل خارج بيئة النشر."
+    },
+    "backend/src/main/java/com/lawdesk/platform/RequestCorrelationFilter.java": {
+      "name": "رقم تتبع كل طلب",
+      "description": "يعطي كل طلب رقم تتبع (من المرسل إن كان صالحاً وإلا رقماً جديداً)، ويضيفه إلى السجلات وإلى الرد، ويسجل سطراً واحداً عند انتهاء كل طلب."
+    },
+    "backend/src/main/java/com/lawdesk/platform/SecurityConfig.java": {
+      "name": "قواعد الأمان العامة",
+      "description": "يضبط حماية الخادم على مبدأ المنع افتراضياً، فلا يُسمح بأي طلب إلا بقاعدة صريحة تتعلق بتسجيل الدخول والصلاحيات."
+    },
+    "backend/src/main/java/com/lawdesk/platform/WebConfig.java": {
+      "name": "إعدادات الطلبات المشتركة",
+      "description": "يفعّل فحصين على كل الطلبات بالترتيب: التحقق من الصلاحية أولاً ثم التحقق من ترقيم الصفحات."
+    }
+  },
+  "routes": {
+    "GET /api/v1/release": {
+      "name": "نسخة الخادم الحالية",
+      "description": "يرد برقم النسخة التي يعمل بها الخادم، ويشترط أن يكون المستخدم مسجل الدخول."
+    }
+  }
+}

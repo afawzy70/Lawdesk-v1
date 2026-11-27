@@ -1,0 +1,961 @@
+{
+ "id": "legal-docs",
+ "category": "documents",
+ "name_ar": "المذكرات والمراسلات ودورة اعتمادها",
+ "summary_ar": "سجل المذكرات والكتب الخاصة بكل قضية. تمر المذكرة أو الكتاب بالحالات: مسودة، قيد المراجعة، معتمد، مرسل (مسجَّل)، محفوظ. يرفق العضو نسخة إلكترونية، ويعتمدها من يملك صلاحية الاعتماد، ويسجّل العضو أنه أرسلها؛ النظام لا يرسل شيئًا بنفسه.",
+ "purpose_ar": "ضبط دورة المذكرات والمراسلات القانونية بفصل الإعداد عن الاعتماد، وحفظ النسخة الإلكترونية المعتمدة دون تغيير، وتسجيل تاريخ الإرسال وطريقته.",
+ "who_ar": [
+  "من يملك عرض المستندات (DOCUMENT_VIEW) للاطلاع",
+  "من يملك إدارة المستندات (DOCUMENT_MANAGE) للتسجيل والتعديل والإرسال للمراجعة وتسجيل الإرسال والحفظ",
+  "من يملك اعتماد المذكرات والمراسلات (MEMO_APPROVE): مسؤول النظام والمدير القانوني ورئيس القسم"
+ ],
+ "who_perms": [
+  "DOCUMENT_VIEW",
+  "DOCUMENT_MANAGE",
+  "MEMO_APPROVE"
+ ],
+ "access_ar": "صفحة القضية > قسم «المذكرات والمراسلات»",
+ "route": "/cases/:id (قسم المذكرات والمراسلات)",
+ "prerequisites_ar": [
+  "قضية مرئية وغير مؤرشفة",
+  "لتسجيل أو تعديل: حق تعديل القضية",
+  "للاعتماد: حق رؤية القضية فقط مع MEMO_APPROVE (ليس بالضرورة حق التعديل)"
+ ],
+ "fields": {
+  "required": [
+   {
+    "name_ar": "الاسم",
+    "code": "title",
+    "rule_ar": "إلزامي؛ حتى 300 حرف؛ لا يكون فارغًا.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+      "lines": "391",
+      "note": "required title"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+      "lines": "426-434",
+      "note": "required()"
+     }
+    ]
+   }
+  ],
+  "optional": [
+   {
+    "name_ar": "النوع (الفئة)",
+    "code": "categoryId",
+    "rule_ar": "من قائمة DOCUMENT_CATEGORY؛ وإلا الخطأ Exists.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+      "lines": "395-401",
+      "note": "category"
+     }
+    ]
+   },
+   {
+    "name_ar": "التاريخ",
+    "code": "documentDate",
+    "rule_ar": "تاريخ اختياري.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentRequests.java",
+      "lines": "14-15",
+      "note": "Body"
+     }
+    ]
+   },
+   {
+    "name_ar": "الجهة الصادرة",
+    "code": "issuer",
+    "rule_ar": "حتى 300 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+      "lines": "392",
+      "note": "issuer"
+     }
+    ]
+   },
+   {
+    "name_ar": "الجهة الموجّه إليها",
+    "code": "addressee",
+    "rule_ar": "حتى 300 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+      "lines": "393",
+      "note": "addressee"
+     }
+    ]
+   },
+   {
+    "name_ar": "العضو المسؤول",
+    "code": "responsibleMemberId",
+    "rule_ar": "يجب أن يكون مستخدمًا موجودًا.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+      "lines": "402-405",
+      "note": "member"
+     }
+    ]
+   },
+   {
+    "name_ar": "الوصف",
+    "code": "description",
+    "rule_ar": "حتى 2000 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+      "lines": "394",
+      "note": "description"
+     }
+    ]
+   },
+   {
+    "name_ar": "المستند المرفق",
+    "code": "documentId",
+    "rule_ar": "يجب أن يكون مستندًا غير مسحوب من القضية نفسها (NotInCase).",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+      "lines": "406-410",
+      "note": "documentId"
+     }
+    ]
+   },
+   {
+    "name_ar": "رقم نسخة السجل",
+    "code": "version",
+    "rule_ar": "مطلوب عند كل تعديل أو انتقال لمنع التعارض.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentRequests.java",
+      "lines": "13-20",
+      "note": "version"
+     }
+    ]
+   },
+   {
+    "name_ar": "تاريخ الإرسال",
+    "code": "sentOn",
+    "rule_ar": "إلزامي عند تسجيل الإرسال ولا يكون بعد اليوم (بتوقيت الكويت).",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+      "lines": "278-283",
+      "note": "sentOn"
+     }
+    ]
+   },
+   {
+    "name_ar": "طريقة الإرسال",
+    "code": "method",
+    "rule_ar": "إلزامية عند تسجيل الإرسال؛ حتى 100 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+      "lines": "284",
+      "note": "method"
+     }
+    ]
+   },
+   {
+    "name_ar": "المرجع",
+    "code": "reference",
+    "rule_ar": "اختياري؛ حتى 200 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+      "lines": "285",
+      "note": "reference"
+     }
+    ]
+   },
+   {
+    "name_ar": "الملاحظة",
+    "code": "note",
+    "rule_ar": "اختيارية حتى 500 حرف، وإلزامية عند الإعادة إلى المسودة أو إعادة الفتح.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+      "lines": "446-452",
+      "note": "note"
+     }
+    ]
+   }
+  ]
+ },
+ "steps": [
+  {
+   "n": 1,
+   "actor_ar": "صاحب إدارة المستندات",
+   "action_ar": "يسجّل مذكرة أو كتابًا جديدًا من نموذج «تسجيل مذكرة أو كتاب».",
+   "response_ar": "تُنشأ بحالة مسودة ويُسجَّل حدث ابتدائي وحدث في سجل القضية وسجل تدقيق.",
+   "rules_ar": [
+    "الحالة الأولى DRAFT دائمًا.",
+    "لا تسجيل في قضية مؤرشفة."
+   ],
+   "data_ar": "العنوان والفئة والجهات والعضو والوصف.",
+   "next_ar": "إرفاق النسخة الإلكترونية.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+     "lines": "51-57",
+     "note": "POST create"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+     "lines": "150-166",
+     "note": "create"
+    },
+    {
+     "path": "frontend/src/features/archive/LegalDocumentForm.tsx",
+     "lines": "78-104",
+     "note": "form"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "بيانات ناقصة أو غير صالحة (400)",
+     "detail_ar": "NotBlank أو Size أو Exists أو NotInCase بحسب الحقل.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+       "lines": "389-411",
+       "note": "check"
+      }
+     ]
+    },
+    {
+     "kind": "denied",
+     "title_ar": "لا صلاحية (403) أو قضية غير مرئية (404)",
+     "detail_ar": "DOCUMENT_MANAGE وحق التعديل مطلوبان.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+       "lines": "51-53",
+       "note": "PreAuthorize"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+       "lines": "368-375",
+       "note": "writable"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "قضية مؤرشفة (422)",
+     "detail_ar": "CASE_ARCHIVED.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+       "lines": "371-373",
+       "note": "archived"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "actor_ar": "صاحب إدارة المستندات",
+   "action_ar": "يرفق النسخة الإلكترونية (ملف) أو يعدّل البيانات والمسودة قائمة.",
+   "response_ar": "الملف الأول يُحفظ مستندًا في أرشيف القضية ويُربط بالمذكرة، والملفات التالية إصدارات جديدة لذلك المستند. التعديل يزيد رقم النسخة.",
+   "rules_ar": [
+    "لا يُعدَّل ولا يُرفق إلا في حالة المسودة (LEGAL_DOCUMENT_NOT_DRAFT).",
+    "قيود الملف نفسها قيود الأرشيف (انظر documents-ocr)."
+   ],
+   "data_ar": "ملف وملاحظة إصدار.",
+   "next_ar": "إرسال للمراجعة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+     "lines": "71-83",
+     "note": "PUT and file"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+     "lines": "168-207",
+     "note": "update/attachFile"
+    },
+    {
+     "path": "frontend/src/features/archive/LegalDocumentCard.tsx",
+     "lines": "199-210",
+     "note": "attach"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "ليست مسودة (422)",
+     "detail_ar": "LEGAL_DOCUMENT_NOT_DRAFT: أعدها إلى المسودة أولًا.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+       "lines": "377-381",
+       "note": "requireDraft"
+      },
+      {
+       "path": "frontend/src/i18n/messages/wp5.ar.ts",
+       "lines": "43",
+       "note": "Arabic message"
+      }
+     ]
+    },
+    {
+     "kind": "error",
+     "title_ar": "تعديل متزامن (409)",
+     "detail_ar": "غيّر مستخدم آخر السجل.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+       "lines": "181-183",
+       "note": "Conflict"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "actor_ar": "صاحب إدارة المستندات",
+   "action_ar": "يضغط «إرسال للمراجعة».",
+   "response_ar": "تنتقل الحالة إلى قيد المراجعة ويُسجَّل المرسل ووقته وحدث.",
+   "rules_ar": [
+    "لا يُقبل الإرسال للمراجعة دون نسخة إلكترونية (LEGAL_DOCUMENT_NEEDS_FILE)."
+   ],
+   "data_ar": "",
+   "next_ar": "اعتماد أو إعادة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+     "lines": "85-89",
+     "note": "submit"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+     "lines": "209-223",
+     "note": "submit"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "لا نسخة إلكترونية (422)",
+     "detail_ar": "أرفق النسخة قبل طلب الاعتماد.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+       "lines": "216-218",
+       "note": "NEEDS_FILE"
+      },
+      {
+       "path": "frontend/src/i18n/messages/wp5.ar.ts",
+       "lines": "45",
+       "note": "Arabic message"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "انتقال غير مسموح (422)",
+     "detail_ar": "LEGAL_DOCUMENT_TRANSITION_NOT_ALLOWED إن لم تكن الحالة مسودة.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+       "lines": "383-387",
+       "note": "require"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "actor_ar": "صاحب اعتماد المذكرات (أو العضو القائم عليها عند الإعادة)",
+   "action_ar": "يعتمد، أو يعيد المذكرة إلى المسودة بسبب.",
+   "response_ar": "الاعتماد: تحفظ الحالة «معتمد» مع اسم المعتمد وتاريخه وملاحظته. الإعادة: تعود مسودة ويُمسح إرسالها للمراجعة وتُسجَّل الملاحظة (إلزامية).",
+   "rules_ar": [
+    "الاعتماد يحتاج MEMO_APPROVE ورؤية القضية فقط؛ فصل بين الاطلاع والتعديل والاعتماد.",
+    "النسخة الإلكترونية لمذكرة معتمدة أو مرسلة أو محفوظة لا تُغيَّر ولا تُسحب (LEGAL_DOCUMENT_LOCKED في الأرشيف)."
+   ],
+   "data_ar": "ملاحظة اعتماد اختيارية (500 حرف) وسبب الإعادة إلزامي.",
+   "next_ar": "تسجيل الإرسال.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+     "lines": "91-101",
+     "note": "return/approve"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+     "lines": "225-253",
+     "note": "returnToDraft/approve"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "لا MEMO_APPROVE (403)",
+     "detail_ar": "الاعتماد وإعادة الفتح لمن يملكها فقط.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+       "lines": "97-99",
+       "note": "PreAuthorize MEMO_APPROVE"
+      }
+     ]
+    },
+    {
+     "kind": "validation",
+     "title_ar": "سبب الإعادة فارغ (400)",
+     "detail_ar": "NotBlank على note.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+       "lines": "233",
+       "note": "requiredNote"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "actor_ar": "صاحب اعتماد المذكرات",
+   "action_ar": "يعيد فتح مذكرة معتمدة كمسودة بسبب.",
+   "response_ar": "تعود الحالة مسودة وتُمسح بيانات الاعتماد (يبقى السجل التاريخي للأحداث).",
+   "rules_ar": [],
+   "data_ar": "",
+   "next_ar": "تعديل ثم إرسال للمراجعة من جديد.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+     "lines": "103-107",
+     "note": "reopen"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+     "lines": "255-269",
+     "note": "reopen"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "ليست معتمدة (422)",
+     "detail_ar": "LEGAL_DOCUMENT_TRANSITION_NOT_ALLOWED.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+       "lines": "261",
+       "note": "require APPROVED"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 6,
+   "actor_ar": "صاحب إدارة المستندات",
+   "action_ar": "يسجّل أن المذكرة أُرسلت: التاريخ والطريقة والمرجع.",
+   "response_ar": "تنتقل من «معتمد» إلى «مرسل (مسجَّل)». الشاشة تذكر أنها لم تُرسل عبر النظام لأنه لا يوجد تكامل للإرسال.",
+   "rules_ar": [
+    "التسجيل بيان من العضو لا إرسال من النظام؛ الحقل sent_via_integration يبقى false بقيد قاعدة بيانات.",
+    "لا يجوز تاريخ إرسال في المستقبل."
+   ],
+   "data_ar": "sentOn وmethod وreference.",
+   "next_ar": "الحفظ.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+     "lines": "109-113",
+     "note": "record-sent"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+     "lines": "271-301",
+     "note": "recordSent"
+    },
+    {
+     "path": "frontend/src/i18n/messages/wp5.ar.ts",
+     "lines": "189-191",
+     "note": "Arabic messages"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "تاريخ ناقص أو مستقبلي أو طريقة فارغة (400)",
+     "detail_ar": "NotNull أو PastOrPresent على sentOn، وNotBlank على method.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+       "lines": "278-284",
+       "note": "checks"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "ليست معتمدة (422)",
+     "detail_ar": "لا يُسجَّل إرسال إلا لمعتمدة.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+       "lines": "277",
+       "note": "require APPROVED"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 7,
+   "actor_ar": "صاحب إدارة المستندات",
+   "action_ar": "يحفظ المذكرة المعتمدة أو المرسلة في الأرشيف («محفوظ»).",
+   "response_ar": "تنتقل إلى «محفوظ» ويُسجَّل وقت الحفظ.",
+   "rules_ar": [],
+   "data_ar": "",
+   "next_ar": "انتهاء.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+     "lines": "115-119",
+     "note": "archive"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+     "lines": "303-316",
+     "note": "archive"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "حالة غير معتمدة أو مرسلة (422)",
+     "detail_ar": "لا يُحفظ إلا المعتمد أو المرسل.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+       "lines": "309-311",
+       "note": "TRANSITION"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 8,
+   "actor_ar": "صاحب عرض المستندات",
+   "action_ar": "يقرأ سجل المذكرات للقضية أو السجل العام ويرى تاريخ الأحداث.",
+   "response_ar": "السجل العام يعرض مذكرات القضايا المرئية فقط ويقبل مرشحات الحالة والقضية والفئة؛ سجل الأحداث يبيّن من نقل المذكرة ومتى وبأي ملاحظة.",
+   "rules_ar": [],
+   "data_ar": "",
+   "next_ar": "انتهاء.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+     "lines": "38-69",
+     "note": "read endpoints"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+     "lines": "92-146",
+     "note": "reads"
+    },
+    {
+     "path": "frontend/src/features/archive/LegalDocumentCard.tsx",
+     "lines": "30-41",
+     "note": "card"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "قضية غير مرئية (404)",
+     "detail_ar": "مذكرة قضية لا يراها المستخدم لا يُكشف وجودها.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+       "lines": "349-357",
+       "note": "find"
+      }
+     ]
+    },
+    {
+     "kind": "validation",
+     "title_ar": "حالة غير معروفة في المرشح (400)",
+     "detail_ar": "الرمز Unknown على status.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+       "lines": "102-104",
+       "note": "status Unknown"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "rules": [
+  {
+   "text_ar": "الحالات: DRAFT ثم IN_REVIEW ثم APPROVED ثم SENT ثم ARCHIVED؛ والتعديل في المسودة فقط.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+     "lines": "36-49",
+     "note": "status doc"
+    },
+    {
+     "path": "backend/src/main/resources/db/migration/V703__LD-055_legal_documents.sql",
+     "lines": "16-18",
+     "note": "status check"
+    }
+   ]
+  },
+  {
+   "text_ar": "لا يعتمد النظام شيئًا بنفسه: الاعتماد بيد صاحب MEMO_APPROVE، وبيان الإرسال بيد العضو.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+     "lines": "36-41",
+     "note": "comment"
+    }
+   ]
+  },
+  {
+   "text_ar": "سجل الأحداث يحفظ كل انتقال مع من نفّذه وملاحظته.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+     "lines": "333-338",
+     "note": "event"
+    },
+    {
+     "path": "backend/src/main/resources/db/migration/V703__LD-055_legal_documents.sql",
+     "lines": "43-52",
+     "note": "legal_document_event"
+    }
+   ]
+  },
+  {
+   "text_ar": "كل انتقال بقفل تفاؤلي: رقم النسخة الخاطئ يعطي 409.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+     "lines": "320-331",
+     "note": "move"
+    }
+   ]
+  }
+ ],
+ "after_submit_ar": "تتغير حالة المذكرة وتظهر في بطاقتها وفي سجلها التاريخي، ويُضاف حدث لسجل القضية وإدخال تدقيق لكل عملية كتابة.",
+ "notifications_ar": [
+  "لا توجد إشعارات لانتقال المذكرات؛ الأثر حدث في سجل القضية وسجل التدقيق (لم يُعثر على كود إشعارات في حزمة legaldocs)."
+ ],
+ "approvals_ar": [
+  "الاعتماد: ينقل المذكرة من «قيد المراجعة» إلى «معتمد» ويحتاج MEMO_APPROVE ويحفظ اسم المعتمد وتاريخه وملاحظته.",
+  "يمكن لصاحب الاعتماد إعادة المذكرة إلى المسودة أو إعادة فتحها المعتمدة بسبب إلزامي."
+ ],
+ "errors": [
+  {
+   "code": "HTTP 400 (errors[].field=title|issuer|addressee|description|categoryId|responsibleMemberId|documentId|sentOn|method|reference|note|status)",
+   "meaning_ar": "حقل غير صالح؛ الرموز NotBlank وSize وExists وNotInCase وNotNull وPastOrPresent وUnknown.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+     "lines": "389-411",
+     "note": "check"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+     "lines": "426-444",
+     "note": "required/optional"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 403",
+   "meaning_ar": "لا صلاحية DOCUMENT_MANAGE أو MEMO_APPROVE أو حق تعديل القضية.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+     "lines": "30-31",
+     "note": "permissions"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+     "lines": "368-375",
+     "note": "writable"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 404",
+   "meaning_ar": "المذكرة أو القضية غير موجودة أو غير مرئية.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+     "lines": "349-357",
+     "note": "find"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 409",
+   "meaning_ar": "تعديل متزامن.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+     "lines": "320-331",
+     "note": "move"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 422 rule=LEGAL_DOCUMENT_NOT_DRAFT | LEGAL_DOCUMENT_TRANSITION_NOT_ALLOWED | LEGAL_DOCUMENT_NEEDS_FILE | CASE_ARCHIVED",
+   "meaning_ar": "قاعدة عمل رفضت العملية.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+     "lines": "51-56",
+     "note": "rule codes"
+    }
+   ]
+  }
+ ],
+ "result_ar": "مذكرة أو كتاب بحالة واضحة وتاريخ كامل للانتقالات، ونسخة إلكترونية محمية من التغيير بعد الاعتماد.",
+ "related": [
+  "documents-ocr",
+  "search",
+  "case-access-confidentiality",
+  "audit",
+  "roles-permissions",
+  "lists-lookups",
+  "integrations"
+ ],
+ "endpoints": [
+  {
+   "method": "GET",
+   "path": "/api/v1/cases/{caseId}/legal-documents",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+    "lines": "38-39",
+    "note": "legal-documents"
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/legal-documents",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+    "lines": "44-45",
+    "note": "legal-documents"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/cases/{caseId}/legal-documents",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+    "lines": "51-52",
+    "note": "legal-documents"
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/legal-documents/{id}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+    "lines": "59-60",
+    "note": "legal-documents"
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/legal-documents/{id}/events",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+    "lines": "65-66",
+    "note": "events"
+   }
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/legal-documents/{id}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+    "lines": "71-72",
+    "note": "legal-documents"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/legal-documents/{id}/file",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+    "lines": "77-78",
+    "note": "file"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/legal-documents/{id}/submit",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+    "lines": "85-86",
+    "note": "submit"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/legal-documents/{id}/return",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+    "lines": "91-92",
+    "note": "return"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/legal-documents/{id}/approve",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+    "lines": "97-98",
+    "note": "approve"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/legal-documents/{id}/reopen",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+    "lines": "103-104",
+    "note": "reopen"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/legal-documents/{id}/record-sent",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+    "lines": "109-110",
+    "note": "record-sent"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/legal-documents/{id}/archive",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+    "lines": "115-116",
+    "note": "archive"
+   }
+  }
+ ],
+ "tech": {
+  "chain": [
+   {
+    "layer": "screen",
+    "label": "CaseLegalDocuments / LegalDocumentCard",
+    "ref": {
+     "path": "frontend/src/features/archive/LegalDocumentCard.tsx",
+     "lines": "41-60",
+     "note": "card"
+    },
+    "data_ar": "أزرار الإجراء بحسب الحالة والصلاحية"
+   },
+   {
+    "layer": "component",
+    "label": "LegalDocumentForm",
+    "ref": {
+     "path": "frontend/src/features/archive/LegalDocumentForm.tsx",
+     "lines": "78-104",
+     "note": "form"
+    },
+    "data_ar": "بيانات المذكرة"
+   },
+   {
+    "layer": "api_call",
+    "label": "legal documents api",
+    "ref": {
+     "path": "frontend/src/features/archive/api.ts",
+     "lines": "264-270",
+     "note": "api"
+    },
+    "data_ar": "طلبات JSON إلى /api/v1/legal-documents"
+   },
+   {
+    "layer": "controller",
+    "label": "LegalDocumentController",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+     "lines": "27-36",
+     "note": "controller"
+    },
+    "data_ar": "Body أو Note أو SentRecord"
+   },
+   {
+    "layer": "authorization",
+    "label": "DOCUMENT_MANAGE / MEMO_APPROVE + CaseAccessPolicy",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+     "lines": "349-375",
+     "note": "authz"
+    },
+    "data_ar": "قبول أو 403/404"
+   },
+   {
+    "layer": "service",
+    "label": "LegalDocumentService.move",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+     "lines": "320-331",
+     "note": "transition"
+    },
+    "data_ar": "انتقال حالة بقفل تفاؤلي"
+   },
+   {
+    "layer": "tables",
+    "label": "legal_document / legal_document_event",
+    "ref": {
+     "path": "backend/src/main/resources/db/migration/V703__LD-055_legal_documents.sql",
+     "lines": "5-52",
+     "note": "tables"
+    },
+    "data_ar": "الحالة والأحداث"
+   },
+   {
+    "layer": "result",
+    "label": "LegalDocumentRequests.View",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentRequests.java",
+     "lines": "26-34",
+     "note": "view"
+    },
+    "data_ar": "عرض كامل للمذكرة"
+   }
+  ]
+ },
+ "status": "IMPLEMENTED_ON_DEVELOP",
+ "status_note_ar": "الكود موجود على develop.",
+ "status_evidence": [
+  {
+   "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentService.java",
+   "lines": "36-49",
+   "note": "service"
+  },
+  {
+   "path": "backend/src/main/java/com/lawdesk/legaldocs/LegalDocumentController.java",
+   "lines": "27-36",
+   "note": "controller"
+  }
+ ],
+ "verification_ar": "قُرئ الكود (المتحكم والخدمة والطلبات والترحيل V703 وشاشة React ورسائلها العربية). الاختبار الموجود: backend/src/test/java/com/lawdesk/legaldocs/LegalDocumentApiTest.java واختبارات الواجهة في frontend/src/features/archive (CaseLegalDocuments.test.tsx). لم تُشغَّل الاختبارات ولم يُجرَ تحقق UAT. لم أراجع ظهور الأزرار تفصيلًا في LegalDocumentCard خارج الأسطر المذكورة، ولا الحدود الدقيقة لدور الفئة needsApproval في القائمة."
+}

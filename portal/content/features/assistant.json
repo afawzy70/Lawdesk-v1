@@ -1,0 +1,790 @@
+{
+ "id": "assistant",
+ "category": "documents",
+ "name_ar": "المساعد القانوني (وضع اختبار غير تشغيلي)",
+ "summary_ar": "المساعد قسم في صفحة القضية يجيب عن أسئلة ويلخّص القضية ويحلّل مستندًا ويقارن مستندين ويبحث عن سوابق ويجمع مسودة مذكرة. حاليًا هو وضع اختبار غير تشغيلي: لا مزود ذكاء اصطناعي معتمد، وهو لا يولّد كلامًا بل يقتبس حرفيًا من السجلات المخزنة مع أرقام مصادرها، ولا يخرج شيء من النظام.",
+ "purpose_ar": "إظهار طريقة عمل المساعد المستقبلية (الاسترجاع والاستشهاد والرفض عند نقص المصادر وضبط الاطلاع والتسجيل) على بيانات يحق للمستخدم رؤيتها، دون أن يغيّر أي سجل ودون الادعاء بأنه مساعد تشغيلي.",
+ "who_ar": [
+  "من يملك استخدام المساعد (ASSISTANT_USE): مسؤول النظام والمدير القانوني ورئيس القسم والموظف القانوني بحسب الأدوار الافتراضية",
+  "للتلخيص والتحليل: يلزم أيضًا عرض القضايا (CASE_VIEW) وعرض المستندات (DOCUMENT_VIEW) للمستندات",
+  "لعرض كل الاستعلامات المراجَعة: صلاحية التدقيق (AUDIT_VIEW)"
+ ],
+ "who_perms": [
+  "ASSISTANT_USE",
+  "CASE_VIEW",
+  "DOCUMENT_VIEW",
+  "AUDIT_VIEW"
+ ],
+ "access_ar": "صفحة القضية > «المساعد القانوني (وضع الاختبار)»؛ والقائمة > المساعد القانوني لعرض حالته",
+ "route": "/assistant (الحالة) وقسم المساعد في /cases/:id",
+ "prerequisites_ar": [
+  "صلاحية ASSISTANT_USE",
+  "قضية مرئية للمستخدم",
+  "لتحليل مستند أو مقارنته: أن يكون نصه قد قُرئ (انظر documents-ocr)"
+ ],
+ "fields": {
+  "required": [
+   {
+    "name_ar": "المهمة",
+    "code": "task",
+    "rule_ar": "إلزامية؛ إحدى: QUESTION، CASE_SUMMARY، DOCUMENT_ANALYSIS، PRECEDENTS، MEMO_DRAFT، COMPARISON.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/assistant/AssistantRequests.java",
+      "lines": "27",
+      "note": "@NotNull task"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/assistant/AssistantTask.java",
+      "lines": "4-16",
+      "note": "tasks"
+     }
+    ]
+   },
+   {
+    "name_ar": "السؤال",
+    "code": "question",
+    "rule_ar": "مطلوب عند QUESTION، وعند PRECEDENTS إن لم تُحدَّد قضية؛ حتى 1000 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/assistant/Retriever.java",
+      "lines": "395-417",
+      "note": "requireShape"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/assistant/AssistantRequests.java",
+      "lines": "27",
+      "note": "Size 1000"
+     }
+    ]
+   },
+   {
+    "name_ar": "القضية",
+    "code": "caseId",
+    "rule_ar": "مطلوبة عند CASE_SUMMARY وMEMO_DRAFT.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/assistant/Retriever.java",
+      "lines": "403-407",
+      "note": "caseId"
+     }
+    ]
+   },
+   {
+    "name_ar": "المستند",
+    "code": "documentId",
+    "rule_ar": "مطلوب عند DOCUMENT_ANALYSIS وCOMPARISON.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/assistant/Retriever.java",
+      "lines": "408-412",
+      "note": "documentId"
+     }
+    ]
+   },
+   {
+    "name_ar": "المستند الثاني",
+    "code": "otherDocumentId",
+    "rule_ar": "مطلوب عند COMPARISON.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/assistant/Retriever.java",
+      "lines": "418-424",
+      "note": "otherDocumentId"
+     }
+    ]
+   }
+  ],
+  "optional": [
+   {
+    "name_ar": "الاحتفاظ كمسودة",
+    "code": "saveDraft",
+    "rule_ar": "إن صدق حُفظت النتيجة كمسودة غير نهائية؛ مسودة المذكرة تُحفظ دائمًا.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/assistant/AssistantRequests.java",
+      "lines": "34-36",
+      "note": "keep"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/assistant/AssistantService.java",
+      "lines": "96-98",
+      "note": "save"
+     }
+    ]
+   },
+   {
+    "name_ar": "المحادثة",
+    "code": "sessionId",
+    "rule_ar": "لمتابعة محادثة سابقة للمستخدم نفسه؛ غير ذلك 404.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/assistant/AssistantService.java",
+      "lines": "65-68",
+      "note": "ownSession"
+     }
+    ]
+   },
+   {
+    "name_ar": "قرار المراجعة",
+    "code": "decision",
+    "rule_ar": "APPROVED أو DISCARDED فقط، وملاحظة حتى 500 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/assistant/AssistantRequests.java",
+      "lines": "49-51",
+      "note": "Review"
+     }
+    ]
+   }
+  ]
+ },
+ "steps": [
+  {
+   "n": 1,
+   "actor_ar": "المستخدم صاحب ASSISTANT_USE",
+   "action_ar": "يفتح صفحة القضية فيرى قسم «المساعد القانوني (وضع الاختبار)» مع تنبيه أنه غير تشغيلي.",
+   "response_ar": "القسم لا يظهر لمن لا يملك ASSISTANT_USE. تُحمَّل مسوداته السابقة في هذه القضية.",
+   "rules_ar": [
+    "التنبيه: وضع اختبار غير تشغيلي، لا مزود ذكاء اصطناعي معتمد، الإجابات تقتبس السجلات المخزنة مع مصادرها فقط ولا يخرج شيء من النظام."
+   ],
+   "data_ar": "",
+   "next_ar": "اختيار المهمة.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/assistant/CaseAssistantPanel.tsx",
+     "lines": "24-58",
+     "note": "panel"
+    },
+    {
+     "path": "frontend/src/features/cases/CaseDetailsPage.tsx",
+     "lines": "234",
+     "note": "mounted in case page"
+    },
+    {
+     "path": "frontend/src/i18n/messages/assistant.ar.ts",
+     "lines": "9",
+     "note": "banner"
+    }
+   ],
+   "alt": []
+  },
+  {
+   "n": 2,
+   "actor_ar": "المستخدم",
+   "action_ar": "يختار المهمة (سؤال، تلخيص، تحليل مستند، سوابق، مسودة مذكرة، مقارنة مستندين) ويكتب السؤال أو يختار المستند.",
+   "response_ar": "يظهر حقل السؤال لمهام السؤال والسوابق والمذكرة؛ ويظهر اختيار المستند للتحليل والمقارنة. زر «اسأل» معطّل حتى تكتمل المدخلات.",
+   "rules_ar": [],
+   "data_ar": "المهمة والسؤال (حتى 1000 حرف) ومعرّفات المستندات.",
+   "next_ar": "إرسال الطلب.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/assistant/CaseAssistantPanel.tsx",
+     "lines": "75-148",
+     "note": "form"
+    },
+    {
+     "path": "frontend/src/i18n/messages/assistant.ar.ts",
+     "lines": "46-51",
+     "note": "task labels"
+    }
+   ],
+   "alt": []
+  },
+  {
+   "n": 3,
+   "actor_ar": "الخادم",
+   "action_ar": "يرسل الطلب POST /api/v1/assistant/ask.",
+   "response_ar": "يتحقق من اكتمال المدخلات حسب المهمة، ثم الصلاحية: ASSISTANT_USE، وCASE_VIEW إن ذُكرت قضية أو مستند، وحق رؤية القضية.",
+   "rules_ar": [
+    "الخطأ في المدخلات: 400 بالرمز NotBlank/NotNull على الحقل الناقص."
+   ],
+   "data_ar": "Ask.",
+   "next_ar": "الاسترجاع من السجلات.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/AssistantController.java",
+     "lines": "47-51",
+     "note": "endpoint"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/AssistantService.java",
+     "lines": "61-83",
+     "note": "ask guards"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/AssistantService.java",
+     "lines": "105-121",
+     "note": "plan"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "قضية غير مرئية (404)",
+     "detail_ar": "تُسجَّل محاولة بحالة DENIED_NO_CASE_ACCESS ويُدقَّق الرفض ويُجاب 404 وكأن القضية غير موجودة.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/assistant/AssistantService.java",
+       "lines": "73-77",
+       "note": "DENIED_NO_CASE_ACCESS"
+      },
+      {
+       "path": "frontend/src/i18n/messages/assistant.ar.ts",
+       "lines": "110",
+       "note": "gone message"
+      }
+     ]
+    },
+    {
+     "kind": "denied",
+     "title_ar": "لا صلاحية (403)",
+     "detail_ar": "نقص ASSISTANT_USE أو CASE_VIEW أو DOCUMENT_VIEW؛ تُسجَّل DENIED_PERMISSION.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/assistant/AssistantService.java",
+       "lines": "78-83",
+       "note": "DENIED_PERMISSION"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/assistant/AssistantService.java",
+       "lines": "106-109",
+       "note": "CASE_VIEW"
+      }
+     ]
+    },
+    {
+     "kind": "validation",
+     "title_ar": "مدخل ناقص (400)",
+     "detail_ar": "مثل سؤال فارغ لمهمة QUESTION.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/assistant/Retriever.java",
+       "lines": "395-427",
+       "note": "requireShape"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "actor_ar": "الخادم (الاسترجاع)",
+   "action_ar": "يجمع المقاطع المستشهد بها فقط عبر وحدات تفرض قواعد الاطلاع.",
+   "response_ar": "سؤال: يستخرج حتى 6 كلمات بحث، ويبحث بكل كلمة عبر محرك البحث الموحّد ونصوص المستندات ومكتبة الأحكام، ويقبل مقاطع تطابق نصف الكلمات على الأقل، وحتى 8 مقاطع. تحليل مستند: يختار جملًا فيها تواريخ أو أرقام قضايا أو أطراف أو طلبات أو دفوع أو منطوق (حتى 6 لكل قسم). مقارنة: جمل في الأول فقط وفي الثاني فقط وفي المستندين معًا.",
+   "rules_ar": [
+    "المساعد لا يقرأ إلا ما يقرؤه المستخدم بصلاحياته نفسها (لا مستند مسحوب ولا قضية مخفية).",
+    "نص المستندات والملاحظات بيانات: يُقتبس ولا يُنفَّذ، وما يشبه التعليمات يُعلَّم بتحذير."
+   ],
+   "data_ar": "مقاطع مرقّمة بمصدرها.",
+   "next_ar": "تركيب الإجابة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/Retriever.java",
+     "lines": "91-135",
+     "note": "question"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/Retriever.java",
+     "lines": "260-293",
+     "note": "analysis/comparison"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/Keywords.java",
+     "lines": "14-44",
+     "note": "keywords"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/TextRules.java",
+     "lines": "16-63",
+     "note": "rules"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/documents/DocumentReadPort.java",
+     "lines": "49-88",
+     "note": "document reads"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "لا مصادر كافية",
+     "detail_ar": "يرفض بالنتيجة INSUFFICIENT_SOURCES مع سبب: NO_SEARCH_WORDS أو NO_RELEVANT_SOURCES أو DOCUMENT_TEXT_UNAVAILABLE ولا يُختلق شيء.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/assistant/Plan.java",
+       "lines": "13-26",
+       "note": "refusals"
+      },
+      {
+       "path": "frontend/src/i18n/messages/assistant.ar.ts",
+       "lines": "54-56",
+       "note": "Arabic refusals"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "actor_ar": "الخادم (مزود الاختبار المحلي)",
+   "action_ar": "يركّب الإجابة من العناوين والمقاطع.",
+   "response_ar": "المزود LOCAL_EXTRACTIVE_TEST يكتب عنوانًا ثابتًا لكل قسم ثم يقتبس المقاطع حرفيًا مع رقم المصدر، ويختم بملاحظة أنها مسودة مجمعة من نصوص مخزنة وليست رأيًا. لا يولّد جملًا ولا يتصل بالشبكة.",
+   "rules_ar": [],
+   "data_ar": "كتل HEADING وQUOTE وNOTE ومصادرها.",
+   "next_ar": "عرض الإجابة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/LocalTestProvider.java",
+     "lines": "19-47",
+     "note": "provider"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/AssistantProvider.java",
+     "lines": "7-16",
+     "note": "port comment"
+    }
+   ],
+   "alt": []
+  },
+  {
+   "n": 6,
+   "actor_ar": "المستخدم",
+   "action_ar": "يقرأ الإجابة والمصادر ويحتفظ بالنتيجة كمسودة إن شاء.",
+   "response_ar": "تُعرض الإجابة بعنوان «الإجابة» وتحتها «المصادر»؛ والمسودة المحفوظة غير نهائية دائمًا وتحتاج مراجعة العضو.",
+   "rules_ar": [
+    "الإجابة تحمل operational=false وmode=NON_PRODUCTION_TEST.",
+    "كل سؤال يُسجَّل (حتى المرفوض) ويُدقَّق؛ السجل يحوي معرّفات وسؤالًا مختصرًا لا نص مصادر ولا إجابة، وتُحذف أرقام طويلة (6 أرقام فأكثر)."
+   ],
+   "data_ar": "Answer: queryId، outcome، blocks، sources، outputId، isFinal=false.",
+   "next_ar": "مراجعة المسودة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/AssistantService.java",
+     "lines": "93-102",
+     "note": "answer"
+    },
+    {
+     "path": "frontend/src/features/assistant/CaseAssistantPanel.tsx",
+     "lines": "154-173",
+     "note": "answer + drafts"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/AssistantOutputs.java",
+     "lines": "59-76",
+     "note": "save"
+    }
+   ],
+   "alt": []
+  },
+  {
+   "n": 7,
+   "actor_ar": "المستخدم",
+   "action_ar": "يضغط «راجعتها: اعتمد المسودة» أو «تجاهل».",
+   "response_ar": "تصبح الحالة «راجعتها واعتمدتها (وما زالت غير نهائية)» أو «متجاهَلة». الاعتماد لا ينشئ مذكرة ولا مستندًا ولا يغيّر القضية.",
+   "rules_ar": [
+    "المسودة للمستخدم الذي طلبها فقط، وتبقى مرئية له ما دامت قضيتها مرئية له."
+   ],
+   "data_ar": "",
+   "next_ar": "انتهاء.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/AssistantController.java",
+     "lines": "65-69",
+     "note": "review"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/AssistantOutputs.java",
+     "lines": "101-116",
+     "note": "review"
+    },
+    {
+     "path": "frontend/src/i18n/messages/assistant.ar.ts",
+     "lines": "105-107",
+     "note": "status labels"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "مسودة سبقت مراجعتها (422)",
+     "detail_ar": "القاعدة ASSISTANT_OUTPUT_ALREADY_REVIEWED.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/assistant/AssistantOutputs.java",
+       "lines": "102-106",
+       "note": "already reviewed"
+      }
+     ]
+    },
+    {
+     "kind": "denied",
+     "title_ar": "مسودة غيره أو قضية لم تعد مرئية (404)",
+     "detail_ar": "يُجاب كأنها غير موجودة.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/assistant/AssistantOutputs.java",
+       "lines": "118-127",
+       "note": "find"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 8,
+   "actor_ar": "أي مستخدم مسجل",
+   "action_ar": "يفتح «المساعد القانوني» من القائمة لرؤية حالته.",
+   "response_ar": "تُعرض: تشغيلي: لا، السبب: لا مزود معتمد، الوضع: اختبار غير تشغيلي، المزود: مزود اختبار محلي، عدد المزودين المعتمدين، نداءات خارجية: لا شيء، خروج بيانات القضايا: لا شيء.",
+   "rules_ar": [
+    "الحالة لا تحمل بيانات قضايا وهي متاحة لكل مستخدم مسجل."
+   ],
+   "data_ar": "",
+   "next_ar": "انتهاء.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/assistant/AssistantStatusPage.tsx",
+     "lines": "13-121",
+     "note": "status page"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/AssistantStatus.java",
+     "lines": "15-43",
+     "note": "status"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/AssistantController.java",
+     "lines": "41-45",
+     "note": "status endpoint"
+    }
+   ],
+   "alt": []
+  }
+ ],
+ "rules": [
+  {
+   "text_ar": "المساعد للقراءة فقط: الصفوف الوحيدة التي يكتبها هي جلسته ومسودته وسجل أسئلته.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/AssistantService.java",
+     "lines": "17-30",
+     "note": "design comment"
+    }
+   ]
+  },
+  {
+   "text_ar": "لا يكون المساعد تشغيليًا إلا بمزود يعتمده المالك وبمحوّل له في التطبيق؛ ولا يوجد أيهما فيبقى غير تشغيلي.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/AssistantStatus.java",
+     "lines": "9-14",
+     "note": "comment"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/AssistantStatus.java",
+     "lines": "36-42",
+     "note": "operational=false"
+    }
+   ]
+  },
+  {
+   "text_ar": "لا إجابة دون مصادر: عند عدم كفاية المصادر يُرفض الطلب.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/Plan.java",
+     "lines": "9-26",
+     "note": "Plan"
+    }
+   ]
+  },
+  {
+   "text_ar": "المسودة لا تكون نهائية أبدًا (قيد في قاعدة البيانات is_final).",
+   "evidence": [
+    {
+     "path": "backend/src/main/resources/db/migration/V780__LD-059_assistant_tables.sql",
+     "lines": "41-60",
+     "note": "assistant_output"
+    }
+   ]
+  },
+  {
+   "text_ar": "سجل الأسئلة للإلحاق فقط ولا سياسة احتفاظ بعد؛ لا يُحذف تلقائيًا.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/QueryLog.java",
+     "lines": "20-24",
+     "note": "comment"
+    },
+    {
+     "path": "backend/src/main/resources/db/migration/V780__LD-059_assistant_tables.sql",
+     "lines": "1-14",
+     "note": "migration comment"
+    }
+   ]
+  },
+  {
+   "text_ar": "نص ما يبدو تعليمات للمساعد يُعرض كبيانات مع تحذير ولا يُنفَّذ.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/InstructionMarkers.java",
+     "lines": "1-34",
+     "note": "markers"
+    },
+    {
+     "path": "frontend/src/i18n/messages/assistant.ar.ts",
+     "lines": "62",
+     "note": "instruction warning"
+    }
+   ]
+  },
+  {
+   "text_ar": "صلاحية ASSISTANT_USE تمنحها الأدوار: مسؤول النظام والمدير القانوني ورئيس القسم والموظف القانوني.",
+   "evidence": [
+    {
+     "path": "backend/src/main/resources/db/migration/V781__LD-059_default_permissions.sql",
+     "lines": "8-8",
+     "note": "default roles"
+    }
+   ]
+  }
+ ],
+ "after_submit_ar": "تظهر الإجابة مع مصادرها في القسم نفسه، ويُسجَّل السؤال في سجل الاستعلامات، وإن حُفظت مسودة ظهرت في «مسوداتي من المساعد».",
+ "notifications_ar": [
+  "لا توجد إشعارات من المساعد (لم يُعثر على كود إشعارات في حزمة assistant)."
+ ],
+ "approvals_ar": [
+  "لا موافقات رسمية؛ «اعتماد المسودة» يعني فقط أن المستخدم راجعها ولا ينشئ سجلًا ولا يجعلها نهائية."
+ ],
+ "errors": [
+  {
+   "code": "HTTP 400 (errors[].field=question|caseId|documentId|otherDocumentId)",
+   "meaning_ar": "مدخل ناقص حسب المهمة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/Retriever.java",
+     "lines": "395-427",
+     "note": "requireShape"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 403",
+   "meaning_ar": "لا ASSISTANT_USE أو CASE_VIEW أو DOCUMENT_VIEW.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/AssistantService.java",
+     "lines": "78-83",
+     "note": "AccessDenied"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/AssistantController.java",
+     "lines": "47-49",
+     "note": "PreAuthorize"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 404",
+   "meaning_ar": "قضية أو مستند أو جلسة أو مسودة غير موجودة أو غير مرئية.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/AssistantService.java",
+     "lines": "66-68",
+     "note": "session"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/AssistantService.java",
+     "lines": "73-77",
+     "note": "case"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 422 rule=ASSISTANT_OUTPUT_ALREADY_REVIEWED",
+   "meaning_ar": "المسودة روجعت من قبل.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/AssistantOutputs.java",
+     "lines": "102-106",
+     "note": "review"
+    }
+   ]
+  },
+  {
+   "code": "outcome=INSUFFICIENT_SOURCES (HTTP 200)",
+   "meaning_ar": "رفض داخل الإجابة نفسها لا خطأ HTTP.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/assistant/AssistantService.java",
+     "lines": "87-92",
+     "note": "refusal"
+    }
+   ]
+  }
+ ],
+ "result_ar": "إجابة مقتبسة مع مصادرها أو رفض صريح لنقص المصادر، ومسودة اختيارية غير نهائية، وحالة تؤكد أن المساعد غير تشغيلي.",
+ "related": [
+  "search",
+  "documents-ocr",
+  "library",
+  "case-access-confidentiality",
+  "audit",
+  "integrations",
+  "roles-permissions"
+ ],
+ "endpoints": [
+  {
+   "method": "GET",
+   "path": "/api/v1/assistant/status",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/assistant/AssistantController.java",
+    "lines": "41-42",
+    "note": "/status"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/assistant/ask",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/assistant/AssistantController.java",
+    "lines": "47-48",
+    "note": "/ask"
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/assistant/outputs",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/assistant/AssistantController.java",
+    "lines": "53-54",
+    "note": "/outputs"
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/assistant/outputs/{id}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/assistant/AssistantController.java",
+    "lines": "59-60",
+    "note": "/outputs/{id}"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/assistant/outputs/{id}/review",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/assistant/AssistantController.java",
+    "lines": "65-66",
+    "note": "/outputs/{id}/review"
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/assistant/queries",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/assistant/AssistantController.java",
+    "lines": "72-73",
+    "note": "/queries"
+   }
+  }
+ ],
+ "tech": {
+  "chain": [
+   {
+    "layer": "screen",
+    "label": "CaseAssistantPanel",
+    "ref": {
+     "path": "frontend/src/features/assistant/CaseAssistantPanel.tsx",
+     "lines": "24-176",
+     "note": "panel"
+    },
+    "data_ar": "المهمة والسؤال والمستندات"
+   },
+   {
+    "layer": "api_call",
+    "label": "ask",
+    "ref": {
+     "path": "frontend/src/features/assistant/api.ts",
+     "lines": "109-111",
+     "note": "ask"
+    },
+    "data_ar": "POST بجسم JSON"
+   },
+   {
+    "layer": "controller",
+    "label": "AssistantController.ask",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/assistant/AssistantController.java",
+     "lines": "47-51",
+     "note": "controller"
+    },
+    "data_ar": "Ask بعد التحقق"
+   },
+   {
+    "layer": "authorization",
+    "label": "ASSISTANT_USE + CaseAccessPolicy",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/assistant/AssistantService.java",
+     "lines": "61-83",
+     "note": "guards"
+    },
+    "data_ar": "قبول أو رفض 403/404 مع تسجيل"
+   },
+   {
+    "layer": "service",
+    "label": "AssistantService / Retriever",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/assistant/Retriever.java",
+     "lines": "91-135",
+     "note": "retrieval"
+    },
+    "data_ar": "مقاطع مرقّمة"
+   },
+   {
+    "layer": "service",
+    "label": "LocalTestProvider.compose",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/assistant/LocalTestProvider.java",
+     "lines": "29-47",
+     "note": "provider"
+    },
+    "data_ar": "كتل الإجابة"
+   },
+   {
+    "layer": "tables",
+    "label": "assistant_session / assistant_output / assistant_query_log",
+    "ref": {
+     "path": "backend/src/main/resources/db/migration/V780__LD-059_assistant_tables.sql",
+     "lines": "31-75",
+     "note": "tables"
+    },
+    "data_ar": "جلسة ومسودة وسجل"
+   },
+   {
+    "layer": "result",
+    "label": "AssistantRequests.Answer",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/assistant/AssistantRequests.java",
+     "lines": "44-47",
+     "note": "answer"
+    },
+    "data_ar": "إجابة بمصادرها أو رفض"
+   }
+  ]
+ },
+ "status": "IMPLEMENTED_ON_DEVELOP",
+ "status_note_ar": "الكود موجود على develop بوضع اختبار غير تشغيلي بقرار المالك؛ ليس مساعدًا تشغيليًا.",
+ "status_evidence": [
+  {
+   "path": "backend/src/main/java/com/lawdesk/assistant/AssistantStatus.java",
+   "lines": "15-43",
+   "note": "not operational"
+  },
+  {
+   "path": "backend/src/main/java/com/lawdesk/assistant/AssistantService.java",
+   "lines": "61-103",
+   "note": "ask"
+  }
+ ],
+ "verification_ar": "قُرئ الكود (المتحكم والخدمة والاسترجاع والمزود المحلي والمسودات وسجل الاستعلامات وترحيلي V780/V781 وواجهة React ورسائلها العربية). اختبارات موجودة: backend/src/test/java/com/lawdesk/assistant/ (AssistantAskApiTest، AssistantBoundariesTest، AssistantDefaultRolesTest، AssistantTasksApiTest) واختبارات الواجهة في frontend/src/features/assistant. لم تُشغَّل الاختبارات ولم يُجرَ تحقق UAT. لم أتحقق من أن اختبار NoNetworkTest المذكور في التعليقات موجود، ولا من تفاصيل مهام التلخيص والسوابق ومسودة المذكرة (Retriever 194-255) وأقسامها بالتفصيل. ما لم يُعتمد مزود فالمساعد غير تشغيلي ولا يصحّ اعتباره دليلًا على مساعد عامل."
+}

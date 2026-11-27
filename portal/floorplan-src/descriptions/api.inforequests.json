@@ -1,0 +1,70 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/inforequests/InfoRequestController.java": {
+      "name": "طلبات المعلومات من الجهات",
+      "description": "يجمع طلبات المعلومات الموجهة إلى وحدات الجهة وردودها ومتابعتها: إنشاؤها وعرضها وتعديلها وتغيير حالتها وتسجيل الردود والمتابعات وتقرير الاستجابة."
+    },
+    "backend/src/main/java/com/lawdesk/inforequests/InfoRequestReportQueries.java": {
+      "name": "بيانات تقارير طلبات المعلومات",
+      "description": "يمنح التقارير الطلبات المتأخرة وما فعلته كل وحدة بالطلبات الموجهة إليها، للقراءة فقط."
+    },
+    "backend/src/main/java/com/lawdesk/inforequests/InfoRequestRequests.java": {
+      "name": "نماذج طلبات المعلومات",
+      "description": "يحدد الحقول المرسلة والردود: الطلب الجديد يبدأ دائماً مسودة والرقم يضعه النظام، والتعديل بحسب رقم النسخة المقروءة، والرد والمتابعة وتقرير استجابة الوحدات."
+    },
+    "backend/src/main/java/com/lawdesk/inforequests/InfoRequestService.java": {
+      "name": "خدمة طلبات المعلومات",
+      "description": "ينفذ طلبات الإفادات والمستندات الموجهة إلى وحدات الجهة: إنشاءها وتعديلها وتغيير حالتها وتسجيل الردود والمتابعات."
+    },
+    "backend/src/main/java/com/lawdesk/inforequests/InfoRequestStatus.java": {
+      "name": "حالات طلب المعلومات",
+      "description": "يحدد الحالات التي يمر بها الطلب الموجه إلى وحدة في الجهة."
+    },
+    "backend/src/main/java/com/lawdesk/inforequests/InfoRequestStore.java": {
+      "name": "حفظ طلبات المعلومات",
+      "description": "يقرأ ويكتب في قاعدة البيانات طلبات المعلومات وردودها ومتابعاتها، ويرشح قائمة طلبات كل القضايا."
+    },
+    "backend/src/main/java/com/lawdesk/inforequests/Rules.java": {
+      "name": "رموز قواعد طلبات المعلومات",
+      "description": "يحدد رموزاً ثابتة لرفض الطلب: القضية مؤرشفة، انتقال الحالة غير مسموح، الطلب لم يُرسل، الطلب مغلق، أو مستند الرد ليس من القضية."
+    }
+  },
+  "routes": {
+    "GET /api/v1/cases/{caseId}/info-requests": {
+      "name": "طلبات معلومات قضية",
+      "description": "يعرض طلبات المعلومات المرتبطة بقضية صفحة صفحة، لمن لديه صلاحية عرض الطلبات."
+    },
+    "POST /api/v1/cases/{caseId}/info-requests": {
+      "name": "إنشاء طلب معلومات",
+      "description": "ينشئ طلب معلومات جديداً في القضية يبدأ مسودة، لمن لديه صلاحية إدارة الطلبات."
+    },
+    "GET /api/v1/info-requests": {
+      "name": "كل طلبات المعلومات",
+      "description": "يعرض طلبات المعلومات عبر القضايا، ويمكن تصفيتها بالحالة أو التأخر أو الوحدة."
+    },
+    "GET /api/v1/info-requests/report": {
+      "name": "تقرير استجابة الوحدات",
+      "description": "يعرض تقرير طلبات المعلومات واستجابة وحدات الجهة لها."
+    },
+    "GET /api/v1/info-requests/{id}": {
+      "name": "عرض طلب معلومات",
+      "description": "يعرض طلب معلومات واحداً."
+    },
+    "PUT /api/v1/info-requests/{id}": {
+      "name": "تعديل طلب معلومات",
+      "description": "يعدّل حقول الطلب كاملة بحسب رقم النسخة المقروءة، لمن لديه صلاحية إدارة الطلبات."
+    },
+    "POST /api/v1/info-requests/{id}/status": {
+      "name": "تغيير حالة طلب معلومات",
+      "description": "ينقل الطلب إلى حالة أخرى، لمن لديه صلاحية إدارة الطلبات."
+    },
+    "POST /api/v1/info-requests/{id}/replies": {
+      "name": "تسجيل رد على طلب",
+      "description": "يسجل رداً وصل على طلب المعلومات، لمن لديه صلاحية إدارة الطلبات."
+    },
+    "POST /api/v1/info-requests/{id}/follow-ups": {
+      "name": "تسجيل متابعة لطلب",
+      "description": "يسجل متابعة جرت بشأن طلب المعلومات، لمن لديه صلاحية إدارة الطلبات."
+    }
+  }
+}

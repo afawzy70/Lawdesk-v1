@@ -1,0 +1,164 @@
+{
+  "id": "hearings",
+  "category": "litigation",
+  "name_ar": "الجلسات وسلسلة التأجيل",
+  "summary_ar": "تحديد جلسات الدعوى وتعديل مواعيدها وتسجيل نتيجة كل جلسة (انعقدت أو تأجلت أو ألغيت)، وعند التأجيل تُنشأ الجلسة التالية كسجل مستقل مرتبط بالسابقة فتتكوّن سلسلة تأجيلات. وإن لم تحدد المحكمة موعدًا تاليًا تدخل الجلسة قائمة المتابعة.",
+  "purpose_ar": "أن يعرف فريق الشؤون القانونية جدول الجلسات يومًا بيوم، ويحتفظ بتاريخ كل ما جرى في كل جلسة، ولا يضيع أي تأجيل بلا موعد تالٍ.",
+  "who_ar": ["من يملك صلاحية عرض الجلسات", "من يملك صلاحية إدارة الجلسات"],
+  "who_perms": ["HEARING_VIEW", "HEARING_MANAGE"],
+  "access_ar": "القائمة > جدول الجلسات (كل القضايا)، أو صفحة القضية > قسم الجلسات",
+  "route": "/hearings",
+  "prerequisites_ar": [
+    "وجود دعوى مسجلة في القضية (انظر ميزة الإجراءات القضائية)، فالجلسة تُحدَّد على دعوى وليس على القضية مباشرة.",
+    "القضية غير مؤرشفة، والمستخدم يملك حق تغيير القضية.",
+    "إن عُيّن عضو مسؤول عن الجلسة فيجب أن يكون مستخدمًا موجودًا في النظام."
+  ],
+  "fields": {
+    "required": [
+      {"name_ar": "التاريخ", "code": "hearingDate", "rule_ar": "مطلوب. لا يسبق تاريخ قيد الدعوى، ولا يتجاوز سنتين من اليوم. لا تتكرر جلستان لنفس الدعوى في نفس اليوم.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingRequests.java", "lines": "26-27", "note": "NotNull"}, {"path": "backend/src/main/java/com/lawdesk/hearings/HearingService.java", "lines": "329-339", "note": "reach and filing rules"}]},
+      {"name_ar": "الغرض", "code": "purpose", "rule_ar": "مطلوب: أول جلسة، مرافعة، إثبات وسماع شهود، مناقشة تقرير الخبير، النطق بالحكم، أخرى.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingPurpose.java", "lines": "6-16", "note": "enum"}, {"path": "frontend/src/i18n/messages/operations.ar.ts", "lines": "42-47", "note": "Arabic purposes"}]}
+    ],
+    "optional": [
+      {"name_ar": "الوقت", "code": "hearingTime", "rule_ar": "اختياري بصيغة HH:mm.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingRequests.java", "lines": "20-28", "note": "time format"}]},
+      {"name_ar": "ملاحظات التحضير", "code": "notes", "rule_ar": "اختيارية حتى 2000 حرف وتُقص المسافات.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingRequests.java", "lines": "30-30", "note": "Size 2000"}]},
+      {"name_ar": "الدائرة", "code": "chamber", "rule_ar": "اختيارية حتى 200 حرف.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingRequests.java", "lines": "31-31", "note": "Size 200"}]},
+      {"name_ar": "نوع الجلسة", "code": "kind", "rule_ar": "اختياري: محكمة، خبراء، تحقيق، إجراء آخر.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingKind.java", "lines": "6-9", "note": "enum"}, {"path": "frontend/src/i18n/messages/wp3.ar.ts", "lines": "26-30", "note": "Arabic kinds"}]},
+      {"name_ar": "القاضي أو الخبير", "code": "judgeOrExpert", "rule_ar": "اختياري حتى 200 حرف.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingRequests.java", "lines": "33-33", "note": "Size 200"}]},
+      {"name_ar": "العضو القانوني المسؤول", "code": "responsibleMemberId", "rule_ar": "اختياري؛ إن وُجد يجب أن يكون مستخدمًا معروفًا وإلا يرد 400 على الحقل.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingService.java", "lines": "286-290", "note": "requireMember"}]},
+      {"name_ar": "الحاضرون / ما تم في الجلسة / طلبات الخصوم / الإجراء المطلوب", "code": "attendees, proceedingsSummary, opponentsRequests, requiredAction", "rule_ar": "اختيارية؛ الحاضرون والإجراء المطلوب حتى 2000 حرف، وما تم وطلبات الخصوم حتى 4000 حرف.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingRequests.java", "lines": "35-38", "note": "Sizes"}]}
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "actor_ar": "الموظف المخوّل بإدارة الجلسات",
+      "action_ar": "من صفحة القضية يضغط «تحديد جلسة»، فيختار الدعوى ويدخل التاريخ والوقت والغرض وبقية البيانات الاختيارية.",
+      "response_ar": "تُحفظ الجلسة بحالة «محددة» ويُسجَّل في خط القضية الزمني حدث HEARING_SCHEDULED، وتظهر الجلسة في قائمة جلسات القضية وفي جدول الجلسات.",
+      "rules_ar": ["الصلاحية HEARING_MANAGE.", "القضية المؤرشفة للقراءة فقط (CASE_ARCHIVED).", "التاريخ لا يسبق قيد الدعوى ولا يتجاوز سنتين."],
+      "data_ar": "الدعوى، التاريخ، الوقت، الغرض، الملاحظات والبيانات الوصفية.",
+      "next_ar": "بعد يوم الجلسة تُسجَّل نتيجتها.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingController.java", "lines": "35-42", "note": "POST /proceedings/{proceedingId}/hearings"}, {"path": "backend/src/main/java/com/lawdesk/hearings/HearingService.java", "lines": "76-94", "note": "create"}, {"path": "backend/src/test/java/com/lawdesk/hearings/HearingApiTest.java", "lines": "47-90", "note": "test: schedule + timeline"}],
+      "alt": [
+        {"kind": "validation", "title_ar": "حقل ناقص أو خارج النطاق (400)", "detail_ar": "تاريخ ناقص أو غرض ناقص أو نص أطول من الحد أو تاريخ بعد أكثر من سنتين (Range) يعطي 400 مع قائمة errors.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingService.java", "lines": "329-333", "note": "Range"}, {"path": "backend/src/test/java/com/lawdesk/hearings/HearingApiTest.java", "lines": "152-205", "note": "tests: required fields and boundaries"}]},
+        {"kind": "error", "title_ar": "الجلسة قبل قيد الدعوى (422)", "detail_ar": "الرمز HEARING_BEFORE_FILING، والرسالة «لا يجوز أن يسبق تاريخ الجلسة تاريخ قيد الدعوى».", "evidence": [{"path": "frontend/src/i18n/messages/operations.ar.ts", "lines": "36-36", "note": "Arabic rule"}]},
+        {"kind": "error", "title_ar": "يوم مأخوذ (409)", "detail_ar": "للدعوى جلسة في نفس اليوم بالفعل، فتظهر الرسالة «لهذه الدعوى جلسة في ذلك اليوم بالفعل».", "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingService.java", "lines": "359-366", "note": "store -> 409"}, {"path": "frontend/src/i18n/messages/operations.ar.ts", "lines": "98-98", "note": "dayTaken"}]},
+        {"kind": "denied", "title_ar": "لا صلاحية أو قضية غير مرئية أو مؤرشفة", "detail_ar": "من لا يملك HEARING_MANAGE يتلقى 403. القضية غير الموجودة أو غير المرئية تعطي 404، والمؤرشفة 422 بالرمز CASE_ARCHIVED.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingService.java", "lines": "302-309", "note": "writableCase"}, {"path": "backend/src/test/java/com/lawdesk/hearings/HearingApiTest.java", "lines": "390-412", "note": "test: archived"}, {"path": "backend/src/test/java/com/lawdesk/hearings/HearingApiTest.java", "lines": "431-460", "note": "test: viewers cannot write"}]}
+      ]
+    },
+    {
+      "n": 2,
+      "actor_ar": "الموظف المخوّل بإدارة الجلسات",
+      "action_ar": "يعدّل موعد جلسة محددة (التاريخ أو الوقت أو الغرض أو بياناتها) مرسلًا رقم الإصدار version الذي رآه.",
+      "response_ar": "تُحفظ التعديلات، وإن تغيّر التاريخ أو الوقت يُسجَّل حدث HEARING_RESCHEDULED. يمكن أيضًا تحويل الجلسة إلى عضو آخر بنقرة واحدة دون تغيير موعدها.",
+      "rules_ar": ["لا تُعدَّل إلا الجلسة المحددة (لم تُسجَّل نتيجتها).", "إن كانت الجلسة تأجيلًا لجلسة سابقة فيجب أن يكون تاريخها بعد السابقة (ADJOURNMENT_NOT_LATER).", "التحويل إلى العضو نفسه يرفض بالرمز HEARING_ALREADY_ASSIGNED."],
+      "data_ar": "حقول الجلسة مع version.",
+      "next_ar": "تسجيل النتيجة بعد انعقاد الجلسة.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingService.java", "lines": "120-149", "note": "update"}, {"path": "backend/src/main/java/com/lawdesk/hearings/HearingService.java", "lines": "151-174", "note": "reassign"}, {"path": "backend/src/main/java/com/lawdesk/hearings/HearingController.java", "lines": "71-81", "note": "PUT and reassign endpoints"}],
+      "alt": [
+        {"kind": "error", "title_ar": "تعارض الإصدار (409) أو جلسة لها نتيجة (422)", "detail_ar": "إن تغيرت الجلسة بيد غيرك يرد 409. ومحاولة تعديل جلسة سُجلت نتيجتها ترفض بالرمز HEARING_NOT_SCHEDULED («هذه الجلسة سُجّلت نتيجتها بالفعل»).", "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingService.java", "lines": "292-300", "note": "lockedCurrent"}, {"path": "backend/src/test/java/com/lawdesk/hearings/HearingApiTest.java", "lines": "607-623", "note": "test: stale version"}]}
+      ]
+    },
+    {
+      "n": 3,
+      "actor_ar": "الموظف المخوّل بإدارة الجلسات",
+      "action_ar": "بعد انعقاد الجلسة يسجّل نتيجتها: انعقدت، تأجلت، أو أُلغيت، مع قرار المحكمة وما تم في الجلسة.",
+      "response_ar": "تتحول حالة الجلسة ويُسجَّل حدث في خط القضية الزمني (HEARING_HELD أو HEARING_CANCELLED أو HEARING_ADJOURNED). لا تُسجَّل النتيجة إلا مرة واحدة.",
+      "rules_ar": ["الجلسة المستقبلية لا يُسجَّل لها إلا الإلغاء (HEARING_NOT_YET_HELD).", "الحقول الخاصة بالتأجيل ممنوعة عند الانعقاد أو الإلغاء."],
+      "data_ar": "الحالة، القرار، الحاضرون، ما تم، طلبات الخصوم، الإجراء المطلوب، وحقول التأجيل.",
+      "next_ar": "عند التأجيل: انظر الخطوة التالية.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingController.java", "lines": "92-96", "note": "POST /hearings/{id}/result"}, {"path": "backend/src/main/java/com/lawdesk/hearings/HearingService.java", "lines": "176-242", "note": "recordResult"}, {"path": "backend/src/test/java/com/lawdesk/hearings/HearingApiTest.java", "lines": "268-295", "note": "test: held once"}, {"path": "backend/src/test/java/com/lawdesk/hearings/HearingApiTest.java", "lines": "368-389", "note": "test: future only cancel"}],
+      "alt": [
+        {"kind": "error", "title_ar": "الجلسة لم يحن موعدها (422)", "detail_ar": "الرسالة «لم يحن موعد الجلسة بعد. الجلسة المقبلة يمكن إلغاؤها فقط.»", "evidence": [{"path": "frontend/src/i18n/messages/operations.ar.ts", "lines": "38-38", "note": "Arabic"}]},
+        {"kind": "exceptional", "title_ar": "سباق تسجيلين متزامنين", "detail_ar": "تسجيل نتيجتين متزامنتين لنفس الجلسة ينتهي بنتيجة واحدة (الجلسة تُقفل أثناء المعالجة).", "evidence": [{"path": "backend/src/test/java/com/lawdesk/hearings/HearingApiTest.java", "lines": "624-644", "note": "test: racing adjournments"}]}
+      ]
+    },
+    {
+      "n": 4,
+      "actor_ar": "الموظف المخوّل بإدارة الجلسات",
+      "action_ar": "عند التأجيل يدخل تاريخ الجلسة التالية (ووقتها وغرضها اختياريان وسبب التأجيل)، أو يعلّم «لم تحدد المحكمة موعدًا تاليًا» ويكتب السبب.",
+      "response_ar": "مع الموعد: تُنشأ جلسة جديدة مرتبطة بالسابقة تحمل دائرتها ونوعها وقاضيها والعضو المسؤول، فتتكوّن السلسلة. بدون موعد: تُسجَّل الجلسة مؤجلة بلا موعد وتدخل قائمة المتابعة وتُرسل إشعارات.",
+      "rules_ar": ["الموعد التالي يجب أن يكون بعد تاريخ الجلسة المؤجلة (ADJOURNMENT_NOT_LATER) وبعد قيد الدعوى.", "لا يُخمَّن أي موعد عند غيابه، وسبب عدم التحديد مطلوب.", "يمنع الجمع بين موعد تالٍ وعلامة عدم وجود موعد."],
+      "data_ar": "nextHearingDate وnextHearingTime وnextHearingPurpose وadjournmentReason وnoNextDate وnoNextDateReason.",
+      "next_ar": "إن لم يوجد موعد: تحديده لاحقًا من قائمة المتابعة.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingService.java", "lines": "198-242", "note": "adjournment branches"}, {"path": "backend/src/main/java/com/lawdesk/hearings/HearingService.java", "lines": "276-284", "note": "continuation"}, {"path": "backend/src/test/java/com/lawdesk/hearings/HearingApiTest.java", "lines": "296-367", "note": "tests: adjournment chain"}, {"path": "frontend/src/i18n/messages/wp3.ar.ts", "lines": "38-41", "note": "Arabic labels"}],
+      "alt": [
+        {"kind": "validation", "title_ar": "حقول التأجيل المتناقضة (400)", "detail_ar": "الخطأ يُعاد باسم الحقل: مثلًا nextHearingDate مطلوب عند التأجيل بموعد (NotNull)، وnoNextDateReason مطلوب عند عدم وجود موعد، وممنوعة (Null) عند غير التأجيل.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingService.java", "lines": "186-217", "note": "FieldErrorException"}]},
+        {"kind": "error", "title_ar": "موعد غير لاحق (422)", "detail_ar": "الرمز ADJOURNMENT_NOT_LATER.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingService.java", "lines": "341-345", "note": "requireLater"}, {"path": "backend/src/test/java/com/lawdesk/hearings/HearingApiTest.java", "lines": "335-367", "note": "test"}]}
+      ]
+    },
+    {
+      "n": 5,
+      "actor_ar": "الموظف المخوّل بإدارة الجلسات",
+      "action_ar": "من قائمة المتابعة (جلسات تأجلت دون موعد) يفتح الجلسة ويحدد الجلسة التالية.",
+      "response_ar": "تُنشأ الجلسة التالية كسجل مرتبط وتخرج الجلسة المؤجلة من المتابعة، ويُسجَّل حدث HEARING_NEXT_SET. لا يُعاد كتابة ما سُجّل سابقًا.",
+      "rules_ar": ["يُرفض إن لم تكن الجلسة في المتابعة أو سبق تحديد تاليتها (HEARING_NOT_AWAITING_DATE).", "التاريخ بعد الجلسة المؤجلة وبعد قيد الدعوى.", "رقم الإصدار مطلوب."],
+      "data_ar": "hearingDate وhearingTime وpurpose وversion.",
+      "next_ar": "تظهر الجلسة الجديدة في الجدول.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingController.java", "lines": "52-57", "note": "GET /hearings/follow-up"}, {"path": "backend/src/main/java/com/lawdesk/hearings/HearingController.java", "lines": "83-90", "note": "POST next-hearing"}, {"path": "backend/src/main/java/com/lawdesk/hearings/HearingService.java", "lines": "250-274", "note": "scheduleNext"}, {"path": "frontend/src/features/operations/hearings/HearingFollowUp.tsx", "lines": "15-50", "note": "follow-up list"}],
+      "alt": [
+        {"kind": "error", "title_ar": "الجلسة لا تنتظر موعدًا (422)", "detail_ar": "الرمز HEARING_NOT_AWAITING_DATE: «هذه الجلسة لا تنتظر موعدًا تاليًا».", "evidence": [{"path": "frontend/src/i18n/messages/wp3.ar.ts", "lines": "25-25", "note": "Arabic"}]}
+      ]
+    },
+    {
+      "n": 6,
+      "actor_ar": "أي مستخدم يملك عرض الجلسات",
+      "action_ar": "يفتح جدول الجلسات ويحدد الفترة (من/إلى) والحالة.",
+      "response_ar": "تظهر جلسات القضايا المرئية للمستخدم فقط، مع علامة «بانتظار النتيجة» للجلسات التي مضى يومها. الافتراضي الثلاثون يومًا القادمة.",
+      "rules_ar": ["الحد الأقصى للفترة 366 يومًا ونهاية الفترة لا تسبق بدايتها وإلا 400 على الحقل to.", "الجدول يُقيَّد بنطاق القضايا المسموح للمستخدم."],
+      "data_ar": "from وto وstatus وترقيم الصفحات.",
+      "next_ar": "فتح الجلسة لتسجيل نتيجتها.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingController.java", "lines": "44-50", "note": "GET /hearings"}, {"path": "backend/src/main/java/com/lawdesk/hearings/HearingService.java", "lines": "110-118", "note": "calendar"}, {"path": "frontend/src/features/operations/hearings/HearingsPage.tsx", "lines": "1-290", "note": "page"}, {"path": "backend/src/test/java/com/lawdesk/hearings/HearingApiTest.java", "lines": "207-227", "note": "test: bounded range"}],
+      "alt": [
+        {"kind": "validation", "title_ar": "فترة غير صحيحة (400)", "detail_ar": "تظهر الرسالة «يجب أن يكون تاريخ النهاية في يوم البداية أو بعده، وبحد أقصى 366 يومًا».", "evidence": [{"path": "frontend/src/i18n/messages/operations.ar.ts", "lines": "101-101", "note": "range message"}]}
+      ]
+    }
+  ],
+  "rules": [
+    {"text_ar": "لكل دعوى جلسة واحدة فقط في اليوم الواحد (فهرس فريد في قاعدة البيانات).", "evidence": [{"path": "backend/src/main/resources/db/migration/V400__LD-024_hearing.sql", "lines": "34-35", "note": "unique index"}]},
+    {"text_ar": "كل جلسة تالية سجل مستقل يشير إلى الجلسة التي أُجّلت منها، ولكل جلسة تالية واحدة على الأكثر.", "evidence": [{"path": "backend/src/main/resources/db/migration/V400__LD-024_hearing.sql", "lines": "18-18", "note": "adjourned_from_id unique"}]},
+    {"text_ar": "لا يجوز تعديل تاريخ قيد الدعوى بحيث يصبح بعد أي جلسة لها (حتى الملغاة).", "evidence": [{"path": "backend/src/test/java/com/lawdesk/hearings/HearingFilingChronologyTest.java", "lines": "73-101", "note": "tests"}]},
+    {"text_ar": "كل كتابة تُسجِّل حدثًا في خط القضية في نفس العملية؛ وفشل الحدث يلغي الكتابة.", "evidence": [{"path": "backend/src/test/java/com/lawdesk/hearings/HearingApiTest.java", "lines": "489-505", "note": "test: rollback"}]}
+  ],
+  "after_submit_ar": "تُحفظ الجلسة أو نتيجتها ويُضاف حدث لخط القضية؛ وعند التأجيل بموعد تظهر الجلسة التالية في الجدول وفي سلسلة الجلسات.",
+  "notifications_ar": [
+    "عند تأجيل جلسة دون موعد تالٍ يُرسل إشعار من نوع HEARING_NO_NEXT_DATE إلى العضو المسؤول عن الجلسة والمختص الأساسي بالقضية، وإن لم يوجد أيهما فإلى من سجّل النتيجة. الإشعار نفسه لا يتكرر لنفس الجلسة والمستلم.",
+    "لا تُرسل إشعارات عند تحديد الجلسة أو تعديلها أو عند الانعقاد؛ لم أجد ذلك في خدمة الجلسات."
+  ],
+  "approvals_ar": ["لا توجد موافقات على الجلسات؛ تُحفظ مباشرة بعد التحقق من القواعد."],
+  "errors": [
+    {"code": "HTTP 400", "meaning_ar": "حقل ناقص أو غير صالح أو فترة غير صحيحة؛ يحمل errors باسم الحقل والقيد.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java", "lines": "34-49", "note": "problem with errors"}]},
+    {"code": "HTTP 403", "meaning_ar": "لا توجد صلاحية HEARING_VIEW أو HEARING_MANAGE.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingController.java", "lines": "35-37", "note": "PreAuthorize"}]},
+    {"code": "HTTP 404", "meaning_ar": "الجلسة أو الدعوى أو القضية غير موجودة أو غير مرئية.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingService.java", "lines": "96-100", "note": "NotFound"}]},
+    {"code": "HTTP 409", "meaning_ar": "جلسة في نفس اليوم للدعوى نفسها، أو تغيّرت الجلسة بيد غيرك.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingService.java", "lines": "359-366", "note": "ConflictException"}]},
+    {"code": "HTTP 422 + rule", "meaning_ar": "إحدى القواعد: CASE_ARCHIVED, HEARING_BEFORE_FILING, HEARING_NOT_SCHEDULED, HEARING_NOT_YET_HELD, HEARING_NOT_AWAITING_DATE, ADJOURNMENT_NOT_LATER, HEARING_ALREADY_ASSIGNED.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/Rules.java", "lines": "7-21", "note": "codes"}, {"path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java", "lines": "90-96", "note": "rule problem"}]}
+  ],
+  "result_ar": "جدول جلسات محدّث وقائمة جلسات القضية مرتبة، وكل تأجيل مرتبط بجلسته التالية، وجلسات بلا موعد تالٍ ظاهرة في قائمة المتابعة.",
+  "related": ["proceedings-stages", "calendar", "follow-up", "notifications", "deadlines"],
+  "endpoints": [
+    {"method": "POST", "path": "/api/v1/proceedings/{proceedingId}/hearings", "evidence": {"path": "backend/src/main/java/com/lawdesk/hearings/HearingController.java", "lines": "35-42", "note": "schedule"}},
+    {"method": "GET", "path": "/api/v1/hearings", "evidence": {"path": "backend/src/main/java/com/lawdesk/hearings/HearingController.java", "lines": "44-50", "note": "calendar"}},
+    {"method": "GET", "path": "/api/v1/hearings/follow-up", "evidence": {"path": "backend/src/main/java/com/lawdesk/hearings/HearingController.java", "lines": "52-57", "note": "follow-up"}},
+    {"method": "GET", "path": "/api/v1/cases/{caseId}/hearings", "evidence": {"path": "backend/src/main/java/com/lawdesk/hearings/HearingController.java", "lines": "59-63", "note": "for case"}},
+    {"method": "GET", "path": "/api/v1/hearings/{id}", "evidence": {"path": "backend/src/main/java/com/lawdesk/hearings/HearingController.java", "lines": "65-69", "note": "get"}},
+    {"method": "PUT", "path": "/api/v1/hearings/{id}", "evidence": {"path": "backend/src/main/java/com/lawdesk/hearings/HearingController.java", "lines": "71-75", "note": "update"}},
+    {"method": "POST", "path": "/api/v1/hearings/{id}/reassign", "evidence": {"path": "backend/src/main/java/com/lawdesk/hearings/HearingController.java", "lines": "77-81", "note": "reassign"}},
+    {"method": "POST", "path": "/api/v1/hearings/{id}/next-hearing", "evidence": {"path": "backend/src/main/java/com/lawdesk/hearings/HearingController.java", "lines": "83-90", "note": "next"}},
+    {"method": "POST", "path": "/api/v1/hearings/{id}/result", "evidence": {"path": "backend/src/main/java/com/lawdesk/hearings/HearingController.java", "lines": "92-96", "note": "result"}}
+  ],
+  "tech": {
+    "chain": [
+      {"layer": "screen", "label": "HearingsPage", "ref": {"path": "frontend/src/features/operations/routes.tsx", "lines": "23-23", "note": "route /hearings"}, "data_ar": "الفترة والحالة المختارتان."},
+      {"layer": "api_call", "label": "recordResult", "ref": {"path": "frontend/src/features/operations/hearings/hearingsApi.ts", "lines": "169-175", "note": "POST result"}, "data_ar": "حالة النتيجة وحقول التأجيل مع version."},
+      {"layer": "controller", "label": "HearingController.result", "ref": {"path": "backend/src/main/java/com/lawdesk/hearings/HearingController.java", "lines": "92-96", "note": "result"}, "data_ar": "الطلب بعد التحقق من القيود."},
+      {"layer": "authorization", "label": "HEARING_MANAGE + requireChange", "ref": {"path": "backend/src/main/java/com/lawdesk/hearings/HearingService.java", "lines": "302-309", "note": "writableCase"}, "data_ar": "السماح أو الرفض بحسب القضية."},
+      {"layer": "service", "label": "HearingService.recordResult", "ref": {"path": "backend/src/main/java/com/lawdesk/hearings/HearingService.java", "lines": "176-242", "note": "recordResult"}, "data_ar": "كيان الجلسة بحالته الجديدة وجلسة تالية عند الحاجة."},
+      {"layer": "repository", "label": "HearingRepository", "ref": {"path": "backend/src/main/java/com/lawdesk/hearings/HearingRepository.java", "lines": "1-66", "note": "repo"}, "data_ar": "حفظ الجلسات وقراءتها بنطاق القضايا."},
+      {"layer": "tables", "label": "hearing", "ref": {"path": "backend/src/main/resources/db/migration/V400__LD-024_hearing.sql", "lines": "1-37", "note": "table"}, "data_ar": "صف الجلسة وصف الجلسة التالية المرتبط به."},
+      {"layer": "event", "label": "HEARING_ADJOURNED / publishHearingWithoutDate", "ref": {"path": "backend/src/main/java/com/lawdesk/hearings/HearingService.java", "lines": "226-240", "note": "events + notification"}, "data_ar": "حدث في خط القضية وإشعار عند غياب الموعد."}
+    ]
+  },
+  "status": "IMPLEMENTED_ON_DEVELOP",
+  "status_note_ar": "الشيفرة موجودة على develop. لم يُجرَ تحقق UAT بواسطة هذه الوثيقة.",
+  "status_evidence": [{"path": "backend/src/main/java/com/lawdesk/hearings/HearingService.java", "lines": "42-74", "note": "service on develop"}],
+  "verification_ar": "اختبارات وجدتها: backend/src/test/java/com/lawdesk/hearings/HearingApiTest.java وHearingExtensionApiTest.java وHearingFilingChronologyTest.java وHearingDatabaseIntegrityTest.java وHearingChainSerializationTest.java، وفي الواجهة frontend/src/features/operations/hearings/*.test.tsx. لم يُجرَ تحقق UAT. لم أتحقق من أي إشعارات أخرى للجلسات (مثل تذكير الجلسة القادمة ونتيجة غير مسجلة) لأنها تنشأ خارج حزمة الجلسات ولم أقرأها."
+}

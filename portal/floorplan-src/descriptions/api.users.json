@@ -1,0 +1,94 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/users/Account.java": {
+      "name": "حساب المستخدم",
+      "description": "يصف المستخدم كما هو محفوظ: بياناته وأدواره والصلاحيات التي تمنحها، وحالة التفعيل والقفل، والقضايا الإضافية التي يحق له رؤيتها. يُلغى دخول الجلسات القديمة عند إعادة تعيين كلمة المرور أو تغييرها أو تعطيل الحساب."
+    },
+    "backend/src/main/java/com/lawdesk/users/AdminBootstrap.java": {
+      "name": "إنشاء أول مدير للنظام",
+      "description": "ينشئ أول حساب مدير، ولا يعمل إلا إذا لم يكن في النظام أي مستخدم، ويأخذ اسم المستخدم والبريد وكلمة المرور من ملف مُجهّز خارج الشيفرة. لا يستدعيه ملف آخر حسب الفحص."
+    },
+    "backend/src/main/java/com/lawdesk/users/PasswordPolicy.java": {
+      "name": "سياسة كلمة المرور",
+      "description": "يفرض أن تكون كلمة المرور 12 حرفاً على الأقل، وألا تزيد عن 72 بايت، وألا تطابق اسم المستخدم أو بريده؛ وهذا افتراض مسجل في وثائق القبول."
+    },
+    "backend/src/main/java/com/lawdesk/users/RoleAdministration.java": {
+      "name": "إدارة الأدوار",
+      "description": "ينفذ عرض الأدوار وتعديل الصلاحيات التي يمنحها كل دور، ويسجل ذلك في سجل التدقيق."
+    },
+    "backend/src/main/java/com/lawdesk/users/RoleController.java": {
+      "name": "طلبات الأدوار",
+      "description": "يعرض دوراً بصلاحياته ويتيح تعديله، ويستخدمه قسم الإدارة في الشاشات."
+    },
+    "backend/src/main/java/com/lawdesk/users/RoleRequests.java": {
+      "name": "نماذج طلبات الأدوار",
+      "description": "يحدد الحقول المرسلة عند إنشاء دور أو تعديله."
+    },
+    "backend/src/main/java/com/lawdesk/users/RoleView.java": {
+      "name": "شكل عرض الدور",
+      "description": "يحدد ما يظهر عن الدور: اسمه ورمزه وهل هو دور أساسي في النظام والصلاحيات التي يمنحها."
+    },
+    "backend/src/main/java/com/lawdesk/users/UserAccounts.java": {
+      "name": "بيانات حسابات الدخول",
+      "description": "يقرأ ويغيّر بيانات الحسابات اللازمة لتسجيل الدخول والتحقق من الهوية، وتعتمد عليه أجزاء الأمان."
+    },
+    "backend/src/main/java/com/lawdesk/users/UserAdministration.java": {
+      "name": "إدارة المستخدمين",
+      "description": "ينفذ إنشاء المستخدمين وتعديلهم وتفعيلهم وتعطيلهم وتحديد أدوارهم وإعادة تعيين كلمة مرور أحدهم، مع التسجيل في سجل التدقيق."
+    },
+    "backend/src/main/java/com/lawdesk/users/UserController.java": {
+      "name": "طلبات إدارة المستخدمين",
+      "description": "يجمع طلبات عرض مستخدم وتعديله وتفعيله أو تعطيله وتحديد أدواره وإعادة تعيين كلمة مروره، وتستخدمه شاشات الإدارة."
+    },
+    "backend/src/main/java/com/lawdesk/users/UserDirectory.java": {
+      "name": "دليل أسماء المستخدمين",
+      "description": "يقدم أسماء المستخدمين للأقسام التي تسند عملاً إليهم كالمهام أو تقدم تقارير عن حجم العمل."
+    },
+    "backend/src/main/java/com/lawdesk/users/UserDirectoryController.java": {
+      "name": "قائمة المستخدمين للإسناد",
+      "description": "يعرض المستخدمين الفعالين الذين يمكن إسناد المهام إليهم أو تصفية حجم العمل بهم."
+    },
+    "backend/src/main/java/com/lawdesk/users/UserRequests.java": {
+      "name": "نماذج طلبات المستخدمين",
+      "description": "يحدد الحقول المرسلة عند إنشاء مستخدم أو تعديله أو تفعيله أو تحديد أدواره أو إعادة تعيين كلمة مروره."
+    },
+    "backend/src/main/java/com/lawdesk/users/UserView.java": {
+      "name": "شكل عرض المستخدم",
+      "description": "يحدد ما يراه المديرون عن المستخدم، ولا يتضمن كلمة المرور أبداً."
+    }
+  },
+  "routes": {
+    "GET /api/v1/roles/{id}": {
+      "name": "عرض دور",
+      "description": "يعرض دوراً واحداً مع الصلاحيات التي يمنحها."
+    },
+    "PUT /api/v1/roles/{id}": {
+      "name": "تعديل دور",
+      "description": "يعدّل الدور وصلاحياته، لمن لديه صلاحية إدارة الأدوار."
+    },
+    "GET /api/v1/users/{id}": {
+      "name": "عرض مستخدم",
+      "description": "يعرض بيانات مستخدم واحد، لمن لديه صلاحية عرض المستخدمين."
+    },
+    "PUT /api/v1/users/{id}": {
+      "name": "تعديل مستخدم",
+      "description": "يعدّل بيانات مستخدم، لمن لديه صلاحية إدارة المستخدمين."
+    },
+    "PUT /api/v1/users/{id}/enabled": {
+      "name": "تفعيل أو تعطيل مستخدم",
+      "description": "يفعّل حساب المستخدم أو يعطله، لمن لديه صلاحية إدارة المستخدمين."
+    },
+    "PUT /api/v1/users/{id}/roles": {
+      "name": "تحديد أدوار مستخدم",
+      "description": "يحدد الأدوار الممنوحة للمستخدم، لمن لديه صلاحية إدارة المستخدمين."
+    },
+    "POST /api/v1/users/{id}/password-reset": {
+      "name": "إعادة تعيين كلمة المرور",
+      "description": "يضع كلمة مرور مؤقتة للمستخدم، لمن لديه صلاحية إدارة المستخدمين."
+    },
+    "GET /api/v1/users/directory": {
+      "name": "قائمة المستخدمين الفعالين",
+      "description": "يعرض أسماء المستخدمين الفعالين لإسناد المهام وتصفية حجم العمل."
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/security/ActorPrincipal.java": {
+      "name": "هوية المستخدم المسجل",
+      "description": "يحدد ما يلزم لمعرفة هوية كل مستخدم مسجل الدخول (رقمه واسمه) ليعرف النظام من قام بالإجراء."
+    },
+    "backend/src/main/java/com/lawdesk/security/ActorRef.java": {
+      "name": "مرجع منفذ الإجراء",
+      "description": "يمثل المستخدم المسجل كما تراه بقية الأقسام، ويُحفظ في حقول من أنشأ ومن عدّل وفي سجلات التغيير."
+    },
+    "backend/src/main/java/com/lawdesk/security/AuthController.java": {
+      "name": "تسجيل الدخول",
+      "description": "يتولى تسجيل دخول المستخدم إلى التطبيق، ويحفظ الدخول في ملف تعريف الجلسة ويحمي كل طلب تغيير برمز إضافي."
+    },
+    "backend/src/main/java/com/lawdesk/security/CurrentActor.java": {
+      "name": "معرفة من ينفذ الإجراء",
+      "description": "هو الطريقة الوحيدة التي تعرف بها بقية الأقسام من يعمل الآن، دون الرجوع مباشرة إلى بيانات الأمان."
+    },
+    "backend/src/main/java/com/lawdesk/security/LawdeskUser.java": {
+      "name": "المستخدم المسجل دخوله",
+      "description": "يمثل المستخدم المسجل دخوله بأدواره وصلاحياته."
+    },
+    "backend/src/main/java/com/lawdesk/security/LawdeskUserDetailsService.java": {
+      "name": "البحث عن المستخدم عند الدخول",
+      "description": "يبحث عن المستخدم الذي يسجل دخوله باسم المستخدم أو البريد، دون اعتبار حالة الأحرف أو المسافات المحيطة؛ لا يستدعيه ملف آخر حسب الفحص."
+    },
+    "backend/src/main/java/com/lawdesk/security/MeController.java": {
+      "name": "ملفي الشخصي وكلمة مروري",
+      "description": "يتيح للمستخدم المسجل عرض ملفه الشخصي وتغيير كلمة مروره، ويسجل المحاولات الفاشلة في سجل التدقيق."
+    },
+    "backend/src/main/java/com/lawdesk/security/MeResponse.java": {
+      "name": "بيانات المستخدم الحالي",
+      "description": "يحدد ما يعود عن المستخدم الحالي: من هو وما يحق له، ولا يتضمن كلمة المرور أبداً."
+    },
+    "backend/src/main/java/com/lawdesk/security/PasswordChangeRequiredFilter.java": {
+      "name": "إلزام تغيير كلمة المرور",
+      "description": "إلى أن يغيّر المستخدم كلمة مروره، لا يتيح النظام له إلا ملفه الشخصي وتغيير كلمة المرور وتسجيل الخروج."
+    },
+    "backend/src/main/java/com/lawdesk/security/Permission.java": {
+      "name": "قائمة الصلاحيات",
+      "description": "يحصر كل الصلاحيات التي يعرفها التطبيق ورموزها، وتعتمد عليها الأقسام الأخرى لتحديد من يحق له ماذا."
+    },
+    "backend/src/main/java/com/lawdesk/security/ReloadingSecurityContextRepository.java": {
+      "name": "تحديث بيانات الجلسة",
+      "description": "يبقي الدخول في الجلسة لكنه يعيد بناء بيانات المستخدم من قاعدة البيانات مع كل طلب، فيُخرَج المستخدم المعطل أو المحذوف فوراً وتسري تغييرات أدواره من الطلب التالي."
+    },
+    "backend/src/main/java/com/lawdesk/security/SessionRevocation.java": {
+      "name": "إنهاء الجلسات القديمة",
+      "description": "ينهي كل جلسة سُجل دخولها قبل إعادة تعيين إدارية لكلمة المرور أو تغييرها من جلسة أخرى أو تعطيل الحساب."
+    }
+  },
+  "routes": {
+    "GET /api/v1/auth/csrf": {
+      "name": "رمز حماية الطلبات",
+      "description": "يعطي المتصفح رمز الحماية اللازم للطلبات التي تغيّر البيانات، دون محتوى في الرد."
+    },
+    "POST /api/v1/auth/login": {
+      "name": "تسجيل الدخول",
+      "description": "يتحقق من اسم المستخدم وكلمة المرور ويفتح الجلسة، وعند الرفض يسجل المحاولة ويرد برفض عام."
+    },
+    "POST /api/v1/me/password": {
+      "name": "تغيير كلمة المرور",
+      "description": "يغيّر كلمة مرور المستخدم المسجل بعد التحقق من كلمته الحالية، ويسجل المحاولة الفاشلة في سجل التدقيق."
+    }
+  }
+}

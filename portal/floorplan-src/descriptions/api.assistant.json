@@ -1,0 +1,90 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/assistant/AssistantController.java": {
+      "name": "طلبات المساعد القانوني",
+      "description": "يستقبل أسئلة المساعد القانوني ويعرض حالته ومخرجاته المحفوظة وسجل الأسئلة السابقة."
+    },
+    "backend/src/main/java/com/lawdesk/assistant/AssistantOutputs.java": {
+      "name": "مسودات المساعد المحفوظة",
+      "description": "يحتفظ لكل عضو بما أنتجه المساعد: مسودة مذكرة أو ملخص أو مقارنة، ويتيح مراجعتها."
+    },
+    "backend/src/main/java/com/lawdesk/assistant/AssistantProvider.java": {
+      "name": "مزوّد إجابات المساعد",
+      "description": "يحدد الواجهة التي يلتزم بها أي مزوّد يكتب الإجابات، ويبين اسمه وهل هو بديل للاختبار وهل يرسل شيئاً خارج النظام، وشكل المقاطع المستند إليها الجواب."
+    },
+    "backend/src/main/java/com/lawdesk/assistant/AssistantRequests.java": {
+      "name": "نماذج طلبات المساعد",
+      "description": "يحدد شكل الطلب الموجه للمساعد وشكل الجواب: إما مجاب عنه أو «مصادر غير كافية» مع بيان السبب دون أي محتوى مختلق."
+    },
+    "backend/src/main/java/com/lawdesk/assistant/AssistantService.java": {
+      "name": "خدمة المساعد القانوني",
+      "description": "ينفذ طلبات المساعد للقراءة فقط فوق ما يحق للمستخدم الاطلاع عليه أصلاً، ويسجل كل سؤال في سجل الأسئلة."
+    },
+    "backend/src/main/java/com/lawdesk/assistant/AssistantStatus.java": {
+      "name": "حالة المساعد",
+      "description": "يبين هل المساعد جاهز للعمل."
+    },
+    "backend/src/main/java/com/lawdesk/assistant/AssistantTask.java": {
+      "name": "مهام المساعد",
+      "description": "يحدد ما يطلبه العضو من المساعد: سؤال، ملخص قضية، تحليل مستند، أحكام مشابهة، مسودة مذكرة، أو مقارنة مستندين؛ وكلها للقراءة فقط."
+    },
+    "backend/src/main/java/com/lawdesk/assistant/InstructionMarkers.java": {
+      "name": "كشف نصوص التوجيه",
+      "description": "يتعرف على النصوص التي تشبه أوامر موجهة للمساعد، مثل طلب تجاهل التعليمات السابقة أو حذف القضية."
+    },
+    "backend/src/main/java/com/lawdesk/assistant/Keywords.java": {
+      "name": "كلمات البحث في السؤال",
+      "description": "يستخرج من السؤال كلمات البحث، ويستبعد الكلمات العامة التي تتكرر في كل سؤال، بحد أقصى معين."
+    },
+    "backend/src/main/java/com/lawdesk/assistant/LocalTestProvider.java": {
+      "name": "مزوّد اختبار محلي",
+      "description": "بديل ثابت للاختبار فقط وليس للإنتاج، يكتب الإجابات بقواعد محددة؛ لا يستدعيه ملف آخر حسب الفحص."
+    },
+    "backend/src/main/java/com/lawdesk/assistant/Plan.java": {
+      "name": "خطة الجواب",
+      "description": "يضم ما وجده البحث لطلب واحد: المقاطع المرقمة وطريقة تجميعها في الجواب."
+    },
+    "backend/src/main/java/com/lawdesk/assistant/QueryLog.java": {
+      "name": "سجل أسئلة المساعد",
+      "description": "يسجل من سأل عن أي قضية وما المصادر المستخدمة وما كانت النتيجة، دون حفظ محتوى المصادر."
+    },
+    "backend/src/main/java/com/lawdesk/assistant/Retriever.java": {
+      "name": "جمع مصادر الجواب",
+      "description": "يجمع ما يستند إليه الجواب عبر الأقسام التي تطبق قواعد الصلاحيات أصلاً: البحث الموحد ونصوص المستندات وملف القضية والمذكرات ومكتبة الأحكام."
+    },
+    "backend/src/main/java/com/lawdesk/assistant/SourceBook.java": {
+      "name": "المقاطع المرقمة للجواب",
+      "description": "يرقّم المقاطع التي يستند إليها جواب واحد، ويضيف المقطع مرة واحدة مهما تكرر الاقتباس منه."
+    },
+    "backend/src/main/java/com/lawdesk/assistant/TextRules.java": {
+      "name": "قواعد تحديد الجمل",
+      "description": "قواعد ثابتة ومعلنة تشير إلى جمل في المستند، مثل التواريخ وأرقام القضايا والطلبات والدفوع ومنطوق الحكم."
+    }
+  },
+  "routes": {
+    "GET /api/v1/assistant/status": {
+      "name": "حالة المساعد",
+      "description": "يعرض حالة المساعد لأي مستخدم مسجل الدخول."
+    },
+    "POST /api/v1/assistant/ask": {
+      "name": "سؤال المساعد",
+      "description": "يرسل طلباً إلى المساعد القانوني ويعيد جوابه، لمن لديه صلاحية استخدام المساعد."
+    },
+    "GET /api/v1/assistant/outputs": {
+      "name": "مخرجات المساعد الخاصة بي",
+      "description": "يعرض ما أنتجه المساعد للمستخدم، ويمكن تقييده بقضية."
+    },
+    "GET /api/v1/assistant/outputs/{id}": {
+      "name": "عرض مخرج للمساعد",
+      "description": "يعرض مخرجاً واحداً من مخرجات المساعد."
+    },
+    "POST /api/v1/assistant/outputs/{id}/review": {
+      "name": "مراجعة مخرج المساعد",
+      "description": "يسجل مراجعة العضو لمخرج المساعد."
+    },
+    "GET /api/v1/assistant/queries": {
+      "name": "سجل أسئلة المساعد",
+      "description": "يعرض أسئلة المستخدم السابقة للمساعد، أو الأسئلة التي روجعت كلها إذا طُلب ذلك، ويمكن تقييدها بقضية."
+    }
+  }
+}

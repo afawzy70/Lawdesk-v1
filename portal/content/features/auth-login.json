@@ -1,0 +1,664 @@
+{
+ "id": "auth-login",
+ "category": "access",
+ "name_ar": "تسجيل الدخول والخروج وإدارة الجلسة",
+ "summary_ar": "يدخل المستخدم باسم المستخدم أو بريده الإلكتروني وكلمة المرور، فيمنحه النظام جلسة تحفظ في ملف تعريف ارتباط (Cookie) لا يقرؤه المتصفح برمجيًا، ويعرض له الشاشات بحسب صلاحياته. يمكنه الخروج في أي وقت، وتنتهي الجلسة تلقائيًا إذا عُطّل حسابه أو أُعيد تعيين كلمة مروره.",
+ "purpose_ar": "حماية بيانات القضايا بحيث لا يصل إليها إلا مستخدم معروف، مع تسجيل كل محاولة دخول ناجحة أو فاشلة في سجل التدقيق دون أن تكشف رسالة الرفض أي جزء من بيانات الدخول كان خاطئًا.",
+ "who_ar": [
+  "أي مستخدم له حساب في النظام (لا يحتاج صلاحية محددة لتسجيل الدخول)"
+ ],
+ "who_perms": [],
+ "access_ar": "تظهر شاشة تسجيل الدخول تلقائيًا لأي زائر غير مسجَّل؛ زر «تسجيل الخروج» في أعلى الشاشة بجوار الاسم المعروض.",
+ "route": "/ (تعرض بوابة الجلسة SessionGate شاشة الدخول بدل أي صفحة أخرى حتى يتم الدخول)",
+ "prerequisites_ar": [
+  "وجود حساب مفعَّل أنشأه مسؤول النظام (انظر صفحة «إدارة المستخدمين»)، وأول مسؤول يُنشأ عند تشغيل النظام لأول مرة من إعدادات خارج الشيفرة.",
+  "الحساب غير مقفل: يُقفل الحساب 15 دقيقة بعد 5 محاولات فاشلة متتالية."
+ ],
+ "fields": {
+  "required": [
+   {
+    "name_ar": "اسم المستخدم أو البريد الإلكتروني",
+    "code": "login",
+    "rule_ar": "يُقصّ من الفراغات حول النص؛ يقبل النظام اسم المستخدم أو البريد دون تمييز بين الحروف الكبيرة والصغيرة، ولا يتطابق الاثنان مع حسابين مختلفين لأن اسم المستخدم لا يحتوي علامة @ والبريد يحتويها.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/security/AuthController.java",
+      "lines": "58-66",
+      "note": "login trimmed"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/users/UserAccounts.java",
+      "lines": "43-47",
+      "note": "lookup by lower(username) or lower(email)"
+     }
+    ]
+   },
+   {
+    "name_ar": "كلمة المرور",
+    "code": "password",
+    "rule_ar": "تُرسل كما كُتبت دون قص؛ تُقارن بالتجزئة المخزَّنة (bcrypt بكلفة 12).",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/security/AuthController.java",
+      "lines": "58-66",
+      "note": "password not trimmed"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/platform/SecurityConfig.java",
+      "lines": "57-58",
+      "note": "bcrypt cost 12"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/platform/SecurityConfig.java",
+      "lines": "109-112",
+      "note": "password encoder"
+     }
+    ]
+   }
+  ],
+  "optional": []
+ },
+ "steps": [
+  {
+   "n": 1,
+   "actor_ar": "المستخدم",
+   "action_ar": "يفتح التطبيق. يطلب المتصفح تلقائيًا رمز الحماية (CSRF) ثم يسأل النظام «من أنا؟».",
+   "response_ar": "إن لم تكن هناك جلسة صالحة تعرض شاشة «تسجيل الدخول إلى LawDesk»؛ وإن كانت هناك جلسة تعرض التطبيق مباشرة.",
+   "rules_ar": [
+    "نقطتا الدخول العامتان الوحيدتان هما جلب رمز الحماية وتسجيل الدخول؛ كل ما عداهما يتطلب جلسة."
+   ],
+   "data_ar": "ملف تعريف الارتباط XSRF-TOKEN يعاد إرساله في كل طلب تعديل في الترويسة X-XSRF-TOKEN.",
+   "next_ar": "يكتب المستخدم بياناته.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/auth/AuthProvider.tsx",
+     "lines": "10-37",
+     "note": "loadCsrfToken then fetchMe; failure means signedOut"
+    },
+    {
+     "path": "frontend/src/features/auth/SessionGate.tsx",
+     "lines": "8-25",
+     "note": "loading / LoginPage / ChangePasswordPage / app"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/AuthController.java",
+     "lines": "51-56",
+     "note": "GET /api/v1/auth/csrf is public"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "error",
+     "title_ar": "تعذّر الاتصال بالخادم",
+     "detail_ar": "إذا لم يستجب الخادم تُعامَل الحالة كأن المستخدم غير مسجَّل فتظهر شاشة الدخول.",
+     "evidence": [
+      {
+       "path": "frontend/src/features/auth/AuthProvider.tsx",
+       "lines": "22-27",
+       "note": "any non-abort error => signedOut"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "actor_ar": "المستخدم",
+   "action_ar": "يكتب اسم المستخدم (أو البريد) وكلمة المرور ويضغط «تسجيل الدخول».",
+   "response_ar": "يرسل المتصفح POST /api/v1/auth/login؛ ويتعطل الزر أثناء الإرسال.",
+   "rules_ar": [
+    "لا يتحقق النموذج محليًا من أي قاعدة؛ يترك القرار للخادم."
+   ],
+   "data_ar": "جسم الطلب: login وpassword.",
+   "next_ar": "يفحص النظام الحساب.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/auth/LoginPage.tsx",
+     "lines": "15-29",
+     "note": "submit handler"
+    },
+    {
+     "path": "frontend/src/features/auth/me.ts",
+     "lines": "25-27",
+     "note": "signIn api call"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/AuthController.java",
+     "lines": "58-70",
+     "note": "login endpoint"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "حقل فارغ أو جسم مفقود",
+     "detail_ar": "يعامل الخادم الجسم الفارغ كنص فارغ ويرفض الدخول بالطريقة نفسها التي يرفض بها كلمة مرور خاطئة (401) دون رسالة تفصيلية.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/security/AuthController.java",
+       "lines": "60-70",
+       "note": "null body treated as empty strings, authentication fails"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "actor_ar": "النظام",
+   "action_ar": "يتحقق من الحساب: وجوده، وأنه مفعَّل، وأنه غير مقفل، ومطابقة كلمة المرور.",
+   "response_ar": "عند النجاح: تُصفَّر عدّادات الفشل ويُرفع القفل، ويُنشأ معرّف جلسة جديد إن وُجدت جلسة سابقة، وتُحفظ الجلسة، ويُسجَّل حدث LOGIN بنتيجة SUCCESS، ويعود الرد ببيانات المستخدم وصلاحياته (بلا كلمة مرور).",
+   "rules_ar": [
+    "يُمنح المسؤول (دور ADMIN) كل الصلاحيات المعروفة في النظام تلقائيًا بما فيها ما أضيف لاحقًا.",
+    "الصلاحيات المخزنة التي لا يعرفها النظام لا تُمنح."
+   ],
+   "data_ar": "الرد: المعرّف، اسم المستخدم، الاسم المعروض، البريد، اللغة، الأدوار، الصلاحيات، وهل يجب تغيير كلمة المرور.",
+   "next_ar": "تعرض الواجهة التطبيق، أو شاشة تغيير كلمة المرور إذا كان التغيير مطلوبًا.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/AuthController.java",
+     "lines": "71-82",
+     "note": "success path"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAccounts.java",
+     "lines": "72-74",
+     "note": "recordSuccess"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/MeResponse.java",
+     "lines": "7-13",
+     "note": "response fields"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/LawdeskUserDetailsService.java",
+     "lines": "20-24",
+     "note": "load by login"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "رفض الدخول (401)",
+     "detail_ar": "أي فشل (مستخدم غير معروف، كلمة مرور خاطئة، حساب معطّل، حساب مقفل) يعود بالرد نفسه 401 فتعرض الواجهة: «اسم المستخدم أو البريد الإلكتروني أو كلمة المرور غير صحيحة.» ويُفرغ حقل كلمة المرور. السبب الحقيقي (UNKNOWN_USER / BAD_CREDENTIALS / DISABLED / LOCKED) يُسجَّل في سجل التدقيق فقط.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/security/AuthController.java",
+       "lines": "67-70",
+       "note": "all failures rethrown as BadCredentials"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/security/AuthController.java",
+       "lines": "84-100",
+       "note": "audited reason"
+      },
+      {
+       "path": "frontend/src/features/auth/LoginPage.tsx",
+       "lines": "20-23",
+       "note": "refused message, password cleared"
+      },
+      {
+       "path": "frontend/src/i18n/messages/auth.ar.ts",
+       "lines": "11",
+       "note": "Arabic refusal text"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "القفل بعد 5 محاولات فاشلة",
+     "detail_ar": "كل كلمة مرور خاطئة لحساب موجود تزيد عدّاد الفشل؛ الفشل الخامس المتتالي يقفل الحساب 15 دقيقة، وخلالها يُرفض حتى مع كلمة المرور الصحيحة (بالرد نفسه). فشل بعد انتهاء القفل يبدأ العدّ من جديد.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/users/UserAccounts.java",
+       "lines": "24-26",
+       "note": "5 failures, 15 minutes"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/users/UserAccounts.java",
+       "lines": "57-70",
+       "note": "recordFailure"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/security/LawdeskUser.java",
+       "lines": "76-78",
+       "note": "isAccountNonLocked"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/security/LoginFlowTest.java",
+       "lines": "168-180",
+       "note": "test: five failures lock the account"
+      }
+     ]
+    },
+    {
+     "kind": "error",
+     "title_ar": "خطأ غير متوقع أثناء الدخول",
+     "detail_ar": "إذا فشل الطلب لسبب غير الرفض (مثلًا انقطاع الخدمة) تعرض الواجهة: «تعذّر تسجيل الدخول الآن. حاول مرة أخرى لاحقًا.»",
+     "evidence": [
+      {
+       "path": "frontend/src/features/auth/AuthProvider.tsx",
+       "lines": "50-61",
+       "note": "only 401 returns false; others rethrown"
+      },
+      {
+       "path": "frontend/src/features/auth/LoginPage.tsx",
+       "lines": "24-26",
+       "note": "unavailable message"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "actor_ar": "المستخدم",
+   "action_ar": "يعمل في التطبيق؛ وتتابع الواجهة جلسته.",
+   "response_ar": "عند كل طلب يعيد النظام بناء المستخدم من قاعدة البيانات: الحساب المعطّل أو المحذوف يخرج فورًا، وتسري تغييرات الأدوار على الطلب التالي. أما القفل فيمنع الدخول الجديد فقط ولا يطرد من جلسة قائمة.",
+   "rules_ar": [
+    "كل نقطة نهاية غير عامة تتطلب جلسة؛ والطلبات المعدِّلة (POST/PUT/DELETE) تتطلب رمز CSRF."
+   ],
+   "data_ar": "الجلسة محفوظة في ملف تعريف ارتباط HttpOnly؛ لا يخزّن التطبيق شيئًا في تخزين المتصفح.",
+   "next_ar": "تستمر الجلسة حتى الخروج أو الإلغاء.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/ReloadingSecurityContextRepository.java",
+     "lines": "19-25",
+     "note": "design comment"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/ReloadingSecurityContextRepository.java",
+     "lines": "58-74",
+     "note": "reload per request"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "انتهاء الجلسة أو إلغاؤها (401)",
+     "detail_ar": "إذا تغيّر «إصدار الاعتماد» للحساب (إعادة تعيين كلمة المرور من المسؤول، تغيير كلمة المرور من جلسة أخرى، أو تعطيل الحساب) أُلغيت كل الجلسات الأقدم نهائيًا وسُجّل حدث SESSION_REVOKED. تعرض الواجهة شاشة الدخول مع: «انتهت جلستك. سجّل الدخول مرة أخرى للمتابعة.»",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/security/SessionRevocation.java",
+       "lines": "34-50",
+       "note": "revoked + refuse"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/security/ReloadingSecurityContextRepository.java",
+       "lines": "65-68",
+       "note": "revoked => anonymous"
+      },
+      {
+       "path": "frontend/src/features/auth/AuthProvider.tsx",
+       "lines": "39-45",
+       "note": "onUnauthorized => signedOut expired"
+      },
+      {
+       "path": "frontend/src/api/http.ts",
+       "lines": "52-55",
+       "note": "401 on non-auth paths ends the session in the SPA"
+      },
+      {
+       "path": "frontend/src/i18n/messages/auth.ar.ts",
+       "lines": "13",
+       "note": "session expired text"
+      }
+     ]
+    },
+    {
+     "kind": "denied",
+     "title_ar": "طلب بلا صلاحية (403)",
+     "detail_ar": "المستخدم المسجَّل الذي يطلب ما ليس له يتلقى 403 ويُسجَّل حدث ACCESS_DENIED في التدقيق؛ والزائر غير المسجَّل يتلقى 401 حتى للطلبات المعدِّلة.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/platform/SecurityConfig.java",
+       "lines": "88-100",
+       "note": "entry point 401 / access denied 403 + audit"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "actor_ar": "المستخدم",
+   "action_ar": "يضغط «تسجيل الخروج».",
+   "response_ar": "يرسل المتصفح POST /api/v1/auth/logout فيُسجَّل حدث LOGOUT، وتُحذف الجلسة وملف JSESSIONID، ويعود الرد 204، وتعرض الواجهة شاشة الدخول (وتحدّث رمز الحماية).",
+   "rules_ar": [
+    "الخروج يعمل حتى لو كانت الجلسة قد أُلغيت."
+   ],
+   "data_ar": "لا بيانات إضافية.",
+   "next_ar": "العودة إلى شاشة الدخول.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/platform/SecurityConfig.java",
+     "lines": "77-86",
+     "note": "logout config + audit"
+    },
+    {
+     "path": "frontend/src/features/auth/AuthProvider.tsx",
+     "lines": "62-69",
+     "note": "signOut"
+    },
+    {
+     "path": "frontend/src/layout/AppLayout.tsx",
+     "lines": "98-101",
+     "note": "sign-out button"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "فشل طلب الخروج",
+     "detail_ar": "حتى إن فشل الطلب تنتقل الواجهة إلى حالة «غير مسجَّل» (try/finally).",
+     "evidence": [
+      {
+       "path": "frontend/src/features/auth/AuthProvider.tsx",
+       "lines": "62-69",
+       "note": "finally sets signedOut"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 6,
+   "actor_ar": "المستخدم ذو كلمة المرور المؤقتة",
+   "action_ar": "يدخل بكلمة مرور مؤقتة أنشأها المسؤول أو أعاد تعيينها.",
+   "response_ar": "بدل التطبيق تعرض الواجهة «اختر كلمة مرور جديدة» ولا تتيح غيرها؛ والخادم يرفض بـ403 (rule: PASSWORD_CHANGE_REQUIRED) كل نقطة نهاية ما عدا: عرض الملف الشخصي، تغيير كلمة المرور، الخروج، جلب رمز الحماية، الدخول.",
+   "rules_ar": [
+    "تفاصيل تغيير كلمة المرور في صفحة «الملف الشخصي وتغيير كلمة المرور»."
+   ],
+   "data_ar": "كلمة المرور الحالية والجديدة مرتين.",
+   "next_ar": "بعد التغيير يدخل التطبيق.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/auth/SessionGate.tsx",
+     "lines": "21-23",
+     "note": "mustChangePassword => ChangePasswordPage"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/PasswordChangeRequiredFilter.java",
+     "lines": "19-42",
+     "note": "allowed list and 403"
+    },
+    {
+     "path": "frontend/src/features/auth/ChangePasswordPage.tsx",
+     "lines": "6-22",
+     "note": "page"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "محاولة استدعاء API آخر قبل التغيير (403)",
+     "detail_ar": "يرد الخادم بمشكلة 403 تحمل rule=PASSWORD_CHANGE_REQUIRED.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/security/PasswordChangeRequiredFilter.java",
+       "lines": "37-41",
+       "note": "problem json"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "rules": [
+  {
+   "text_ar": "رسالة رفض الدخول واحدة لكل الأسباب كي لا يعرف المهاجم هل اسم المستخدم موجود؛ والسبب الحقيقي يُحفظ في التدقيق.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/AuthController.java",
+     "lines": "27-30",
+     "note": "class comment"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/AuthController.java",
+     "lines": "84-100",
+     "note": "audited reasons"
+    }
+   ]
+  },
+  {
+   "text_ar": "خمس محاولات فاشلة متتالية تقفل الحساب 15 دقيقة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAccounts.java",
+     "lines": "24-26"
+    }
+   ]
+  },
+  {
+   "text_ar": "كلمات المرور تُخزَّن مجزأة بخوارزمية bcrypt بكلفة 12، ولا تُرسل في أي رد.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/platform/SecurityConfig.java",
+     "lines": "57-58"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/LawdeskUser.java",
+     "lines": "81-84",
+     "note": "withoutPassword"
+    }
+   ]
+  },
+  {
+   "text_ar": "تُصدر ترويسات حماية: سياسة محتوى CSP، منع التضمين في إطارات، وReferrer-Policy بلا إحالة، ولا تخزين مؤقت للردود.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/platform/SecurityConfig.java",
+     "lines": "101-105"
+    }
+   ]
+  },
+  {
+   "text_ar": "الجلسة تُجدَّد بمعرّف جديد عند الدخول إن وُجدت جلسة سابقة (منع تثبيت الجلسة).",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/AuthController.java",
+     "lines": "73-75"
+    }
+   ]
+  },
+  {
+   "text_ar": "الحساب المعطّل أو المحذوف يفقد جلسته عند الطلب التالي؛ وتغيير أدواره يسري فورًا دون إعادة دخول.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/ReloadingSecurityContextRepository.java",
+     "lines": "19-25"
+    }
+   ]
+  }
+ ],
+ "after_submit_ar": "بعد الدخول الناجح تعرض الواجهة القائمة والشاشات التي تسمح بها صلاحيات المستخدم (تأتي الصلاحيات في رد /api/v1/me)، ويظهر اسمه المعروض ورابط «ملفي الشخصي» وزر الخروج. يظل الخادم هو الجهة التي تقرر الصلاحية في كل طلب.",
+ "notifications_ar": [],
+ "approvals_ar": [],
+ "errors": [
+  {
+   "code": "HTTP 401",
+   "meaning_ar": "بيانات الدخول مرفوضة أو الجلسة غير موجودة/ملغاة. الجسم: {\"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401}.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/platform/SecurityConfig.java",
+     "lines": "88-91"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/platform/SecurityConfig.java",
+     "lines": "158-164",
+     "note": "writeProblem"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 403",
+   "meaning_ar": "مستخدم مسجَّل بلا الصلاحية المطلوبة، أو CSRF مرفوض؛ ويُسجَّل ACCESS_DENIED. جسمه {\"type\":\"about:blank\",\"title\":\"Forbidden\",\"status\":403}.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/platform/SecurityConfig.java",
+     "lines": "92-100"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 403 rule=PASSWORD_CHANGE_REQUIRED",
+   "meaning_ar": "يجب تغيير كلمة المرور المؤقتة قبل أي شيء آخر.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/PasswordChangeRequiredFilter.java",
+     "lines": "37-41"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 400 (طلب مرفوض من جدار الحماية)",
+   "meaning_ar": "مسارات غير سليمة مثل شرطتين مائلتين مزدوجتين أو نقاط مشفرة تُرفض بـ400 مع الترويسات الأمنية نفسها.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/platform/SecurityConfig.java",
+     "lines": "135-151"
+    }
+   ]
+  }
+ ],
+ "result_ar": "مستخدم مسجَّل بجلسة سليمة وصلاحيات محمَّلة، أو رسالة رفض موحَّدة؛ وفي كل الأحوال حدث في سجل التدقيق (LOGIN/LOGOUT/ACCESS_DENIED/SESSION_REVOKED).",
+ "related": [
+  "profile-me",
+  "users-admin",
+  "roles-permissions",
+  "audit"
+ ],
+ "endpoints": [
+  {
+   "method": "GET",
+   "path": "/api/v1/auth/csrf",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/security/AuthController.java",
+    "lines": "51-56"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/auth/login",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/security/AuthController.java",
+    "lines": "58-82"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/auth/logout",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/platform/SecurityConfig.java",
+    "lines": "77-86"
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/me",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/security/MeController.java",
+    "lines": "56-60"
+   }
+  }
+ ],
+ "tech": {
+  "chain": [
+   {
+    "layer": "screen",
+    "label": "LoginPage",
+    "ref": {
+     "path": "frontend/src/features/auth/LoginPage.tsx",
+     "lines": "7-73"
+    },
+    "data_ar": "اسم المستخدم/البريد وكلمة المرور من النموذج."
+   },
+   {
+    "layer": "component",
+    "label": "AuthProvider.signIn",
+    "ref": {
+     "path": "frontend/src/features/auth/AuthProvider.tsx",
+     "lines": "50-61"
+    },
+    "data_ar": "يستدعي واجهة الدخول ويحوّل 401 إلى «مرفوض»."
+   },
+   {
+    "layer": "api_call",
+    "label": "signIn / signOut / fetchMe",
+    "ref": {
+     "path": "frontend/src/features/auth/me.ts",
+     "lines": "16-31"
+    },
+    "data_ar": "طلبات POST /api/v1/auth/login وlogout وGET /api/v1/me مع رمز CSRF."
+   },
+   {
+    "layer": "controller",
+    "label": "AuthController.login",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/security/AuthController.java",
+     "lines": "58-82"
+    },
+    "data_ar": "ينشئ جلسة ويجيب ببيانات المستخدم."
+   },
+   {
+    "layer": "authorization",
+    "label": "SecurityConfig (deny by default)",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/platform/SecurityConfig.java",
+     "lines": "65-72"
+    },
+    "data_ar": "كل ما عدا النقاط العامة يتطلب مصادقة."
+   },
+   {
+    "layer": "repository",
+    "label": "UserAccounts",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAccounts.java",
+     "lines": "43-74"
+    },
+    "data_ar": "قراءة الحساب بالاسم أو البريد وتسجيل نجاح/فشل المحاولة."
+   },
+   {
+    "layer": "tables",
+    "label": "app_user, user_role, app_role, role_permission, access_scope",
+    "ref": {
+     "path": "backend/src/main/resources/db/migration/V100__LD-007_app_user.sql",
+     "lines": "4-52"
+    },
+    "data_ar": "الحساب وأدواره وصلاحياتها."
+   },
+   {
+    "layer": "event",
+    "label": "AuditLog LOGIN / LOGOUT",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/security/AuthController.java",
+     "lines": "80",
+     "note": "LOGIN SUCCESS"
+    },
+    "data_ar": "حدث تدقيق لكل محاولة."
+   },
+   {
+    "layer": "result",
+    "label": "MeResponse",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/security/MeResponse.java",
+     "lines": "7-13"
+    },
+    "data_ar": "الهوية والصلاحيات تُعاد للواجهة."
+   }
+  ]
+ },
+ "status": "IMPLEMENTED_ON_DEVELOP",
+ "status_note_ar": "الشيفرة مدمجة في develop. لا يوجد تحقق على بيئة القبول ضمن هذا المستند.",
+ "status_evidence": [
+  {
+   "path": "backend/src/main/java/com/lawdesk/security/AuthController.java",
+   "lines": "31-33"
+  },
+  {
+   "path": "backend/src/main/java/com/lawdesk/platform/SecurityConfig.java",
+   "lines": "51-53"
+  }
+ ],
+ "verification_ar": "اختبارات موجودة: backend/src/test/java/com/lawdesk/security/LoginFlowTest.java (الدخول بالاسم أو البريد، الرفض الموحّد، القفل، الخروج، تعطيل المستخدم وتغيير الأدوار)، SessionRevocationTest.java، PasswordChangeTest.java؛ وفي الواجهة frontend/src/features/auth/Auth.test.tsx. لم يُجرِ هذا المستند أي تحقق على بيئة القبول (UAT)؛ المحتوى مبني على قراءة الشيفرة المدمجة في develop والاختبارات الموجودة فقط. لم أتحقق من إعدادات ملف تعريف الارتباط (HttpOnly/SameSite/Secure) لأنها مضبوطة خارج الملفات التي قرأتها، فلم أذكرها كحقيقة."
+}

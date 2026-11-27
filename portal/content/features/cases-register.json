@@ -1,0 +1,1085 @@
+{
+  "id": "cases-register",
+  "category": "cases",
+  "name_ar": "تسجيل قضية جديدة",
+  "summary_ar": "شاشة واحدة تُسجَّل فيها القضية كاملة: بياناتها الأساسية والرقم الآلي ودرجة التقاضي الأولى ورقمها في المحكمة وموقف الهيئة وأطراف الدعوى من الجانبين والعضو المختص والعضو البديل والأثر المالي. تُحفظ كل هذه البيانات معًا في عملية واحدة؛ فإذا فشل أي جزء لا يُحفظ شيء.",
+  "purpose_ar": "تمكين الإدارة القانونية من قيد القضية الواردة من الجهات الحكومية بكل ما يلزم لمتابعتها من اللحظة الأولى، ومنع تسجيل قضية مكرّرة دون علم المسجِّل، وضمان أن لكل قضية عضوًا مختصًا مسؤولًا عنها.",
+  "who_ar": [
+    "من يملك صلاحية «إنشاء القضايا» وصلاحية «إدارة درجات التقاضي» معًا",
+    "وإذا أُضيفت أطراف في الطلب فيلزم أيضًا «إدارة أطراف القضية»"
+  ],
+  "who_perms": [
+    "CASE_CREATE",
+    "PROCEEDING_MANAGE",
+    "PARTY_MANAGE"
+  ],
+  "access_ar": "القائمة > القضايا > زر «قضية جديدة»",
+  "route": "/cases/new",
+  "prerequisites_ar": [
+    "تسجيل الدخول وامتلاك الصلاحيتين CASE_CREATE وPROCEEDING_MANAGE.",
+    "وجود محكمة فعّالة من درجة «أول درجة» في قائمة المحاكم (انظر ميزة المحاكم).",
+    "وجود عضو نشط في الإدارة القانونية ليُعيَّن عضوًا مختصًا.",
+    "ورود الرقم الآلي للقضية ورقمها لدى المحكمة وسنتها وتاريخ قيدها بالمحكمة من أوراق القضية."
+  ],
+  "fields": {
+    "required": [
+      {
+        "name_ar": "الرقم الآلي للقضية",
+        "code": "automatedNo",
+        "rule_ar": "نص يُكتب كما هو (تُحفظ الأصفار في أوله)، حتى 100 حرف، ولا تُفرض عليه صيغة معيّنة. يبقى ثابتًا في كل درجات التقاضي.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeRequest.java",
+            "lines": "26-26",
+            "note": "حقل الرقم الآلي"
+          }
+        ]
+      },
+      {
+        "name_ar": "عنوان القضية",
+        "code": "title",
+        "rule_ar": "مطلوب وغير فارغ، حتى 200 حرف، وتُحذف المسافات الزائدة من طرفيه.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeRequest.java",
+            "lines": "27-27",
+            "note": "title"
+          }
+        ]
+      },
+      {
+        "name_ar": "نوع القضية",
+        "code": "caseType",
+        "rule_ar": "إحدى القيم: مدني، جنائي، تجاري، عمالي، أحوال شخصية، إداري، دستوري، أخرى.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/CaseType.java",
+            "lines": "18-18",
+            "note": "قائمة الأنواع"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeRequest.java",
+            "lines": "28-28",
+            "note": "caseType"
+          }
+        ]
+      },
+      {
+        "name_ar": "تاريخ القيد",
+        "code": "openedOn",
+        "rule_ar": "تاريخ مطلوب ولا يجوز أن يكون في المستقبل.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeRequest.java",
+            "lines": "30-30",
+            "note": "PastOrPresent"
+          }
+        ]
+      },
+      {
+        "name_ar": "المحكمة (درجة أول درجة)",
+        "code": "firstInstance.courtId",
+        "rule_ar": "تُختار من قائمة المحاكم الفعّالة من درجة أول درجة؛ تُرفض المحكمة الموقوفة أو من درجة أخرى.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeRequest.java",
+            "lines": "57-57",
+            "note": "courtId"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingService.java",
+            "lines": "76-76",
+            "note": "محكمة موقوفة"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingService.java",
+            "lines": "134-134",
+            "note": "درجة غير مطابقة"
+          }
+        ]
+      },
+      {
+        "name_ar": "رقم القضية في درجة التقاضي",
+        "code": "firstInstance.courtCaseNumber",
+        "rule_ar": "نص غير فارغ حتى 32 حرفًا، خاص بهذه الدرجة وحدها.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeRequest.java",
+            "lines": "58-58",
+            "note": "courtCaseNumber"
+          }
+        ]
+      },
+      {
+        "name_ar": "سنة القضية",
+        "code": "firstInstance.courtCaseYear",
+        "rule_ar": "رقم بين 1900 و2100.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeRequest.java",
+            "lines": "59-59",
+            "note": "Min/Max"
+          }
+        ]
+      },
+      {
+        "name_ar": "تاريخ القيد بالمحكمة",
+        "code": "firstInstance.filingDate",
+        "rule_ar": "تاريخ مطلوب ولا يجوز أن يكون في المستقبل.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeRequest.java",
+            "lines": "60-60",
+            "note": "filingDate"
+          }
+        ]
+      },
+      {
+        "name_ar": "موقف الهيئة من القضية",
+        "code": "authorityPosition",
+        "rule_ar": "مدعٍ أو مدعى عليه (PLAINTIFF أو DEFENDANT)؛ تُضاف الهيئة تلقائيًا طرفًا على هذا الجانب.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeRequest.java",
+            "lines": "33-33",
+            "note": "authorityPosition"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+            "lines": "105-105",
+            "note": "إضافة الهيئة طرفًا"
+          }
+        ]
+      },
+      {
+        "name_ar": "العضو المختص",
+        "code": "primaryMemberId",
+        "rule_ar": "يجب أن يكون عضوًا نشطًا في الإدارة القانونية وإلا رُفض الطلب برمز MEMBER_NOT_ELIGIBLE.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeRequest.java",
+            "lines": "36-36",
+            "note": "primaryMemberId"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+            "lines": "80-80",
+            "note": "فحص الأهلية"
+          }
+        ]
+      },
+      {
+        "name_ar": "هل للقضية أثر مالي؟",
+        "code": "financialImpact",
+        "rule_ar": "يوجد (YES) أو لا يوجد (NO)؛ لا يُقبل ترك الاختيار فارغًا.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeRequest.java",
+            "lines": "38-38",
+            "note": "financialImpact"
+          }
+        ]
+      }
+    ],
+    "optional": [
+      {
+        "name_ar": "الموضوع",
+        "code": "subject",
+        "rule_ar": "حتى 4000 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeRequest.java",
+            "lines": "29-29",
+            "note": "subject"
+          }
+        ]
+      },
+      {
+        "name_ar": "العضو البديل",
+        "code": "alternateMemberId",
+        "rule_ar": "اختياري؛ إن وُجد وجب أن يكون عضوًا نشطًا ومختلفًا عن العضو المختص (SameAsPrimary).",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeRequest.java",
+            "lines": "37-37",
+            "note": "alternate"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+            "lines": "78-78",
+            "note": "نفس الشخص"
+          }
+        ]
+      },
+      {
+        "name_ar": "مبلغ الأثر المالي (د.ك)",
+        "code": "financialAmount",
+        "rule_ar": "مطلوب إذا كان الأثر «يوجد» وأكبر من صفر وبحد أقصى ثلاث منازل عشرية، ومرفوض إذا كان الأثر «لا يوجد».",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeRequest.java",
+            "lines": "39-39",
+            "note": "amount"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+            "lines": "72-73",
+            "note": "YES بلا مبلغ"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+            "lines": "75-76",
+            "note": "NO مع مبلغ"
+          }
+        ]
+      },
+      {
+        "name_ar": "أطراف الدعوى الأخرى",
+        "code": "parties",
+        "rule_ar": "حتى 50 طرفًا؛ كل بند إما طرف مسجّل (partyId) أو طرف جديد (newParty) وليس كليهما، وجانبه مدعٍ أو مدعى عليه. الطرف المسجّل لا يتكرر. وتحتاج الأطراف صلاحية إدارة أطراف القضية.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeRequest.java",
+            "lines": "35-35",
+            "note": "parties"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+            "lines": "150-150",
+            "note": "OneOf / Duplicate"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+            "lines": "68-68",
+            "note": "PARTY_MANAGE"
+          }
+        ]
+      },
+      {
+        "name_ar": "بيانات سجل القضية (الدائرة، تاريخ الورود، الجهة المحيلة، الوقائع، المبلغ المطالب به، الأهمية، الملاحظات الداخلية)",
+        "code": "details",
+        "rule_ar": "كلها اختيارية: الدائرة حتى 100 حرف، الوقائع حتى 8000، الملاحظات حتى 4000، الأهمية إحدى (منخفضة، عادية، مرتفعة، حرجة)، والمبلغ المطالب به لا يقل عن صفر وبثلاث منازل عشرية. والجهة المحيلة إن ذُكرت وجب أن تكون وحدة فعّالة من هيكل الهيئة.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/CaseDetails.java",
+            "lines": "21-32",
+            "note": "قواعد الحقول"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+            "lines": "152-152",
+            "note": "فحص الوحدة المحيلة"
+          }
+        ]
+      },
+      {
+        "name_ar": "تأكيد أن القضية مختلفة، وسبب ذلك",
+        "code": "confirmDistinct / distinctNote",
+        "rule_ar": "يُرسلان بعد ظهور تنبيه التكرار؛ الملاحظة حتى 500 حرف وتُحفظ مع التسجيل.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeRequest.java",
+            "lines": "43-43",
+            "note": "confirmDistinct"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/cases/IntakeRequest.java",
+            "lines": "44-44",
+            "note": "distinctNote"
+          }
+        ]
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "actor_ar": "موظف الإدارة القانونية المخوّل",
+      "action_ar": "يفتح قائمة القضايا ويضغط «قضية جديدة» فتظهر شاشة «تسجيل قضية جديدة» بتاريخ قيد مبدئي هو تاريخ اليوم.",
+      "response_ar": "تعرض الشاشة أقسامًا: بيانات القضية، درجة التقاضي، موقف الهيئة والأطراف، أعضاء الإدارة القانونية، الأثر المالي، ثم سجل القضية. الحقول المعلَّمة بعلامة * مطلوبة.",
+      "rules_ar": [
+        "لا يجري أي حفظ قبل الضغط على «تسجيل القضية»."
+      ],
+      "data_ar": "لا بيانات تُرسل في هذه الخطوة.",
+      "next_ar": "يُعبّأ قسم بيانات القضية.",
+      "evidence": [
+        {
+          "path": "frontend/src/App.tsx",
+          "lines": "52-52",
+          "note": "مسار الشاشة"
+        },
+        {
+          "path": "frontend/src/features/cases/CaseListPage.tsx",
+          "lines": "126-126",
+          "note": "زر قضية جديدة"
+        },
+        {
+          "path": "frontend/src/features/cases/CaseCreatePage.tsx",
+          "lines": "126-126",
+          "note": "قيم البداية"
+        },
+        {
+          "path": "frontend/src/features/cases/CaseCreatePage.tsx",
+          "lines": "120-120",
+          "note": "الشاشة"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "غياب الصلاحية",
+          "detail_ar": "عند الإرسال تُرفض العملية بالرمز 403 إن لم يملك المستخدم CASE_CREATE وPROCEEDING_MANAGE معًا، وتظهر رسالة «ليست لديك صلاحية لتنفيذ هذا الإجراء».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/IntakeController.java",
+              "lines": "39-39",
+              "note": "شرط الصلاحية"
+            },
+            {
+              "path": "frontend/src/features/cases/problems.ts",
+              "lines": "39-39",
+              "note": "رسالة 403"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "actor_ar": "موظف الإدارة القانونية المخوّل",
+      "action_ar": "يُدخل الرقم الآلي للقضية وعنوانها ونوعها وموضوعها وتاريخ القيد.",
+      "response_ar": "تتحقق الشاشة من الحقول المطلوبة قبل الإرسال وتُظهر «هذا الحقل مطلوب» تحت كل حقل ناقص ثم يتحقق الخادم من القواعد نفسها مرة ثانية.",
+      "rules_ar": [
+        "الرقم الآلي نص حر لا صيغة له وتُحفظ أصفاره الأولى.",
+        "تاريخ القيد لا يكون في المستقبل.",
+        "الرقم الداخلي (LD-السنة-الرقم) يُولَّد تلقائيًا ولا يُدخله المستخدم."
+      ],
+      "data_ar": "automatedNo وtitle وcaseType وsubject وopenedOn.",
+      "next_ar": "يُنتقل إلى قسم درجة التقاضي.",
+      "evidence": [
+        {
+          "path": "frontend/src/features/cases/CaseCreatePage.tsx",
+          "lines": "90-90",
+          "note": "الفحص في المتصفح"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/IntakeRequest.java",
+          "lines": "26-26",
+          "note": "قيود الخادم"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+          "lines": "93-93",
+          "note": "توليد الرقم الداخلي"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "حقل ناقص أو غير صالح",
+          "detail_ar": "يرد الخادم بالرمز 400 وفي ProblemDetail قائمة errors فيها اسم الحقل ورمز القيد (NotBlank وSize وPattern وPastOrPresent)، فتُظهر الشاشة «يُرجى تصحيح الحقول المحددة أدناه» وتُعلّم كل حقل.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+              "lines": "35-35",
+              "note": "صيغة 400"
+            },
+            {
+              "path": "frontend/src/features/cases/CaseCreatePage.tsx",
+              "lines": "61-61",
+              "note": "عرض أخطاء الحقول"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "actor_ar": "موظف الإدارة القانونية المخوّل",
+      "action_ar": "يختار المحكمة من قائمة محاكم أول درجة (مع بحث بالاسم) ويكتب رقم القضية في المحكمة وسنتها وتاريخ القيد بالمحكمة.",
+      "response_ar": "تُسجَّل مع القضية دعوى أول درجة (درجة التقاضي الأولى) برقمها الخاص؛ أما درجتا الاستئناف والتمييز فتُضافان لاحقًا من صفحة القضية.",
+      "rules_ar": [
+        "لكل درجة رقمها الخاص؛ والرقم الآلي واحد في كل الدرجات.",
+        "لا تُقبل محكمة موقوفة ولا محكمة ليست من درجة أول درجة."
+      ],
+      "data_ar": "firstInstance: courtId وcourtCaseNumber وcourtCaseYear وfilingDate.",
+      "next_ar": "يُحدَّد موقف الهيئة وتُضاف الأطراف.",
+      "evidence": [
+        {
+          "path": "frontend/src/features/cases/CaseCreatePage.tsx",
+          "lines": "279-279",
+          "note": "قائمة المحاكم"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+          "lines": "112-112",
+          "note": "تسجيل الدرجة الأولى"
+        },
+        {
+          "path": "frontend/src/i18n/messages/intake.ar.ts",
+          "lines": "29-29",
+          "note": "نص الشاشة"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "exceptional",
+          "title_ar": "المحكمة موقوفة أو من درجة أخرى",
+          "detail_ar": "يرفض الخادم الطلب بالرمز 422 وقيمة rule هي COURT_INACTIVE أو COURT_LEVEL_MISMATCH، وتُعرض رسالة تطلب اختيار محكمة أخرى.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingService.java",
+              "lines": "76-76",
+              "note": "موقوفة"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingService.java",
+              "lines": "134-134",
+              "note": "الدرجة"
+            },
+            {
+              "path": "frontend/src/i18n/messages/intake.ar.ts",
+              "lines": "11-11",
+              "note": "الرسالة"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "محكمة أو طرف لم يعد موجودًا",
+          "detail_ar": "إن لم يوجد المعرّف المختار يرد 404 وتُعرض «المحكمة أو الطرف المختار لم يعد موجودًا. اختر من جديد».",
+          "evidence": [
+            {
+              "path": "frontend/src/features/cases/CaseCreatePage.tsx",
+              "lines": "70-70",
+              "note": "404"
+            },
+            {
+              "path": "frontend/src/i18n/messages/intake.ar.ts",
+              "lines": "16-16",
+              "note": "الرسالة"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "actor_ar": "موظف الإدارة القانونية المخوّل",
+      "action_ar": "يختار موقف الهيئة (مدعٍ أو مدعى عليه) ثم يضيف الأطراف الأخرى على جانبي الدعوى، من الأطراف المسجّلة أو بإدخال طرف جديد (الاسم ونوعه والرقم المدني أو رقم المنشأة والهاتف).",
+      "response_ar": "تُدرج الهيئة تلقائيًا في جانبها. وإذا غيّر المستخدم موقف الهيئة بعد إضافة أطراف طلبت الشاشة مراجعتهم (أو عكس جانبهم) قبل الحفظ.",
+      "rules_ar": [
+        "صفة الطرف تُشتق من جانبه: على جانب الهيئة «آخر» وعلى الجانب المقابل «خصم».",
+        "لا يُضاف الطرف المسجّل مرتين ولا تُضاف الهيئة مرتين.",
+        "إضافة أطراف في الطلب تحتاج صلاحية إدارة أطراف القضية."
+      ],
+      "data_ar": "authorityPosition وparties[] (partyId أو newParty مع side).",
+      "next_ar": "يُختار العضو المختص والبديل.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+          "lines": "106-106",
+          "note": "الهيئة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+          "lines": "143-143",
+          "note": "الصفة من الجانب"
+        },
+        {
+          "path": "frontend/src/features/cases/CaseCreatePage.tsx",
+          "lines": "105-105",
+          "note": "مراجعة بعد تغيير الموقف"
+        },
+        {
+          "path": "frontend/src/i18n/messages/intake.ar.ts",
+          "lines": "63-63",
+          "note": "الرسالة"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "إضافة أطراف دون صلاحية",
+          "detail_ar": "من لا يملك PARTY_MANAGE وفي طلبه أطراف يتلقى 403.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+              "lines": "68-68",
+              "note": "AccessDenied"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "بند طرف غير صالح",
+          "detail_ar": "بند فيه partyId وnewParty معًا أو لا واحد منهما، أو طرف مسجّل مكرر: 400 برمز OneOf أو Duplicate على الحقل parties[i].partyId.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+              "lines": "155-155",
+              "note": "OneOf"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+              "lines": "158-158",
+              "note": "Duplicate"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "إضافة الهيئة نفسها",
+          "detail_ar": "تُرفض بالرمز 422 وقيمة PARTY_IS_AUTHORITY لأن الهيئة تُضاف تلقائيًا.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+              "lines": "137-137",
+              "note": "قاعدة"
+            },
+            {
+              "path": "frontend/src/i18n/messages/intake.ar.ts",
+              "lines": "14-14",
+              "note": "الرسالة"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "actor_ar": "موظف الإدارة القانونية المخوّل",
+      "action_ar": "يختار العضو المختص من قائمة أعضاء الإدارة القانونية النشطين، ويختار اختياريًا عضوًا بديلًا، ثم يحدد هل للقضية أثر مالي ويكتب المبلغ إن وُجد.",
+      "response_ar": "تُحمَّل قائمة الأعضاء من الخادم (النشطون فقط). ولو انتقل المستخدم إلى «لا يوجد أثر مالي» بعد كتابة مبلغ سألته الشاشة قبل حذف المبلغ.",
+      "rules_ar": [
+        "العضو المختص والبديل شخصان مختلفان وكلاهما عضو نشط في الإدارة القانونية.",
+        "للعضو البديل الصلاحيات نفسها على القضية فور تعيينه.",
+        "الأثر المالي «يوجد» يلزمه مبلغ أكبر من صفر، و«لا يوجد» لا يقبل مبلغًا."
+      ],
+      "data_ar": "primaryMemberId وalternateMemberId وfinancialImpact وfinancialAmount.",
+      "next_ar": "يُرسل الطلب بعد فحص التكرار.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/IntakeController.java",
+          "lines": "57-57",
+          "note": "قائمة الأعضاء"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+          "lines": "80-80",
+          "note": "الأهلية"
+        },
+        {
+          "path": "frontend/src/i18n/messages/intake.ar.ts",
+          "lines": "70-70",
+          "note": "تلميح الأعضاء"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "exceptional",
+          "title_ar": "عضو غير مؤهل",
+          "detail_ar": "عضو غير نشط أو ليس من الإدارة القانونية: 422 برمز MEMBER_NOT_ELIGIBLE.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+              "lines": "165-165",
+              "note": "قاعدة"
+            },
+            {
+              "path": "frontend/src/i18n/messages/intake.ar.ts",
+              "lines": "13-13",
+              "note": "الرسالة"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "العضو البديل هو نفسه المختص أو مبلغ لا يطابق الاختيار",
+          "detail_ar": "400 برمز SameAsPrimary على alternateMemberId، أو NotNull/Null على financialAmount.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+              "lines": "78-78",
+              "note": "SameAsPrimary"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+              "lines": "72-73",
+              "note": "NotNull"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 6,
+      "actor_ar": "موظف الإدارة القانونية المخوّل",
+      "action_ar": "يضغط «تسجيل القضية». قبل الحفظ تسأل الشاشة الخادم (GET /api/v1/cases/duplicate-check) عن قضايا قد تكون هي نفسها: رقم القضية والسنة في المحكمة نفسها، أو الرقم الآلي نفسه، أو العنوان نفسه.",
+      "response_ar": "إن وُجدت قضايا مشابهة ظهر تنبيه «قد تكون هذه القضية مسجلة من قبل» بالمطابقات الظاهرة للمستخدم، وبعدد المطابقات التي لا يحق له الاطلاع عليها فقط. ولا يتم الحفظ إلا بعد أن يؤكد المسجِّل أن القضية مختلفة ويكتب سبب اختلافها.",
+      "rules_ar": [
+        "التنبيه لا يمنع بذاته ولا يدمج شيئًا: القرار للمسجِّل ويُحفظ مع القضية.",
+        "المطابقة برقم القضية لدى المحكمة تُعدّ «نفس الرقم»، والمطابقة بالرقم الآلي أو بالعنوان تُعدّ «مشابهة»."
+      ],
+      "data_ar": "automatedNo وcourtId وcourtCaseNumber وcourtCaseYear وtitle للمقارنة؛ وفي الرد قائمة visible وعدد hidden.",
+      "next_ar": "يُرسل طلب التسجيل بعد التأكيد.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/IntakeController.java",
+          "lines": "47-47",
+          "note": "فحص التكرار"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/DuplicateCheck.java",
+          "lines": "56-56",
+          "note": "المقارنة"
+        },
+        {
+          "path": "frontend/src/features/cases/CaseCreatePage.tsx",
+          "lines": "176-176",
+          "note": "طلب الفحص"
+        },
+        {
+          "path": "frontend/src/features/cases/DuplicateWarning.tsx",
+          "lines": "59-59",
+          "note": "طلب التأكيد"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "exceptional",
+          "title_ar": "قضية مشابهة دون تأكيد",
+          "detail_ar": "إن أُرسل الطلب دون confirmDistinct رفضه الخادم بالرمز 422 وقيمة DUPLICATE_SUSPECTED.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+              "lines": "90-90",
+              "note": "الرفض"
+            },
+            {
+              "path": "frontend/src/i18n/messages/intake.ar.ts",
+              "lines": "10-10",
+              "note": "الرسالة"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 7,
+      "actor_ar": "النظام",
+      "action_ar": "يستقبل POST /api/v1/cases/intake ويُنفّذ كل الخطوات في عملية واحدة: يولّد الرقم الداخلي، ويُنشئ القضية، ويضيف الهيئة والأطراف، ويسجّل دعوى أول درجة، ويحفظ سجل القضية وقرارات التكرار، ويعيّن العضوين.",
+      "response_ar": "يرد 201 بالقضية المسجّلة، وتنتقل الشاشة إلى صفحة القضية بالرسالة «تم إنشاء القضية LD-…».",
+      "rules_ar": [
+        "تُكتب في السجل الزمني للقضية أحداث: إنشاء القضية، وإضافة كل طرف، والتعيين، ومراجعة تنبيه التكرار إن وُجد.",
+        "يُسجَّل حدث تدقيق CASE_CREATE وأحداث تغيير التعيين.",
+        "أي فشل يُلغي العملية كلها فلا تبقى قضية ناقصة.",
+        "يُعيَّن العضوان في آخر خطوة ليستطيع من سجّل القضية إتمام تسجيلها حتى لو عيّنها لغيره."
+      ],
+      "data_ar": "القضية والأطراف والدعوى وسجل القضية والتعيين ومقارنات التكرار.",
+      "next_ar": "تُفتح صفحة القضية للاطلاع أو التعديل.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+          "lines": "65-128",
+          "note": "كامل التسجيل"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+          "lines": "127-127",
+          "note": "التدقيق"
+        },
+        {
+          "path": "frontend/src/features/cases/CaseCreatePage.tsx",
+          "lines": "185-185",
+          "note": "الانتقال"
+        },
+        {
+          "path": "frontend/src/features/cases/CaseDetailsPage.tsx",
+          "lines": "129-129",
+          "note": "رسالة النجاح"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "error",
+          "title_ar": "رقم مستخدم من قبل",
+          "detail_ar": "إن تعارض رقم داخلي أو رقم مدني لطرف مع رقم موجود يرد 409 وتظهر «أحد الأرقام المُدخلة مستخدم من قبل».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+              "lines": "100-100",
+              "note": "ConflictException"
+            },
+            {
+              "path": "frontend/src/i18n/messages/intake.ar.ts",
+              "lines": "9-9",
+              "note": "الرسالة"
+            }
+          ]
+        },
+        {
+          "kind": "error",
+          "title_ar": "تعذر الحفظ",
+          "detail_ar": "أي خطأ آخر يعرض «تعذّر حفظ القضية. حاول مرة أخرى لاحقًا» ولا يُحفظ شيء.",
+          "evidence": [
+            {
+              "path": "frontend/src/i18n/messages/intake.ar.ts",
+              "lines": "7-7",
+              "note": "الرسالة"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+              "lines": "64-64",
+              "note": "عملية واحدة"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "text_ar": "الرقم الداخلي للقضية يُولَّد بالصيغة LD-السنة-رقم من خمس خانات ولا يُدخله المستخدم في التسجيل.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+          "lines": "319-322",
+          "note": "توليد الرقم"
+        }
+      ]
+    },
+    {
+      "text_ar": "نقطة النهاية الأقدم POST /api/v1/cases (إنشاء مبسّط) ما زالت موجودة؛ الرقم الداخلي فيها اختياري، والرقم المُدخل لا يبدأ بـ LD- يليه رقم ولا يتكرر، ولا تستخدمها شاشة التسجيل الحالية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+          "lines": "309-309",
+          "note": "قواعد الرقم"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CreateCaseRequest.java",
+          "lines": "16-23",
+          "note": "الطلب المبسّط"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseController.java",
+          "lines": "34-34",
+          "note": "المتحكم"
+        }
+      ]
+    },
+    {
+      "text_ar": "الفحص عن التكرار يقارن رقم القضية والسنة والمحكمة، والرقم الآلي، والعنوان؛ والقضايا التي لا يحق للمسجِّل رؤيتها تُعدّ ولا تُوصف.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/DuplicateCheck.java",
+          "lines": "16-18",
+          "note": "وصف الصنف"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/DuplicateCheck.java",
+          "lines": "81-81",
+          "note": "الوصف والعدّ"
+        }
+      ]
+    },
+    {
+      "text_ar": "تُسجَّل القضية مقيّدة بسياسة الاطلاع: يرى القضية العضو المختص والبديل ومنشئها ومن له نطاق أو منحة؛ ومنح صلاحية النظام وحدها لا يضيف قضية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseAccessPolicy.java",
+          "lines": "19-28",
+          "note": "السياسة"
+        }
+      ]
+    }
+  ],
+  "after_submit_ar": "تظهر صفحة القضية بالرقم الداخلي الجديد، ويظهر في سجلها الزمني حدث إنشائها وإضافة أطرافها وتعيين العضو المختص. يمكن بعدها إضافة درجات التقاضي اللاحقة والجلسات والمستندات من صفحة القضية.",
+  "notifications_ar": [
+    "لا يرسل تسجيل القضية إشعارًا لأحد؛ لم أجد في شيفرة التسجيل استدعاءً لخدمة الإشعارات، والتعيين يُسجَّل في السجل الزمني وفي سجل التدقيق فقط."
+  ],
+  "approvals_ar": [
+    "لا توجد موافقة أو اعتماد في تسجيل القضية؛ تُسجَّل القضية مباشرة بحالة «مفتوحة». ويبقى تأكيد المسجِّل لقرار «قضية مختلفة» عند التكرار قرارًا منه لا موافقة من غيره."
+  ],
+  "errors": [
+    {
+      "code": "HTTP 400 (errors[].field/code)",
+      "meaning_ar": "حقل ناقص أو غير صالح؛ الرد من نوع ProblemDetail ويحمل errors فيها field وcode مثل NotBlank وNotNull وSize وPattern وPastOrPresent وSameAsPrimary وOneOf وDuplicate.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+          "lines": "35-35",
+          "note": "400"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+          "lines": "45-45",
+          "note": "FieldErrorException"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 403",
+      "meaning_ar": "لا يملك المستخدم CASE_CREATE وPROCEEDING_MANAGE، أو أضاف أطرافًا دون PARTY_MANAGE.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/IntakeController.java",
+          "lines": "39-39",
+          "note": "الصلاحية"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+          "lines": "68-68",
+          "note": "الأطراف"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 404",
+      "meaning_ar": "المحكمة أو الطرف المسجّل المختار غير موجود (أو لا يحق للمستخدم رؤية الطرف).",
+      "evidence": [
+        {
+          "path": "frontend/src/i18n/messages/intake.ar.ts",
+          "lines": "16-16",
+          "note": "الرسالة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+          "lines": "74-74",
+          "note": "طرف غير ظاهر"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 409",
+      "meaning_ar": "رقم مستخدم من قبل (الرقم الداخلي أو الرقم المدني لطرف).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+          "lines": "100-100",
+          "note": "409"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 DUPLICATE_SUSPECTED",
+      "meaning_ar": "توجد قضية مشابهة ولم يؤكد المسجِّل أن القضية مختلفة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+          "lines": "45-45",
+          "note": "الرمز"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 MEMBER_NOT_ELIGIBLE",
+      "meaning_ar": "العضو المختار ليس عضوًا نشطًا في الإدارة القانونية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+          "lines": "37-37",
+          "note": "الرمز"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 PARTY_IS_AUTHORITY",
+      "meaning_ar": "محاولة إضافة الهيئة طرفًا آخر.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/PartyService.java",
+          "lines": "24-24",
+          "note": "الرمز"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 COURT_INACTIVE / COURT_LEVEL_MISMATCH",
+      "meaning_ar": "المحكمة موقوفة أو ليست من درجة أول درجة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/proceedings/Rules.java",
+          "lines": "9-9",
+          "note": "الرمزان"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/proceedings/Rules.java",
+          "lines": "10-10",
+          "note": "الرمزان"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 REFERENCE_NO_RESERVED",
+      "meaning_ar": "في نقطة النهاية المبسّطة فقط: رقم مُدخل يبدأ بـ LD- يليه رقم.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+          "lines": "311-311",
+          "note": "الرمز"
+        }
+      ]
+    }
+  ],
+  "result_ar": "قضية جديدة برقم داخلي مُولَّد، بحالة «مفتوحة»، ومعها الهيئة وأطرافها ودعوى أول درجة وعضوها المختص، تظهر في قائمة القضايا لمن يحق له رؤيتها.",
+  "related": [
+    "cases-details-edit",
+    "cases-list-search",
+    "parties",
+    "courts",
+    "lists-lookups",
+    "proceedings-stages",
+    "case-access-confidentiality",
+    "audit",
+    "users-admin"
+  ],
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/api/v1/cases/intake",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/cases/IntakeController.java",
+        "lines": "38-38",
+        "note": "التسجيل"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cases/duplicate-check",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/cases/IntakeController.java",
+        "lines": "47-47",
+        "note": "فحص التكرار"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cases/members",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/cases/IntakeController.java",
+        "lines": "57-57",
+        "note": "الأعضاء"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/cases",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/cases/CaseController.java",
+        "lines": "22-33",
+        "note": "الإنشاء المبسّط (قديم)"
+      }
+    }
+  ],
+  "tech": {
+    "chain": [
+      {
+        "layer": "screen",
+        "label": "CaseCreatePage (/cases/new)",
+        "ref": {
+          "path": "frontend/src/features/cases/CaseCreatePage.tsx",
+          "lines": "120-120",
+          "note": ""
+        },
+        "data_ar": "قيم النموذج تنتقل إلى دالة registerCase بعد الفحص المحلي وفحص التكرار."
+      },
+      {
+        "layer": "api_call",
+        "label": "registerCase / checkDuplicates",
+        "ref": {
+          "path": "frontend/src/features/cases/api.ts",
+          "lines": "408-408",
+          "note": ""
+        },
+        "data_ar": "جسم JSON لطلب POST /api/v1/cases/intake."
+      },
+      {
+        "layer": "controller",
+        "label": "IntakeController.register",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/IntakeController.java",
+          "lines": "38-41",
+          "note": ""
+        },
+        "data_ar": "IntakeRequest بعد التحقق من القيود (Valid) يمر إلى IntakeService."
+      },
+      {
+        "layer": "authorization",
+        "label": "@PreAuthorize CASE_CREATE و PROCEEDING_MANAGE",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/IntakeController.java",
+          "lines": "39-39",
+          "note": ""
+        },
+        "data_ar": "تُقبل الصلاحيتان ثم يتابع الطلب، وإلا 403."
+      },
+      {
+        "layer": "service",
+        "label": "IntakeService.register",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+          "lines": "65-65",
+          "note": ""
+        },
+        "data_ar": "تتحقق الخدمة من الأعضاء والأطراف والتكرار ثم تكتب بالترتيب في المستودعات داخل عملية واحدة."
+      },
+      {
+        "layer": "repository",
+        "label": "CaseRepository.insertIntake / PartyRepository.link / setDetails / assignNew",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseRepository.java",
+          "lines": "62-62",
+          "note": ""
+        },
+        "data_ar": "صفوف تُكتب في جداول القضية والأطراف."
+      },
+      {
+        "layer": "tables",
+        "label": "legal_case, case_party, party, proceeding, case_event, case_duplicate_hint",
+        "ref": {
+          "path": "backend/src/main/resources/db/migration/V202__LD-016_government_case_intake.sql",
+          "lines": "4-4",
+          "note": ""
+        },
+        "data_ar": "الجداول التي تحمل بيانات التسجيل (الدعوى في جدول proceeding من وحدة المراحل)."
+      },
+      {
+        "layer": "event",
+        "label": "CaseTimeline.CASE_CREATED + audit CASE_CREATE",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+          "lines": "103-103",
+          "note": ""
+        },
+        "data_ar": "حدث في السجل الزمني وحدث تدقيق بلا بيانات شخصية."
+      },
+      {
+        "layer": "result",
+        "label": "201 Created + LegalCase",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/cases/IntakeController.java",
+          "lines": "42-42",
+          "note": ""
+        },
+        "data_ar": "القضية المسجّلة ورابطها في ترويسة Location."
+      }
+    ]
+  },
+  "status": "IMPLEMENTED_ON_DEVELOP",
+  "status_note_ar": "الشيفرة موجودة على develop وتغطيها اختبارات الخادم والواجهة المذكورة أدناه.",
+  "status_evidence": [
+    {
+      "path": "backend/src/main/java/com/lawdesk/cases/IntakeService.java",
+      "lines": "31-31",
+      "note": "الخدمة"
+    },
+    {
+      "path": "frontend/src/features/cases/CaseCreatePage.tsx",
+      "lines": "120-120",
+      "note": "الشاشة"
+    }
+  ],
+  "verification_ar": "قرأتُ المتحكم والخدمة وطلب التسجيل والمستودع وملف الرسائل العربية وشاشة التسجيل. اختبارات وجدتها: backend/src/test/java/com/lawdesk/cases/GovernmentIntakeApiTest.java وCaseApiTest.java وPartyIdentityAndDuplicateApiTest.java، وفي الواجهة frontend/src/features/cases/CaseCreatePage.test.tsx وCaseIntakeBranches.test.tsx وCaseIntakeDetails.test.tsx. لم أشغّل الاختبارات ولم يجرِ هذا المستند أي تحقق على بيئة UAT. لم أوثّق ما لم أتحقق منه: مضمون صفحة القضية بعد التسجيل خارج هذا الملف."
+}

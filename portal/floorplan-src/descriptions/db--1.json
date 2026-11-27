@@ -1,0 +1,164 @@
+{
+  "files": {
+    "backend/src/main/resources/db/migration/V1__app_release.sql": {
+      "name": "جدول إصدارات التشغيل",
+      "description": "ينشئ جدولًا يسجل في كل تشغيل للتطبيق رقم الإصدار الذي عمل على قاعدة البيانات ووقته، ويشترط ألا يكون الإصدار فارغًا."
+    },
+    "backend/src/main/resources/db/migration/V100__LD-007_app_user.sql": {
+      "name": "المستخدمون والأدوار والصلاحيات",
+      "description": "ينشئ جداول المستخدمين والأدوار وصلاحيات كل دور وربط المستخدم بأدواره، ويمنع تكرار اسم المستخدم أو بريده، ويضيف الأدوار الأساسية وصلاحياتها."
+    },
+    "backend/src/main/resources/db/migration/V101__LD-011_audit_event.sql": {
+      "name": "جدول سجل التدقيق",
+      "description": "ينشئ جدول سجل التدقيق الأمني الذي لا يُضاف إليه إلا ولا يُعدَّل ولا يُحذف منه حتى من قاعدة البيانات، ولا يحفظ كلمات مرور ولا رموز دخول."
+    },
+    "backend/src/main/resources/db/migration/V102__LD-008_credential_version.sql": {
+      "name": "رقم نسخة بيانات الدخول",
+      "description": "يضيف للمستخدم رقم نسخة لبيانات دخوله يرتفع عند إعادة تعيين كلمة المرور أو تغييرها أو تعطيل الحساب، فتُرفض الجلسات القديمة ولا تعود صالحة."
+    },
+    "backend/src/main/resources/db/migration/V190__LD-009_phase5_6_default_permissions.sql": {
+      "name": "صلاحيات افتراضية للأدوار",
+      "description": "يمنح الأدوار الأساسية صلاحيات الجلسات والخبراء والمستندات والمهام والملاحظات والتقارير، دون سحب شيء من صلاحياتها الأخرى."
+    },
+    "backend/src/main/resources/db/migration/V2__app_release_version_visible.sql": {
+      "name": "تشديد شرط رقم الإصدار",
+      "description": "يستبدل شرط رقم الإصدار بشرط أقوى يرفض الأرقام المكوّنة من مسافات أو أحرف غير مرئية فقط."
+    },
+    "backend/src/main/resources/db/migration/V200__LD-012_legal_case.sql": {
+      "name": "جداول القضية وسجلها",
+      "description": "ينشئ جدول القضايا القانونية وعدّاد أرقام المراجع والسجل الزمني لأحداث القضية، ويمنع تكرار رقم المرجع."
+    },
+    "backend/src/main/resources/db/migration/V201__LD-016_party.sql": {
+      "name": "جداول الأطراف",
+      "description": "ينشئ جدول الأطراف (أشخاص وجهات) وجدول دور كل طرف في القضية، ويمنع تكرار رقم الهوية."
+    },
+    "backend/src/main/resources/db/migration/V202__LD-016_government_case_intake.sql": {
+      "name": "حقول قبول القضايا الحكومية",
+      "description": "يضيف حقولًا للقضية والطرف لدعم قبول القضايا الحكومية مع تحديد العضو الأساسي والبديل وطرف واحد للجهة، دون حذف ما سبق."
+    },
+    "backend/src/main/resources/db/migration/V300__LD-018_court.sql": {
+      "name": "جدول المحاكم",
+      "description": "ينشئ جدول المحاكم؛ تُعطَّل المحكمة ولا تُحذف، ولا تُضاف محاكم من عندنا لأن القائمة الحقيقية يقدّمها المالك."
+    },
+    "backend/src/main/resources/db/migration/V301__LD-019_proceeding.sql": {
+      "name": "جدول مراحل التقاضي",
+      "description": "ينشئ جدول مراحل القضية أمام المحاكم، صفًا لكل مرحلة، مع ربط المرحلة بمرحلة سابقة ومنع تكرار رقم الدعوى في المحكمة نفسها."
+    },
+    "backend/src/main/resources/db/migration/V302__LD-022_judgment.sql": {
+      "name": "جدول الأحكام",
+      "description": "ينشئ جدول الحكم الذي ينهي مرحلة التقاضي، حكم واحد لكل مرحلة، مع تاريخه ونتيجته من وجهة نظر الجهة وملخصه وكونه نهائيًا."
+    },
+    "backend/src/main/resources/db/migration/V303__LD-023_special_decision.sql": {
+      "name": "جدول القرارات الخاصة",
+      "description": "ينشئ جدول القرارات القضائية الخاصة، مثل وقف التنفيذ، المتخذة ضمن مرحلة تقاضٍ، وهي معلوماتية ولا تغيّر الحكم."
+    },
+    "backend/src/main/resources/db/migration/V304__LD-019_proceeding_case_fk.sql": {
+      "name": "ربط المرحلة بقضيتها",
+      "description": "يضيف قيدًا يلزم أن تتبع كل مرحلة تقاضٍ قضية موجودة، ويمنع حذف قضية لها مراحل."
+    },
+    "backend/src/main/resources/db/migration/V400__LD-024_hearing.sql": {
+      "name": "جدول الجلسات",
+      "description": "ينشئ جدول جلسات مرحلة التقاضي، ويمنع تكرار الجلسة في اليوم نفسه للمرحلة نفسها."
+    },
+    "backend/src/main/resources/db/migration/V401__LD-024_hearing_case_matches_proceeding.sql": {
+      "name": "اتفاق قضية الجلسة",
+      "description": "يضيف فحصًا في قاعدة البيانات يمنع أن تختلف قضية الجلسة عن قضية مرحلتها."
+    },
+    "backend/src/main/resources/db/migration/V402__LD-027_task.sql": {
+      "name": "جدول المهام",
+      "description": "ينشئ جدول المهام والتكليفات التي قد ترتبط بقضية ويسند كل منها إلى مستخدم، مع تواريخ الاستحقاق."
+    },
+    "backend/src/main/resources/db/migration/V403__LD-026_case_document.sql": {
+      "name": "جداول مستندات القضية",
+      "description": "ينشئ جداول مرفقات القضية القانونية بصيغة PDF (حتى عشرة لكل قضية) وبايتات ملفاتها وحصة كل قضية، وتُحفظ الملفات داخل قاعدة البيانات."
+    },
+    "backend/src/main/resources/db/migration/V404__LD-025_expert.sql": {
+      "name": "جداول الخبراء",
+      "description": "ينشئ جداول سجل الخبراء وندب الخبير في مرحلة تقاضٍ وجلسات الخبير، مع فحص اتفاق القضية والمرحلة."
+    },
+    "backend/src/main/resources/db/migration/V405__LD-029_case_note.sql": {
+      "name": "جدول ملاحظات القضية",
+      "description": "ينشئ جدول الملاحظات القانونية الداخلية للقضية، ولا يدخل نصها في السجل الزمني، ويمنع الملاحظة الفارغة."
+    },
+    "backend/src/main/resources/db/migration/V406__LD-024_hearing_dates_database_integrity.sql": {
+      "name": "اتساق تواريخ الجلسات",
+      "description": "يضيف فحصين في قاعدة البيانات يحافظان على تسلسل تواريخ الجلسات وعلاقة المرحلة بالقضية، لا في الخادم فقط."
+    },
+    "backend/src/main/resources/db/migration/V407__LD-025_expert_dates_database_integrity.sql": {
+      "name": "اتساق تواريخ الخبراء",
+      "description": "يضيف فحصين في قاعدة البيانات يحافظان على اتساق تواريخ ندب الخبراء وجلساتهم، أيًا كان من يكتب البيانات."
+    },
+    "backend/src/main/resources/db/migration/V408__LD-024_serialise_dependent_date_writers.sql": {
+      "name": "ترتيب تعديل تواريخ الجلسات",
+      "description": "يعدّل القفل في فحص تواريخ الجلسات كي لا يتعارض كاتبان في الوقت نفسه، فيمنع تجاوز الفحص عند التعديل المتزامن."
+    },
+    "backend/src/main/resources/db/migration/V600__LD-050_access_foundation.sql": {
+      "name": "أساس صلاحيات الاطلاع",
+      "description": "ينشئ جدول الهيكل التنظيمي وجدول نطاقات الاطلاع، ويضيف وحدة المستخدم والوحدة المالكة للقضية، تمهيدًا لتحديد من يرى أي قضية."
+    },
+    "backend/src/main/resources/db/migration/V601__LD-050_case_core_fields.sql": {
+      "name": "حقول القضية الأساسية",
+      "description": "يضيف بقية حقول سجل القضية ويعدّل شرط نوع القضية وينشئ جدول مشاركة الوحدات التنظيمية في القضية، مع وحدة أساسية واحدة."
+    },
+    "backend/src/main/resources/db/migration/V602__LD-050_party_identity_and_duplicates.sql": {
+      "name": "هوية الأطراف وتحذير التكرار",
+      "description": "يضيف حقول هوية الطرف وجدول محامي كل طرف في القضية وجدول تنبيهات احتمال تكرار القضية، ويضيف صلاحيات."
+    },
+    "backend/src/main/resources/db/migration/V603__LD-050_additional_stages.sql": {
+      "name": "مراحل إضافية للتقاضي",
+      "description": "يوسّع شروط مستويات المحاكم ومراحل التقاضي لتشمل المسارات الدستورية والتنفيذ والتظلم، ويضيف حقل الدائرة."
+    },
+    "backend/src/main/resources/db/migration/V620__LD-051_lookups_and_permissions.sql": {
+      "name": "القوائم المُدارة والصلاحيات",
+      "description": "ينشئ جدول القيم المُدارة وسجل تغييراتها، ويضيف قيمها الأولية، ويمنح صلاحيات الطلبات والدفوع والأدلة."
+    },
+    "backend/src/main/resources/db/migration/V621__LD-051_claims_and_judgments.sql": {
+      "name": "جداول الطلبات والأحكام",
+      "description": "ينشئ جدول طلبات القضية وسجل مراجعاتها الذي لا يُعدَّل، ويوسّع جدول الأحكام بنتيجة المحكمة على كل طلب."
+    },
+    "backend/src/main/resources/db/migration/V622__LD-051_defenses.sql": {
+      "name": "جداول الدفوع",
+      "description": "ينشئ جداول نماذج الدفوع والدفوع وتمسك كل مرحلة بها وموقف المحكمة منها في كل حكم."
+    },
+    "backend/src/main/resources/db/migration/V623__LD-051_facts_and_evidence.sql": {
+      "name": "جداول الوقائع والأدلة",
+      "description": "ينشئ جداول وقائع القضية والأدلة وربط الدليل بالوقائع والدفوع والطلبات ومتابعة الأدلة الناقصة."
+    },
+    "backend/src/main/resources/db/migration/V640__LD-052_judgments_library.sql": {
+      "name": "جداول مكتبة الأحكام",
+      "description": "ينشئ جداول مكتبة الأحكام والسوابق وتصنيفاتها ودوال البحث بالتشابه، وتبدأ المكتبة فارغة."
+    },
+    "backend/src/main/resources/db/migration/V660__LD-053_hearing_extension.sql": {
+      "name": "حقول إضافية للجلسة",
+      "description": "يضيف إلى جدول الجلسات حقول وثيقة المتطلبات، ومنها علامة المتابعة، وكلها اختيارية."
+    },
+    "backend/src/main/resources/db/migration/V661__LD-053_info_request.sql": {
+      "name": "جداول طلبات المعلومات",
+      "description": "ينشئ جداول طلبات البيانات والمستندات الموجهة لوحدات الجهة وردودها ومتابعتها."
+    },
+    "backend/src/main/resources/db/migration/V662__LD-053_risk_assessment.sql": {
+      "name": "جداول تقييم المخاطر",
+      "description": "ينشئ جداول تقييم المخاطر وعناصره وإجراءات المعالجة؛ لا يُعدَّل التقييم بل يُضاف تقييم جديد."
+    },
+    "backend/src/main/resources/db/migration/V663__LD-053_case_link.sql": {
+      "name": "جدول القضايا المرتبطة",
+      "description": "ينشئ جدول ربط قضيتين ببعضهما بحيث تظهر الصلة في الملفين، ويمنع تكرار الصلة نفسها."
+    },
+    "backend/src/main/resources/db/migration/V664__LD-053_notification.sql": {
+      "name": "جدول الإشعارات",
+      "description": "ينشئ جدول الإشعارات داخل التطبيق فقط، دون بريد أو رسائل نصية."
+    },
+    "backend/src/main/resources/db/migration/V665__LD-053_default_permissions.sql": {
+      "name": "صلاحيات افتراضية لحزمة 3",
+      "description": "يمنح الأدوار العاملة على القضايا صلاحيات طلبات المعلومات وتقييم المخاطر وربط القضايا."
+    },
+    "backend/src/main/resources/db/migration/V680__LD-054_deadline_rules_and_holidays.sql": {
+      "name": "قواعد المواعيد والعطل",
+      "description": "ينشئ جداول قواعد المواعيد القانونية والعطل الرسمية وإعدادات التذكير، ولا يضيف أي قاعدة أو عطلة."
+    },
+    "backend/src/main/resources/db/migration/V681__LD-054_deadline.sql": {
+      "name": "جدول المواعيد القانونية",
+      "description": "ينشئ سجل المواعيد القانونية: موعد يدوي أو مقترح من قاعدة أو معتمد من عضو مختص."
+    }
+  }
+}

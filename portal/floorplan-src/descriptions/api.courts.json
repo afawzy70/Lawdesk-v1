@@ -1,0 +1,42 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/courts/Court.java": {
+      "name": "المحكمة",
+      "description": "يمثل محكمة من البيانات المرجعية: اسمها ودرجتها."
+    },
+    "backend/src/main/java/com/lawdesk/courts/CourtController.java": {
+      "name": "طلبات المحاكم",
+      "description": "يستقبل طلبات عرض المحكمة وتعديل بياناتها؛ وهي بيانات مرجعية."
+    },
+    "backend/src/main/java/com/lawdesk/courts/CourtLevel.java": {
+      "name": "درجات المحاكم",
+      "description": "يعرّف درجات المحاكم المصرية: أول درجة والاستئناف والنقض والدستورية والتنفيذ والتظلم؛ ويجب أن تطابق مرحلة الدعوى درجة محكمتها."
+    },
+    "backend/src/main/java/com/lawdesk/courts/CourtRepository.java": {
+      "name": "حفظ المحاكم واسترجاعها",
+      "description": "يقرأ المحاكم من قاعدة البيانات ويكتبها."
+    },
+    "backend/src/main/java/com/lawdesk/courts/CourtRequestErrors.java": {
+      "name": "أخطاء طلبات المحاكم",
+      "description": "يحوّل القيمة الخاطئة في الطلب، كمعرّف غير صالح أو درجة غير معروفة، إلى رد خطأ. لا يستعمله ملف آخر حسب الفحص."
+    },
+    "backend/src/main/java/com/lawdesk/courts/CourtRequests.java": {
+      "name": "بيانات المحاكم",
+      "description": "يحمل ما يُرسل وما يُعرض عن المحاكم؛ والتعديل استبدال كامل مع رقم النسخة المقروءة."
+    },
+    "backend/src/main/java/com/lawdesk/courts/CourtService.java": {
+      "name": "منطق عمل المحاكم",
+      "description": "ينفذ إنشاء المحاكم وعرضها وتعديلها، وتعتمد عليه الجلسات والدرجات."
+    }
+  },
+  "routes": {
+    "GET /api/v1/courts/{id}": {
+      "name": "عرض محكمة",
+      "description": "يعرض بيانات محكمة واحدة لمن يملك صلاحية الاطلاع على المحاكم."
+    },
+    "PUT /api/v1/courts/{id}": {
+      "name": "تعديل محكمة",
+      "description": "يعدّل بيانات محكمة لمن يملك صلاحية إدارة المحاكم."
+    }
+  }
+}

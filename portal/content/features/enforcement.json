@@ -1,0 +1,1035 @@
+{
+ "id": "enforcement",
+ "category": "legal",
+ "name_ar": "تنفيذ الأحكام",
+ "summary_ar": "يتيح فتح «ملف تنفيذ» لكل حكم صادر في قضية، وتسجيل حالة التنفيذ والعضو المسؤول والجهة المنفِّذة والمبلغ المطلوب والعقبات والتاريخ المستهدف، ثم تسجيل الإجراءات والمراسلات المتتابعة مع نتائجها. وتوجد قائمة مستقلة بالأحكام غير المنفَّذة أو المتأخرة في القضايا التي يحق للمستخدم الاطلاع عليها.",
+ "purpose_ar": "ألا يضيع حكم صادر دون متابعة تنفيذه: يعرف الموظف ما تم وما تعثّر ومن المسؤول، وتعرف الإدارة الأحكام التي لم تُنفَّذ بعد أو تجاوزت التاريخ الذي حدّده العضو لنفسه. التاريخ المستهدف يدخله الموظف بنفسه ولا يحسب النظام أي مدة قانونية.",
+ "who_ar": [
+  "مدير الشؤون القانونية",
+  "رئيس القسم",
+  "الموظف القانوني (للاطلاع والإدارة)",
+  "مدخل البيانات والاطلاع فقط (للاطلاع)",
+  "مدير النظام"
+ ],
+ "who_perms": [
+  "ENFORCEMENT_VIEW",
+  "ENFORCEMENT_MANAGE"
+ ],
+ "access_ar": "القائمة الجانبية > تنفيذ الأحكام (قائمة الأحكام غير المنفَّذة). وملف حكم بعينه يظهر داخل صفحة القضية، في قسم المراحل والأحكام، تحت الحكم نفسه: «تنفيذ الحكم».",
+ "route": "/enforcement",
+ "prerequisites_ar": [
+  "وجود حكم مسجَّل في إحدى مراحل القضية (سجل الأحكام يخص ميزة المراحل والأحكام).",
+  "أن يملك المستخدم صلاحية ENFORCEMENT_VIEW للاطلاع وENFORCEMENT_MANAGE للتسجيل والتعديل، وأن يحق له الاطلاع على القضية؛ وللتسجيل والتعديل أن يحق له تعديل القضية (عضو فيها).",
+  "ألا تكون القضية مؤرشفة (القضية المؤرشفة للقراءة فقط)."
+ ],
+ "fields": {
+  "required": [
+   {
+    "name_ar": "حالة التنفيذ",
+    "code": "status",
+    "rule_ar": "إحدى القيم: لم يبدأ، قيد التنفيذ، نُفِّذ جزئيًا، نُفِّذ، متعثر، لا يحتاج تنفيذًا. عند إنشاء الملف تكون القيمة الافتراضية «لم يبدأ» إن لم تُرسل. قيمة غير معروفة تُرفض بخطأ 400.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+      "lines": "43-45",
+      "note": "STATUSES"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+      "lines": "230-237",
+      "note": "check status"
+     },
+     {
+      "path": "backend/src/main/resources/db/migration/V704__LD-055_enforcement.sql",
+      "lines": "9-10",
+      "note": "status check"
+     }
+    ]
+   },
+   {
+    "name_ar": "نوع الإجراء (في الإجراءات)",
+    "code": "kind",
+    "rule_ar": "إجراء، مراسلة، عقبة، غير ذلك. إلزامي عند تسجيل إجراء.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+      "lines": "45-45",
+      "note": "KINDS"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+      "lines": "264-267",
+      "note": "kind required"
+     }
+    ]
+   },
+   {
+    "name_ar": "تاريخ الإجراء",
+    "code": "actionDate",
+    "rule_ar": "إلزامي عند تسجيل إجراء.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+      "lines": "268-270",
+      "note": "actionDate"
+     }
+    ]
+   },
+   {
+    "name_ar": "ما تم (وصف الإجراء)",
+    "code": "description",
+    "rule_ar": "إلزامي ولا يقبل نصًا فارغًا، بحد أقصى 4000 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+      "lines": "271-274",
+      "note": "description"
+     },
+     {
+      "path": "backend/src/main/resources/db/migration/V704__LD-055_enforcement.sql",
+      "lines": "35-35",
+      "note": "description check"
+     }
+    ]
+   }
+  ],
+  "optional": [
+   {
+    "name_ar": "العضو المسؤول",
+    "code": "responsibleMemberId",
+    "rule_ar": "يجب أن يكون مستخدمًا موجودًا في النظام وإلا خطأ 400 على الحقل.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+      "lines": "248-251",
+      "note": "member exists"
+     }
+    ]
+   },
+   {
+    "name_ar": "الجهة المكلفة بالتنفيذ",
+    "code": "executingParty",
+    "rule_ar": "نص حتى 300 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+      "lines": "255-255",
+      "note": "party 300"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+      "lines": "293-301",
+      "note": "text()"
+     }
+    ]
+   },
+   {
+    "name_ar": "المبلغ المطلوب (د.ك)",
+    "code": "amountRequired",
+    "rule_ar": "لا يقل عن صفر، وبحد أقصى ثلاث منازل عشرية و12 خانة صحيحة؛ مبلغ مستقل عن مبالغ الطلبات والحكم.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+      "lines": "244-247",
+      "note": "amount rule"
+     },
+     {
+      "path": "backend/src/main/resources/db/migration/V704__LD-055_enforcement.sql",
+      "lines": "13-13",
+      "note": "amount >= 0"
+     },
+     {
+      "path": "frontend/src/i18n/messages/wp5.ar.ts",
+      "lines": "244-244",
+      "note": "note money"
+     }
+    ]
+   },
+   {
+    "name_ar": "العقبات",
+    "code": "obstacles",
+    "rule_ar": "نص حتى 4000 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+      "lines": "257-257",
+      "note": "obstacles"
+     }
+    ]
+   },
+   {
+    "name_ar": "التاريخ المستهدف",
+    "code": "dueOn",
+    "rule_ar": "تاريخ يدخله العضو؛ إذا انقضى والملف غير منفَّذ يُعدّ الحكم «متأخرًا». ليس مدة قانونية محسوبة.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+      "lines": "56-60",
+      "note": "late computed"
+     },
+     {
+      "path": "backend/src/main/resources/db/migration/V704__LD-055_enforcement.sql",
+      "lines": "1-4",
+      "note": "due_on comment"
+     }
+    ]
+   },
+   {
+    "name_ar": "تاريخ تمام التنفيذ",
+    "code": "completedOn",
+    "rule_ar": "مطلوب إذا كانت الحالة «نُفِّذ»، ولا يجوز أن يكون في المستقبل (حسب توقيت الكويت).",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+      "lines": "238-243",
+      "note": "completedOn"
+     },
+     {
+      "path": "backend/src/main/resources/db/migration/V704__LD-055_enforcement.sql",
+      "lines": "23-23",
+      "note": "executed has date"
+     }
+    ]
+   },
+   {
+    "name_ar": "ملاحظات",
+    "code": "notes",
+    "rule_ar": "نص حتى 4000 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+      "lines": "260-260",
+      "note": "notes"
+     }
+    ]
+   },
+   {
+    "name_ar": "نتيجة الإجراء",
+    "code": "result",
+    "rule_ar": "نص حتى 4000 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+      "lines": "275-275",
+      "note": "result"
+     }
+    ]
+   },
+   {
+    "name_ar": "المستند المرتبط بالإجراء",
+    "code": "documentId",
+    "rule_ar": "يجب أن يكون مستندًا غير مسحوب من ملف القضية نفسها وإلا خطأ 400 «NotInCase».",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+      "lines": "276-280",
+      "note": "document in case"
+     }
+    ]
+   },
+   {
+    "name_ar": "رقم الإصدار (version)",
+    "code": "version",
+    "rule_ar": "يُرسل عند تعديل ملف أو إجراء قائم لكشف تعديل متزامن من مستخدم آخر.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+      "lines": "117-125",
+      "note": "version check"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+      "lines": "164-172",
+      "note": "action version"
+     }
+    ]
+   }
+  ]
+ },
+ "steps": [
+  {
+   "n": 1,
+   "actor_ar": "الموظف المخوّل بالاطلاع",
+   "action_ar": "يفتح صفحة القضية ويبحث تحت الحكم عن قسم «تنفيذ الحكم».",
+   "response_ar": "يعرض النظام بيانات الحكم نفسها (لا تُنسخ) وملف التنفيذ إن وُجد مع إجراءاته مرتّبة بأرقامها؛ وإن لم يوجد ملف يظهر «لا يوجد ملف تنفيذ مسجَّل لهذا الحكم» وزر «فتح ملف تنفيذ» لمن يملك صلاحية الإدارة.",
+   "rules_ar": [
+    "القراءة تتطلب ENFORCEMENT_VIEW مع حق الاطلاع على القضية.",
+    "ظهور الحكم مرتبط بالقضية: حكم قضية لا يحق للمستخدم رؤيتها يُعامل كأنه غير موجود."
+   ],
+   "data_ar": "الحكم (التاريخ والمنطوق والملخص) + الملف + الإجراءات.",
+   "next_ar": "فتح ملف تنفيذ جديد أو تعديل الملف القائم.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementController.java",
+     "lines": "30-34",
+     "note": "GET overview"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+     "lines": "78-85",
+     "note": "overview"
+    },
+    {
+     "path": "frontend/src/features/archive/JudgmentEnforcement.tsx",
+     "lines": "51-60",
+     "note": "who sees what"
+    },
+    {
+     "path": "frontend/src/features/archive/JudgmentEnforcement.tsx",
+     "lines": "74-89",
+     "note": "no file"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "لا صلاحية أو القضية غير مرئية",
+     "detail_ar": "من لا يملك ENFORCEMENT_VIEW لا يرى القسم أصلًا؛ ومن يحصل على 403 أو 404 يرى «لا تملك صلاحية الاطلاع على تنفيذ هذا الحكم». والحكم في قضية غير مرئية يُجاب عنه بـ 404.",
+     "evidence": [
+      {
+       "path": "frontend/src/features/archive/JudgmentEnforcement.tsx",
+       "lines": "51-59",
+       "note": "403/404 message"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+       "lines": "303-315",
+       "note": "judgment 404"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "actor_ar": "عضو القضية المخوّل بإدارة التنفيذ",
+   "action_ar": "يضغط «فتح ملف تنفيذ» ويعبئ الحالة والعضو المسؤول والجهة المنفِّذة والمبلغ والعقبات والتواريخ والملاحظات ثم «حفظ ملف التنفيذ».",
+   "response_ar": "يُنشأ ملف واحد للحكم بحالة «لم يبدأ» إن لم تُحدَّد حالة، ويُسجَّل حدث «فتح ملف تنفيذ» في سجل القضية وسطر في سجل التدقيق، ويُعاد الملف مع رسالة «حُفظ ملف التنفيذ».",
+   "rules_ar": [
+    "لكل حكم ملف تنفيذ واحد فقط (قيد فريد في قاعدة البيانات).",
+    "الكتابة تتطلب ENFORCEMENT_MANAGE وحق تعديل القضية."
+   ],
+   "data_ar": "حقول الملف أعلاه.",
+   "next_ar": "إضافة الإجراءات والمراسلات.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementController.java",
+     "lines": "36-42",
+     "note": "POST create"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+     "lines": "87-107",
+     "note": "create"
+    },
+    {
+     "path": "frontend/src/features/archive/JudgmentEnforcement.tsx",
+     "lines": "160-197",
+     "note": "FileForm submit"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "قيمة غير صالحة (400)",
+     "detail_ar": "حالة مجهولة، أو «نُفِّذ» بلا تاريخ تمام، أو تاريخ تمام في المستقبل، أو مبلغ سالب أو بأكثر من ثلاث منازل، أو عضو غير موجود، أو نص أطول من الحد: يُرفض الطلب بخطأ 400 يحدد الحقل، ويُظهر النموذج «بعض الحقول ناقصة أو غير صالحة».",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+       "lines": "230-262",
+       "note": "check"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/enforcement/EnforcementApiTest.java",
+       "lines": "129-152",
+       "note": "valuesAreChecked"
+      },
+      {
+       "path": "frontend/src/i18n/messages/wp5.ar.ts",
+       "lines": "27-27",
+       "note": "fields msg"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "للحكم ملف بالفعل (422)",
+     "detail_ar": "إن حاول مستخدمان فتح ملف لنفس الحكم يُرفض الثاني بقاعدة ENFORCEMENT_ALREADY_RECORDED ويُعرض «لهذا الحكم ملف تنفيذ بالفعل».",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+       "lines": "100-102",
+       "note": "duplicate"
+      },
+      {
+       "path": "frontend/src/i18n/messages/wp5.ar.ts",
+       "lines": "46-46",
+       "note": "msg"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/enforcement/EnforcementApiTest.java",
+       "lines": "84-91",
+       "note": "aJudgmentHasOneFile"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "قضية مؤرشفة (422)",
+     "detail_ar": "القضية المؤرشفة للقراءة فقط: ترفض القاعدة CASE_ARCHIVED أي تسجيل أو تعديل.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+       "lines": "324-331",
+       "note": "writable"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/enforcement/EnforcementApiTest.java",
+       "lines": "218-226",
+       "note": "archived"
+      }
+     ]
+    },
+    {
+     "kind": "denied",
+     "title_ar": "يرى الحكم ولا يملك تعديل القضية (403)",
+     "detail_ar": "من يرى القضية ولا يحق له تعديلها يحصل على 403 عند الكتابة؛ ومن لا يرى القضية يحصل على 404. والقدرة على الاطلاع على الحكم ليست حق تعديل تنفيذه.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+       "lines": "324-331",
+       "note": "requireChange"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/enforcement/EnforcementApiTest.java",
+       "lines": "202-216",
+       "note": "seeingNotChanging"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "actor_ar": "عضو القضية المخوّل",
+   "action_ar": "يعدّل الملف («تعديل الملف») فيغيّر الحالة أو المسؤول أو التواريخ ويحفظ.",
+   "response_ar": "يُحدَّث الملف ويزيد رقم إصداره، ويُسجَّل حدث «تغيّر التنفيذ» وسطر تدقيق بالحالة الجديدة. إذا انقضى التاريخ المستهدف والحالة غير «نُفِّذ» أو «لا يحتاج تنفيذًا» يظهر تنبيه «متأخر: انقضى التاريخ المستهدف».",
+   "rules_ar": [
+    "لا يُحفظ التعديل إلا إذا طابق رقم الإصدار المُرسل الإصدار الحالي.",
+    "«متأخر» = حالة غير منفَّذة + تاريخ مستهدف مُدخَل + انقضاؤه، وفق توقيت الكويت."
+   ],
+   "data_ar": "حقول الملف + رقم الإصدار.",
+   "next_ar": "إضافة إجراء أو العودة للقائمة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementController.java",
+     "lines": "44-48",
+     "note": "PUT update"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+     "lines": "109-131",
+     "note": "update"
+    },
+    {
+     "path": "frontend/src/features/archive/JudgmentEnforcement.tsx",
+     "lines": "90-115",
+     "note": "show late + edit"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "تعديل متزامن (409)",
+     "detail_ar": "إن عدّل مستخدم آخر الملف قبلك يُرفض الحفظ بخطأ 409 ويُعرض «غيّر مستخدم آخر هذا السجل. أعد التحميل وحاول مجددًا».",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+       "lines": "123-125",
+       "note": "conflict"
+      },
+      {
+       "path": "frontend/src/i18n/messages/wp5.ar.ts",
+       "lines": "31-31",
+       "note": "stale msg"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/enforcement/EnforcementApiTest.java",
+       "lines": "115-127",
+       "note": "version test"
+      }
+     ]
+    },
+    {
+     "kind": "error",
+     "title_ar": "ملف غير موجود (404)",
+     "detail_ar": "معرّف ملف غير موجود يُجاب بـ 404.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+       "lines": "112-113",
+       "note": "not found"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "actor_ar": "عضو القضية المخوّل",
+   "action_ar": "يضغط «تسجيل إجراء» ويختار النوع (إجراء/مراسلة/عقبة/غير ذلك) والتاريخ ووصف «ما تم» والنتيجة والمستند المرتبط إن وُجد.",
+   "response_ar": "يُسجَّل الإجراء برقم تسلسلي يلي آخر رقم في الملف (الإجراء 1، 2…)، ويُسجَّل حدث في سجل القضية وسطر تدقيق، ويظهر في «الإجراءات والمراسلات».",
+   "rules_ar": [
+    "يُقفل صف الملف أثناء الإضافة حتى لا يأخذ إجراءان الرقم نفسه.",
+    "المستند المرتبط يجب أن يكون من مستندات القضية نفسها وغير مسحوب."
+   ],
+   "data_ar": "النوع والتاريخ والوصف والنتيجة والمستند.",
+   "next_ar": "تعديل إجراء سابق أو متابعة الملف.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementController.java",
+     "lines": "50-56",
+     "note": "POST actions"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+     "lines": "133-153",
+     "note": "addAction"
+    },
+    {
+     "path": "frontend/src/features/archive/JudgmentEnforcement.tsx",
+     "lines": "296-305",
+     "note": "add button"
+    },
+    {
+     "path": "frontend/src/features/archive/JudgmentEnforcement.tsx",
+     "lines": "347-365",
+     "note": "ActionForm submit"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "بيانات الإجراء ناقصة (400)",
+     "detail_ar": "نوع مجهول أو تاريخ فارغ أو وصف فارغ أو مستند ليس في القضية: خطأ 400 على الحقل المعني.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+       "lines": "264-281",
+       "note": "checkAction"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/enforcement/EnforcementApiTest.java",
+       "lines": "93-113",
+       "note": "actions test"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "actor_ar": "عضو القضية المخوّل",
+   "action_ar": "يعدّل إجراءً سابقًا بزر «تعديل» بجانبه.",
+   "response_ar": "يُحدَّث الإجراء مع رقم إصداره ويُسجَّل حدث «تغيّر إجراء تنفيذ» وسطر تدقيق.",
+   "rules_ar": [
+    "يُحمى التعديل برقم الإصدار كملف التنفيذ."
+   ],
+   "data_ar": "بيانات الإجراء + الإصدار.",
+   "next_ar": "العودة للملف.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementController.java",
+     "lines": "58-62",
+     "note": "PUT action"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+     "lines": "155-176",
+     "note": "updateAction"
+    },
+    {
+     "path": "frontend/src/features/archive/JudgmentEnforcement.tsx",
+     "lines": "282-292",
+     "note": "edit button"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "تعديل متزامن (409)",
+     "detail_ar": "يُرفض الحفظ بـ 409 إن تغيّر الإجراء بيد مستخدم آخر.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+       "lines": "170-172",
+       "note": "conflict"
+      }
+     ]
+    },
+    {
+     "kind": "error",
+     "title_ar": "الإجراء غير موجود (404)",
+     "detail_ar": "",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+       "lines": "158-161",
+       "note": "not found"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 6,
+   "actor_ar": "المسؤول أو رئيس القسم",
+   "action_ar": "يفتح «تنفيذ الأحكام» من القائمة الجانبية ويختار «غير منفَّذة» أو «متأخرة» أو «كل الأحكام».",
+   "response_ar": "تعرض الصفحة جدولًا بالأحكام في القضايا المرئية للمستخدم فقط: القضية، رقم القضية بالمحكمة، تاريخ الحكم، الحالة (أو «لا يوجد ملف»)، التاريخ المستهدف، المسؤول، الجهة المنفِّذة، مع وسم «متأخر»، وعدد الأحكام وترقيم الصفحات.",
+   "rules_ar": [
+    "«غير منفَّذة» = لا ملف أو ملف حالته ليست «نُفِّذ» ولا «لا يحتاج تنفيذًا».",
+    "«متأخرة» = غير منفَّذة وبتاريخ مستهدف مُدخَل منقضٍ.",
+    "الترتيب: الأقدم تاريخًا مستهدفًا أولًا، وبلا تاريخ في النهاية."
+   ],
+   "data_ar": "النطاق (scope) ورقم القضية اختياريًا والصفحة.",
+   "next_ar": "فتح القضية من الجدول.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementController.java",
+     "lines": "64-70",
+     "note": "GET list"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+     "lines": "184-223",
+     "note": "list"
+    },
+    {
+     "path": "frontend/src/features/archive/EnforcementListPage.tsx",
+     "lines": "20-67",
+     "note": "list page"
+    },
+    {
+     "path": "frontend/src/layout/navigation.ts",
+     "lines": "28-28",
+     "note": "nav item"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "نطاق غير معروف (400)",
+     "detail_ar": "قيمة scope غير UNEXECUTED/LATE/ALL تعطي خطأ 400 على الحقل scope.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+       "lines": "186-189",
+       "note": "scope check"
+      }
+     ]
+    },
+    {
+     "kind": "denied",
+     "title_ar": "بلا صلاحية (403)",
+     "detail_ar": "من لا يملك ENFORCEMENT_VIEW تظهر له صفحة «لا صلاحية».",
+     "evidence": [
+      {
+       "path": "frontend/src/features/archive/EnforcementListPage.tsx",
+       "lines": "46-46",
+       "note": "AccessDenied"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementController.java",
+       "lines": "65-66",
+       "note": "PreAuthorize"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "قضايا غير مرئية",
+     "detail_ar": "الأحكام في قضايا لا يحق للمستخدم رؤيتها لا تظهر في القائمة ولا في عددها.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+       "lines": "190-193",
+       "note": "visible predicate"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/enforcement/EnforcementApiTest.java",
+       "lines": "180-200",
+       "note": "invisible"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "rules": [
+  {
+   "text_ar": "ملف التنفيذ واحد لكل حكم، ولا يُنسخ من الحكم شيء: يعرض الملف بيانات الحكم نفسها.",
+   "evidence": [
+    {
+     "path": "backend/src/main/resources/db/migration/V704__LD-055_enforcement.sql",
+     "lines": "7-7",
+     "note": "unique per judgment"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+     "lines": "34-39",
+     "note": "class doc"
+    }
+   ]
+  },
+  {
+   "text_ar": "«متأخر» تاريخ مستهدف يدخله العضو، وليس مدة قانونية يحسبها النظام.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+     "lines": "34-39",
+     "note": "doc"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+     "lines": "56-60",
+     "note": "late sql"
+    }
+   ]
+  },
+  {
+   "text_ar": "حالة «نُفِّذ» تستلزم تاريخ تمام، وتفرض قاعدة البيانات ذلك أيضًا.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+     "lines": "238-240",
+     "note": "service"
+    },
+    {
+     "path": "backend/src/main/resources/db/migration/V704__LD-055_enforcement.sql",
+     "lines": "23-23",
+     "note": "db check"
+    },
+    {
+     "path": "backend/src/test/java/com/lawdesk/enforcement/EnforcementApiTest.java",
+     "lines": "228-235",
+     "note": "db refuses"
+    }
+   ]
+  },
+  {
+   "text_ar": "كل قراءة وكتابة تمر عبر قاعدة الاطلاع على القضية؛ الحكم في قضية غير مرئية يُبلَّغ عنه بأنه غير موجود (404).",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+     "lines": "303-315",
+     "note": "judgment"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+     "lines": "317-322",
+     "note": "caseOfFile"
+    }
+   ]
+  },
+  {
+   "text_ar": "الكتابة تتطلب ENFORCEMENT_MANAGE وحق تعديل القضية وألا تكون القضية مؤرشفة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementController.java",
+     "lines": "36-62",
+     "note": "PreAuthorize manage"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+     "lines": "324-331",
+     "note": "writable"
+    }
+   ]
+  },
+  {
+   "text_ar": "تعديل الملف أو الإجراء محمي برقم الإصدار؛ التعارض يعطي 409.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+     "lines": "117-125",
+     "note": "file"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+     "lines": "164-172",
+     "note": "action"
+    }
+   ]
+  },
+  {
+   "text_ar": "المبلغ بالدينار الكويتي بثلاث منازل كنص، ومستقل عن أي مبلغ آخر في القضية.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/archive/api.ts",
+     "lines": "357-367",
+     "note": "body"
+    },
+    {
+     "path": "frontend/src/i18n/messages/wp5.ar.ts",
+     "lines": "244-244",
+     "note": "note"
+    }
+   ]
+  },
+  {
+   "text_ar": "الأدوار الأصلية: يطّلع مدير النظام والمدير القانوني ورئيس القسم والموظف القانوني ومدخل البيانات والقراءة فقط، ويدير مدير النظام والمدير القانوني ورئيس القسم والموظف القانوني فقط.",
+   "evidence": [
+    {
+     "path": "backend/src/main/resources/db/migration/V700__LD-055_permissions_and_archive_settings.sql",
+     "lines": "11-17",
+     "note": "role grants"
+    }
+   ]
+  }
+ ],
+ "after_submit_ar": "يظهر الملف المحدَّث مع إجراءاته، ويُسجَّل حدث على خط القضية الزمني وسطر في سجل التدقيق (ENFORCEMENT_CREATE وENFORCEMENT_UPDATE وENFORCEMENT_ACTION_CREATE وENFORCEMENT_ACTION_UPDATE). ويظهر التاريخ المستهدف في تقويم النظام بنوع «موعد تنفيذ» لمن يملك صلاحية الاطلاع على التنفيذ.",
+ "notifications_ar": [
+  "لم أجد في كود التنفيذ إرسال إشعارات أو رسائل: التسجيل لا يرسل شيئًا لأحد. ما يحدث فقط أن حدثًا يُضاف إلى خط القضية الزمني وأن التاريخ المستهدف يظهر في التقويم."
+ ],
+ "approvals_ar": [],
+ "errors": [
+  {
+   "code": "HTTP 400 + errors[{field,code}]",
+   "meaning_ar": "قيمة غير صالحة: يُرجع النظام errors بحقل ورمز، مثل status/Unknown وcompletedOn/NotNull وcompletedOn/PastOrPresent وamountRequired/Digits وresponsibleMemberId/Exists وkind/NotNull وdescription/NotBlank وdocumentId/NotInCase وscope/Unknown وأي حقل نصي/Size.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+     "lines": "230-281",
+     "note": "checks"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+     "lines": "44-49",
+     "note": "FieldErrorException to ProblemDetail"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 403",
+   "meaning_ar": "لا يملك المستخدم الصلاحية، أو يرى القضية ولا يحق له تعديلها.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+     "lines": "324-331",
+     "note": "requireChange"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+     "lines": "98-102",
+     "note": "Spring Security answers"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 404",
+   "meaning_ar": "الحكم أو الملف أو الإجراء غير موجود أو في قضية لا يحق للمستخدم رؤيتها.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+     "lines": "303-322",
+     "note": "not found"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 409",
+   "meaning_ar": "تعديل متزامن: رقم الإصدار لا يطابق.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+     "lines": "123-125",
+     "note": "conflict"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+     "lines": "85-88",
+     "note": "409"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 422 + rule",
+   "meaning_ar": "ENFORCEMENT_ALREADY_RECORDED أو CASE_ARCHIVED.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+     "lines": "46-47",
+     "note": "rules"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+     "lines": "90-96",
+     "note": "422 rule"
+    }
+   ]
+  }
+ ],
+ "result_ar": "ملف تنفيذ محدَّث تحت الحكم، وقائمة مرتبة بالأحكام غير المنفَّذة والمتأخرة تُظهر المسؤول والجهة المنفِّذة والتاريخ المستهدف.",
+ "related": [
+  "settlements",
+  "claims-judgments",
+  "calendar",
+  "audit",
+  "tasks"
+ ],
+ "endpoints": [
+  {
+   "method": "GET",
+   "path": "/api/v1/judgments/{judgmentId}/enforcement",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementController.java",
+    "lines": "30-30",
+    "note": ""
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/judgments/{judgmentId}/enforcement",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementController.java",
+    "lines": "36-36",
+    "note": ""
+   }
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/enforcement/{fileId}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementController.java",
+    "lines": "44-44",
+    "note": ""
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/enforcement/{fileId}/actions",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementController.java",
+    "lines": "50-50",
+    "note": ""
+   }
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/enforcement-actions/{id}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementController.java",
+    "lines": "58-58",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/enforcement/judgments",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementController.java",
+    "lines": "65-65",
+    "note": ""
+   }
+  }
+ ],
+ "tech": {
+  "chain": [
+   {
+    "layer": "screen",
+    "label": "JudgmentEnforcement (داخل صفحة القضية) / EnforcementListPage",
+    "ref": {
+     "path": "frontend/src/features/archive/JudgmentEnforcement.tsx",
+     "lines": "41-50",
+     "note": "component"
+    },
+    "data_ar": "الحكم والقضية المفتوحة يحددان أي ملف يُطلب."
+   },
+   {
+    "layer": "api_call",
+    "label": "getEnforcement / createEnforcement / updateEnforcement / addEnforcementAction / listEnforcement",
+    "ref": {
+     "path": "frontend/src/features/archive/api.ts",
+     "lines": "378-391",
+     "note": "api calls"
+    },
+    "data_ar": "جسم JSON بالحالة والمبلغ (نصًا) والتواريخ ورقم الإصدار."
+   },
+   {
+    "layer": "controller",
+    "label": "EnforcementController",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementController.java",
+     "lines": "21-70",
+     "note": "controller"
+    },
+    "data_ar": "تُتحقق الصلاحية ENFORCEMENT_VIEW أو ENFORCEMENT_MANAGE ثم يُسلَّم الطلب للخدمة."
+   },
+   {
+    "layer": "service",
+    "label": "EnforcementService",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+     "lines": "87-107",
+     "note": "create"
+    },
+    "data_ar": "تُتحقق القيم وقاعدة الاطلاع على القضية وحالتها ثم تُكتب الصفوف."
+   },
+   {
+    "layer": "authorization",
+    "label": "CaseAccessPolicy.requireView / requireChange",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+     "lines": "324-331",
+     "note": "writable"
+    },
+    "data_ar": "يُقرَّر 404 لغير المرئية و403 لغير المخوّل بالتعديل."
+   },
+   {
+    "layer": "tables",
+    "label": "enforcement_file, enforcement_action",
+    "ref": {
+     "path": "backend/src/main/resources/db/migration/V704__LD-055_enforcement.sql",
+     "lines": "5-44",
+     "note": "tables"
+    },
+    "data_ar": "صف الملف وصفوف الإجراءات المرقمة."
+   },
+   {
+    "layer": "event",
+    "label": "case event + AuditLog",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+     "lines": "103-105",
+     "note": "events"
+    },
+    "data_ar": "حدث على خط القضية وسطر تدقيق."
+   },
+   {
+    "layer": "result",
+    "label": "Overview (الحكم + الملف + الإجراءات)",
+    "ref": {
+     "path": "frontend/src/features/archive/api.ts",
+     "lines": "351-355",
+     "note": "overview"
+    },
+    "data_ar": "يُعاد للشاشة لتحدّث عرضها."
+   }
+  ]
+ },
+ "status": "IMPLEMENTED_ON_DEVELOP",
+ "status_note_ar": "الشيفرة موجودة على فرع develop ومغطاة باختبارات تكامل خلفية واختبارات واجهة.",
+ "status_evidence": [
+  {
+   "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementController.java",
+   "lines": "21-71",
+   "note": "controller"
+  },
+  {
+   "path": "backend/src/main/java/com/lawdesk/enforcement/EnforcementService.java",
+   "lines": "40-60",
+   "note": "service"
+  }
+ ],
+ "verification_ar": "تحققتُ من القراءة المباشرة للمتحكم والخدمة وقاعدة البيانات والشاشات. الاختبارات الموجودة: backend/src/test/java/com/lawdesk/enforcement/EnforcementApiTest.java واختبارات الواجهة frontend/src/features/archive/JudgmentEnforcement.test.tsx وEnforcementListPage.test.tsx. لم يجرِ هذا المستند أي تحقق على بيئة UAT، ولم أشغّل الاختبارات. لم أتحقق من قيود حجم الملف أو من أي بند خارج ما ذُكر."
+}

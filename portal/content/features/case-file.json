@@ -1,0 +1,469 @@
+{
+  "id": "case-file",
+  "category": "cases",
+  "name_ar": "الملخص التنفيذي والتسلسل الزمني الموحّد للقضية",
+  "summary_ar": "في صفحة القضية قسمان يجمعان حال القضية من سجلات الأقسام الأخرى: «الملخص التنفيذي» (من هي الأطراف، وآخر إجراء وآخر جلسة والجلسة القادمة، وآخر حكم، ومستوى المخاطر، وطلبات الإفادة المعلقة، والمهام والمواعيد المفتوحة، والقضايا المرتبطة) و«التسلسل الزمني الموحد» الذي يجمع الأحداث السابقة والقادمة في قائمة واحدة قابلة للتصفية بنوع الحدث.",
+  "purpose_ar": "إعطاء العضو نظرة واحدة على القضية دون الانتقال بين الأقسام، وإبراز ما يحتاج إجراءً (جلسة بلا نتيجة، رد متأخر، ميعاد فائت) وما هو قادم.",
+  "who_ar": [
+    "كل من يملك «عرض القضايا» ويحق له الاطلاع على القضية",
+    "وكل قسم من الملخص أو كل نوع حدث في الخط الزمني يظهر فقط لمن يملك صلاحية قراءة سجلاته؛ ويُحذف بدل أن يُرفض"
+  ],
+  "who_perms": [
+    "CASE_VIEW",
+    "HEARING_VIEW",
+    "JUDGMENT_VIEW",
+    "RISK_VIEW",
+    "INFO_REQUEST_VIEW",
+    "TASK_VIEW",
+    "DEADLINE_VIEW"
+  ],
+  "access_ar": "القائمة > القضايا > فتح قضية > «الملخص التنفيذي» و«التسلسل الزمني الموحد»",
+  "route": "/cases/:id",
+  "prerequisites_ar": [
+    "أن تكون القضية ظاهرة للمستخدم (وإلا 404).",
+    "لا يُنشأ ولا يُخزَّن شيء: الملخص والخط الزمني يُقرآن من سجلات الأقسام عند كل طلب."
+  ],
+  "fields": {
+    "required": [],
+    "optional": [
+      {
+        "name_ar": "أنواع الأحداث المعروضة",
+        "code": "types",
+        "rule_ar": "قائمة مفصولة بفواصل من: EVENT وHEARING وINFO_REQUEST وINFO_REQUEST_DUE وINFO_REPLY وRISK وJUDGMENT وLINK وDEADLINE؛ نوع غير معروف يُرفض بـ 400 (الحقل types بالرمز Invalid).",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileController.java",
+            "lines": "41-41",
+            "note": "types"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java",
+            "lines": "35-36",
+            "note": "الأنواع"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java",
+            "lines": "235-235",
+            "note": "الرفض"
+          }
+        ]
+      },
+      {
+        "name_ar": "الترتيب",
+        "code": "order",
+        "rule_ar": "desc (الأحدث أو الأبعد مستقبلًا أولًا، وهو الافتراضي) أو asc؛ غير ذلك 400 (Pattern).",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileController.java",
+            "lines": "42-42",
+            "note": "order"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileController.java",
+            "lines": "44-44",
+            "note": "الرفض"
+          }
+        ]
+      },
+      {
+        "name_ar": "الصفحة والحجم",
+        "code": "page / size",
+        "rule_ar": "الصفحة من 0 والحجم من 1 إلى 100 (20 في الشاشة)؛ خارج ذلك 400.",
+        "evidence": [
+          {
+            "path": "frontend/src/features/followup/api.ts",
+            "lines": "499-499",
+            "note": "الشاشة"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/platform/PagingValidationInterceptor.java",
+            "lines": "31-31",
+            "note": "الحد"
+          }
+        ]
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "actor_ar": "عضو الإدارة القانونية",
+      "action_ar": "يفتح صفحة قضية فيرى في أعلاها «الملخص التنفيذي».",
+      "response_ar": "تُستدعى GET /api/v1/cases/{caseId}/summary فيعرض: أطراف الدعوى وصفاتهم، الجهة الإدارية المعنية، موقف الجهة (مدعية أو مدعى عليها)، القيمة المطالب بها، آخر إجراء، آخر جلسة وقرارها، موعد الجلسة القادمة، عدد الجلسات وتأجيلاتها، آخر حكم، مستوى المخاطر، طلبات الإفادة المعلقة والمتأخرة، المهام المفتوحة والمتأخرة، المواعيد القانونية المفتوحة، والقضايا المرتبطة.",
+      "rules_ar": [
+        "لا يظهر قسم لا يملك المستخدم صلاحية قراءة سجلاته (يُترك فارغًا في الرد).",
+        "القضايا المرتبطة بقضايا لا يراها المستخدم تُعدّ فقط ولا تُوصف.",
+        "جلسة تأجلت دون موعد تالٍ تُبرز مع رابط «فتح قائمة المتابعة».",
+        "ما لم يُسجَّل يُقال فيه «لم تُسجَّل بعد في النظام»؛ لا يُخمَّن."
+      ],
+      "data_ar": "CaseFileViews.Summary: رأس القضية والأطراف والوحدات وآخر إجراء وأقسام الجلسات والأحكام والمخاطر وطلبات الإفادة والمهام والمواعيد والارتباطات.",
+      "next_ar": "ينتقل إلى التسلسل الزمني.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileController.java",
+          "lines": "29-29",
+          "note": "المسار"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java",
+          "lines": "60-60",
+          "note": "الخدمة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java",
+          "lines": "96-96",
+          "note": "حذف الأقسام"
+        },
+        {
+          "path": "frontend/src/features/followup/CaseSummaryPanel.tsx",
+          "lines": "27-27",
+          "note": "الطلب"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "قضية خارج نطاقه",
+          "detail_ar": "404 (لا يُكشف وجود القضية)، و403 لمن لا يملك CASE_VIEW.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java",
+              "lines": "61-61",
+              "note": "الفحص"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileController.java",
+              "lines": "30-30",
+              "note": "الصلاحية"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "actor_ar": "عضو الإدارة القانونية",
+      "action_ar": "يقرأ «التسلسل الزمني الموحد»: قائمة واحدة تضم الأحداث المستقبلية («مستقبلية») ثم السابقة («سابقة»).",
+      "response_ar": "تُستدعى GET /api/v1/cases/{caseId}/unified-timeline بحجم 20. كل سطر: الوقت والنوع (تسجيل بالقضية، جلسة، طلب إفادة، موعد الرد، ورود رد، تقييم مخاطر، حكم، ارتباط قضايا، ميعاد قانوني) وحالته وملخصه ومن سجّله، مع رابط «فتح السجل» إلى مصدر الحدث في الصفحة.",
+      "rules_ar": [
+        "الحدث المستقبلي: جلسة «محددة» بتاريخ اليوم أو بعده، أو ميعاد أو موعد رد مفتوح لم يفت.",
+        "يُعلَّم «إجراء غير مكتمل» ما فات موعده: جلسة ما زالت محددة وتاريخها مضى، أو رد متأخر، أو ميعاد فائت.",
+        "أحداث قسم لا يملك المستخدم صلاحية قراءته تُحذف من القائمة.",
+        "تاريخ اليوم يُحسب بتوقيت الكويت."
+      ],
+      "data_ar": "CaseFileViews.Timeline: items (at وkind وstatus وsummary وrefType وrefId وisFuture وneedsAction وactorName) وpage وtotalItems وtotalPages وdeadlinesAvailable.",
+      "next_ar": "يصفّي أو يطلب المزيد.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileController.java",
+          "lines": "39-39",
+          "note": "المسار"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java",
+          "lines": "231-231",
+          "note": "الخدمة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java",
+          "lines": "34-34",
+          "note": "توقيت الكويت"
+        },
+        {
+          "path": "frontend/src/features/followup/CaseTimelinePanel.tsx",
+          "lines": "79-79",
+          "note": "المستقبلي والسابق"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java",
+          "lines": "255-255",
+          "note": "إجراء غير مكتمل"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "exceptional",
+          "title_ar": "لا أحداث",
+          "detail_ar": "تظهر «لا توجد أحداث.».",
+          "evidence": [
+            {
+              "path": "frontend/src/i18n/messages/wp3.ar.ts",
+              "lines": "246-246",
+              "note": "الرسالة"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "actor_ar": "عضو الإدارة القانونية",
+      "action_ar": "يختار من «عرض الأنواع التالية فقط» نوعًا أو أكثر، ويضغط «عرض المزيد» لتحميل الصفحة التالية.",
+      "response_ar": "يُعاد الطلب بالعامل types (والصفحة التالية تُضاف إلى القائمة).",
+      "rules_ar": [
+        "الترتيب الافتراضي من الأبعد مستقبلًا إلى الأقدم؛ asc يعكسه.",
+        "نوع «ميعاد قانوني» لا يظهر إن لم يملك المستخدم صلاحية قراءة المواعيد؛ وتعرض الشاشة حينئذٍ التلميح «ستظهر المواعيد القانونية هنا بعد تسجيلها»."
+      ],
+      "data_ar": "types وpage وsize.",
+      "next_ar": "يفتح السجل المصدر من رابط الحدث.",
+      "evidence": [
+        {
+          "path": "frontend/src/features/followup/CaseTimelinePanel.tsx",
+          "lines": "40-40",
+          "note": "التصفية"
+        },
+        {
+          "path": "frontend/src/features/followup/api.ts",
+          "lines": "494-494",
+          "note": "الطلب"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java",
+          "lines": "302-302",
+          "note": "الترتيب"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "نوع أو ترتيب غير صالح",
+          "detail_ar": "400 بحقل types (Invalid) أو order (Pattern)؛ وحجم صفحة خارج 1–100 يعطي 400.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileController.java",
+              "lines": "44-44",
+              "note": "order"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java",
+              "lines": "235-235",
+              "note": "types"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "text_ar": "الملخص والخط الزمني لا يتطلبان إلا حق الاطلاع على القضية؛ وأي قسم أو حدث من مجال لا يملك المستخدم صلاحيته يُحذف لا يُرفض. لا شيء يُولَّد ولا يُخزَّن.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java",
+          "lines": "28-30",
+          "note": "التعليق"
+        }
+      ]
+    },
+    {
+      "text_ar": "ارتباط قضية بقضية لا يراها المستخدم يظهر في الخط الزمني بلا سبب ولا معرّف، وفي الملخص يُعدّ فقط.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java",
+          "lines": "246-246",
+          "note": "الخط الزمني"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java",
+          "lines": "220-220",
+          "note": "الملخص"
+        }
+      ]
+    },
+    {
+      "text_ar": "طلبات الإفادة المنتظرة هي المرسلة أو بانتظار الرد أو الجزئية أو غير المكتملة أو المتأخرة؛ ويعرض الملخص أول خمسة منها. والمهام المفتوحة غير المنجزة وغير الملغاة، أول خمس.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java",
+          "lines": "39-39",
+          "note": "الحالات"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java",
+          "lines": "170-170",
+          "note": "خمسة"
+        }
+      ]
+    },
+    {
+      "text_ar": "قائمة الوحدات المعنية تُقرأ من الجهات الإدارية المعنية غير المزالة بترتيب الأساسية أولًا.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java",
+          "lines": "85-85",
+          "note": "الوحدات"
+        }
+      ]
+    }
+  ],
+  "after_submit_ar": "لا يوجد إرسال ولا حفظ: القسمان قراءة فقط يتجددان بتجدد بيانات القضية (أي تغيير في سجل ما يظهر في الطلب التالي).",
+  "notifications_ar": [
+    "لا توجد إشعارات في هذه الميزة؛ الملخص والخط الزمني يقرآن فقط. (الإشعارات ميزة مستقلة.)"
+  ],
+  "approvals_ar": [
+    "لا توجد موافقات في هذه الميزة."
+  ],
+  "errors": [
+    {
+      "code": "HTTP 400 (types: Invalid / order: Pattern)",
+      "meaning_ar": "نوع حدث غير معروف أو ترتيب غير asc/desc أو صفحة وحجم خارج المدى.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java",
+          "lines": "235-235",
+          "note": "types"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileController.java",
+          "lines": "44-44",
+          "note": "order"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 403",
+      "meaning_ar": "لا يملك المستخدم CASE_VIEW.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileController.java",
+          "lines": "30-30",
+          "note": "الصلاحية"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 404",
+      "meaning_ar": "القضية غير موجودة أو خارج نطاق المستخدم.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java",
+          "lines": "61-61",
+          "note": "الفحص"
+        }
+      ]
+    }
+  ],
+  "result_ar": "ملخص تنفيذي من سجلات القضية، وخط زمني واحد للأحداث السابقة والقادمة مع علامات الإجراءات غير المكتملة وروابط إلى سجلاتها.",
+  "related": [
+    "cases-details-edit",
+    "case-brief",
+    "case-links",
+    "hearings",
+    "claims-judgments",
+    "risk",
+    "info-requests",
+    "tasks",
+    "deadlines",
+    "follow-up",
+    "audit"
+  ],
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/v1/cases/{caseId}/summary",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileController.java",
+        "lines": "20-29",
+        "note": ""
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cases/{caseId}/unified-timeline",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileController.java",
+        "lines": "20-39",
+        "note": ""
+      }
+    }
+  ],
+  "tech": {
+    "chain": [
+      {
+        "layer": "screen",
+        "label": "CaseSummaryPanel وCaseTimelinePanel (داخل صفحة القضية)",
+        "ref": {
+          "path": "frontend/src/features/followup/CaseSummaryPanel.tsx",
+          "lines": "18-18",
+          "note": ""
+        },
+        "data_ar": "معرّف القضية وعوامل التصفية."
+      },
+      {
+        "layer": "api_call",
+        "label": "getSummary / getTimeline",
+        "ref": {
+          "path": "frontend/src/features/followup/api.ts",
+          "lines": "457-457",
+          "note": ""
+        },
+        "data_ar": "طلبات GET على /summary و/unified-timeline."
+      },
+      {
+        "layer": "controller",
+        "label": "CaseFileController",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileController.java",
+          "lines": "21-21",
+          "note": ""
+        },
+        "data_ar": "types وorder وPageable إلى الخدمة."
+      },
+      {
+        "layer": "authorization",
+        "label": "CASE_VIEW + CaseAccessPolicy.requireView",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java",
+          "lines": "61-61",
+          "note": ""
+        },
+        "data_ar": "حق الاطلاع على القضية ثم صلاحيات الأقسام."
+      },
+      {
+        "layer": "service",
+        "label": "CaseFileService.summary / timeline",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java",
+          "lines": "231-231",
+          "note": ""
+        },
+        "data_ar": "ضم فروع استعلام (union all) بحسب صلاحيات المستخدم."
+      },
+      {
+        "layer": "tables",
+        "label": "legal_case, case_party, case_event, hearing, judgment, risk_assessment, info_request, task, deadline, case_link",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java",
+          "lines": "244-244",
+          "note": ""
+        },
+        "data_ar": "الجداول المقروءة."
+      },
+      {
+        "layer": "result",
+        "label": "CaseFileViews.Summary / Timeline",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileViews.java",
+          "lines": "84-84",
+          "note": ""
+        },
+        "data_ar": "الأقسام وأسطر الخط الزمني تُعرض في الصفحة."
+      }
+    ]
+  },
+  "status": "IMPLEMENTED_ON_DEVELOP",
+  "status_note_ar": "الشيفرة موجودة على develop ويغطيها اختبارات الخادم والواجهة.",
+  "status_evidence": [
+    {
+      "path": "backend/src/main/java/com/lawdesk/casefile/CaseFileService.java",
+      "lines": "32-32",
+      "note": ""
+    },
+    {
+      "path": "frontend/src/features/followup/CaseSummaryPanel.tsx",
+      "lines": "18-18",
+      "note": ""
+    }
+  ],
+  "verification_ar": "قرأتُ المتحكم والخدمة (الملخص والخط الزمني) ولوحتي الواجهة وأسماء رسائلهما العربية. اختبارات وجدتها: backend/src/test/java/com/lawdesk/followup/CaseFileApiTest.java وفي الواجهة frontend/src/features/followup/CaseFileViews.test.tsx. لم أشغّلها ولم يجرِ هذا المستند تحققًا على UAT. لم أتحقق سطرًا سطرًا من استعلامات خطر المخاطر والمهام والمواعيد الفرعية."
+}

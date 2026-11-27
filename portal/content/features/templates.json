@@ -1,0 +1,872 @@
+{
+  "id": "templates",
+  "category": "cases",
+  "name_ar": "النماذج القانونية الجاهزة ومسودات القضايا",
+  "summary_ar": "مكتبة نماذج قانونية جاهزة (مذكرة دفاع، صحيفة دعوى، طلب تأجيل، كتاب طلب إفادة...) لها صيغ متتالية تمر بالمسودة ثم المراجعة ثم الاعتماد. ومن صفحة أي قضية يُنشأ «مسودة من نموذج» تُعبَّأ بياناتها الأساسية من ملف القضية، وما لا يحتويه ملف القضية يبقى حقلًا فارغًا مسمّى. المسودة غير نهائية دائمًا ولا تُحفظ.",
+  "purpose_ar": "توفير نصوص موحّدة ومعتمدة تسرّع إعداد الأوراق القانونية وتقلل الأخطاء في نقل بيانات القضية، دون أن يخترع النظام أي بيان ناقص.",
+  "who_ar": [
+    "من يملك «إدارة النماذج القانونية»: ينشئ النماذج ويعدّل صيغها ويراجعها ويعتمدها",
+    "من يملك «عرض القضايا» وله حق الاطلاع على القضية: يقرأ النماذج المعتمدة بلا نصوصها ويُعدّ منها مسودة للقضية"
+  ],
+  "who_perms": [
+    "TEMPLATE_MANAGE",
+    "CASE_VIEW"
+  ],
+  "access_ar": "القائمة > النماذج القانونية (للمديرين) ؛ وفي صفحة القضية > «مسودة من نموذج»",
+  "route": "/templates",
+  "prerequisites_ar": [
+    "أنواع النماذج مأخوذة من القائمة المعيارية «أنواع النماذج»؛ ولا يُقبل نوع غير موجود أو معطّل.",
+    "لا يُزرع أي نموذج مع النظام: تُنشأ النماذج بعد التشغيل.",
+    "لإعداد مسودة: نموذج مستعمل وله صيغة معتمدة، وقضية ظاهرة للمستخدم."
+  ],
+  "fields": {
+    "required": [
+      {
+        "name_ar": "نوع النموذج",
+        "code": "kind",
+        "rule_ar": "قيمة فعّالة من قائمة أنواع النماذج؛ وغير ذلك يُرفض (TEMPLATE_KIND_UNKNOWN). حتى 40 حرفًا.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/templates/TemplateRequests.java",
+            "lines": "30-30",
+            "note": "kind"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+            "lines": "135-135",
+            "note": "الفحص"
+          }
+        ]
+      },
+      {
+        "name_ar": "عنوان النموذج",
+        "code": "title",
+        "rule_ar": "غير فارغ حتى 200 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/templates/TemplateRequests.java",
+            "lines": "31-31",
+            "note": "title"
+          }
+        ]
+      },
+      {
+        "name_ar": "نص الصيغة",
+        "code": "body",
+        "rule_ar": "مطلوب عند إضافة صيغة وتعديلها (حتى 100000 حرف)، واختياري عند إنشاء النموذج (إن وُجد أُنشئت الصيغة 1 مسودة).",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/templates/TemplateRequests.java",
+            "lines": "27-27",
+            "note": "الحد"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/templates/TemplateRequests.java",
+            "lines": "57-57",
+            "note": "إضافة صيغة"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+            "lines": "141-141",
+            "note": "الصيغة الأولى"
+          }
+        ]
+      },
+      {
+        "name_ar": "النموذج المطلوب للمسودة",
+        "code": "templateId",
+        "rule_ar": "مطلوب؛ ويمكن اختيار صيغة معيّنة versionId وإلا اعتُمدت آخر صيغة معتمدة.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/templates/TemplateRequests.java",
+            "lines": "77-77",
+            "note": "templateId"
+          }
+        ]
+      }
+    ],
+    "optional": [
+      {
+        "name_ar": "وصف النموذج",
+        "code": "description",
+        "rule_ar": "حتى 1000 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/templates/TemplateRequests.java",
+            "lines": "32-32",
+            "note": "description"
+          }
+        ]
+      },
+      {
+        "name_ar": "ما الذي تغيّر",
+        "code": "changeNote",
+        "rule_ar": "ملاحظة على الصيغة حتى 1000 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/templates/TemplateRequests.java",
+            "lines": "57-57",
+            "note": "changeNote"
+          }
+        ]
+      },
+      {
+        "name_ar": "مستعمل (عند تعديل النموذج)",
+        "code": "active",
+        "rule_ar": "مطلوب عند التعديل؛ النموذج غير المستعمل لا تُعدّ منه مسودة.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/templates/TemplateRequests.java",
+            "lines": "47-47",
+            "note": "active"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/templates/DraftService.java",
+            "lines": "31-31",
+            "note": "INACTIVE"
+          }
+        ]
+      },
+      {
+        "name_ar": "رقم النسخة",
+        "code": "version",
+        "rule_ar": "مطلوب عند تعديل النموذج أو صيغة أو مراجعتها أو اعتمادها؛ يمنع الكتابة فوق تغيير غيرك.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/templates/TemplateRequests.java",
+            "lines": "74-74",
+            "note": "Step"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+            "lines": "163-163",
+            "note": "409"
+          }
+        ]
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "actor_ar": "مدير النماذج القانونية",
+      "action_ar": "يفتح «النماذج القانونية» من القائمة الرئيسية (تظهر لمن يملك TEMPLATE_MANAGE).",
+      "response_ar": "تُعرض النماذج مع نوعها وحالتها (مستعمل أو غير مستعمل) وعدد صيغها وأحدث صيغة معتمدة («معتمد حتى الصيغة س») أو «لا توجد صيغة معتمدة بعد»؛ وتُعرض قائمة «الحقول التي يملؤها ملف القضية». وإن لم توجد نماذج تظهر «لا توجد نماذج بعد…».",
+      "rules_ar": [
+        "المدير يرى كل الصيغ ونصوصها؛ وغيره لا يرى إلا الصيغ المعتمدة وبلا نصوصها."
+      ],
+      "data_ar": "GET /api/v1/templates وGET /api/v1/templates/fields وقائمة أنواع النماذج.",
+      "next_ar": "ينشئ نموذجًا أو يفتح واحدًا.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateController.java",
+          "lines": "42-42",
+          "note": "القائمة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+          "lines": "61-61",
+          "note": "الخدمة"
+        },
+        {
+          "path": "frontend/src/features/wp9/TemplatesPage.tsx",
+          "lines": "33-33",
+          "note": "الشاشة"
+        },
+        {
+          "path": "frontend/src/layout/navigation.ts",
+          "lines": "31-31",
+          "note": "القائمة"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "بلا صلاحية",
+          "detail_ar": "403 فتحل صفحة «لا صلاحية» محل الشاشة؛ والأدوات (إنشاء وتعديل) تحتاج TEMPLATE_MANAGE في الخادم.",
+          "evidence": [
+            {
+              "path": "frontend/src/features/wp9/TemplatesPage.tsx",
+              "lines": "78-78",
+              "note": "الصفحة"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/templates/TemplateController.java",
+              "lines": "57-57",
+              "note": "الصلاحية"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "actor_ar": "مدير النماذج القانونية",
+      "action_ar": "يضغط «نموذج جديد»: يختار النوع ويكتب العنوان والوصف ونص الصيغة الأولى (بالعربية) بوضع الحقول هكذا {{case.referenceNo}}، ثم «إنشاء النموذج».",
+      "response_ar": "يُرسل POST /api/v1/templates فيُنشأ النموذج (201) وصيغته الأولى بحالة «مسودة»، وتظهر «أُنشئ النموذج.».",
+      "rules_ar": [
+        "الحقل المسموح به في النص هو أحد حقول ملف القضية فقط، وتعرض الشاشة قائمتها.",
+        "يُسجَّل في التدقيق TEMPLATE_CREATE."
+      ],
+      "data_ar": "kind وtitle وdescription وbody.",
+      "next_ar": "تُراجَع الصيغة وتُعتمد.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateController.java",
+          "lines": "56-56",
+          "note": "الإنشاء"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+          "lines": "133-133",
+          "note": "الخدمة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+          "lines": "144-144",
+          "note": "التدقيق"
+        },
+        {
+          "path": "frontend/src/features/wp9/TemplatesPage.tsx",
+          "lines": "174-174",
+          "note": "التحقق في الشاشة"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "نوع أو عنوان ناقص",
+          "detail_ar": "تظهر «اختر النوع وأدخل العنوان.»؛ وفي الخادم 400.",
+          "evidence": [
+            {
+              "path": "frontend/src/i18n/messages/wp9.ar.ts",
+              "lines": "154-154",
+              "note": "الرسالة"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "نوع غير معروف أو معطّل",
+          "detail_ar": "422 بقيمة TEMPLATE_KIND_UNKNOWN: «نوع النموذج هذا غير موجود في القائمة».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+              "lines": "34-34",
+              "note": "الرمز"
+            },
+            {
+              "path": "frontend/src/i18n/messages/wp9.ar.ts",
+              "lines": "36-36",
+              "note": "الرسالة"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "actor_ar": "مدير النماذج القانونية",
+      "action_ar": "يفتح نموذجًا ويضيف «صيغة جديدة» (نصًا وملاحظة «ما الذي تغيّر») أو يعدّل نص صيغة ما زالت «مسودة» ثم «حفظ النص».",
+      "response_ar": "تُرقَّم الصيغ تسلسليًا وتُحفظ كلها. تُعرض لكل صيغة حالتها (مسودة، روجعت، معتمدة) والحقول التي تستخدمها، ويُحذَّر من أي حقل غير معروف «يستخدم النص حقلًا لا يوجد في ملف القضية؛ صحّحه قبل الاعتماد».",
+      "rules_ar": [
+        "صيغة روجعت أو اعتُمدت لا يُعدَّل نصها؛ التغيير بصيغة جديدة (TEMPLATE_VERSION_LOCKED).",
+        "كل تغيير يُسجَّل في التدقيق (TEMPLATE_VERSION)."
+      ],
+      "data_ar": "body وchangeNote (وversion عند التعديل).",
+      "next_ar": "تُراجع الصيغة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateController.java",
+          "lines": "74-74",
+          "note": "صيغة جديدة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateController.java",
+          "lines": "80-80",
+          "note": "تعديل صيغة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+          "lines": "191-191",
+          "note": "الخدمة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+          "lines": "181-181",
+          "note": "الترقيم"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "exceptional",
+          "title_ar": "صيغة مقفلة",
+          "detail_ar": "422 TEMPLATE_VERSION_LOCKED: «لا تُعدَّل صيغة روجعت أو اعتُمدت: أضف صيغة جديدة».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+              "lines": "195-195",
+              "note": "الرفض"
+            },
+            {
+              "path": "frontend/src/i18n/messages/wp9.ar.ts",
+              "lines": "37-37",
+              "note": "الرسالة"
+            }
+          ]
+        },
+        {
+          "kind": "error",
+          "title_ar": "عدّلها شخص آخر",
+          "detail_ar": "409 «عدّل شخص آخر هذا السجل. أعد التحميل وحاول مرة أخرى».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+              "lines": "203-203",
+              "note": "409"
+            },
+            {
+              "path": "frontend/src/i18n/messages/wp9.ar.ts",
+              "lines": "24-24",
+              "note": "الرسالة"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "actor_ar": "مدير النماذج القانونية",
+      "action_ar": "يضغط «تسجيل مراجعة الصيغة س» ثم «اعتماد الصيغة س».",
+      "response_ar": "تنتقل الصيغة من «مسودة» إلى «روجعت» ثم إلى «معتمدة» ويُسجَّل المراجِع والمعتمِد ووقتهما، وتظهر «سُجلت مراجعة الصيغة.» ثم «اعتُمدت الصيغة.».",
+      "rules_ar": [
+        "الاعتماد لا يكون إلا بعد المراجعة ولا يُتخطى (TEMPLATE_VERSION_TRANSITION).",
+        "لا تُعتمد صيغة تستخدم حقلًا غير معروف (TEMPLATE_UNKNOWN_PLACEHOLDER).",
+        "المراجعة والاعتماد يقوم بهما من يملك TEMPLATE_MANAGE؛ ولم أجد في الشيفرة اشتراطًا بأن يكون المراجِع غير المعتمِد."
+      ],
+      "data_ar": "معرّف الصيغة ونسختها.",
+      "next_ar": "تصبح الصيغة متاحة لإعداد المسودات.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateController.java",
+          "lines": "86-86",
+          "note": "المراجعة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateController.java",
+          "lines": "92-92",
+          "note": "الاعتماد"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+          "lines": "224-224",
+          "note": "الخدمة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+          "lines": "231-231",
+          "note": "حقل مجهول"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "exceptional",
+          "title_ar": "انتقال غير مسموح أو حقل غير معروف",
+          "detail_ar": "422 TEMPLATE_VERSION_TRANSITION («لا يمكن أن تنتقل الصيغة إلى هذه الخطوة من حالتها الحالية») أو TEMPLATE_UNKNOWN_PLACEHOLDER («يستخدم النص حقلًا لا يوجد في ملف القضية، فلا يمكن اعتماده»).",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+              "lines": "228-228",
+              "note": "الاعتماد بلا مراجعة"
+            },
+            {
+              "path": "frontend/src/i18n/messages/wp9.ar.ts",
+              "lines": "39-39",
+              "note": "الرسالة"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "actor_ar": "عضو الإدارة القانونية",
+      "action_ar": "في صفحة قضية يفتح قسم «مسودة من نموذج»، يختار النموذج (يظهر فقط ما له صيغة معتمدة) ويضغط «إعداد مسودة».",
+      "response_ar": "يُرسل POST /api/v1/cases/{caseId}/template-drafts. يعرض النظام نص المسودة بعد ملء الحقول من ملف القضية، وعلامة «مسودة»، وعبارة «غير نهائية: يجب أن يراجعها ويعتمدها العضو المختص»، وقائمة «حقول لا يحتويها ملف القضية (تُركت كما هي)» أو «عُبئت كل الحقول من ملف القضية»، والصيغة المستعملة.",
+      "rules_ar": [
+        "يُستعمل آخر صيغة معتمدة ما لم يُختر غيرها؛ وغير المدير لا يُعدّ إلا من صيغة معتمدة.",
+        "حقل لا يحتويه ملف القضية يبقى كما هو {{…}} ويُسمّى «ناقصًا»؛ ولا يُخمَّن شيء.",
+        "الحقول غير المعروفة تُترك وتُذكر.",
+        "لا يُحفظ شيء ولا يُرسل؛ ويُسجَّل في التدقيق TEMPLATE_DRAFT."
+      ],
+      "data_ar": "templateId (وversionId اختياريًا)؛ والرد: text وfilled وmissing وunknown وnotice.",
+      "next_ar": "يراجع العضو المختص المسودة ويستكملها خارج النظام أو في المستندات.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateController.java",
+          "lines": "98-98",
+          "note": "المسار"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/DraftService.java",
+          "lines": "56-56",
+          "note": "الخدمة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/DraftService.java",
+          "lines": "36-36",
+          "note": "التنبيه"
+        },
+        {
+          "path": "frontend/src/features/wp9/DraftSection.tsx",
+          "lines": "24-24",
+          "note": "الشاشة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/DraftService.java",
+          "lines": "106-106",
+          "note": "التدقيق"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "قضية غير ظاهرة",
+          "detail_ar": "404 إن لم يحق للمستخدم رؤية القضية؛ ومن لا يملك CASE_VIEW يتلقى 403 (ويُخفى القسم).",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/templates/DraftService.java",
+              "lines": "58-58",
+              "note": "الفحص"
+            },
+            {
+              "path": "frontend/src/features/wp9/DraftSection.tsx",
+              "lines": "52-52",
+              "note": "إخفاء القسم"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "نموذج غير مستعمل أو بلا صيغة معتمدة",
+          "detail_ar": "422: TEMPLATE_INACTIVE («النموذج غير مستعمل») أو TEMPLATE_NO_APPROVED_VERSION («لا توجد للنموذج صيغة معتمدة بعد») أو TEMPLATE_NOT_APPROVED («لا تُستعمل إلا الصيغة المعتمدة في إعداد المسودة»).",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/templates/DraftService.java",
+              "lines": "65-65",
+              "note": "INACTIVE"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/templates/DraftService.java",
+              "lines": "137-137",
+              "note": "لا صيغة"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/templates/DraftService.java",
+              "lines": "70-70",
+              "note": "غير معتمدة"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "text_ar": "للصيغة ثلاث حالات متتالية: مسودة ثم روجعت ثم معتمدة، ولا يُعدَّل نص صيغة بعد مراجعتها.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+          "lines": "28-28",
+          "note": "التعليق"
+        }
+      ]
+    },
+    {
+      "text_ar": "حقول ملف القضية المتاحة للنماذج (22 حقلًا): الرقم الداخلي، الرقم الآلي القضائي، العنوان، نوع النزاع، موضوع الدعوى، تاريخ فتح القضية، تاريخ ورودها للإدارة، الحالة، الدائرة، الوقائع، صفة الجهة، المبلغ المطالب به، الأثر المالي، العضو المختص، العضو البديل، الجهة الموكِّلة، الخصوم، المحكمة، درجة التقاضي، رقم القضية بالمحكمة، موعد الجلسة القادمة، تاريخ اليوم.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateFields.java",
+          "lines": "34-57",
+          "note": "القائمة"
+        }
+      ]
+    },
+    {
+      "text_ar": "صيغة الحقل في النص: قوسان معقوصان مزدوجان حول اسم منقّط مثل {{case.title}}؛ والمسافات داخلها مسموحة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateFields.java",
+          "lines": "27-27",
+          "note": "النمط"
+        }
+      ]
+    },
+    {
+      "text_ar": "المبالغ تُعرض بثلاث منازل عشرية مع «دينار كويتي»، وكل مبلغ حقل مستقل بعنوانه (المطالب به، الأثر المالي).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateFields.java",
+          "lines": "175-175",
+          "note": "التنسيق"
+        }
+      ]
+    },
+    {
+      "text_ar": "النماذج لا تُحذف: تُوقف بإيقاف الاستعمال فقط.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+          "lines": "149-149",
+          "note": "التعديل"
+        }
+      ]
+    },
+    {
+      "text_ar": "لا يُزرع أي نموذج مع النظام.",
+      "evidence": [
+        {
+          "path": "backend/src/main/resources/db/migration/V743__LD-057_form_template.sql",
+          "lines": "4-4",
+          "note": "الهجرة"
+        }
+      ]
+    }
+  ],
+  "after_submit_ar": "النموذج وصيغه تظهر في الشاشة وتُسجَّل تغييراتها في التدقيق. أما المسودة فتظهر في صفحة القضية فقط ولا تُخزَّن ولا تغيّر شيئًا في ملف القضية.",
+  "notifications_ar": [
+    "لا توجد إشعارات في هذه الميزة؛ لم أجد في شيفرة النماذج استدعاءً لخدمة الإشعارات."
+  ],
+  "approvals_ar": [
+    "لكل صيغة مسار موافقة داخل النظام: مسودة ثم مراجعة ثم اعتماد، يقوم بكل خطوة من يملك «إدارة النماذج القانونية»، ولا تُستعمل في المسودات إلا الصيغة المعتمدة. ولا يُشترط في الشيفرة أن يختلف المراجِع عن المعتمِد.",
+    "والمسودة الناتجة لقضية غير نهائية دائمًا ويعتمدها العضو المختص خارج هذا المسار."
+  ],
+  "errors": [
+    {
+      "code": "HTTP 400",
+      "meaning_ar": "حقل ناقص أو غير صالح (نوع أو عنوان أو نص أو نسخة).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateRequests.java",
+          "lines": "29-34",
+          "note": "Create"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 403",
+      "meaning_ar": "الكتابة بلا TEMPLATE_MANAGE؛ أو القراءة بلا CASE_VIEW.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateController.java",
+          "lines": "57-57",
+          "note": "الصلاحية"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 404",
+      "meaning_ar": "نموذج أو صيغة أو قضية غير موجودة أو غير ظاهرة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+          "lines": "98-98",
+          "note": "نموذج"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/DraftService.java",
+          "lines": "119-119",
+          "note": "صيغة"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 409",
+      "meaning_ar": "تغيّر النموذج أو الصيغة منذ قراءتها.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+          "lines": "163-163",
+          "note": "409"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 TEMPLATE_KIND_UNKNOWN",
+      "meaning_ar": "نوع غير موجود أو معطّل في قائمة أنواع النماذج.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+          "lines": "34-34",
+          "note": "الرمز"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 TEMPLATE_VERSION_LOCKED",
+      "meaning_ar": "تعديل صيغة روجعت أو اعتُمدت.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+          "lines": "35-35",
+          "note": "الرمز"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 TEMPLATE_VERSION_TRANSITION",
+      "meaning_ar": "مراجعة غير المسودة أو اعتماد غير المراجَعة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+          "lines": "36-36",
+          "note": "الرمز"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 TEMPLATE_UNKNOWN_PLACEHOLDER",
+      "meaning_ar": "الصيغة تستخدم حقلًا غير معروف فلا تُعتمد.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+          "lines": "37-37",
+          "note": "الرمز"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 TEMPLATE_INACTIVE / TEMPLATE_NO_APPROVED_VERSION / TEMPLATE_NOT_APPROVED",
+      "meaning_ar": "نموذج غير مستعمل، أو بلا صيغة معتمدة، أو صيغة غير معتمدة لغير المدير.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/DraftService.java",
+          "lines": "31-31",
+          "note": "الرموز"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/templates/DraftService.java",
+          "lines": "33-33",
+          "note": "الرموز"
+        }
+      ]
+    }
+  ],
+  "result_ar": "نماذج قانونية بصيغ معتمدة، ومسودة قضية معبّأة بما في ملف القضية ومعها قائمة بما نقص، غير نهائية دائمًا.",
+  "related": [
+    "lists-lookups",
+    "cases-details-edit",
+    "case-file",
+    "legal-docs",
+    "documents-ocr",
+    "library",
+    "audit",
+    "roles-permissions"
+  ],
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/v1/templates",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/templates/TemplateController.java",
+        "lines": "42-42",
+        "note": ""
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/templates/fields",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/templates/TemplateController.java",
+        "lines": "50-50",
+        "note": ""
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/templates",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/templates/TemplateController.java",
+        "lines": "56-56",
+        "note": ""
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/templates/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/templates/TemplateController.java",
+        "lines": "62-62",
+        "note": ""
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/templates/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/templates/TemplateController.java",
+        "lines": "68-68",
+        "note": ""
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/templates/{id}/versions",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/templates/TemplateController.java",
+        "lines": "74-74",
+        "note": ""
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/template-versions/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/templates/TemplateController.java",
+        "lines": "80-80",
+        "note": ""
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/template-versions/{id}/review",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/templates/TemplateController.java",
+        "lines": "86-86",
+        "note": ""
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/template-versions/{id}/approve",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/templates/TemplateController.java",
+        "lines": "92-92",
+        "note": ""
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/cases/{caseId}/template-drafts",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/templates/TemplateController.java",
+        "lines": "98-98",
+        "note": ""
+      }
+    }
+  ],
+  "tech": {
+    "chain": [
+      {
+        "layer": "screen",
+        "label": "TemplatesPage (/templates) وDraftSection (في صفحة القضية)",
+        "ref": {
+          "path": "frontend/src/features/wp9/TemplatesPage.tsx",
+          "lines": "33-33",
+          "note": ""
+        },
+        "data_ar": "نص النموذج وخطواته، أو اختيار النموذج لقضية."
+      },
+      {
+        "layer": "api_call",
+        "label": "createTemplate / stepTemplateVersion / generateDraft",
+        "ref": {
+          "path": "frontend/src/features/wp9/api.ts",
+          "lines": "425-425",
+          "note": ""
+        },
+        "data_ar": "طلبات JSON إلى /api/v1/templates و/api/v1/cases/{id}/template-drafts."
+      },
+      {
+        "layer": "controller",
+        "label": "TemplateController",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateController.java",
+          "lines": "32-32",
+          "note": ""
+        },
+        "data_ar": "TemplateRequests.* بعد التحقق."
+      },
+      {
+        "layer": "authorization",
+        "label": "@PreAuthorize TEMPLATE_MANAGE / CASE_VIEW + CaseAccessPolicy.requireView",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateController.java",
+          "lines": "57-57",
+          "note": ""
+        },
+        "data_ar": "الصلاحية ثم حق الاطلاع على القضية للمسودة."
+      },
+      {
+        "layer": "service",
+        "label": "TemplateService / DraftService / TemplateFields",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/templates/DraftService.java",
+          "lines": "56-56",
+          "note": ""
+        },
+        "data_ar": "اختيار الصيغة ثم استبدال الحقول بقيم ملف القضية."
+      },
+      {
+        "layer": "repository",
+        "label": "JdbcClient داخل الخدمات",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateFields.java",
+          "lines": "102-102",
+          "note": ""
+        },
+        "data_ar": "قيم حقول القضية من الجداول."
+      },
+      {
+        "layer": "tables",
+        "label": "form_template, form_template_version",
+        "ref": {
+          "path": "backend/src/main/resources/db/migration/V743__LD-057_form_template.sql",
+          "lines": "21-21",
+          "note": ""
+        },
+        "data_ar": "النموذج وصيغه."
+      },
+      {
+        "layer": "event",
+        "label": "audit TEMPLATE_CREATE / TEMPLATE_VERSION / TEMPLATE_DRAFT",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+          "lines": "177-177",
+          "note": ""
+        },
+        "data_ar": "حدث تدقيق بالفاعل والنموذج."
+      },
+      {
+        "layer": "result",
+        "label": "TemplateRequests.Draft",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/templates/TemplateRequests.java",
+          "lines": "101-101",
+          "note": ""
+        },
+        "data_ar": "نص المسودة وقوائم المعبّأ والناقص والمجهول."
+      }
+    ]
+  },
+  "status": "IMPLEMENTED_ON_DEVELOP",
+  "status_note_ar": "الشيفرة موجودة على develop ويغطيها اختبارات الخادم والواجهة المذكورة.",
+  "status_evidence": [
+    {
+      "path": "backend/src/main/java/com/lawdesk/templates/TemplateService.java",
+      "lines": "32-32",
+      "note": ""
+    },
+    {
+      "path": "backend/src/main/java/com/lawdesk/templates/DraftService.java",
+      "lines": "29-29",
+      "note": ""
+    },
+    {
+      "path": "frontend/src/features/wp9/TemplatesPage.tsx",
+      "lines": "33-33",
+      "note": ""
+    }
+  ],
+  "verification_ar": "قرأتُ المتحكم والخدمات الثلاث وطلبات النماذج وحقول ملف القضية وهجرة V743 وشاشتي النماذج والمسودة وملف الرسائل. اختبارات وجدتها: backend/src/test/java/com/lawdesk/templates/TemplateApiTest.java وفي الواجهة frontend/src/features/wp9/TemplatesPage.test.tsx وDraftSection.test.tsx. لم أشغّلها ولم يجرِ هذا المستند تحققًا على UAT. لم أتحقق من استعلام قيمة «الأثر المالي» في ملف القضية إلا من قراءة TemplateFields ولا من تصدير المسودة إلى مستند (غير موجود فيما قرأت: المسودة لا تُحفظ)."
+}

@@ -1,0 +1,34 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/caselinks/CaseLinkController.java": {
+      "name": "طلبات ربط القضايا",
+      "description": "يستقبل طلبات عرض القضايا المرتبطة وإضافة ارتباط وتعديله."
+    },
+    "backend/src/main/java/com/lawdesk/caselinks/CaseLinkReportQueries.java": {
+      "name": "استعلامات الارتباطات للتقارير",
+      "description": "يقرأ الارتباطات للتقارير فقط، فيعدّ كل نوع وحالة ويبيّن كم منها قرار من المحكمة."
+    },
+    "backend/src/main/java/com/lawdesk/caselinks/CaseLinkRequests.java": {
+      "name": "بيانات ربط القضايا",
+      "description": "يحمل ما يُرسل وما يُعرض عن الارتباطات، ومن أنواعها ربط الموضوع وطلب الضم وقرار المحكمة بالضم والإحالة؛ أما حالات الارتباط فمفترضة وتنتظر اعتماد المالك."
+    },
+    "backend/src/main/java/com/lawdesk/caselinks/CaseLinkService.java": {
+      "name": "منطق ربط القضايا",
+      "description": "ينفذ إنشاء الارتباط بين قضيتين وتعديله وعرض الارتباطات، ويُخفي تفاصيل القضايا التي لا يحق للمستخدم رؤيتها ويكتفي بعدّها."
+    }
+  },
+  "routes": {
+    "GET /api/v1/cases/{caseId}/links": {
+      "name": "القضايا المرتبطة",
+      "description": "يعرض الارتباطات التي يحق للمستخدم رؤيتها مع عدد ما بقي مخفيًا منها؛ لمن يملك صلاحية الاطلاع."
+    },
+    "POST /api/v1/cases/{caseId}/links": {
+      "name": "ربط قضية بأخرى",
+      "description": "يسجّل ارتباطًا بين القضية وقضية أخرى؛ لمن يملك صلاحية إدارة الارتباطات."
+    },
+    "PUT /api/v1/case-links/{id}": {
+      "name": "تعديل ارتباط",
+      "description": "يعدّل ارتباطًا قائمًا بين قضيتين؛ لمن يملك صلاحية إدارة الارتباطات."
+    }
+  }
+}

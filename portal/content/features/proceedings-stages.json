@@ -1,0 +1,131 @@
+{
+  "id": "proceedings-stages",
+  "category": "litigation",
+  "name_ar": "الإجراءات القضائية ودرجات التقاضي",
+  "summary_ar": "تسجيل مراحل القضية أمام المحاكم (أول درجة، الاستئناف، النقض، وكذلك المسارات الدستورية والتنفيذ والتظلم) وربط كل مرحلة بالمرحلة التي تطعن عليها، مع عرضها في شكل سلّم متدرج داخل صفحة القضية.",
+  "purpose_ar": "تمكين الشؤون القانونية من معرفة أين وصلت القضية في سلّم التقاضي، ومنع تسجيل مرحلة لا تسمح بها القواعد القضائية (مثل استئناف لم يصدر فيه حكم أول درجة أو محكمة من درجة غير مناسبة).",
+  "who_ar": ["من يملك صلاحية عرض الإجراءات القضائية", "من يملك صلاحية إدارة الإجراءات القضائية"],
+  "who_perms": ["PROCEEDING_VIEW", "PROCEEDING_MANAGE"],
+  "access_ar": "القائمة > القضايا > فتح القضية > قسم درجات التقاضي (الإجراءات القضائية)",
+  "route": "/cases/:id",
+  "prerequisites_ar": [
+    "وجود القضية ومشاهدتها وفق سياسة الوصول إلى القضايا (القضية التي لا يراها المستخدم تظهر له كأنها غير موجودة).",
+    "وجود محكمة فعّالة في قائمة المحاكم من نفس درجة التقاضي المطلوبة.",
+    "للاستئناف أو النقض: وجود مرحلة سابقة في نفس القضية صدر فيها حكم."
+  ],
+  "fields": {
+    "required": [
+      {"name_ar": "الدرجة", "code": "stage", "rule_ar": "مطلوب. إحدى القيم: أول درجة، الاستئناف، النقض، الدستورية، التنفيذ، التظلم. لا تتغير بعد التسجيل.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingRequests.java", "lines": "22-30", "note": "Create record"}, {"path": "backend/src/main/java/com/lawdesk/proceedings/Stage.java", "lines": "6-24", "note": "stages"}]},
+      {"name_ar": "المحكمة", "code": "courtId", "rule_ar": "مطلوبة. يجب أن تكون درجة المحكمة مطابقة لدرجة التقاضي، وأن تكون المحكمة غير موقوفة عند التسجيل (وتبقى المحكمة الموقوفة لاحقًا على الدعوى القديمة عند التعديل).", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingService.java", "lines": "74-78", "note": "court active + level"}, {"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingService.java", "lines": "132-137", "note": "requireLevel"}]},
+      {"name_ar": "رقم الدعوى بالمحكمة", "code": "courtCaseNumber", "rule_ar": "مطلوب وغير فارغ، حتى 32 حرفًا؛ تُحذف المسافات من طرفيه. لا يتكرر نفس الرقم والسنة في نفس المحكمة ونفس الدرجة (بغض النظر عن حالة الأحرف).", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingRequests.java", "lines": "26-26", "note": "NotBlank Size 32"}, {"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingRepository.java", "lines": "31-36", "note": "numberTaken"}]},
+      {"name_ar": "السنة", "code": "courtCaseYear", "rule_ar": "مطلوبة، رقم بين 1900 و2100.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingRequests.java", "lines": "27-27", "note": "Min Max"}]},
+      {"name_ar": "تاريخ القيد", "code": "filingDate", "rule_ar": "مطلوب ولا يجوز أن يكون في المستقبل. لا يسبق تاريخ الحكم المطعون عليه.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingRequests.java", "lines": "28-28", "note": "PastOrPresent"}, {"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingService.java", "lines": "175-180", "note": "requireFiledAfter"}]}
+    ],
+    "optional": [
+      {"name_ar": "الدعوى المطعون عليها", "code": "parentProceedingId", "rule_ar": "ممنوعة في أول درجة، ومطلوبة في كل مرحلة أخرى. الاستئناف يطعن على دعوى أول درجة صدر فيها حكم، والنقض على استئناف صدر فيه حكم، من نفس القضية. المسارات الدستورية والتنفيذ والتظلم يكفيها دعوى سابقة من نفس القضية.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingService.java", "lines": "139-173", "note": "checkParent"}]}
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "actor_ar": "الموظف المخوّل بإدارة الإجراءات",
+      "action_ar": "يفتح صفحة القضية فيظهر قسم درجات التقاضي: قائمة الدعاوى مرتبة حسب الدرجة ثم تاريخ القيد ثم ترتيب التسجيل.",
+      "response_ar": "تظهر كل مرحلة باسمها ورقمها والمحكمة وتاريخ القيد والدعوى التي تطعن عليها، مع حكمها إن وُجد. إن لم تكن هناك دعاوى تظهر عبارة «لم تُسجل أي دعوى بعد».",
+      "rules_ar": ["الصلاحية المطلوبة PROCEEDING_VIEW.", "الدعوى تُرى بقدر ما تُرى قضيتها."],
+      "data_ar": "قائمة الدعاوى مع بيانات المحكمة وعلامة وجود حكم لكل دعوى.",
+      "next_ar": "الضغط على «تسجيل دعوى».",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingController.java", "lines": "33-37", "note": "GET /cases/{caseId}/proceedings"}, {"path": "frontend/src/features/proceedings/CaseProceedings.tsx", "lines": "134-160", "note": "ladder rendering"}, {"path": "backend/src/main/java/com/lawdesk/proceedings/JudicialRecords.java", "lines": "76-79", "note": "ladder order"}],
+      "alt": [
+        {"kind": "denied", "title_ar": "لا صلاحية عرض أو القضية غير مرئية", "detail_ar": "تظهر رسالة «ليست لديك صلاحية عرض درجات التقاضي لهذه القضية» عند 403، و«لم يتم العثور على هذه القضية» عند 404.", "evidence": [{"path": "frontend/src/features/proceedings/CaseProceedings.tsx", "lines": "32-39", "note": "loadError"}]},
+        {"kind": "exceptional", "title_ar": "لا صلاحية لعرض الأحكام", "detail_ar": "تبقى الدرجات ظاهرة وتُخفى الأحكام والقرارات الخاصة مع الرسالة «ليست لديك صلاحية عرض الأحكام والقرارات الخاصة».", "evidence": [{"path": "frontend/src/features/proceedings/CaseProceedings.tsx", "lines": "41-47", "note": "unlessForbidden"}]}
+      ]
+    },
+    {
+      "n": 2,
+      "actor_ar": "الموظف المخوّل بإدارة الإجراءات",
+      "action_ar": "يضغط «تسجيل دعوى» فيفتح النموذج، ويختار الدرجة ثم الدعوى المطعون عليها (إن لزمت) ثم المحكمة، ويدخل رقم الدعوى والسنة وتاريخ القيد.",
+      "response_ar": "عند الاستئناف أو النقض لا تُعرض إلا دعاوى الدرجة السابقة التي صدر فيها حكم، فإن لم توجد تظهر رسالة توضح المطلوب. قائمة المحاكم تُجلب حسب الدرجة المختارة.",
+      "rules_ar": ["تغيير الدرجة يُفرغ المحكمة والدعوى المطعون عليها.", "المحكمة تُجلب من نفس درجة التقاضي المختارة."],
+      "data_ar": "الدرجة، المحكمة، الرقم، السنة، تاريخ القيد، الدعوى المطعون عليها.",
+      "next_ar": "الضغط على «حفظ».",
+      "evidence": [{"path": "frontend/src/features/proceedings/ProceedingForms.tsx", "lines": "121-230", "note": "ProceedingForm"}, {"path": "frontend/src/i18n/messages/proceedings.ar.ts", "lines": "42-61", "note": "Arabic labels and hints"}],
+      "alt": []
+    },
+    {
+      "n": 3,
+      "actor_ar": "النظام",
+      "action_ar": "يفحص الطلب ويطبّق قواعد السلّم القضائي ثم يحفظ الدعوى ويسجل حدثًا في خط القضية الزمني.",
+      "response_ar": "عند النجاح يعيد النظام الدعوى المسجلة برمز 201 ورابط الدعوى الجديدة، ويُغلق النموذج وتظهر الدعوى في السلّم وتُحمّل القائمة من جديد.",
+      "rules_ar": ["الصلاحية PROCEEDING_MANAGE.", "تُسجَّل العملية مع حدث من نوع PROCEEDING_RECORDED في القضية، وإذا فشل تسجيل الحدث تُلغى الدعوى كلها.", "رقم وسنة الدعوى لا يتكرران في نفس المحكمة والدرجة."],
+      "data_ar": "صف جديد في جدول proceeding مع منشئه وتاريخ الإنشاء ورقم الإصدار version.",
+      "next_ar": "تُسجَّل الأحكام والقرارات الخاصة على الدعوى (انظر ميزة الدعاوى والأحكام).",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingController.java", "lines": "39-46", "note": "POST create 201 + Location"}, {"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingService.java", "lines": "70-89", "note": "create"}, {"path": "backend/src/test/java/com/lawdesk/proceedings/ProceedingApiTest.java", "lines": "36-68", "note": "test: create + timeline event"}],
+      "alt": [
+        {"kind": "validation", "title_ar": "حقل ناقص أو خارج النطاق (400)", "detail_ar": "يرد 400 مع قائمة errors تسمّي الحقل ونوع القيد (NotBlank، NotNull، Size، Min، Max، PastOrPresent) ويُظهر النموذج رسالة تحت الحقل المعني.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java", "lines": "34-42", "note": "validation problem"}, {"path": "frontend/src/features/proceedings/formErrors.ts", "lines": "7-22", "note": "field messages"}]},
+        {"kind": "error", "title_ar": "مخالفة قاعدة قضائية (422)", "detail_ar": "يرد 422 مع الحقل rule بأحد الرموز مثل COURT_LEVEL_MISMATCH أو APPEAL_REQUIRES_FIRST_INSTANCE_JUDGMENT أو FILED_BEFORE_PARENT_JUDGMENT، وتُترجم إلى رسالة عربية في النموذج.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/Rules.java", "lines": "7-25", "note": "rule codes"}, {"path": "frontend/src/i18n/messages/proceedings.ar.ts", "lines": "81-99", "note": "Arabic rule messages"}]},
+        {"kind": "error", "title_ar": "الرقم والسنة مسجلان (409)", "detail_ar": "تظهر الرسالة «هذا الرقم وهذه السنة مسجلان بالفعل في هذه المحكمة»، وكذلك عند تسجيل متزامن بنفس الرقم.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingService.java", "lines": "182-198", "note": "place and store"}, {"path": "backend/src/test/java/com/lawdesk/proceedings/ProceedingApiTest.java", "lines": "296-308", "note": "test: duplicate 409"}]},
+        {"kind": "denied", "title_ar": "لا صلاحية إدارة (403) أو قضية غير موجودة (404)", "detail_ar": "من يملك العرض فقط لا يستطيع التسجيل (403 ويظهر «ليست لديك صلاحية تسجيل ذلك»). قضية أو محكمة غير موجودة تعطي 404.", "evidence": [{"path": "backend/src/test/java/com/lawdesk/proceedings/ProceedingApiTest.java", "lines": "121-141", "note": "test: not found"}, {"path": "backend/src/test/java/com/lawdesk/proceedings/ProceedingApiTest.java", "lines": "257-282", "note": "test: viewers cannot write"}]}
+      ]
+    },
+    {
+      "n": 4,
+      "actor_ar": "الموظف المخوّل بإدارة الإجراءات",
+      "action_ar": "يصحح بيانات دعوى مسجلة: المحكمة أو الرقم أو السنة أو تاريخ القيد، مع إرسال رقم الإصدار الذي رآه.",
+      "response_ar": "تُحفظ التعديلات وتُعاد الدعوى بإصدار جديد. الدرجة والدعوى المطعون عليها لا تتغيران.",
+      "rules_ar": [
+        "إن تغيّرت الدعوى بيد شخص آخر (اختلاف version) يرد 409.",
+        "لا يجوز أن يصبح تاريخ القيد بعد تاريخ حكم الدعوى أو قرار خاص فيها أو جلسة أو إحالة إلى خبير تابعة لها.",
+        "لا يجوز أن يسبق تاريخ القيد تاريخ الحكم المطعون عليه."
+      ],
+      "data_ar": "المحكمة، الرقم، السنة، تاريخ القيد، version.",
+      "next_ar": "عودة إلى السلّم بعد إعادة التحميل.",
+      "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingController.java", "lines": "54-58", "note": "PUT /proceedings/{id}"}, {"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingService.java", "lines": "91-125", "note": "update"}, {"path": "backend/src/test/java/com/lawdesk/proceedings/ProceedingApiTest.java", "lines": "309-325", "note": "test: stale version"}],
+      "alt": [
+        {"kind": "error", "title_ar": "تعارض تاريخي (422)", "detail_ar": "الرموز JUDGMENT_BEFORE_FILING وDECISION_BEFORE_FILING وFILING_AFTER_DEPENDENT_HEARING وFILING_AFTER_DEPENDENT_REFERRAL ترفض التعديل الذي يجعل التواريخ غير منطقية.", "evidence": [{"path": "frontend/src/i18n/messages/proceedings.ar.ts", "lines": "91-98", "note": "Arabic messages"}]}
+      ]
+    }
+  ],
+  "rules": [
+    {"text_ar": "الدرجة والدعوى المطعون عليها تُحددان عند التسجيل ولا تُعدَّلان لاحقًا.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingRequests.java", "lines": "32-39", "note": "Update has no stage/parent"}]},
+    {"text_ar": "الاستئناف على دعوى أول درجة صدر فيها حكم، والنقض على استئناف صدر فيه حكم، وكلاهما من نفس القضية.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingService.java", "lines": "139-173", "note": "ladder"}]},
+    {"text_ar": "مواعيد الاستئناف والنقض تُسجَّل ولا يفرضها هذا القسم (مذكور في تعليق الخدمة كافتراض).", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingService.java", "lines": "24-27", "note": "class comment"}]},
+    {"text_ar": "لا يمكن إرسال معرّف غير صالح (ليس UUID) في الرابط؛ يرد 400.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingRequestErrors.java", "lines": "18-29", "note": "400 on malformed id"}]},
+    {"text_ar": "تعديل الدعوى يتطلب أيضًا صلاحية تغيير القضية نفسها (requireChange) لأن الدعوى تُقفل وتُفحص بها.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/JudicialRecords.java", "lines": "61-69", "note": "lockedProceeding"}]}
+  ],
+  "after_submit_ar": "تظهر الدعوى الجديدة في السلّم مع رسالة نجاح، ويسجّل خط القضية الزمني حدثًا بنوع PROCEEDING_RECORDED.",
+  "notifications_ar": ["لا يرسل هذا الإجراء إشعارات؛ لم أجد في الشيفرة أي استدعاء لخدمة الإشعارات من خدمة الإجراءات."],
+  "approvals_ar": ["لا توجد موافقات أو اعتمادات على تسجيل الدعوى؛ يُحفظ مباشرة بعد اجتياز القواعد."],
+  "errors": [
+    {"code": "HTTP 400", "meaning_ar": "حقل ناقص أو غير صالح، أو معرّف غير صالح في الرابط. الجسم يحوي errors بالحقل والقيد.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java", "lines": "34-42", "note": "ProblemDetail errors"}]},
+    {"code": "HTTP 403", "meaning_ar": "لا توجد صلاحية PROCEEDING_VIEW أو PROCEEDING_MANAGE.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingController.java", "lines": "33-40", "note": "PreAuthorize"}]},
+    {"code": "HTTP 404", "meaning_ar": "القضية أو المحكمة أو الدعوى غير موجودة، أو القضية غير مرئية للمستخدم.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/JudicialRecords.java", "lines": "42-59", "note": "NotFound"}]},
+    {"code": "HTTP 409", "meaning_ar": "الرقم والسنة مسجلان في نفس المحكمة والدرجة، أو الدعوى عُدلت بيد غيرك.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingService.java", "lines": "96-98", "note": "version conflict"}]},
+    {"code": "HTTP 422 + rule", "meaning_ar": "مخالفة قاعدة قضائية؛ الحقل rule يحمل الرمز، مثل COURT_LEVEL_MISMATCH وCOURT_INACTIVE وPARENT_PROCEEDING_REQUIRED.", "evidence": [{"path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java", "lines": "90-96", "note": "rule problem"}, {"path": "backend/src/main/java/com/lawdesk/proceedings/Rules.java", "lines": "7-25", "note": "codes"}]}
+  ],
+  "result_ar": "سلّم متدرج لمراحل القضية، كل مرحلة بمحكمتها ورقمها وتاريخ قيدها والمرحلة التي تطعن عليها وحالة حكمها.",
+  "related": ["claims-judgments", "hearings", "deadlines", "cases-details-edit", "courts", "case-access-confidentiality"],
+  "endpoints": [
+    {"method": "GET", "path": "/api/v1/cases/{caseId}/proceedings", "evidence": {"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingController.java", "lines": "33-37", "note": "list"}},
+    {"method": "POST", "path": "/api/v1/cases/{caseId}/proceedings", "evidence": {"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingController.java", "lines": "39-46", "note": "create"}},
+    {"method": "GET", "path": "/api/v1/proceedings/{id}", "evidence": {"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingController.java", "lines": "48-52", "note": "get"}},
+    {"method": "PUT", "path": "/api/v1/proceedings/{id}", "evidence": {"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingController.java", "lines": "54-58", "note": "update"}}
+  ],
+  "tech": {
+    "chain": [
+      {"layer": "screen", "label": "CaseDetailsPage", "ref": {"path": "frontend/src/features/cases/CaseDetailsPage.tsx", "lines": "227-227", "note": "embeds CaseProceedings"}, "data_ar": "رقم القضية يُمرَّر إلى مكوّن الإجراءات."},
+      {"layer": "component", "label": "CaseProceedings / ProceedingForm", "ref": {"path": "frontend/src/features/proceedings/CaseProceedings.tsx", "lines": "69-160", "note": "component"}, "data_ar": "بيانات النموذج تُحوَّل إلى طلب إنشاء."},
+      {"layer": "api_call", "label": "createProceeding", "ref": {"path": "frontend/src/features/proceedings/proceedingsApi.ts", "lines": "117-120", "note": "POST"}, "data_ar": "جسم JSON: stage, courtId, courtCaseNumber, courtCaseYear, filingDate, parentProceedingId."},
+      {"layer": "controller", "label": "ProceedingController.create", "ref": {"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingController.java", "lines": "39-46", "note": "create"}, "data_ar": "الطلب بعد التحقق من القيود (Valid)."},
+      {"layer": "authorization", "label": "PROCEEDING_MANAGE", "ref": {"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingController.java", "lines": "40-40", "note": "PreAuthorize"}, "data_ar": "السماح بالمتابعة أو الرد 403."},
+      {"layer": "service", "label": "ProceedingService.create", "ref": {"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingService.java", "lines": "70-89", "note": "create"}, "data_ar": "كيان الدعوى بعد اجتياز قواعد السلّم."},
+      {"layer": "repository", "label": "ProceedingRepository", "ref": {"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingRepository.java", "lines": "14-37", "note": "repo"}, "data_ar": "حفظ الصف وفحص تكرار الرقم."},
+      {"layer": "tables", "label": "proceeding", "ref": {"path": "backend/src/main/resources/db/migration/V301__LD-019_proceeding.sql", "lines": "5-32", "note": "table"}, "data_ar": "صف الدعوى مع قيود الفهرس الفريد."},
+      {"layer": "event", "label": "PROCEEDING_RECORDED", "ref": {"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingService.java", "lines": "86-87", "note": "recordEvent"}, "data_ar": "ملخص الحدث يُضاف إلى خط القضية."},
+      {"layer": "result", "label": "ProceedingRequests.Response", "ref": {"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingRequests.java", "lines": "41-51", "note": "response"}, "data_ar": "الدعوى المسجلة مع اسم المحكمة وعلامة hasJudgment."}
+    ]
+  },
+  "status": "IMPLEMENTED_ON_DEVELOP",
+  "status_note_ar": "الشيفرة موجودة على develop. لم تُنفَّذ هذه الوثيقة اختبارًا على بيئة UAT.",
+  "status_evidence": [{"path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingService.java", "lines": "28-52", "note": "service on develop"}],
+  "verification_ar": "اختبارات وجدتها: backend/src/test/java/com/lawdesk/proceedings/ProceedingApiTest.java وfrontend/src/features/proceedings/CaseProceedings.test.tsx. لم يُجرَ تحقق UAT بواسطة هذه الوثيقة. لم أتحقق من القيم الإضافية للدرجات الدستورية والتنفيذ والتظلم في قيد قاعدة البيانات (ملف V603) ولم أوثّق أمثلة بيانات حقيقية."
+}

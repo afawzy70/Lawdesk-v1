@@ -1,0 +1,82 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/tasks/Rules.java": {
+      "name": "رموز قواعد المهام",
+      "description": "يحدد رموزاً ثابتة لقواعد المهام تُرجع مع رفض الطلب عند مخالفتها، ويقرأ التواريخ والنصوص الخاصة بقسم المهام."
+    },
+    "backend/src/main/java/com/lawdesk/tasks/Task.java": {
+      "name": "المهمة",
+      "description": "يصف كيف تُحفظ المهمة في مكتب الشؤون القانونية، وقد تكون مرتبطة بقضية أو لا."
+    },
+    "backend/src/main/java/com/lawdesk/tasks/TaskController.java": {
+      "name": "طلبات المهام",
+      "description": "يجمع طلبات عرض المهمة وتعديلها وتغيير حالتها وإعادة إسنادها وتسجيل سبب التأخير وعرض سجلها وتنبيهات المواعيد."
+    },
+    "backend/src/main/java/com/lawdesk/tasks/TaskFollowUp.java": {
+      "name": "متابعة المهام المجدولة",
+      "description": "يمثل جزء المهام من المتابعة الدورية المجدولة، ويرسل الإشعارات اللازمة المتعلقة بالمهام."
+    },
+    "backend/src/main/java/com/lawdesk/tasks/TaskHistory.java": {
+      "name": "سجل تغييرات المهمة",
+      "description": "يحفظ من غيّر ماذا في المهمة، ويُكتب مع التغيير نفسه."
+    },
+    "backend/src/main/java/com/lawdesk/tasks/TaskPerformanceQueries.java": {
+      "name": "بيانات أداء المهام",
+      "description": "يمنح عرض الأداء في التقارير أعداد مهام كل مكلف في فترة: الكل (دون الملغاة) والمنجزة والمفتوحة والمتأخرة، للقراءة فقط."
+    },
+    "backend/src/main/java/com/lawdesk/tasks/TaskPriority.java": {
+      "name": "أولوية المهمة",
+      "description": "يحدد درجة إلحاح المهمة: منخفضة أو عادية أو عالية أو عاجلة، والعاجلة تظهر أولاً بين مهام اليوم نفسه (افتراض مسجل)."
+    },
+    "backend/src/main/java/com/lawdesk/tasks/TaskReportQueries.java": {
+      "name": "بيانات تقارير المهام",
+      "description": "يمنح التقارير المهام حسب الحالة والمكلف والتأخر وحجم العمل المفتوح لكل مكلف، للقراءة فقط."
+    },
+    "backend/src/main/java/com/lawdesk/tasks/TaskRepository.java": {
+      "name": "حفظ المهام",
+      "description": "يتولى حفظ المهام في قاعدة البيانات وقراءتها والبحث فيها."
+    },
+    "backend/src/main/java/com/lawdesk/tasks/TaskRequests.java": {
+      "name": "نماذج طلبات المهام",
+      "description": "يحدد الحقول المرسلة عند إنشاء مهمة أو تعديلها أو إعادة إسنادها أو تسجيل سبب تأخيرها وشكل ردودها وسجلها؛ الأولوية الافتراضية عادية."
+    },
+    "backend/src/main/java/com/lawdesk/tasks/TaskService.java": {
+      "name": "خدمة المهام",
+      "description": "ينفذ المهام وإسنادها وتنبيهات المواعيد ويصفي قائمة المهام حسب موعد الاستحقاق."
+    },
+    "backend/src/main/java/com/lawdesk/tasks/TaskStatus.java": {
+      "name": "حالات المهمة",
+      "description": "يحدد دورة حياة المهمة: جديدة، قيد التنفيذ، بانتظار مستندات، بانتظار جهة أخرى، منجزة، متأخرة، ملغاة."
+    }
+  },
+  "routes": {
+    "GET /api/v1/tasks/reminders": {
+      "name": "تنبيهات المهام",
+      "description": "يعرض تنبيهات المهام التي تقترب مواعيدها، لمن لديه صلاحية عرض المهام."
+    },
+    "GET /api/v1/tasks/{id}": {
+      "name": "عرض مهمة",
+      "description": "يعرض بيانات مهمة واحدة، لمن لديه صلاحية عرض المهام."
+    },
+    "PUT /api/v1/tasks/{id}": {
+      "name": "تعديل مهمة",
+      "description": "يعدّل بيانات مهمة، لمن لديه صلاحية إدارة المهام."
+    },
+    "POST /api/v1/tasks/{id}/status": {
+      "name": "تغيير حالة مهمة",
+      "description": "ينقل المهمة إلى حالة أخرى، لمن لديه صلاحية إدارة المهام."
+    },
+    "GET /api/v1/tasks/{id}/history": {
+      "name": "سجل مهمة",
+      "description": "يعرض سجل تغييرات المهمة."
+    },
+    "POST /api/v1/tasks/{id}/reassign": {
+      "name": "إعادة إسناد مهمة",
+      "description": "ينقل المهمة إلى عضو آخر، ويمكن ذكر السبب ليُسجل في السجل."
+    },
+    "POST /api/v1/tasks/{id}/delay-reason": {
+      "name": "سبب تأخر المهمة",
+      "description": "يسجل المكلف سبب تأخر مهمته، ويُحفظ السبب أيضاً في سجل المهمة."
+    }
+  }
+}

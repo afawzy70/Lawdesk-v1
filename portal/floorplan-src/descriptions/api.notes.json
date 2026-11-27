@@ -1,0 +1,30 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/notes/NoteController.java": {
+      "name": "طلبات الملاحظات",
+      "description": "يستقبل طلبات عرض ملاحظات القضية وإضافتها وتعديلها وحذفها."
+    },
+    "backend/src/main/java/com/lawdesk/notes/NoteService.java": {
+      "name": "منطق ملاحظات القضية",
+      "description": "يكتب الملاحظات القانونية ويقرؤها؛ ولا يعدّل الملاحظة أو يحذفها إلا كاتبها، وفق افتراض لم يُعتمد بعد."
+    }
+  },
+  "routes": {
+    "GET /api/v1/cases/{caseId}/notes": {
+      "name": "ملاحظات القضية",
+      "description": "يعرض ملاحظات القضية على صفحات لمن يملك صلاحية الاطلاع."
+    },
+    "POST /api/v1/cases/{caseId}/notes": {
+      "name": "إضافة ملاحظة",
+      "description": "يضيف ملاحظة على القضية لمن يملك صلاحية إدارة الملاحظات."
+    },
+    "PUT /api/v1/notes/{id}": {
+      "name": "تعديل ملاحظة",
+      "description": "يعدّل ملاحظة قائمة لمن يملك صلاحية إدارة الملاحظات."
+    },
+    "DELETE /api/v1/notes/{id}": {
+      "name": "حذف ملاحظة",
+      "description": "يحذف ملاحظة، ويقبل رقم النسخة المقروءة لمن يملك صلاحية إدارة الملاحظات."
+    }
+  }
+}

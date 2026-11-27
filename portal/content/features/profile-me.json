@@ -1,0 +1,484 @@
+{
+ "id": "profile-me",
+ "category": "access",
+ "name_ar": "ملفي الشخصي وتغيير كلمة المرور",
+ "summary_ar": "يعرض المستخدم بياناته (الاسم المعروض، اسم المستخدم، البريد، الأدوار) وقائمة ما يستطيع فعله، ويستطيع تغيير كلمة مروره بنفسه. لا يمكن تعديل الاسم أو البريد من هذه الصفحة؛ يتولاه مسؤول المستخدمين.",
+ "purpose_ar": "تمكين كل مستخدم من معرفة صلاحياته وتأمين حسابه بكلمة مرور يختارها بنفسه، وإلزام صاحب كلمة المرور المؤقتة بتغييرها قبل استعمال النظام.",
+ "who_ar": [
+  "أي مستخدم مسجَّل (لا تُشترط صلاحية محددة)"
+ ],
+ "who_perms": [],
+ "access_ar": "أعلى الشاشة > الاسم المعروض بجوار «ملفي الشخصي»؛ وتفتح شاشة «اختر كلمة مرور جديدة» تلقائيًا عند الدخول بكلمة مرور مؤقتة.",
+ "route": "/profile",
+ "prerequisites_ar": [
+  "جلسة دخول صالحة (انظر «تسجيل الدخول والخروج وإدارة الجلسة»)."
+ ],
+ "fields": {
+  "required": [
+   {
+    "name_ar": "كلمة المرور الحالية",
+    "code": "currentPassword",
+    "rule_ar": "يجب أن تطابق كلمة المرور المخزّنة، وإلا يُرفض الطلب بـ400 (code: CurrentPassword) ويُسجَّل PASSWORD_CHANGE بنتيجة FAILURE.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/security/MeController.java",
+      "lines": "62-73",
+      "note": "check"
+     },
+     {
+      "path": "frontend/src/features/auth/ChangePasswordForm.tsx",
+      "lines": "10-13",
+      "note": "server code mapping"
+     }
+    ]
+   },
+   {
+    "name_ar": "كلمة المرور الجديدة",
+    "code": "newPassword",
+    "rule_ar": "12 حرفًا على الأقل، ولا تزيد عن 72 بايت (UTF-8)، أي 72 حرفًا لاتينيًا أو 36 حرفًا عربيًا، ولا تساوي اسم المستخدم أو البريد (دون تمييز حالة الأحرف). المخالفة: 400 بالرمز PasswordPolicy.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/users/PasswordPolicy.java",
+      "lines": "1-26",
+      "note": "policy"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/security/MeController.java",
+      "lines": "75-77",
+      "note": "policy check"
+     },
+     {
+      "path": "frontend/src/i18n/messages/auth.ar.ts",
+      "lines": "26",
+      "note": "Arabic policy text"
+     }
+    ]
+   },
+   {
+    "name_ar": "إعادة كتابة كلمة المرور الجديدة",
+    "code": "repeat (نموذج الواجهة فقط)",
+    "rule_ar": "يجب أن تطابق الجديدة؛ يفحصها المتصفح ولا يرسلها للخادم.",
+    "evidence": [
+     {
+      "path": "frontend/src/features/auth/ChangePasswordForm.tsx",
+      "lines": "31-37",
+      "note": "local checks"
+     }
+    ]
+   }
+  ],
+  "optional": []
+ },
+ "steps": [
+  {
+   "n": 1,
+   "actor_ar": "المستخدم",
+   "action_ar": "يفتح «ملفي الشخصي».",
+   "response_ar": "تعرض الصفحة: الاسم المعروض، اسم المستخدم، البريد، الأدوار (بأسمائها العربية)، ثم قائمة «ما يمكنك فعله» بأسماء الصلاحيات العربية.",
+   "rules_ar": [
+    "البيانات هي ما حُمّل عند الدخول من GET /api/v1/me، ولا تعرض كلمة المرور أبدًا."
+   ],
+   "data_ar": "MeResponse: id, username, displayName, email, locale, roles, permissions, mustChangePassword.",
+   "next_ar": "يستطيع المستخدم تغيير كلمة المرور من القسم الأخير.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/auth/ProfilePage.tsx",
+     "lines": "9-39",
+     "note": "profile page"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/MeController.java",
+     "lines": "56-60",
+     "note": "GET /api/v1/me"
+    },
+    {
+     "path": "frontend/src/i18n/messages/auth.ar.ts",
+     "lines": "28-33"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "جلسة منتهية (401)",
+     "detail_ar": "تنتهي الجلسة فتعرض الواجهة شاشة الدخول.",
+     "evidence": [
+      {
+       "path": "frontend/src/api/http.ts",
+       "lines": "100-105",
+       "note": "401 handling"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "actor_ar": "المستخدم",
+   "action_ar": "يكتب كلمة المرور الحالية، ثم الجديدة، ثم يعيد كتابتها ويضغط «تغيير كلمة المرور».",
+   "response_ar": "تفحص الواجهة أولًا: الجديدة 12 حرفًا فأكثر، وتطابق التكرار؛ وإلا تعرض «يجب أن تتكون كلمة المرور الجديدة من 12 حرفًا على الأقل.» أو «كلمتا المرور الجديدتان غير متطابقتين.» دون إرسال.",
+   "rules_ar": [
+    "الفحص المحلي طول فقط؛ السياسة الكاملة يطبّقها الخادم."
+   ],
+   "data_ar": "الحقول الثلاثة.",
+   "next_ar": "عند سلامة الفحص المحلي يُرسل POST /api/v1/me/password.",
+   "evidence": [
+    {
+     "path": "frontend/src/features/auth/ChangePasswordForm.tsx",
+     "lines": "31-37",
+     "note": "local validation"
+    },
+    {
+     "path": "frontend/src/i18n/messages/auth.ar.ts",
+     "lines": "23-24"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "قصيرة أو غير متطابقة",
+     "detail_ar": "رسائل محلية بالعربية ولا طلب للخادم.",
+     "evidence": [
+      {
+       "path": "frontend/src/features/auth/ChangePasswordForm.tsx",
+       "lines": "34-37"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "actor_ar": "النظام",
+   "action_ar": "يتحقق من كلمة المرور الحالية ثم من سياسة كلمة المرور الجديدة.",
+   "response_ar": "عند المطابقة تُجزّأ الجديدة بـbcrypt وتُحدَّث في معاملة واحدة مع حدث التدقيق PASSWORD_CHANGE، وتُلغى «علامة وجوب التغيير»، ويرتفع إصدار الاعتماد.",
+   "rules_ar": [
+    "التغيير يتم فقط إذا كان إصدار الاعتماد لجلسة المستخدم ما زال هو الحالي، وإلا لا يُغيَّر شيء."
+   ],
+   "data_ar": "التجزئة الجديدة، وإلغاء علامة وجوب التغيير (must_change_password)، وإصدار الاعتماد+1.",
+   "next_ar": "تُجدَّد جلسة المستخدم الحالية.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/MeController.java",
+     "lines": "62-89",
+     "note": "change flow"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAccounts.java",
+     "lines": "76-90",
+     "note": "changePassword updates credential_version"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "كلمة المرور الحالية خاطئة (400)",
+     "detail_ar": "الرد 400 بحقل currentPassword ورمز CurrentPassword؛ تعرض الواجهة «كلمة المرور الحالية غير صحيحة.»",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/security/MeController.java",
+       "lines": "70-74"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/api/FieldErrorException.java",
+       "lines": "1-22",
+       "note": "field error carrier"
+      },
+      {
+       "path": "frontend/src/i18n/messages/auth.ar.ts",
+       "lines": "25"
+      }
+     ]
+    },
+    {
+     "kind": "validation",
+     "title_ar": "مخالفة السياسة (400)",
+     "detail_ar": "الرد 400 بحقل newPassword ورمز PasswordPolicy؛ تعرض الواجهة نص القاعدة الكامل.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/security/MeController.java",
+       "lines": "75-77"
+      },
+      {
+       "path": "frontend/src/i18n/messages/auth.ar.ts",
+       "lines": "26"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "تغيّر الاعتماد أثناء ذلك (401)",
+     "detail_ar": "إذا أُعيد تعيين كلمة المرور أو عُطّل الحساب بين الطلب والتنفيذ تُلغى الجلسة ويرد 401 ويُسجَّل SESSION_REVOKED.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/security/MeController.java",
+       "lines": "90-93"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/security/SessionRevocation.java",
+       "lines": "39-50"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "actor_ar": "النظام",
+   "action_ar": "يجدد الجلسة بعد الحفظ.",
+   "response_ar": "تبقى جلسة هذا المتصفح قائمة بالإصدار الجديد، وتُلغى كل جلسات المستخدم الأخرى. يرد الخادم 204 وتعرض الواجهة «تم تغيير كلمة المرور.» (أو تنتقل إلى التطبيق إذا كان التغيير مطلوبًا).",
+   "rules_ar": [
+    "تُلغى الجلسات الأخرى لأن إصدار الاعتماد ارتفع (قارن SessionRevocation)."
+   ],
+   "data_ar": "لا جسم في الرد.",
+   "next_ar": "العودة للعمل.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/MeController.java",
+     "lines": "94-99",
+     "note": "renew context, 204"
+    },
+    {
+     "path": "frontend/src/features/auth/ProfilePage.tsx",
+     "lines": "40-48",
+     "note": "success status"
+    },
+    {
+     "path": "frontend/src/features/auth/ChangePasswordPage.tsx",
+     "lines": "15-19",
+     "note": "refresh after change"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "error",
+     "title_ar": "تعذّر التغيير لسبب غير معروف",
+     "detail_ar": "تعرض الواجهة: «تعذّر تغيير كلمة المرور. حاول مرة أخرى لاحقًا.»",
+     "evidence": [
+      {
+       "path": "frontend/src/features/auth/ChangePasswordForm.tsx",
+       "lines": "45-49"
+      },
+      {
+       "path": "frontend/src/i18n/messages/auth.ar.ts",
+       "lines": "27"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "rules": [
+  {
+   "text_ar": "الحد الأدنى 12 حرفًا والأقصى 72 بايت لأن bcrypt يقرأ أول 72 بايت فقط؛ فتُرفض الأطول بدل أن تُقتطع.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/PasswordPolicy.java",
+     "lines": "1-26"
+    }
+   ]
+  },
+  {
+   "text_ar": "لا يجوز أن تساوي كلمة المرور اسم المستخدم أو البريد.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/PasswordPolicy.java",
+     "lines": "19-26"
+    }
+   ]
+  },
+  {
+   "text_ar": "تغيير كلمة المرور يلغي كل الجلسات الأخرى للمستخدم.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/MeController.java",
+     "lines": "17-22",
+     "note": "class comment"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAccounts.java",
+     "lines": "76-90"
+    }
+   ]
+  },
+  {
+   "text_ar": "الصلاحيات المعروضة هي صلاحيات الأدوار الحالية للمستخدم؛ والمدير ADMIN يملك كل الصلاحيات.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/LawdeskUser.java",
+     "lines": "36-47"
+    }
+   ]
+  }
+ ],
+ "after_submit_ar": "تصبح كلمة المرور الجديدة هي السارية، ويُسجَّل حدث PASSWORD_CHANGE في سجل التدقيق. لا يُرسل النظام إشعارًا بالبريد (لم أجد في الشيفرة إرسال بريد).",
+ "notifications_ar": [],
+ "approvals_ar": [],
+ "errors": [
+  {
+   "code": "HTTP 400 CurrentPassword",
+   "meaning_ar": "كلمة المرور الحالية غير صحيحة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/MeController.java",
+     "lines": "70-74"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 400 PasswordPolicy",
+   "meaning_ar": "كلمة المرور الجديدة لا تستوفي السياسة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/MeController.java",
+     "lines": "75-77"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/users/PasswordPolicy.java",
+     "lines": "8-12"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 401",
+   "meaning_ar": "الجلسة أُلغيت أثناء التغيير.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/MeController.java",
+     "lines": "90-93"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 403 PASSWORD_CHANGE_REQUIRED",
+   "meaning_ar": "تظهر لأي طلب آخر قبل تغيير كلمة المرور المؤقتة؛ تغيير كلمة المرور نفسه مسموح.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/security/PasswordChangeRequiredFilter.java",
+     "lines": "21-23"
+    }
+   ]
+  }
+ ],
+ "result_ar": "يعرض المستخدم بياناته وصلاحياته، وبعد التغيير الناجح تظهر رسالة «تم تغيير كلمة المرور.»",
+ "related": [
+  "auth-login",
+  "users-admin",
+  "roles-permissions"
+ ],
+ "endpoints": [
+  {
+   "method": "GET",
+   "path": "/api/v1/me",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/security/MeController.java",
+    "lines": "56-60"
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/me/password",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/security/MeController.java",
+    "lines": "62-67"
+   }
+  }
+ ],
+ "tech": {
+  "chain": [
+   {
+    "layer": "screen",
+    "label": "ProfilePage",
+    "ref": {
+     "path": "frontend/src/features/auth/ProfilePage.tsx",
+     "lines": "9-51"
+    },
+    "data_ar": "بيانات المستخدم من حالة الدخول."
+   },
+   {
+    "layer": "component",
+    "label": "ChangePasswordForm",
+    "ref": {
+     "path": "frontend/src/features/auth/ChangePasswordForm.tsx",
+     "lines": "23-101"
+    },
+    "data_ar": "كلمة المرور الحالية والجديدة."
+   },
+   {
+    "layer": "api_call",
+    "label": "changePassword",
+    "ref": {
+     "path": "frontend/src/features/auth/me.ts",
+     "lines": "33-35"
+    },
+    "data_ar": "POST /api/v1/me/password بجسم currentPassword وnewPassword."
+   },
+   {
+    "layer": "controller",
+    "label": "MeController.changePassword",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/security/MeController.java",
+     "lines": "62-99"
+    },
+    "data_ar": "يتحقق ويحدّث ويجدد الجلسة."
+   },
+   {
+    "layer": "authorization",
+    "label": "@PreAuthorize(\"isAuthenticated()\")",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/security/MeController.java",
+     "lines": "62-64"
+    },
+    "data_ar": "يلزم مستخدم مسجَّل فقط."
+   },
+   {
+    "layer": "repository",
+    "label": "UserAccounts.changePassword",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/users/UserAccounts.java",
+     "lines": "76-90"
+    },
+    "data_ar": "تحديث التجزئة وإصدار الاعتماد بشرط تطابق الإصدار."
+   },
+   {
+    "layer": "tables",
+    "label": "app_user",
+    "ref": {
+     "path": "backend/src/main/resources/db/migration/V100__LD-007_app_user.sql",
+     "lines": "4-26"
+    },
+    "data_ar": "password_hash، must_change_password، credential_version."
+   },
+   {
+    "layer": "event",
+    "label": "PASSWORD_CHANGE",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/security/MeController.java",
+     "lines": "83-87"
+    },
+    "data_ar": "حدث تدقيق مع المعاملة نفسها."
+   },
+   {
+    "layer": "result",
+    "label": "204 No Content",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/security/MeController.java",
+     "lines": "99"
+    },
+    "data_ar": "تنجح العملية دون جسم."
+   }
+  ]
+ },
+ "status": "IMPLEMENTED_ON_DEVELOP",
+ "status_note_ar": "الشيفرة مدمجة في develop.",
+ "status_evidence": [
+  {
+   "path": "backend/src/main/java/com/lawdesk/security/MeController.java",
+   "lines": "28-35"
+  },
+  {
+   "path": "frontend/src/features/auth/ProfilePage.tsx",
+   "lines": "9-12"
+  }
+ ],
+ "verification_ar": "اختبارات: backend/src/test/java/com/lawdesk/security/PasswordChangeTest.java وPasswordChangeAtomicityTest.java وSessionRevocationTest.java؛ وفي الواجهة frontend/src/features/auth/Profile.test.tsx. لم يُجرِ هذا المستند أي تحقق على بيئة القبول (UAT)؛ المحتوى مبني على قراءة الشيفرة المدمجة في develop والاختبارات الموجودة فقط. لم أجد في الشيفرة صفحة لتعديل الاسم أو البريد من الملف الشخصي فلم أصفها."
+}

@@ -1,0 +1,1044 @@
+{
+ "id": "settlements",
+ "category": "legal",
+ "name_ar": "التسويات والتنازلات والصلح",
+ "summary_ar": "قسم داخل صفحة القضية لتسجيل تسوية أو تنازل أو صلح: نوعه، ومن قدّم العرض، وقيمة التسوية، والمبررات القانونية والأثر المالي والرأي القانوني وجهة الموافقة، مع ربط مستندات مؤيدة من ملف القضية، وانتقال بين حالات (مقترحة، قيد المراجعة، معتمدة، مرفوضة، منفذة، مسحوبة) وسجل كامل لكل تغيير.",
+ "purpose_ar": "توثيق ما يُعرض على الجهة من تسويات وما قُرِّر بشأنه ومن قرّر ومتى ولماذا، دون أن يغيّر ذلك حالة القضية: إنهاء القضية يبقى قرارًا يدويًا يتخذه العضو المختص.",
+ "who_ar": [
+  "مدير الشؤون القانونية",
+  "رئيس القسم",
+  "الموظف القانوني (التسجيل والتعديل)",
+  "مدير النظام",
+  "من يرى القضية (للاطلاع فقط)"
+ ],
+ "who_perms": [
+  "CASE_VIEW",
+  "SETTLEMENT_MANAGE",
+  "SETTLEMENT_APPROVE"
+ ],
+ "access_ar": "القائمة > القضايا > فتح القضية > قسم «التسويات والتنازلات والصلح».",
+ "route": "/cases/:id",
+ "prerequisites_ar": [
+  "قضية قائمة يحق للمستخدم الاطلاع عليها.",
+  "للتسجيل والتعديل: صلاحية SETTLEMENT_MANAGE وأن يحق للمستخدم تعديل القضية (عضو فيها) وألا تكون القضية مؤرشفة.",
+  "للاعتماد أو الرفض: صلاحية SETTLEMENT_APPROVE إضافة إلى حق تعديل القضية. الأدوار الأصلية الحاملة لها: مدير النظام والمدير القانوني ورئيس القسم؛ أما الموظف القانوني فيحمل التسجيل دون الاعتماد.",
+  "أنواع التسوية تؤخذ من قائمة مُدارة اسمها SETTLEMENT_KIND وقيمها الأصلية: تسوية، تنازل، صلح."
+ ],
+ "fields": {
+  "required": [
+   {
+    "name_ar": "النوع",
+    "code": "kind",
+    "rule_ar": "إلزامي حتى 40 حرفًا، ويجب أن يكون رمزًا فعالًا في قائمة أنواع التسوية وإلا ترفضه القاعدة SETTLEMENT_KIND_UNKNOWN.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/settlements/SettlementRequests.java",
+      "lines": "40-41",
+      "note": "NotBlank Size"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+      "lines": "166-166",
+      "note": "requireActive"
+     },
+     {
+      "path": "frontend/src/features/wp9/SettlementForm.tsx",
+      "lines": "28-31",
+      "note": "UI requires kind"
+     }
+    ]
+   },
+   {
+    "name_ar": "رقم الإصدار (عند التعديل أو تغيير الحالة)",
+    "code": "version",
+    "rule_ar": "إلزامي عند التعديل وتغيير الحالة لكشف التعديل المتزامن.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/settlements/SettlementRequests.java",
+      "lines": "69-69",
+      "note": "Update version"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/settlements/SettlementRequests.java",
+      "lines": "86-86",
+      "note": "StatusChange version"
+     }
+    ]
+   },
+   {
+    "name_ar": "الحالة الجديدة (عند تغيير الحالة)",
+    "code": "status",
+    "rule_ar": "إلزامية عند تغيير الحالة؛ ضمن الحالات الست.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/settlements/SettlementRequests.java",
+      "lines": "34-34",
+      "note": "Status enum"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/settlements/SettlementRequests.java",
+      "lines": "83-83",
+      "note": "NotNull"
+     }
+    ]
+   }
+  ],
+  "optional": [
+   {
+    "name_ar": "الطرف مقدم عرض التسوية",
+    "code": "offeringPartyId",
+    "rule_ar": "إن حُدِّد وجب أن يكون طرفًا في القضية نفسها وإلا القاعدة SETTLEMENT_PARTY_NOT_IN_CASE.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+      "lines": "335-344",
+      "note": "party in case"
+     }
+    ]
+   },
+   {
+    "name_ar": "مقدم العرض إن لم يكن طرفًا مسجلًا",
+    "code": "offeringPartyText",
+    "rule_ar": "نص حتى 300 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/settlements/SettlementRequests.java",
+      "lines": "43-43",
+      "note": "Size 300"
+     }
+    ]
+   },
+   {
+    "name_ar": "قيمة التسوية (د.ك)",
+    "code": "settlementAmount",
+    "rule_ar": "لا تقل عن صفر، وبحد أقصى 12 خانة صحيحة وثلاث منازل عشرية؛ مبلغ التسوية وحده لا يُجمع مع أي مبلغ آخر.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/settlements/SettlementRequests.java",
+      "lines": "44-44",
+      "note": "PositiveOrZero Digits"
+     },
+     {
+      "path": "frontend/src/i18n/messages/wp9.ar.ts",
+      "lines": "60-60",
+      "note": "hint"
+     }
+    ]
+   },
+   {
+    "name_ar": "المبررات القانونية",
+    "code": "legalGrounds",
+    "rule_ar": "حتى 20000 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/settlements/SettlementRequests.java",
+      "lines": "45-45",
+      "note": "size"
+     }
+    ]
+   },
+   {
+    "name_ar": "الأثر المالي",
+    "code": "financialImpactNote",
+    "rule_ar": "حتى 20000 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/settlements/SettlementRequests.java",
+      "lines": "46-46",
+      "note": "size"
+     }
+    ]
+   },
+   {
+    "name_ar": "الرأي القانوني",
+    "code": "legalOpinion",
+    "rule_ar": "حتى 20000 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/settlements/SettlementRequests.java",
+      "lines": "47-47",
+      "note": "size"
+     }
+    ]
+   },
+   {
+    "name_ar": "جهة الموافقة",
+    "code": "approvingAuthority",
+    "rule_ar": "حتى 300 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/settlements/SettlementRequests.java",
+      "lines": "48-48",
+      "note": "size"
+     }
+    ]
+   },
+   {
+    "name_ar": "السبب أو القرار",
+    "code": "reason",
+    "rule_ar": "مطلوب عند الرفض، وحتى 20000 حرف.",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+      "lines": "247-249",
+      "note": "reject needs reason"
+     },
+     {
+      "path": "backend/src/main/java/com/lawdesk/settlements/SettlementRequests.java",
+      "lines": "84-84",
+      "note": "size"
+     }
+    ]
+   },
+   {
+    "name_ar": "تاريخ إتمام التسوية",
+    "code": "completedOn",
+    "rule_ar": "مطلوب عند الانتقال إلى «منفذة».",
+    "evidence": [
+     {
+      "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+      "lines": "250-252",
+      "note": "executed needs date"
+     }
+    ]
+   }
+  ]
+ },
+ "steps": [
+  {
+   "n": 1,
+   "actor_ar": "عضو القضية المخوّل بالتسجيل",
+   "action_ar": "يفتح صفحة القضية وينزل إلى قسم «التسويات والتنازلات والصلح» ويعبئ النموذج (النوع، الطرف، القيمة، المبررات، الأثر المالي، الرأي القانوني، جهة الموافقة) ثم «تسجيل تسوية».",
+   "response_ar": "تُنشأ التسوية بحالة «مقترحة»، ويُكتب أول سطر في سجلها («سُجلت»)، ويُضاف حدث على خط القضية وسطر تدقيق، وتظهر رسالة «سُجلت التسوية».",
+   "rules_ar": [
+    "التسجيل يتطلب SETTLEMENT_MANAGE وحق تعديل القضية.",
+    "تسجيل التسوية لا يغيّر حالة القضية ولا حالة أي قضية مرتبطة."
+   ],
+   "data_ar": "نص الشروط والقيمة والطرف.",
+   "next_ar": "مراجعة التسوية وتغيير حالتها.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementController.java",
+     "lines": "40-44",
+     "note": "POST create"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "161-184",
+     "note": "create"
+    },
+    {
+     "path": "frontend/src/features/wp9/SettlementsSection.tsx",
+     "lines": "88-97",
+     "note": "add"
+    },
+    {
+     "path": "frontend/src/features/wp9/SettlementsSection.tsx",
+     "lines": "132-140",
+     "note": "form shown only if editable"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "نوع ناقص أو قيمة غير صالحة (400)",
+     "detail_ar": "النوع إلزامي، والقيمة لا تكون سالبة ولا بأكثر من ثلاث منازل. تعرض الشاشة «اختر النوع، وأدخل المبلغ بالدينار بحد أقصى ثلاث منازل عشرية».",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/settlements/SettlementRequests.java",
+       "lines": "40-48",
+       "note": "annotations"
+      },
+      {
+       "path": "frontend/src/i18n/messages/wp9.ar.ts",
+       "lines": "54-54",
+       "note": "msg"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/settlements/SettlementApiTest.java",
+       "lines": "133-146",
+       "note": "amount test"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "نوع غير موجود أو طرف ليس في القضية (422)",
+     "detail_ar": "ترفض القاعدتان SETTLEMENT_KIND_UNKNOWN وSETTLEMENT_PARTY_NOT_IN_CASE.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+       "lines": "166-167",
+       "note": "checks"
+      },
+      {
+       "path": "frontend/src/i18n/messages/wp9.ar.ts",
+       "lines": "27-28",
+       "note": "msgs"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/settlements/SettlementApiTest.java",
+       "lines": "104-112",
+       "note": "party test"
+      }
+     ]
+    },
+    {
+     "kind": "denied",
+     "title_ar": "لا صلاحية (403) أو قضية غير مرئية (404)",
+     "detail_ar": "من يرى القضية ولا يحق له التعديل يحصل على 403 عند أي كتابة، ومن لا يراها يحصل على 404 في كل المسارات.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+       "lines": "164-165",
+       "note": "requireChange"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/settlements/SettlementApiTest.java",
+       "lines": "280-315",
+       "note": "denied tests"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "قضية مؤرشفة (422)",
+     "detail_ar": "ترفض القاعدة CASE_ARCHIVED.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+       "lines": "328-333",
+       "note": "requireWritable"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/settlements/SettlementApiTest.java",
+       "lines": "328-337",
+       "note": "archived"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "actor_ar": "عضو القضية المخوّل",
+   "action_ar": "يضغط «تعديل الشروط» على التسوية وهي «مقترحة» أو «قيد المراجعة» ويغيّر الحقول ثم «حفظ الشروط».",
+   "response_ar": "تُحفظ الشروط ويُكتب في السجل سطر «عُدلت الشروط» يبيّن لكل حقل القيمة السابقة والجديدة، وتظهر رسالة «حُفظت التسوية».",
+   "rules_ar": [
+    "الشروط لا تُعدَّل بعد صدور قرار أو التنفيذ أو السحب، لأن الاعتماد كان على تلك الشروط."
+   ],
+   "data_ar": "الحقول + الإصدار.",
+   "next_ar": "طلب تغيير الحالة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementController.java",
+     "lines": "52-56",
+     "note": "PUT update"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "186-228",
+     "note": "update"
+    },
+    {
+     "path": "frontend/src/features/wp9/SettlementCard.tsx",
+     "lines": "53-53",
+     "note": "terms editable"
+    },
+    {
+     "path": "frontend/src/features/wp9/SettlementCard.tsx",
+     "lines": "168-179",
+     "note": "edit button"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "الشروط مجمّدة (422)",
+     "detail_ar": "التسوية المعتمدة أو المرفوضة أو المنفذة أو المسحوبة ترفض التعديل بالقاعدة SETTLEMENT_NOT_EDITABLE: «لم يعد تعديل الشروط ممكنًا».",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+       "lines": "193-196",
+       "note": "not editable"
+      },
+      {
+       "path": "frontend/src/i18n/messages/wp9.ar.ts",
+       "lines": "30-30",
+       "note": "msg"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/settlements/SettlementApiTest.java",
+       "lines": "195-212",
+       "note": "terms locked"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "تعديل متزامن (409)",
+     "detail_ar": "يُرفض الحفظ إن تغيّر الإصدار.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+       "lines": "221-223",
+       "note": "conflict"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "actor_ar": "المراجع أو رئيس القسم",
+   "action_ar": "يرفع التسوية لـ «قيد المراجعة» أو يعيدها «مقترحة» أو يسحبها: يختار «الحالة الجديدة» من القائمة ويضغط «تطبيق».",
+   "response_ar": "تتحول الحالة ويُكتب في السجل من غيّر ومتى، ويُضاف حدث «تغيّرت حالة التسوية» وسطر تدقيق. القائمة لا تعرض إلا الحالات المسموحة من الحالة الحالية.",
+   "rules_ar": [
+    "الانتقالات: مقترحة إلى (قيد المراجعة، معتمدة، مرفوضة، مسحوبة)؛ قيد المراجعة إلى (مقترحة، معتمدة، مرفوضة، مسحوبة)؛ معتمدة إلى (منفذة، مسحوبة)؛ مرفوضة إلى مقترحة؛ المنفذة والمسحوبة نهائيتان.",
+    "غير الاعتماد والرفض يكفي SETTLEMENT_MANAGE."
+   ],
+   "data_ar": "الحالة الجديدة والسبب وتاريخ الإتمام ورقم الإصدار.",
+   "next_ar": "القرار أو التنفيذ.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementController.java",
+     "lines": "58-63",
+     "note": "POST status"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "230-275",
+     "note": "changeStatus"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "60-70",
+     "note": "transition table"
+    },
+    {
+     "path": "frontend/src/features/wp9/SettlementCard.tsx",
+     "lines": "50-52",
+     "note": "moves filter"
+    },
+    {
+     "path": "frontend/src/features/wp9/SettlementCard.tsx",
+     "lines": "73-83",
+     "note": "move"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "انتقال غير مسموح (422)",
+     "detail_ar": "مثل الانتقال من «مقترحة» مباشرة إلى «منفذة»: القاعدة SETTLEMENT_TRANSITION: «لا يمكن نقل التسوية إلى هذه الحالة من حالتها الحالية».",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+       "lines": "244-246",
+       "note": "transition"
+      },
+      {
+       "path": "frontend/src/i18n/messages/wp9.ar.ts",
+       "lines": "29-29",
+       "note": "msg"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/settlements/SettlementApiTest.java",
+       "lines": "171-193",
+       "note": "tests"
+      }
+     ]
+    },
+    {
+     "kind": "exceptional",
+     "title_ar": "تعديل متزامن (409)",
+     "detail_ar": "",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+       "lines": "267-269",
+       "note": "conflict"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "actor_ar": "صاحب صلاحية اعتماد التسويات",
+   "action_ar": "يختار «معتمدة» أو «مرفوضة» ويكتب السبب أو القرار ثم «تطبيق».",
+   "response_ar": "تُسجَّل الحالة مع من قرّر ومتى وسبب القرار، ويظهر في بطاقة التسوية «قرار الموافقة أو الرفض».",
+   "rules_ar": [
+    "الاعتماد والرفض يتطلبان SETTLEMENT_APPROVE وحده، ولا تكفي SETTLEMENT_MANAGE.",
+    "الرفض يستلزم سببًا."
+   ],
+   "data_ar": "السبب، ومن قرّر، ووقت القرار.",
+   "next_ar": "التنفيذ إن اعتُمدت.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "237-243",
+     "note": "approve needs SETTLEMENT_APPROVE"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "253-266",
+     "note": "decided_by/at"
+    },
+    {
+     "path": "frontend/src/features/wp9/SettlementCard.tsx",
+     "lines": "151-159",
+     "note": "decision shown"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementController.java",
+     "lines": "58-61",
+     "note": "hasAnyAuthority"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "denied",
+     "title_ar": "ليس لديه صلاحية الاعتماد (403)",
+     "detail_ar": "من يملك SETTLEMENT_MANAGE فقط يحصل على 403 عند طلب «معتمدة» أو «مرفوضة».",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+       "lines": "238-241",
+       "note": "needed permission"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/settlements/SettlementApiTest.java",
+       "lines": "148-159",
+       "note": "approval test"
+      }
+     ]
+    },
+    {
+     "kind": "validation",
+     "title_ar": "رفض بلا سبب (400)",
+     "detail_ar": "خطأ على الحقل reason بالرمز NotBlank.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+       "lines": "247-249",
+       "note": "reason required"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/settlements/SettlementApiTest.java",
+       "lines": "161-169",
+       "note": "reject test"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "actor_ar": "عضو القضية المخوّل",
+   "action_ar": "بعد الاعتماد يختار «منفذة» ويدخل «تاريخ إتمام التسوية».",
+   "response_ar": "تصبح التسوية «منفذة» وتُحفظ بتاريخ الإتمام، ولا تتغير حالة القضية.",
+   "rules_ar": [
+    "لا تنفيذ دون اعتماد سابق (تفرضه قاعدة البيانات أيضًا).",
+    "التنفيذ لا يغلق القضية أو أي قضية مرتبطة."
+   ],
+   "data_ar": "تاريخ الإتمام.",
+   "next_ar": "التسوية نهائية.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "250-252",
+     "note": "completedOn needed"
+    },
+    {
+     "path": "frontend/src/features/wp9/SettlementCard.tsx",
+     "lines": "266-278",
+     "note": "date field when EXECUTED"
+    },
+    {
+     "path": "backend/src/main/resources/db/migration/V741__LD-057_settlement.sql",
+     "lines": "47-48",
+     "note": "db constraints"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "validation",
+     "title_ar": "تنفيذ بلا تاريخ (400)",
+     "detail_ar": "خطأ على الحقل completedOn بالرمز NotNull.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+       "lines": "250-252",
+       "note": "completedOn"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/settlements/SettlementApiTest.java",
+       "lines": "171-182",
+       "note": "execution test"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 6,
+   "actor_ar": "عضو القضية أو مطّلع على القضية",
+   "action_ar": "يربط مستندًا من ملف القضية بالتسوية أو يفك ربطه، ويفتح «السجل» لقراءة كل التغييرات.",
+   "response_ar": "يُضاف الارتباط أو يُزال ويُكتب سطر في السجل؛ والسجل يعرض الوقت والمستخدم والإجراء والحالة والملاحظة.",
+   "rules_ar": [
+    "المستند يجب أن يكون من ملف القضية نفسها، ولا يُربط أو يفك ربطه في تسوية مسحوبة.",
+    "القراءة والسجل تتطلب CASE_VIEW وحق الاطلاع على القضية."
+   ],
+   "data_ar": "معرّف المستند.",
+   "next_ar": "انتهى المسار.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementController.java",
+     "lines": "65-81",
+     "note": "history, link, unlink"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "277-318",
+     "note": "link/unlink"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "114-128",
+     "note": "history"
+    },
+    {
+     "path": "frontend/src/features/wp9/SettlementCard.tsx",
+     "lines": "287-300",
+     "note": "history list"
+    }
+   ],
+   "alt": [
+    {
+     "kind": "exceptional",
+     "title_ar": "مستند ليس في القضية أو تسوية مسحوبة (422)",
+     "detail_ar": "القاعدتان SETTLEMENT_DOCUMENT_NOT_IN_CASE وSETTLEMENT_NOT_EDITABLE.",
+     "evidence": [
+      {
+       "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+       "lines": "284-286",
+       "note": "doc in case"
+      },
+      {
+       "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+       "lines": "322-326",
+       "note": "requireOpen"
+      },
+      {
+       "path": "backend/src/test/java/com/lawdesk/settlements/SettlementApiTest.java",
+       "lines": "259-278",
+       "note": "docs test"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "rules": [
+  {
+   "text_ar": "قيمة التسوية خاصة بها ولا تُجمع أو تُقارن بأي مبلغ آخر في القضية.",
+   "evidence": [
+    {
+     "path": "backend/src/main/resources/db/migration/V741__LD-057_settlement.sql",
+     "lines": "1-4",
+     "note": "comment"
+    },
+    {
+     "path": "frontend/src/i18n/messages/wp9.ar.ts",
+     "lines": "60-60",
+     "note": "hint"
+    },
+    {
+     "path": "backend/src/test/java/com/lawdesk/settlements/SettlementApiTest.java",
+     "lines": "114-131",
+     "note": "kept apart"
+    }
+   ]
+  },
+  {
+   "text_ar": "تسجيل التسوية أو اعتمادها أو تنفيذها لا يغيّر حالة القضية ولا قضية مرتبطة.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "42-47",
+     "note": "doc"
+    },
+    {
+     "path": "frontend/src/i18n/messages/wp9.ar.ts",
+     "lines": "44-44",
+     "note": "hint"
+    },
+    {
+     "path": "backend/src/test/java/com/lawdesk/settlements/SettlementApiTest.java",
+     "lines": "214-233",
+     "note": "never closes"
+    }
+   ]
+  },
+  {
+   "text_ar": "الاعتماد والرفض يحتاجان SETTLEMENT_APPROVE، وبقية الانتقالات SETTLEMENT_MANAGE، وكل كتابة تحتاج حق تعديل القضية.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "237-243",
+     "note": "permissions"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementController.java",
+     "lines": "58-61",
+     "note": "controller"
+    }
+   ]
+  },
+  {
+   "text_ar": "جدول الانتقالات ثابت والحالتان «منفذة» و«مسحوبة» نهائيتان.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "60-70",
+     "note": "NEXT"
+    }
+   ]
+  },
+  {
+   "text_ar": "شروط التسوية مجمّدة بعد القرار أو التنفيذ أو السحب.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "193-196",
+     "note": "not editable"
+    }
+   ]
+  },
+  {
+   "text_ar": "كل تغيير يُسجَّل في سجل التسوية بالمنفّذ والوقت وما تغيّر.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "346-354",
+     "note": "history"
+    },
+    {
+     "path": "backend/src/test/java/com/lawdesk/settlements/SettlementApiTest.java",
+     "lines": "235-257",
+     "note": "history test"
+    }
+   ]
+  },
+  {
+   "text_ar": "القضية المؤرشفة للقراءة فقط.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "328-333",
+     "note": "requireWritable"
+    }
+   ]
+  },
+  {
+   "text_ar": "حالات التسوية مبنية على افتراض يحتاج موافقة المالك: لم تحدد الوثيقة حالات للتسوية.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementRequests.java",
+     "lines": "33-34",
+     "note": "ASSUMPTION"
+    },
+    {
+     "path": "backend/src/main/resources/db/migration/V741__LD-057_settlement.sql",
+     "lines": "11-11",
+     "note": "assumption"
+    }
+   ]
+  }
+ ],
+ "after_submit_ar": "تظهر التسوية في بطاقتها بحالتها الجديدة، ويُضاف سطر في سجلها، وحدث على خط القضية الزمني، وسطر في سجل التدقيق (SETTLEMENT_CREATE وSETTLEMENT_UPDATE وSETTLEMENT_STATUS وSETTLEMENT_DOCUMENT). والتسويات تدخل في فهرس البحث الموحد (عمود search_vector).",
+ "notifications_ar": [
+  "لم أجد في كود التسويات إرسال إشعارات؛ الأثر الوحيد حدث في خط القضية وسطر تدقيق وسجل التسوية."
+ ],
+ "approvals_ar": [
+  "اعتماد التسوية أو رفضها قرار يتخذه من يملك SETTLEMENT_APPROVE، ويُسجَّل من قرّر ومتى وسببه. لا تُفرض سلسلة موافقات متعددة المستويات في الكود، وجهة الموافقة حقل نصي حر."
+ ],
+ "errors": [
+  {
+   "code": "HTTP 400 + errors[{field,code}]",
+   "meaning_ar": "خطأ تحقق: NotBlank أو Size أو PositiveOrZero أو Digits أو NotNull على الحقول، وreason/NotBlank عند الرفض، وcompletedOn/NotNull عند التنفيذ.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementRequests.java",
+     "lines": "40-91",
+     "note": "annotations"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "247-252",
+     "note": "service checks"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+     "lines": "34-49",
+     "note": "ProblemDetail errors"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 403",
+   "meaning_ar": "لا يملك الصلاحية المطلوبة (SETTLEMENT_MANAGE أو SETTLEMENT_APPROVE) أو لا يحق له تعديل القضية.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "238-243",
+     "note": "denied"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+     "lines": "98-102",
+     "note": "security"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 404",
+   "meaning_ar": "التسوية أو القضية غير موجودة أو القضية غير مرئية للمستخدم.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "130-133",
+     "note": "load"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "100-105",
+     "note": "view"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 409",
+   "meaning_ar": "تغيّرت التسوية بيد مستخدم آخر.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "221-223",
+     "note": "conflict"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+     "lines": "85-88",
+     "note": "409"
+    }
+   ]
+  },
+  {
+   "code": "HTTP 422 + rule",
+   "meaning_ar": "SETTLEMENT_KIND_UNKNOWN وSETTLEMENT_PARTY_NOT_IN_CASE وSETTLEMENT_TRANSITION وSETTLEMENT_NOT_EDITABLE وSETTLEMENT_DOCUMENT_NOT_IN_CASE وCASE_ARCHIVED.",
+   "evidence": [
+    {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "51-56",
+     "note": "codes"
+    },
+    {
+     "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+     "lines": "90-96",
+     "note": "422"
+    }
+   ]
+  }
+ ],
+ "result_ar": "بطاقة تسوية تعرض نوعها وحالتها وشروطها وقرار الاعتماد والمستندات المؤيدة وسجلًا كاملًا بما جرى.",
+ "related": [
+  "enforcement",
+  "parties",
+  "audit",
+  "search"
+ ],
+ "endpoints": [
+  {
+   "method": "GET",
+   "path": "/api/v1/cases/{caseId}/settlements",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/settlements/SettlementController.java",
+    "lines": "34-34",
+    "note": ""
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/cases/{caseId}/settlements",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/settlements/SettlementController.java",
+    "lines": "40-40",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/settlements/{id}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/settlements/SettlementController.java",
+    "lines": "46-46",
+    "note": ""
+   }
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/settlements/{id}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/settlements/SettlementController.java",
+    "lines": "52-52",
+    "note": ""
+   }
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/settlements/{id}/status",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/settlements/SettlementController.java",
+    "lines": "59-59",
+    "note": ""
+   }
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/settlements/{id}/history",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/settlements/SettlementController.java",
+    "lines": "65-65",
+    "note": ""
+   }
+  },
+  {
+   "method": "PUT",
+   "path": "/api/v1/settlements/{id}/documents/{documentId}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/settlements/SettlementController.java",
+    "lines": "71-71",
+    "note": ""
+   }
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/settlements/{id}/documents/{documentId}",
+   "evidence": {
+    "path": "backend/src/main/java/com/lawdesk/settlements/SettlementController.java",
+    "lines": "77-77",
+    "note": ""
+   }
+  }
+ ],
+ "tech": {
+  "chain": [
+   {
+    "layer": "screen",
+    "label": "SettlementsSection داخل CaseDetailsPage",
+    "ref": {
+     "path": "frontend/src/features/cases/CaseDetailsPage.tsx",
+     "lines": "232-232",
+     "note": "mount"
+    },
+    "data_ar": "معرّف القضية وهل يملك المستخدم التسجيل والاعتماد."
+   },
+   {
+    "layer": "component",
+    "label": "SettlementCard / SettlementForm",
+    "ref": {
+     "path": "frontend/src/features/wp9/SettlementCard.tsx",
+     "lines": "40-60",
+     "note": "card"
+    },
+    "data_ar": "شروط التسوية والحركة المختارة."
+   },
+   {
+    "layer": "api_call",
+    "label": "createSettlement / changeSettlementStatus",
+    "ref": {
+     "path": "frontend/src/features/wp9/api.ts",
+     "lines": "140-160",
+     "note": "api"
+    },
+    "data_ar": "جسم JSON بالشروط أو الحالة والسبب ورقم الإصدار."
+   },
+   {
+    "layer": "controller",
+    "label": "SettlementController",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementController.java",
+     "lines": "23-82",
+     "note": "controller"
+    },
+    "data_ar": "فحص الصلاحيات ثم تسليم الطلب."
+   },
+   {
+    "layer": "service",
+    "label": "SettlementService",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "230-275",
+     "note": "changeStatus"
+    },
+    "data_ar": "فحص الصلاحية الخاصة بالقرار وجدول الانتقالات والإصدار."
+   },
+   {
+    "layer": "authorization",
+    "label": "CaseAccessPolicy + currentActor.has",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "238-243",
+     "note": "permission check"
+    },
+    "data_ar": "404 لغير المرئية، 403 لغير المخوّل."
+   },
+   {
+    "layer": "tables",
+    "label": "settlement, settlement_history, settlement_document",
+    "ref": {
+     "path": "backend/src/main/resources/db/migration/V741__LD-057_settlement.sql",
+     "lines": "1-62",
+     "note": "tables"
+    },
+    "data_ar": "صف التسوية وسطور السجل وارتباطات المستندات."
+   },
+   {
+    "layer": "event",
+    "label": "case event + AuditLog",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+     "lines": "270-273",
+     "note": "events"
+    },
+    "data_ar": "حدث وسطر تدقيق."
+   },
+   {
+    "layer": "result",
+    "label": "Settlement (JSON)",
+    "ref": {
+     "path": "backend/src/main/java/com/lawdesk/settlements/SettlementRequests.java",
+     "lines": "96-102",
+     "note": "view"
+    },
+    "data_ar": "تُعاد البطاقة المحدَّثة."
+   }
+  ]
+ },
+ "status": "IMPLEMENTED_ON_DEVELOP",
+ "status_note_ar": "الشيفرة موجودة على develop مع اختبارات. حالات التسوية افتراض ينتظر موافقة المالك بحسب تعليق الكود.",
+ "status_evidence": [
+  {
+   "path": "backend/src/main/java/com/lawdesk/settlements/SettlementService.java",
+   "lines": "42-70",
+   "note": "service"
+  },
+  {
+   "path": "backend/src/main/java/com/lawdesk/settlements/SettlementController.java",
+   "lines": "23-27",
+   "note": "controller"
+  }
+ ],
+ "verification_ar": "قرأتُ المتحكم والخدمة والطلبات والهجرة V741 وهجرة الصلاحيات V744 وشاشات wp9. الاختبارات: backend/src/test/java/com/lawdesk/settlements/SettlementApiTest.java واختبارات الواجهة frontend/src/features/wp9/SettlementsSection.test.tsx وapi.test.ts وerrors.test.ts. لم يجرِ هذا المستند أي تحقق على UAT ولم أشغّل الاختبارات. لم أتحقق من تفاصيل البحث الموحد للتسويات."
+}

@@ -1,0 +1,1097 @@
+{
+  "id": "experts",
+  "category": "work",
+  "name_ar": "سجل الخبراء وإحالات الخبرة وجلساتها وتقاريرها",
+  "summary_ar": "جزءان: سجل بالخبراء الذين تتعامل معهم الشؤون القانونية (الاسم والتخصص والمكتب والهاتف)، وإحالة دعوى (مرحلة) إلى خبير بندب من المحكمة، ثم تسجيل جلسات الخبير وتقديم تقريره أو إلغاء الإحالة. لا يُحذف خبير أبدًا بل يُوقف.",
+  "purpose_ar": "أن تبقى مأموريات الخبراء ومواعيد تقاريرهم وجلساتهم مسجّلة على الدعوى، فيظهر التقرير المتأخر وتدخل جلسات الخبير في التقويم والتنبيهات.",
+  "who_ar": [
+    "من يحمل صلاحية «عرض الخبراء» (EXPERT_VIEW) للاطلاع على السجل والإحالات",
+    "من يحمل صلاحية «إدارة الخبراء» (EXPERT_MANAGE) لإضافة الخبراء وتعديلهم وإيقافهم، ولإحالة الدعوى وتسجيل الجلسات والتقرير والإلغاء (ويلزم لإحالات القضية حق تغيير القضية)"
+  ],
+  "who_perms": [
+    "EXPERT_VIEW",
+    "EXPERT_MANAGE"
+  ],
+  "access_ar": "القائمة الرئيسية > الخبراء (السجل)، وصفحة القضية > قسم «إحالات الخبراء» (الإحالات)",
+  "route": "/experts",
+  "prerequisites_ar": [
+    "للإحالة: أن تكون للقضية دعوى مسجلة (وإلا تعرض الشاشة «سجّل دعوى لهذه القضية قبل إحالتها إلى خبير»).",
+    "أن يكون الخبير نشطًا (الموقوف لا يقبل إحالات جديدة).",
+    "ألا تكون القضية مؤرشفة، وأن يحق للمستخدم تغييرها."
+  ],
+  "fields": {
+    "required": [
+      {
+        "name_ar": "اسم الخبير",
+        "code": "name",
+        "rule_ar": "مطلوب وحتى 200 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/experts/ExpertRequests.java",
+            "lines": "27",
+            "note": "name"
+          }
+        ]
+      },
+      {
+        "name_ar": "التخصص",
+        "code": "specialty",
+        "rule_ar": "مطلوب وحتى 100 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/experts/ExpertRequests.java",
+            "lines": "28",
+            "note": "specialty"
+          }
+        ]
+      },
+      {
+        "name_ar": "الخبير (في الإحالة)",
+        "code": "expertId",
+        "rule_ar": "مطلوب؛ ويجب أن يكون نشطًا (القاعدة EXPERT_INACTIVE).",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/experts/ExpertRequests.java",
+            "lines": "61",
+            "note": "expertId"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+            "lines": "61-63",
+            "note": "inactive expert refused"
+          }
+        ]
+      },
+      {
+        "name_ar": "تاريخ الإحالة",
+        "code": "referralDate",
+        "rule_ar": "مطلوب، ولا يكون في المستقبل (400 برمز PastOrPresent)، ولا يسبق تاريخ رفع الدعوى (القاعدة REFERRAL_BEFORE_FILING).",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/experts/ExpertRequests.java",
+            "lines": "62",
+            "note": "referralDate"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+            "lines": "54",
+            "note": "not future"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+            "lines": "64-66",
+            "note": "not before filing"
+          }
+        ]
+      },
+      {
+        "name_ar": "تاريخ الجلسة (عند تسجيل جلسة)",
+        "code": "sessionDate",
+        "rule_ar": "مطلوب ولا يسبق تاريخ الإحالة (SESSION_BEFORE_REFERRAL).",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/experts/ExpertRequests.java",
+            "lines": "85",
+            "note": "sessionDate"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+            "lines": "101-103",
+            "note": "rule"
+          }
+        ]
+      },
+      {
+        "name_ar": "تاريخ تقديم التقرير (عند تسجيل التقرير)",
+        "code": "reportSubmittedDate",
+        "rule_ar": "مطلوب، لا يكون في المستقبل ولا يسبق تاريخ الإحالة (REPORT_BEFORE_REFERRAL).",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/experts/ExpertRequests.java",
+            "lines": "78",
+            "note": "reportSubmittedDate"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+            "lines": "119-121",
+            "note": "rule"
+          }
+        ]
+      },
+      {
+        "name_ar": "رقم النسخة (تعديل الخبير أو الإحالة أو تقديم التقرير أو الإلغاء)",
+        "code": "version",
+        "rule_ar": "مطلوب والنسخة القديمة تعطي 409. (تسجيل جلسة لا يطلب رقم نسخة.)",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/experts/ExpertRequests.java",
+            "lines": "46",
+            "note": "version"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+            "lines": "145-147",
+            "note": "409"
+          }
+        ]
+      }
+    ],
+    "optional": [
+      {
+        "name_ar": "المكتب",
+        "code": "office",
+        "rule_ar": "اختياري حتى 200 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/experts/ExpertRequests.java",
+            "lines": "29",
+            "note": "office"
+          }
+        ]
+      },
+      {
+        "name_ar": "الهاتف",
+        "code": "phone",
+        "rule_ar": "اختياري حتى 32 حرفًا، من أرقام ومسافات وعلامات + ( ) - فقط.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/experts/ExpertRequests.java",
+            "lines": "21",
+            "note": "pattern"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/experts/ExpertRequests.java",
+            "lines": "30",
+            "note": "phone"
+          }
+        ]
+      },
+      {
+        "name_ar": "نشط (عند تعديل الخبير)",
+        "code": "active",
+        "rule_ar": "مطلوب عند التعديل: بقيمة غير نشط يُوقف الخبير فلا يقبل إحالات جديدة وتبقى إحالاته القديمة.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/experts/ExpertRequests.java",
+            "lines": "45",
+            "note": "active"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/experts/ExpertRegistry.java",
+            "lines": "24",
+            "note": "no delete"
+          }
+        ]
+      },
+      {
+        "name_ar": "المأمورية",
+        "code": "mission",
+        "rule_ar": "اختيارية حتى 4000 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/experts/ExpertRequests.java",
+            "lines": "63",
+            "note": "mission"
+          }
+        ]
+      },
+      {
+        "name_ar": "موعد التقرير",
+        "code": "reportDueDate",
+        "rule_ar": "اختياري ولا يسبق تاريخ الإحالة (REPORT_DUE_BEFORE_REFERRAL).",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+            "lines": "169-173",
+            "note": "rule"
+          }
+        ]
+      },
+      {
+        "name_ar": "وقت الجلسة",
+        "code": "sessionTime",
+        "rule_ar": "اختياري بصيغة HH:mm.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/experts/ExpertRequests.java",
+            "lines": "86",
+            "note": "sessionTime"
+          }
+        ]
+      },
+      {
+        "name_ar": "المكان",
+        "code": "location",
+        "rule_ar": "اختياري حتى 200 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/experts/ExpertRequests.java",
+            "lines": "87",
+            "note": "location"
+          }
+        ]
+      },
+      {
+        "name_ar": "ملاحظات الجلسة",
+        "code": "notes",
+        "rule_ar": "اختيارية حتى 2000 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/experts/ExpertRequests.java",
+            "lines": "88",
+            "note": "notes"
+          }
+        ]
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "actor_ar": "من يحمل «عرض الخبراء»",
+      "action_ar": "يفتح «الخبراء» ويبحث بالاسم أو التخصص ويصفّي بالحالة (نشط / موقوف).",
+      "response_ar": "تظهر قائمة الخبراء مرتبة بالاسم صفحةً صفحة، وفي كل خبير تخصصه ومكتبه وهاتفه وحالته.",
+      "rules_ar": [
+        "البحث على الاسم والتخصص معًا."
+      ],
+      "data_ar": "GET /api/v1/experts?active&q&page&size.",
+      "next_ar": "الخطوة 2 لإضافة خبير.",
+      "evidence": [
+        {
+          "path": "frontend/src/features/operations/experts/ExpertsPage.tsx",
+          "lines": "19",
+          "note": "screen"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ExpertController.java",
+          "lines": "25-37",
+          "note": "list"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ExpertRegistry.java",
+          "lines": "42-60",
+          "note": "list flow"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "لا صلاحية «عرض الخبراء»",
+          "detail_ar": "يرد 403 وتعرض الشاشة صفحة «غير مسموح».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/experts/ExpertController.java",
+              "lines": "36",
+              "note": "403"
+            },
+            {
+              "path": "frontend/src/features/operations/experts/ExpertsPage.tsx",
+              "lines": "48",
+              "note": "page"
+            }
+          ]
+        },
+        {
+          "kind": "error",
+          "title_ar": "فشل التحميل",
+          "detail_ar": "تظهر رسالة «تعذّر تحميل البيانات. تحقّق من الاتصال وأعد المحاولة.».",
+          "evidence": [
+            {
+              "path": "frontend/src/i18n/messages/operations.ar.ts",
+              "lines": "25",
+              "note": "Arabic"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "actor_ar": "من يحمل «إدارة الخبراء»",
+      "action_ar": "يضغط «خبير جديد» ويكتب الاسم والتخصص والمكتب والهاتف ثم يحفظ. ولتعديل خبير أو إيقافه يفتح «تعديل» ويغيّر الحقول أو يلغي علامة «نشط».",
+      "response_ar": "يُحفظ الخبير (حالته نشط) وتظهر «حُفظ الخبير.»، وتتزايد النسخة عند كل تعديل.",
+      "rules_ar": [
+        "لا يُحذف الخبير: يُوقف فقط ليبقى اسمه في إحالاته القديمة.",
+        "لا يوجد خبراء مُعبَّؤون مسبقًا في النظام.",
+        "تُقص المسافات الزائدة من النصوص."
+      ],
+      "data_ar": "POST /api/v1/experts بجسم: name, specialty, office, phone؛ وللتعديل PUT /api/v1/experts/{id} مع active وversion.",
+      "next_ar": "الخطوة 3 لإحالة دعوى.",
+      "evidence": [
+        {
+          "path": "frontend/src/features/operations/experts/ExpertForm.tsx",
+          "lines": "34-37",
+          "note": "create/update call"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ExpertController.java",
+          "lines": "25-50",
+          "note": "create"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ExpertController.java",
+          "lines": "56-60",
+          "note": "update"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ExpertRegistry.java",
+          "lines": "73-83",
+          "note": "insert"
+        },
+        {
+          "path": "backend/src/main/resources/db/migration/V404__LD-025_expert.sql",
+          "lines": "4-18",
+          "note": "table"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "اسم أو تخصص فارغ، أو هاتف بحروف غير مسموحة، أو نص أطول من المسموح",
+          "detail_ar": "يرد 400 مع errors باسم الحقل والقيد، وتعرضه الشاشة تحت الحقل.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/experts/ExpertRequests.java",
+              "lines": "26-30",
+              "note": "validation"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+              "lines": "35-41",
+              "note": "400"
+            }
+          ]
+        },
+        {
+          "kind": "denied",
+          "title_ar": "لا صلاحية «إدارة الخبراء»",
+          "detail_ar": "يرد 403.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/experts/ExpertController.java",
+              "lines": "49",
+              "note": "403"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "تغيّر الخبير عند شخص آخر",
+          "detail_ar": "يرد 409 وتعرض الشاشة «غيّر شخص آخر هذا السجل في الأثناء. أعد التحميل ثم حاول مرة أخرى.».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/experts/ExpertRegistry.java",
+              "lines": "100",
+              "note": "409"
+            },
+            {
+              "path": "frontend/src/i18n/messages/operations.ar.ts",
+              "lines": "33",
+              "note": "Arabic"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "خبير غير موجود",
+          "detail_ar": "يرد 404.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/experts/ExpertRegistry.java",
+              "lines": "69",
+              "note": "404"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "actor_ar": "من يحمل «إدارة الخبراء» وحق تغيير القضية",
+      "action_ar": "من صفحة القضية في قسم «إحالات الخبراء» يختار الدعوى (المرحلة) والخبير النشط (بحث بالاسم أو التخصص) ويحدد تاريخ الإحالة والمأمورية وموعد التقرير، ثم يحفظ.",
+      "response_ar": "تُسجَّل الإحالة بحالة «مفتوحة» وتظهر «حُفظت إحالة الخبير.»، ويُضاف سطر EXPERT_REFERRED إلى الخط الزمني للقضية.",
+      "rules_ar": [
+        "تُقفل المرحلة (الدعوى) أثناء الفحص حتى لا يتعارض مع تصحيح تاريخ رفعها.",
+        "تاريخ الإحالة لا يسبق رفع الدعوى ولا يكون في المستقبل.",
+        "تاريخ رفع الدعوى لا يمكن تصحيحه إلى ما بعد أي إحالة قائمة عليها (حتى الملغاة)."
+      ],
+      "data_ar": "POST /api/v1/proceedings/{proceedingId}/expert-referrals بجسم: expertId, referralDate, mission, reportDueDate؛ يُحفظ في جدول expert_referral.",
+      "next_ar": "الخطوة 4.",
+      "evidence": [
+        {
+          "path": "frontend/src/features/operations/experts/CaseExperts.tsx",
+          "lines": "33",
+          "note": "case section"
+        },
+        {
+          "path": "frontend/src/features/operations/experts/ReferralForms.tsx",
+          "lines": "31",
+          "note": "form"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ReferralController.java",
+          "lines": "35-43",
+          "note": "POST refer"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+          "lines": "51-72",
+          "note": "refer flow"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ReferralDependentDates.java",
+          "lines": "21",
+          "note": "filing-date guard"
+        },
+        {
+          "path": "backend/src/main/resources/db/migration/V404__LD-025_expert.sql",
+          "lines": "20-32",
+          "note": "table"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "تاريخ مستقبلي أو قبل رفع الدعوى أو موعد تقرير قبل الإحالة",
+          "detail_ar": "تاريخ الإحالة المستقبلي: 400 برمز PastOrPresent؛ وقبل رفع الدعوى: 422 REFERRAL_BEFORE_FILING؛ وموعد التقرير قبل الإحالة: 422 REPORT_DUE_BEFORE_REFERRAL.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+              "lines": "165",
+              "note": "400"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/experts/Rules.java",
+              "lines": "14",
+              "note": "422"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/experts/Rules.java",
+              "lines": "15",
+              "note": "422"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "خبير موقوف",
+          "detail_ar": "يرد 422 بالقاعدة EXPERT_INACTIVE وتعرض الشاشة «هذا الخبير موقوف ولا يقبل إحالات جديدة.».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+              "lines": "62",
+              "note": "422"
+            },
+            {
+              "path": "frontend/src/i18n/messages/operations.ar.ts",
+              "lines": "193",
+              "note": "Arabic"
+            }
+          ]
+        },
+        {
+          "kind": "denied",
+          "title_ar": "قضية لا يراها أو لا يغيّرها",
+          "detail_ar": "غير مرئية: 404، ومرئية بلا حق التغيير: 403.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+              "lines": "154-161",
+              "note": "404/403/422"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "قضية مؤرشفة",
+          "detail_ar": "يرد 422 بالقاعدة CASE_ARCHIVED.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/experts/Rules.java",
+              "lines": "12",
+              "note": "code"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "لا توجد دعوى للقضية",
+          "detail_ar": "لا يمكن الإحالة وتظهر الرسالة «سجّل دعوى لهذه القضية قبل إحالتها إلى خبير.».",
+          "evidence": [
+            {
+              "path": "frontend/src/features/operations/experts/CaseExperts.tsx",
+              "lines": "202",
+              "note": "screen message"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "actor_ar": "من يحمل «إدارة الخبراء» وحق تغيير القضية",
+      "action_ar": "على الإحالة المفتوحة يضغط «تسجيل جلسة» فيحدد التاريخ والوقت والمكان والملاحظات، أو يعدّل المأمورية وموعد التقرير عبر الواجهة البرمجية.",
+      "response_ar": "تُضاف الجلسة إلى الإحالة ويُضاف سطر EXPERT_SESSION_RECORDED إلى الخط الزمني للقضية. وتدخل جلسة الخبير في التقويم، ويُنبَّه إليها بإشعار «جلسة خبراء» قبل موعدها (من التشغيل الدوري).",
+      "rules_ar": [
+        "لا يُسجَّل شيء على إحالة قُدّم تقريرها أو أُلغيت (REFERRAL_CLOSED).",
+        "تاريخ الجلسة لا يسبق تاريخ الإحالة.",
+        "يُعد التقرير متأخرًا (علامة «التقرير متأخر») إن كانت الإحالة مفتوحة وفات موعد التقرير."
+      ],
+      "data_ar": "POST /api/v1/expert-referrals/{id}/sessions بجسم: sessionDate, sessionTime, location, notes؛ وPUT /api/v1/expert-referrals/{id} بجسم: mission, reportDueDate, version.",
+      "next_ar": "الخطوة 5.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ReferralController.java",
+          "lines": "64-69",
+          "note": "sessions"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ReferralController.java",
+          "lines": "58-62",
+          "note": "update"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+          "lines": "98-110",
+          "note": "session flow"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+          "lines": "197-198",
+          "note": "overdue flag"
+        },
+        {
+          "path": "frontend/src/features/operations/experts/ReferralForms.tsx",
+          "lines": "136",
+          "note": "form"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/calendar/BuiltInSources.java",
+          "lines": "158",
+          "note": "calendar source"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "جلسة قبل الإحالة",
+          "detail_ar": "يرد 422 بالقاعدة SESSION_BEFORE_REFERRAL.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/experts/Rules.java",
+              "lines": "17",
+              "note": "422"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "إحالة غير مفتوحة",
+          "detail_ar": "يرد 422 بالقاعدة REFERRAL_CLOSED.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+              "lines": "149",
+              "note": "422"
+            }
+          ]
+        },
+        {
+          "kind": "validation",
+          "title_ar": "تاريخ جلسة ناقص",
+          "detail_ar": "يرد 400 (NotNull).",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/experts/ExpertRequests.java",
+              "lines": "84-86",
+              "note": "validation"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "actor_ar": "من يحمل «إدارة الخبراء» وحق تغيير القضية",
+      "action_ar": "عند وصول التقرير يضغط «قُدّم التقرير» ويحدد تاريخ تقديمه؛ أو يضغط «إلغاء الإحالة» فيؤكد.",
+      "response_ar": "تتحول الإحالة إلى «قُدّم التقرير» (REPORT_SUBMITTED) أو «ملغاة» (CANCELLED) ولا يُقبل عليها بعد ذلك جلسة ولا تقرير. ويُضاف سطر EXPERT_REPORT_SUBMITTED أو EXPERT_REFERRAL_CANCELLED إلى الخط الزمني.",
+      "rules_ar": [
+        "تأكيد الإلغاء يطلب أولًا: «لن يمكن تسجيل جلسات أو تقرير بعدها.».",
+        "تاريخ التقرير لا يكون في المستقبل ولا قبل الإحالة.",
+        "أي فشل في كتابة سطر الخط الزمني يتراجع به الحفظ كله (معاملة واحدة)."
+      ],
+      "data_ar": "POST /api/v1/expert-referrals/{id}/report بجسم reportSubmittedDate وversion؛ وPOST /api/v1/expert-referrals/{id}/cancel بجسم version.",
+      "next_ar": "تنتهي العملية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ReferralController.java",
+          "lines": "71-76",
+          "note": "report"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ReferralController.java",
+          "lines": "78-82",
+          "note": "cancel"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+          "lines": "114-126",
+          "note": "report flow"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+          "lines": "130-137",
+          "note": "cancel flow"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ReferralStatus.java",
+          "lines": "5-7",
+          "note": "statuses"
+        },
+        {
+          "path": "frontend/src/i18n/messages/operations.ar.ts",
+          "lines": "241",
+          "note": "confirmation text"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "تقرير بتاريخ مستقبلي أو قبل الإحالة",
+          "detail_ar": "مستقبلي: 400 PastOrPresent؛ قبل الإحالة: 422 REPORT_BEFORE_REFERRAL.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/experts/Rules.java",
+              "lines": "16",
+              "note": "422"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "إحالة مغلقة أو نسخة قديمة",
+          "detail_ar": "يرد 422 REFERRAL_CLOSED أو 409.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+              "lines": "141-152",
+              "note": "409 / 422"
+            }
+          ]
+        },
+        {
+          "kind": "denied",
+          "title_ar": "قضية لا يراها أو لا يغيّرها",
+          "detail_ar": "يرد 404 أو 403 على التوالي.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+              "lines": "156",
+              "note": "403"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "text_ar": "الخبراء مرجع يُوقف ولا يُحذف، حتى تبقى الإحالات القديمة تسمّي خبراءها.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ExpertRegistry.java",
+          "lines": "24",
+          "note": "no delete"
+        }
+      ]
+    },
+    {
+      "text_ar": "الإحالة تكون مفتوحة حتى يُقدَّم التقرير أو تُلغى، وما سوى ذلك لا يُقبل على إحالة مغلقة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ReferralStatus.java",
+          "lines": "4",
+          "note": "statuses"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+          "lines": "149",
+          "note": "closed rule"
+        }
+      ]
+    },
+    {
+      "text_ar": "كل كتابة على إحالة تقفل صف الإحالة وتضيف سطرًا في الخط الزمني للقضية في المعاملة نفسها.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+          "lines": "28",
+          "note": "design note"
+        }
+      ]
+    },
+    {
+      "text_ar": "التاريخ المعتمد «اليوم» بتوقيت الكويت.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/Rules.java",
+          "lines": "21",
+          "note": "Kuwait"
+        }
+      ]
+    }
+  ],
+  "after_submit_ar": "تظهر الإحالة وجلساتها وحالتها في قسم «إحالات الخبراء» بصفحة القضية برسالة «حُفظت إحالة الخبير.»، ويظهر الخبير الجديد في السجل برسالة «حُفظ الخبير.».",
+  "notifications_ar": [
+    "لا ترسل شاشات الخبراء إشعارًا بنفسها.",
+    "جلسة الخبير تدخل التقويم ويرسل التشغيل الدوري إشعار «جلسة خبراء» داخل النظام قبل موعدها بثلاثة أيام (راجع صفحتي «المتابعة الدورية» و«الإشعارات»)."
+  ],
+  "approvals_ar": [],
+  "errors": [
+    {
+      "code": "HTTP 400",
+      "meaning_ar": "حقل ناقص أو غير صالح (الاسم، التخصص، الهاتف، PastOrPresent…).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/api/ApiExceptionHandler.java",
+          "lines": "35-41",
+          "note": "400"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 403",
+      "meaning_ar": "لا صلاحية EXPERT_VIEW/EXPERT_MANAGE، أو لا يحق له تغيير القضية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+          "lines": "156",
+          "note": "403"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 404",
+      "meaning_ar": "الخبير أو الإحالة أو الدعوى أو القضية غير موجود أو لا يحق للمستخدم رؤيته.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+          "lines": "77",
+          "note": "404"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 409",
+      "meaning_ar": "غيّر شخص آخر السجل (النسخة قديمة).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+          "lines": "146",
+          "note": "409"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 EXPERT_INACTIVE",
+      "meaning_ar": "الخبير موقوف.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/Rules.java",
+          "lines": "13",
+          "note": "code"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 REFERRAL_BEFORE_FILING",
+      "meaning_ar": "الإحالة تسبق رفع الدعوى.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/Rules.java",
+          "lines": "14",
+          "note": "code"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 REPORT_DUE_BEFORE_REFERRAL",
+      "meaning_ar": "موعد التقرير قبل الإحالة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/Rules.java",
+          "lines": "15",
+          "note": "code"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 REPORT_BEFORE_REFERRAL",
+      "meaning_ar": "تقديم التقرير قبل الإحالة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/Rules.java",
+          "lines": "16",
+          "note": "code"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 SESSION_BEFORE_REFERRAL",
+      "meaning_ar": "الجلسة قبل الإحالة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/Rules.java",
+          "lines": "17",
+          "note": "code"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 REFERRAL_CLOSED",
+      "meaning_ar": "الإحالة لم تعد مفتوحة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/Rules.java",
+          "lines": "18",
+          "note": "code"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 CASE_ARCHIVED",
+      "meaning_ar": "القضية مؤرشفة وللقراءة فقط.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/experts/Rules.java",
+          "lines": "12",
+          "note": "code"
+        }
+      ]
+    }
+  ],
+  "result_ar": "خبير مسجّل في السجل، وإحالة دعوى إليه بجلساتها وتقريرها أو إلغائها، ظاهرة في صفحة القضية وفي التقويم، ومحفوظ أثرها في الخط الزمني للقضية.",
+  "related": [
+    "calendar",
+    "notifications",
+    "follow-up",
+    "proceedings-stages",
+    "case-access-confidentiality",
+    "tasks"
+  ],
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/v1/experts",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/experts/ExpertController.java",
+        "lines": "25-37",
+        "note": "list"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/experts/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/experts/ExpertController.java",
+        "lines": "25-44",
+        "note": "get"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/experts",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/experts/ExpertController.java",
+        "lines": "25-50",
+        "note": "create"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/experts/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/experts/ExpertController.java",
+        "lines": "25-58",
+        "note": "update"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/proceedings/{proceedingId}/expert-referrals",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/experts/ReferralController.java",
+        "lines": "35",
+        "note": "refer"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cases/{caseId}/expert-referrals",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/experts/ReferralController.java",
+        "lines": "45",
+        "note": "case referrals"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/expert-referrals/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/experts/ReferralController.java",
+        "lines": "52",
+        "note": "get"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/expert-referrals/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/experts/ReferralController.java",
+        "lines": "58",
+        "note": "update"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/expert-referrals/{id}/sessions",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/experts/ReferralController.java",
+        "lines": "64",
+        "note": "sessions"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/expert-referrals/{id}/report",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/experts/ReferralController.java",
+        "lines": "71",
+        "note": "report"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/expert-referrals/{id}/cancel",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/experts/ReferralController.java",
+        "lines": "78",
+        "note": "cancel"
+      }
+    }
+  ],
+  "tech": {
+    "chain": [
+      {
+        "layer": "screen",
+        "label": "ExpertsPage (/experts) و CaseExperts",
+        "ref": {
+          "path": "frontend/src/features/operations/experts/ExpertsPage.tsx",
+          "lines": "19",
+          "note": "screen"
+        },
+        "data_ar": "مرشحات السجل ونماذج الخبير والإحالة."
+      },
+      {
+        "layer": "component",
+        "label": "ExpertForm / ReferralForm / SessionForm / ReportForm",
+        "ref": {
+          "path": "frontend/src/features/operations/experts/ReferralForms.tsx",
+          "lines": "31",
+          "note": "forms"
+        },
+        "data_ar": "قيم النماذج تتحول إلى أجسام الطلبات."
+      },
+      {
+        "layer": "api_call",
+        "label": "referToExpert / recordSession / submitReport / cancelReferral",
+        "ref": {
+          "path": "frontend/src/features/operations/experts/expertsApi.ts",
+          "lines": "125-128",
+          "note": "api"
+        },
+        "data_ar": "طلبات POST إلى /api/v1/proceedings/{id}/expert-referrals و/api/v1/expert-referrals/{id}/…."
+      },
+      {
+        "layer": "controller",
+        "label": "ReferralController / ExpertController",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/experts/ReferralController.java",
+          "lines": "35-41",
+          "note": "controller"
+        },
+        "data_ar": "الجسم بعد @Valid يُسلَّم إلى ReferralService."
+      },
+      {
+        "layer": "authorization",
+        "label": "@PreAuthorize EXPERT_MANAGE + CaseAccessPolicy",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/experts/ReferralController.java",
+          "lines": "36",
+          "note": "permission"
+        },
+        "data_ar": "صلاحية الوظيفة ثم حق تغيير القضية."
+      },
+      {
+        "layer": "service",
+        "label": "ReferralService",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+          "lines": "51-57",
+          "note": "service"
+        },
+        "data_ar": "قواعد التواريخ والخبير النشط والقفل."
+      },
+      {
+        "layer": "repository",
+        "label": "ReferralStore / ExpertRegistry",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/experts/ReferralStore.java",
+          "lines": "19",
+          "note": "store"
+        },
+        "data_ar": "حفظ الإحالة والجلسات."
+      },
+      {
+        "layer": "tables",
+        "label": "expert, expert_referral, expert_session",
+        "ref": {
+          "path": "backend/src/main/resources/db/migration/V404__LD-025_expert.sql",
+          "lines": "59-65",
+          "note": "tables"
+        },
+        "data_ar": "الخبراء والإحالات والجلسات."
+      },
+      {
+        "layer": "event",
+        "label": "cases.recordEvent EXPERT_REFERRED",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/experts/ReferralService.java",
+          "lines": "70-71",
+          "note": "event"
+        },
+        "data_ar": "سطر الخط الزمني في المعاملة نفسها."
+      },
+      {
+        "layer": "result",
+        "label": "ExpertRequests.Referral",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/experts/ExpertRequests.java",
+          "lines": "100-104",
+          "note": "response"
+        },
+        "data_ar": "الإحالة وجلساتها وعلم reportOverdue."
+      }
+    ]
+  },
+  "status": "IMPLEMENTED_ON_DEVELOP",
+  "status_note_ar": "الشيفرة على develop ولها اختبارات؛ لم يُتحقق منها في UAT ضمن هذه الوثيقة.",
+  "status_evidence": [
+    {
+      "path": "backend/src/main/java/com/lawdesk/experts/ExpertController.java",
+      "lines": "25-26",
+      "note": "controller on develop"
+    }
+  ],
+  "verification_ar": "اختبارات وُجدت: backend/src/test/java/com/lawdesk/experts/ExpertApiTest.java وExpertReferralApiTest.java وExpertFilingChronologyTest.java وExpertDatabaseIntegrityTest.java وExpertSerializationTest.java وExpertReportQueriesTest.java، وواجهة: frontend/src/features/operations/experts/ExpertsPage.test.tsx وCaseExperts.test.tsx. لم أشغّلها ولم يُجرَ تحقق UAT ضمن هذه الوثيقة. لم أتحقق من أن قراءة الإحالات تفحص حق رؤية القضية إلا عبر البحث عن القضية (404 إن لم تكن مرئية)؛ ولم أوثق تقارير الخبراء (ExpertReportQueries) لأنها تخص لوحة التقارير."
+}

@@ -1,0 +1,612 @@
+{
+  "id": "notes",
+  "category": "cases",
+  "name_ar": "الملاحظات القانونية على القضية",
+  "summary_ar": "قسم «الملاحظات القانونية» في صفحة القضية يكتب فيه الأعضاء ملاحظاتهم الداخلية على القضية. تُعرض الملاحظات الأحدث أولًا باسم كاتبها وتاريخها، ولا يعدّلها أو يحذفها إلا كاتبها.",
+  "purpose_ar": "حفظ الرأي والتقدير الداخلي للقضية في مكان واحد داخل ملفها، مع حماية نص الملاحظة: يسجّل السجل الزمني من أضافها أو حذفها ولا يسجّل نصها أبدًا.",
+  "who_ar": [
+    "من يملك «عرض القضايا» لقراءة الملاحظات",
+    "من يملك «كتابة الملاحظات القانونية» وله حق تغيير القضية لإضافة ملاحظة",
+    "كاتب الملاحظة وحده لتعديلها أو حذفها"
+  ],
+  "who_perms": [
+    "CASE_VIEW",
+    "NOTE_MANAGE"
+  ],
+  "access_ar": "القائمة > القضايا > فتح قضية > قسم «الملاحظات القانونية»",
+  "route": "/cases/:id",
+  "prerequisites_ar": [
+    "أن تكون القضية ظاهرة للمستخدم وغير مؤرشفة للكتابة.",
+    "للإضافة: صلاحية NOTE_MANAGE، وأن يكون المستخدم ممن يحق لهم تغيير القضية (العضو المختص أو البديل أو صاحب منحة مساهمة أو تعديل ضمن النطاق)."
+  ],
+  "fields": {
+    "required": [
+      {
+        "name_ar": "نص الملاحظة",
+        "code": "body",
+        "rule_ar": "غير فارغ حتى 4000 حرف؛ تُحذف المسافات من طرفيه.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+            "lines": "47-47",
+            "note": "الإضافة"
+          },
+          {
+            "path": "backend/src/main/resources/db/migration/V405__LD-029_case_note.sql",
+            "lines": "7-7",
+            "note": "العمود"
+          }
+        ]
+      },
+      {
+        "name_ar": "رقم النسخة (عند التعديل والحذف)",
+        "code": "version",
+        "rule_ar": "رقم نسخة الملاحظة كما قرأها المستخدم؛ إن تغيّرت رُفض الطلب. وفي الحذف يُرسل في عنوان الطلب ?version= وغيابه يعطي 400.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+            "lines": "54-54",
+            "note": "التعديل"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+            "lines": "129-129",
+            "note": "الحذف"
+          }
+        ]
+      }
+    ],
+    "optional": []
+  },
+  "steps": [
+    {
+      "n": 1,
+      "actor_ar": "عضو الإدارة القانونية",
+      "action_ar": "يفتح صفحة القضية فيرى قسم «الملاحظات القانونية» وتحته تنبيه «الملاحظات داخلية للمكتب. يسجّل سجل القضية من أضافها، ولا يسجّل نصها أبدًا».",
+      "response_ar": "تُحمَّل أحدث مئة ملاحظة (GET /api/v1/cases/{caseId}/notes) من الأحدث إلى الأقدم، لكل منها نصها واسم كاتبها وتاريخها وعلامة «(معدّلة)» إن عُدّلت. وإن لم توجد تظهر «لا توجد ملاحظات قانونية لهذه القضية بعد.».",
+      "rules_ar": [
+        "القراءة تحتاج CASE_VIEW وحق الاطلاع على القضية.",
+        "الأزرار «تعديل» و«احذف» لا تظهر إلا للملاحظات التي كتبها المستخدم نفسه."
+      ],
+      "data_ar": "NoteService.Note: المعرّف والقضية والنص والكاتب وهل هي قابلة للتعديل (editable) وهل عُدّلت (edited) والنسخة والتاريخان.",
+      "next_ar": "يكتب ملاحظة جديدة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteController.java",
+          "lines": "36-36",
+          "note": "القراءة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+          "lines": "85-85",
+          "note": "الخدمة"
+        },
+        {
+          "path": "frontend/src/features/operations/notes/notesApi.ts",
+          "lines": "23-23",
+          "note": "الطلب"
+        },
+        {
+          "path": "frontend/src/features/operations/notes/CaseNotes.tsx",
+          "lines": "82-82",
+          "note": "الشاشة"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "لا يحق له عرض ملاحظات القضية",
+          "detail_ar": "تظهر «غير مسموح لك بعرض ملاحظات هذه القضية.» عند 403، وتُعامل القضية غير الظاهرة كغير موجودة (404).",
+          "evidence": [
+            {
+              "path": "frontend/src/features/operations/notes/CaseNotes.tsx",
+              "lines": "203-203",
+              "note": "الشاشة"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+              "lines": "86-86",
+              "note": "404"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "actor_ar": "من يملك «كتابة الملاحظات القانونية»",
+      "action_ar": "يكتب نص الملاحظة في «كتابة ملاحظة قانونية» ويضغط «إضافة الملاحظة».",
+      "response_ar": "يُرسل POST /api/v1/cases/{caseId}/notes فتُحفظ الملاحظة (201) وتظهر «حُفظت الملاحظة.» وتتصدر القائمة. ويُسجَّل في السجل الزمني للقضية «إضافة ملاحظة» باسم الكاتب دون النص.",
+      "rules_ar": [
+        "لا تُقبل ملاحظة فارغة.",
+        "لا تُضاف ملاحظة إلى قضية مؤرشفة."
+      ],
+      "data_ar": "body فقط.",
+      "next_ar": "تبقى الملاحظة مرئية لكل من يملك CASE_VIEW على القضية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteController.java",
+          "lines": "42-42",
+          "note": "الإضافة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+          "lines": "102-102",
+          "note": "الخدمة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+          "lines": "110-110",
+          "note": "الحدث"
+        },
+        {
+          "path": "frontend/src/features/operations/notes/notesApi.ts",
+          "lines": "27-27",
+          "note": "الطلب"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "نص فارغ أو أطول من 4000 حرف",
+          "detail_ar": "400 مع errors على الحقل body.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+              "lines": "47-47",
+              "note": "القيد"
+            }
+          ]
+        },
+        {
+          "kind": "denied",
+          "title_ar": "بلا صلاحية الكتابة أو بلا حق تغيير القضية",
+          "detail_ar": "403 لمن لا يملك NOTE_MANAGE؛ وكذلك لمن لا يحق له تغيير القضية لأن تسجيل الحدث في سجلها يتطلب ذلك. (نموذج الكتابة يظهر في الشاشة للجميع ويقرر الخادم.)",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/notes/NoteController.java",
+              "lines": "43-43",
+              "note": "الصلاحية"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/cases/CaseService.java",
+              "lines": "295-295",
+              "note": "التغيير"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "قضية مؤرشفة",
+          "detail_ar": "422 بقيمة CASE_ARCHIVED وتظهر «القضية مؤرشفة ولا يمكن تغييرها».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+              "lines": "155-155",
+              "note": "الرفض"
+            },
+            {
+              "path": "frontend/src/i18n/messages/operations.ar.ts",
+              "lines": "35-35",
+              "note": "الرسالة"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "actor_ar": "كاتب الملاحظة",
+      "action_ar": "يضغط «تعديل» على ملاحظته فيفتح نموذج «تعديل الملاحظة» بنصها، يغيّره ويحفظ.",
+      "response_ar": "يُرسل PUT /api/v1/notes/{id} بالنص والنسخة، وتظهر «حُفظت الملاحظة.» وعلامة «(معدّلة)». ولا يُسجَّل حدث في سجل القضية للتعديل (لم أجد في الشيفرة تسجيلًا له).",
+      "rules_ar": [
+        "المعدِّل هو الكاتب وحده.",
+        "تُغلق الملاحظة بالنسخة: من يعدّل نسخة قديمة يتلقى 409."
+      ],
+      "data_ar": "body وversion.",
+      "next_ar": "تعود الملاحظة بنسختها الجديدة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteController.java",
+          "lines": "50-50",
+          "note": "التعديل"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+          "lines": "115-115",
+          "note": "الخدمة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+          "lines": "137-137",
+          "note": "قيود التعديل"
+        },
+        {
+          "path": "frontend/src/features/operations/notes/notesApi.ts",
+          "lines": "31-31",
+          "note": "الطلب"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "exceptional",
+          "title_ar": "ليس الكاتب",
+          "detail_ar": "422 بقيمة NOTE_AUTHOR_ONLY وتظهر «يملك كاتب الملاحظة وحده تعديلها أو حذفها.».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+              "lines": "147-147",
+              "note": "الرفض"
+            },
+            {
+              "path": "frontend/src/i18n/messages/operations.ar.ts",
+              "lines": "255-255",
+              "note": "الرسالة"
+            }
+          ]
+        },
+        {
+          "kind": "error",
+          "title_ar": "عدّلها شخص آخر في الأثناء",
+          "detail_ar": "409 وتظهر «غيّر شخص آخر هذا السجل في الأثناء. أعد التحميل ثم حاول مرة أخرى».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+              "lines": "144-144",
+              "note": "409"
+            },
+            {
+              "path": "frontend/src/i18n/messages/operations.ar.ts",
+              "lines": "33-33",
+              "note": "الرسالة"
+            }
+          ]
+        },
+        {
+          "kind": "denied",
+          "title_ar": "قضية غير ظاهرة",
+          "detail_ar": "404 (يُفحص حق الاطلاع على القضية قبل أي شيء، فلا يعرف المستخدم شيئًا عن الملاحظة حتى رقم نسختها).",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+              "lines": "141-141",
+              "note": "الترتيب"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "actor_ar": "كاتب الملاحظة",
+      "action_ar": "يضغط «احذف» على ملاحظته فيُسأل «حذف هذه الملاحظة؟ لا يمكن استرجاعها.» ثم يضغط «احذف الملاحظة».",
+      "response_ar": "يُرسل DELETE /api/v1/notes/{id}?version=… فتُحذف الملاحظة نهائيًا (204) وتظهر «حُذفت الملاحظة.». ويُسجَّل في السجل الزمني «حذف ملاحظة» باسم من حذفها دون نصها.",
+      "rules_ar": [
+        "الحذف نهائي ولا استرجاع.",
+        "الحذف للكاتب وحده وللنسخة الحالية فقط."
+      ],
+      "data_ar": "معرّف الملاحظة ونسختها.",
+      "next_ar": "تختفي الملاحظة من القائمة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteController.java",
+          "lines": "56-56",
+          "note": "الحذف"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+          "lines": "126-126",
+          "note": "الخدمة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+          "lines": "133-133",
+          "note": "الحدث"
+        },
+        {
+          "path": "frontend/src/i18n/messages/operations.ar.ts",
+          "lines": "265-265",
+          "note": "التأكيد"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "غياب النسخة",
+          "detail_ar": "400 مع errors: version بالرمز NotNull.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+              "lines": "129-129",
+              "note": "الرفض"
+            }
+          ]
+        },
+        {
+          "kind": "exceptional",
+          "title_ar": "ليس الكاتب أو قضية مؤرشفة",
+          "detail_ar": "422 NOTE_AUTHOR_ONLY أو CASE_ARCHIVED.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+              "lines": "44-44",
+              "note": "الرمز"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "text_ar": "يكتب بصلاحية NOTE_MANAGE ويقرأ بصلاحية CASE_VIEW؛ ولا يغيّر الملاحظة أو يحذفها إلا كاتبها (افتراض مدوّن في الشيفرة).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+          "lines": "38-38",
+          "note": "التعليق"
+        }
+      ]
+    },
+    {
+      "text_ar": "يسجّل السجل الزمني حدث إضافة الملاحظة وحذفها واسم الفاعل، ولا يسجّل نصها أبدًا.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+          "lines": "38-38",
+          "note": "التعليق"
+        },
+        {
+          "path": "frontend/src/features/operations/notes/CaseNotes.tsx",
+          "lines": "80-80",
+          "note": "الواجهة"
+        }
+      ]
+    },
+    {
+      "text_ar": "القضية المؤرشفة للقراءة فقط: لا إضافة ولا تعديل ولا حذف.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+          "lines": "152-152",
+          "note": "الفحص"
+        }
+      ]
+    },
+    {
+      "text_ar": "الحذف نهائي (حذف من قاعدة البيانات) وليس علامة حذف.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+          "lines": "132-132",
+          "note": "الحذف"
+        }
+      ]
+    }
+  ],
+  "after_submit_ar": "تظهر الملاحظة (أو تتغير أو تختفي) في القسم، ويُسجَّل في سجل القضية الزمني حدث الإضافة أو الحذف باسم الفاعل.",
+  "notifications_ar": [
+    "لا يُرسل إشعار عند إضافة ملاحظة أو تعديلها أو حذفها؛ لم أجد في شيفرة الملاحظات استدعاءً لخدمة الإشعارات."
+  ],
+  "approvals_ar": [
+    "لا توجد موافقات في هذه الميزة."
+  ],
+  "errors": [
+    {
+      "code": "HTTP 400",
+      "meaning_ar": "نص فارغ أو طويل، أو غياب النسخة عند الحذف.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+          "lines": "47-47",
+          "note": "body"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+          "lines": "129-129",
+          "note": "version"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 403",
+      "meaning_ar": "لا يملك NOTE_MANAGE، أو لا يحق له تغيير القضية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteController.java",
+          "lines": "43-43",
+          "note": "الصلاحية"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 404",
+      "meaning_ar": "القضية أو الملاحظة غير موجودة أو غير ظاهرة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+          "lines": "140-140",
+          "note": "ملاحظة"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 409",
+      "meaning_ar": "تغيّرت الملاحظة منذ قراءتها.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+          "lines": "144-144",
+          "note": "409"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 NOTE_AUTHOR_ONLY",
+      "meaning_ar": "المحاول ليس كاتب الملاحظة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+          "lines": "44-44",
+          "note": "الرمز"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 422 CASE_ARCHIVED",
+      "meaning_ar": "القضية مؤرشفة للقراءة فقط.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+          "lines": "45-45",
+          "note": "الرمز"
+        }
+      ]
+    }
+  ],
+  "result_ar": "قائمة ملاحظات قانونية داخلية على القضية، الأحدث أولًا، يعدّلها كاتبها وحده، مع أثر في السجل الزمني بلا نص.",
+  "related": [
+    "cases-details-edit",
+    "case-file",
+    "case-access-confidentiality",
+    "audit",
+    "roles-permissions"
+  ],
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/v1/cases/{caseId}/notes",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/notes/NoteController.java",
+        "lines": "36-36",
+        "note": ""
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/cases/{caseId}/notes",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/notes/NoteController.java",
+        "lines": "42-42",
+        "note": ""
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/notes/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/notes/NoteController.java",
+        "lines": "50-50",
+        "note": ""
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/notes/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/notes/NoteController.java",
+        "lines": "56-56",
+        "note": ""
+      }
+    }
+  ],
+  "tech": {
+    "chain": [
+      {
+        "layer": "screen",
+        "label": "CaseNotes (داخل صفحة القضية)",
+        "ref": {
+          "path": "frontend/src/features/operations/notes/CaseNotes.tsx",
+          "lines": "82-82",
+          "note": ""
+        },
+        "data_ar": "نص الملاحظة ونسختها."
+      },
+      {
+        "layer": "api_call",
+        "label": "addNote / editNote / removeNote / listNotes",
+        "ref": {
+          "path": "frontend/src/features/operations/notes/notesApi.ts",
+          "lines": "27-27",
+          "note": ""
+        },
+        "data_ar": "طلبات JSON إلى /api/v1/cases/{id}/notes و/api/v1/notes/{id}."
+      },
+      {
+        "layer": "controller",
+        "label": "NoteController",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteController.java",
+          "lines": "27-27",
+          "note": ""
+        },
+        "data_ar": "Write أو Edit بعد التحقق."
+      },
+      {
+        "layer": "authorization",
+        "label": "@PreAuthorize NOTE_MANAGE / CASE_VIEW + فحص الكاتب",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+          "lines": "137-137",
+          "note": ""
+        },
+        "data_ar": "الصلاحية ثم القضية ثم النسخة ثم الكاتب."
+      },
+      {
+        "layer": "service",
+        "label": "NoteService",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+          "lines": "102-102",
+          "note": ""
+        },
+        "data_ar": "الكتابة في جدول الملاحظات وتسجيل الحدث."
+      },
+      {
+        "layer": "tables",
+        "label": "case_note",
+        "ref": {
+          "path": "backend/src/main/resources/db/migration/V405__LD-029_case_note.sql",
+          "lines": "4-4",
+          "note": ""
+        },
+        "data_ar": "صف الملاحظة."
+      },
+      {
+        "layer": "event",
+        "label": "NOTE_ADDED / NOTE_REMOVED عبر CaseLookup.recordEvent",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+          "lines": "110-110",
+          "note": ""
+        },
+        "data_ar": "سطر في السجل الزمني بلا النص."
+      },
+      {
+        "layer": "result",
+        "label": "NoteService.Note",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+          "lines": "62-62",
+          "note": ""
+        },
+        "data_ar": "الملاحظة بنسختها الجديدة تظهر في القائمة."
+      }
+    ]
+  },
+  "status": "IMPLEMENTED_ON_DEVELOP",
+  "status_note_ar": "الشيفرة موجودة على develop ويغطيها اختبارات الخادم والواجهة؛ وحصر التعديل والحذف في الكاتب افتراض مدوّن في الشيفرة.",
+  "status_evidence": [
+    {
+      "path": "backend/src/main/java/com/lawdesk/notes/NoteService.java",
+      "lines": "42-42",
+      "note": ""
+    },
+    {
+      "path": "frontend/src/features/operations/notes/CaseNotes.tsx",
+      "lines": "82-82",
+      "note": ""
+    }
+  ],
+  "verification_ar": "قرأتُ المتحكم والخدمة وهجرة V405 ومكوّن الواجهة وملف الرسائل العربية. اختبارات وجدتها: backend/src/test/java/com/lawdesk/notes/NoteApiTest.java وbackend/src/test/java/com/lawdesk/notes/ActivityHistoryTest.java وفي الواجهة frontend/src/features/operations/notes/CaseNotes.test.tsx. لم أشغّلها ولم يجرِ هذا المستند تحققًا على UAT. حدّ المئة ملاحظة في الواجهة مأخوذ من تعليق الدالة listNotes ولم أتحقق من سلوكه عند تجاوزه."
+}

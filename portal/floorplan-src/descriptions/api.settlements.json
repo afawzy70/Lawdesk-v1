@@ -1,0 +1,50 @@
+{
+  "files": {
+    "backend/src/main/java/com/lawdesk/settlements/SettlementController.java": {
+      "name": "طلبات التسويات",
+      "description": "يستقبل الطلبات الخاصة بتسويات القضية: عرضها وإنشاؤها وتعديلها وتغيير حالتها وربط المستندات بها، مع التحقق من صلاحية المستخدم."
+    },
+    "backend/src/main/java/com/lawdesk/settlements/SettlementRequests.java": {
+      "name": "بيانات التسوية",
+      "description": "يحدد شكل البيانات التي تُسجَّل للتسوية وما يُعرض عنها، وحالاتها المقترحة وسجل تغييراتها؛ وحالات التسوية افتراض ينتظر موافقة المالك."
+    },
+    "backend/src/main/java/com/lawdesk/settlements/SettlementService.java": {
+      "name": "منطق التسويات",
+      "description": "يُنفّذ العمل الفعلي للتسويات والتنازلات والمصالحات الخاصة بالقضية: التسجيل والتعديل وتغيير الحالة وحفظ السجل وربط المستندات."
+    }
+  },
+  "routes": {
+    "GET /api/v1/cases/{caseId}/settlements": {
+      "name": "تسويات القضية",
+      "description": "يعرض كل التسويات المسجلة على قضية معينة، لمن يملك صلاحية الاطلاع على القضايا."
+    },
+    "POST /api/v1/cases/{caseId}/settlements": {
+      "name": "تسجيل تسوية جديدة",
+      "description": "يسجل تسوية جديدة على القضية ويردّ بإنشائها، ولا يسمح بذلك إلا لمن يملك صلاحية إدارة التسويات."
+    },
+    "GET /api/v1/settlements/{id}": {
+      "name": "عرض تسوية",
+      "description": "يعرض بيانات تسوية واحدة لمن يملك صلاحية الاطلاع على القضايا."
+    },
+    "PUT /api/v1/settlements/{id}": {
+      "name": "تعديل تسوية",
+      "description": "يعدّل بيانات تسوية مسجلة، لمن يملك صلاحية إدارة التسويات."
+    },
+    "POST /api/v1/settlements/{id}/status": {
+      "name": "تغيير حالة التسوية",
+      "description": "ينقل التسوية إلى حالة أخرى، ويسمح بذلك لمن يدير التسويات أو لمن يملك صلاحية اعتمادها."
+    },
+    "GET /api/v1/settlements/{id}/history": {
+      "name": "سجل تغييرات التسوية",
+      "description": "يعرض سجل ما جرى على التسوية من تعديلات وتغييرات حالة."
+    },
+    "PUT /api/v1/settlements/{id}/documents/{documentId}": {
+      "name": "ربط مستند بتسوية",
+      "description": "يربط مستندًا موجودًا بالتسوية، لمن يملك صلاحية إدارة التسويات."
+    },
+    "DELETE /api/v1/settlements/{id}/documents/{documentId}": {
+      "name": "فك ربط مستند",
+      "description": "يزيل ارتباط مستند بالتسوية، لمن يملك صلاحية إدارة التسويات."
+    }
+  }
+}

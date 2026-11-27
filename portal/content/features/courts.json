@@ -1,0 +1,622 @@
+{
+  "id": "courts",
+  "category": "cases",
+  "name_ar": "المحاكم ودرجاتها",
+  "summary_ar": "قائمة مرجعية بالمحاكم وجهات التقاضي التي تُختار عند تسجيل القضية ودرجاتها (أول درجة، الاستئناف، النقض، الدستورية، التنفيذ، التظلم). تُضاف المحكمة وتُعدَّل وتُوقَف، ولا تُحذف أبدًا حتى تبقى الدعاوى القديمة محتفظة بمحكمتها.",
+  "purpose_ar": "توحيد أسماء المحاكم ودرجاتها في كل القضايا، ومنع قيد دعوى في محكمة موقوفة أو من درجة لا تناسب درجة التقاضي.",
+  "who_ar": [
+    "من يملك «عرض المحاكم» لقراءة القائمة",
+    "من يملك «إدارة المحاكم» للإضافة والتعديل والإيقاف"
+  ],
+  "who_perms": [
+    "COURT_VIEW",
+    "COURT_MANAGE"
+  ],
+  "access_ar": "القائمة > المحاكم",
+  "route": "/courts",
+  "prerequisites_ar": [
+    "تسجيل الدخول وامتلاك COURT_VIEW للاطلاع وCOURT_MANAGE للتغيير.",
+    "لا تُزرع محاكم في قاعدة البيانات: القائمة الفعلية بيانات يوفّرها صاحب العمل ويُدخلها المخوّل (حسب تعليق ملف الهجرة)."
+  ],
+  "fields": {
+    "required": [
+      {
+        "name_ar": "الرمز",
+        "code": "code",
+        "rule_ar": "من حرفين إلى 32 حرفًا لاتينيًا أو رقمًا أو شرطة؛ تُقص المسافات الزائدة ويُخزَّن بحروف كبيرة؛ ولا يتكرر.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/courts/CourtRequests.java",
+            "lines": "15-15",
+            "note": "النمط"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/courts/CourtService.java",
+            "lines": "86-86",
+            "note": "التحويل"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/courts/CourtService.java",
+            "lines": "88-88",
+            "note": "التكرار"
+          }
+        ]
+      },
+      {
+        "name_ar": "الاسم بالعربية",
+        "code": "nameAr",
+        "rule_ar": "غير فارغ حتى 200 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/courts/CourtRequests.java",
+            "lines": "22-22",
+            "note": "nameAr"
+          }
+        ]
+      },
+      {
+        "name_ar": "الاسم بالإنجليزية",
+        "code": "nameEn",
+        "rule_ar": "غير فارغ حتى 200 حرف.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/courts/CourtRequests.java",
+            "lines": "23-23",
+            "note": "nameEn"
+          }
+        ]
+      },
+      {
+        "name_ar": "الدرجة",
+        "code": "level",
+        "rule_ar": "إحدى: أول درجة، الاستئناف، النقض، الدستورية، التنفيذ، جهة التظلم.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/courts/CourtRequests.java",
+            "lines": "24-24",
+            "note": "level"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/courts/CourtLevel.java",
+            "lines": "6-6",
+            "note": "الدرجات"
+          }
+        ]
+      }
+    ],
+    "optional": [
+      {
+        "name_ar": "المحافظة",
+        "code": "governorate",
+        "rule_ar": "حتى 100 حرف؛ الفراغ يُحفظ كأنها غير مذكورة.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/courts/CourtRequests.java",
+            "lines": "25-25",
+            "note": "governorate"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/courts/CourtService.java",
+            "lines": "103-103",
+            "note": "الفراغ"
+          }
+        ]
+      },
+      {
+        "name_ar": "فعّالة (عند التعديل فقط)",
+        "code": "active",
+        "rule_ar": "مطلوب عند التعديل؛ إيقاف المحكمة يمنع اختيارها في دعاوى جديدة.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/courts/CourtRequests.java",
+            "lines": "35-35",
+            "note": "active"
+          }
+        ]
+      },
+      {
+        "name_ar": "رقم النسخة (عند التعديل فقط)",
+        "code": "version",
+        "rule_ar": "مطلوب عند التعديل؛ إن تغيّرت المحكمة بعد قراءتها رُفض الحفظ.",
+        "evidence": [
+          {
+            "path": "backend/src/main/java/com/lawdesk/courts/CourtRequests.java",
+            "lines": "36-36",
+            "note": "version"
+          },
+          {
+            "path": "backend/src/main/java/com/lawdesk/courts/CourtService.java",
+            "lines": "76-76",
+            "note": "الفحص"
+          }
+        ]
+      }
+    ]
+  },
+  "steps": [
+    {
+      "n": 1,
+      "actor_ar": "موظف الإدارة القانونية",
+      "action_ar": "يفتح «المحاكم» من القائمة الرئيسية.",
+      "response_ar": "تظهر قائمة بالمحاكم مرتبة بالرمز، عشرين محكمة في الصفحة، بأعمدة: الرمز والاسم بالعربية والاسم بالإنجليزية والدرجة والمحافظة والحالة (فعّالة أو موقوفة) والإجراءات.",
+      "rules_ar": [
+        "لا يحتاج الاطلاع إلا إلى صلاحية عرض المحاكم."
+      ],
+      "data_ar": "استعلام GET /api/v1/courts?page=0&size=20&sort=code,asc.",
+      "next_ar": "يصفّي أو يضيف أو يعدّل.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/courts/CourtController.java",
+          "lines": "35-40",
+          "note": "القائمة"
+        },
+        {
+          "path": "frontend/src/features/courts/courtsApi.ts",
+          "lines": "45-45",
+          "note": "الطلب"
+        },
+        {
+          "path": "frontend/src/features/courts/CourtsPage.tsx",
+          "lines": "30-30",
+          "note": "الشاشة"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "denied",
+          "title_ar": "لا صلاحية عرض",
+          "detail_ar": "403 وتحل صفحة «لا صلاحية» محل الشاشة.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/courts/CourtController.java",
+              "lines": "36-36",
+              "note": "الصلاحية"
+            },
+            {
+              "path": "frontend/src/features/courts/CourtsPage.tsx",
+              "lines": "75-75",
+              "note": "الصفحة"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "actor_ar": "موظف الإدارة القانونية",
+      "action_ar": "يصفّي القائمة بالدرجة وبالحالة (الكل، فعّالة، موقوفة) ويتنقل بين الصفحات.",
+      "response_ar": "يُعاد الاستعلام بالعاملين level وactive؛ وإن لم توجد محاكم تظهر «لا توجد محاكم مطابقة لعوامل التصفية».",
+      "rules_ar": [
+        "تقبل واجهة البرمجة أيضًا بحثًا نصيًا q بالرمز أو الاسم لكن الشاشة الحالية لا تعرضه (البحث بالاسم يُستعمل في اختيار المحكمة عند تسجيل القضية)."
+      ],
+      "data_ar": "level وactive وpage وsize وsort.",
+      "next_ar": "يضغط «إضافة محكمة» أو «تعديل».",
+      "evidence": [
+        {
+          "path": "frontend/src/features/courts/courtsApi.ts",
+          "lines": "47-47",
+          "note": "التصفية"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/courts/CourtService.java",
+          "lines": "52-52",
+          "note": "الخدمة"
+        },
+        {
+          "path": "frontend/src/i18n/messages/courts.ar.ts",
+          "lines": "32-32",
+          "note": "الرسالة"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "قيمة خارج المدى",
+          "detail_ar": "درجة غير معروفة أو معرّف غير صالح يعطي 400؛ وحجم صفحة أكبر من 100 أو غير صحيح يُرفض بـ 400 أيضًا.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/courts/CourtRequestErrors.java",
+              "lines": "23-23",
+              "note": "400"
+            },
+            {
+              "path": "backend/src/main/java/com/lawdesk/platform/PagingValidationInterceptor.java",
+              "lines": "31-31",
+              "note": "الحد"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "actor_ar": "موظف يملك «إدارة المحاكم»",
+      "action_ar": "يضغط «إضافة محكمة» ويعبّئ الرمز والاسمين والدرجة والمحافظة ثم «حفظ».",
+      "response_ar": "يرسل POST /api/v1/courts؛ تُحفظ المحكمة فعّالة وتظهر «تم حفظ المحكمة» وتتحدّث القائمة.",
+      "rules_ar": [
+        "الرمز لا يتكرر.",
+        "المحكمة الجديدة فعّالة دائمًا."
+      ],
+      "data_ar": "code وnameAr وnameEn وlevel وgovernorate.",
+      "next_ar": "تصبح المحكمة متاحة في اختيار المحكمة عند تسجيل قضية.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/courts/CourtController.java",
+          "lines": "49-52",
+          "note": "الإنشاء"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/courts/CourtService.java",
+          "lines": "65-65",
+          "note": "الخدمة"
+        },
+        {
+          "path": "frontend/src/features/courts/CourtForm.tsx",
+          "lines": "49-49",
+          "note": "النموذج"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "validation",
+          "title_ar": "حقل ناقص أو غير صالح",
+          "detail_ar": "400 ويُظهر النموذج تحت كل حقل: «هذا الحقل مطلوب» أو «هذه القيمة طويلة جدًا» أو «استخدم من ٢ إلى ٣٢ حرفًا لاتينيًا أو رقمًا أو شرطة».",
+          "evidence": [
+            {
+              "path": "frontend/src/features/courts/CourtForm.tsx",
+              "lines": "11-11",
+              "note": "الرسائل"
+            },
+            {
+              "path": "frontend/src/i18n/messages/courts.ar.ts",
+              "lines": "51-51",
+              "note": "الرسالة"
+            }
+          ]
+        },
+        {
+          "kind": "denied",
+          "title_ar": "بلا صلاحية الإدارة",
+          "detail_ar": "403 وتظهر «ليست لديك صلاحية إدارة المحاكم» (الأزرار تظهر للجميع ويقرر الخادم).",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/courts/CourtController.java",
+              "lines": "50-50",
+              "note": "الصلاحية"
+            },
+            {
+              "path": "frontend/src/features/courts/CourtForm.tsx",
+              "lines": "33-33",
+              "note": "الرسالة"
+            }
+          ]
+        },
+        {
+          "kind": "error",
+          "title_ar": "رمز مستخدم",
+          "detail_ar": "409 وتظهر «هذا الرمز مستخدم لمحكمة أخرى».",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/courts/CourtService.java",
+              "lines": "88-88",
+              "note": "409"
+            },
+            {
+              "path": "frontend/src/features/courts/CourtForm.tsx",
+              "lines": "35-35",
+              "note": "الرسالة"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "actor_ar": "موظف يملك «إدارة المحاكم»",
+      "action_ar": "يضغط «تعديل» أمام محكمة فيعدّل أسماءها أو درجتها أو محافظتها أو رمزها، أو يوقفها أو يعيد تفعيلها، ثم «حفظ».",
+      "response_ar": "يرسل PUT /api/v1/courts/{id} بالنسخة التي قرأها. تُستبدل البيانات كلها وتُرفع النسخة.",
+      "rules_ar": [
+        "المحاكم لا تُحذف: تُوقَف فقط، فتبقى الدعاوى القديمة مرتبطة بها.",
+        "محكمة موقوفة لا تقبل دعاوى جديدة (COURT_INACTIVE عند القيد)."
+      ],
+      "data_ar": "كل الحقول مع active وversion.",
+      "next_ar": "تعكس شاشات قيد الدعاوى الحالة الجديدة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/courts/CourtController.java",
+          "lines": "58-58",
+          "note": "التعديل"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/courts/CourtService.java",
+          "lines": "73-73",
+          "note": "الخدمة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingService.java",
+          "lines": "76-76",
+          "note": "رفض القيد"
+        }
+      ],
+      "alt": [
+        {
+          "kind": "error",
+          "title_ar": "عدّل مستخدم آخر المحكمة",
+          "detail_ar": "409 وتظهر «عدّل مستخدم آخر هذه المحكمة، أو أن رمزها مستخدم بالفعل…»؛ يغلق المستخدم النموذج ويعيد المحاولة.",
+          "evidence": [
+            {
+              "path": "backend/src/main/java/com/lawdesk/courts/CourtService.java",
+              "lines": "77-77",
+              "note": "409"
+            },
+            {
+              "path": "frontend/src/i18n/messages/courts.ar.ts",
+              "lines": "47-47",
+              "note": "الرسالة"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "text_ar": "المحاكم تُوقَف ولا تُحذف.",
+      "evidence": [
+        {
+          "path": "backend/src/main/resources/db/migration/V300__LD-018_court.sql",
+          "lines": "1-1",
+          "note": "التعليق"
+        }
+      ]
+    },
+    {
+      "text_ar": "درجة المحكمة يجب أن تطابق درجة التقاضي عند قيد الدعوى، والمحكمة يجب أن تكون فعّالة.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/proceedings/ProceedingService.java",
+          "lines": "134-134",
+          "note": "المطابقة"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/courts/CourtLevel.java",
+          "lines": "3-3",
+          "note": "التعليق"
+        }
+      ]
+    },
+    {
+      "text_ar": "الترتيب الافتراضي بالرمز؛ والحقول المسموح بها للترتيب: الرمز والاسمان والدرجة والمحافظة والفعّالية وتاريخا الإنشاء والتعديل، وغيرها يُتجاهل.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/courts/CourtService.java",
+          "lines": "28-29",
+          "note": "الترتيب"
+        }
+      ]
+    },
+    {
+      "text_ar": "«الدائرة» (chamber) ليست جدولًا مرجعيًا مع المحاكم؛ هي نص حر اختياري في سجل القضية (حتى 100 حرف).",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/cases/CaseDetails.java",
+          "lines": "22-22",
+          "note": "chamber"
+        }
+      ]
+    }
+  ],
+  "after_submit_ar": "تظهر «تم حفظ المحكمة» وتتحدث القائمة. لا يُكتب حدث في السجل الزمني لقضية لأن المحكمة بيانات مرجعية؛ ولم أجد في شيفرة المحاكم تسجيلًا في سجل التدقيق.",
+  "notifications_ar": [
+    "لا توجد إشعارات في هذه الميزة."
+  ],
+  "approvals_ar": [
+    "لا توجد موافقات في هذه الميزة؛ تُحفظ التغييرات مباشرة."
+  ],
+  "errors": [
+    {
+      "code": "HTTP 400",
+      "meaning_ar": "حقل ناقص أو غير صالح، أو درجة/معرّف غير مفهوم.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/courts/CourtRequestErrors.java",
+          "lines": "23-23",
+          "note": "400"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 403",
+      "meaning_ar": "لا يملك COURT_VIEW للقراءة أو COURT_MANAGE للتغيير.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/courts/CourtController.java",
+          "lines": "50-50",
+          "note": "الصلاحية"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 404",
+      "meaning_ar": "المحكمة غير موجودة عند التعديل أو القراءة بالمعرّف.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/courts/CourtService.java",
+          "lines": "48-48",
+          "note": "404"
+        }
+      ]
+    },
+    {
+      "code": "HTTP 409",
+      "meaning_ar": "رمز مستخدم أو نسخة المحكمة تغيرت.",
+      "evidence": [
+        {
+          "path": "backend/src/main/java/com/lawdesk/courts/CourtService.java",
+          "lines": "88-88",
+          "note": "الرمز"
+        },
+        {
+          "path": "backend/src/main/java/com/lawdesk/courts/CourtService.java",
+          "lines": "77-77",
+          "note": "النسخة"
+        }
+      ]
+    }
+  ],
+  "result_ar": "قائمة محاكم محدّثة تظهر في اختيار المحكمة عند تسجيل القضية وقيد الدعاوى، مع إخراج المحاكم الموقوفة من الاختيار الجديد.",
+  "related": [
+    "cases-register",
+    "proceedings-stages",
+    "hearings",
+    "lists-lookups",
+    "roles-permissions"
+  ],
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/v1/courts",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/courts/CourtController.java",
+        "lines": "26-35",
+        "note": ""
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/courts/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/courts/CourtController.java",
+        "lines": "26-43",
+        "note": ""
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/courts",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/courts/CourtController.java",
+        "lines": "26-49",
+        "note": ""
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/courts/{id}",
+      "evidence": {
+        "path": "backend/src/main/java/com/lawdesk/courts/CourtController.java",
+        "lines": "26-58",
+        "note": ""
+      }
+    }
+  ],
+  "tech": {
+    "chain": [
+      {
+        "layer": "screen",
+        "label": "CourtsPage (/courts)",
+        "ref": {
+          "path": "frontend/src/features/courts/CourtsPage.tsx",
+          "lines": "30-30",
+          "note": ""
+        },
+        "data_ar": "عوامل التصفية والصفحة."
+      },
+      {
+        "layer": "component",
+        "label": "CourtForm",
+        "ref": {
+          "path": "frontend/src/features/courts/CourtForm.tsx",
+          "lines": "49-49",
+          "note": ""
+        },
+        "data_ar": "قيم النموذج تتحول إلى CourtInput."
+      },
+      {
+        "layer": "api_call",
+        "label": "listCourts / createCourt / updateCourt",
+        "ref": {
+          "path": "frontend/src/features/courts/courtsApi.ts",
+          "lines": "57-57",
+          "note": ""
+        },
+        "data_ar": "طلبات JSON إلى /api/v1/courts."
+      },
+      {
+        "layer": "controller",
+        "label": "CourtController",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/courts/CourtController.java",
+          "lines": "27-27",
+          "note": ""
+        },
+        "data_ar": "CourtRequests.Create/Update بعد التحقق."
+      },
+      {
+        "layer": "authorization",
+        "label": "@PreAuthorize COURT_VIEW / COURT_MANAGE",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/courts/CourtController.java",
+          "lines": "50-50",
+          "note": ""
+        },
+        "data_ar": "الصلاحية قبل الوصول إلى الخدمة."
+      },
+      {
+        "layer": "service",
+        "label": "CourtService",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/courts/CourtService.java",
+          "lines": "65-65",
+          "note": ""
+        },
+        "data_ar": "تطبيع الرمز وفحص التكرار والنسخة."
+      },
+      {
+        "layer": "repository",
+        "label": "CourtRepository",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/courts/CourtRepository.java",
+          "lines": "11-11",
+          "note": ""
+        },
+        "data_ar": "حفظ المحكمة وبحثها بالتصفية."
+      },
+      {
+        "layer": "tables",
+        "label": "court",
+        "ref": {
+          "path": "backend/src/main/resources/db/migration/V300__LD-018_court.sql",
+          "lines": "3-3",
+          "note": ""
+        },
+        "data_ar": "صف المحكمة بقيود الرمز والدرجة."
+      },
+      {
+        "layer": "result",
+        "label": "CourtRequests.Response",
+        "ref": {
+          "path": "backend/src/main/java/com/lawdesk/courts/CourtRequests.java",
+          "lines": "43-43",
+          "note": ""
+        },
+        "data_ar": "المحكمة بنسختها الجديدة تظهر في القائمة."
+      }
+    ]
+  },
+  "status": "IMPLEMENTED_ON_DEVELOP",
+  "status_note_ar": "الشيفرة موجودة على develop وتغطيها اختبارات الخادم والواجهة المذكورة.",
+  "status_evidence": [
+    {
+      "path": "backend/src/main/java/com/lawdesk/courts/CourtService.java",
+      "lines": "25-25",
+      "note": ""
+    },
+    {
+      "path": "frontend/src/features/courts/CourtsPage.tsx",
+      "lines": "30-30",
+      "note": ""
+    }
+  ],
+  "verification_ar": "قرأتُ المتحكم والخدمة والطلبات وشاشتي القائمة والنموذج وملف الرسائل. اختبارات وجدتها: backend/src/test/java/com/lawdesk/courts/CourtApiTest.java وفي الواجهة frontend/src/features/courts/CourtsPage.test.tsx. لم أشغّلها ولم يجرِ هذا المستند تحققًا على UAT. لم أجد في شيفرة المحاكم تسجيلًا في سجل التدقيق؛ لذلك لم أذكر شيئًا عنه كحدث. شاشة اختيار المحكمة داخل قيد الدعاوى موثّقة في ميزة المراحل."
+}
