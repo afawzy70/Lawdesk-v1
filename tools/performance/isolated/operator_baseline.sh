@@ -8,8 +8,10 @@ cd "$repo"
 [[ -z $(git status --porcelain) ]] || { echo 'refused: clean suite checkout required' >&2; exit 2; }
 export LAWDESK_PERF_HOST_MODE=shared-verified
 export LAWDESK_PERF_SHA=${LAWDESK_PERF_SHA:-1771bded862a49b9e3015eb76115a981944954c8}
-export LAWDESK_PERF_SUITE_SHA=$(git rev-parse HEAD)
-export LAWDESK_PERF_UID=$(id -u)
+LAWDESK_PERF_SUITE_SHA=$(git rev-parse HEAD)
+export LAWDESK_PERF_SUITE_SHA
+LAWDESK_PERF_UID=$(id -u)
+export LAWDESK_PERF_UID
 export LAWDESK_PERF_RATE_SCALE=0.20
 export XDG_RUNTIME_DIR=/run/user/$LAWDESK_PERF_UID
 export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/docker.sock
