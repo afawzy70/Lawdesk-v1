@@ -11,24 +11,24 @@ Honesty rules (enforced by build_matrix.py --check):
 """
 
 # SHA that the backend and frontend suites were green on (GitHub Actions CI, develop push).
-TEST_SHA = "cac8d73"
+TEST_SHA = "18822a8"
 
 # Journey evidence files (committed under docs/evidence). The UAT release each ran on is read from the file itself.
 J = {
-    "wp1a": "DOC-WP1/journey-wp1-access.json",
-    "wp1c": "DOC-WP1/journey-wp1c-parties.json",
-    "wp1d": "DOC-WP1/journey-wp1d-stages.json",
-    "wp2": "DOC-WP2/journey-wp2-uat.json",
-    "wp3": "DOC-GAPS/wp3_followup_journey-3937a50.json",
-    "wp4": "DOC-WP4/journey-uat.json",
-    "wp5": "DOC-WP5/journey-wp5.json",
-    "wp6": "DOC-WP6/journey-uat.json",
-    "wp7": "DOC-WP7/wp7_journey.json",
-    "wp8": "DOC-GAPS/wp8_journey-3937a50.json",
-    "wp9": "DOC-WP9/wp9_journey.json",
-    "wp10": "DOC-WP10/wp10_journey.json",
-    "conn": "DOC-GAPS/connected_journey-3937a50.json",
-    "ocr": "DOC-OCR/uat-journey-1b502c1.json",
+    "wp1a": "DOC-RETEST/wp1_access-18822a8.json",
+    "wp1c": "DOC-RETEST/wp1c_parties-18822a8.json",
+    "wp1d": "DOC-RETEST/wp1d_stages-18822a8.json",
+    "wp2": "DOC-RETEST/wp2-18822a8.json",
+    "wp3": "DOC-RETEST/wp3_followup-18822a8.json",
+    "wp4": "DOC-RETEST/wp4-18822a8.json",
+    "wp5": "DOC-RETEST/wp5-18822a8.json",
+    "wp6": "DOC-RETEST/wp6-18822a8.json",
+    "wp7": "DOC-RETEST/wp7-18822a8.json",
+    "wp8": "DOC-RETEST/wp8-18822a8.json",
+    "wp9": "DOC-RETEST/wp9-18822a8.json",
+    "wp10": "DOC-RETEST/wp10-18822a8.json",
+    "conn": "DOC-RETEST/connected-18822a8.json",
+    "ocr": "DOC-RETEST/ocr-18822a8.json",
 }
 
 # bundle: t = backend tests (Class or Class#method), f = frontend test files, j = [(alias, [step prefixes])],
@@ -169,7 +169,12 @@ EVIDENCE = {
     "OBSERVABILITY": dict(t=["RequestCorrelationTest", "AuditTrailTest"]),
     "UX_RTL": dict(at="DOC-UX run on frontend sources equal to develop 4d83267, Chromium+Firefox, ar/en", x=["docs/evidence/DOC-UX/results-summary.json", "docs/evidence/DOC-UX/SUMMARY.md"], f=["locale.test.ts"]),
     "UX_PHONE": dict(at="DOC-UX run on frontend sources equal to develop 4d83267, 390 px and 1366 px", x=["docs/evidence/DOC-UX/results-summary.json", "docs/evidence/DOC-UX/SUMMARY.md"], f=["CaseMobileLayout.test.tsx"]),
-    "UX_ENGINES": dict(at="DOC-UX run on frontend sources equal to develop 4d83267", x=["docs/evidence/DOC-UX/results-summary.json", "docs/evidence/DOC-UX/SUMMARY.md"]),
+    "UX_ENGINES": dict(at="DOC-UX at develop 4d83267 (Chromium+Firefox, 390/1366 px); DOC-R3-TIME-BROWSERS final matrix on develop 3522775 + PR #99 sources: Chromium, Firefox 157.0 and WebKit 27.2 (Playwright WPE build 2370, not Safari), 4 widths, ar/en, 39 screens, 936 rows",
+                       x=["docs/evidence/DOC-UX/results-summary.json", "docs/evidence/DOC-UX/SUMMARY.md",
+                          "docs/evidence/DOC-R3-TIME-BROWSERS/results-final-chromium.json", "docs/evidence/DOC-R3-TIME-BROWSERS/results-final-firefox.json",
+                          "docs/evidence/DOC-R3-TIME-BROWSERS/results-final-webkit.json", "docs/evidence/DOC-R3-TIME-BROWSERS/README.md"]),
+    "LIB_SIMILAR_UI": dict(t=["SimilarJudgmentApiTest", "GapClosureApiTest#similarJudgmentsAreFoundFromADefenceAloneAndFromTheClaimsAndDefencesOfTheCase"],
+                           f=["DefenseSimilarJudgments.test.tsx"]),
     "ASSISTANT_RULES": dict(t=["AssistantBoundariesTest", "AssistantAskApiTest"], j=[("wp10", ["with nothing adequate the assistant refuses and returns no s", "asking about a case the account may not see is a 404", "the draft is DRAFT, not final and non-production", "every query is logged for its asker, with the outcome and th"])]),
     "ASSISTANT_STATUS": dict(t=["AssistantAskApiTest"], j=[("wp10", ["the status says not operational, no approved provider, non-p", "every future integration is disabled, with no endpoint and n"])]),
     "ASSISTANT_SUMMARY": dict(t=["AssistantTasksApiTest"], j=[("wp10", ["the summary quotes the case's records with sources"])]),
@@ -211,7 +216,7 @@ V = {
     14: [({7}, "TASK_REASSIGN", ""), ({9}, "TASK_STATES", ""), (None, "TASKS", "")],
     15: [({13}, "CALENDAR_CONFLICT", ""), ({12}, "CALENDAR_CLOSED", ""), ({2, 3, 4, 5, 6, 7, 8, 9}, "CALENDAR_KINDS", ""), (None, "CALENDAR", "")],
     16: [({22}, "LIB_PRINCIPLE", ""), ({23, 24, 25, 26, 27, 28, 29, 30, 31}, "LIB_PRINCIPLE", ""), ({41}, "LIB_SEARCH", ""), ({32, 33, 34, 35, 36, 37, 38, 39, 40}, "LIB_CLASS", ""),
-         ({42}, "LIB_LINK", ""), ({43, 44}, "LIB_SIMILAR", ""), ({45, 46, 47, 48, 49, 50}, "LIB_STATUS", ""), ({51}, "LIB_REPORT", ""), ({19}, "LIB_COPY", ""), ({20}, "LIB_SOURCE", ""), (None, "LIBRARY", "")],
+         ({42}, "LIB_LINK", ""), ({43}, "LIB_SIMILAR_UI", ""), ({44}, "LIB_SIMILAR", ""), ({45, 46, 47, 48, 49, 50}, "LIB_STATUS", ""), ({51}, "LIB_REPORT", ""), ({19}, "LIB_COPY", ""), ({20}, "LIB_SOURCE", ""), (None, "LIBRARY", "")],
     17: [({8}, "DEFENSE_PRECEDENT", ""), ({28, 29}, "DEFENSE_LIBRARY", ""), ({30}, "DEFENSE_STATS", ""), (set(range(15, 28)), "DEFENSE_POSITION", ""), (None, "DEFENSES", "")],
     18: [(set(range(33, 38)), "INFOREQ_REPORT", ""), ({38}, None, "'cases affected by late replies' is not asserted by the report test"),
          ({24, 32}, "INFOREQ_REPLY", ""), ({25, 26}, "INFOREQ_LATE", ""),
@@ -262,24 +267,22 @@ OV = {
                       "DONE and verified: manual approved deadlines, rule/holiday draft+approval flow, and the calculator on SYNTHETIC rules (5 working days, weekend, holiday skip). NOT done: no legal period rule or holiday exists in the system (none invented). Whether reminder lead times must differ per deadline type is an open owner question; the text asks only for alerts before expiry.", "DEADLINE_ENGINE"),
     "LD-DOC-10-012": ("PARTIAL", "LEGAL_INPUT", "D6: no approved legal rule exists to calculate against",
                       "DONE and verified: calculated dates are proposals only, official only after approval by a competent member, with the arithmetic kept. NOT possible yet: review of a real legal calculation.", "DEADLINE_ENGINE"),
-    "LD-DOC-16-043": ("PARTIAL", "UI_NOT_BUILT", "none (engineering)",
-                      "API suggests similar judgments from claims and defences (GapClosureApiTest.similarJudgmentsAreFoundFromADefenceAloneAndFromTheClaimsAndDefencesOfTheCase). The screen for choosing a defence while drafting a memo is not built.", "LIB_SIMILAR"),
     "LD-DOC-26-010": ("PARTIAL", "DATA_NOT_PROVIDED", "Owner supplies the organisation structure and assigns existing cases to units",
                       "Mechanism done and verified (cases by unit move with the cases). The real sector/department/section data and the unit of each real case are not provided.", "DASHBOARD_UNITS"),
     "LD-DOC-34-003": ("PARTIAL", "INFRA", "A host-level restore drill on UAT's own volume (shared host, outside the agent's rights)",
-                      "DONE: backup before deploy exists in the deploy path; a full dump/restore drill passed 15 of 15 checks on an isolated PostgreSQL 18.6 (docs/evidence/DOC-RESTORE run3) after fixing a real defect (V800). NOT done: restore of UAT's real volume.", None),
-    "LD-DOC-34-006": ("PARTIAL", "PERFORMANCE_ENGINEERING", "none external; a stored snapshot of dashboard figures needs an owner decision on its invalidation design (DOC-PERF section 4)",
-                      "Search and list were fixed (unified search 21 s to about 0.1-0.5 s p95 at 50,000 cases). Still over 0.5 s (p95, manager, 50k cases): dashboard 1.9 s, indicator figures 1.6 s, case inventory 0.9 s, and about a dozen other requests at 0.5-0.8 s. The 0.5 s target comes only from LD-DOC-03 D7 (proposed), not from the requirements text.", None),
+                      "DONE: backup before deploy exists in the deploy path; a full dump/restore drill passed 15 of 15 checks on an isolated PostgreSQL 18.6 (docs/evidence/DOC-RESTORE run3) after fixing a real defect (V800); a SIMULATED pre-V800 backup (the app migrated to V781 in a throw-away cluster, not a historical archived backup) fails to restore as-is and restores after a one-line documented repair, 21 of 21 checks (docs/evidence/DOC-R3-RESTORE-OLD, docs/operations/RESTORE-OLD-BACKUPS.md). NOT done: a real historical pre-V800 backup, a post-V845 dump drill, restore of UAT's real volume.", None),
+    "LD-DOC-34-006": ("PARTIAL", "PERFORMANCE_ENGINEERING", "none external; going further without stored snapshots (deferred by the owner) needs a request-scoped shared visible-case set: a design decision with its own equivalence tests (DOC-R3-PERF)",
+                      "Search and list were fixed (unified search 21 s to about 0.1-0.5 s p95 at 50,000 cases). After #101 (V845, query rewrites; no stored snapshots) 8 of 131 measured requests are still over 0.5 s sequential p95 on a loaded host: manager dashboard 1.9 s and indicator figures 1.2 s, member 0.90/0.88 s, no-scope 0.76/0.58 s (DOC-R3-PERF); under 20 parallel clients no gain can be claimed; registering a case still costs 38 ms with the search columns. The 0.5 s target comes only from LD-DOC-03 D7 (proposed), not from the requirements text.", None),
     "LD-DOC-34-007": ("BLOCKED", "OWNER_DECISION", "D7: approve key management and the field/disk encryption design",
                       "DONE: passwords are hashed (LoginFlowTest, SecurityBaselineTest). NOT done: encryption of sensitive fields such as civil numbers; nothing can be implemented safely before keys are decided.", None),
     "LD-DOC-34-009": ("PARTIAL", "INFRA", "Restore drill of UAT archive data on the host",
                       "DONE: backup mechanism (LD-041) and a passing restore drill on an isolated cluster including document versions (DOC-RESTORE). NOT done: backup encryption and a drill on UAT's real archive volume.", None),
     "LD-DOC-34-013": ("PARTIAL", "SPECIALIST", "An external penetration test / DAST (for example ZAP) before go-live",
                       "DONE: automated security checks in CI (gitleaks 8.30.1 on every branch, SecurityBaselineTest, authorization-before-validation and case-bound endpoint tests). NOT done: independent security test.", None),
-    "LD-DOC-34-014": ("PARTIAL", "INFRA", "WebKit needs a Docker image or render node the agent user cannot run on the host",
-                      "DONE and verified: Chromium and Firefox, 39 screens x ar/en x 390/1366 px (312 smoke rows, 0 findings; DOC-UX at 4d83267). NOT run: WebKit/Safari.", "UX_ENGINES"),
-    "LD-DOC-34-016": ("PARTIAL", "TEST_NOT_RUN", "none (a tablet width was not in the matrix)",
-                      "DONE and verified: phone (390 px) and desktop (1366 px) on 39 screens, axe 0 violations on Chromium. NOT run: tablet width, and axe on Firefox/WebKit.", "UX_PHONE"),
+    "LD-DOC-34-014": ("PARTIAL", "TEST_NOT_RUN", "Safari/iOS on a real device or the official Playwright container (operator with docker)",
+                      "DONE and verified by the developer: Chromium, Firefox 157.0 and WebKit 27.2 (Playwright's Linux WPE build run rootless with a private library prefix and software EGL; NOT Safari or iOS), 39 screens x ar/en x 390/768/1024/1366 px = 936 rows, 0 findings, axe 0 on all rows (DOC-R3-TIME-BROWSERS). The result is about layout/accessibility of those screens as rendered with the local test data, not about the 650 requirements or the completeness of every panel. NOT run: Safari/iOS itself; the official Playwright container (an operator with docker can run the command in frontend/e2e-wp/README).", "UX_ENGINES"),
+    "LD-DOC-34-016": ("PARTIAL", "TEST_NOT_RUN", "QA retest of QA-RT-011 (case page HTTP 500s) on the deployed fix",
+                      "DONE and verified by the developer: phone 390, tablet 768/1024 and desktop 1366 px on 39 screens in Chromium, Firefox and WebKit(WPE), axe 0 on all 936 rows (DOC-R3-TIME-BROWSERS). Independent QA recorded FAIL on 3522775..03ff08e because the case page returned many HTTP 500s (QA-RT-011); fixed in #111 (UserAccounts held a pooled connection while asking for a second) and re-checked by the developer on UAT 18822a8 (0 5xx in curl HTTP/1.1+HTTP/2 and in 2 Chromium runs; docs/evidence/DOC-RETEST/CASE-PAGE-18822a8.md). Not claimed: completeness of every panel's data, or QA's 32-row matrix. Kept PARTIAL until Codex retests.", "UX_PHONE"),
     "LD-DOC-34-017": ("PARTIAL", "OWNER_DECISION", "D8/section 34: owner names the systems to integrate and supplies credentials",
                       "DONE and verified: integration contracts documented and five adapters present but disabled, no endpoint, no credentials (journey wp10, first two steps). NOT done: any real integration.", "ASSISTANT_STATUS"),
     "LD-DOC-22-003": ("PARTIAL", "EXTERNAL_PROVIDER", "D8: approve an AI provider and what may be sent to it",
@@ -288,4 +291,7 @@ OV = {
 
 # Section 22 (assistant) classification by row seq. Rows not listed are BLOCKED / EXTERNAL_PROVIDER (D8).
 A22_RULES = {23, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55}   # rules enforced by code independent of any model -> PARTIAL
+# Records-only case brief (GET /api/v1/cases/{id}/brief, no model, no provider): answers the part of these rows that is a query over the
+# system's own records. The natural-language assistant wording stays blocked on D8.
+A22_BRIEF = {4, 8, 9, 24, 25, 26, 27, 28, 29, 30, 31, 39, 40, 41, 42, 43, 44, 45}
 A22_LIBRARY = {17, 18, 22}                                   # precedent search / citation: library functions that need no AI -> PARTIAL
