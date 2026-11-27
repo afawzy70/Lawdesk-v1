@@ -1,0 +1,185 @@
+-- PROBE ONLY (as lawdesk_owner): class-C complaint tables, owner-owned read functions and the referral writer (replaces pg18-probe/25 and the
+-- writer of pg18-probe/40). NOT a migration.
+create table lawdesk.complaint (
+  id uuid primary key default gen_random_uuid(),
+  status text not null default 'UNDER_INVESTIGATION' check (status in ('UNDER_INVESTIGATION','REFERRED','PRESERVED','CLOSED')),
+  responsible_user_id uuid, owning_unit_id uuid references lawdesk.org_unit(id), reference text)
+;;
+create table lawdesk.complaint_access (complaint_id uuid not null references lawdesk.complaint(id), user_id uuid not null, primary key (complaint_id, user_id))
+;;
+create table lawdesk.complaint_case_link (
+  complaint_id uuid primary key references lawdesk.complaint(id), case_id uuid not null unique references lawdesk.legal_case(id),
+  idempotency_key uuid not null default gen_random_uuid(), actor_id uuid, recorded_by_role name not null default session_user,
+  recorded_at timestamptz not null default now())
+;;
+create table lawdesk.referral_draft (
+  complaint_id uuid primary key references lawdesk.complaint(id), missing text[] not null default '{}', manifest_approved boolean not null default false,
+  intake jsonb, prepared_by uuid, approved_by uuid)
+;;
+-- Class C: NO application credential holds any privilege on these tables, not even SELECT (QA-R6-M0-002).
+revoke all on lawdesk.complaint, lawdesk.complaint_access, lawdesk.complaint_case_link, lawdesk.referral_draft from lawdesk_dml
+;;
+-- ===================== scope and visibility (private: no grant, so they are not a membership oracle) =====================
+create function lawdesk.r6_has_grant(p_user uuid, p_authority text, p_unit uuid) returns boolean language sql stable security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+  select exists (select 1 from lawdesk.legal_authority_grant g join lawdesk.app_user u on u.id = g.user_id and u.enabled
+    where g.user_id = p_user and g.authority = p_authority and g.state = 'ACTIVE'
+      and (g.scope_type = 'ALL' or (g.scope_type = 'UNIT' and g.scope_ref = p_unit::text))) $$
+;;
+create function lawdesk.r6_complaint_visible(p_complaint uuid, p_actor uuid) returns boolean language sql stable security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+  select exists (select 1 from lawdesk.complaint c
+    join lawdesk.app_user u on u.id = p_actor and u.enabled
+    where c.id = p_complaint
+      and exists (select 1 from lawdesk.legal_authority_grant g where g.user_id = p_actor and g.authority = 'COMPLAINT_VIEW' and g.state = 'ACTIVE')
+      and (c.responsible_user_id = p_actor
+           or exists (select 1 from lawdesk.complaint_access a where a.complaint_id = c.id and a.user_id = p_actor)
+           or lawdesk.r6_has_grant(p_actor, 'COMPLAINT_VIEW', c.owning_unit_id))) $$
+;;
+-- ===================== read functions: the ONLY way the legal credential sees complaint data =====================
+create function lawdesk.r6_complaint_list(p_actor uuid) returns table (id uuid, status text, reference text, responsible_user_id uuid, owning_unit_id uuid)
+language sql stable security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+  select c.id, c.status, c.reference, c.responsible_user_id, c.owning_unit_id from lawdesk.complaint c
+  where lawdesk.r6_complaint_visible(c.id, p_actor) order by c.id $$
+;;
+create function lawdesk.r6_complaint_get(p_actor uuid, p_complaint uuid) returns table (id uuid, status text, reference text, responsible_user_id uuid, owning_unit_id uuid)
+language plpgsql stable security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+begin
+  if not lawdesk.r6_complaint_visible(p_complaint, p_actor) then raise exception 'complaint not found' using errcode = 'LD020'; end if;
+  return query select c.id, c.status, c.reference, c.responsible_user_id, c.owning_unit_id from lawdesk.complaint c where c.id = p_complaint;
+end $$
+;;
+-- Returns the case identifier to a complaint-visible actor; the application still applies the CASE visibility rule before showing it.
+create function lawdesk.r6_complaint_case(p_actor uuid, p_complaint uuid) returns uuid language plpgsql stable security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+begin
+  if not lawdesk.r6_complaint_visible(p_complaint, p_actor) then raise exception 'complaint not found' using errcode = 'LD020'; end if;
+  return (select l.case_id from lawdesk.complaint_case_link l where l.complaint_id = p_complaint);
+end $$
+;;
+-- Reverse direction: NULL both for "no complaint" and for "a complaint you may not see".
+create function lawdesk.r6_case_complaint(p_actor uuid, p_case uuid) returns uuid language sql stable security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+  select l.complaint_id from lawdesk.complaint_case_link l where l.case_id = p_case and lawdesk.r6_complaint_visible(l.complaint_id, p_actor) $$
+;;
+create function lawdesk.r6_referral_draft_get(p_actor uuid, p_complaint uuid) returns table (missing text[], manifest_approved boolean, intake jsonb)
+language plpgsql stable security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+begin
+  if not lawdesk.r6_complaint_visible(p_complaint, p_actor) then raise exception 'complaint not found' using errcode = 'LD020'; end if;
+  return query select d.missing, d.manifest_approved, d.intake from lawdesk.referral_draft d where d.complaint_id = p_complaint;
+end $$
+;;
+-- ===================== the confidentiality guard (unchanged rule; writer discriminator of 20) =====================
+create function lawdesk.r6_case_is_complaint_linked(p_case uuid) returns boolean language sql stable security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+  select exists (select 1 from lawdesk.complaint_case_link l where l.case_id = p_case) $$
+;;
+create function lawdesk.r6_guard_case_confidentiality() returns trigger language plpgsql set search_path = pg_catalog, lawdesk, pg_temp as $$
+begin
+  if not (current_user = 'lawdesk_owner' and pg_trigger_depth() = 1) and old.confidentiality = 'RESTRICTED'
+     and new.confidentiality is distinct from 'RESTRICTED' and lawdesk.r6_case_is_complaint_linked(old.id) then
+    raise exception 'case % is linked to a complaint and cannot be declassified here', old.id using errcode = 'LD010';
+  end if;
+  return new;
+end $$
+;;
+create function lawdesk.r6_declassify_linked_case(p_case uuid, p_approver uuid) returns void language plpgsql security definer
+  set search_path = pg_catalog, lawdesk, pg_temp as $$
+begin
+  if not exists (select 1 from lawdesk.owner_policy where policy = 'P-DECLASS' and enabled) then
+    raise exception 'policy P-DECLASS is off' using errcode = 'LD011'; end if;
+  if not exists (select 1 from lawdesk.complaint_case_link l join lawdesk.complaint c on c.id = l.complaint_id
+       where l.case_id = p_case and lawdesk.r6_has_grant(p_approver, 'COMPLAINT_APPROVE', c.owning_unit_id)) then
+    raise exception 'approver holds no COMPLAINT_APPROVE grant in scope' using errcode = 'LD005'; end if;
+  update lawdesk.legal_case set confidentiality = 'NORMAL' where id = p_case;
+end $$
+;;
+-- synthetic linked complaint on the synthetic case (as the author's pg18-probe/25 did; inserted BEFORE the invariant exists)
+insert into lawdesk.complaint (id, status, owning_unit_id) values ('00000000-0000-0000-0000-0000000000f1', 'REFERRED', '00000000-0000-0000-0000-0000000000f1')
+;;
+insert into lawdesk.complaint_case_link (complaint_id, case_id) values ('00000000-0000-0000-0000-0000000000f1', '00000000-0000-0000-0000-0000000000c1')
+;;
+update lawdesk.legal_case set confidentiality = 'RESTRICTED' where id = '00000000-0000-0000-0000-0000000000c1'
+;;
+-- ===================== invariant R-1 at COMMIT =====================
+create function lawdesk.r6_check_referral_invariant() returns trigger language plpgsql security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+declare cid uuid; st text; n int;
+begin
+  if tg_table_name = 'complaint' then cid := new.id;
+  elsif tg_op = 'DELETE' then cid := old.complaint_id;
+  else cid := new.complaint_id; end if;
+  select status into st from lawdesk.complaint where id = cid;
+  select count(*) into n from lawdesk.complaint_case_link where complaint_id = cid;
+  if st is null then return null; end if;
+  if (st = 'REFERRED') <> (n = 1) or n > 1 then
+    raise exception 'invariant R-1 violated for complaint %: status=% links=%', cid, st, n using errcode = 'LD032'; end if;
+  return null;
+end $$
+;;
+create constraint trigger r6_referral_invariant_c after insert or update of status on lawdesk.complaint deferrable initially deferred for each row execute function lawdesk.r6_check_referral_invariant()
+;;
+create constraint trigger r6_referral_invariant_l after insert or update or delete on lawdesk.complaint_case_link deferrable initially deferred for each row execute function lawdesk.r6_check_referral_invariant()
+;;
+-- ===================== the referral writer: it CREATES the case; no case identifier is ever accepted (QA-R6-M0-009) =====================
+create function lawdesk.r6_open_referral_case(p_complaint uuid, p_actor uuid, p_key uuid)
+returns table (case_id uuid, reference_no text, replayed boolean)
+language plpgsql security definer set search_path = pg_catalog, lawdesk, pg_temp as $$
+#variable_conflict use_column
+declare
+  c lawdesk.complaint%rowtype; l lawdesk.complaint_case_link%rowtype; d lawdesk.referral_draft%rowtype;
+  v_case uuid; v_ref text; v_year int; v_number int; i jsonb;
+begin
+  if p_key is null then raise exception 'an idempotency key is required' using errcode = 'LD024'; end if;
+  select * into c from lawdesk.complaint x where x.id = p_complaint for update;
+  if not found or not lawdesk.r6_complaint_visible(p_complaint, p_actor) then raise exception 'complaint not found' using errcode = 'LD020'; end if;
+  if not lawdesk.r6_has_grant(p_actor, 'COMPLAINT_APPROVE', c.owning_unit_id) then raise exception 'actor lacks COMPLAINT_APPROVE' using errcode = 'LD005'; end if;
+  select * into l from lawdesk.complaint_case_link x where x.complaint_id = p_complaint;
+  if found then
+    if l.idempotency_key = p_key and l.actor_id = p_actor then
+      return query select k.id, k.reference_no::text, true from lawdesk.legal_case k where k.id = l.case_id;
+      return;
+    end if;
+    raise exception 'complaint already referred' using errcode = 'LD021';
+  end if;
+  if c.status = 'REFERRED' then raise exception 'complaint already referred' using errcode = 'LD021'; end if;
+  if c.status <> 'UNDER_INVESTIGATION' then raise exception 'complaint status % cannot be referred', c.status using errcode = 'LD022'; end if;
+  if not exists (select 1 from lawdesk.owner_policy p where p.policy = 'P-MANIFEST' and p.enabled) then raise exception 'policy P-MANIFEST is off' using errcode = 'LD023'; end if;
+  select * into d from lawdesk.referral_draft x where x.complaint_id = p_complaint for update;
+  i := d.intake;
+  if d.complaint_id is null or not d.manifest_approved or cardinality(d.missing) > 0
+     or d.prepared_by is null or d.approved_by is null or d.prepared_by = d.approved_by
+     or not lawdesk.r6_has_grant(d.approved_by, 'COMPLAINT_APPROVE', c.owning_unit_id)
+     or i is null or i->>'title' is null or i->>'case_type' is null or i->>'opened_on' is null
+     or i->>'authority_position' is null or i->>'financial_impact' is null
+     or not exists (select 1 from lawdesk.app_user u where u.id = c.responsible_user_id and u.enabled) then
+    raise exception 'referral draft is incomplete or unapproved' using errcode = 'LD024'; end if;
+  -- the ordinary intake numbering: the same counter row, locked until this transaction ends (gapless)
+  v_year := extract(year from (now() at time zone 'UTC'))::int;
+  insert into lawdesk.case_reference_counter as n (year, last_number) values (v_year, 1)
+    on conflict (year) do update set last_number = n.last_number + 1 returning n.last_number into v_number;
+  v_ref := 'LD-' || v_year || '-' || lpad(v_number::text, greatest(5, length(v_number::text)), '0');
+  v_case := gen_random_uuid();
+  insert into lawdesk.legal_case (id, reference_no, automated_no, title, case_type, subject, opened_on, authority_position,
+      financial_impact, financial_amount, confidentiality, owning_unit_id, created_by, updated_by)
+    values (v_case, v_ref, i->>'automated_no', i->>'title', i->>'case_type', i->>'subject', (i->>'opened_on')::date, i->>'authority_position',
+      i->>'financial_impact', (i->>'financial_amount')::numeric, 'RESTRICTED', c.owning_unit_id, p_actor, p_actor);
+  insert into lawdesk.complaint_case_link (complaint_id, case_id, idempotency_key, actor_id) values (p_complaint, v_case, p_key, p_actor);
+  update lawdesk.complaint x set status = 'REFERRED' where x.id = p_complaint;
+  return query select v_case, v_ref, false;
+end $$
+;;
+-- ===================== grants =====================
+revoke all on function lawdesk.r6_has_grant(uuid, text, uuid), lawdesk.r6_complaint_visible(uuid, uuid), lawdesk.r6_complaint_list(uuid),
+  lawdesk.r6_complaint_get(uuid, uuid), lawdesk.r6_complaint_case(uuid, uuid), lawdesk.r6_case_complaint(uuid, uuid), lawdesk.r6_referral_draft_get(uuid, uuid),
+  lawdesk.r6_case_is_complaint_linked(uuid), lawdesk.r6_guard_case_confidentiality(), lawdesk.r6_declassify_linked_case(uuid, uuid),
+  lawdesk.r6_check_referral_invariant(), lawdesk.r6_open_referral_case(uuid, uuid, uuid) from public
+;;
+grant execute on function lawdesk.r6_complaint_list(uuid), lawdesk.r6_complaint_get(uuid, uuid), lawdesk.r6_complaint_case(uuid, uuid),
+  lawdesk.r6_case_complaint(uuid, uuid), lawdesk.r6_referral_draft_get(uuid, uuid), lawdesk.r6_declassify_linked_case(uuid, uuid),
+  lawdesk.r6_open_referral_case(uuid, uuid, uuid) to lawdesk_legal
+;;
+-- the confidentiality guard needs one boolean
+grant execute on function lawdesk.r6_case_is_complaint_linked(uuid) to lawdesk_dml
+;;
+create trigger r6_guard_case_confidentiality before update of confidentiality on lawdesk.legal_case
+  for each row execute function lawdesk.r6_guard_case_confidentiality()
+;;

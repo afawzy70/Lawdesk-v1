@@ -1,0 +1,36 @@
+########## Lock.java scenarios ##########
+  + 519ms update ok    select 1 from proceeding where id = '00000000-0000-0000-0000-0000000000b4' for update
+  + 597ms final  ok    select 1 from proceeding where id = '00000000-0000-0000-0000-0000000000b1' for update
+  +1931ms final  ok    select 1 from proceeding where id = '00000000-0000-0000-0000-0000000000b4' for update
+  +1989ms final  COMMIT parent then child
+  +2021ms update ROLLBACK [40P01] ERROR: deadlock detected
+RESULT inverted: 40P01 / commit
+  + 468ms update ok    select id from proceeding where parent_proceeding_id = '00000000-0000-0000-0000-0000000000b1
+  + 881ms update ok    select 1 from proceeding where id = '00000000-0000-0000-0000-0000000000b1' for update
+  + 887ms final  ok    select id from proceeding where parent_proceeding_id = '00000000-0000-0000-0000-0000000000b1
+  + 888ms update COMMIT children then parent
+  +1291ms final  ok    select 1 from proceeding where id = '00000000-0000-0000-0000-0000000000b1' for update
+  +1298ms final  COMMIT children then parent
+RESULT unified: commit / commit
+  +1009ms final  ok    select id from proceeding where parent_proceeding_id = '00000000-0000-0000-0000-0000000000b1
+  +1176ms filing ok    select 1 from proceeding where id = '00000000-0000-0000-0000-0000000000b1' for update
+  +1312ms filing ok    insert into proceeding (id, case_id, stage, court_id, court_case_number, court_case_year, fi
+  +1356ms filing COMMIT child b9 created
+  +1627ms final  ok    select 1 from proceeding where id = '00000000-0000-0000-0000-0000000000b1' for update
+  +1650ms final  children visible AFTER the parent lock: 3
+  +1678ms final  ROLLBACK [LD040] a child proceeding appeared: finality refused (APPEAL_FILED)
+RESULT phantom: LD040 / commit
+-- round 1: the R6 write first, closure second
+  +1212ms r6     ok    select 1 from legal_case where id = '00000000-0000-0000-0000-0000000000c1' for share
+  +1878ms r6     case status seen under the share lock: OPEN
+  +1898ms r6     COMMIT party deadline written
+  +1917ms close  ok    update legal_case set status = 'CLOSED' where id = '00000000-0000-0000-0000-0000000000c1'
+  +2252ms close  COMMIT case closed
+RESULT closure round 1: r6=commit close=commit
+-- round 2: closure first, the R6 write second
+  +2407ms close  ok    update legal_case set status = 'CLOSED' where id = '00000000-0000-0000-0000-0000000000c1'
+  +2715ms close  COMMIT case closed
+  +2717ms r6     ok    select 1 from legal_case where id = '00000000-0000-0000-0000-0000000000c1' for share
+  +2719ms r6     case status seen under the share lock: CLOSED
+  +2728ms r6     ROLLBACK [LD041] case is closed: R6 write refused (CASE_READ_ONLY)
+RESULT closure round 2: r6=LD041 close=commit

@@ -1,0 +1,48 @@
+########## independent QA Round-4 attack suite (unmodified) ##########
+### A. operator roles (author file 80/80b), then X1 legal-credential direct complaint read
+DENY select id,status from lawdesk.complaint
+     -> 42501 permission denied for table complaint
+DENY select * from lawdesk.complaint_case_link
+     -> 42501 permission denied for table complaint_case_link
+DENY select * from lawdesk.referral_draft
+     -> 42501 permission denied for table referral_draft
+OK   select user_id,authority,state from lawdesk.legal_authority_grant
+     -> 00000000-0000-0000-0000-0000000000a2 | POSTJ_APPROVE | ACTIVE || 00000000-0000-0000-0000-0000000000a2 | COMPLAINT_APPROVE | ACTIVE || 00000000-0000-0000-0000-0000000000a2 | COMPLAINT_VIEW | ACTIVE
+OK   select * from lawdesk.owner_policy
+     -> P-DECLASS | False | lawdesk_owner | None || P-MANIFEST | True | op_bob | 698db444-27a8-4f68-af96-0fba3ecc6ea9
+### B. X3 single operator login (no second person) activates policy, grants authority, records gate approval
+DENY select lawdesk.r6_op_set_policy('P-DECLASS', true)
+     -> 42883 function lawdesk.r6_op_set_policy(unknown, boolean) does not exist
+DENY select lawdesk.r6_op_grant_authority('00000000-0000-0000-0000-0000000000a5','COMPLAINT_APPROVE') is not null
+     -> 42883 function lawdesk.r6_op_grant_authority(unknown, unknown) does not exist
+DENY select lawdesk.r6_op_record_legal_approval('G-FINAL',1) is not null
+     -> 42883 function lawdesk.r6_op_record_legal_approval(unknown, integer) does not exist
+### C. 009-a referral of a PRE-EXISTING case by forging created_at (legal credential, plain DML)
+OK   insert into lawdesk.legal_case (id, reference_no, title, case_type, opened_on, created_by, updated_by, created_at) values ('00000000-0000-0000-0000-0000000009a1','LD-2020-00001','PRE-EXISTING unrelated case','CIVIL', date '2020-01-01','00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a1', now() - interval '400 days')
+OK   update lawdesk.legal_case set confidentiality='RESTRICTED', created_at=transaction_timestamp() where => UPDATE 1
+DENY select lawdesk.r6_complete_referral('00000000-0000-0000-0000-00000000f303','00000000-0000-0000-0000- => 42883 function lawdesk.r6_complete_referral(unknown, unknown, unknown) does not exist
+Traceback (most recent call last):
+  File "<scratch>/qa-r4/hijack.py", line 14, in <module>
+    cur.execute("select c.status, l.case_id, k.title, k.created_at::date from lawdesk.complaint c join lawdesk.complaint_case_link l on l.complaint_id=c.id join lawdesk.legal_case k on k.id=l.case_id where c.id='00000000-0000-0000-0000-00000000f303'"); print('RESULT',cur.fetchall())
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.InsufficientPrivilege: permission denied for table complaint
+
+### D. 006-a runtime credential rewrites an approved R6 deadline by changing source_type first
+DENY update lawdesk.deadline set source_type='TEXT', source_id=null, source_text='x', due_on=date '2031-01-01' where source_type='JUDGMENT'
+     -> LD002 deadline is protected by R6
+DENY update lawdesk.deadline set source_type='HEARING', source_id='00000000-0000-0000-0000-0000000000e1' where source_type='JUDGMENT'
+     -> LD002 deadline is protected by R6
+DENY update lawdesk.deadline set source_id=gen_random_uuid(), due_on=date '2031-01-01' where source_type='JUDGMENT' and case_id='00000000-0000-0000-0000-0000000000c1'
+     -> LD002 deadline is protected by R6
+OK   select source_type, source_id is null as no_src, due_on from lawdesk.deadline where case_id='00000000-0000-0000-0000-0000000000c1' order by due_on
+     -> JUDGMENT | False | 2026-08-01 || TEXT | True | 2026-09-01
+OK   select appeal_deadline_id from lawdesk.judgment where id='00000000-0000-0000-0000-0000000000e1'
+     -> 6a42ea0e-b578-4870-a059-024a0adddf4d
+### E. concurrency and lock order
+OK   insert into lawdesk.complaint(id) values ('00000000-0000-0000-0000-00000000f401'),('00000000-0000-0000-0000-00000000f402')
+OK   insert into lawdesk.referral_draft values ('00000000-0000-0000-0000-00000000f401','{}',true),('00000000-0000-0000-0000-00000000f402','{}',true)
+S-a same complaint x2: {'T1': 'ROLLBACK 42883 function lawdesk.r6_complete_referral(unknown, unknown, unkn', 'T2': 'ROLLBACK 42883 function lawdesk.r6_complete_referral(unknown, unknown, unkn'}
+  links for complaint, surviving cases: [(0, 0)]
+S-b two complaints one pre-existing case (forged created_at): {'F1': 'ROLLBACK function lawdesk.r6_complete_referral(unknown, unknown, unknown) does ', 'F2': 'ROLLBACK function lawdesk.r6_complete_referral(unknown, unknown, unknown) does '}
+S-c inverted order: {'R3 parent->child': '40P01 deadlock detected', 'legacy child->parent': 'ok'}
+S-c unified order: {'R4 child->parent': 'ok', 'legacy child->parent': 'ok'}

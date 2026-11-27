@@ -1,0 +1,11 @@
+-- PROBE ONLY (as lawdesk_owner): synthetic users, units and the operator registry (in the product: written at provisioning, D-09).
+insert into lawdesk.org_unit (id, tree, level, name_ar, created_by, updated_by) values
+ ('00000000-0000-0000-0000-0000000000f1','LEGAL','DEPARTMENT','synthetic unit 1','00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a1'),
+ ('00000000-0000-0000-0000-0000000000f2','LEGAL','DEPARTMENT','synthetic unit 2','00000000-0000-0000-0000-0000000000a1','00000000-0000-0000-0000-0000000000a1')
+;;
+insert into lawdesk.app_user (id, username, email, display_name, password_hash, enabled, created_by, updated_by)
+ select ('00000000-0000-0000-0000-0000000000' || k)::uuid, 'synthetic_' || k, k || '@example.invalid', 'synthetic ' || k, 'x', k <> 'a4',
+        '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1'
+ from unnest(array['a1','a2','a3','a4','a5','a9']) k
+;;
+insert into lawdesk.operator_identity (login, person_ref) values ('op_alice','synthetic-person-1'), ('op_bob','synthetic-person-2'), ('op_dave','synthetic-person-3')

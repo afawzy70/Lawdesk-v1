@@ -1,0 +1,76 @@
+-- @login op_alice
+-- PROBE ONLY: Tier B facts are recorded by TWO operators; every single-person shortcut below must be refused (replaces pg18-probe/32).
+select lawdesk.r6_op_set_policy('P-DECLASS', true)
+;;
+-- @login op_alice
+-- one operator opens a request
+select lawdesk.r6_op_request('LEGAL_APPROVAL_RECORD', '{"gate":"G-CALC","version":1}', 'synthetic-doc-calc', repeat('a', 64)) is not null as requested
+;;
+-- @login op_alice
+-- executing it unconfirmed is refused
+select lawdesk.r6_op_record_legal_approval((select id from lawdesk.r6_op_list() where state = 'OPEN'))
+;;
+-- @login op_alice
+-- confirming one's own request is refused
+select lawdesk.r6_op_confirm(id, payload_sha256) from lawdesk.r6_op_list() where state = 'OPEN'
+;;
+-- @login op_carol
+-- an unregistered member of the group is refused
+select lawdesk.r6_op_confirm((select id from lawdesk.r6_op_list() where state = 'OPEN'), repeat('0', 64))
+;;
+-- @login op_bob
+-- the second person sees the content and its hash
+select kind, payload, payload_sha256, doc_ref, requested_by from lawdesk.r6_op_list() where state = 'OPEN'
+;;
+-- @login op_bob
+select lawdesk.r6_op_confirm(id, payload_sha256) from lawdesk.r6_op_list() where state = 'OPEN'
+;;
+-- @login op_dave
+-- a third operator may not execute
+select lawdesk.r6_op_record_legal_approval((select id from lawdesk.r6_op_list() where state = 'CONFIRMED'))
+;;
+-- @login op_bob
+select lawdesk.r6_op_record_legal_approval((select id from lawdesk.r6_op_list() where state = 'CONFIRMED')) is not null as recorded
+;;
+-- @login op_bob
+-- replay of the executed request is refused
+select lawdesk.r6_op_record_legal_approval((select id from lawdesk.r6_op_list() where state = 'EXECUTED'))
+;;
+-- @login op_alice
+select lawdesk.r6_op_request('GATE_ACTIVATE', (select jsonb_build_object('approval_id', id, 'gate', detail->>'gate', 'version', (detail->>'version')::int) from lawdesk.r6_op_facts() where fact = 'approval'), 'synthetic-gate', repeat('a', 64)) is not null as requested
+;;
+-- @login op_bob
+select lawdesk.r6_op_confirm(id, payload_sha256) from lawdesk.r6_op_list() where kind = 'GATE_ACTIVATE' and state = 'OPEN'
+;;
+-- @login op_bob
+select lawdesk.r6_op_activate_gate((select id from lawdesk.r6_op_list() where kind = 'GATE_ACTIVATE' and state = 'CONFIRMED' order by expires_at desc limit 1))::text as executed_gate_activate
+;;
+-- @login op_alice
+select lawdesk.r6_op_request('AUTHORITY_GRANT', '{"user_id":"00000000-0000-0000-0000-0000000000a2","authority":"POSTJ_APPROVE","scope_type":"ALL","scope_ref":null}', 'synthetic-grant-POSTJ_APPROVE', repeat('a', 64)) is not null as requested
+;;
+-- @login op_bob
+select lawdesk.r6_op_confirm(id, payload_sha256) from lawdesk.r6_op_list() where kind = 'AUTHORITY_GRANT' and state = 'OPEN'
+;;
+-- @login op_bob
+select lawdesk.r6_op_grant_authority((select id from lawdesk.r6_op_list() where kind = 'AUTHORITY_GRANT' and state = 'CONFIRMED' order by expires_at desc limit 1)) is not null as executed_authority_grant
+;;
+-- @login op_alice
+select lawdesk.r6_op_request('AUTHORITY_GRANT', '{"user_id":"00000000-0000-0000-0000-0000000000a2","authority":"COMPLAINT_APPROVE","scope_type":"UNIT","scope_ref":"00000000-0000-0000-0000-0000000000f1"}', 'synthetic-grant-COMPLAINT_APPROVE', repeat('a', 64)) is not null as requested
+;;
+-- @login op_bob
+select lawdesk.r6_op_confirm(id, payload_sha256) from lawdesk.r6_op_list() where kind = 'AUTHORITY_GRANT' and state = 'OPEN'
+;;
+-- @login op_bob
+select lawdesk.r6_op_grant_authority((select id from lawdesk.r6_op_list() where kind = 'AUTHORITY_GRANT' and state = 'CONFIRMED' order by expires_at desc limit 1)) is not null as executed_authority_grant
+;;
+-- @login op_alice
+select lawdesk.r6_op_request('AUTHORITY_GRANT', '{"user_id":"00000000-0000-0000-0000-0000000000a2","authority":"COMPLAINT_VIEW","scope_type":"UNIT","scope_ref":"00000000-0000-0000-0000-0000000000f1"}', 'synthetic-grant-COMPLAINT_VIEW', repeat('a', 64)) is not null as requested
+;;
+-- @login op_bob
+select lawdesk.r6_op_confirm(id, payload_sha256) from lawdesk.r6_op_list() where kind = 'AUTHORITY_GRANT' and state = 'OPEN'
+;;
+-- @login op_bob
+select lawdesk.r6_op_grant_authority((select id from lawdesk.r6_op_list() where kind = 'AUTHORITY_GRANT' and state = 'CONFIRMED' order by expires_at desc limit 1)) is not null as executed_authority_grant
+;;
+-- @login op_bob
+select fact, detail from lawdesk.r6_op_facts() order by 1, detail::text

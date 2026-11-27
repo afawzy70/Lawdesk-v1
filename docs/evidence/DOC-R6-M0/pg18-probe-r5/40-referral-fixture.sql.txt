@@ -1,0 +1,11 @@
+-- PROBE ONLY (as lawdesk_owner): three synthetic complaints; f301 complete, f302 incomplete, f303 complete. Responsible researcher a2,
+-- manifest prepared by a3 and approved by a2 (the grants themselves are Tier B facts, recorded by two operators).
+insert into lawdesk.complaint (id, responsible_user_id, owning_unit_id, reference)
+ select ('00000000-0000-0000-0000-00000000f30' || n)::uuid, '00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-0000000000f1', 'SYN-C-' || n
+ from generate_series(1, 3) n
+;;
+insert into lawdesk.referral_draft (complaint_id, missing, manifest_approved, intake, prepared_by, approved_by)
+ select ('00000000-0000-0000-0000-00000000f30' || n)::uuid, case n when 2 then array['opposing party'] else '{}'::text[] end, true,
+   jsonb_build_object('title', 'referred ' || n, 'case_type', 'CRIMINAL', 'opened_on', current_date, 'authority_position', 'PLAINTIFF', 'financial_impact', 'NO'),
+   '00000000-0000-0000-0000-0000000000a3', '00000000-0000-0000-0000-0000000000a2'
+ from generate_series(1, 3) n
